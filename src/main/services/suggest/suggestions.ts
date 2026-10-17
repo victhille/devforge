@@ -117,7 +117,8 @@ export async function suggestDomains(): Promise<DomainSuggestion[]> {
     const p = projects
       .filter(x => cmd.includes(norm(x.path) + '/'))
       .sort((a, b) => b.path.length - a.path.length)[0] // deepest match wins
-    if (!p || usedPorts.has(port)) continue
+    // One suggestion per project (a project can run several dev servers)
+    if (!p || usedPorts.has(port) || out.some(o => o.projectName === p.name)) continue
     usedPorts.add(port)
     out.push({ projectName: p.name, domain: `${slug(p.name)}.test`, port, source: 'running process', running: true })
   }
