@@ -168,12 +168,15 @@ export interface ListeningPort {
 }
 
 export * from './git'
+export * from './cleaner'
 import type { GitAPI } from './git'
+import type { CleanerAPI } from './cleaner'
 
 // ─── IPC API ─────────────────────────────────────────────────────────────────
 
 export interface DevForgeAPI {
   git: GitAPI
+  cleaner: CleanerAPI
 
   // SSH
   getSshConnections: () => Promise<SSHConnection[]>

@@ -16,7 +16,10 @@ const fr = {
     snippets:       'Snippets',
     diff:           'Diff texte',
     generator:      'Générateur',
-    git: 'Git'
+    git: 'Git',
+    cleaner: 'Nettoyage disque',
+    sectionSystem: 'Système',
+    sectionServers: 'Serveurs'
   },
 
   palette: {
@@ -328,7 +331,13 @@ const fr = {
   },
 
   common: {
-    loading: 'Chargement...'
+    loading: 'Chargement...',
+    cancel:  'Annuler',
+    save:    'Enregistrer',
+    delete:  'Supprimer',
+    close:   'Fermer',
+    refresh: 'Actualiser',
+    browse:  'Parcourir'
   },
 
   gitDash: {
@@ -355,6 +364,30 @@ const fr = {
     push:            'Push',
     actionDone:      { fetch: 'fetch OK', pull: 'pull OK', push: 'push OK' },
     actionFailed:    { fetch: 'échec du fetch', pull: 'échec du pull', push: 'échec du push' }
+  },
+
+  cleaner: {
+    title:            'Nettoyage disque',
+    subtitle:         'Libérez de la place en supprimant les dossiers que vos outils savent regénérer',
+    browse:           'Parcourir',
+    scan:             'Analyser',
+    reclaimable:      'récupérables dans {n} dossiers',
+    selected:         'sélectionnés ({n} dossiers)',
+    deleteSelected:   'Supprimer la sélection',
+    kindAll:          'Tout',
+    kindDependencies: 'Dépendances',
+    kindBuild:        'Builds',
+    kindCache:        'Caches',
+    selectAll:        'Tout sélectionner',
+    selectOld:        'Projets inactifs depuis {n} j',
+    selectNone:       'Vider',
+    old:              'inactif',
+    emptyTitle:       'Choisissez un dossier et lancez l\'analyse',
+    emptyHint:        'node_modules, vendor, target, dist, .next, caches… sont listés avec leur taille. Rien n\'est supprimé sans confirmation.',
+    confirmTitle:     'Supprimer définitivement ?',
+    confirmText:      '{n} dossiers ({size}) vont être supprimés définitivement. Ils se regénèrent avec npm install, composer install, cargo build…',
+    confirmDelete:    'Supprimer {size}',
+    freed:            '{size} libérés ({n} dossiers)'
   }
 } as const
 

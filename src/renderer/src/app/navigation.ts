@@ -1,13 +1,13 @@
 import type { ComponentType } from 'react'
 import {
   Home, FolderOpen, Plus, Monitor, Terminal, Settings, Wifi, BookOpen,
-  Wrench, Send, Code, Columns, Key, GitBranch,
+  Wrench, Send, Code, Columns, Key, GitBranch, HardDrive,
   type LucideIcon
 } from 'lucide-react'
 import type { Translations } from '@renderer/i18n/translations'
 
 export type NavKey = keyof Translations['nav']
-export type SectionKey = 'sectionMain' | 'sectionTools' | 'sectionUtils'
+export type SectionKey = 'sectionMain' | 'sectionServers' | 'sectionSystem' | 'sectionUtils'
 
 type PageModule = Promise<{ default: ComponentType }>
 
@@ -35,11 +35,13 @@ export const PAGES: NavPage[] = [
   { path: '/git',         labelKey: 'git',         icon: GitBranch,  section: 'sectionMain',  load: () => import('@renderer/features/git/GitDashboardPage'), keywords: ['pull', 'push', 'fetch', 'commit', 'branch', 'repo'] },
   { path: '/new-project', labelKey: 'newProject',  icon: Plus,       section: 'sectionMain',  load: () => import('@renderer/features/projects/new/NewProjectPage'), keywords: ['create', 'créer', 'react', 'vue', 'next', 'symfony'] },
 
-  // Tools
-  { path: '/ssh',         labelKey: 'ssh',         icon: Terminal,   section: 'sectionTools', load: () => import('@renderer/features/ssh/SSHPage'), keywords: ['vps', 'server', 'serveur', 'terminal'] },
-  { path: '/environment', labelKey: 'environment', icon: Monitor,    section: 'sectionTools', load: () => import('@renderer/features/system/EnvironmentPage'), keywords: ['node', 'npm', 'php', 'git', 'docker'] },
-  { path: '/ports',       labelKey: 'ports',       icon: Wifi,       section: 'sectionTools', load: () => import('@renderer/features/system/PortsPage'), keywords: ['netstat', 'process'] },
-  { path: '/docs',        labelKey: 'docs',        icon: BookOpen,   section: 'sectionTools', load: () => import('@renderer/features/docs/DocsPage'), keywords: ['cheatsheet', 'commandes', 'commands'] },
+  // Servers
+  { path: '/ssh',         labelKey: 'ssh',         icon: Terminal,   section: 'sectionServers', load: () => import('@renderer/features/ssh/SSHPage'), keywords: ['vps', 'server', 'serveur', 'terminal'] },
+
+  // System
+  { path: '/environment', labelKey: 'environment', icon: Monitor,    section: 'sectionSystem', load: () => import('@renderer/features/system/EnvironmentPage'), keywords: ['node', 'npm', 'php', 'git', 'docker'] },
+  { path: '/ports',       labelKey: 'ports',       icon: Wifi,       section: 'sectionSystem', load: () => import('@renderer/features/system/PortsPage'), keywords: ['netstat', 'process'] },
+  { path: '/cleaner',     labelKey: 'cleaner',     icon: HardDrive,  section: 'sectionSystem', load: () => import('@renderer/features/cleaner/DiskCleanerPage'), keywords: ['node_modules', 'disk', 'disque', 'space', 'espace', 'clean', 'nettoyer'] },
 
   // Utilities
   { path: '/toolbox',     labelKey: 'toolbox',     icon: Wrench,     section: 'sectionUtils', load: () => import('@renderer/features/tools/toolbox/ToolboxPage'), keywords: ['json', 'base64', 'jwt', 'regex', 'hash', 'uuid'] },
@@ -47,6 +49,7 @@ export const PAGES: NavPage[] = [
   { path: '/snippets',    labelKey: 'snippets',    icon: Code,       section: 'sectionUtils', load: () => import('@renderer/features/tools/snippets/SnippetsPage') },
   { path: '/diff',        labelKey: 'diff',        icon: Columns,    section: 'sectionUtils', load: () => import('@renderer/features/tools/diff/DiffPage'), keywords: ['compare', 'comparer'] },
   { path: '/generator',   labelKey: 'generator',   icon: Key,        section: 'sectionUtils', load: () => import('@renderer/features/tools/generator/GeneratorPage'), keywords: ['password', 'mot de passe', 'secret', 'token'] },
+  { path: '/docs',        labelKey: 'docs',        icon: BookOpen,   section: 'sectionUtils', load: () => import('@renderer/features/docs/DocsPage'), keywords: ['cheatsheet', 'commandes', 'commands'] },
 
   // Pinned at the bottom of the sidebar
   { path: '/settings',    labelKey: 'settings',    icon: Settings,                            load: () => import('@renderer/features/settings/SettingsPage'), keywords: ['theme', 'thème', 'langue', 'language'] },
@@ -59,7 +62,7 @@ export const PAGES: NavPage[] = [
 /** Home is not lazy-loaded: it is the first screen. */
 export const HOME = { path: '/', labelKey: 'home' as NavKey, icon: Home }
 
-export const SECTIONS: SectionKey[] = ['sectionMain', 'sectionTools', 'sectionUtils']
+export const SECTIONS: SectionKey[] = ['sectionMain', 'sectionServers', 'sectionSystem', 'sectionUtils']
 
 /** Pages shown in the sidebar and the palette. */
 export const LISTED_PAGES = PAGES.filter(p => !p.route)

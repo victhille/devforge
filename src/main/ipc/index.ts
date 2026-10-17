@@ -5,6 +5,7 @@ import { registerWindowHandlers } from './window'
 import { registerProjectHandlers } from './projects'
 import { registerSettingsHandlers } from './settings'
 import { registerGitHandlers } from './git'
+import { registerCleanerHandlers } from './cleaner'
 
 export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerSshHandlers(mainWindow)
@@ -13,4 +14,5 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerProjectHandlers(mainWindow)
   registerSettingsHandlers()
   registerGitHandlers()
+  registerCleanerHandlers()
 }
