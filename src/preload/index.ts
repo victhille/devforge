@@ -119,6 +119,12 @@ const api: DevForgeAPI = {
     onRequest:   on('webhooks:request')
   },
 
+  suggest: {
+    logFiles:    invoke('suggest:log-files'),
+    monitorUrls: invoke('suggest:monitor-urls'),
+    domains:     invoke('suggest:domains')
+  },
+
   // SSH
   getSshConnections:  ()           => ipcRenderer.invoke('ssh:get-connections'),
   saveSshConnection:  (conn)       => ipcRenderer.invoke('ssh:save-connection', conn),

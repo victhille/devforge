@@ -546,6 +546,7 @@ const fr = {
   },
 
   monitor: {
+    suggestions:     'Trouvées dans vos projets',
     title:           'Monitoring',
     subtitle:        'Soyez prévenu quand un site ou une API tombe',
     subtitleOk:      'Toutes les URLs surveillées répondent',
@@ -569,6 +570,7 @@ const fr = {
   },
 
   domains: {
+    running:       'actif',
     title:         'Domaines locaux',
     subtitle:      'shop.test au lieu de localhost:3000',
     proxyOn:       'Proxy actif sur le port {port}',
@@ -583,7 +585,7 @@ const fr = {
     domain:        'Domaine',
     add:           'Ajouter',
     saveFailed:    'Impossible d\'enregistrer le domaine',
-    suggestions:   'Idées :',
+    suggestions:   'Détectés dans vos projets',
     emptyTitle:    'Aucun domaine local',
     emptyHint:     'Associez un domaine .test à un port local. Les domaines .localhost marchent sans toucher au fichier hosts.'
   },
@@ -632,6 +634,7 @@ const fr = {
   },
 
   logs: {
+    suggestions: 'Fichiers de log trouvés dans vos projets',
     open:       'Ouvrir un fichier de log',
     openFailed: 'Impossible d\'ouvrir le fichier',
     search:     'Filtrer les lignes…',
