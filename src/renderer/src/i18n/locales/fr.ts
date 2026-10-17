@@ -28,7 +28,9 @@ const fr = {
     domains: 'Domaines locaux',
     database: 'Base de données',
     logs: 'Logs',
-    webhooks: 'Webhooks'
+    webhooks: 'Webhooks',
+    collapse: 'Réduire le menu',
+    expand: 'Agrandir le menu'
   },
 
   palette: {
@@ -192,6 +194,9 @@ const fr = {
   },
 
   ssh: {
+    showServers:    'Afficher les serveurs',
+    hideServers:    'Masquer les serveurs',
+    databases:      'Bases de données du serveur',
     connections:    'Connexions',
     noConnections:  'Aucune connexion',
     addServer:      'Ajouter un serveur',

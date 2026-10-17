@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Trash2, Terminal as TerminalIcon, Wifi, WifiOff, Edit2, X, Server, BarChart2 } from 'lucide-react'
+import { Plus, Trash2, Terminal as TerminalIcon, Wifi, WifiOff, Edit2, X, Server, BarChart2, Database, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import type { SSHConnection, SSHSessionStatus } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -9,6 +9,7 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import { SectionTitle } from '@renderer/components/ui/Page'
+import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import ConnectionForm from './components/ConnectionForm'
 import TerminalPane from './components/TerminalPane'
 
@@ -34,6 +35,7 @@ export default function SSHPage() {
   const [sessions,    setSessions]    = useState<ActiveSession[]>([])
   const [activeId,    setActiveId]    = useState<string | null>(null)
   const [form,        setForm]        = useState<{ open: boolean; target?: SSHConnection }>({ open: false })
+  const [panelCollapsed, setPanelCollapsed] = usePersistentState('devforge:ssh-panel-collapsed', false)
 
   const reload = () => window.devforge.getSshConnections().then(setConnections)
 
@@ -82,15 +84,20 @@ export default function SSHPage() {
 
   return (
     <div className="flex h-full">
-      {/* Connections */}
-      <aside className="flex w-64 shrink-0 flex-col border-r border-line-subtle bg-surface">
-        <div className="flex h-11 shrink-0 items-center justify-between border-b border-line-subtle px-3">
-          <SectionTitle>{t.ssh.connections}</SectionTitle>
-          <IconButton title={t.ssh.newConnection} onClick={() => setForm({ open: true })}><Plus size={15} /></IconButton>
+      {/* Connections (collapsible: gives the terminal more room) */}
+      <aside className={cn('flex shrink-0 flex-col border-r border-line-subtle bg-surface transition-[width] duration-200', panelCollapsed ? 'w-14' : 'w-64')}>
+        <div className={cn('flex h-11 shrink-0 items-center border-b border-line-subtle', panelCollapsed ? 'justify-center' : 'justify-between px-3')}>
+          {!panelCollapsed && <SectionTitle>{t.ssh.connections}</SectionTitle>}
+          <div className="flex items-center gap-0.5">
+            {!panelCollapsed && <IconButton title={t.ssh.newConnection} onClick={() => setForm({ open: true })}><Plus size={15} /></IconButton>}
+            <IconButton title={panelCollapsed ? t.ssh.showServers : t.ssh.hideServers} onClick={() => setPanelCollapsed(c => !c)}>
+              {panelCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
+            </IconButton>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-1.5">
-          {connections.length === 0 && (
+        <div className={cn('flex-1 overflow-y-auto', panelCollapsed ? 'flex flex-col items-center gap-1 py-2' : 'p-1.5')}>
+          {connections.length === 0 && !panelCollapsed && (
             <div className="flex flex-col items-center gap-2 px-4 py-8 text-center text-sm text-fg-muted">
               <Server size={24} />
               <span>{t.ssh.noConnections}</span>
@@ -99,6 +106,20 @@ export default function SSHPage() {
           )}
           {connections.map(conn => {
             const live = sessions.find(s => s.connectionId === conn.id && s.status !== 'disconnected')
+            if (panelCollapsed) {
+              return (
+                <button
+                  key={conn.id}
+                  onClick={() => connect(conn)}
+                  title={`${conn.name} — ${conn.username}@${conn.host}`}
+                  className={cn('relative flex size-10 items-center justify-center rounded-lg font-semibold uppercase transition-colors hover:bg-hover', live && 'bg-hover')}
+                  style={{ color: conn.color }}
+                >
+                  {conn.name.slice(0, 2)}
+                  {live && <span className="absolute right-1 bottom-1 size-2 rounded-full bg-success ring-2 ring-surface" />}
+                </button>
+              )
+            }
             return (
               <div key={conn.id} className="group relative rounded-lg transition-colors hover:bg-hover">
                 <button onClick={() => connect(conn)} className="flex w-full items-center gap-2.5 px-2.5 py-2 text-left">
@@ -118,12 +139,16 @@ export default function SSHPage() {
                 </button>
                 <div className="absolute top-1/2 right-1.5 hidden -translate-y-1/2 items-center gap-1 rounded-md bg-hover group-hover:flex">
                   <IconButton size="sm" title="Dashboard" onClick={() => navigate(`/vps/${conn.id}`)}><BarChart2 size={12} /></IconButton>
+                  <IconButton size="sm" title={t.ssh.databases} onClick={() => navigate(`/database?detect=${conn.id}`)}><Database size={12} /></IconButton>
                   <IconButton size="sm" title={t.ssh.editConnection} onClick={() => setForm({ open: true, target: conn })}><Edit2 size={12} /></IconButton>
                   <IconButton size="sm" tone="danger" title="Delete" onClick={() => deleteConnection(conn.id)}><Trash2 size={12} /></IconButton>
                 </div>
               </div>
             )
           })}
+          {panelCollapsed && (
+            <IconButton title={t.ssh.newConnection} onClick={() => setForm({ open: true })} className="mt-1"><Plus size={15} /></IconButton>
+          )}
         </div>
       </aside>
 
