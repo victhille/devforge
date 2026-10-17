@@ -354,6 +354,8 @@ const en = {
   },
 
   common: {
+    crashTitle: 'Something went wrong on this page',
+    retry:   'Retry',
     loading: 'Loading...',
     cancel:  'Cancel',
     save:    'Save',
@@ -364,6 +366,20 @@ const en = {
   },
 
   gitDash: {
+    commit:              'Commit',
+    commitTitle:         'Commit',
+    commitPush:          'Commit & push',
+    committed:           'Committed',
+    committedPushed:     'Committed and pushed',
+    committedPushFailed: 'Committed, but push failed',
+    commitFailed:        'Commit failed',
+    files:               'Files ({n}/{total})',
+    selectAll:           'All',
+    noChanges:           'Nothing to commit',
+    message:             'Message (Conventional Commits)',
+    suggest:             'Suggest',
+    subjectPlaceholder:  'short description',
+    bodyPlaceholder:     'Details (optional)',
     title:           'Git dashboard',
     subtitle:        'Status of every project repository at a glance',
     refresh:         'Refresh',

@@ -26,10 +26,25 @@ export interface GitActionResult {
   output: string
 }
 
+export type FileChangeStatus = 'added' | 'modified' | 'deleted' | 'renamed' | 'untracked'
+
+export interface GitFileChange {
+  path: string
+  status: FileChangeStatus
+  staged: boolean
+  /** Line counts, null for binary or untracked files */
+  insertions: number | null
+  deletions: number | null
+}
+
 export interface GitAPI {
   details: (path: string) => Promise<GitRepoDetails>
   fetch:   (path: string) => Promise<GitActionResult>
   /** Fast-forward only, never creates a merge commit */
   pull:    (path: string) => Promise<GitActionResult>
   push:    (path: string) => Promise<GitActionResult>
+  /** Working tree changes with line counts */
+  changes: (path: string) => Promise<GitFileChange[]>
+  /** Stage exactly `files` (relative paths) then commit them */
+  commit:  (path: string, message: string, files: string[]) => Promise<GitActionResult>
 }

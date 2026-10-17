@@ -54,5 +54,5 @@ export function useGitRepos() {
     await Promise.all(Array.from({ length: 4 }, worker))
   }, [runAction])
 
-  return { rows, loading, reload: load, runAction, fetchAll }
+  return { rows, loading, reload: load, runAction, fetchAll, refreshOne }
 }

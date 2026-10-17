@@ -1,4 +1,4 @@
-import type { GitActionResult, GitRepoDetails } from '@shared/types'
+import type { FileChangeStatus, GitActionResult, GitFileChange, GitRepoDetails } from '@shared/types'
 import { runFile } from '../../lib/exec'
 
 const SEP = '\u001f' // unit separator, never in commit messages
@@ -56,3 +56,69 @@ async function action(path: string, args: string[]): Promise<GitActionResult> {
 export const gitFetch = (path: string) => action(path, ['fetch', '--prune'])
 export const gitPull  = (path: string) => action(path, ['pull', '--ff-only'])
 export const gitPush  = (path: string) => action(path, ['push'])
+
+const STATUS: Record<string, FileChangeStatus> = { A: 'added', M: 'modified', D: 'deleted', R: 'renamed', C: 'added', T: 'modified', U: 'modified' }
+
+/** numstat output → path → [insertions, deletions] ("-" for binary) */
+function parseNumstat(out: string): Map<string, [number | null, number | null]> {
+  const map = new Map<string, [number | null, number | null]>()
+  for (const line of out.split('\n')) {
+    const [a, d, ...rest] = line.split('\t')
+    if (!rest.length) continue
+    // Renames look like "old => new" or "dir/{old => new}"
+    const file = rest.join('\t').replace(/\{[^}]* => ([^}]*)\}/, '$1').replace(/^.* => /, '')
+    map.set(file, [a === '-' ? null : Number(a), d === '-' ? null : Number(d)])
+  }
+  return map
+}
+
+export async function getChanges(path: string): Promise<GitFileChange[]> {
+  const [status, unstaged, staged] = await Promise.all([
+    git(path, ['status', '--porcelain=v1', '-uall', '-z']),
+    git(path, ['diff', '--numstat']),
+    git(path, ['diff', '--cached', '--numstat'])
+  ])
+  if (!status.ok) return []
+  const counts = parseNumstat(unstaged.stdout)
+  for (const [f, [a, d]] of parseNumstat(staged.stdout)) {
+    const prev = counts.get(f)
+    counts.set(f, prev ? [(prev[0] ?? 0) + (a ?? 0), (prev[1] ?? 0) + (d ?? 0)] : [a, d])
+  }
+
+  // -z: entries are NUL-separated; renames are followed by their old path
+  const parts = status.stdout.split('\0')
+  const changes: GitFileChange[] = []
+  for (let i = 0; i < parts.length; i++) {
+    const entry = parts[i]
+    if (entry.length < 4) continue
+    const x = entry[0], y = entry[1], file = entry.slice(3)
+    if (x === 'R' || x === 'C') i++ // skip the original path
+    const untracked = x === '?'
+    const code = untracked ? '?' : x !== ' ' ? x : y
+    const [ins, del] = counts.get(file) ?? [null, null]
+    changes.push({
+      path: file,
+      status: untracked ? 'untracked' : STATUS[code] ?? 'modified',
+      staged: !untracked && x !== ' ',
+      insertions: ins,
+      deletions: del
+    })
+  }
+  return changes.sort((a, b) => a.path.localeCompare(b.path))
+}
+
+/**
+ * Commit exactly the chosen files with `git commit -- <paths>`: other staged
+ * changes stay staged and untouched. Untracked files are added first.
+ */
+export async function gitCommit(path: string, message: string, files: string[]): Promise<GitActionResult> {
+  if (!message.trim()) return { ok: false, output: 'Empty commit message' }
+  if (files.length === 0) return { ok: false, output: 'No file selected' }
+
+  const untracked = (await getChanges(path)).filter(c => c.status === 'untracked' && files.includes(c.path)).map(c => c.path)
+  if (untracked.length) {
+    const add = await git(path, ['add', '--', ...untracked], 30_000)
+    if (!add.ok) return { ok: false, output: (add.stdout + add.stderr).trim() }
+  }
+  return action(path, ['commit', '-m', message, '--', ...files])
+}
