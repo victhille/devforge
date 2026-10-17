@@ -184,7 +184,8 @@ export interface DevForgeAPI {
   onSshStatus: (callback: (status: SSHSessionStatus) => void) => () => void
 
   // Environment
-  detectEnvironment: () => Promise<EnvironmentTool[]>
+  /** Cached after the first call, pass true to re-detect */
+  detectEnvironment: (force?: boolean) => Promise<EnvironmentTool[]>
 
   // Window controls
   windowMinimize: () => Promise<void>

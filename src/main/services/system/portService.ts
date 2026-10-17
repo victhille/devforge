@@ -1,60 +1,65 @@
-import { execSync } from 'child_process'
 import type { ListeningPort } from '@shared/types'
+import { run } from '../../lib/exec'
 
-export function getListeningPorts(): ListeningPort[] {
+export async function getListeningPorts(): Promise<ListeningPort[]> {
   try {
-    return process.platform === 'win32' ? getWindowsPorts() : getUnixPorts()
+    return process.platform === 'win32' ? await getWindowsPorts() : await getUnixPorts()
   } catch {
     return []
   }
 }
 
-function getWindowsPorts(): ListeningPort[] {
-  const output = execSync('netstat -ano', { encoding: 'utf-8', timeout: 8000 })
-  const seen   = new Map<number, ListeningPort>()
+/** PID → process name, from a single `tasklist` call. */
+async function getWindowsProcessNames(): Promise<Map<number, string>> {
+  const names = new Map<number, string>()
+  try {
+    const out = await run('tasklist /FO CSV /NH', { timeout: 8000 })
+    for (const line of out.split('\n')) {
+      const m = line.match(/^"([^"]+)","(\d+)"/)
+      if (m) names.set(parseInt(m[2]), m[1].replace(/\.exe$/i, ''))
+    }
+  } catch { /* names stay empty */ }
+  return names
+}
 
+async function getWindowsPorts(): Promise<ListeningPort[]> {
+  // Both commands run in parallel
+  const [output, names] = await Promise.all([
+    run('netstat -ano', { timeout: 8000 }),
+    getWindowsProcessNames()
+  ])
+
+  const seen = new Map<number, ListeningPort>()
   for (const line of output.split('\n')) {
     if (!line.includes('LISTENING')) continue
-    const parts     = line.trim().split(/\s+/)
+    const parts = line.trim().split(/\s+/)
     if (parts.length < 5) continue
     const portMatch = parts[1].match(/:(\d+)$/)
     if (!portMatch) continue
     const port = parseInt(portMatch[1])
     const pid  = parseInt(parts[4]) || null
-    if (!seen.has(port)) seen.set(port, { port, pid, processName: '' })
+    if (!seen.has(port)) seen.set(port, { port, pid, processName: pid ? names.get(pid) ?? '' : '' })
   }
 
-  const result = Array.from(seen.values()).sort((a, b) => a.port - b.port)
-
-  for (const p of result) {
-    if (!p.pid) continue
-    try {
-      const out   = execSync(`tasklist /FI "PID eq ${p.pid}" /FO CSV /NH`, { encoding: 'utf-8', timeout: 2000 }).trim()
-      const match = out.match(/"([^"]+\.exe)"/)
-      if (match) p.processName = match[1].replace('.exe', '')
-    } catch { /* ignore */ }
-  }
-
-  return result
+  return Array.from(seen.values()).sort((a, b) => a.port - b.port)
 }
 
-function getUnixPorts(): ListeningPort[] {
-  try {
-    const output = execSync('ss -tlnp', { encoding: 'utf-8', timeout: 5000 })
-    const result: ListeningPort[] = []
-    for (const line of output.split('\n').slice(1)) {
-      if (!line.trim()) continue
-      const parts     = line.trim().split(/\s+/)
-      if (parts.length < 4) continue
-      const portMatch = parts[3].match(/:(\d+)$/)
-      if (!portMatch) continue
-      const port      = parseInt(portMatch[1])
-      const pidMatch  = line.match(/pid=(\d+)/)
-      const pid       = pidMatch ? parseInt(pidMatch[1]) : null
-      result.push({ port, pid, processName: '' })
-    }
-    return result.sort((a, b) => a.port - b.port)
-  } catch {
-    return []
+async function getUnixPorts(): Promise<ListeningPort[]> {
+  const output = await run('ss -tlnp', { timeout: 5000 })
+  const result: ListeningPort[] = []
+  for (const line of output.split('\n').slice(1)) {
+    if (!line.trim()) continue
+    const parts = line.trim().split(/\s+/)
+    if (parts.length < 4) continue
+    const portMatch = parts[3].match(/:(\d+)$/)
+    if (!portMatch) continue
+    const pidMatch = line.match(/pid=(\d+)/)
+    const nameMatch = line.match(/users:\(\("([^"]+)"/)
+    result.push({
+      port: parseInt(portMatch[1]),
+      pid: pidMatch ? parseInt(pidMatch[1]) : null,
+      processName: nameMatch?.[1] ?? ''
+    })
   }
+  return result.sort((a, b) => a.port - b.port)
 }

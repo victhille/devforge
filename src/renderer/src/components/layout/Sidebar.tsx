@@ -46,7 +46,7 @@ function NavEntry({ to, label, Icon }: { to: string; label: string; Icon: Lucide
       to={to}
       end={to === '/'}
       className={({ isActive }) => cn(
-        'group relative flex h-8 items-center gap-2.5 rounded-md px-2.5 text-base transition-colors',
+        'group relative flex h-9 items-center gap-3 rounded-lg px-3 text-base transition-colors',
         isActive
           ? 'bg-active font-medium text-fg'
           : 'text-fg-secondary hover:bg-hover hover:text-fg'
@@ -57,12 +57,12 @@ function NavEntry({ to, label, Icon }: { to: string; label: string; Icon: Lucide
           {/* Active indicator bar */}
           <span
             className={cn(
-              'absolute top-1.5 bottom-1.5 -left-2 w-[3px] rounded-r-full bg-accent transition-opacity',
+              'absolute top-2 bottom-2 -left-2.5 w-[3px] rounded-r-full bg-accent transition-opacity',
               isActive ? 'opacity-100' : 'opacity-0'
             )}
           />
           <Icon
-            size={16}
+            size={17}
             strokeWidth={isActive ? 2.2 : 1.8}
             className={cn('shrink-0 transition-colors', isActive ? 'text-accent' : 'text-fg-muted group-hover:text-fg-secondary')}
           />
@@ -77,11 +77,11 @@ export default function Sidebar() {
   const { t } = useI18n()
 
   return (
-    <aside className="flex w-[220px] shrink-0 flex-col overflow-hidden border-r border-line-subtle bg-surface">
-      <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-2 py-3">
+    <aside className="flex w-[232px] shrink-0 flex-col overflow-hidden border-r border-line-subtle bg-surface">
+      <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-2.5 py-4">
         {NAV_SECTIONS.map(section => (
-          <div key={section.labelKey} className="flex flex-col gap-px">
-            <span className="px-2.5 pb-1 text-2xs font-semibold uppercase tracking-widest text-fg-muted">
+          <div key={section.labelKey} className="flex flex-col gap-0.5">
+            <span className="px-3 pb-1.5 text-2xs font-semibold uppercase tracking-widest text-fg-muted">
               {t.nav[section.labelKey]}
             </span>
             {section.items.map(item => (
@@ -92,9 +92,9 @@ export default function Sidebar() {
       </nav>
 
       {/* Settings pinned at the bottom, with the version */}
-      <div className="flex flex-col gap-1 border-t border-line-subtle px-2 py-2">
+      <div className="flex flex-col gap-1.5 border-t border-line-subtle px-2.5 py-2.5">
         <NavEntry to="/settings" label={t.nav.settings} Icon={Settings} />
-        <span className="px-2.5 text-2xs text-fg-muted">v{__APP_VERSION__}</span>
+        <span className="px-3 text-2xs text-fg-muted">v{__APP_VERSION__}</span>
       </div>
     </aside>
   )

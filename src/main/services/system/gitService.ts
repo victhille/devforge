@@ -1,33 +1,36 @@
-import { execSync } from 'child_process'
 import type { GitStatus } from '@shared/types'
+import { run } from '../../lib/exec'
 
-export function getGitStatus(projectPath: string): GitStatus {
+const NO_GIT: GitStatus = { branch: null, dirty: false, ahead: 0, behind: 0 }
+
+/**
+ * Branch, dirty flag and ahead/behind in a single git call
+ * (`status --porcelain=v2 --branch`), async so it never blocks the UI.
+ */
+export async function getGitStatus(projectPath: string): Promise<GitStatus> {
+  let out: string
   try {
-    const branch = execSync(
-      `git -C "${projectPath}" rev-parse --abbrev-ref HEAD`,
-      { encoding: 'utf-8', timeout: 3000, stdio: ['ignore', 'pipe', 'ignore'] }
-    ).trim()
-
-    const status = execSync(
-      `git -C "${projectPath}" status --porcelain`,
-      { encoding: 'utf-8', timeout: 3000, stdio: ['ignore', 'pipe', 'ignore'] }
-    )
-    const dirty = status.trim().length > 0
-
-    let ahead = 0
-    let behind = 0
-    try {
-      const counts = execSync(
-        `git -C "${projectPath}" rev-list --left-right --count HEAD...@{upstream}`,
-        { encoding: 'utf-8', timeout: 3000, stdio: ['ignore', 'pipe', 'ignore'] }
-      ).trim()
-      const parts = counts.split(/\s+/)
-      ahead  = parseInt(parts[0]) || 0
-      behind = parseInt(parts[1]) || 0
-    } catch { /* no upstream */ }
-
-    return { branch: branch || null, dirty, ahead, behind }
+    out = await run(`git -C "${projectPath}" status --porcelain=v2 --branch`, { timeout: 4000 })
   } catch {
-    return { branch: null, dirty: false, ahead: 0, behind: 0 }
+    return NO_GIT
   }
+
+  let branch: string | null = null
+  let ahead = 0
+  let behind = 0
+  let dirty = false
+
+  for (const line of out.split('\n')) {
+    if (line.startsWith('# branch.head ')) {
+      const head = line.slice('# branch.head '.length).trim()
+      branch = head === '(detached)' ? 'HEAD' : head
+    } else if (line.startsWith('# branch.ab ')) {
+      const m = line.match(/\+(\d+) -(\d+)/)
+      if (m) { ahead = parseInt(m[1]); behind = parseInt(m[2]) }
+    } else if (line && !line.startsWith('#')) {
+      dirty = true
+    }
+  }
+
+  return { branch, dirty, ahead, behind }
 }

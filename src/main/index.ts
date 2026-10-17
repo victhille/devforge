@@ -3,6 +3,7 @@ import { join } from 'path'
 import { registerIpcHandlers } from './ipc'
 import { sshService } from './services/ssh/sshService'
 import { loadSettings } from './services/settings/settingsService'
+import { detectEnvironment } from './services/system/environmentDetector'
 
 const isDev = !app.isPackaged
 
@@ -110,6 +111,9 @@ app.whenReady().then(() => {
   })
 
   createWindow()
+
+  // Warm the cache so the Environment page opens instantly
+  detectEnvironment().catch(() => {})
 
   app.on('second-instance', () => {
     const windows = BrowserWindow.getAllWindows()

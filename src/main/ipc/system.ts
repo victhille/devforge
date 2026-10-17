@@ -1,6 +1,7 @@
 import { ipcMain, dialog, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
-import { existsSync, readdirSync, statSync } from 'fs'
+import { existsSync } from 'fs'
+import { readdir, stat } from 'fs/promises'
 import { detectEnvironment } from '../services/system/environmentDetector'
 import { getGitStatus } from '../services/system/gitService'
 import { getListeningPorts } from '../services/system/portService'
@@ -8,7 +9,7 @@ import type { FileEntry } from '@shared/types'
 
 export function registerSystemHandlers(mainWindow: BrowserWindow): void {
   // ─── Environment ─────────────────────────────────────────────────────────────
-  ipcMain.handle('detect-environment', async () => detectEnvironment())
+  ipcMain.handle('detect-environment', async (_e, force?: boolean) => detectEnvironment(force))
 
   // ─── File System ─────────────────────────────────────────────────────────────
   ipcMain.handle('select-directory', async () => {
@@ -39,18 +40,18 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
 
   ipcMain.handle('fs:read-dir', async (_event, dirPath: string): Promise<FileEntry[]> => {
     try {
-      const entries = readdirSync(dirPath, { withFileTypes: true })
-      return entries.map(entry => {
+      const entries = await readdir(dirPath, { withFileTypes: true })
+      return Promise.all(entries.map(async entry => {
         const fullPath = join(dirPath, entry.name)
         const isDir = entry.isDirectory()
         let size: number | null = null
         if (!isDir) {
-          try { size = statSync(fullPath).size } catch {}
+          try { size = (await stat(fullPath)).size } catch {}
         }
         const dotIdx = entry.name.lastIndexOf('.')
         const ext = (!isDir && dotIdx > 0) ? entry.name.slice(dotIdx + 1) : null
         return { name: entry.name, path: fullPath, isDirectory: isDir, size, extension: ext }
-      })
+      }))
     } catch {
       return []
     }

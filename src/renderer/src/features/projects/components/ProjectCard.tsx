@@ -51,7 +51,7 @@ export function ProjectCard(props: SavedProps) {
       <Card interactive onClick={onDetail} className="flex flex-col gap-3 p-4">
         <div className="flex items-start justify-between">
           <ProjectIcon framework={project.framework} size="lg" />
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <Badge>{label}</Badge>
             <FavoriteButton active={project.favorite} onClick={onToggleFavorite} title={t.projects.favorite} />
           </div>
@@ -61,7 +61,7 @@ export function ProjectCard(props: SavedProps) {
           <span className="truncate font-mono text-xs text-fg-muted">{project.path}</span>
           <div><GitBadge status={gitStatus} /></div>
         </div>
-        <div className="mt-auto flex items-center gap-1" onClick={e => e.stopPropagation()}>
+        <div className="mt-auto flex items-center gap-2" onClick={e => e.stopPropagation()}>
           <Button variant="secondary" size="sm" className="flex-1" onClick={onOpen}>{t.projects.open}</Button>
           <IconButton title={t.projects.vsCode} onClick={onOpenVSCode}><Code2 size={13} /></IconButton>
           <IconButton title={t.projects.terminal} onClick={onTerminal}><Terminal size={13} /></IconButton>
@@ -73,7 +73,7 @@ export function ProjectCard(props: SavedProps) {
   }
 
   return (
-    <Card className="group flex items-center gap-3 px-3 py-2.5 transition-colors hover:border-line">
+    <Card className="group flex items-center gap-3 px-4 py-3 transition-colors hover:border-line">
       <FavoriteButton active={project.favorite} onClick={onToggleFavorite} title={t.projects.favorite} />
       <ProjectIcon framework={project.framework} />
       <button onClick={onDetail} className="flex min-w-0 flex-1 flex-col items-start text-left">
@@ -84,7 +84,7 @@ export function ProjectCard(props: SavedProps) {
         </span>
       </button>
       <Badge>{label}</Badge>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-2">
         <IconButton title={t.projects.terminal} onClick={onTerminal}><Terminal size={13} /></IconButton>
         {onRunScript && <ScriptsMenu scripts={scripts} onRun={onRunScript} />}
         <Button variant="ghost" size="sm" onClick={onOpenVSCode}><Code2 size={13} /> {t.projects.vsCode}</Button>
@@ -127,7 +127,7 @@ export function DetectedProjectCard({ project, layout, onImport, onOpen, onTermi
           <span className="truncate text-md font-semibold text-fg">{project.name}</span>
           <span className="truncate font-mono text-xs text-fg-muted">{project.path}</span>
         </div>
-        <div className="mt-auto flex items-center gap-1">
+        <div className="mt-auto flex items-center gap-2">
           <Button variant="secondary" size="sm" className="flex-1" onClick={onImport}><Plus size={12} /> {t.projects.import}</Button>
           {actions}
         </div>
@@ -143,7 +143,7 @@ export function DetectedProjectCard({ project, layout, onImport, onOpen, onTermi
         <span className="truncate font-mono text-xs text-fg-muted">{project.path}</span>
       </div>
       <Badge>{label}</Badge>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-2">
         {actions}
         <Button variant="secondary" size="sm" onClick={onImport}><Plus size={12} /> {t.projects.import}</Button>
       </div>

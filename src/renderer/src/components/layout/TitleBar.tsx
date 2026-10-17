@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { Minus, Square, X, Maximize2 } from 'lucide-react'
-import logo from '@renderer/assets/icon.png'
+import logo from '@renderer/assets/icon-64.png'
 import { cn } from '@renderer/lib/cn'
 
 function WindowButton({ title, onClick, danger, children }: {
