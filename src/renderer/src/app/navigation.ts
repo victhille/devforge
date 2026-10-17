@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 import {
   Home, FolderOpen, Plus, Monitor, Terminal, Settings, Wifi, BookOpen,
-  Wrench, Send, Code, Columns, Key,
+  Wrench, Send, Code, Columns, Key, GitBranch,
   type LucideIcon
 } from 'lucide-react'
 import type { Translations } from '@renderer/i18n/translations'
@@ -32,6 +32,7 @@ export interface NavPage {
 export const PAGES: NavPage[] = [
   // Main
   { path: '/projects',    labelKey: 'projects',    icon: FolderOpen, section: 'sectionMain',  load: () => import('@renderer/features/projects/ProjectsPage') },
+  { path: '/git',         labelKey: 'git',         icon: GitBranch,  section: 'sectionMain',  load: () => import('@renderer/features/git/GitDashboardPage'), keywords: ['pull', 'push', 'fetch', 'commit', 'branch', 'repo'] },
   { path: '/new-project', labelKey: 'newProject',  icon: Plus,       section: 'sectionMain',  load: () => import('@renderer/features/projects/new/NewProjectPage'), keywords: ['create', 'créer', 'react', 'vue', 'next', 'symfony'] },
 
   // Tools

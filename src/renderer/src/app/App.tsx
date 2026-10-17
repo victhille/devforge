@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, type ComponentType } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { ConsoleProvider } from '@renderer/app/ConsoleContext'
+import { ToastProvider } from '@renderer/app/ToastContext'
 import { VPSProvider } from '@renderer/features/ssh/VPSContext'
 import Layout from '@renderer/components/layout/Layout'
 import HomePage from '@renderer/features/home/HomePage'
@@ -26,20 +27,22 @@ export default function App() {
   usePrefetchPages()
 
   return (
-    <ConsoleProvider>
-      <VPSProvider>
-        <Layout>
-          <Suspense fallback={null}>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              {ROUTES.map(({ pattern, Component }) => (
-                <Route key={pattern} path={pattern} element={<Component />} />
-              ))}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-        </Layout>
-      </VPSProvider>
-    </ConsoleProvider>
+    <ToastProvider>
+      <ConsoleProvider>
+        <VPSProvider>
+          <Layout>
+            <Suspense fallback={null}>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                {ROUTES.map(({ pattern, Component }) => (
+                  <Route key={pattern} path={pattern} element={<Component />} />
+                ))}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </Layout>
+        </VPSProvider>
+      </ConsoleProvider>
+    </ToastProvider>
   )
 }

@@ -1,7 +1,18 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { DevForgeAPI, LogLine, CommandResult, SSHSessionStatus } from '@shared/types'
 
+/** ipcRenderer.invoke bound to a channel */
+const invoke = <T extends (...args: never[]) => Promise<unknown>>(channel: string) =>
+  ((...args: unknown[]) => ipcRenderer.invoke(channel, ...args)) as unknown as T
+
 const api: DevForgeAPI = {
+  git: {
+    details: invoke('git:details'),
+    fetch:   invoke('git:fetch'),
+    pull:    invoke('git:pull'),
+    push:    invoke('git:push')
+  },
+
   // SSH
   getSshConnections:  ()           => ipcRenderer.invoke('ssh:get-connections'),
   saveSshConnection:  (conn)       => ipcRenderer.invoke('ssh:save-connection', conn),

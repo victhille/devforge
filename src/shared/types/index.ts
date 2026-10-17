@@ -167,9 +167,14 @@ export interface ListeningPort {
   processName: string
 }
 
+export * from './git'
+import type { GitAPI } from './git'
+
 // ─── IPC API ─────────────────────────────────────────────────────────────────
 
 export interface DevForgeAPI {
+  git: GitAPI
+
   // SSH
   getSshConnections: () => Promise<SSHConnection[]>
   saveSshConnection: (conn: SSHConnection) => Promise<void>
