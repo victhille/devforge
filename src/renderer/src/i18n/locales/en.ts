@@ -22,7 +22,8 @@ const en = {
     sectionSystem: 'System',
     sectionServers: 'Servers',
     envFiles: 'Env variables',
-    stacks: 'Launcher'
+    stacks: 'Launcher',
+    docker: 'Docker'
   },
 
   palette: {
@@ -485,6 +486,28 @@ const en = {
     emptyTitle:         'No stack yet',
     emptyHint:          'A stack groups what you start every day: front, API, Docker, VS Code, the browser…',
     status:             { running: 'running', exited: 'finished', stopped: 'stopped', failed: 'failed' }
+  },
+
+  docker: {
+    title:         'Docker',
+    subtitle:      'Docker {v} · {n} container(s) running',
+    subtitleOff:   'Local containers, images and Compose projects',
+    unavailable:   'Docker is not available',
+    containers:    'Containers',
+    images:        'Images',
+    standalone:    'Standalone containers',
+    noContainers:  'No container',
+    noCompose:     'No Compose project',
+    logs:          'Logs',
+    start:         'Start',
+    stop:          'Stop',
+    restart:       'Restart',
+    failed:        'failed',
+    removeConfirm: 'Remove the container "{name}"? Its data not stored in a volume will be lost.',
+    prune:         'Clean up',
+    pruneTitle:    'Clean up Docker?',
+    pruneText:     'Removes stopped containers, unused networks, dangling images and the build cache. Volumes are kept.',
+    pruned:        'Docker cleaned up'
   }
 } as const
 

@@ -54,6 +54,15 @@ const api: DevForgeAPI = {
     onStatus:  on('stacks:status')
   },
 
+  docker: {
+    overview:   invoke('docker:overview'),
+    container:  invoke('docker:container'),
+    compose:    invoke('docker:compose'),
+    prune:      invoke('docker:prune'),
+    followLogs: invoke('docker:follow-logs'),
+    stopLogs:   invoke('docker:stop-logs')
+  },
+
   // SSH
   getSshConnections:  ()           => ipcRenderer.invoke('ssh:get-connections'),
   saveSshConnection:  (conn)       => ipcRenderer.invoke('ssh:save-connection', conn),
