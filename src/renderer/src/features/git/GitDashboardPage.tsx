@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowDown, ArrowUp, CloudDownload, Code2, GitBranch, GitCommitHorizontal, RefreshCw, Terminal } from 'lucide-react'
+import type { Project } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
@@ -14,6 +15,7 @@ import Tabs from '@renderer/components/ui/Tabs'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import ProjectIcon from '@renderer/features/projects/components/ProjectIcon'
 import { useGitRepos, type RepoRow } from './useGitRepos'
+import CommitModal from './CommitModal'
 
 type Filter = 'attention' | 'all'
 
@@ -34,7 +36,8 @@ export default function GitDashboardPage() {
   const g = t.gitDash
   const toast = useToast()
   const navigate = useNavigate()
-  const { rows, loading, reload, runAction, fetchAll } = useGitRepos()
+  const { rows, loading, reload, runAction, fetchAll, refreshOne } = useGitRepos()
+  const [committing, setCommitting] = useState<{ project: Project; canPush: boolean } | null>(null)
   const [filter, setFilter] = useState<Filter>('attention')
   const [fetchingAll, setFetchingAll] = useState(false)
 
@@ -132,6 +135,9 @@ export default function GitDashboardPage() {
                 </div>
 
                 <div className="flex shrink-0 items-center gap-2">
+                  <Button variant="secondary" size="sm" disabled={d.changes === 0} onClick={() => setCommitting({ project: row.project, canPush: !!d.remoteUrl })}>
+                    <GitCommitHorizontal size={13} /> {g.commit}
+                  </Button>
                   <Button variant="ghost" size="sm" disabled={!d.remoteUrl} loading={row.busy === 'fetch'} onClick={() => act(row, 'fetch')}>
                     {g.fetch}
                   </Button>
@@ -148,6 +154,15 @@ export default function GitDashboardPage() {
             )
           })}
         </div>
+      )}
+
+      {committing && (
+        <CommitModal
+          project={committing.project}
+          canPush={committing.canPush}
+          onClose={() => setCommitting(null)}
+          onDone={() => { refreshOne(committing.project); setCommitting(null) }}
+        />
       )}
 
       {rows.length > repos.length && !loading && (

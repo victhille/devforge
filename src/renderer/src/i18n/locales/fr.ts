@@ -339,6 +339,8 @@ const fr = {
   },
 
   common: {
+    crashTitle: 'Un problème est survenu sur cette page',
+    retry:   'Réessayer',
     loading: 'Chargement...',
     cancel:  'Annuler',
     save:    'Enregistrer',
@@ -349,6 +351,20 @@ const fr = {
   },
 
   gitDash: {
+    commit:              'Commit',
+    commitTitle:         'Commit',
+    commitPush:          'Commit & push',
+    committed:           'Commit créé',
+    committedPushed:     'Commit créé et poussé',
+    committedPushFailed: 'Commit créé, mais le push a échoué',
+    commitFailed:        'Échec du commit',
+    files:               'Fichiers ({n}/{total})',
+    selectAll:           'Tous',
+    noChanges:           'Rien à commiter',
+    message:             'Message (Conventional Commits)',
+    suggest:             'Suggérer',
+    subjectPlaceholder:  'description courte',
+    bodyPlaceholder:     'Détails (optionnel)',
     title:           'Tableau de bord Git',
     subtitle:        'L\'état de tous les dépôts de vos projets en un coup d\'œil',
     refresh:         'Actualiser',
