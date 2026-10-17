@@ -178,6 +178,7 @@ export * from './monitor'
 export * from './domains'
 export * from './database'
 export * from './logs'
+export * from './webhooks'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
@@ -189,6 +190,7 @@ import type { MonitorAPI } from './monitor'
 import type { DomainsAPI } from './domains'
 import type { DatabaseAPI } from './database'
 import type { LogsAPI } from './logs'
+import type { WebhooksAPI } from './webhooks'
 
 // ─── IPC API ─────────────────────────────────────────────────────────────────
 
@@ -204,6 +206,7 @@ export interface DevForgeAPI {
   domains: DomainsAPI
   db: DatabaseAPI
   logs: LogsAPI
+  webhooks: WebhooksAPI
 
   // SSH
   getSshConnections: () => Promise<SSHConnection[]>
