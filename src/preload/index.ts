@@ -96,7 +96,10 @@ const api: DevForgeAPI = {
     remove: invoke('db:remove'),
     test:   invoke('db:test'),
     schema: invoke('db:schema'),
-    query:  invoke('db:query')
+    query:  invoke('db:query'),
+    detectRemote: invoke('db:detect-remote'),
+    detectLocal:  invoke('db:detect-local'),
+    addDetected:  invoke('db:add-detected')
   },
 
   logs: {

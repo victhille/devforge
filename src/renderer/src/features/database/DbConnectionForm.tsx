@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CheckCircle2, FolderOpen, XCircle } from 'lucide-react'
-import type { DbConnection, DbType } from '@shared/types'
+import type { DbConnection, DbType, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
 import Modal from '@renderer/components/ui/Modal'
 import Tabs from '@renderer/components/ui/Tabs'
-import { Field, Input } from '@renderer/components/ui/Input'
+import { Field, Input, Select } from '@renderer/components/ui/Input'
 import { CONNECTION_COLORS } from '@renderer/features/ssh/components/ConnectionForm'
 
 const DEFAULT_PORT: Record<DbType, number | undefined> = { mysql: 3306, postgres: 5432, sqlite: undefined }
@@ -26,6 +26,9 @@ export default function DbConnectionForm({ initial, onSave, onClose }: Props) {
   const [password, setPassword] = useState('')
   const [test, setTest] = useState<{ ok: boolean; text: string } | null>(null)
   const [testing, setTesting] = useState(false)
+  const [servers, setServers] = useState<SSHConnection[]>([])
+
+  useEffect(() => { window.devforge.getSshConnections().then(setServers) }, [])
 
   const set = <K extends keyof DbConnection>(k: K, v: DbConnection[K]) => { setC(x => ({ ...x, [k]: v })); setTest(null) }
   const full = (): DbConnection => ({ ...c, name: c.name.trim() || (c.type === 'sqlite' ? c.file?.split(/[\\/]/).pop() ?? 'SQLite' : `${c.database}@${c.host}`), password: password || undefined })
@@ -86,6 +89,12 @@ export default function DbConnectionForm({ initial, onSave, onClose }: Props) {
             </Field>
           </div>
           <Field label={d.databaseName}><Input value={c.database ?? ''} onChange={e => set('database', e.target.value)} /></Field>
+          <Field label={d.viaSsh} hint={c.sshConnectionId ? d.viaSshHint : undefined}>
+            <Select value={c.sshConnectionId ?? ''} onChange={e => set('sshConnectionId', e.target.value || undefined)}>
+              <option value="">{d.direct}</option>
+              {servers.map(s => <option key={s.id} value={s.id}>{s.name} — {s.username}@{s.host}</option>)}
+            </Select>
+          </Field>
         </>
       )}
 

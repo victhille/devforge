@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ChevronDown, ChevronRight, Database, Eye, KeyRound, Pencil, Play, Plus, RefreshCw, Table2, Trash2 } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { ChevronDown, ChevronRight, Database, Eye, KeyRound, Pencil, Play, Plus, RefreshCw, Search, Table2, Trash2 } from 'lucide-react'
 import type { DbConnection, DbQueryResult, DbTable } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -10,6 +11,7 @@ import Spinner from '@renderer/components/ui/Spinner'
 import { SectionTitle } from '@renderer/components/ui/Page'
 import DbConnectionForm from './DbConnectionForm'
 import ResultGrid from './ResultGrid'
+import DetectDialog from './DetectDialog'
 
 function quoteIdent(type: DbConnection['type'], t: DbTable): string {
   if (type === 'mysql') return `\`${t.name}\``
@@ -29,6 +31,8 @@ export default function DatabasePage() {
   const [result, setResult] = useState<DbQueryResult | null>(null)
   const [running, setRunning] = useState(false)
   const [form, setForm] = useState<{ conn?: DbConnection } | null>(null)
+  const [params, setParams] = useSearchParams()
+  const [detect, setDetect] = useState<{ server?: string } | null>(() => (params.get('detect') ? { server: params.get('detect')! } : null))
 
   const reloadConnections = useCallback(() => window.devforge.db.list().then(setConnections), [])
   useEffect(() => { reloadConnections() }, [reloadConnections])
@@ -73,7 +77,10 @@ export default function DatabasePage() {
       <aside className="flex w-72 shrink-0 flex-col border-r border-line-subtle bg-surface">
         <div className="flex h-11 shrink-0 items-center justify-between border-b border-line-subtle px-3">
           <SectionTitle>{d.connections}</SectionTitle>
-          <IconButton title={d.newTitle} onClick={() => setForm({})}><Plus size={15} /></IconButton>
+          <span className="flex gap-0.5">
+            <IconButton title={d.detectTitle} onClick={() => setDetect({})}><Search size={14} /></IconButton>
+            <IconButton title={d.newTitle} onClick={() => setForm({})}><Plus size={15} /></IconButton>
+          </span>
         </div>
         <div className="flex-1 overflow-y-auto p-1.5">
           {connections.length === 0 && <p className="p-4 text-center text-sm text-fg-muted">{d.noConnections}</p>}
@@ -84,7 +91,7 @@ export default function DatabasePage() {
                   <Database size={14} className="shrink-0" style={{ color: c.color }} />
                   <span className="flex min-w-0 flex-col">
                     <span className="truncate font-medium text-fg">{c.name}</span>
-                    <span className="truncate text-2xs text-fg-muted">{c.type === 'sqlite' ? 'SQLite' : `${c.type} · ${c.host}`}</span>
+                    <span className="truncate text-2xs text-fg-muted">{c.type === 'sqlite' ? 'SQLite' : `${c.type} · ${c.host}${c.sshConnectionId ? ' · SSH' : ''}`}</span>
                   </span>
                 </button>
                 <span className="hidden gap-0.5 group-hover:flex">
@@ -134,7 +141,12 @@ export default function DatabasePage() {
         {!conn ? (
           <div className="flex flex-1 p-8">
             <EmptyState className="flex-1" icon={<Database size={32} />} title={d.emptyTitle} description={d.emptyHint}
-              action={<Button onClick={() => setForm({})}><Plus size={14} /> {d.newTitle}</Button>} />
+              action={
+                <div className="flex gap-2">
+                  <Button onClick={() => setDetect({})}><Search size={14} /> {d.detectTitle}</Button>
+                  <Button variant="secondary" onClick={() => setForm({})}><Plus size={14} /> {d.newTitle}</Button>
+                </div>
+              } />
           </div>
         ) : (
           <>
@@ -159,6 +171,14 @@ export default function DatabasePage() {
           </>
         )}
       </section>
+
+      {detect && (
+        <DetectDialog
+          initialServer={detect.server}
+          onClose={() => { setDetect(null); if (params.has('detect')) setParams({}, { replace: true }) }}
+          onAdded={async id => { await reloadConnections(); select(id) }}
+        />
+      )}
 
       {form && (
         <DbConnectionForm

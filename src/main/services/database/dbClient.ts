@@ -6,6 +6,7 @@ import pg from 'pg'
 import initSqlJs, { type Database as SqlJsDb, type SqlJsStatic } from 'sql.js'
 import type { DbConnection, DbQueryResult, DbTable } from '@shared/types'
 import { getDbConnection } from './dbStorage'
+import { openTunnel } from '../ssh/sshClient'
 
 const ROW_LIMIT = 1000
 const TIMEOUT_MS = 15_000
@@ -136,7 +137,21 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
   }
 }
 
-function open(c: DbConnection): Promise<Driver> {
+const DEFAULT_PORT = { mysql: 3306, postgres: 5432 }
+
+async function open(c: DbConnection): Promise<Driver> {
+  // Through SSH: the driver talks to a local port forwarded to the server
+  if (c.type !== 'sqlite' && c.sshConnectionId) {
+    const tunnel = await openTunnel(c.sshConnectionId, c.host || '127.0.0.1', c.port ?? DEFAULT_PORT[c.type])
+    try {
+      const direct = { ...c, host: '127.0.0.1', port: tunnel.localPort, sshConnectionId: undefined }
+      const d = await (c.type === 'mysql' ? mysqlDriver(direct) : postgresDriver(direct))
+      return { ...d, close: async () => { await d.close().catch(() => {}); tunnel.close() } }
+    } catch (err) {
+      tunnel.close()
+      throw err
+    }
+  }
   switch (c.type) {
     case 'mysql':    return mysqlDriver(c)
     case 'postgres': return postgresDriver(c)
