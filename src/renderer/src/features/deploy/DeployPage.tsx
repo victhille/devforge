@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { CheckCircle2, ChevronDown, ChevronRight, Pencil, Plus, Rocket, Server, Trash2, UploadCloud, XCircle } from 'lucide-react'
+import { CheckCircle2, ChevronDown, ChevronRight, Pencil, Plus, Rocket, Search, Server, Trash2, UploadCloud, XCircle } from 'lucide-react'
 import type { DeployRun, DeployTarget, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -12,6 +12,7 @@ import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import DeployEditor from './DeployEditor'
+import DetectDeploysDialog from './DetectDeploysDialog'
 
 function duration(run: DeployRun): string {
   if (!run.finishedAt) return ''
@@ -119,6 +120,7 @@ export default function DeployPage() {
   const [targets, setTargets] = useState<DeployTarget[]>([])
   const [connections, setConnections] = useState<SSHConnection[]>([])
   const [editing, setEditing] = useState<{ target?: DeployTarget } | null>(null)
+  const [detecting, setDetecting] = useState(false)
 
   const reload = useCallback(() => window.devforge.deploy.targets().then(setTargets), [])
   useEffect(() => {
@@ -132,14 +134,24 @@ export default function DeployPage() {
         icon={<Rocket size={18} />}
         title={d.title}
         subtitle={d.subtitle}
-        actions={<Button onClick={() => setEditing({})} disabled={connections.length === 0}><Plus size={14} /> {d.newTarget}</Button>}
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => setDetecting(true)} disabled={connections.length === 0}><Search size={14} /> {d.detectTitle}</Button>
+            <Button onClick={() => setEditing({})} disabled={connections.length === 0}><Plus size={14} /> {d.newTarget}</Button>
+          </>
+        }
       />
 
       {connections.length === 0 ? (
         <EmptyState icon={<Server size={32} />} title={d.needServer} description={d.needServerHint} />
       ) : targets.length === 0 ? (
         <EmptyState icon={<UploadCloud size={32} />} title={d.emptyTitle} description={d.emptyHint}
-          action={<Button onClick={() => setEditing({})}><Plus size={14} /> {d.newTarget}</Button>} />
+          action={
+            <div className="flex gap-2">
+              <Button onClick={() => setDetecting(true)}><Search size={14} /> {d.detectTitle}</Button>
+              <Button variant="secondary" onClick={() => setEditing({})}><Plus size={14} /> {d.newTarget}</Button>
+            </div>
+          } />
       ) : (
         <div className="flex flex-col gap-4">
           {targets.map(target => (
@@ -157,6 +169,8 @@ export default function DeployPage() {
           ))}
         </div>
       )}
+
+      {detecting && <DetectDeploysDialog existing={targets} onClose={() => setDetecting(false)} onCreated={reload} />}
 
       {editing && (
         <DeployEditor
