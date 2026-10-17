@@ -301,7 +301,7 @@ const en = {
     tabHeaders:   'Headers',
     tabBody:      'Body',
     tabResponse:  'Response',
-    addHeader:    '+ Add header',
+    addHeader:    'Add header',
     key:          'Key',
     value:        'Value',
     bodyPlaceholder: '{ "key": "value" }',
@@ -316,7 +316,7 @@ const en = {
   snippets: {
     title:        'Snippets',
     subtitle:     '{n} snippet{s}',
-    newSnippet:   '+ New Snippet',
+    newSnippet:   'New Snippet',
     search:       'Search snippets...',
     noSnippets:   'No snippets yet. Create your first one.',
     noMatch:      'No snippets match your search.',
