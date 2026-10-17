@@ -169,6 +169,23 @@ export class SSHService {
     })
   }
 
+  /** Run a command and stream its output; resolves with the exit code. */
+  execStream(sessionId: string, command: string, onData: (text: string) => void, timeoutMs = 30 * 60_000): Promise<number | null> {
+    return new Promise((resolve, reject) => {
+      const session = this.sessions.get(sessionId)
+      if (!session) { reject(new Error('Session not found')); return }
+
+      session.client.exec(command, (err, stream) => {
+        if (err) { reject(err); return }
+        const timer = setTimeout(() => { stream.close(); reject(new Error('Command timed out')) }, timeoutMs)
+        stream.on('data', (d: Buffer) => onData(d.toString()))
+        stream.stderr.on('data', (d: Buffer) => onData(d.toString()))
+        stream.on('exit', (code: number | null) => { clearTimeout(timer); resolve(code) })
+        stream.on('close', () => { clearTimeout(timer); resolve(null) })
+      })
+    })
+  }
+
   disconnectAll(): void {
     for (const session of this.sessions.values()) {
       session.stream?.close()

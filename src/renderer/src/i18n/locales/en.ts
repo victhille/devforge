@@ -23,7 +23,8 @@ const en = {
     sectionServers: 'Servers',
     envFiles: 'Env variables',
     stacks: 'Launcher',
-    docker: 'Docker'
+    docker: 'Docker',
+    deploy: 'Deploy'
   },
 
   palette: {
@@ -508,6 +509,35 @@ const en = {
     pruneTitle:    'Clean up Docker?',
     pruneText:     'Removes stopped containers, unused networks, dangling images and the build cache. Volumes are kept.',
     pruned:        'Docker cleaned up'
+  },
+
+  deploy: {
+    title:          'Deploy',
+    subtitle:       'Ship to your servers over SSH in one click',
+    newTarget:      'New target',
+    newTitle:       'New deploy target',
+    editTitle:      'Edit deploy target',
+    edit:           'Edit',
+    name:           'Name',
+    server:         'Server (SSH)',
+    noServer:       'No SSH connection',
+    remotePath:     'Folder on the server',
+    remotePathHint: 'The script runs from this folder, in a login shell (nvm, pm2… available).',
+    script:         'Script',
+    scriptHint:     'One command per line. Stops at the first error.',
+    localProject:   'Local project (optional)',
+    none:           'None',
+    pushFirst:      'git push before deploying',
+    deploy:         'Deploy',
+    deploying:      'Deploying…',
+    success:        '{name} deployed',
+    failure:        '{name}: deployment failed',
+    missingServer:  'missing server',
+    deleteConfirm:  'Delete the target "{name}" and its history?',
+    needServer:     'Add an SSH server first',
+    needServerHint: 'Deployments run over the SSH connections you set up in SSH / VPS.',
+    emptyTitle:     'No deploy target',
+    emptyHint:      'A target = a server, a folder and a script (git pull, build, restart…).'
   }
 } as const
 

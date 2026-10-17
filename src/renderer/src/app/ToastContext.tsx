@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import { CheckCircle2, Info, X, XCircle } from 'lucide-react'
 import { cn } from '@renderer/lib/cn'
 
@@ -35,8 +35,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setTimeout(() => dismiss(id), DURATION[toast.tone])
   }, [dismiss])
 
+  // Stable value: consumers can safely put the toast API in effect deps
+  const value = useMemo(() => ({ show }), [show])
+
   return (
-    <ToastContext.Provider value={{ show }}>
+    <ToastContext.Provider value={value}>
       {children}
       <div className="pointer-events-none fixed right-5 bottom-5 z-[60] flex w-96 flex-col gap-2">
         {toasts.map(t => {

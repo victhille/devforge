@@ -22,7 +22,8 @@ const fr = {
     sectionServers: 'Serveurs',
     envFiles: 'Variables .env',
     stacks: 'Lanceur',
-    docker: 'Docker'
+    docker: 'Docker',
+    deploy: 'Déploiement'
   },
 
   palette: {
@@ -493,6 +494,35 @@ const fr = {
     pruneTitle:    'Nettoyer Docker ?',
     pruneText:     'Supprime les conteneurs arrêtés, les réseaux inutilisés, les images orphelines et le cache de build. Les volumes sont conservés.',
     pruned:        'Docker nettoyé'
+  },
+
+  deploy: {
+    title:          'Déploiement',
+    subtitle:       'Déployez sur vos serveurs en SSH en un clic',
+    newTarget:      'Nouvelle cible',
+    newTitle:       'Nouvelle cible de déploiement',
+    editTitle:      'Modifier la cible',
+    edit:           'Modifier',
+    name:           'Nom',
+    server:         'Serveur (SSH)',
+    noServer:       'Aucune connexion SSH',
+    remotePath:     'Dossier sur le serveur',
+    remotePathHint: 'Le script s\'exécute depuis ce dossier, dans un shell de connexion (nvm, pm2… disponibles).',
+    script:         'Script',
+    scriptHint:     'Une commande par ligne. S\'arrête à la première erreur.',
+    localProject:   'Projet local (optionnel)',
+    none:           'Aucun',
+    pushFirst:      'git push avant de déployer',
+    deploy:         'Déployer',
+    deploying:      'Déploiement…',
+    success:        '{name} déployé',
+    failure:        '{name} : échec du déploiement',
+    missingServer:  'serveur introuvable',
+    deleteConfirm:  'Supprimer la cible « {name} » et son historique ?',
+    needServer:     'Ajoutez d\'abord un serveur SSH',
+    needServerHint: 'Les déploiements passent par les connexions SSH configurées dans SSH / VPS.',
+    emptyTitle:     'Aucune cible de déploiement',
+    emptyHint:      'Une cible = un serveur, un dossier et un script (git pull, build, redémarrage…).'
   }
 } as const
 
