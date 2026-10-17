@@ -35,7 +35,7 @@ function ConnectionForm({ initial, onSave, onCancel }: ConnectionFormProps) {
   const [port, setPort]             = useState(String(initial?.port ?? 22))
   const [username, setUsername]     = useState(initial?.username ?? '')
   const [authMethod, setAuthMethod] = useState<'password' | 'privateKey'>(initial?.authMethod ?? 'password')
-  const [password, setPassword]     = useState(initial?.password ?? '')
+  const [password, setPassword]     = useState('')
   const [keyPath, setKeyPath]       = useState(initial?.privateKeyPath ?? '')
   const [color, setColor]           = useState(initial?.color ?? CONNECTION_COLORS[0])
   const [errors, setErrors]         = useState<Record<string, string>>({})
@@ -127,7 +127,7 @@ function ConnectionForm({ initial, onSave, onCancel }: ConnectionFormProps) {
           {authMethod === 'password' ? (
             <div className={styles.field}>
               <label>{t.ssh.labelPassword}</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={initial?.hasPassword ? t.ssh.passwordUnchanged : '••••••••'} />
             </div>
           ) : (
             <div className={styles.field}>
