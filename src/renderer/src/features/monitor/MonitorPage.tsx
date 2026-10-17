@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Activity, ExternalLink, Pause, Pencil, Play, Plus, RefreshCw, Trash2 } from 'lucide-react'
-import type { Monitor, MonitorCheck, MonitorState } from '@shared/types'
+import type { Monitor, MonitorCheck, MonitorState, UrlSuggestion } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import { formatRelative } from '@renderer/lib/format'
@@ -12,6 +12,7 @@ import IconButton from '@renderer/components/ui/IconButton'
 import Modal from '@renderer/components/ui/Modal'
 import { Field, Input, Select } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
+import Suggestions from '@renderer/components/ui/Suggestions'
 
 const INTERVALS = [30, 60, 300, 900, 3600]
 
@@ -75,6 +76,7 @@ export default function MonitorPage() {
   const [states, setStates] = useState<Record<string, MonitorState>>({})
   const [editing, setEditing] = useState<{ monitor?: Monitor } | null>(null)
   const [checking, setChecking] = useState<Set<string>>(new Set())
+  const [suggested, setSuggested] = useState<UrlSuggestion[]>([])
 
   const reload = useCallback(async () => {
     const [list, st] = await Promise.all([window.devforge.monitor.list(), window.devforge.monitor.states()])
@@ -84,6 +86,7 @@ export default function MonitorPage() {
 
   useEffect(() => {
     reload()
+    window.devforge.suggest.monitorUrls().then(setSuggested).catch(() => {})
     return window.devforge.monitor.onState(s => setStates(prev => ({ ...prev, [s.id]: s })))
   }, [reload])
 
@@ -104,6 +107,19 @@ export default function MonitorPage() {
         title={m.title}
         subtitle={monitors.length ? (down ? m.subtitleDown.replace('{n}', String(down)) : m.subtitleOk) : m.subtitle}
         actions={<Button onClick={() => setEditing({})}><Plus size={14} /> {m.add}</Button>}
+      />
+
+      <Suggestions
+        title={m.suggestions}
+        items={suggested.map(s => ({
+          key: s.url,
+          label: <span className="font-mono">{s.url}</span>,
+          hint: s.source,
+          onPick: async () => {
+            await save({ id: crypto.randomUUID(), name: s.name, url: s.url, intervalSec: 60, enabled: true })
+            setSuggested(list => list.filter(x => x.url !== s.url))
+          }
+        }))}
       />
 
       {monitors.length === 0 ? (

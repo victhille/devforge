@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowDownToLine, Eraser, FileText, Pause, Play, Plus, Search, WrapText, X } from 'lucide-react'
+import type { LogFileSuggestion } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
@@ -8,6 +9,8 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import { Input } from '@renderer/components/ui/Input'
 import { LEVEL_COLOR, levelOf, type LogLevel } from './logLevel'
+import Suggestions from '@renderer/components/ui/Suggestions'
+import { formatRelative, formatSize } from '@renderer/lib/format'
 
 const MAX_LINES = 5000
 const STORAGE_KEY = 'devforge:log-files'
@@ -28,8 +31,10 @@ function toLines(texts: string[], start: number): Line[] {
 const fileName = (p: string) => p.split(/[\\/]/).pop() ?? p
 
 export default function LogsPage() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const l = t.logs
+  const [suggested, setSuggested] = useState<LogFileSuggestion[]>([])
+  useEffect(() => { window.devforge.suggest.logFiles().then(setSuggested).catch(() => {}) }, [])
   const toast = useToast()
   const [files, setFiles] = useState<OpenFile[]>([])
   const [active, setActive] = useState<string | null>(null)
@@ -124,7 +129,16 @@ export default function LogsPage() {
       </div>
 
       {!file ? (
-        <div className="flex flex-1 p-8">
+        <div className="flex flex-1 flex-col gap-4 p-8">
+          <Suggestions
+            title={l.suggestions}
+            items={suggested.map(s => ({
+              key: s.path,
+              label: <span><span className="font-medium">{s.projectName}</span> <span className="font-mono text-xs text-fg-secondary">{s.path.split(/[\/]/).slice(-2).join('/')}</span></span>,
+              hint: `${formatSize(s.size)} · ${formatRelative(s.modifiedAt, lang)}`,
+              onPick: () => open(s.path)
+            }))}
+          />
           <EmptyState className="flex-1" icon={<FileText size={32} />} title={l.emptyTitle} description={l.emptyHint}
             action={<Button onClick={addFile}><Plus size={14} /> {l.open}</Button>} />
         </div>

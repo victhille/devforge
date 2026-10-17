@@ -561,6 +561,7 @@ const en = {
   },
 
   monitor: {
+    suggestions:     'Found in your projects',
     title:           'Monitoring',
     subtitle:        'Get notified when a site or an API goes down',
     subtitleOk:      'All monitored URLs are up',
@@ -584,6 +585,7 @@ const en = {
   },
 
   domains: {
+    running:       'running',
     title:         'Local domains',
     subtitle:      'shop.test instead of localhost:3000',
     proxyOn:       'Proxy running on port {port}',
@@ -598,7 +600,7 @@ const en = {
     domain:        'Domain',
     add:           'Add',
     saveFailed:    'Could not save the domain',
-    suggestions:   'Ideas:',
+    suggestions:   'Detected in your projects',
     emptyTitle:    'No local domain',
     emptyHint:     'Map a .test domain to a local port. .localhost domains work without touching the hosts file.'
   },
@@ -647,6 +649,7 @@ const en = {
   },
 
   logs: {
+    suggestions: 'Log files found in your projects',
     open:       'Open a log file',
     openFailed: 'Could not open the file',
     search:     'Filter lines…',

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AlertTriangle, ArrowRight, CheckCircle2, ExternalLink, Globe, Plus, ShieldCheck, Trash2 } from 'lucide-react'
-import type { DomainsStatus, LocalDomain, Project } from '@shared/types'
+import type { DomainSuggestion, DomainsStatus, LocalDomain } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
@@ -11,6 +11,7 @@ import IconButton from '@renderer/components/ui/IconButton'
 import Switch from '@renderer/components/ui/Switch'
 import { Input } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
+import Suggestions from '@renderer/components/ui/Suggestions'
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
@@ -20,7 +21,7 @@ export default function DomainsPage() {
   const toast = useToast()
   const [domains, setDomains] = useState<LocalDomain[]>([])
   const [status, setStatus] = useState<DomainsStatus | null>(null)
-  const [projects, setProjects] = useState<Project[]>([])
+  const [suggested, setSuggested] = useState<DomainSuggestion[]>([])
   const [draft, setDraft] = useState({ name: '', port: '3000' })
   const [applying, setApplying] = useState(false)
 
@@ -32,7 +33,7 @@ export default function DomainsPage() {
 
   useEffect(() => {
     reload()
-    window.devforge.getProjects().then(setProjects)
+    window.devforge.suggest.domains().then(setSuggested).catch(() => {})
   }, [reload])
 
   async function save(domain: LocalDomain) {
@@ -108,16 +109,19 @@ export default function DomainsPage() {
         </label>
         <Button onClick={add} disabled={!draft.name.trim()}><Plus size={14} /> {d.add}</Button>
       </Card>
-      {projects.length > 0 && domains.length === 0 && (
-        <div className="-mt-3 flex flex-wrap items-center gap-1.5 text-xs text-fg-muted">
-          {d.suggestions}
-          {projects.slice(0, 6).map(p => (
-            <button key={p.id} onClick={() => setDraft(x => ({ ...x, name: slug(p.name) }))} className="rounded-full border border-line-subtle px-2 py-0.5 font-mono hover:border-line hover:text-fg">
-              {slug(p.name)}.test
-            </button>
-          ))}
-        </div>
-      )}
+      <Suggestions
+        title={d.suggestions}
+        items={suggested.map(s => ({
+          key: s.domain,
+          label: <span className="font-mono">{s.domain} → :{s.port}</span>,
+          hint: s.running ? `● ${d.running}` : s.source,
+          onPick: async () => {
+            if (await save({ id: crypto.randomUUID(), domain: s.domain, port: s.port, enabled: true })) {
+              setSuggested(list => list.filter(x => x.domain !== s.domain))
+            }
+          }
+        }))}
+      />
 
       {/* List */}
       {domains.length === 0 ? (
