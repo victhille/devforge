@@ -28,7 +28,8 @@ const en = {
     monitor: 'Monitoring',
     domains: 'Local domains',
     database: 'Database',
-    logs: 'Log viewer'
+    logs: 'Log viewer',
+    webhooks: 'Webhooks'
   },
 
   palette: {
@@ -628,6 +629,28 @@ const en = {
     noLines:    'No line matches the filters.',
     emptyTitle: 'Follow a log file live',
     emptyHint:  'Laravel, Symfony, nginx, pm2, JSON logs (pino, winston)… Lines are colored by level and the file is followed as it grows.'
+  },
+
+  webhooks: {
+    title:         'Webhook tester',
+    start:         'Start',
+    stop:          'Stop',
+    startFailed:   'Could not start the server',
+    response:      'Response',
+    responseTitle: 'Response sent to callers',
+    clear:         'Clear',
+    tunnelHint:    'Only reachable from this computer. To receive Stripe / GitHub webhooks, expose it:',
+    waiting:       'Waiting for requests…',
+    notStarted:    'Start the server to capture requests.',
+    headers:       'Headers',
+    body:          'Body',
+    noBody:        'No body',
+    truncated:     'truncated at 1 MB',
+    replay:        'Replay',
+    send:          'Send',
+    replayHint:    'Sends the same method, headers and body. Without a path, the captured path is reused.',
+    emptyTitle:    'Inspect incoming webhooks',
+    emptyHint:     'Point a service to the local URL (or a tunnel): every request shows up here with its headers and body.'
   }
 } as const
 

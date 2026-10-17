@@ -105,6 +105,17 @@ const api: DevForgeAPI = {
     onLines: on('logs:lines')
   },
 
+  webhooks: {
+    start:       invoke('webhooks:start'),
+    stop:        invoke('webhooks:stop'),
+    status:      invoke('webhooks:status'),
+    list:        invoke('webhooks:list'),
+    clear:       invoke('webhooks:clear'),
+    setResponse: invoke('webhooks:set-response'),
+    replay:      invoke('webhooks:replay'),
+    onRequest:   on('webhooks:request')
+  },
+
   // SSH
   getSshConnections:  ()           => ipcRenderer.invoke('ssh:get-connections'),
   saveSshConnection:  (conn)       => ipcRenderer.invoke('ssh:save-connection', conn),
