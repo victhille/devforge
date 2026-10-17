@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Code2, FolderOpen, Info, Server, Terminal, Play, type LucideIcon } from 'lucide-react'
-import type { Project, SSHConnection } from '@shared/types'
+import { Code2, FolderOpen, Info, Server, Terminal, Play, Rocket, type LucideIcon } from 'lucide-react'
+import type { Project, SSHConnection, Stack } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useConsole } from '@renderer/app/ConsoleContext'
 import { HOME, LISTED_PAGES, type NavPage } from '@renderer/app/navigation'
@@ -26,6 +26,7 @@ export function useCommands(open: boolean): Command[] {
   const [projects, setProjects] = useState<Project[]>([])
   const [connections, setConnections] = useState<SSHConnection[]>([])
   const [scripts, setScripts] = useState<Record<string, Record<string, string>>>({})
+  const [stacks, setStacks] = useState<Stack[]>([])
 
   // Refresh data each time the palette opens (cheap local reads)
   useEffect(() => {
@@ -37,6 +38,7 @@ export function useCommands(open: boolean): Command[] {
       )).then(entries => setScripts(Object.fromEntries(entries)))
     })
     window.devforge.getSshConnections().then(setConnections)
+    window.devforge.stacks.list().then(setStacks)
   }, [open])
 
   return useMemo(() => {
@@ -53,6 +55,19 @@ export function useCommands(open: boolean): Command[] {
         icon: p.icon,
         keywords: p.keywords?.join(' '),
         run: () => navigate(p.path)
+      })
+    }
+
+    // Stacks
+    for (const st of stacks) {
+      list.push({
+        id: `stack:${st.id}`,
+        group: c.groupStacks,
+        title: `${c.startStack} — ${st.name}`,
+        icon: Rocket,
+        color: st.color,
+        keywords: 'stack launch lancer',
+        run: () => { window.devforge.stacks.start(st.id); navigate('/stacks') }
       })
     }
 
@@ -92,7 +107,7 @@ export function useCommands(open: boolean): Command[] {
     }
 
     return list
-  }, [t, navigate, runScript, projects, scripts, connections])
+  }, [t, navigate, runScript, projects, scripts, connections, stacks])
 }
 
 /** Lowercase, accent-free text for matching. */

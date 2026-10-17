@@ -5,6 +5,13 @@ import type { DevForgeAPI, LogLine, CommandResult, SSHSessionStatus } from '@sha
 const invoke = <T extends (...args: never[]) => Promise<unknown>>(channel: string) =>
   ((...args: unknown[]) => ipcRenderer.invoke(channel, ...args)) as unknown as T
 
+/** Subscribe to a main → renderer event, returns the unsubscribe function */
+const on = <T>(channel: string) => (cb: (payload: T) => void) => {
+  const listener = (_e: Electron.IpcRendererEvent, payload: T) => cb(payload)
+  ipcRenderer.on(channel, listener)
+  return () => { ipcRenderer.removeListener(channel, listener) }
+}
+
 const api: DevForgeAPI = {
   git: {
     details: invoke('git:details'),
@@ -29,6 +36,20 @@ const api: DevForgeAPI = {
 
   versions: {
     requirements: invoke('versions:requirements')
+  },
+
+  stacks: {
+    list:      invoke('stacks:list'),
+    save:      invoke('stacks:save'),
+    remove:    invoke('stacks:remove'),
+    start:     invoke('stacks:start'),
+    stop:      invoke('stacks:stop'),
+    startStep: invoke('stacks:start-step'),
+    stopStep:  invoke('stacks:stop-step'),
+    processes: invoke('stacks:processes'),
+    logs:      invoke('stacks:logs'),
+    onLog:     on('stacks:log'),
+    onStatus:  on('stacks:status')
   },
 
   // SSH

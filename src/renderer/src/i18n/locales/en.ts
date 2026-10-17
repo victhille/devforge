@@ -21,10 +21,13 @@ const en = {
     cleaner: 'Disk cleaner',
     sectionSystem: 'System',
     sectionServers: 'Servers',
-    envFiles: 'Env variables'
+    envFiles: 'Env variables',
+    stacks: 'Launcher'
   },
 
   palette: {
+    groupStacks:   'Stacks',
+    startStack:    'Start',
     placeholder:   'Search pages, projects, scripts, servers…',
     noResults:     'No results',
     groupPages:    'Pages',
@@ -436,6 +439,36 @@ const en = {
     lastBackup:      'Last encrypted backup {when}',
     restoreConfirm:  'Overwrite the .env files with the last backup?',
     restored:        'Restored: {files}'
+  },
+
+  stacks: {
+    title:              'Stack launcher',
+    subtitle:           'Start your whole dev setup in one click',
+    newStack:           'New stack',
+    newTitle:           'New stack',
+    editTitle:          'Edit stack',
+    edit:               'Edit',
+    name:               'Name',
+    namePlaceholder:    'My SaaS (front + API)',
+    color:              'Color',
+    steps:              'Steps',
+    noSteps:            'Add commands, VS Code or URLs, or pick a project below.',
+    labelPlaceholder:   'Label',
+    folder:             'Folder',
+    delay:              'Delay before opening (ms)',
+    addCommand:         'Command',
+    addFromProject:     '+ From a project…',
+    addFromProjectHint: 'A project adds its dev script and VS Code automatically.',
+    startAll:           'Start',
+    stopAll:            'Stop all',
+    start:              'Start',
+    stop:               'Stop',
+    running:            '{n} running',
+    startFailed:        'Could not start the stack',
+    deleteConfirm:      'Delete the stack "{name}"? Running processes will be stopped.',
+    emptyTitle:         'No stack yet',
+    emptyHint:          'A stack groups what you start every day: front, API, Docker, VS Code, the browser…',
+    status:             { running: 'running', exited: 'finished', stopped: 'stopped', failed: 'failed' }
   }
 } as const
 

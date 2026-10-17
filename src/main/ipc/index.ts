@@ -7,6 +7,7 @@ import { registerSettingsHandlers } from './settings'
 import { registerGitHandlers } from './git'
 import { registerCleanerHandlers } from './cleaner'
 import { registerEnvHandlers } from './envfiles'
+import { registerStackHandlers } from './stacks'
 
 export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerSshHandlers(mainWindow)
@@ -17,4 +18,5 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerGitHandlers()
   registerCleanerHandlers()
   registerEnvHandlers()
+  registerStackHandlers(mainWindow)
 }

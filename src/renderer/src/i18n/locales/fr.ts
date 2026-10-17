@@ -20,10 +20,13 @@ const fr = {
     cleaner: 'Nettoyage disque',
     sectionSystem: 'Système',
     sectionServers: 'Serveurs',
-    envFiles: 'Variables .env'
+    envFiles: 'Variables .env',
+    stacks: 'Lanceur'
   },
 
   palette: {
+    groupStacks:   'Stacks',
+    startStack:    'Démarrer',
     placeholder:   'Rechercher pages, projets, scripts, serveurs…',
     noResults:     'Aucun résultat',
     groupPages:    'Pages',
@@ -421,6 +424,36 @@ const fr = {
     lastBackup:      'Dernière sauvegarde chiffrée {when}',
     restoreConfirm:  'Écraser les fichiers .env avec la dernière sauvegarde ?',
     restored:        'Restaurés : {files}'
+  },
+
+  stacks: {
+    title:              'Lanceur de stack',
+    subtitle:           'Démarrez tout votre environnement de dev en un clic',
+    newStack:           'Nouvelle stack',
+    newTitle:           'Nouvelle stack',
+    editTitle:          'Modifier la stack',
+    edit:               'Modifier',
+    name:               'Nom',
+    namePlaceholder:    'Mon SaaS (front + API)',
+    color:              'Couleur',
+    steps:              'Étapes',
+    noSteps:            'Ajoutez des commandes, VS Code ou des URLs, ou choisissez un projet ci-dessous.',
+    labelPlaceholder:   'Libellé',
+    folder:             'Dossier',
+    delay:              'Délai avant ouverture (ms)',
+    addCommand:         'Commande',
+    addFromProject:     '+ Depuis un projet…',
+    addFromProjectHint: 'Un projet ajoute automatiquement son script dev et VS Code.',
+    startAll:           'Démarrer',
+    stopAll:            'Tout arrêter',
+    start:              'Démarrer',
+    stop:               'Arrêter',
+    running:            '{n} en cours',
+    startFailed:        'Impossible de démarrer la stack',
+    deleteConfirm:      'Supprimer la stack « {name} » ? Les processus en cours seront arrêtés.',
+    emptyTitle:         'Aucune stack pour l\'instant',
+    emptyHint:          'Une stack regroupe ce que vous lancez chaque jour : front, API, Docker, VS Code, le navigateur…',
+    status:             { running: 'en cours', exited: 'terminé', stopped: 'arrêté', failed: 'échec' }
   }
 } as const
 

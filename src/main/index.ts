@@ -4,6 +4,7 @@ import { registerIpcHandlers } from './ipc'
 import { sshService } from './services/ssh/sshService'
 import { loadSettings } from './services/settings/settingsService'
 import { detectEnvironment } from './services/system/environmentDetector'
+import { processManager } from './services/stacks/processManager'
 
 const isDev = !app.isPackaged
 
@@ -129,6 +130,9 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
+
+// Never leave dev servers running after DevForge quits
+app.on('before-quit', () => { processManager.stopAll() })
 
 app.on('window-all-closed', () => {
   sshService.disconnectAll()
