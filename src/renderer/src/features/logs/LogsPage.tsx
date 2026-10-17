@@ -134,7 +134,7 @@ export default function LogsPage() {
             title={l.suggestions}
             items={suggested.map(s => ({
               key: s.path,
-              label: <span><span className="font-medium">{s.projectName}</span> <span className="font-mono text-xs text-fg-secondary">{s.path.split(/[\/]/).slice(-2).join('/')}</span></span>,
+              label: <span><span className="font-medium">{s.projectName}</span> <span className="font-mono text-xs text-fg-secondary">{s.path.split(/[\\/]/).slice(-3).join('/')}</span></span>,
               hint: `${formatSize(s.size)} · ${formatRelative(s.modifiedAt, lang)}`,
               onPick: () => open(s.path)
             }))}
