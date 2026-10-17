@@ -56,6 +56,7 @@ const translations = {
       remove:            'Remove',
       import:            'Import',
       terminal:          'Terminal',
+      favorite:          'Favorite',
       scripts:           'Scripts',
       noScripts:         'No scripts found',
       noProjects:        'No projects found. Create one or configure your projects directory in Settings.',
@@ -381,6 +382,7 @@ const translations = {
       remove:            'Retirer',
       import:            'Importer',
       terminal:          'Terminal',
+      favorite:          'Favori',
       scripts:           'Scripts',
       noScripts:         'Aucun script trouvé',
       noProjects:        'Aucun projet trouvé. Créez-en un ou configurez votre dossier de projets dans les paramètres.',
@@ -643,5 +645,5 @@ const translations = {
   }
 } as const
 
-export type Translations = typeof translations['en']
+export type Translations = (typeof translations)[Lang]
 export default translations

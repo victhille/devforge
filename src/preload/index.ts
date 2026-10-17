@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { DevForgeAPI, LogLine, CommandResult, SSHSessionStatus } from '../shared/types'
+import type { DevForgeAPI, LogLine, CommandResult, SSHSessionStatus } from '@shared/types'
 
 const api: DevForgeAPI = {
   // SSH

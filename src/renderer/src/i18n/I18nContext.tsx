@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import translations, { type Lang, type Translations } from './translations'
-import type { Theme } from '../../../shared/types'
+import type { Theme } from '@shared/types'
 
 interface I18nContextValue {
   lang: Lang

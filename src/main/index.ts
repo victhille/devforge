@@ -1,8 +1,8 @@
 import { app, BrowserWindow, shell, nativeImage, Tray, Menu } from 'electron'
 import { join } from 'path'
-import { registerIpcHandlers } from './ipc/handlers'
-import { sshService } from './services/sshService'
-import { loadSettings } from './services/settingsService'
+import { registerIpcHandlers } from './ipc'
+import { sshService } from './services/ssh/sshService'
+import { loadSettings } from './services/settings/settingsService'
 
 const isDev = !app.isPackaged
 
