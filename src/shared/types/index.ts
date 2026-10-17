@@ -124,8 +124,10 @@ export interface SSHConnection {
   port: number
   username: string
   authMethod: SSHAuthMethod
-  /** Stored in plain text for now — future: use OS keychain */
+  /** Write-only: sent on save, never returned to the renderer. Encrypted at rest with Electron safeStorage. */
   password?: string
+  /** True when an encrypted password is stored */
+  hasPassword?: boolean
   privateKeyPath?: string
   color: string
   createdAt: string
