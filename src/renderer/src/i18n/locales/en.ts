@@ -19,6 +19,24 @@ const en = {
     generator:      'Generator'
   },
 
+  palette: {
+    placeholder:   'Search pages, projects, scripts, servers…',
+    noResults:     'No results',
+    groupPages:    'Pages',
+    groupProjects: 'Projects',
+    groupScripts:  'Scripts',
+    groupServers:  'Servers',
+    openInVSCode:  'Open in VS Code',
+    details:       'Details',
+    openFolder:    'Open folder',
+    terminal:      'Terminal',
+    dashboard:     'Dashboard',
+    hintNavigate:  'navigate',
+    hintRun:       'run',
+    hintToggle:    'open / close',
+    search:        'Search'
+  },
+
   // ── Home ─────────────────────────────────────────────────────────────────
   home: {
     welcome:        'Welcome back',

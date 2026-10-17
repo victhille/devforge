@@ -1,44 +1,8 @@
 import { NavLink } from 'react-router-dom'
-import {
-  Home, FolderOpen, Plus, Monitor, Terminal, Settings, Wifi, BookOpen,
-  Wrench, Send, Code, Columns, Key,
-  type LucideIcon
-} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
-
-type NavKey = keyof ReturnType<typeof useI18n>['t']['nav']
-interface NavItem { to: string; labelKey: NavKey; Icon: LucideIcon }
-
-const NAV_SECTIONS: { labelKey: NavKey; items: NavItem[] }[] = [
-  {
-    labelKey: 'sectionMain',
-    items: [
-      { to: '/',            labelKey: 'home',        Icon: Home },
-      { to: '/projects',    labelKey: 'projects',    Icon: FolderOpen },
-      { to: '/new-project', labelKey: 'newProject',  Icon: Plus }
-    ]
-  },
-  {
-    labelKey: 'sectionTools',
-    items: [
-      { to: '/ssh',         labelKey: 'ssh',         Icon: Terminal },
-      { to: '/environment', labelKey: 'environment', Icon: Monitor },
-      { to: '/ports',       labelKey: 'ports',       Icon: Wifi },
-      { to: '/docs',        labelKey: 'docs',        Icon: BookOpen }
-    ]
-  },
-  {
-    labelKey: 'sectionUtils',
-    items: [
-      { to: '/toolbox',    labelKey: 'toolbox',   Icon: Wrench },
-      { to: '/api-tester', labelKey: 'apiTester', Icon: Send },
-      { to: '/snippets',   labelKey: 'snippets',  Icon: Code },
-      { to: '/diff',       labelKey: 'diff',      Icon: Columns },
-      { to: '/generator',  labelKey: 'generator', Icon: Key }
-    ]
-  }
-]
+import { HOME, LISTED_PAGES, SECTIONS } from '@renderer/app/navigation'
 
 function NavEntry({ to, label, Icon }: { to: string; label: string; Icon: LucideIcon }) {
   return (
@@ -75,17 +39,19 @@ function NavEntry({ to, label, Icon }: { to: string; label: string; Icon: Lucide
 
 export default function Sidebar() {
   const { t } = useI18n()
+  const settings = LISTED_PAGES.find(p => p.path === '/settings')!
 
   return (
     <aside className="flex w-[232px] shrink-0 flex-col overflow-hidden border-r border-line-subtle bg-surface">
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-2.5 py-4">
-        {NAV_SECTIONS.map(section => (
-          <div key={section.labelKey} className="flex flex-col gap-0.5">
+        {SECTIONS.map(section => (
+          <div key={section} className="flex flex-col gap-0.5">
             <span className="px-3 pb-1.5 text-2xs font-semibold uppercase tracking-widest text-fg-muted">
-              {t.nav[section.labelKey]}
+              {t.nav[section]}
             </span>
-            {section.items.map(item => (
-              <NavEntry key={item.to} to={item.to} label={t.nav[item.labelKey]} Icon={item.Icon} />
+            {section === 'sectionMain' && <NavEntry to={HOME.path} label={t.nav.home} Icon={HOME.icon} />}
+            {LISTED_PAGES.filter(p => p.section === section).map(p => (
+              <NavEntry key={p.path} to={p.path} label={t.nav[p.labelKey]} Icon={p.icon} />
             ))}
           </div>
         ))}
@@ -93,7 +59,7 @@ export default function Sidebar() {
 
       {/* Settings pinned at the bottom, with the version */}
       <div className="flex flex-col gap-1.5 border-t border-line-subtle px-2.5 py-2.5">
-        <NavEntry to="/settings" label={t.nav.settings} Icon={Settings} />
+        <NavEntry to={settings.path} label={t.nav.settings} Icon={settings.icon} />
         <span className="px-3 text-2xs text-fg-muted">v{__APP_VERSION__}</span>
       </div>
     </aside>

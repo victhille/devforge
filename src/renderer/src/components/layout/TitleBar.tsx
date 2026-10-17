@@ -1,7 +1,8 @@
 import { useState, useEffect, type ReactNode } from 'react'
-import { Minus, Square, X, Maximize2 } from 'lucide-react'
+import { Minus, Square, X, Maximize2, Search } from 'lucide-react'
 import logo from '@renderer/assets/icon-64.png'
 import { cn } from '@renderer/lib/cn'
+import { useI18n } from '@renderer/i18n/I18nContext'
 
 function WindowButton({ title, onClick, danger, children }: {
   title: string
@@ -25,6 +26,7 @@ function WindowButton({ title, onClick, danger, children }: {
 }
 
 export default function TitleBar() {
+  const { t } = useI18n()
   const [maximized, setMaximized] = useState(false)
 
   useEffect(() => {
@@ -38,6 +40,16 @@ export default function TitleBar() {
         <img src={logo} alt="" className="size-6 object-contain" />
         <span>DevForge</span>
       </div>
+
+      {/* Opens the command palette (same as Ctrl+K) */}
+      <button
+        onClick={() => window.dispatchEvent(new Event('devforge:open-palette'))}
+        className="app-no-drag mr-3 flex h-7 w-80 items-center gap-2 rounded-lg border border-line-subtle bg-canvas px-2.5 text-sm text-fg-muted transition-colors hover:border-line hover:text-fg-secondary"
+      >
+        <Search size={13} />
+        <span className="flex-1 text-left">{t.palette.search}…</span>
+        <kbd className="rounded border border-line bg-elevated px-1.5 font-mono text-2xs">Ctrl K</kbd>
+      </button>
 
       <div className="app-no-drag flex h-full items-stretch">
         <WindowButton title="Minimize" onClick={() => window.devforge.windowMinimize()}>

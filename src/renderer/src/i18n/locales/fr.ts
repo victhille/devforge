@@ -18,6 +18,24 @@ const fr = {
     generator:      'Générateur'
   },
 
+  palette: {
+    placeholder:   'Rechercher pages, projets, scripts, serveurs…',
+    noResults:     'Aucun résultat',
+    groupPages:    'Pages',
+    groupProjects: 'Projets',
+    groupScripts:  'Scripts',
+    groupServers:  'Serveurs',
+    openInVSCode:  'Ouvrir dans VS Code',
+    details:       'Détails',
+    openFolder:    'Ouvrir le dossier',
+    terminal:      'Terminal',
+    dashboard:     'Dashboard',
+    hintNavigate:  'naviguer',
+    hintRun:       'lancer',
+    hintToggle:    'ouvrir / fermer',
+    search:        'Rechercher'
+  },
+
   home: {
     welcome:        'Bon retour',
     subtitle:       'Sur quoi travaillez-vous aujourd\'hui ?',

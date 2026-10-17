@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import Sidebar from './Sidebar'
 import TitleBar from './TitleBar'
 import BottomPanel from './BottomPanel'
+import CommandPalette from '@renderer/components/command-palette/CommandPalette'
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <BottomPanel />
         </div>
       </div>
+      <CommandPalette />
     </div>
   )
 }
