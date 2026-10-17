@@ -29,7 +29,9 @@ const en = {
     domains: 'Local domains',
     database: 'Database',
     logs: 'Log viewer',
-    webhooks: 'Webhooks'
+    webhooks: 'Webhooks',
+    collapse: 'Collapse sidebar',
+    expand: 'Expand sidebar'
   },
 
   palette: {
@@ -200,6 +202,9 @@ const en = {
 
   // ── SSH ───────────────────────────────────────────────────────────────────
   ssh: {
+    showServers:    'Show servers',
+    hideServers:    'Hide servers',
+    databases:      'Databases on this server',
     connections:    'Connections',
     noConnections:  'No connections yet',
     addServer:      'Add server',
