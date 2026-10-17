@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { ChevronDown, ChevronRight, Pencil, Play, Plus, Rocket, Square, Trash2 } from 'lucide-react'
 import type { ProcessInfo, Stack } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -11,30 +11,14 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import StackEditor, { STEP_ICON } from './StackEditor'
-import { procKey, useProcessLogs, useStacks } from './useStacks'
+import { procKey, useStacks } from './useStacks'
+import LogPanel from '@renderer/components/process/LogPanel'
 
 const DOT: Record<ProcessInfo['status'], string> = {
   running: 'bg-success animate-pulse',
   exited:  'bg-fg-muted',
   stopped: 'bg-fg-muted',
   failed:  'bg-danger'
-}
-
-function LogPanel({ procKey: key }: { procKey: string }) {
-  const logs = useProcessLogs(key)
-  const end = useRef<HTMLDivElement>(null)
-  useEffect(() => { end.current?.scrollIntoView({ block: 'nearest' }) }, [logs])
-  return (
-    <div className="max-h-64 overflow-y-auto rounded-lg bg-console p-3 font-mono text-xs leading-relaxed">
-      {logs.length === 0 && <span className="text-fg-muted">—</span>}
-      {logs.map((l, i) => (
-        <div key={i} className={cn('whitespace-pre-wrap break-all', l.stream === 'stderr' ? 'text-warning' : l.stream === 'system' ? 'text-accent' : 'text-fg-secondary')}>
-          {l.text}
-        </div>
-      ))}
-      <div ref={end} />
-    </div>
-  )
 }
 
 function StackCard({ stack, procs, running, onEdit, onDelete }: {

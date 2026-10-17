@@ -172,11 +172,13 @@ export * from './cleaner'
 export * from './envfiles'
 export * from './versions'
 export * from './stacks'
+export * from './docker'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
 import type { VersionsAPI } from './versions'
 import type { StacksAPI } from './stacks'
+import type { DockerAPI } from './docker'
 
 // ─── IPC API ─────────────────────────────────────────────────────────────────
 
@@ -186,6 +188,7 @@ export interface DevForgeAPI {
   env: EnvAPI
   versions: VersionsAPI
   stacks: StacksAPI
+  docker: DockerAPI
 
   // SSH
   getSshConnections: () => Promise<SSHConnection[]>
