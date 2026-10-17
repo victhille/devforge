@@ -75,9 +75,9 @@ export default function EnvironmentPage() {
   const [tools, setTools]     = useState<EnvironmentTool[]>([])
   const [loading, setLoading] = useState(false)
 
-  async function refresh() {
+  async function refresh(force = false) {
     setLoading(true)
-    try { setTools(await window.devforge.detectEnvironment()) }
+    try { setTools(await window.devforge.detectEnvironment(force)) }
     finally { setLoading(false) }
   }
 
@@ -104,7 +104,7 @@ export default function EnvironmentPage() {
           ? t.environment.subtitle.replace('{n}', String(totalDetected)).replace('{total}', String(tools.length))
           : t.environment.subtitleLoading}
         actions={
-          <Button variant="secondary" size="sm" onClick={refresh} loading={loading}>
+          <Button variant="secondary" size="sm" onClick={() => refresh(true)} loading={loading}>
             <RefreshCw size={13} /> {t.environment.refresh}
           </Button>
         }

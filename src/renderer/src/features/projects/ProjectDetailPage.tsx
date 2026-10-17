@@ -78,7 +78,7 @@ export default function ProjectDetailPage() {
           <h1 className="truncate text-lg font-semibold text-fg">{project.name}</h1>
           <GitBadge status={gitStatus} />
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <IconButton title="Favorite" onClick={toggleFavorite} className={cn(project.favorite && 'text-warning hover:text-warning')}>
             <Star size={14} fill={project.favorite ? 'currentColor' : 'none'} />
           </IconButton>

@@ -1,5 +1,6 @@
 import { execSync } from 'child_process'
 import type { EnvironmentTool } from '@shared/types'
+import { run } from '../../lib/exec'
 
 interface ToolDef {
   id: string
@@ -100,40 +101,49 @@ const TOOL_DEFINITIONS: ToolDef[] = [
   }
 ]
 
-function detect(def: ToolDef): EnvironmentTool {
-  try {
-    const output = execSync(`${def.command} ${def.args.join(' ')}`, {
-      timeout: 5000,
-      encoding: 'utf8',
-      windowsHide: true,
-      stdio: ['pipe', 'pipe', 'pipe']
-    })
-    return {
-      id: def.id,
-      name: def.name,
-      command: `${def.command} ${def.args.join(' ')}`,
-      version: def.parseVersion(output),
-      status: 'detected',
-      required: def.required
-    }
-  } catch {
-    return {
-      id: def.id,
-      name: def.name,
-      command: `${def.command} ${def.args.join(' ')}`,
-      version: null,
-      status: 'not_detected',
-      required: def.required
-    }
+function toTool(def: ToolDef, output: string | null): EnvironmentTool {
+  return {
+    id: def.id,
+    name: def.name,
+    command: `${def.command} ${def.args.join(' ')}`,
+    version: output === null ? null : def.parseVersion(output),
+    status: output === null ? 'not_detected' : 'detected',
+    required: def.required
   }
 }
 
-export function detectEnvironment(): EnvironmentTool[] {
-  return TOOL_DEFINITIONS.map(detect)
+async function detect(def: ToolDef): Promise<EnvironmentTool> {
+  try {
+    return toTool(def, await run(`${def.command} ${def.args.join(' ')}`))
+  } catch {
+    return toTool(def, null)
+  }
 }
 
+let cache: Promise<EnvironmentTool[]> | null = null
+
+/**
+ * All tools probed in parallel. Result is cached for the app session:
+ * installed tools rarely change, pass `force` to re-detect (Refresh button).
+ */
+export function detectEnvironment(force = false): Promise<EnvironmentTool[]> {
+  if (!cache || force) {
+    cache = Promise.all(TOOL_DEFINITIONS.map(detect))
+    cache.catch(() => { cache = null })
+  }
+  return cache
+}
+
+/** Sync probe of a single tool, used during project creation. */
 export function detectTool(id: string): EnvironmentTool | null {
   const def = TOOL_DEFINITIONS.find(d => d.id === id)
   if (!def) return null
-  return detect(def)
+  try {
+    const output = execSync(`${def.command} ${def.args.join(' ')}`, {
+      timeout: 5000, encoding: 'utf8', windowsHide: true, stdio: ['ignore', 'pipe', 'ignore']
+    })
+    return toTool(def, output)
+  } catch {
+    return toTool(def, null)
+  }
 }

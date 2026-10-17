@@ -37,7 +37,7 @@ const api: DevForgeAPI = {
   },
 
   // Environment
-  detectEnvironment: () => ipcRenderer.invoke('detect-environment'),
+  detectEnvironment: (force) => ipcRenderer.invoke('detect-environment', force),
 
   // File system
   selectDirectory:  ()             => ipcRenderer.invoke('select-directory'),

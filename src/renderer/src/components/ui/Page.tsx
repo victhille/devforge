@@ -3,7 +3,7 @@ import { cn } from '@renderer/lib/cn'
 
 /** Scrollable page container with standard padding. */
 export function Page({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
-  return <div {...rest} className={cn('mx-auto flex w-full max-w-6xl flex-col gap-6 px-8 py-7', className)} />
+  return <div {...rest} className={cn('mx-auto flex w-full max-w-6xl flex-col gap-7 px-10 py-8', className)} />
 }
 
 interface HeaderProps {

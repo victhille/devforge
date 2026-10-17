@@ -7,7 +7,7 @@ const FIELD =
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }>(
   function Input({ className, invalid, ...rest }, ref) {
-    return <input ref={ref} {...rest} className={cn(FIELD, 'h-8', invalid && 'border-danger', className)} />
+    return <input ref={ref} {...rest} className={cn(FIELD, 'h-9', invalid && 'border-danger', className)} />
   }
 )
 
@@ -19,7 +19,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
 
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(
   function Select({ className, ...rest }, ref) {
-    return <select ref={ref} {...rest} className={cn(FIELD, 'h-8 cursor-pointer pr-8', className)} />
+    return <select ref={ref} {...rest} className={cn(FIELD, 'h-9 cursor-pointer pr-8', className)} />
   }
 )
 

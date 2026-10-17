@@ -116,7 +116,7 @@ export default function SSHPage() {
                     </span>
                   )}
                 </button>
-                <div className="absolute top-1/2 right-1.5 hidden -translate-y-1/2 items-center gap-0.5 rounded-md bg-hover group-hover:flex">
+                <div className="absolute top-1/2 right-1.5 hidden -translate-y-1/2 items-center gap-1 rounded-md bg-hover group-hover:flex">
                   <IconButton size="sm" title="Dashboard" onClick={() => navigate(`/vps/${conn.id}`)}><BarChart2 size={12} /></IconButton>
                   <IconButton size="sm" title={t.ssh.editConnection} onClick={() => setForm({ open: true, target: conn })}><Edit2 size={12} /></IconButton>
                   <IconButton size="sm" tone="danger" title="Delete" onClick={() => deleteConnection(conn.id)}><Trash2 size={12} /></IconButton>

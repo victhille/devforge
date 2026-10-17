@@ -1,11 +1,15 @@
-import { readdirSync, existsSync, readFileSync, statSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
+import { readdir } from 'fs/promises'
 import { join } from 'path'
 import type { DetectedProject, Framework, PackageManager } from '@shared/types'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function fileExists(dir: string, ...parts: string[]): boolean {
-  return existsSync(join(dir, ...parts))
+/** One directory listing, reused by every check below (avoids hundreds of syscalls). */
+interface Dir { path: string; files: Set<string> }
+
+function fileExists(dir: Dir, name: string): boolean {
+  return dir.files.has(name)
 }
 
 function readJson(path: string): Record<string, unknown> {
@@ -20,17 +24,14 @@ function hasDep(pkg: Record<string, unknown>, ...names: string[]): boolean {
   return names.some(n => n in deps)
 }
 
-function listDir(dir: string): string[] {
-  try { return readdirSync(dir) } catch { return [] }
-}
-
-function hasExtension(dir: string, ...exts: string[]): boolean {
-  return listDir(dir).some(f => exts.some(e => f.endsWith(e)))
+function hasExtension(dir: Dir, ...exts: string[]): boolean {
+  for (const f of dir.files) if (exts.some(e => f.endsWith(e))) return true
+  return false
 }
 
 // ─── Package manager ──────────────────────────────────────────────────────────
 
-function detectPackageManager(dir: string): PackageManager {
+function detectPackageManager(dir: Dir): PackageManager {
   if (fileExists(dir, 'pnpm-lock.yaml')) return 'pnpm'
   if (fileExists(dir, 'yarn.lock'))       return 'yarn'
   return 'npm'
@@ -38,12 +39,11 @@ function detectPackageManager(dir: string): PackageManager {
 
 // ─── Framework detection ──────────────────────────────────────────────────────
 
-function detectFramework(dir: string): Framework {
-  const files = listDir(dir)
+function detectFramework(dir: Dir): Framework {
 
   // ── JavaScript / TypeScript ──────────────────────────────────────────────
   if (fileExists(dir, 'package.json')) {
-    const pkg = readJson(join(dir, 'package.json'))
+    const pkg = readJson(join(dir.path, 'package.json'))
     if (hasDep(pkg, 'next'))             return 'nextjs'
     if (hasDep(pkg, 'react', 'react-dom')) return 'react'
     if (hasDep(pkg, 'vue'))              return 'vue'
@@ -60,10 +60,10 @@ function detectFramework(dir: string): Framework {
 
   // ── PHP ──────────────────────────────────────────────────────────────────
   if (fileExists(dir, 'composer.json')) {
-    const pkg    = readJson(join(dir, 'composer.json'))
+    const pkg    = readJson(join(dir.path, 'composer.json'))
     const req    = pkg.require as Record<string, unknown> ?? {}
     if ('symfony/framework-bundle' in req)    return 'symfony'
-    if (fileExists(dir, 'config', 'bundles.php')) return 'symfony'
+    if (existsSync(join(dir.path, 'config', 'bundles.php'))) return 'symfony'
     if ('laravel/framework' in req)           return 'laravel'
     return 'php'
   }
@@ -73,7 +73,7 @@ function detectFramework(dir: string): Framework {
 
   // ── Mobile ───────────────────────────────────────────────────────────────
   if (fileExists(dir, 'pubspec.yaml')) {
-    const content = readFileSync(join(dir, 'pubspec.yaml'), 'utf-8')
+    const content = readFileSync(join(dir.path, 'pubspec.yaml'), 'utf-8')
     if (content.includes('flutter')) return 'flutter'
     return 'unknown'
   }
@@ -99,7 +99,7 @@ function detectFramework(dir: string): Framework {
   if (hasExtension(dir, '.java'))         return 'java'
 
   // ── .NET ─────────────────────────────────────────────────────────────────
-  if (files.some(f => f.endsWith('.csproj') || f.endsWith('.sln') || f.endsWith('.fsproj')))
+  if ([...dir.files].some(f => f.endsWith('.csproj') || f.endsWith('.sln') || f.endsWith('.fsproj')))
                                           return 'dotnet'
 
   // ── Ruby ─────────────────────────────────────────────────────────────────
@@ -135,32 +135,27 @@ function detectFramework(dir: string): Framework {
 
 // ─── Scanner ──────────────────────────────────────────────────────────────────
 
-export function scanDirectory(directory: string): DetectedProject[] {
-  if (!existsSync(directory)) return []
+async function listDir(path: string): Promise<Dir | null> {
+  try { return { path, files: new Set(await readdir(path)) } } catch { return null }
+}
 
-  let entries: string[]
-  try { entries = readdirSync(directory) } catch { return [] }
+/** Detect projects in the direct sub-folders of `directory`, all folders in parallel. */
+export async function scanDirectory(directory: string): Promise<DetectedProject[]> {
+  let entries
+  try { entries = await readdir(directory, { withFileTypes: true }) } catch { return [] }
 
-  const results: DetectedProject[] = []
+  const folders = entries.filter(e => (e.isDirectory() || e.isSymbolicLink()) && !e.name.startsWith('.'))
 
-  for (const entry of entries) {
-    const fullPath = join(directory, entry)
-    try {
-      if (!statSync(fullPath).isDirectory()) continue
-      if (entry.startsWith('.'))             continue
-    } catch { continue }
-
-    const framework      = detectFramework(fullPath)
-    const packageManager = detectPackageManager(fullPath)
-
+  const results = await Promise.all(folders.map(async entry => {
+    const dir = await listDir(join(directory, entry.name))
+    if (!dir) return null
+    const framework = detectFramework(dir)
     // Skip completely empty directories
-    if (framework === 'unknown') {
-      const hasContent = listDir(fullPath).length > 0
-      if (!hasContent) continue
-    }
+    if (framework === 'unknown' && dir.files.size === 0) return null
+    return { name: entry.name, path: dir.path, framework, packageManager: detectPackageManager(dir) }
+  }))
 
-    results.push({ name: entry, path: fullPath, framework, packageManager })
-  }
-
-  return results.sort((a, b) => a.name.localeCompare(b.name))
+  return results
+    .filter((p): p is DetectedProject => p !== null)
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
