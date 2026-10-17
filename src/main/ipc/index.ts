@@ -10,6 +10,7 @@ import { registerEnvHandlers } from './envfiles'
 import { registerStackHandlers } from './stacks'
 import { registerDockerHandlers } from './docker'
 import { registerDeployHandlers } from './deploy'
+import { registerMonitorHandlers } from './monitor'
 
 export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerSshHandlers(mainWindow)
@@ -23,4 +24,5 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerStackHandlers(mainWindow)
   registerDockerHandlers()
   registerDeployHandlers(mainWindow)
+  registerMonitorHandlers(mainWindow)
 }

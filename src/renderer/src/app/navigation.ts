@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 import {
   Home, FolderOpen, Plus, Monitor, Terminal, Settings, Wifi, BookOpen,
-  Wrench, Send, Code, Columns, Key, GitBranch, HardDrive, FileKey2, Rocket, Container, UploadCloud,
+  Wrench, Send, Code, Columns, Key, GitBranch, HardDrive, FileKey2, Rocket, Container, UploadCloud, Activity,
   type LucideIcon
 } from 'lucide-react'
 import type { Translations } from '@renderer/i18n/translations'
@@ -40,6 +40,7 @@ export const PAGES: NavPage[] = [
   { path: '/ssh',         labelKey: 'ssh',         icon: Terminal,   section: 'sectionServers', load: () => import('@renderer/features/ssh/SSHPage'), keywords: ['vps', 'server', 'serveur', 'terminal'] },
   { path: '/docker',      labelKey: 'docker',      icon: Container,  section: 'sectionServers', load: () => import('@renderer/features/docker/DockerPage'), keywords: ['container', 'conteneur', 'compose', 'image'] },
   { path: '/deploy',      labelKey: 'deploy',      icon: UploadCloud, section: 'sectionServers', load: () => import('@renderer/features/deploy/DeployPage'), keywords: ['deploy', 'déployer', 'production', 'pm2', 'release', 'mise en prod'] },
+  { path: '/monitor',     labelKey: 'monitor',     icon: Activity,   section: 'sectionServers', load: () => import('@renderer/features/monitor/MonitorPage'), keywords: ['uptime', 'ping', 'status', 'down', 'surveillance'] },
 
   // System
   { path: '/environment', labelKey: 'environment', icon: Monitor,    section: 'sectionSystem', load: () => import('@renderer/features/system/EnvironmentPage'), keywords: ['node', 'npm', 'php', 'git', 'docker'] },

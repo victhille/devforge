@@ -24,7 +24,8 @@ const en = {
     envFiles: 'Env variables',
     stacks: 'Launcher',
     docker: 'Docker',
-    deploy: 'Deploy'
+    deploy: 'Deploy',
+    monitor: 'Monitoring'
   },
 
   palette: {
@@ -538,6 +539,29 @@ const en = {
     needServerHint: 'Deployments run over the SSH connections you set up in SSH / VPS.',
     emptyTitle:     'No deploy target',
     emptyHint:      'A target = a server, a folder and a script (git pull, build, restart…).'
+  },
+
+  monitor: {
+    title:           'Monitoring',
+    subtitle:        'Get notified when a site or an API goes down',
+    subtitleOk:      'All monitored URLs are up',
+    subtitleDown:    '{n} URL(s) down',
+    add:             'Add URL',
+    newTitle:        'Monitor a URL',
+    editTitle:       'Edit monitor',
+    edit:            'Edit',
+    name:            'Name',
+    namePlaceholder: 'My API (defaults to the host)',
+    interval:        'Check every',
+    keyword:         'Expected text',
+    keywordHint:     'Optional: the page must contain it',
+    checkNow:        'Check now',
+    pause:           'Pause',
+    resume:          'Resume',
+    since:           'since',
+    emptyTitle:      'Nothing monitored yet',
+    emptyHint:       'Add your sites and APIs: DevForge checks them in the background and sends a Windows notification when one goes down or comes back.',
+    backgroundHint:  'Checks keep running while DevForge is open or minimized to the tray.'
   }
 } as const
 
