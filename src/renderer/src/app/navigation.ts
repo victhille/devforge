@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 import {
   Home, FolderOpen, Plus, Monitor, Terminal, Settings, Wifi, BookOpen,
-  Wrench, Send, Code, Columns, Key, GitBranch, HardDrive, FileKey2, Rocket, Container, UploadCloud, Activity,
+  Wrench, Send, Code, Columns, Key, GitBranch, HardDrive, FileKey2, Rocket, Container, UploadCloud, Activity, Globe,
   type LucideIcon
 } from 'lucide-react'
 import type { Translations } from '@renderer/i18n/translations'
@@ -46,6 +46,7 @@ export const PAGES: NavPage[] = [
   { path: '/environment', labelKey: 'environment', icon: Monitor,    section: 'sectionSystem', load: () => import('@renderer/features/system/EnvironmentPage'), keywords: ['node', 'npm', 'php', 'git', 'docker'] },
   { path: '/ports',       labelKey: 'ports',       icon: Wifi,       section: 'sectionSystem', load: () => import('@renderer/features/system/PortsPage'), keywords: ['netstat', 'process'] },
   { path: '/env-files',   labelKey: 'envFiles',    icon: FileKey2,   section: 'sectionSystem', load: () => import('@renderer/features/envfiles/EnvFilesPage'), keywords: ['.env', 'dotenv', 'variables', 'secrets', 'config'] },
+  { path: '/domains',     labelKey: 'domains',     icon: Globe,      section: 'sectionSystem', load: () => import('@renderer/features/domains/DomainsPage'), keywords: ['hosts', '.test', 'domain', 'domaine', 'proxy', 'vhost'] },
   { path: '/cleaner',     labelKey: 'cleaner',     icon: HardDrive,  section: 'sectionSystem', load: () => import('@renderer/features/cleaner/DiskCleanerPage'), keywords: ['node_modules', 'disk', 'disque', 'space', 'espace', 'clean', 'nettoyer'] },
 
   // Utilities

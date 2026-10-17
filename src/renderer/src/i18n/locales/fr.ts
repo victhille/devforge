@@ -24,7 +24,8 @@ const fr = {
     stacks: 'Lanceur',
     docker: 'Docker',
     deploy: 'Déploiement',
-    monitor: 'Monitoring'
+    monitor: 'Monitoring',
+    domains: 'Domaines locaux'
   },
 
   palette: {
@@ -547,6 +548,26 @@ const fr = {
     emptyTitle:      'Rien n\'est surveillé pour l\'instant',
     emptyHint:       'Ajoutez vos sites et API : DevForge les vérifie en arrière-plan et envoie une notification Windows quand l\'un tombe ou revient.',
     backgroundHint:  'Les vérifications continuent tant que DevForge est ouvert ou réduit dans la barre système.'
+  },
+
+  domains: {
+    title:         'Domaines locaux',
+    subtitle:      'shop.test au lieu de localhost:3000',
+    proxyOn:       'Proxy actif sur le port {port}',
+    proxyOff:      'Proxy arrêté',
+    proxyHint:     'Démarre tout seul dès qu\'un domaine est activé.',
+    portFallback:  'Le port 80 est pris : les URLs ont besoin du port.',
+    hostsOk:       'Fichier hosts à jour',
+    hostsOutdated: 'Le fichier hosts doit être mis à jour',
+    applyHosts:    'Mettre à jour (admin)',
+    hostsUpdated:  'Fichier hosts mis à jour',
+    hostsFailed:   'Fichier hosts non modifié',
+    domain:        'Domaine',
+    add:           'Ajouter',
+    saveFailed:    'Impossible d\'enregistrer le domaine',
+    suggestions:   'Idées :',
+    emptyTitle:    'Aucun domaine local',
+    emptyHint:     'Associez un domaine .test à un port local. Les domaines .localhost marchent sans toucher au fichier hosts.'
   }
 } as const
 
