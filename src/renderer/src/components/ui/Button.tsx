@@ -13,16 +13,22 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANTS: Record<Variant, string> = {
-  primary:   'bg-accent text-white hover:bg-accent-hover',
-  secondary: 'bg-elevated text-fg border border-line hover:bg-hover',
-  ghost:     'bg-transparent text-fg-secondary hover:bg-hover hover:text-fg',
-  danger:    'bg-danger-soft text-danger hover:bg-danger hover:text-white'
+  primary:
+    'bg-accent text-white shadow-sm shadow-accent/20 ring-1 ring-inset ring-white/10 ' +
+    'hover:bg-accent-hover',
+  secondary:
+    'bg-elevated text-fg border border-line shadow-sm ' +
+    'hover:bg-hover hover:border-fg-muted/40',
+  ghost:
+    'bg-transparent text-fg-secondary hover:bg-hover hover:text-fg',
+  danger:
+    'bg-danger-soft text-danger border border-danger/20 hover:bg-danger hover:text-white hover:border-danger'
 }
 
 const SIZES: Record<Size, string> = {
-  sm: 'h-7 px-2.5 text-sm',
-  md: 'h-[34px] px-3.5 text-base',
-  lg: 'h-10 px-5 text-md'
+  sm: 'h-7 gap-1.5 rounded-md px-2.5 text-sm',
+  md: 'h-8 gap-1.5 rounded-lg px-3.5 text-base',
+  lg: 'h-10 gap-2 rounded-lg px-5 text-md'
 }
 
 const Button = forwardRef<HTMLButtonElement, Props>(function Button(
@@ -35,8 +41,9 @@ const Button = forwardRef<HTMLButtonElement, Props>(function Button(
       {...rest}
       disabled={disabled || loading}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg font-medium',
-        'transition-colors disabled:opacity-40',
+        'inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap font-medium',
+        'transition-[background-color,border-color,color,transform] duration-150 active:translate-y-px',
+        'disabled:pointer-events-none disabled:opacity-40',
         VARIANTS[variant],
         SIZES[size],
         loading && 'cursor-wait',

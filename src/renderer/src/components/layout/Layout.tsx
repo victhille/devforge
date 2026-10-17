@@ -5,7 +5,7 @@ import BottomPanel from './BottomPanel'
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-base">
+    <div className="flex h-screen flex-col overflow-hidden bg-canvas">
       <TitleBar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />

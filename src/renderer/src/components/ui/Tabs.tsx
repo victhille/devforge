@@ -14,26 +14,34 @@ interface Props<T extends string> {
   className?: string
 }
 
-/** Segmented control: a row of pill buttons, one active. */
+/** Segmented control: a recessed track with one raised, active segment. */
 export default function Tabs<T extends string>({ items, value, onChange, className }: Props<T>) {
   return (
-    <div className={cn('inline-flex shrink-0 gap-0.5 rounded-lg border border-line-subtle bg-surface p-0.5', className)}>
-      {items.map(item => (
-        <button
-          key={item.value}
-          type="button"
-          onClick={() => onChange(item.value)}
-          className={cn(
-            'inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-sm font-medium transition-colors',
-            value === item.value
-              ? 'bg-accent-soft text-accent'
-              : 'text-fg-secondary hover:bg-hover hover:text-fg'
-          )}
-        >
-          {item.icon}
-          {item.label}
-        </button>
-      ))}
+    <div
+      role="tablist"
+      className={cn('inline-flex h-8 w-fit shrink-0 items-center gap-0.5 self-start rounded-lg border border-line-subtle bg-canvas p-0.5', className)}
+    >
+      {items.map(item => {
+        const active = value === item.value
+        return (
+          <button
+            key={item.value}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(item.value)}
+            className={cn(
+              'inline-flex h-full items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-all',
+              active
+                ? 'bg-active text-fg shadow-sm ring-1 ring-line'
+                : 'text-fg-secondary hover:bg-hover hover:text-fg'
+            )}
+          >
+            {item.icon && <span className={cn(active ? 'text-accent' : 'text-current')}>{item.icon}</span>}
+            {item.label}
+          </button>
+        )
+      })}
     </div>
   )
 }
