@@ -1,0 +1,13 @@
+import { ipcMain } from 'electron'
+import type { DbConnection } from '@shared/types'
+import { closeDb, dbQuery, dbSchema, testDb } from '../services/database/dbClient'
+import { listDbConnections, removeDbConnection, saveDbConnection } from '../services/database/dbStorage'
+
+export function registerDatabaseHandlers(): void {
+  ipcMain.handle('db:list',   () => listDbConnections())
+  ipcMain.handle('db:save',   async (_e, c: DbConnection) => { saveDbConnection(c); await closeDb(c.id) })
+  ipcMain.handle('db:remove', async (_e, id: string) => { await closeDb(id); removeDbConnection(id) })
+  ipcMain.handle('db:test',   (_e, c: DbConnection) => testDb(c))
+  ipcMain.handle('db:schema', (_e, id: string) => dbSchema(id))
+  ipcMain.handle('db:query',  (_e, id: string, sql: string) => dbQuery(id, sql))
+}

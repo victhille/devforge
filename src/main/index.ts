@@ -7,6 +7,7 @@ import { detectEnvironment } from './services/system/environmentDetector'
 import { processManager } from './services/stacks/processManager'
 import { stopMonitors } from './services/monitor/urlMonitor'
 import { stopProxy } from './services/domains/domainProxy'
+import { closeAllDbs } from './services/database/dbClient'
 
 const isDev = !app.isPackaged
 
@@ -134,7 +135,7 @@ app.whenReady().then(() => {
 })
 
 // Never leave dev servers running after DevForge quits
-app.on('before-quit', () => { processManager.stopAll(); stopMonitors(); stopProxy() })
+app.on('before-quit', () => { processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs() })
 
 app.on('window-all-closed', () => {
   sshService.disconnectAll()
