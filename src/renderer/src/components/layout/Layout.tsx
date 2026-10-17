@@ -2,22 +2,15 @@ import type { ReactNode } from 'react'
 import Sidebar from './Sidebar'
 import TitleBar from './TitleBar'
 import BottomPanel from './BottomPanel'
-import styles from './Layout.module.css'
 
-interface Props {
-  children: ReactNode
-}
-
-export default function Layout({ children }: Props) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className={styles.root}>
+    <div className="flex h-screen flex-col overflow-hidden bg-base">
       <TitleBar />
-      <div className={styles.body}>
+      <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <div className={styles.contentArea}>
-          <main className={styles.main}>
-            {children}
-          </main>
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <main className="flex-1 overflow-y-auto">{children}</main>
           <BottomPanel />
         </div>
       </div>

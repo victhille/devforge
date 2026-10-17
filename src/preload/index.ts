@@ -41,6 +41,7 @@ const api: DevForgeAPI = {
 
   // File system
   selectDirectory:  ()             => ipcRenderer.invoke('select-directory'),
+  selectFile:       ()             => ipcRenderer.invoke('select-file'),
   openDirectory:    (path)         => ipcRenderer.invoke('open-directory', path),
   openInIDE:        (path, ide)    => ipcRenderer.invoke('open-in-ide', path, ide),
   openExternal:     (url)          => ipcRenderer.invoke('open-external', url),
