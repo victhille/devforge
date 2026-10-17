@@ -254,6 +254,16 @@ const en = {
   // ── Common ────────────────────────────────────────────────────────────────
   // ── Toolbox ───────────────────────────────────────────────────────────────
   toolbox: {
+    tabCron:      'Cron',
+    tabTimestamp: 'Timestamp',
+    tabUrl:       'URL',
+    cronFields:   ['minute', 'hour', 'day', 'month', 'weekday'],
+    cronNext:     'Next runs',
+    tsNow:        'Now',
+    tsUnix:       'Unix (seconds)',
+    tsMillis:     'Unix (milliseconds)',
+    tsLocal:      'Local time',
+    tsRelative:   'Relative',
     title:       'Toolbox',
     subtitle:    'Quick developer utilities',
     tabJson:     'JSON',

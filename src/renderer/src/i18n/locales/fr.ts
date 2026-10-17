@@ -243,6 +243,16 @@ const fr = {
   },
 
   toolbox: {
+    tabCron:      'Cron',
+    tabTimestamp: 'Timestamp',
+    tabUrl:       'URL',
+    cronFields:   ['minute', 'heure', 'jour', 'mois', 'jour sem.'],
+    cronNext:     'Prochaines exécutions',
+    tsNow:        'Maintenant',
+    tsUnix:       'Unix (secondes)',
+    tsMillis:     'Unix (millisecondes)',
+    tsLocal:      'Heure locale',
+    tsRelative:   'Relatif',
     title:       'Boîte à outils',
     subtitle:    'Utilitaires développeur rapides',
     tabJson:     'JSON',
