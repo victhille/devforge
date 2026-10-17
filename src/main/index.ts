@@ -5,6 +5,7 @@ import { sshService } from './services/ssh/sshService'
 import { loadSettings } from './services/settings/settingsService'
 import { detectEnvironment } from './services/system/environmentDetector'
 import { processManager } from './services/stacks/processManager'
+import { stopMonitors } from './services/monitor/urlMonitor'
 
 const isDev = !app.isPackaged
 
@@ -132,7 +133,7 @@ app.whenReady().then(() => {
 })
 
 // Never leave dev servers running after DevForge quits
-app.on('before-quit', () => { processManager.stopAll() })
+app.on('before-quit', () => { processManager.stopAll(); stopMonitors() })
 
 app.on('window-all-closed', () => {
   sshService.disconnectAll()

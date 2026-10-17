@@ -23,7 +23,8 @@ const fr = {
     envFiles: 'Variables .env',
     stacks: 'Lanceur',
     docker: 'Docker',
-    deploy: 'Déploiement'
+    deploy: 'Déploiement',
+    monitor: 'Monitoring'
   },
 
   palette: {
@@ -523,6 +524,29 @@ const fr = {
     needServerHint: 'Les déploiements passent par les connexions SSH configurées dans SSH / VPS.',
     emptyTitle:     'Aucune cible de déploiement',
     emptyHint:      'Une cible = un serveur, un dossier et un script (git pull, build, redémarrage…).'
+  },
+
+  monitor: {
+    title:           'Monitoring',
+    subtitle:        'Soyez prévenu quand un site ou une API tombe',
+    subtitleOk:      'Toutes les URLs surveillées répondent',
+    subtitleDown:    '{n} URL(s) hors ligne',
+    add:             'Ajouter une URL',
+    newTitle:        'Surveiller une URL',
+    editTitle:       'Modifier la surveillance',
+    edit:            'Modifier',
+    name:            'Nom',
+    namePlaceholder: 'Mon API (par défaut : le domaine)',
+    interval:        'Vérifier toutes les',
+    keyword:         'Texte attendu',
+    keywordHint:     'Optionnel : la page doit le contenir',
+    checkNow:        'Vérifier maintenant',
+    pause:           'Mettre en pause',
+    resume:          'Reprendre',
+    since:           'depuis',
+    emptyTitle:      'Rien n\'est surveillé pour l\'instant',
+    emptyHint:       'Ajoutez vos sites et API : DevForge les vérifie en arrière-plan et envoie une notification Windows quand l\'un tombe ou revient.',
+    backgroundHint:  'Les vérifications continuent tant que DevForge est ouvert ou réduit dans la barre système.'
   }
 } as const
 
