@@ -20,7 +20,8 @@ const en = {
     git: 'Git',
     cleaner: 'Disk cleaner',
     sectionSystem: 'System',
-    sectionServers: 'Servers'
+    sectionServers: 'Servers',
+    envFiles: 'Env variables'
   },
 
   palette: {
@@ -145,6 +146,10 @@ const en = {
 
   // ── Environment ───────────────────────────────────────────────────────────
   environment: {
+    compatTitle:     'Project requirements',
+    compatProblems:  '{n} problem(s)',
+    compatAllGood:   'all compatible',
+    compatStatus:    { ok: 'Compatible', mismatch: 'Wrong version', missing: 'Not installed', unknown: 'Unknown range' },
     title:          'Environment',
     subtitle:       '{n} / {total} tools detected',
     subtitleLoading:'Detecting tools on your machine...',
@@ -403,6 +408,34 @@ const en = {
     confirmText:      '{n} folders ({size}) will be permanently deleted. They can be regenerated with npm install, composer install, cargo build…',
     confirmDelete:    'Delete {size}',
     freed:            '{size} freed ({n} folders)'
+  },
+
+  envFiles: {
+    projects:        'Projects',
+    files:           'files',
+    noneFound:       'No project has .env files.',
+    emptyTitle:      'No .env file here',
+    emptyHint:       'Pick a project that has .env, .env.local or .env.example files.',
+    key:             'Key',
+    template:        'template',
+    missing:         'missing',
+    empty:           'empty',
+    reveal:          'Show values',
+    hide:            'Hide values',
+    edit:            'Edit',
+    value:           'Value',
+    add:             'Add',
+    missingBanner:   '{n} key(s) from the template are missing in .env:',
+    fillFromExample: 'Add them from the template',
+    filled:          '{n} key(s) added to .env',
+    saveFailed:      'Could not save the file',
+    backup:          'Encrypted backup',
+    restore:         'Restore',
+    backupDone:      'Backup saved (encrypted by the OS)',
+    backupFailed:    'Backup failed',
+    lastBackup:      'Last encrypted backup {when}',
+    restoreConfirm:  'Overwrite the .env files with the last backup?',
+    restored:        'Restored: {files}'
   }
 } as const
 

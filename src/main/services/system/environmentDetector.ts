@@ -45,6 +45,17 @@ const TOOL_DEFINITIONS: ToolDef[] = [
     parseVersion: (o) => `v${o.trim()}`
   },
   {
+    id: 'python',
+    name: 'Python',
+    command: 'python',
+    args: ['--version'],
+    required: false,
+    parseVersion: (o) => {
+      const m = o.match(/Python ([\d.]+)/)
+      return m ? `v${m[1]}` : o.trim()
+    }
+  },
+  {
     id: 'git',
     name: 'Git',
     command: 'git',

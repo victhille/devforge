@@ -18,6 +18,11 @@ export function loadProjects(): Project[] {
   }
 }
 
+/** Paths of saved projects: used to restrict file access to known projects. */
+export function getProjectPaths(): Set<string> {
+  return new Set(loadProjects().map(p => p.path))
+}
+
 function persist(projects: Project[]): void {
   const path = getStoragePath()
   mkdirSync(dirname(path), { recursive: true })
