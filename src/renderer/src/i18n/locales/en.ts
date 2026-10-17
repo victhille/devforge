@@ -532,6 +532,14 @@ const en = {
   },
 
   deploy: {
+    detectTitle:    'Find on a server',
+    detectHint:     'Read-only scan of /var/www, /srv, /opt and your home for git checkouts and PM2 apps. Linked to your local projects through their git origin.',
+    scan:           'Scan',
+    scanFailed:     'Scan failed',
+    nothingFound:   'No git checkout found on this server.',
+    noOrigin:       'no git origin',
+    createTarget:   'Create target',
+    created:        'Created',
     title:          'Deploy',
     subtitle:       'Ship to your servers over SSH in one click',
     newTarget:      'New target',

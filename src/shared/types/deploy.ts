@@ -27,6 +27,20 @@ export interface DeployRun {
   log: string
 }
 
+/** A git checkout found on a server, ready to become a deploy target */
+export interface DetectedDeploy {
+  remotePath: string
+  origin: string | null
+  branch: string | null
+  pm2App: string | null
+  /** Human name of the script preset that was picked */
+  preset: string
+  script: string
+  /** Local project with the same git origin, if any */
+  projectPath: string | null
+  projectName: string | null
+}
+
 export interface DeployAPI {
   targets: () => Promise<DeployTarget[]>
   save:    (target: DeployTarget) => Promise<void>
@@ -34,6 +48,8 @@ export interface DeployAPI {
   /** Starts a deployment, returns the run id; progress comes through events */
   run:     (targetId: string) => Promise<string>
   history: (targetId: string) => Promise<DeployRun[]>
+  /** Scan a server for git checkouts / PM2 apps (read-only) */
+  detect:  (sshConnectionId: string) => Promise<DetectedDeploy[]>
   onLog:    (cb: (e: { runId: string; text: string }) => void) => () => void
   onStatus: (cb: (run: DeployRun) => void) => () => void
 }

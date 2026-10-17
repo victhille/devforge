@@ -69,6 +69,7 @@ const api: DevForgeAPI = {
     remove:   invoke('deploy:remove'),
     run:      invoke('deploy:run'),
     history:  invoke('deploy:history'),
+    detect:   invoke('deploy:detect'),
     onLog:    on('deploy:log'),
     onStatus: on('deploy:status')
   },

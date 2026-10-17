@@ -517,6 +517,14 @@ const fr = {
   },
 
   deploy: {
+    detectTitle:    'Détecter sur un serveur',
+    detectHint:     'Analyse en lecture seule de /var/www, /srv, /opt et du home : dépôts git et apps PM2. Reliés à vos projets locaux via leur remote git.',
+    scan:           'Analyser',
+    scanFailed:     'Échec de l\'analyse',
+    nothingFound:   'Aucun dépôt git trouvé sur ce serveur.',
+    noOrigin:       'pas de remote git',
+    createTarget:   'Créer la cible',
+    created:        'Créée',
     title:          'Déploiement',
     subtitle:       'Déployez sur vos serveurs en SSH en un clic',
     newTarget:      'Nouvelle cible',
