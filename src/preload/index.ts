@@ -13,6 +13,12 @@ const api: DevForgeAPI = {
     push:    invoke('git:push')
   },
 
+  cleaner: {
+    scan:   invoke('cleaner:scan'),
+    size:   invoke('cleaner:size'),
+    remove: invoke('cleaner:remove')
+  },
+
   // SSH
   getSshConnections:  ()           => ipcRenderer.invoke('ssh:get-connections'),
   saveSshConnection:  (conn)       => ipcRenderer.invoke('ssh:save-connection', conn),

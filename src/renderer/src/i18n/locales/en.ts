@@ -17,7 +17,10 @@ const en = {
     snippets:       'Snippets',
     diff:           'Text Diff',
     generator:      'Generator',
-    git: 'Git'
+    git: 'Git',
+    cleaner: 'Disk cleaner',
+    sectionSystem: 'System',
+    sectionServers: 'Servers'
   },
 
   palette: {
@@ -343,7 +346,13 @@ const en = {
   },
 
   common: {
-    loading: 'Loading...'
+    loading: 'Loading...',
+    cancel:  'Cancel',
+    save:    'Save',
+    delete:  'Delete',
+    close:   'Close',
+    refresh: 'Refresh',
+    browse:  'Browse'
   },
 
   gitDash: {
@@ -370,6 +379,30 @@ const en = {
     push:            'Push',
     actionDone:      { fetch: 'fetched', pull: 'pulled', push: 'pushed' },
     actionFailed:    { fetch: 'fetch failed', pull: 'pull failed', push: 'push failed' }
+  },
+
+  cleaner: {
+    title:            'Disk cleaner',
+    subtitle:         'Free space by removing folders your tools can regenerate',
+    browse:           'Browse',
+    scan:             'Scan',
+    reclaimable:      'reclaimable in {n} folders',
+    selected:         'selected ({n} folders)',
+    deleteSelected:   'Delete selection',
+    kindAll:          'All',
+    kindDependencies: 'Dependencies',
+    kindBuild:        'Build output',
+    kindCache:        'Caches',
+    selectAll:        'Select all',
+    selectOld:        'Projects untouched for {n}+ days',
+    selectNone:       'Clear',
+    old:              'inactive',
+    emptyTitle:       'Pick a folder and scan',
+    emptyHint:        'node_modules, vendor, target, dist, .next, caches… are listed with their size. Nothing is deleted without confirmation.',
+    confirmTitle:     'Delete permanently?',
+    confirmText:      '{n} folders ({size}) will be permanently deleted. They can be regenerated with npm install, composer install, cargo build…',
+    confirmDelete:    'Delete {size}',
+    freed:            '{size} freed ({n} folders)'
   }
 } as const
 
