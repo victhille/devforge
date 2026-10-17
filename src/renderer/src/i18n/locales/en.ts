@@ -25,7 +25,8 @@ const en = {
     stacks: 'Launcher',
     docker: 'Docker',
     deploy: 'Deploy',
-    monitor: 'Monitoring'
+    monitor: 'Monitoring',
+    domains: 'Local domains'
   },
 
   palette: {
@@ -562,6 +563,26 @@ const en = {
     emptyTitle:      'Nothing monitored yet',
     emptyHint:       'Add your sites and APIs: DevForge checks them in the background and sends a Windows notification when one goes down or comes back.',
     backgroundHint:  'Checks keep running while DevForge is open or minimized to the tray.'
+  },
+
+  domains: {
+    title:         'Local domains',
+    subtitle:      'shop.test instead of localhost:3000',
+    proxyOn:       'Proxy running on port {port}',
+    proxyOff:      'Proxy stopped',
+    proxyHint:     'Starts automatically when a domain is enabled.',
+    portFallback:  'Port 80 is taken: URLs need the port suffix.',
+    hostsOk:       'hosts file up to date',
+    hostsOutdated: 'hosts file needs an update',
+    applyHosts:    'Update (admin)',
+    hostsUpdated:  'hosts file updated',
+    hostsFailed:   'hosts file not updated',
+    domain:        'Domain',
+    add:           'Add',
+    saveFailed:    'Could not save the domain',
+    suggestions:   'Ideas:',
+    emptyTitle:    'No local domain',
+    emptyHint:     'Map a .test domain to a local port. .localhost domains work without touching the hosts file.'
   }
 } as const
 

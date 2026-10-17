@@ -82,6 +82,14 @@ const api: DevForgeAPI = {
     onState:  on('monitor:state')
   },
 
+  domains: {
+    list:       invoke('domains:list'),
+    save:       invoke('domains:save'),
+    remove:     invoke('domains:remove'),
+    status:     invoke('domains:status'),
+    applyHosts: invoke('domains:apply-hosts')
+  },
+
   // SSH
   getSshConnections:  ()           => ipcRenderer.invoke('ssh:get-connections'),
   saveSshConnection:  (conn)       => ipcRenderer.invoke('ssh:save-connection', conn),

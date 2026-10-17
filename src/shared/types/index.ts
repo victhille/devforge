@@ -175,6 +175,7 @@ export * from './stacks'
 export * from './docker'
 export * from './deploy'
 export * from './monitor'
+export * from './domains'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
@@ -183,6 +184,7 @@ import type { StacksAPI } from './stacks'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
+import type { DomainsAPI } from './domains'
 
 // ─── IPC API ─────────────────────────────────────────────────────────────────
 
@@ -195,6 +197,7 @@ export interface DevForgeAPI {
   docker: DockerAPI
   deploy: DeployAPI
   monitor: MonitorAPI
+  domains: DomainsAPI
 
   // SSH
   getSshConnections: () => Promise<SSHConnection[]>
