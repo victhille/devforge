@@ -3,7 +3,7 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { readdir, stat } from 'fs/promises'
 import { detectEnvironment } from '../services/system/environmentDetector'
-import { getGitStatus } from '../services/system/gitService'
+import { getGitStatus } from '../services/git/gitStatus'
 import { getListeningPorts } from '../services/system/portService'
 import type { FileEntry } from '@shared/types'
 

@@ -16,7 +16,8 @@ const en = {
     apiTester:      'API Tester',
     snippets:       'Snippets',
     diff:           'Text Diff',
-    generator:      'Generator'
+    generator:      'Generator',
+    git: 'Git'
   },
 
   palette: {
@@ -343,6 +344,32 @@ const en = {
 
   common: {
     loading: 'Loading...'
+  },
+
+  gitDash: {
+    title:           'Git dashboard',
+    subtitle:        'Status of every project repository at a glance',
+    refresh:         'Refresh',
+    fetchAll:        'Fetch all',
+    fetchAllDone:    'All repositories fetched',
+    statRepos:       'Repositories',
+    statChanges:     'With changes',
+    statAhead:       'To push',
+    statBehind:      'To pull',
+    filterAttention: 'Needs attention',
+    filterAll:       'All',
+    allClean:        'Everything is clean',
+    allCleanHint:    'No uncommitted changes, nothing to push or pull.',
+    noRepos:         'No git repository in your projects',
+    notRepos:        '{n} project(s) are not git repositories.',
+    changes:         'changes',
+    noUpstream:      'no upstream',
+    noRemote:        'no remote',
+    fetch:           'Fetch',
+    pull:            'Pull',
+    push:            'Push',
+    actionDone:      { fetch: 'fetched', pull: 'pulled', push: 'pushed' },
+    actionFailed:    { fetch: 'fetch failed', pull: 'pull failed', push: 'push failed' }
   }
 } as const
 

@@ -15,7 +15,8 @@ const fr = {
     apiTester:      'API Tester',
     snippets:       'Snippets',
     diff:           'Diff texte',
-    generator:      'Générateur'
+    generator:      'Générateur',
+    git: 'Git'
   },
 
   palette: {
@@ -328,6 +329,32 @@ const fr = {
 
   common: {
     loading: 'Chargement...'
+  },
+
+  gitDash: {
+    title:           'Tableau de bord Git',
+    subtitle:        'L\'état de tous les dépôts de vos projets en un coup d\'œil',
+    refresh:         'Actualiser',
+    fetchAll:        'Tout fetch',
+    fetchAllDone:    'Tous les dépôts sont à jour du remote',
+    statRepos:       'Dépôts',
+    statChanges:     'Avec modifications',
+    statAhead:       'À pousser',
+    statBehind:      'À récupérer',
+    filterAttention: 'À traiter',
+    filterAll:       'Tous',
+    allClean:        'Tout est propre',
+    allCleanHint:    'Aucune modification non commitée, rien à pousser ni à récupérer.',
+    noRepos:         'Aucun dépôt git dans vos projets',
+    notRepos:        '{n} projet(s) ne sont pas des dépôts git.',
+    changes:         'modifs',
+    noUpstream:      'pas d\'upstream',
+    noRemote:        'pas de remote',
+    fetch:           'Fetch',
+    pull:            'Pull',
+    push:            'Push',
+    actionDone:      { fetch: 'fetch OK', pull: 'pull OK', push: 'push OK' },
+    actionFailed:    { fetch: 'échec du fetch', pull: 'échec du pull', push: 'échec du push' }
   }
 } as const
 
