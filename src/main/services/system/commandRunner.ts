@@ -1,6 +1,7 @@
 import { spawn, ChildProcess } from 'child_process'
 import { randomUUID } from 'crypto'
 import type { CommandTask, CommandResult, LogLine, TaskStatus } from '@shared/types'
+import { killTree } from '../../lib/killTree'
 
 // Strip ANSI escape codes (colors, bold, cursor moves, etc.)
 const ANSI_RE = /\x1b\[[0-9;]*[A-Za-z]|\x1b\][^\x07]*\x07|\x1b[()][A-Z0-9]/g
@@ -109,9 +110,8 @@ export class CommandRunner {
     stored.task.status = 'cancelled'
     stored.task.finishedAt = new Date().toISOString()
 
-    if (stored.process && !stored.process.killed) {
-      stored.process.kill('SIGTERM')
-    }
+    // shell: true → kill the whole tree, not just the shell
+    if (stored.process) killTree(stored.process)
   }
 
   getTask(taskId: string): CommandTask | undefined {
