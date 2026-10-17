@@ -92,7 +92,7 @@
 /* ─── Tailwind tokens ──────────────────────────────────────────────────────── */
 
 @theme inline {
-  --color-base:         var(--bg-base);
+  --color-canvas:       var(--bg-base);
   --color-surface:      var(--bg-surface);
   --color-elevated:     var(--bg-elevated);
   --color-hover:        var(--bg-hover);
