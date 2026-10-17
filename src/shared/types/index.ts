@@ -169,14 +169,20 @@ export interface ListeningPort {
 
 export * from './git'
 export * from './cleaner'
+export * from './envfiles'
+export * from './versions'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
+import type { EnvAPI } from './envfiles'
+import type { VersionsAPI } from './versions'
 
 // ─── IPC API ─────────────────────────────────────────────────────────────────
 
 export interface DevForgeAPI {
   git: GitAPI
   cleaner: CleanerAPI
+  env: EnvAPI
+  versions: VersionsAPI
 
   // SSH
   getSshConnections: () => Promise<SSHConnection[]>

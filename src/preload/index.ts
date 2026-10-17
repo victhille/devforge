@@ -19,6 +19,18 @@ const api: DevForgeAPI = {
     remove: invoke('cleaner:remove')
   },
 
+  env: {
+    read:       invoke('env:read'),
+    write:      invoke('env:write'),
+    backup:     invoke('env:backup'),
+    backupInfo: invoke('env:backup-info'),
+    restore:    invoke('env:restore')
+  },
+
+  versions: {
+    requirements: invoke('versions:requirements')
+  },
+
   // SSH
   getSshConnections:  ()           => ipcRenderer.invoke('ssh:get-connections'),
   saveSshConnection:  (conn)       => ipcRenderer.invoke('ssh:save-connection', conn),

@@ -19,7 +19,8 @@ const fr = {
     git: 'Git',
     cleaner: 'Nettoyage disque',
     sectionSystem: 'Système',
-    sectionServers: 'Serveurs'
+    sectionServers: 'Serveurs',
+    envFiles: 'Variables .env'
   },
 
   palette: {
@@ -140,6 +141,10 @@ const fr = {
   },
 
   environment: {
+    compatTitle:     'Versions requises par les projets',
+    compatProblems:  '{n} problème(s)',
+    compatAllGood:   'tout est compatible',
+    compatStatus:    { ok: 'Compatible', mismatch: 'Mauvaise version', missing: 'Non installé', unknown: 'Contrainte inconnue' },
     title:          'Environnement',
     subtitle:       '{n} / {total} outils détectés',
     subtitleLoading:'Détection des outils sur votre machine...',
@@ -388,6 +393,34 @@ const fr = {
     confirmText:      '{n} dossiers ({size}) vont être supprimés définitivement. Ils se regénèrent avec npm install, composer install, cargo build…',
     confirmDelete:    'Supprimer {size}',
     freed:            '{size} libérés ({n} dossiers)'
+  },
+
+  envFiles: {
+    projects:        'Projets',
+    files:           'fichiers',
+    noneFound:       'Aucun projet n\'a de fichier .env.',
+    emptyTitle:      'Aucun fichier .env ici',
+    emptyHint:       'Choisissez un projet qui a des fichiers .env, .env.local ou .env.example.',
+    key:             'Clé',
+    template:        'modèle',
+    missing:         'manquante',
+    empty:           'vide',
+    reveal:          'Afficher les valeurs',
+    hide:            'Masquer les valeurs',
+    edit:            'Modifier',
+    value:           'Valeur',
+    add:             'Ajouter',
+    missingBanner:   '{n} clé(s) du modèle manquent dans .env :',
+    fillFromExample: 'Les ajouter depuis le modèle',
+    filled:          '{n} clé(s) ajoutée(s) à .env',
+    saveFailed:      'Impossible d\'enregistrer le fichier',
+    backup:          'Sauvegarde chiffrée',
+    restore:         'Restaurer',
+    backupDone:      'Sauvegarde enregistrée (chiffrée par l\'OS)',
+    backupFailed:    'Échec de la sauvegarde',
+    lastBackup:      'Dernière sauvegarde chiffrée {when}',
+    restoreConfirm:  'Écraser les fichiers .env avec la dernière sauvegarde ?',
+    restored:        'Restaurés : {files}'
   }
 } as const
 

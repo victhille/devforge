@@ -5,6 +5,7 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
+import ProjectCompatibility from './ProjectCompatibility'
 
 // ─── Install info per tool ────────────────────────────────────────────────────
 
@@ -15,15 +16,15 @@ interface InstallInfo {
 }
 
 const INSTALL_INFO: Record<string, InstallInfo> = {
-  node:        { label: 'Install Node.js',     url: 'https://nodejs.org',                          note: 'npm is included with Node.js' },
-  npm:         { label: 'Install Node.js',     url: 'https://nodejs.org',                          note: 'npm is bundled with Node.js' },
-  pnpm:        { label: 'Install pnpm',        url: 'https://pnpm.io/installation',                note: 'npm install -g pnpm' },
-  yarn:        { label: 'Install Yarn',        url: 'https://yarnpkg.com/getting-started/install', note: 'npm install -g yarn' },
-  git:         { label: 'Install Git',         url: 'https://git-scm.com/downloads' },
-  php:         { label: 'Install PHP',         url: 'https://www.php.net/downloads',               note: 'Required for Symfony projects' },
-  composer:    { label: 'Install Composer',    url: 'https://getcomposer.org/download/',           note: 'PHP dependency manager — required for Symfony' },
-  symfony_cli: { label: 'Install Symfony CLI', url: 'https://symfony.com/download',                note: 'Optional — enables symfony new & symfony server:start' },
-  docker:      { label: 'Install Docker',      url: 'https://docs.docker.com/get-docker/' }
+  node:        { label: 'Node.js',     url: 'https://nodejs.org',                          note: 'npm is included with Node.js' },
+  npm:         { label: 'Node.js',     url: 'https://nodejs.org',                          note: 'npm is bundled with Node.js' },
+  pnpm:        { label: 'pnpm',        url: 'https://pnpm.io/installation',                note: 'npm install -g pnpm' },
+  yarn:        { label: 'Yarn',        url: 'https://yarnpkg.com/getting-started/install', note: 'npm install -g yarn' },
+  git:         { label: 'Git',         url: 'https://git-scm.com/downloads' },
+  php:         { label: 'PHP',         url: 'https://www.php.net/downloads',               note: 'Required for Symfony projects' },
+  composer:    { label: 'Composer',    url: 'https://getcomposer.org/download/',           note: 'PHP dependency manager — required for Symfony' },
+  symfony_cli: { label: 'Symfony CLI', url: 'https://symfony.com/download',                note: 'Optional — enables symfony new & symfony server:start' },
+  docker:      { label: 'Docker',      url: 'https://docs.docker.com/get-docker/' }
 }
 
 // ─── Tool row ─────────────────────────────────────────────────────────────────
@@ -93,6 +94,7 @@ export default function EnvironmentPage() {
     { label: t.environment.catJS,    ids: ['node', 'npm', 'pnpm', 'yarn'] },
     { label: t.environment.catVCS,   ids: ['git'] },
     { label: t.environment.catPHP,   ids: ['php', 'composer', 'symfony_cli'] },
+    { label: 'Python',               ids: ['python'] },
     { label: t.environment.catInfra, ids: ['docker'] }
   ]
 
@@ -126,6 +128,7 @@ export default function EnvironmentPage() {
               </section>
             )
           })}
+          <ProjectCompatibility tools={tools} />
         </div>
       )}
     </Page>
