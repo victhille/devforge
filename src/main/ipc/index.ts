@@ -13,6 +13,7 @@ import { registerDeployHandlers } from './deploy'
 import { registerMonitorHandlers } from './monitor'
 import { registerDomainHandlers } from './domains'
 import { registerDatabaseHandlers } from './database'
+import { registerLogHandlers } from './logs'
 
 export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerSshHandlers(mainWindow)
@@ -29,4 +30,5 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerMonitorHandlers(mainWindow)
   registerDomainHandlers()
   registerDatabaseHandlers()
+  registerLogHandlers(mainWindow)
 }

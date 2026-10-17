@@ -99,6 +99,12 @@ const api: DevForgeAPI = {
     query:  invoke('db:query')
   },
 
+  logs: {
+    open:    invoke('logs:open'),
+    close:   invoke('logs:close'),
+    onLines: on('logs:lines')
+  },
+
   // SSH
   getSshConnections:  ()           => ipcRenderer.invoke('ssh:get-connections'),
   saveSshConnection:  (conn)       => ipcRenderer.invoke('ssh:save-connection', conn),

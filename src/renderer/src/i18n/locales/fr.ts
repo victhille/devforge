@@ -26,7 +26,8 @@ const fr = {
     deploy: 'Déploiement',
     monitor: 'Monitoring',
     domains: 'Domaines locaux',
-    database: 'Base de données'
+    database: 'Base de données',
+    logs: 'Logs'
   },
 
   palette: {
@@ -598,6 +599,20 @@ const fr = {
     affected:        '{n} ligne(s) modifiée(s)',
     emptyTitle:      'Choisissez ou ajoutez une base',
     emptyHint:       'PostgreSQL, MySQL / MariaDB et SQLite. Les mots de passe sont chiffrés par l\'OS.'
+  },
+
+  logs: {
+    open:       'Ouvrir un fichier de log',
+    openFailed: 'Impossible d\'ouvrir le fichier',
+    search:     'Filtrer les lignes…',
+    wrap:       'Retour à la ligne',
+    noWrap:     'Pas de retour à la ligne',
+    clear:      'Vider l\'affichage',
+    pause:      'Pause',
+    resume:     'Suivre',
+    noLines:    'Aucune ligne ne correspond aux filtres.',
+    emptyTitle: 'Suivez un fichier de log en direct',
+    emptyHint:  'Laravel, Symfony, nginx, pm2, logs JSON (pino, winston)… Les lignes sont colorées par niveau et le fichier est suivi au fil de l\'eau.'
   }
 } as const
 
