@@ -27,7 +27,8 @@ const en = {
     deploy: 'Deploy',
     monitor: 'Monitoring',
     domains: 'Local domains',
-    database: 'Database'
+    database: 'Database',
+    logs: 'Log viewer'
   },
 
   palette: {
@@ -613,6 +614,20 @@ const en = {
     affected:        '{n} row(s) affected',
     emptyTitle:      'Pick or add a database',
     emptyHint:       'PostgreSQL, MySQL / MariaDB and SQLite. Passwords are encrypted by the OS.'
+  },
+
+  logs: {
+    open:       'Open a log file',
+    openFailed: 'Could not open the file',
+    search:     'Filter lines…',
+    wrap:       'Wrap lines',
+    noWrap:     'Do not wrap',
+    clear:      'Clear the view',
+    pause:      'Pause',
+    resume:     'Follow',
+    noLines:    'No line matches the filters.',
+    emptyTitle: 'Follow a log file live',
+    emptyHint:  'Laravel, Symfony, nginx, pm2, JSON logs (pino, winston)… Lines are colored by level and the file is followed as it grows.'
   }
 } as const
 
