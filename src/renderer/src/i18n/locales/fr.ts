@@ -289,7 +289,7 @@ const fr = {
     tabHeaders:   'En-têtes',
     tabBody:      'Corps',
     tabResponse:  'Réponse',
-    addHeader:    '+ Ajouter un en-tête',
+    addHeader:    'Ajouter un en-tête',
     key:          'Clé',
     value:        'Valeur',
     bodyPlaceholder: '{ "clé": "valeur" }',
@@ -303,7 +303,7 @@ const fr = {
   snippets: {
     title:        'Snippets',
     subtitle:     '{n} snippet{s}',
-    newSnippet:   '+ Nouveau snippet',
+    newSnippet:   'Nouveau snippet',
     search:       'Rechercher des snippets...',
     noSnippets:   'Aucun snippet. Créez votre premier.',
     noMatch:      'Aucun snippet ne correspond.',
