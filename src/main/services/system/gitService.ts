@@ -5,12 +5,12 @@ export function getGitStatus(projectPath: string): GitStatus {
   try {
     const branch = execSync(
       `git -C "${projectPath}" rev-parse --abbrev-ref HEAD`,
-      { encoding: 'utf-8', timeout: 3000 }
+      { encoding: 'utf-8', timeout: 3000, stdio: ['ignore', 'pipe', 'ignore'] }
     ).trim()
 
     const status = execSync(
       `git -C "${projectPath}" status --porcelain`,
-      { encoding: 'utf-8', timeout: 3000 }
+      { encoding: 'utf-8', timeout: 3000, stdio: ['ignore', 'pipe', 'ignore'] }
     )
     const dirty = status.trim().length > 0
 
@@ -19,7 +19,7 @@ export function getGitStatus(projectPath: string): GitStatus {
     try {
       const counts = execSync(
         `git -C "${projectPath}" rev-list --left-right --count HEAD...@{upstream}`,
-        { encoding: 'utf-8', timeout: 3000 }
+        { encoding: 'utf-8', timeout: 3000, stdio: ['ignore', 'pipe', 'ignore'] }
       ).trim()
       const parts = counts.split(/\s+/)
       ahead  = parseInt(parts[0]) || 0
