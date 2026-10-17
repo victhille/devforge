@@ -1,0 +1,386 @@
+.page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ─── Header ──────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  transition: color 0.1s, background 0.1s;
+}
+.backBtn:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+.headerStatus { display: flex; align-items: center; }
+
+.headerMeta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.headerName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.headerSub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.lastUpdated {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.refreshBtn {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  transition: color 0.1s, background 0.1s;
+}
+.refreshBtn:hover:not(:disabled) { color: var(--text-primary); background: var(--bg-hover); }
+.refreshBtn:disabled { opacity: 0.4; cursor: default; }
+.refreshBtnSpin svg { animation: spin 1s linear infinite; }
+
+/* ─── States ──────────────────────────────────────────────────────────────── */
+
+.loadingState, .errorState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-secondary);
+}
+
+.loadingState p, .errorState p {
+  font-size: 14px;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.errorState { color: var(--danger); }
+.errorState span { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+
+/* ─── Content area ────────────────────────────────────────────────────────── */
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ─── Stat cards row ──────────────────────────────────────────────────────── */
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.statCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.statCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.statIcon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.statLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.statPct {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.sparkline {
+  width: 100%;
+  height: 32px;
+}
+
+.barTrack {
+  height: 4px;
+  background: var(--bg-elevated);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease, background 0.5s ease;
+}
+
+.statDetail {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.statExtra {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.uptimeValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+}
+
+/* ─── Middle row ──────────────────────────────────────────────────────────── */
+
+.midRow {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 10px;
+}
+
+/* ─── Cards ───────────────────────────────────────────────────────────────── */
+
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ─── Disks ───────────────────────────────────────────────────────────────── */
+
+.diskList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.diskRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.diskMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.diskMount {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.diskPct {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.diskDetail {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* ─── Processes table ─────────────────────────────────────────────────────── */
+
+.procTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.procTable th {
+  text-align: left;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 10px;
+  padding: 0 6px 6px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.procTable td {
+  padding: 5px 6px 5px 0;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.procTable tr:last-child td { border-bottom: none; }
+.procTable tbody tr:hover td { color: var(--text-primary); background: var(--bg-elevated); }
+
+.procUser { color: var(--text-muted) !important; }
+.procMono { font-family: var(--font-mono); }
+.procCmd  { max-width: 140px; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-mono); }
+
+/* ─── Docker ──────────────────────────────────────────────────────────────── */
+
+.dockerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.dockerCard {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dockerStatus {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.dockerDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dockerName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dockerImage {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dockerStatusText {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* ─── Misc ────────────────────────────────────────────────────────────────── */
+
+.empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.spin { animation: spin 1s linear infinite; }
+
+.reconnectBtn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px 12px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.1s, background 0.1s;
+}
+.reconnectBtn:hover { color: var(--text-primary); background: var(--bg-hover); }
