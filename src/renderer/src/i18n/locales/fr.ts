@@ -25,7 +25,8 @@ const fr = {
     docker: 'Docker',
     deploy: 'Déploiement',
     monitor: 'Monitoring',
-    domains: 'Domaines locaux'
+    domains: 'Domaines locaux',
+    database: 'Base de données'
   },
 
   palette: {
@@ -568,6 +569,35 @@ const fr = {
     suggestions:   'Idées :',
     emptyTitle:    'Aucun domaine local',
     emptyHint:     'Associez un domaine .test à un port local. Les domaines .localhost marchent sans toucher au fichier hosts.'
+  },
+
+  database: {
+    connections:     'Connexions',
+    noConnections:   'Aucune connexion',
+    newTitle:        'Nouvelle connexion',
+    editTitle:       'Modifier la connexion',
+    edit:            'Modifier',
+    name:            'Nom',
+    namePlaceholder: 'Par défaut : base@hôte',
+    file:            'Fichier SQLite',
+    host:            'Hôte',
+    port:            'Port',
+    user:            'Utilisateur',
+    password:        'Mot de passe',
+    databaseName:    'Base',
+    test:            'Tester la connexion',
+    tables:          'tables',
+    loading:         'chargement…',
+    run:             'Exécuter',
+    shortcut:        'Ctrl + Entrée',
+    sqlPlaceholder:  'SELECT * FROM users LIMIT 10;',
+    limitHint:       'Résultats limités à 1000 lignes',
+    noResult:        'Lancez une requête ou cliquez sur une table.',
+    rows:            '{n} lignes',
+    truncated:       'tronqué',
+    affected:        '{n} ligne(s) modifiée(s)',
+    emptyTitle:      'Choisissez ou ajoutez une base',
+    emptyHint:       'PostgreSQL, MySQL / MariaDB et SQLite. Les mots de passe sont chiffrés par l\'OS.'
   }
 } as const
 

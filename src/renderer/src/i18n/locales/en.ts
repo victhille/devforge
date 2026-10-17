@@ -26,7 +26,8 @@ const en = {
     docker: 'Docker',
     deploy: 'Deploy',
     monitor: 'Monitoring',
-    domains: 'Local domains'
+    domains: 'Local domains',
+    database: 'Database'
   },
 
   palette: {
@@ -583,6 +584,35 @@ const en = {
     suggestions:   'Ideas:',
     emptyTitle:    'No local domain',
     emptyHint:     'Map a .test domain to a local port. .localhost domains work without touching the hosts file.'
+  },
+
+  database: {
+    connections:     'Connections',
+    noConnections:   'No connection yet',
+    newTitle:        'New connection',
+    editTitle:       'Edit connection',
+    edit:            'Edit',
+    name:            'Name',
+    namePlaceholder: 'Defaults to database@host',
+    file:            'SQLite file',
+    host:            'Host',
+    port:            'Port',
+    user:            'User',
+    password:        'Password',
+    databaseName:    'Database',
+    test:            'Test connection',
+    tables:          'tables',
+    loading:         'loading…',
+    run:             'Run',
+    shortcut:        'Ctrl + Enter',
+    sqlPlaceholder:  'SELECT * FROM users LIMIT 10;',
+    limitHint:       'Results limited to 1000 rows',
+    noResult:        'Run a query or click a table.',
+    rows:            '{n} rows',
+    truncated:       'truncated',
+    affected:        '{n} row(s) affected',
+    emptyTitle:      'Pick or add a database',
+    emptyHint:       'PostgreSQL, MySQL / MariaDB and SQLite. Passwords are encrypted by the OS.'
   }
 } as const
 

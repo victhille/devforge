@@ -90,6 +90,15 @@ const api: DevForgeAPI = {
     applyHosts: invoke('domains:apply-hosts')
   },
 
+  db: {
+    list:   invoke('db:list'),
+    save:   invoke('db:save'),
+    remove: invoke('db:remove'),
+    test:   invoke('db:test'),
+    schema: invoke('db:schema'),
+    query:  invoke('db:query')
+  },
+
   // SSH
   getSshConnections:  ()           => ipcRenderer.invoke('ssh:get-connections'),
   saveSshConnection:  (conn)       => ipcRenderer.invoke('ssh:save-connection', conn),
