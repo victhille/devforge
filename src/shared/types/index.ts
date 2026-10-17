@@ -195,6 +195,7 @@ export interface DevForgeAPI {
 
   // File system
   selectDirectory: () => Promise<string | null>
+  selectFile: () => Promise<string | null>
   openDirectory: (path: string) => Promise<void>
   openInIDE: (path: string, ide: DefaultIDE) => Promise<void>
   openExternal: (url: string) => Promise<void>

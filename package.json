@@ -27,7 +27,14 @@
       }
     ],
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "icon": "src/renderer/src/assets/icon.png",
       "artifactName": "${productName}-Setup-v${version}.${ext}"
     },
@@ -49,17 +56,21 @@
     "ssh2": "^1.17.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^20.11.0",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
     "@types/ssh2": "^1.15.6",
     "@vitejs/plugin-react": "^4.2.1",
+    "clsx": "^2.1.1",
     "electron": "^29.0.0",
     "electron-builder": "^24.9.1",
     "electron-vite": "^2.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.1",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5.3.3",
     "vite": "^5.1.1"
   }

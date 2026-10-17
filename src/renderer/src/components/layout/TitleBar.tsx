@@ -1,49 +1,54 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { Minus, Square, X, Maximize2 } from 'lucide-react'
 import logo from '@renderer/assets/icon.png'
-import styles from './TitleBar.module.css'
+import { cn } from '@renderer/lib/cn'
 
+function WindowButton({ title, onClick, danger, children }: {
+  title: string
+  onClick: () => void
+  danger?: boolean
+  children: ReactNode
+}) {
+  return (
+    <button
+      title={title}
+      aria-label={title}
+      onClick={onClick}
+      className={cn(
+        'flex h-full w-[46px] items-center justify-center text-fg-muted transition-colors',
+        danger ? 'hover:bg-danger hover:text-white' : 'hover:bg-hover hover:text-fg'
+      )}
+    >
+      {children}
+    </button>
+  )
+}
 
 export default function TitleBar() {
   const [maximized, setMaximized] = useState(false)
 
   useEffect(() => {
     window.devforge.windowIsMaximized().then(setMaximized)
-    const unsub = window.devforge.onWindowMaximizedChange(setMaximized)
-    return unsub
+    return window.devforge.onWindowMaximizedChange(setMaximized)
   }, [])
 
   return (
-    <div className={styles.titlebar}>
-      <div className={styles.appName}>
-        <img src={logo} alt="" className={styles.appLogo} />
+    <div className="app-drag flex h-[38px] shrink-0 select-none items-center border-b border-line-subtle bg-surface pl-4">
+      <div className="flex flex-1 items-center gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-fg-muted">
+        <img src={logo} alt="" className="size-6 object-contain" />
         <span>DevForge</span>
       </div>
 
-      <div className={styles.controls}>
-        <button
-          className={styles.ctrl}
-          onClick={() => window.devforge.windowMinimize()}
-          title="Minimize"
-        >
+      <div className="app-no-drag flex h-full items-stretch">
+        <WindowButton title="Minimize" onClick={() => window.devforge.windowMinimize()}>
           <Minus size={12} />
-        </button>
-
-        <button
-          className={styles.ctrl}
-          onClick={() => window.devforge.windowMaximize()}
-          title={maximized ? 'Restore' : 'Maximize'}
-        >
+        </WindowButton>
+        <WindowButton title={maximized ? 'Restore' : 'Maximize'} onClick={() => window.devforge.windowMaximize()}>
           {maximized ? <Square size={11} /> : <Maximize2 size={11} />}
-        </button>
-
-        <button
-          className={`${styles.ctrl} ${styles.closeBtn}`}
-          onClick={() => window.devforge.windowClose()}
-          title="Close"
-        >
+        </WindowButton>
+        <WindowButton title="Close" danger onClick={() => window.devforge.windowClose()}>
           <X size={12} />
-        </button>
+        </WindowButton>
       </div>
     </div>
   )

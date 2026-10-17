@@ -16,6 +16,11 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
     return result.canceled ? null : result.filePaths[0]
   })
 
+  ipcMain.handle('select-file', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, { properties: ['openFile', 'showHiddenFiles'] })
+    return result.canceled ? null : result.filePaths[0]
+  })
+
   ipcMain.handle('open-directory', async (_event, dirPath: string) => {
     await shell.openPath(dirPath)
   })
