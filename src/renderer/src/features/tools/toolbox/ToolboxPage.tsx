@@ -9,8 +9,11 @@ import JwtTool from './tools/JwtTool'
 import RegexTool from './tools/RegexTool'
 import UuidTool from './tools/UuidTool'
 import HashTool from './tools/HashTool'
+import CronTool from './tools/CronTool'
+import TimestampTool from './tools/TimestampTool'
+import UrlTool from './tools/UrlTool'
 
-type Tab = 'json' | 'base64' | 'jwt' | 'regex' | 'uuid' | 'hash'
+type Tab = 'json' | 'base64' | 'jwt' | 'regex' | 'uuid' | 'hash' | 'cron' | 'timestamp' | 'url'
 
 const TOOLS: { id: Tab; labelKey: keyof ToolboxT; Component: ComponentType<{ t: ToolboxT }> }[] = [
   { id: 'json',   labelKey: 'tabJson',   Component: JsonTool },
@@ -18,7 +21,10 @@ const TOOLS: { id: Tab; labelKey: keyof ToolboxT; Component: ComponentType<{ t: 
   { id: 'jwt',    labelKey: 'tabJwt',    Component: JwtTool },
   { id: 'regex',  labelKey: 'tabRegex',  Component: RegexTool },
   { id: 'uuid',   labelKey: 'tabUuid',   Component: UuidTool },
-  { id: 'hash',   labelKey: 'tabHash',   Component: HashTool }
+  { id: 'hash',   labelKey: 'tabHash',   Component: HashTool },
+  { id: 'cron',      labelKey: 'tabCron',      Component: CronTool },
+  { id: 'timestamp', labelKey: 'tabTimestamp', Component: TimestampTool },
+  { id: 'url',       labelKey: 'tabUrl',       Component: UrlTool }
 ]
 
 export default function ToolboxPage() {
