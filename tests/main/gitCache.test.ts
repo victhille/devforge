@@ -11,6 +11,8 @@ describe('repository details cache', () => {
   it('reuses recent details, re-reads when asked or after an action', async () => {
     const repo = tempDir('repo')
     git(repo, 'init', '-q')
+    // DevForge's own commit uses the repository identity: CI machines have no global one
+    git(repo, 'config', 'user.name', 't'); git(repo, 'config', 'user.email', 't@t')
     writeFileSync(join(repo, 'a.txt'), 'a')
     git(repo, 'add', '.'); git(repo, 'commit', '-qm', 'first')
 
