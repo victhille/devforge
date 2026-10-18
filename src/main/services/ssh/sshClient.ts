@@ -37,6 +37,14 @@ export function connectSsh(connectionId: string): Promise<Client> {
   })
 }
 
+/**
+ * Quote for the remote POSIX shell. JSON quoting is not enough: inside double
+ * quotes the login shell would expand $VAR and $(...) before bash -c runs.
+ */
+export function shQuote(s: string): string {
+  return "'" + s.replace(/'/g, "'\\''") + "'"
+}
+
 /** Run one command and return stdout+stderr with the exit code */
 export function sshRun(client: Client, command: string, timeoutMs = 20_000): Promise<{ code: number | null; output: string }> {
   return new Promise((resolve, reject) => {
