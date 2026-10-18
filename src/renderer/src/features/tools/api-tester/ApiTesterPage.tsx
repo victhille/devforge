@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Send, Plus, Trash2 } from 'lucide-react'
+import { Send, Plus, Trash2, Eye, FileCode2, List } from 'lucide-react'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import { formatSize } from '@renderer/lib/format'
@@ -13,6 +13,7 @@ import { Page, PageHeader } from '@renderer/components/ui/Page'
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 type ReqTab = 'headers' | 'body'
+type ResTab = 'preview' | 'body' | 'headers'
 
 interface Header { key: string; value: string }
 interface ApiResponse {
@@ -21,6 +22,9 @@ interface ApiResponse {
   time:       number
   size:       number
   body:       string
+  headers:    Record<string, string>
+  /** HTML document: shown rendered in the preview tab */
+  html:       boolean
 }
 
 const METHODS: Method[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
@@ -43,6 +47,21 @@ function prettify(text: string): string {
   try { return JSON.stringify(JSON.parse(text), null, 2) } catch { return text }
 }
 
+function isHtml(headers: Record<string, string>, body: string): boolean {
+  return /text\/html|application\/xhtml/i.test(headers['content-type'] ?? '') || /^\s*(<!doctype html|<html[\s>])/i.test(body)
+}
+
+/**
+ * Rendered in a sandboxed frame without scripts. A data: URL rather than
+ * srcdoc: it does not inherit the app's strict CSP, so the page's own images
+ * and styles load like in a browser. <base> resolves its relative links.
+ */
+function previewUrl(html: string, pageUrl: string): string {
+  const base = `<base href="${pageUrl.replace(/"/g, '&quot;')}">`
+  const doc = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, m => m + base) : base + html
+  return 'data:text/html;charset=utf-8,' + encodeURIComponent(doc)
+}
+
 export default function ApiTesterPage() {
   const { t } = useI18n()
   const [method,   setMethod]   = useState<Method>('GET')
@@ -51,6 +70,7 @@ export default function ApiTesterPage() {
   const [body,     setBody]     = useState('')
   const [reqTab,   setReqTab]   = useState<ReqTab>('headers')
   const [response, setResponse] = useState<ApiResponse | null>(null)
+  const [resTab,   setResTab]   = useState<ResTab>('body')
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
 
@@ -70,13 +90,18 @@ export default function ApiTesterPage() {
         body: method === 'GET' ? undefined : body || undefined
       })
       if (res.error) { setError(res.error); return }
+      const resHeaders = res.headers ?? {}
+      const html = isHtml(resHeaders, res.body ?? '')
       setResponse({
         status:     res.status ?? 0,
         statusText: res.statusText ?? '',
         time:       res.time ?? 0,
         size:       res.size ?? 0,
-        body:       prettify(res.body ?? '')
+        body:       html ? res.body ?? '' : prettify(res.body ?? ''),
+        headers:    resHeaders,
+        html
       })
+      setResTab(html ? 'preview' : 'body')
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : t.apiTester.error)
     } finally {
@@ -166,9 +191,40 @@ export default function ApiTesterPage() {
                 <span>{t.apiTester.size}: <strong className="text-fg-secondary">{formatSize(response.size)}</strong></span>
                 <CopyButton text={response.body} className="ml-auto" />
               </div>
-              <pre className="flex-1 overflow-auto p-3 font-mono text-sm leading-relaxed whitespace-pre-wrap break-all text-fg">
-                {response.body}
-              </pre>
+              <div className="flex items-center gap-3 border-b border-line-subtle px-3 py-2">
+                <Tabs<ResTab>
+                  value={resTab}
+                  onChange={setResTab}
+                  items={[
+                    ...(response.html ? [{ value: 'preview' as ResTab, label: t.apiTester.tabPreview, icon: <Eye size={13} /> }] : []),
+                    { value: 'body',    label: t.apiTester.tabBody, icon: <FileCode2 size={13} /> },
+                    { value: 'headers', label: `${t.apiTester.tabHeaders} (${Object.keys(response.headers).length})`, icon: <List size={13} /> }
+                  ]}
+                />
+                {resTab === 'preview' && <span className="text-xs text-fg-muted">{t.apiTester.previewNote}</span>}
+              </div>
+              {resTab === 'preview' ? (
+                <iframe
+                  title={t.apiTester.tabPreview}
+                  src={previewUrl(response.body, url)}
+                  sandbox=""
+                  referrerPolicy="no-referrer"
+                  className="min-h-0 flex-1 rounded-b-xl bg-white"
+                />
+              ) : resTab === 'headers' ? (
+                <div className="flex-1 overflow-auto p-3 font-mono text-sm">
+                  {Object.entries(response.headers).map(([k, v]) => (
+                    <div key={k} className="flex gap-3 border-b border-line-subtle py-1.5">
+                      <span className="w-56 shrink-0 text-accent">{k}</span>
+                      <span className="break-all text-fg-secondary">{v}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <pre className="flex-1 overflow-auto p-3 font-mono text-sm leading-relaxed whitespace-pre-wrap break-all text-fg">
+                  {response.body}
+                </pre>
+              )}
             </>
           )}
         </Card>

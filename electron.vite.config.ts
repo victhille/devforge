@@ -21,7 +21,8 @@ const CSP = [
   "object-src 'none'",
   "base-uri 'none'",
   "form-action 'none'",
-  "frame-src 'none'"
+  // API tester HTML preview: sandboxed data: frame, scripts off
+  "frame-src data:"
 ].join('; ')
 
 function gitCommit(): string {
