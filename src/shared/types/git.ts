@@ -38,7 +38,8 @@ export interface GitFileChange {
 }
 
 export interface GitAPI {
-  details: (path: string) => Promise<GitRepoDetails>
+  /** `fresh` skips the few-second cache */
+  details: (path: string, fresh?: boolean) => Promise<GitRepoDetails>
   fetch:   (path: string) => Promise<GitActionResult>
   /** Fast-forward only, never creates a merge commit */
   pull:    (path: string) => Promise<GitActionResult>

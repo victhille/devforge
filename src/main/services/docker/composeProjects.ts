@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'fs'
+import { existsSync, readFileSync, readdirSync, statSync } from 'fs'
 import { basename, dirname, join } from 'path'
 import { loadProjects } from '../projects/projectStorage'
 import { runFile } from '../../lib/exec'
@@ -47,9 +47,31 @@ export interface ComposeService {
   environment?: Record<string, string | null>
 }
 
+type ComposeConfig = { name: string; services: Record<string, ComposeService> }
+
+/** `docker compose config` takes ~0.3 s per project: reuse it until its files change */
+const configCache = new Map<string, { signature: string; value: ComposeConfig | null }>()
+
+/** Names and modification times of the files that shape the resolved config */
+function configSignature(dir: string): string {
+  try {
+    return readdirSync(dir)
+      .filter(f => /^(docker-)?compose(\.[\w-]+)*\.ya?ml$|^\.env$/i.test(f))
+      .sort()
+      .map(f => `${f}:${statSync(join(dir, f)).mtimeMs}`)
+      .join('|')
+  } catch { return '' }
+}
+
 /** Fully resolved config (override files, .env variables, !override tags) */
-export async function composeConfig(dir: string): Promise<{ name: string; services: Record<string, ComposeService> } | null> {
+export async function composeConfig(dir: string): Promise<ComposeConfig | null> {
+  const signature = configSignature(dir)
+  const cached = configCache.get(dir)
+  if (cached && signature && cached.signature === signature) return cached.value
   const r = await runFile('docker', ['compose', 'config', '--format', 'json'], { cwd: dir, timeout: 15_000 })
-  if (!r.ok) return null
-  try { return JSON.parse(r.stdout) } catch { return null }
+  let value: ComposeConfig | null = null
+  if (r.ok) { try { value = JSON.parse(r.stdout) as ComposeConfig } catch { /* not JSON */ } }
+  // Failures are not cached: Docker may just not be started yet
+  if (value) configCache.set(dir, { signature, value })
+  return value
 }

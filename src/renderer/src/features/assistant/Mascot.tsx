@@ -22,17 +22,34 @@ const LED: Record<MascotMood, string> = {
  * Forgy, the assistant mascot: a small glossy robot head with a dark visor,
  * LED eyes and a forge-orange antenna light. Its face and motion show what
  * the assistant is doing. Pure SVG + CSS animations (mascot.css).
+ *
+ * Performance: animating SVG parts costs a style + layout pass per frame on
+ * the main thread, so at rest (idle, sleeping) nothing in the SVG animates.
+ * Blinks are a timer, the large version floats through a composited HTML
+ * wrapper, and the eyes follow the mouse without a React render.
  */
+
+/** Moods with motion inside the SVG (the assistant is busy or reacting) */
+const ANIMATED: MascotMood[] = ['listening', 'thinking', 'searching', 'working', 'happy', 'sad']
+/** Fixed gaze of some moods; the others follow the cursor */
+const GAZE: Partial<Record<MascotMood, { x: number; y: number }>> = { thinking: { x: 3, y: -2.5 }, sad: { x: 0, y: 2 }, searching: { x: 0, y: 0 } }
 export default function Mascot({ mood, size = 40, followCursor = true, className }: Props) {
   const { t } = useI18n()
   const svgRef = useRef<SVGSVGElement>(null)
-  const [look, setLook] = useState({ x: 0, y: 0 })
+  const eyesRef = useRef<SVGGElement>(null)
+  const [blink, setBlink] = useState(false)
   const id = useId().replace(/:/g, '')
   const led = LED[mood]
+  const animated = ANIMATED.includes(mood)
 
+  // Eyes: a fixed direction for some moods, else the cursor. Written straight
+  // to the element: a React render per mouse move would cost a layout each time
   useEffect(() => {
-    if (!followCursor) return
+    const set = (x: number, y: number) => { if (eyesRef.current) eyesRef.current.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)` }
+    const fixed = GAZE[mood]
+    if (fixed || !followCursor) { set(fixed?.x ?? 0, fixed?.y ?? 0); return }
     let frame = 0
+    let last = ''
     const onMove = (e: MouseEvent) => {
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
@@ -42,15 +59,22 @@ export default function Mascot({ mood, size = 40, followCursor = true, className
         const dy = e.clientY - (r.top + r.height / 2)
         const d = Math.hypot(dx, dy) || 1
         const k = Math.min(1, d / 300)
-        setLook({ x: (dx / d) * 4 * k, y: (dy / d) * 2.4 * k })
+        const x = (dx / d) * 4 * k, y = (dy / d) * 2.4 * k
+        const key = `${x.toFixed(1)},${y.toFixed(1)}`
+        if (key !== last) { last = key; set(x, y) }
       })
     }
-    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mousemove', onMove, { passive: true })
     return () => { window.removeEventListener('mousemove', onMove); cancelAnimationFrame(frame) }
-  }, [followCursor])
+  }, [followCursor, mood])
 
-  // Where the LED eyes point: the cursor, or a mood-specific direction
-  const gaze = mood === 'thinking' ? { x: 3, y: -2.5 } : mood === 'sad' ? { x: 0, y: 2 } : mood === 'searching' ? { x: 0, y: 0 } : look
+  // Blink now and then while at rest (one short render, not a running animation)
+  useEffect(() => {
+    if (mood !== 'idle' && mood !== 'listening') return
+    let off: ReturnType<typeof setTimeout>
+    const tick = setInterval(() => { setBlink(true); off = setTimeout(() => setBlink(false), 130) }, 4200 + Math.random() * 1600)
+    return () => { clearInterval(tick); clearTimeout(off) }
+  }, [mood])
 
   const eyes = (() => {
     switch (mood) {
@@ -67,9 +91,9 @@ export default function Mascot({ mood, size = 40, followCursor = true, className
         const h = mood === 'listening' ? 14 : 12
         return (
           <g className="m-scan">
-            <g className="m-eyes" style={{ transform: `translate(${gaze.x}px, ${gaze.y}px)` }}>
-              <rect className="m-led" x="34" y={57 - h / 2} width="9" height={h} rx="4.5" fill={led} />
-              <rect className="m-led" x="57" y={57 - h / 2} width="9" height={h} rx="4.5" fill={led} />
+            <g className="m-eyes" ref={eyesRef}>
+              <rect className="m-led" x="34" y={57 - h / 2} width="9" height={h} rx="4.5" fill={led} style={blink ? { transform: 'scaleY(0.12)' } : undefined} />
+              <rect className="m-led" x="57" y={57 - h / 2} width="9" height={h} rx="4.5" fill={led} style={blink ? { transform: 'scaleY(0.12)' } : undefined} />
             </g>
           </g>
         )
@@ -78,8 +102,10 @@ export default function Mascot({ mood, size = 40, followCursor = true, className
   })()
 
   return (
-    <svg ref={svgRef} viewBox="0 0 100 100" width={size} height={size} data-mood={mood}
-      className={`mascot ${className ?? ''}`} role="img" aria-label={`${t.assistant.mascotName} — ${t.assistant.moods[mood]}`}>
+    // The large version floats at rest: an HTML wrapper animates on the compositor, not the main thread
+    <span className={`inline-flex ${size >= 60 && !animated ? 'mascot-float' : ''} ${className ?? ''}`}>
+    <svg ref={svgRef} viewBox="0 0 100 100" width={size} height={size} data-mood={mood} data-anim={animated ? 'on' : 'off'}
+      className="mascot" role="img" aria-label={`${t.assistant.mascotName} — ${t.assistant.moods[mood]}`}>
       <defs>
         {/* Glossy white shell: light from the top left */}
         <radialGradient id={`${id}-shell`} cx="0.35" cy="0.3" r="0.85">
@@ -150,5 +176,6 @@ export default function Mascot({ mood, size = 40, followCursor = true, className
         </g>
       )}
     </svg>
+    </span>
   )
 }
