@@ -2,6 +2,12 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [1.3.0](https://github.com/victhille/devforge/compare/v1.2.2...v1.3.0) — 2026-10-18
+
+### New features
+
+- **api-tester**: HTML response preview and response headers tab in the API tester ([82f9300](https://github.com/victhille/devforge/commit/82f9300616e1dfd3b0b12528520b19541881eae8))
+
 ## [1.2.2](https://github.com/victhille/devforge/compare/v1.2.1...v1.2.2) — 2026-10-18
 
 ### Fixes
