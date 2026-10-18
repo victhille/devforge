@@ -2,6 +2,12 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [1.4.1](https://github.com/victhille/devforge/compare/v1.4.0...v1.4.1) — 2026-10-18
+
+### Performance
+
+- Smoother app: the mascot costs nothing at rest, faster Git and Docker pages ([c2c739e](https://github.com/victhille/devforge/commit/c2c739e5e17fc765fc6e9e0ec0d487b27fac6285))
+
 ## [1.4.0](https://github.com/victhille/devforge/compare/v1.3.0...v1.4.0) — 2026-10-18
 
 ### New features
