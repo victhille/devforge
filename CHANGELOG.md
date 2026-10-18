@@ -2,6 +2,34 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [1.2.0](https://github.com/victhille/devforge/compare/v1.1.0...v1.2.0) — 2026-10-18
+
+### Nouveautés
+
+- **release** : Versioning with conventional commits, changelog and GitHub releases ([00cad77](https://github.com/victhille/devforge/commit/00cad77b4900085b0792f3dcd070d4e1c03202b3))
+- Database explorer like phpMyAdmin, collapsible connections panel ([cc30530](https://github.com/victhille/devforge/commit/cc305308c6139e7ad7b2378ce52235daccfcfc90))
+- **database** : Handle connections dropped by the server ([b320fbb](https://github.com/victhille/devforge/commit/b320fbb2bfc6397fd5965b6626f51d7e8dd54b72))
+- **docker** : Show compose services as tags, linked DevForge project as a caption ([fc37cc1](https://github.com/victhille/devforge/commit/fc37cc14306d6d4c94e691131585a969196a36c3))
+- **docker** : Start compose projects from DevForge, safer clean-up, compose-aware DB detection ([6ab43ed](https://github.com/victhille/devforge/commit/6ab43ed6d500938c7b68c97667c0b664d8d5264a))
+- **database over ssh** : Also try the server's public address from the server ([4040f7d](https://github.com/victhille/devforge/commit/4040f7d0cbe566f899c20af0dc2045dc8470745f))
+- **database over ssh** : Find the database on the server when its address fails ([3696e67](https://github.com/victhille/devforge/commit/3696e67bfaf17645b355098f61c3772dff26ce30))
+- **database** : Reach DBs hosted on a saved SSH server through an SSH tunnel ([2a5bd60](https://github.com/victhille/devforge/commit/2a5bd603b42c5dd56b307ab416be26237de3948c))
+- Sandbox renderer, add CSP, route API tester through main process ([532d934](https://github.com/victhille/devforge/commit/532d934a98a00b6abef65bc6255b398823d5bfcb))
+
+### Sécurité
+
+- Verify SSH server keys (trust on first use) ([6bc543b](https://github.com/victhille/devforge/commit/6bc543be6e5c28c89fec1e80dd88cfd2d0700fa5))
+- No shell injection through paths, URLs or script names ([ec42992](https://github.com/victhille/devforge/commit/ec42992047e21299655e830a9834da528eed9e00))
+
+### Corrections
+
+- Tests, lint and CI; fix bugs they found ([bc42178](https://github.com/victhille/devforge/commit/bc421782bd4d72dad28df784b83cb8f22815de85))
+- Fix remote detection scripts: quote them for the remote shell ([53bbc54](https://github.com/victhille/devforge/commit/53bbc54cb1b6fdc1917e99202195c4fbaa23645a))
+
+### Dépendances et build
+
+- Upgrade Electron 29 -> 44.5.1 and electron-builder 26 ([51cbe7a](https://github.com/victhille/devforge/commit/51cbe7a4ef1c9b93c0e4f1bd781600a2bf839a23))
+
 ## 1.1.0 — 2026-10-17
 
 ### Nouveautés
