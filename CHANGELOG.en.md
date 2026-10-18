@@ -2,6 +2,12 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [1.2.2](https://github.com/victhille/devforge/compare/v1.2.1...v1.2.2) — 2026-10-18
+
+### Fixes
+
+- **i18n**: The update message and app startup follow the selected language ([6a2acde](https://github.com/victhille/devforge/commit/6a2acde8d9902e059431bb7cf9922d07868926d5))
+
 ## [1.2.1](https://github.com/victhille/devforge/compare/v1.2.0...v1.2.1) — 2026-10-18
 
 ### Fixes

@@ -2,6 +2,12 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [1.2.2](https://github.com/victhille/devforge/compare/v1.2.1...v1.2.2) — 2026-10-18
+
+### Corrections
+
+- **i18n** : Le message de mise à jour et le démarrage de l'application respectent la langue choisie ([6a2acde](https://github.com/victhille/devforge/commit/6a2acde8d9902e059431bb7cf9922d07868926d5))
+
 ## [1.2.1](https://github.com/victhille/devforge/compare/v1.2.0...v1.2.1) — 2026-10-18
 
 ### Corrections
