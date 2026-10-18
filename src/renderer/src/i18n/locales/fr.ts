@@ -516,8 +516,13 @@ const fr = {
     removeConfirm: 'Supprimer le conteneur « {name} » ? Ses données hors volume seront perdues.',
     prune:         'Nettoyer',
     pruneTitle:    'Nettoyer Docker ?',
-    pruneText:     'Supprime les conteneurs arrêtés, les réseaux inutilisés, les images orphelines et le cache de build. Les volumes sont conservés.',
-    pruned:        'Docker nettoyé'
+    pruneText:     "Supprime les conteneurs arrêtés (sauf ceux des projets Compose), les réseaux inutilisés, les images orphelines et le cache de build. Les volumes sont conservés.",
+    pruned:        'Docker nettoyé',
+    composeNever:       'Jamais lancé',
+    composeRunning:     '{n}/{total} en cours',
+    composeStarted:     '{name} démarré',
+    composeDown:        'Supprimer les conteneurs',
+    composeDownConfirm: "Supprimer les conteneurs de « {name} » ? Les volumes (données des bases) sont conservés, le projet pourra être relancé."
   },
 
   deploy: {

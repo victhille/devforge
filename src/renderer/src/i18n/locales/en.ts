@@ -531,8 +531,13 @@ const en = {
     removeConfirm: 'Remove the container "{name}"? Its data not stored in a volume will be lost.',
     prune:         'Clean up',
     pruneTitle:    'Clean up Docker?',
-    pruneText:     'Removes stopped containers, unused networks, dangling images and the build cache. Volumes are kept.',
-    pruned:        'Docker cleaned up'
+    pruneText:     'Removes stopped containers (except Compose projects ones), unused networks, dangling images and the build cache. Volumes are kept.',
+    pruned:        'Docker cleaned up',
+    composeNever:       'Never started',
+    composeRunning:     '{n}/{total} running',
+    composeStarted:     '{name} started',
+    composeDown:        'Remove containers',
+    composeDownConfirm: 'Remove the containers of "{name}"? Volumes (database data) are kept and the project can be started again.'
   },
 
   deploy: {

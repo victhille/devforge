@@ -6,7 +6,7 @@ import pg from 'pg'
 import initSqlJs, { type Database as SqlJsDb, type SqlJsStatic } from 'sql.js'
 import type { DbConnection, DbQueryResult, DbTable } from '@shared/types'
 import { getDbConnection, saveDbConnection } from './dbStorage'
-import { findOnServer } from './dbDetect'
+import { findInCompose, findOnServer } from './dbDetect'
 import { openTunnel } from '../ssh/sshClient'
 import { sshServerFor } from '../ssh/sshStorage'
 import { loadSettings } from '../settings/settingsService'
@@ -172,9 +172,25 @@ async function open(c: DbConnection): Promise<Driver> {
       case 'sqlite':   return await sqliteDriver(c)
     }
   } catch (err) {
-    throw unreachableHint(err as Error & { code?: string }, c)
+    const e = err as Error & { code?: string }
+    // Wrong server on that port (or none): the database may be a compose
+    // project's, published elsewhere. Use the container's credentials.
+    if (isLocal(c) && (e.code === 'ECONNREFUSED' || AUTH_ERRORS.includes(e.code ?? ''))) {
+      const match = await findInCompose(c).catch(() => undefined)
+      if (match) {
+        const fixed = { ...c, port: match.port, user: match.user ?? c.user, password: match.password ?? c.password }
+        const d = await (c.type === 'mysql' ? mysqlDriver(fixed) : postgresDriver(fixed))
+        if (getDbConnection(c.id)) saveDbConnection(fixed)
+        return d
+      }
+    }
+    throw unreachableHint(e, c)
   }
 }
+
+/** Postgres invalid password / role, MySQL access denied */
+const AUTH_ERRORS = ['28P01', '28000', 'ER_ACCESS_DENIED_ERROR']
+const isLocal = (c: DbConnection) => !c.host || ['127.0.0.1', 'localhost', '::1'].includes(c.host)
 
 class UnreachableFromServer extends Error {
   constructor(readonly cause: Error) { super(cause.message) }
