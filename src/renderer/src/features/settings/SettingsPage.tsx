@@ -11,6 +11,7 @@ import { Input } from '@renderer/components/ui/Input'
 import Badge from '@renderer/components/ui/Badge'
 import Modal from '@renderer/components/ui/Modal'
 import ReleaseNotes from './ReleaseNotes'
+import AssistantSettings from './AssistantSettings'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -143,6 +144,8 @@ export default function SettingsPage() {
         <ToggleRow label={t.settings.startWithWindows} checked={settings.startWithWindows} onChange={v => set('startWithWindows', v)} />
         <ToggleRow label={t.settings.minimizeToTray}   checked={settings.minimizeToTray}   onChange={v => set('minimizeToTray', v)} />
       </Section>
+
+      <AssistantSettings />
 
       <Section title={t.settings.sectionAbout}>
         <Row label={t.settings.version}>

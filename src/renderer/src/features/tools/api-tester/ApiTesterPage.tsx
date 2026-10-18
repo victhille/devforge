@@ -10,6 +10,7 @@ import IconButton from '@renderer/components/ui/IconButton'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Input, Select, Textarea } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
+import { useAssistantPageContext } from '@renderer/features/assistant/AssistantContext'
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 type ReqTab = 'headers' | 'body'
@@ -47,6 +48,10 @@ function prettify(text: string): string {
   try { return JSON.stringify(JSON.parse(text), null, 2) } catch { return text }
 }
 
+/** Header values that look like credentials are not sent to the assistant */
+const redact = (h: Record<string, string>) =>
+  Object.fromEntries(Object.entries(h).map(([k, v]) => [k, /auth|cookie|token|secret|api[-_]?key|password/i.test(k) ? '***' : v]))
+
 function isHtml(headers: Record<string, string>, body: string): boolean {
   return /text\/html|application\/xhtml/i.test(headers['content-type'] ?? '') || /^\s*(<!doctype html|<html[\s>])/i.test(body)
 }
@@ -73,6 +78,18 @@ export default function ApiTesterPage() {
   const [resTab,   setResTab]   = useState<ResTab>('body')
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
+
+  useAssistantPageContext(url ? {
+    label: `API Tester — ${method} ${url}`,
+    content: [
+      `Request: ${method} ${url}`,
+      `Request headers: ${JSON.stringify(redact(Object.fromEntries(headers.filter(h => h.key).map(h => [h.key, h.value]))))}`,
+      method !== 'GET' && body ? `Request body:\n${body.slice(0, 4000)}` : '',
+      response
+        ? `Response: ${response.status} ${response.statusText} in ${response.time} ms, ${response.size} bytes\nResponse headers: ${JSON.stringify(redact(response.headers))}\nResponse body:\n${response.body.slice(0, 12000)}`
+        : error ? `Error: ${error}` : 'No response yet'
+    ].filter(Boolean).join('\n')
+  } : null)
 
   const updateHeader = (i: number, patch: Partial<Header>) =>
     setHeaders(h => h.map((hdr, idx) => (idx === i ? { ...hdr, ...patch } : hdr)))

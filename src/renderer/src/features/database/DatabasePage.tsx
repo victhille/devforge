@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import type { DbConnection, DbOverview, DbTable, DbTableDetails, DbTableRef } from '@shared/types'
 import { quoteIdent } from '@shared/lib/sqlQuote'
+import { useAssistantPageContext } from '@renderer/features/assistant/AssistantContext'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import { cn } from '@renderer/lib/cn'
@@ -122,6 +123,24 @@ export default function DatabasePage() {
     setDetails(null)
     setRev(r => r + 1)
   }
+
+  // Structure only (no row data): what the user is looking at
+  useAssistantPageContext(conn ? {
+    label: `${conn.name}${table ? ` › ${table.name}` : ''}`,
+    content: [
+      `Connection: ${conn.name} (${conn.type}${conn.type === 'sqlite' ? '' : `, database ${overview?.database ?? conn.database ?? ''}`}${overview ? `, ${overview.version}` : ''})`,
+      table && details && sameTable(table, detailsFor)
+        ? [
+            `Table ${table.schema ? `${table.schema}.` : ''}${table.name}`,
+            ...details.columns.map(c => `  ${c.name} ${c.type}${c.nullable ? '' : ' NOT NULL'}${c.key ? ` ${c.key}` : ''}${c.default !== null ? ` DEFAULT ${c.default}` : ''}${c.extra ? ` ${c.extra}` : ''}`),
+            'Indexes:', ...details.indexes.map(i => `  ${i.name} (${i.columns.join(', ')})${i.primary ? ' PRIMARY' : i.unique ? ' UNIQUE' : ''}`),
+            'Foreign keys:', ...details.foreignKeys.map(f => `  (${f.columns.join(', ')}) → ${f.table}(${f.refColumns.join(', ')}) ON DELETE ${f.onDelete}`),
+            'Referenced by:', ...details.referencedBy.map(f => `  ${f.table}(${f.columns.join(', ')})`)
+          ].join('\n')
+        : overview ? ['Tables:', ...overview.tables.map(t => `  ${t.schema && t.schema !== 'public' ? `${t.schema}.` : ''}${t.name} (${t.type}, ~${t.rows ?? '?'} rows)`)].join('\n') : '',
+      tab === 'sql' && sql.trim() ? `Current SQL:\n${sql.slice(0, 4000)}` : ''
+    ].filter(Boolean).join('\n')
+  } : null)
 
   const toggle = (key: string) => setOpen(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else n.add(key); return n })
 

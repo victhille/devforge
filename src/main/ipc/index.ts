@@ -17,6 +17,7 @@ import { registerLogHandlers } from './logs'
 import { registerWebhookHandlers } from './webhooks'
 import { registerSuggestHandlers } from './suggest'
 import { registerHttpHandlers } from './http'
+import { registerAssistantHandlers } from './assistant'
 
 export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerSshHandlers(mainWindow)
@@ -37,4 +38,5 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerWebhookHandlers(mainWindow)
   registerSuggestHandlers()
   registerHttpHandlers()
+  registerAssistantHandlers(mainWindow)
 }
