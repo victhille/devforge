@@ -1,6 +1,6 @@
 import { Client, type ConnectConfig } from 'ssh2'
-import { readFileSync, existsSync } from 'fs'
 import { randomUUID } from 'crypto'
+import { buildSshConfig } from './sshClient'
 import type { SSHConnection, SSHSessionStatus } from '@shared/types'
 
 type DataCb   = (sessionId: string, data: string) => void
@@ -26,22 +26,13 @@ export class SSHService {
   connect(conn: SSHConnection): string {
     const sessionId = randomUUID()
 
-    const cfg: ConnectConfig = {
-      host:     conn.host,
-      port:     conn.port,
-      username: conn.username,
-      readyTimeout: 10000
-    }
-
-    if (conn.authMethod === 'password') {
-      cfg.password = conn.password
-    } else if (conn.authMethod === 'privateKey') {
-      const keyPath = conn.privateKeyPath ?? ''
-      if (!existsSync(keyPath)) {
-        this.onStatus({ sessionId, connectionId: conn.id, status: 'error', error: `Private key not found: ${keyPath}` })
-        return sessionId
-      }
-      cfg.privateKey = readFileSync(keyPath)
+    let hostError: Error | null = null
+    let cfg: ConnectConfig
+    try {
+      cfg = buildSshConfig(conn, err => { hostError = err })
+    } catch (err) {
+      this.onStatus({ sessionId, connectionId: conn.id, status: 'error', error: (err as Error).message })
+      return sessionId
     }
 
     const client = new Client()
@@ -80,7 +71,8 @@ export class SSHService {
     })
 
     client.on('error', (err) => {
-      this.onStatus({ sessionId, connectionId: conn.id, status: 'error', error: err.message })
+      // A rejected host key surfaces as a generic error: show the real reason
+      this.onStatus({ sessionId, connectionId: conn.id, status: 'error', error: (hostError ?? err).message })
       this.sessions.delete(sessionId)
     })
 
@@ -119,16 +111,9 @@ export class SSHService {
     return new Promise((resolve, reject) => {
       const sessionId = randomUUID()
 
-      const cfg: ConnectConfig = {
-        host: conn.host, port: conn.port, username: conn.username, readyTimeout: 10000
-      }
-      if (conn.authMethod === 'password') {
-        cfg.password = conn.password
-      } else if (conn.authMethod === 'privateKey') {
-        const keyPath = conn.privateKeyPath ?? ''
-        if (!existsSync(keyPath)) { reject(new Error(`Private key not found: ${keyPath}`)); return }
-        cfg.privateKey = readFileSync(keyPath)
-      }
+      let hostError: Error | null = null
+      let cfg: ConnectConfig
+      try { cfg = buildSshConfig(conn, err => { hostError = err }) } catch (err) { reject(err); return }
 
       const client = new Client()
       this.sessions.set(sessionId, { sessionId, connectionId: conn.id, client, stream: null })
@@ -139,7 +124,7 @@ export class SSHService {
       })
       client.on('error', (err) => {
         this.sessions.delete(sessionId)
-        reject(err)
+        reject(hostError ?? err)
       })
       client.on('close', () => {
         const existing = this.sessions.get(sessionId)

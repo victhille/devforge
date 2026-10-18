@@ -1,6 +1,7 @@
 import { ipcMain, BrowserWindow } from 'electron'
 import { loadSshConnections, getSshConnectionWithSecret, saveSshConnection, removeSshConnection } from '../services/ssh/sshStorage'
 import { sshService } from '../services/ssh/sshService'
+import { forgetHost } from '../services/ssh/knownHosts'
 import type { SSHConnection } from '@shared/types'
 
 export function registerSshHandlers(mainWindow: BrowserWindow): void {
@@ -12,6 +13,10 @@ export function registerSshHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle('ssh:get-connections',    async () => loadSshConnections())
   ipcMain.handle('ssh:save-connection',    async (_e, conn: SSHConnection) => saveSshConnection(conn))
   ipcMain.handle('ssh:remove-connection',  async (_e, id: string) => removeSshConnection(id))
+  ipcMain.handle('ssh:forget-host-key',    async (_e, id: string) => {
+    const conn = loadSshConnections().find(c => c.id === id)
+    if (conn) forgetHost(conn.host, conn.port)
+  })
   ipcMain.handle('ssh:connect',            async (_e, connectionId: string) => {
     const conn = getSshConnectionWithSecret(connectionId)
     if (!conn) throw new Error(`Connection ${connectionId} not found`)

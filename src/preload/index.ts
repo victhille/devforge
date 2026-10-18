@@ -130,6 +130,7 @@ const api: DevForgeAPI = {
   getSshConnections:  ()           => ipcRenderer.invoke('ssh:get-connections'),
   saveSshConnection:  (conn)       => ipcRenderer.invoke('ssh:save-connection', conn),
   removeSshConnection:(id)         => ipcRenderer.invoke('ssh:remove-connection', id),
+  forgetSshHostKey:   (id)         => ipcRenderer.invoke('ssh:forget-host-key', id),
   sshConnect:         (connId)     => ipcRenderer.invoke('ssh:connect', connId),
   sshConnectDashboard:(connId)     => ipcRenderer.invoke('ssh:connect-dashboard', connId),
   sshExec:            (sid, cmd)   => ipcRenderer.invoke('ssh:exec', sid, cmd),
