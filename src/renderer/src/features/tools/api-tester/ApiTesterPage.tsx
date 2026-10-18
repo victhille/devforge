@@ -62,21 +62,20 @@ export default function ApiTesterPage() {
     setLoading(true)
     setError('')
     setResponse(null)
-    const start = Date.now()
     try {
-      const hdrs = Object.fromEntries(headers.filter(h => h.key).map(h => [h.key, h.value]))
-      const res = await fetch(url, {
+      const res = await window.devforge.http.request({
         method,
-        headers: hdrs,
+        url,
+        headers: Object.fromEntries(headers.filter(h => h.key).map(h => [h.key, h.value])),
         body: method === 'GET' ? undefined : body || undefined
       })
-      const text = await res.text()
+      if (res.error) { setError(res.error); return }
       setResponse({
-        status:     res.status,
-        statusText: res.statusText,
-        time:       Date.now() - start,
-        size:       new Blob([text]).size,
-        body:       prettify(text)
+        status:     res.status ?? 0,
+        statusText: res.statusText ?? '',
+        time:       res.time ?? 0,
+        size:       res.size ?? 0,
+        body:       prettify(res.body ?? '')
       })
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : t.apiTester.error)
