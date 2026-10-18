@@ -235,6 +235,18 @@ const en = {
 
   // ── Settings ──────────────────────────────────────────────────────────────
   assistant: {
+    mascotName: "Forgy",
+    greeting: "Hi, I'm Forgy! I read your code, logs and databases to help you.",
+    moods: {
+      idle: "available",
+      listening: "listening",
+      thinking: "thinking…",
+      searching: "searching…",
+      working: "writing…",
+      happy: "done",
+      sad: "ran into a problem",
+      sleeping: "taking a nap"
+    },
     title: "Assistant",
     newConversation: "New conversation",
     history: "History",

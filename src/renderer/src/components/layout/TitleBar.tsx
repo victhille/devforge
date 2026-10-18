@@ -1,9 +1,10 @@
 import { useState, useEffect, type ReactNode } from 'react'
-import { Minus, Square, X, Maximize2, Search, Sparkles } from 'lucide-react'
+import { Minus, Square, X, Maximize2, Search } from 'lucide-react'
 import logo from '@renderer/assets/icon-64.png'
 import { cn } from '@renderer/lib/cn'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useAssistant } from '@renderer/features/assistant/AssistantContext'
+import Mascot from '@renderer/features/assistant/Mascot'
 
 function WindowButton({ title, onClick, danger, children }: {
   title: string
@@ -28,7 +29,7 @@ function WindowButton({ title, onClick, danger, children }: {
 
 export default function TitleBar() {
   const { t } = useI18n()
-  const { open, setOpen } = useAssistant()
+  const { open, setOpen, mood } = useAssistant()
   const [maximized, setMaximized] = useState(false)
 
   useEffect(() => {
@@ -56,11 +57,11 @@ export default function TitleBar() {
       {/* AI assistant (Ctrl+J) */}
       <button
         onClick={() => setOpen(o => !o)}
-        title={`${t.assistant.title} (Ctrl+J)`}
+        title={`${t.assistant.mascotName} — ${t.assistant.moods[mood]} (Ctrl+J)`}
         className={cn('app-no-drag mr-3 flex h-7 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition-colors',
           open ? 'border-accent/40 bg-accent-soft text-accent' : 'border-line-subtle text-fg-muted hover:border-line hover:text-fg-secondary')}
       >
-        <Sparkles size={13} /> {t.assistant.title}
+        <Mascot mood={mood} size={20} followCursor={false} /> {t.assistant.mascotName}
       </button>
 
       <div className="app-no-drag flex h-full items-stretch">

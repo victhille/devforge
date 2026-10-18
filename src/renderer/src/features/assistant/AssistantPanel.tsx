@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowUp, BookOpen, Bug, Check, ChevronLeft, Container, Database, FileText, GitCommitHorizontal, Globe, History, KeyRound,
-  Loader2, MessageSquare, Paperclip, Plus, ShieldCheck, Sparkles, Square, Trash2, Wrench, X, XCircle, type LucideIcon
+  Loader2, MessageSquare, Paperclip, Plus, ShieldCheck, Square, Trash2, Wrench, X, XCircle, type LucideIcon
 } from 'lucide-react'
 import type { AssistantConfig, AssistantConversation, AssistantConversationSummary, AssistantItem, AssistantUsage, Project } from '@shared/types'
 import { ASSISTANT_SKILLS, skillById, type AssistantSkill, type AssistantSkillId } from '@shared/data/assistantSkills'
@@ -14,6 +14,7 @@ import IconButton from '@renderer/components/ui/IconButton'
 import { Select } from '@renderer/components/ui/Input'
 import { useAssistant } from './AssistantContext'
 import Markdown from './Markdown'
+import Mascot from './Mascot'
 
 const SKILL_ICON: Record<string, LucideIcon> = { MessageSquare, Bug, GitCommitHorizontal, ShieldCheck, BookOpen, Database, Container, Globe }
 const MODEL_LABEL: Record<string, string> = {
@@ -43,7 +44,8 @@ export default function AssistantPanel() {
   const a = t.assistant
   const l = lang === 'fr' ? 'fr' : 'en'
   const navigate = useNavigate()
-  const { setOpen, pageContext, projectPath, setProjectPath } = useAssistant()
+  const { setOpen, pageContext, projectPath, setProjectPath, mood, markSending, setTyping } = useAssistant()
+  const typingTimer = useRef<ReturnType<typeof setTimeout>>()
   const [config, setConfig] = useState<AssistantConfig | null>(null)
   const [usage, setUsage] = useState<AssistantUsage | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
@@ -113,7 +115,9 @@ export default function AssistantPanel() {
     const ctx = attachPage ? pageContext : null
     setItems(list => [...list, { kind: 'user', text: q, context: ctx ? [ctx.label] : [] }])
     setInput('')
+    setTyping(false)
     setRunning(true)
+    markSending()
     try {
       await window.devforge.assistant.send({ conversationId: id, text: q, projectPath, pageContext: ctx, skill })
     } catch (err) {
@@ -152,8 +156,11 @@ export default function AssistantPanel() {
     <aside className="flex w-[440px] shrink-0 flex-col border-l border-line-subtle bg-surface">
       {/* Header */}
       <div className="flex h-11 shrink-0 items-center gap-2 border-b border-line-subtle px-3">
-        <Sparkles size={15} className="text-accent" />
-        <span className="font-semibold text-fg">{a.title}</span>
+        <Mascot mood={mood} size={26} />
+        <span className="flex flex-col leading-tight">
+          <span className="font-semibold text-fg">{a.mascotName}</span>
+          <span className="text-2xs text-fg-muted">{a.moods[mood]}</span>
+        </span>
         {modelShown && <span className="rounded bg-active px-1.5 py-px text-2xs text-fg-muted">{MODEL_LABEL[modelShown]}</span>}
         <span className="ml-auto flex gap-0.5">
           <IconButton size="sm" title={a.newConversation} onClick={newConversation}><Plus size={14} /></IconButton>
@@ -207,6 +214,10 @@ export default function AssistantPanel() {
             )}
             {!started && (
               <div className="flex flex-col gap-2">
+                <div className="flex flex-col items-center gap-1 py-2 text-center">
+                  <Mascot mood={mood} size={84} />
+                  <p className="text-sm font-medium text-fg">{a.greeting}</p>
+                </div>
                 <p className="text-xs text-fg-muted">{a.pickSkill}</p>
                 <div className="grid grid-cols-2 gap-1.5">
                   {ASSISTANT_SKILLS.map(s => {
@@ -266,7 +277,13 @@ export default function AssistantPanel() {
               <textarea
                 ref={inputRef}
                 value={input}
-                onChange={e => setInput(e.target.value)}
+                onChange={e => {
+                  setInput(e.target.value)
+                  setTyping(true)
+                  clearTimeout(typingTimer.current)
+                  typingTimer.current = setTimeout(() => setTyping(false), 1500)
+                }}
+                onBlur={() => setTyping(false)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
                 placeholder={a.placeholder}
                 rows={Math.min(6, Math.max(1, input.split('\n').length))}
