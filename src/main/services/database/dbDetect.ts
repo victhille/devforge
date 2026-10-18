@@ -3,7 +3,7 @@ import { join } from 'path'
 import { randomUUID } from 'crypto'
 import type { DbConnection, DetectedDatabase } from '@shared/types'
 import { connectSsh, sshRun } from '../ssh/sshClient'
-import { getSshConnectionWithSecret } from '../ssh/sshStorage'
+import { getSshConnectionWithSecret, sshServerFor } from '../ssh/sshStorage'
 import { loadProjects } from '../projects/projectStorage'
 import { parseEnv } from '../envfiles/envFiles'
 import { listDbConnections, saveDbConnection } from './dbStorage'
@@ -200,7 +200,13 @@ export async function detectLocal(): Promise<DetectedDatabase[]> {
       origin = `${p.name}/${name}`
     }
     const r = origin ? fromEnv(merged) : null
-    if (r) found.push({ ...r, name: `${r.database ?? p.name} (${p.name})`, source: 'env', origin })
+    if (!r) return
+    // Points at one of our SSH servers: connect through it
+    const server = sshServerFor(r.host)
+    found.push({
+      ...r, ...(server && { host: '127.0.0.1', sshConnectionId: server.id }),
+      name: `${r.database ?? p.name} (${p.name})`, source: 'env', origin
+    })
   }))
   // Same database used by several projects: keep one entry
   const unique = new Map<string, Found>()

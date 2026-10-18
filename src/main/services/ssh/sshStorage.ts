@@ -61,6 +61,13 @@ export function loadSshConnections(): SSHConnection[] {
   }))
 }
 
+/** Saved SSH server whose address is `host`, if any */
+export function sshServerFor(host: string | undefined): SSHConnection | undefined {
+  const h = host?.trim().toLowerCase()
+  if (!h || h === '127.0.0.1' || h === 'localhost') return undefined
+  return loadSshConnections().find(c => c.host.trim().toLowerCase() === h)
+}
+
 /** Main process only: includes the decrypted password, used to open the SSH session. */
 export function getSshConnectionWithSecret(id: string): SSHConnection | undefined {
   const stored = readStored().find(c => c.id === id)
