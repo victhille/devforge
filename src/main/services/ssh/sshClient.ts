@@ -51,7 +51,12 @@ export function sshRun(client: Client, command: string, timeoutMs = 20_000): Pro
   })
 }
 
-export interface Tunnel { localPort: number; close: () => void }
+export interface Tunnel {
+  localPort: number
+  close: () => void
+  /** Why the server could not reach the target (e.g. "Connection refused"), if it failed */
+  lastError: () => Error | null
+}
 
 /**
  * Local TCP port forwarded through SSH to `remoteHost:remotePort` (as seen from
@@ -60,9 +65,10 @@ export interface Tunnel { localPort: number; close: () => void }
  */
 export async function openTunnel(connectionId: string, remoteHost: string, remotePort: number): Promise<Tunnel> {
   const client = await connectSsh(connectionId)
+  let lastError: Error | null = null
   const server = net.createServer(socket => {
     client.forwardOut('127.0.0.1', 0, remoteHost, remotePort, (err, stream) => {
-      if (err) { socket.destroy(); return }
+      if (err) { lastError = err; socket.destroy(); return }
       socket.pipe(stream).pipe(socket)
       socket.on('error', () => stream.close())
       stream.on('error', () => socket.destroy())
@@ -76,6 +82,7 @@ export async function openTunnel(connectionId: string, remoteHost: string, remot
   client.on('close', () => server.close())
   return {
     localPort: (server.address() as net.AddressInfo).port,
-    close: () => { server.close(); client.end() }
+    close: () => { server.close(); client.end() },
+    lastError: () => lastError
   }
 }

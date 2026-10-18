@@ -77,6 +77,33 @@ export async function detectRemote(sshConnectionId: string): Promise<DetectedDat
   return publish(parseRemoteOutput(output, server.name, sshConnectionId))
 }
 
+/**
+ * The database a connection means, as actually running on the server: same
+ * type, and the same database name or published port. Used when the saved
+ * host/port does not answer from the server (e.g. a port only known inside
+ * Docker's network, or a project .env written for docker compose).
+ */
+export async function findOnServer(sshConnectionId: string, c: DbConnection): Promise<Found | undefined> {
+  const server = getSshConnectionWithSecret(sshConnectionId)
+  if (!server) return undefined
+  const client = await connectSsh(sshConnectionId)
+  let output: string
+  try {
+    output = (await sshRun(client, `bash -c ${JSON.stringify(REMOTE_SCRIPT)}`)).output
+  } finally {
+    client.end()
+  }
+  return pickMatch(parseRemoteOutput(output, server.name, sshConnectionId), c)
+}
+
+/** Best candidate for a saved connection (exported for tests) */
+export function pickMatch(found: Found[], c: DbConnection): Found | undefined {
+  const same = found.filter(f => f.type === c.type)
+  return same.find(f => c.database && f.database === c.database)
+    ?? same.find(f => f.port === c.port)
+    ?? (same.length === 1 ? same[0] : undefined)
+}
+
 /** Turn the remote script output into candidates (exported for tests) */
 export function parseRemoteOutput(output: string, serverName: string, sshConnectionId: string): Found[] {
   const found: Found[] = []
