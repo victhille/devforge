@@ -519,6 +519,7 @@ const fr = {
     pruneText:     "Supprime les conteneurs arrêtés (sauf ceux des projets Compose), les réseaux inutilisés, les images orphelines et le cache de build. Les volumes sont conservés.",
     pruned:        'Docker nettoyé',
     composeNever:       'Jamais lancé',
+    composeProjects:    'Projet DevForge : {list}',
     composeRunning:     '{n}/{total} en cours',
     composeStarted:     '{name} démarré',
     composeDown:        'Supprimer les conteneurs',
