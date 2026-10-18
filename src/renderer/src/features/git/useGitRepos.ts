@@ -15,18 +15,18 @@ export function useGitRepos() {
   const patch = (id: string, p: Partial<RepoRow>) =>
     setRows(prev => prev.map(r => (r.project.id === id ? { ...r, ...p } : r)))
 
-  const refreshOne = useCallback(async (project: Project) => {
+  const refreshOne = useCallback(async (project: Project, fresh = false) => {
     try {
-      patch(project.id, { details: await window.devforge.git.details(project.path) })
+      patch(project.id, { details: await window.devforge.git.details(project.path, fresh) })
     } catch { /* keep previous details */ }
   }, [])
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (fresh = false) => {
     setLoading(true)
     try {
       const projects = await window.devforge.getProjects()
-      setRows(projects.map(project => ({ project, details: null, busy: null })))
-      await Promise.all(projects.map(refreshOne))
+      setRows(prev => projects.map(project => ({ project, details: prev.find(r => r.project.id === project.id)?.details ?? null, busy: null })))
+      await Promise.all(projects.map(p => refreshOne(p, fresh)))
     } finally {
       setLoading(false)
     }
@@ -54,5 +54,8 @@ export function useGitRepos() {
     await Promise.all(Array.from({ length: 4 }, worker))
   }, [runAction])
 
-  return { rows, loading, reload: load, runAction, fetchAll, refreshOne }
+  // Refresh button: read every repository again
+  const reload = useCallback(() => load(true), [load])
+
+  return { rows, loading, reload, runAction, fetchAll, refreshOne }
 }

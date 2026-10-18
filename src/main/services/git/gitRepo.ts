@@ -10,8 +10,38 @@ const GIT_ENV = { GIT_TERMINAL_PROMPT: '0' }
 export const git = (path: string, args: string[], timeout = 6000) =>
   runFile('git', ['-C', path, ...args], { timeout, env: GIT_ENV })
 
+/**
+ * Repository details are read for many projects at once (Git dashboard,
+ * assistant). Spawning 3 git processes per project for 30+ projects at the
+ * same time chokes Windows, so reads run 6 at a time, and a result is reused
+ * for a few seconds unless the repository was changed from DevForge.
+ */
+const DETAILS_TTL = 10_000
+const MAX_PARALLEL = 6
+const detailsCache = new Map<string, { at: number; value: GitRepoDetails }>()
+let running = 0
+const waiting: (() => void)[] = []
+
+async function limited<T>(fn: () => Promise<T>): Promise<T> {
+  if (running >= MAX_PARALLEL) await new Promise<void>(resolve => waiting.push(resolve))
+  running++
+  try { return await fn() } finally { running--; waiting.shift()?.() }
+}
+
+/** Forget the cached details of a repository changed by an action */
+export function forgetRepo(path: string): void { detailsCache.delete(path) }
+
+/** Details of one repository; `fresh` skips the short cache (refresh button) */
+export async function getRepoDetails(path: string, fresh = false): Promise<GitRepoDetails> {
+  const cached = detailsCache.get(path)
+  if (!fresh && cached && Date.now() - cached.at < DETAILS_TTL) return cached.value
+  const value = await limited(() => readRepoDetails(path))
+  detailsCache.set(path, { at: Date.now(), value })
+  return value
+}
+
 /** Everything the dashboard shows for one repository, in 3 parallel git calls. */
-export async function getRepoDetails(path: string): Promise<GitRepoDetails> {
+async function readRepoDetails(path: string): Promise<GitRepoDetails> {
   const details: GitRepoDetails = {
     path, isRepo: false, branch: null, changes: 0, ahead: 0, behind: 0,
     hasUpstream: false, remoteUrl: null, lastCommit: null
@@ -50,6 +80,7 @@ export async function getRepoDetails(path: string): Promise<GitRepoDetails> {
 
 async function action(path: string, args: string[]): Promise<GitActionResult> {
   const r = await git(path, args, 120_000)
+  forgetRepo(path)
   return { ok: r.ok, output: (r.stdout + r.stderr).trim() }
 }
 
@@ -112,6 +143,7 @@ export async function getChanges(path: string): Promise<GitFileChange[]> {
  * changes stay staged and untouched. Untracked files are added first.
  */
 export async function gitCommit(path: string, message: string, files: string[]): Promise<GitActionResult> {
+  forgetRepo(path)
   if (!message.trim()) return { ok: false, output: 'Empty commit message' }
   if (files.length === 0) return { ok: false, output: 'No file selected' }
 
