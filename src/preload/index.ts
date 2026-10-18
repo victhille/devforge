@@ -133,6 +133,7 @@ const api: DevForgeAPI = {
     list:       invoke('assistant:list'),
     get:        invoke('assistant:get'),
     remove:     invoke('assistant:remove'),
+    usage:      invoke('assistant:usage'),
     onEvent:    on('assistant:event')
   },
 

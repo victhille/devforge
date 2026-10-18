@@ -14,8 +14,13 @@ import { runFile } from '../../lib/exec'
  * project, secret files are never read, outputs are capped.
  */
 
-const MAX_FILE = 60_000
-const MAX_OUTPUT = 40_000
+// Kept small on purpose: a tool result is re-sent with every later request of the conversation
+const MAX_FILE = 16_000
+const MAX_OUTPUT = 12_000
+/** read_file without a range shows this many lines */
+const DEFAULT_LINES = 250
+const MAX_SEARCH_HITS = 30
+const MAX_TREE = 150
 const IGNORED_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'out', '.next', '.nuxt', 'vendor', 'target', '.venv', 'venv', '__pycache__', 'coverage', '.cache', '.turbo', '.idea'])
 
 /** Files whose content must not leave the PC */
@@ -62,11 +67,11 @@ async function listFiles(project: Project, dir: unknown): Promise<string> {
   const start = await insideProject(project, dir ?? '')
   const lines: string[] = []
   const walk = async (abs: string, depth: number, prefix: string) => {
-    if (lines.length >= 400) return
+    if (lines.length >= MAX_TREE) return
     let entries = await readdir(abs, { withFileTypes: true }).catch(() => [])
     entries = entries.sort((a, b) => Number(b.isDirectory()) - Number(a.isDirectory()) || a.name.localeCompare(b.name))
     for (const e of entries) {
-      if (lines.length >= 400) { lines.push(`${prefix}…`); return }
+      if (lines.length >= MAX_TREE) { lines.push(`${prefix}… (more entries: list a sub-folder)`); return }
       if (e.isDirectory()) {
         if (IGNORED_DIRS.has(e.name)) { lines.push(`${prefix}${e.name}/ (skipped)`); continue }
         lines.push(`${prefix}${e.name}/`)
@@ -89,9 +94,10 @@ async function readProjectFile(project: Project, path: unknown, from: unknown, t
   if (text.includes('\u0000')) throw new ToolError('Binary file')
   const all = text.split(/\r?\n/)
   const a = int(from, 1, 1, all.length)
-  const b = int(to, all.length, a, all.length)
+  const b = int(to, Math.min(all.length, a + DEFAULT_LINES - 1), a, all.length)
   const body = all.slice(a - 1, b).map((l, i) => `${String(a + i).padStart(5)}  ${l}`).join('\n')
-  return cap(`${path} (lines ${a}-${b} of ${all.length})\n${body}`, MAX_FILE)
+  const more = b < all.length ? `\n… lines ${b + 1}-${all.length} not shown: ask for a range with from_line/to_line` : ''
+  return cap(`${path} (lines ${a}-${b} of ${all.length})\n${body}${more}`, MAX_FILE)
 }
 
 async function searchCode(project: Project, query: unknown): Promise<string> {
@@ -101,9 +107,9 @@ async function searchCode(project: Project, query: unknown): Promise<string> {
   const hits: string[] = []
   let scanned = 0
   const walk = async (abs: string) => {
-    if (hits.length >= 60 || scanned > 4000) return
+    if (hits.length >= MAX_SEARCH_HITS || scanned > 4000) return
     for (const e of await readdir(abs, { withFileTypes: true }).catch(() => [])) {
-      if (hits.length >= 60) return
+      if (hits.length >= MAX_SEARCH_HITS) return
       const p = join(abs, e.name)
       if (e.isDirectory()) { if (!IGNORED_DIRS.has(e.name) && !e.name.startsWith('.')) await walk(p); continue }
       if (isSecretFile(p) || /\.(png|jpe?g|gif|webp|ico|pdf|zip|gz|exe|dll|woff2?|ttf|mp[34]|lock)$/i.test(e.name)) continue
@@ -113,12 +119,12 @@ async function searchCode(project: Project, query: unknown): Promise<string> {
       const text = await readFile(p, 'utf-8').catch(() => '')
       if (text.includes('\u0000')) continue
       text.split(/\r?\n/).forEach((line, i) => {
-        if (hits.length < 60 && line.toLowerCase().includes(needle)) hits.push(`${relative(root, p)}:${i + 1}: ${line.trim().slice(0, 200)}`)
+        if (hits.length < MAX_SEARCH_HITS && line.toLowerCase().includes(needle)) hits.push(`${relative(root, p)}:${i + 1}: ${line.trim().slice(0, 200)}`)
       })
     }
   }
   await walk(root)
-  return hits.length ? hits.join('\n') + (hits.length >= 60 ? '\n… (first 60 matches)' : '') : 'No match.'
+  return hits.length ? hits.join('\n') + (hits.length >= MAX_SEARCH_HITS ? `\n… (first ${MAX_SEARCH_HITS} matches: refine the query)` : '') : 'No match.'
 }
 
 async function gitStatus(project: Project): Promise<string> {
@@ -130,7 +136,7 @@ async function gitStatus(project: Project): Promise<string> {
     `Branch: ${d.branch}${d.hasUpstream ? ` (ahead ${d.ahead}, behind ${d.behind})` : ' (no upstream)'}`,
     `Remote: ${d.remoteUrl ?? 'none'}`,
     `Changed files (${changes.length}):`,
-    ...changes.slice(0, 100).map(c => `  ${c.staged ? '[staged] ' : ''}${c.status} ${c.path}${c.insertions !== null ? ` +${c.insertions} -${c.deletions}` : ''}`),
+    ...changes.slice(0, 60).map(c => `  ${c.staged ? '[staged] ' : ''}${c.status} ${c.path}${c.insertions !== null ? ` +${c.insertions} -${c.deletions}` : ''}`),
     'Recent commits:',
     log.stdout
   ].join('\n')
@@ -166,7 +172,7 @@ async function dockerStatus(): Promise<string> {
 
 async function containerLogs(container: unknown, lines: unknown): Promise<string> {
   if (typeof container !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(container)) throw new ToolError('Invalid container name')
-  const r = await runFile('docker', ['logs', '--tail', String(int(lines, 100, 1, 500)), container], { timeout: 15_000 })
+  const r = await runFile('docker', ['logs', '--tail', String(int(lines, 60, 1, 300)), container], { timeout: 15_000 })
   if (!r.ok && !r.stdout) throw new ToolError(r.stderr || 'docker logs failed')
   return cap((r.stdout + r.stderr).trim() || '(no output)')
 }
@@ -192,13 +198,13 @@ const project = { type: 'string', description: 'Project name (or its path), from
 /** Tool list: static and in a fixed order so the prompt cache keeps hitting */
 export const TOOLS: Anthropic.Beta.BetaTool[] = [
   { name: 'list_projects', description: 'List the projects saved in DevForge (name, path, framework).', input_schema: { type: 'object', properties: {} } },
-  { name: 'list_files', description: 'Tree of a project folder (2 levels, heavy folders like node_modules skipped).', input_schema: { type: 'object', properties: { project, dir: { type: 'string', description: 'Folder relative to the project root, default the root' } }, required: ['project'] } },
-  { name: 'read_file', description: 'Read a text file of a project, with line numbers. Secret files (.env, keys) are refused.', input_schema: { type: 'object', properties: { project, path: { type: 'string', description: 'Path relative to the project root' }, from_line: { type: 'integer' }, to_line: { type: 'integer' } }, required: ['project', 'path'] } },
-  { name: 'search_code', description: 'Case-insensitive text search in a project (first 60 matches, path:line: text).', input_schema: { type: 'object', properties: { project, query: { type: 'string' } }, required: ['project', 'query'] } },
+  { name: 'list_files', description: 'Tree of a project folder (2 levels, node_modules and the like skipped).', input_schema: { type: 'object', properties: { project, dir: { type: 'string', description: 'Folder relative to the project root, default the root' } }, required: ['project'] } },
+  { name: 'read_file', description: 'Read lines of a project text file (250 by default; pass from_line/to_line for the useful part). Secret files are refused.', input_schema: { type: 'object', properties: { project, path: { type: 'string', description: 'Path relative to the project root' }, from_line: { type: 'integer' }, to_line: { type: 'integer' } }, required: ['project', 'path'] } },
+  { name: 'search_code', description: 'Case-insensitive text search in a project (first 30 matches, path:line: text).', input_schema: { type: 'object', properties: { project, query: { type: 'string' } }, required: ['project', 'query'] } },
   { name: 'git_status', description: 'Branch, upstream, changed files and the last 10 commits of a project.', input_schema: { type: 'object', properties: { project }, required: ['project'] } },
   { name: 'git_diff', description: 'Uncommitted changes of a project (or of one file).', input_schema: { type: 'object', properties: { project, file: { type: 'string' }, staged: { type: 'boolean', description: 'Staged changes instead of unstaged' } }, required: ['project'] } },
   { name: 'docker_status', description: 'Local Docker containers and compose projects with their state.', input_schema: { type: 'object', properties: {} } },
-  { name: 'container_logs', description: 'Last lines of a local Docker container log.', input_schema: { type: 'object', properties: { container: { type: 'string' }, lines: { type: 'integer', description: 'Default 100, max 500' } }, required: ['container'] } },
+  { name: 'container_logs', description: 'Last lines of a local Docker container log.', input_schema: { type: 'object', properties: { container: { type: 'string' }, lines: { type: 'integer', description: 'Default 60, max 300' } }, required: ['container'] } },
   { name: 'db_connections', description: 'Database connections saved in DevForge (no credentials).', input_schema: { type: 'object', properties: {} } },
   { name: 'db_schema', description: 'Tables and columns of a saved database connection.', input_schema: { type: 'object', properties: { connection: { type: 'string', description: 'Connection name from db_connections' } }, required: ['connection'] } }
 ].map(t => ({ ...t, eager_input_streaming: true }) as Anthropic.Beta.BetaTool)

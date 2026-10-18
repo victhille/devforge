@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Check, KeyRound } from 'lucide-react'
-import type { AssistantConfig, AssistantEffort, AssistantModel } from '@shared/types'
+import type { AssistantConfig, AssistantEffort, AssistantModel, AssistantUsage } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
@@ -14,8 +14,13 @@ export default function AssistantSettings() {
   const a = t.assistant
   const [config, setConfig] = useState<AssistantConfig | null>(null)
   const [key, setKey] = useState('')
+  const [usage, setUsage] = useState<AssistantUsage | null>(null)
+  const [budget, setBudget] = useState('')
 
-  useEffect(() => { window.devforge.assistant.getConfig().then(setConfig) }, [])
+  useEffect(() => {
+    window.devforge.assistant.getConfig().then(c => { setConfig(c); setBudget(String(c.monthlyBudget)) })
+    window.devforge.assistant.usage().then(setUsage)
+  }, [])
   if (!config) return null
 
   const save = async (u: Parameters<typeof window.devforge.assistant.saveConfig>[0]) => setConfig(await window.devforge.assistant.saveConfig(u))
@@ -41,23 +46,37 @@ export default function AssistantSettings() {
         </div>
         <div className="flex flex-col gap-2 px-5 py-4">
           <span className="text-sm font-medium uppercase tracking-wide text-fg-secondary">{a.model}</span>
-          <Select value={config.model} onChange={e => save({ model: e.target.value as AssistantModel })} className="w-80">
+          <Select value={config.model} onChange={e => save({ model: e.target.value as AssistantModel | 'auto' })} className="w-96">
+            <option value="auto">{a.modelAuto}</option>
             <option value="claude-opus-5-5">{a.modelOpus}</option>
             <option value="claude-sonnet-5-5">{a.modelSonnet}</option>
             <option value="claude-haiku-5-5">{a.modelHaiku}</option>
           </Select>
+          <span className="text-xs text-fg-muted">{a.modelHint}</span>
         </div>
         <div className="flex flex-col gap-2 px-5 py-4">
           <span className="text-sm font-medium uppercase tracking-wide text-fg-secondary">{a.effort}</span>
-          <Tabs<AssistantEffort>
+          <Tabs<AssistantEffort | 'auto'>
             value={config.effort}
             onChange={effort => save({ effort })}
             items={[
+              { value: 'auto', label: a.effortAuto },
               { value: 'low', label: a.effortLow },
               { value: 'medium', label: a.effortMedium },
               { value: 'high', label: a.effortHigh }
             ]}
           />
+        </div>
+        <div className="flex flex-col gap-2 px-5 py-4">
+          <span className="text-sm font-medium uppercase tracking-wide text-fg-secondary">{a.budget}</span>
+          <div className="flex items-center gap-2">
+            <Input type="number" min={0} step={1} value={budget} onChange={e => setBudget(e.target.value)}
+              onBlur={() => { const n = Number(budget); if (Number.isFinite(n) && n >= 0) save({ monthlyBudget: n }) }}
+              className="w-28" />
+            <span className="text-sm text-fg-muted">$ / {a.month.toLowerCase()}</span>
+            {usage && <span className="ml-auto text-sm text-fg-secondary">{a.spentThisMonth.replace('{n}', usage.spent.toFixed(2))}</span>}
+          </div>
+          <span className="text-xs text-fg-muted">{a.budgetHint}</span>
         </div>
       </Card>
     </section>
