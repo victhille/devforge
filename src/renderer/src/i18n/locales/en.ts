@@ -329,7 +329,9 @@ const en = {
     time:         'Time',
     size:         'Size',
     noResponse:   'Send a request to see the response',
-    error:        'Request failed'
+    error:        'Request failed',
+    tabPreview: "Preview",
+    previewNote: "Rendered page, scripts disabled"
   },
 
   // ── Snippets ──────────────────────────────────────────────────────────────

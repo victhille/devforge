@@ -317,7 +317,9 @@ const fr = {
     time:         'Temps',
     size:         'Taille',
     noResponse:   'Envoyez une requête pour voir la réponse',
-    error:        'Requête échouée'
+    error:        'Requête échouée',
+    tabPreview: "Aperçu",
+    previewNote: "Rendu de la page, scripts désactivés"
   },
 
   snippets: {
