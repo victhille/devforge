@@ -5,7 +5,9 @@ import { readdir, stat } from 'fs/promises'
 import { detectEnvironment } from '../services/system/environmentDetector'
 import { getGitStatus } from '../services/git/gitStatus'
 import { getListeningPorts } from '../services/system/portService'
+import { spawn } from 'child_process'
 import type { FileEntry } from '@shared/types'
+import { assertSafeDir, assertWebUrl, isInsideProject, launch } from '../lib/safe'
 
 export function registerSystemHandlers(mainWindow: BrowserWindow): void {
   // ─── Environment ─────────────────────────────────────────────────────────────
@@ -23,7 +25,8 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
   })
 
   ipcMain.handle('open-directory', async (_event, dirPath: string) => {
-    await shell.openPath(dirPath)
+    // Folders only: openPath on a file would run it
+    await shell.openPath(assertSafeDir(dirPath))
   })
 
   ipcMain.handle('open-in-ide', async (_event, dirPath: string, ide: string) => {
@@ -32,13 +35,14 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
     }
     const cmd = commands[ide]
     if (!cmd) return
-    const { exec } = await import('child_process')
-    exec(`${cmd} "${dirPath}"`)
+    if (!(await launch(cmd, [assertSafeDir(dirPath)]))) throw new Error(`${cmd} was not found in PATH`)
   })
 
   ipcMain.handle('path-exists', async (_event, p: string) => existsSync(p))
 
   ipcMain.handle('fs:read-dir', async (_event, dirPath: string): Promise<FileEntry[]> => {
+    // The file tree only browses saved projects
+    if (typeof dirPath !== 'string' || !isInsideProject(dirPath)) return []
     try {
       const entries = await readdir(dirPath, { withFileTypes: true })
       return Promise.all(entries.map(async entry => {
@@ -57,25 +61,27 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
     }
   })
 
-  ipcMain.handle('open-external', async (_event, url: string) => shell.openExternal(url))
+  ipcMain.handle('open-external', async (_event, url: string) => shell.openExternal(assertWebUrl(url)))
 
   ipcMain.handle('open-terminal', async (_event, dirPath: string) => {
-    const { spawn } = await import('child_process')
-    if (process.platform === 'win32') {
-      // Try Windows Terminal, then PowerShell, then cmd
-      const safe = dirPath.replace(/'/g, "''")
-      try {
-        spawn('wt', ['-d', dirPath], { detached: true, stdio: 'ignore' }).unref()
-      } catch {
-        try {
-          spawn('pwsh', ['-NoExit', '-Command', `Set-Location -Path '${safe}'`], { detached: true, stdio: 'ignore' }).unref()
-        } catch {
-          spawn('cmd.exe', ['/c', 'start', 'cmd.exe', '/K', `cd /d "${dirPath}"`], { detached: true, stdio: 'ignore' }).unref()
-        }
-      }
-    } else {
-      await shell.openPath(dirPath)
+    const dir = assertSafeDir(dirPath)
+    if (process.platform !== 'win32') { await shell.openPath(dir); return }
+    // Windows Terminal, then PowerShell 7, then Windows PowerShell, then cmd.
+    // A missing program emits 'error' asynchronously, so try them in turn.
+    const candidates: [string, string[]][] = [
+      ['wt', ['-d', dir]],
+      ['pwsh', ['-NoExit', '-Command', `Set-Location -LiteralPath '${dir.replace(/'/g, "''")}'`]],
+      ['powershell', ['-NoExit', '-Command', `Set-Location -LiteralPath '${dir.replace(/'/g, "''")}'`]]
+    ]
+    for (const [cmd, args] of candidates) {
+      const ok = await new Promise<boolean>(res => {
+        const child = spawn(cmd, args, { detached: true, stdio: 'ignore', cwd: dir })
+        child.once('error', () => res(false))
+        child.once('spawn', () => { child.unref(); res(true) })
+      })
+      if (ok) return
     }
+    spawn('cmd.exe', ['/c', 'start', 'cmd.exe', '/K'], { detached: true, stdio: 'ignore', cwd: dir }).unref()
   })
 
   // ─── Git ─────────────────────────────────────────────────────────────────────
