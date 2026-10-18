@@ -6,6 +6,7 @@ import type { DeployRun, DeployTarget } from '@shared/types'
 import { getSshConnectionWithSecret } from '../ssh/sshStorage'
 import { sshService } from '../ssh/sshService'
 import { gitPush } from '../git/gitRepo'
+import { shQuote as shq } from '../ssh/sshClient'
 
 const MAX_LOG = 100_000
 const MAX_RUNS = 20
@@ -53,9 +54,6 @@ function saveRun(run: DeployRun): void {
   store.runs = [...others.filter(r => r.targetId !== run.targetId || keep.has(r.id)), run]
   persist(store)
 }
-
-/** POSIX single-quote a string for `bash -lc '…'` */
-const shq = (s: string) => `'${s.replace(/'/g, `'\\''`)}'`
 
 /**
  * Remote command: login shell (so nvm / pm2 / composer are on PATH),

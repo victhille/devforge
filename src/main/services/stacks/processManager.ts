@@ -2,6 +2,7 @@ import { spawn, type ChildProcess } from 'child_process'
 import type { ProcessInfo, ProcessLog } from '@shared/types'
 import { killTree } from '../../lib/killTree'
 
+// eslint-disable-next-line no-control-regex -- ESC and BEL are what we strip
 const ANSI_RE = /\x1b\[[0-9;?]*[A-Za-z]|\x1b\][^\x07]*\x07|\x1b[()][A-Z0-9]/g
 const MAX_LINES = 1000
 

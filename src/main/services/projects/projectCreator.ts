@@ -1,6 +1,5 @@
 import { existsSync, mkdirSync } from 'fs'
 import { join } from 'path'
-import { execSync } from 'child_process'
 import type { ProjectCreationOptions, LogLine, CommandResult } from '@shared/types'
 import { commandRunner } from '../system/commandRunner'
 import { detectTool } from '../system/environmentDetector'
@@ -41,7 +40,7 @@ function createReactProject(
   const { name, destination, packageManager, typescript, installDeps } = options
   const pm = packageManager
 
-  let template = typescript ? 'react-ts' : 'react'
+  const template = typescript ? 'react-ts' : 'react'
 
   // npm create vite@latest <name> -- --template react-ts
   const pmExe = pm === 'npm' ? 'npm' : pm === 'pnpm' ? 'pnpm' : 'yarn'
@@ -137,7 +136,7 @@ function createNodejsProject(
   try {
     mkdirSync(projectPath, { recursive: true })
   } catch (err) {
-    throw new Error(`Could not create directory: ${String(err)}`)
+    throw new Error(`Could not create directory: ${String(err)}`, { cause: err })
   }
 
   info(onLog, 'init', `Creating directory: ${projectPath}`)
@@ -198,6 +197,7 @@ function createEmptyProject(
     info(onLog, 'init', `Created directory: ${projectPath}`)
     onResult({ taskId: 'init', exitCode: 0, status: 'success' })
   } catch (err) {
+    onLog({ taskId: 'init', type: 'error', text: `Could not create directory: ${String(err)}`, timestamp: new Date().toISOString() })
     onResult({ taskId: 'init', exitCode: 1, status: 'failed' })
   }
 

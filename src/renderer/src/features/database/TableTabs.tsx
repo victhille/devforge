@@ -37,7 +37,7 @@ export function BrowseTab({ connId, table }: { connId: string; table: DbTableRef
       .then(r => { if (alive) setResult(r) })
       .finally(() => { if (alive) setLoading(false) })
     return () => { alive = false }
-  }, [connId, table.name, table.schema, page, limit, sort])
+  }, [connId, table, page, limit, sort])
 
   if (!result) return <Spinner className="m-6" />
 

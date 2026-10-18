@@ -23,15 +23,21 @@ function unquote(raw: string): string {
   const v = raw.trim()
   if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
     const inner = v.slice(1, -1)
-    return v.startsWith('"') ? inner.replace(/\\n/g, '\n').replace(/\\"/g, '"') : inner
+    // Like dotenv: only \n (and \") are escapes in double quotes, other backslashes are literal
+    return v.startsWith('"') ? inner.replace(/\\(n|")/g, (_, c: string) => (c === 'n' ? '\n' : '"')) : inner
   }
   // Strip trailing inline comment on unquoted values
   return v.replace(/\s+#.*$/, '')
 }
 
+/**
+ * Value as dotenv reads it back unchanged. Single quotes are literal (Windows
+ * paths, $VARS); double quotes only when a newline or an apostrophe needs them.
+ */
 function quoteIfNeeded(value: string): string {
   if (value === '' || /^[^\s#"'\\]*$/.test(value)) return value
-  return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`
+  if (!value.includes("'") && !value.includes('\n')) return `'${value}'`
+  return `"${value.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`
 }
 
 export function parseEnv(content: string): Record<string, string> {

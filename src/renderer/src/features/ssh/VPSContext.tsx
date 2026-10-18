@@ -23,12 +23,13 @@ export function VPSProvider({ children }: { children: ReactNode }) {
   const sessionsRef = useRef<Map<string, VPSSessionState>>(new Map())
   const pendingRef  = useRef<Map<string, Promise<string>>>(new Map())
 
-  function updateSession(connectionId: string, session: VPSSessionState) {
+  // Only refs and the state setter: stable for the whole provider life
+  const updateSession = useCallback((connectionId: string, session: VPSSessionState) => {
     sessionsRef.current = new Map(sessionsRef.current).set(connectionId, session)
     setSessions(sessionsRef.current)
-  }
+  }, [])
 
-  async function _connect(connectionId: string): Promise<string> {
+  const connect = useCallback(async (connectionId: string): Promise<string> => {
     updateSession(connectionId, { sessionId: '', status: 'connecting' })
 
     const promise = window.devforge.sshConnectDashboard(connectionId)
@@ -45,7 +46,7 @@ export function VPSProvider({ children }: { children: ReactNode }) {
 
     pendingRef.current.set(connectionId, promise)
     return promise
-  }
+  }, [updateSession])
 
   const getOrConnect = useCallback(async (connectionId: string): Promise<string> => {
     // Already connected → reuse
@@ -56,8 +57,8 @@ export function VPSProvider({ children }: { children: ReactNode }) {
     const pending = pendingRef.current.get(connectionId)
     if (pending) return pending
 
-    return _connect(connectionId)
-  }, [])
+    return connect(connectionId)
+  }, [connect])
 
   const reconnect = useCallback(async (connectionId: string): Promise<string> => {
     // Disconnect old session if any
@@ -66,8 +67,8 @@ export function VPSProvider({ children }: { children: ReactNode }) {
       window.devforge.sshDisconnect(existing.sessionId).catch(() => {})
     }
     pendingRef.current.delete(connectionId)
-    return _connect(connectionId)
-  }, [])
+    return connect(connectionId)
+  }, [connect])
 
   return (
     <VPSContext.Provider value={{ sessions, getOrConnect, reconnect }}>

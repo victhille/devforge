@@ -54,7 +54,7 @@ export default function CommitModal({ project, canPush, onClose, onDone }: Props
     setScope(s.scope)
     setSubject(s.subject)
   }
-  useEffect(applySuggestion, [chosen]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(applySuggestion, [chosen])
 
   const message = formatCommit({ type, scope, subject }, body)
   const header = message.split('\n')[0]
