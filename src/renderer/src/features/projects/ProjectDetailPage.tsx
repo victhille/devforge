@@ -1,5 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useAssistant } from '@renderer/features/assistant/AssistantContext'
 import { ArrowLeft, Code2, Terminal, Star, Trash2, GitBranch, Play } from 'lucide-react'
 import type { Project, GitStatus, DefaultIDE } from '@shared/types'
 import { useConsole } from '@renderer/app/ConsoleContext'
@@ -36,6 +37,8 @@ export default function ProjectDetailPage() {
   const { runScript } = useConsole()
 
   const [project,   setProject]   = useState<Project | null>(null)
+  const { setProjectPath } = useAssistant()
+  useEffect(() => { if (project) setProjectPath(project.path) }, [project, setProjectPath])
   const [gitStatus, setGitStatus] = useState<GitStatus | null>(null)
   const [scripts,   setScripts]   = useState<Record<string, string>>({})
   const [ide,       setIde]       = useState<DefaultIDE>('vscode')

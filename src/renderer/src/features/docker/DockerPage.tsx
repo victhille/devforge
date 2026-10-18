@@ -14,6 +14,7 @@ import Spinner from '@renderer/components/ui/Spinner'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
 import LogPanel from '@renderer/components/process/LogPanel'
+import { useAssistantPageContext } from '@renderer/features/assistant/AssistantContext'
 
 type Tab = 'containers' | 'images' | 'compose'
 
@@ -188,6 +189,16 @@ export default function DockerPage() {
   }, [data])
 
   const running = data?.containers.filter(c => c.state === 'running').length ?? 0
+
+  useAssistantPageContext(data?.available ? {
+    label: `Docker — ${running} / ${data.containers.length}`,
+    content: [
+      'Containers:',
+      ...data.containers.map(c => `${c.name} [${c.state}] ${c.image} ${c.status} ${c.ports}${c.composeProject ? ` (compose ${c.composeProject})` : ''}`),
+      'Compose projects:',
+      ...data.compose.map(p => `${p.name}: ${p.running}/${p.total} running${p.services?.length ? `, services ${p.services.join(', ')}` : ''}${p.dir ? ` — ${p.dir}` : ''}`)
+    ].join('\n')
+  } : null)
 
   return (
     <Page>

@@ -125,6 +125,17 @@ const api: DevForgeAPI = {
     onRequest:   on('webhooks:request')
   },
 
+  assistant: {
+    getConfig:  invoke('assistant:get-config'),
+    saveConfig: invoke('assistant:save-config'),
+    send:       invoke('assistant:send'),
+    stop:       invoke('assistant:stop'),
+    list:       invoke('assistant:list'),
+    get:        invoke('assistant:get'),
+    remove:     invoke('assistant:remove'),
+    onEvent:    on('assistant:event')
+  },
+
   http: {
     request: invoke('http:request')
   },

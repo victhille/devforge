@@ -1,0 +1,85 @@
+import { mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { join } from 'path'
+import { describe, expect, it } from 'vitest'
+import { TOOLS, ToolError, isSecretFile, runTool } from '../../src/main/services/assistant/assistantTools'
+import { getApiKey, getConfig, saveConfig } from '../../src/main/services/assistant/assistantStorage'
+import { saveProjects, tempDir, userData } from '../helpers'
+
+function project() {
+  const dir = tempDir('proj')
+  mkdirSync(join(dir, 'src'))
+  mkdirSync(join(dir, 'node_modules', 'big'), { recursive: true })
+  writeFileSync(join(dir, 'src', 'app.ts'), 'export const greeting = "bonjour"\nconsole.log(greeting)\n')
+  writeFileSync(join(dir, '.env'), 'DB_PASSWORD=hunter2\n')
+  writeFileSync(join(dir, '.env.example'), 'DB_PASSWORD=\n')
+  writeFileSync(join(dir, 'id_rsa'), 'PRIVATE')
+  writeFileSync(join(dir, 'node_modules', 'big', 'x.js'), 'bonjour from deps')
+  saveProjects([{ name: 'Shop', path: dir }])
+  return dir
+}
+
+describe('secret files', () => {
+  it.each(['.env', '.env.local', '.env.production', 'id_rsa', 'server.pem', 'cert.key', '.npmrc', 'credentials.json'])('%s is secret', f => {
+    expect(isSecretFile(`/p/${f}`)).toBe(true)
+  })
+  it.each(['.env.example', '.env.sample', 'app.ts', 'keys.ts', 'README.md'])('%s is not', f => {
+    expect(isSecretFile(`/p/${f}`)).toBe(false)
+  })
+})
+
+describe('assistant tools', () => {
+  it('reads project files with line numbers, by project name', async () => {
+    project()
+    const out = await runTool('read_file', { project: 'shop', path: 'src/app.ts' })
+    expect(out).toContain('src/app.ts (lines 1-3 of 3)')
+    expect(out).toContain('    1  export const greeting = "bonjour"')
+    expect(await runTool('read_file', { project: 'Shop', path: 'src/app.ts', from_line: 2, to_line: 2 })).toContain('    2  console.log(greeting)')
+  })
+
+  it('never reads secrets or leaves the project', async () => {
+    project()
+    await expect(runTool('read_file', { project: 'Shop', path: '.env' })).rejects.toThrow(ToolError)
+    await expect(runTool('read_file', { project: 'Shop', path: 'id_rsa' })).rejects.toThrow(/secrets/)
+    await expect(runTool('read_file', { project: 'Shop', path: '../../projects.json' })).rejects.toThrow(/outside/)
+    await expect(runTool('read_file', { project: 'Shop', path: join(userData(), 'projects.json') })).rejects.toThrow(/outside/)
+    expect(await runTool('read_file', { project: 'Shop', path: '.env.example' })).toContain('DB_PASSWORD=')
+  })
+
+  it('refuses unknown projects and tools, and malformed input', async () => {
+    project()
+    await expect(runTool('read_file', { project: 'Nope', path: 'a' })).rejects.toThrow(/Unknown project "Nope". Saved projects: Shop/)
+    await expect(runTool('rm_rf', {})).rejects.toThrow(/Unknown tool/)
+    await expect(runTool('read_file', 'oops')).rejects.toThrow(/object/)
+    await expect(runTool('read_file', { project: 'Shop' })).rejects.toThrow(/path/)
+  })
+
+  it('lists files and searches without dependencies or secrets', async () => {
+    project()
+    const tree = await runTool('list_files', { project: 'Shop' })
+    expect(tree).toContain('src/')
+    expect(tree).toContain('  app.ts')
+    expect(tree).toContain('node_modules/ (skipped)')
+    const hits = await runTool('search_code', { project: 'Shop', query: 'BONJOUR' })
+    expect(hits).toMatch(/src[\\/]app\.ts:1:/)
+    expect(hits).not.toContain('node_modules')
+    expect(await runTool('search_code', { project: 'Shop', query: 'hunter2' })).toBe('No match.')
+  })
+
+  it('declares a fixed, cache-friendly tool list with eager input streaming', () => {
+    expect(TOOLS.map(t => t.name)).toEqual(['list_projects', 'list_files', 'read_file', 'search_code', 'git_status', 'git_diff', 'docker_status', 'container_logs', 'db_connections', 'db_schema'])
+    expect(TOOLS.every(t => (t as { eager_input_streaming?: boolean }).eager_input_streaming)).toBe(true)
+  })
+})
+
+describe('assistant config', () => {
+  it('stores the API key encrypted and never returns it', () => {
+    expect(getConfig()).toEqual({ hasKey: false, model: 'claude-opus-5-5', effort: 'medium' })
+    const c = saveConfig({ apiKey: ' sk-ant-secret ', model: 'claude-sonnet-5-5', effort: 'high' })
+    expect(c).toEqual({ hasKey: true, model: 'claude-sonnet-5-5', effort: 'high' })
+    expect(readFileSync(join(userData(), 'assistant', 'config.json'), 'utf-8')).not.toContain('sk-ant-secret')
+    expect(getApiKey()).toBe('sk-ant-secret')
+    expect(saveConfig({ model: 'gpt-4' as never }).model).toBe('claude-sonnet-5-5')
+    expect(saveConfig({ clearKey: true }).hasKey).toBe(false)
+    expect(getApiKey()).toBeNull()
+  })
+})

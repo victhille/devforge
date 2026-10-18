@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useAssistantPageContext } from '@renderer/features/assistant/AssistantContext'
 import { ArrowDownToLine, Eraser, FileText, Pause, Play, Plus, Search, WrapText, X } from 'lucide-react'
 import type { LogFileSuggestion } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -95,6 +96,10 @@ export default function LogsPage() {
     () => (file?.lines ?? []).filter(x => levels.has(x.level) && (!q || x.text.toLowerCase().includes(q))),
     [file, levels, q]
   )
+  // Last visible lines (filters applied) for the assistant
+  const tail = useMemo(() => visible.slice(-150).map(x => x.text).join('\n'), [visible])
+  useAssistantPageContext(file ? { label: `Logs — ${fileName(file.path)}`, content: `File: ${file.path}\n${tail}` } : null)
+
   const counts = useMemo(() => {
     const c: Record<LogLevel, number> = { error: 0, warn: 0, info: 0, debug: 0, other: 0 }
     for (const x of file?.lines ?? []) c[x.level]++

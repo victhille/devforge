@@ -8,6 +8,7 @@ import HomePage from '@renderer/features/home/HomePage'
 import { PAGES } from './navigation'
 import ErrorBoundary from './ErrorBoundary'
 import WhatsNew from './WhatsNew'
+import { AssistantProvider } from '@renderer/features/assistant/AssistantContext'
 import { useI18n } from '@renderer/i18n/I18nContext'
 
 // Every page except Home is its own chunk: faster startup, heavy deps
@@ -36,6 +37,7 @@ export default function App() {
       <WhatsNew />
       <ConsoleProvider>
         <VPSProvider>
+          <AssistantProvider>
           <Layout>
             <ErrorBoundary resetKey={location.pathname} labels={{ title: t.common.crashTitle, retry: t.common.retry }}>
               <Suspense fallback={null}>
@@ -49,6 +51,7 @@ export default function App() {
               </Suspense>
             </ErrorBoundary>
           </Layout>
+          </AssistantProvider>
         </VPSProvider>
       </ConsoleProvider>
     </ToastProvider>

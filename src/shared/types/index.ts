@@ -182,6 +182,7 @@ export * from './database'
 export * from './logs'
 export * from './webhooks'
 export * from './suggest'
+export * from './assistant'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
@@ -195,6 +196,7 @@ import type { DatabaseAPI } from './database'
 import type { LogsAPI } from './logs'
 import type { WebhooksAPI } from './webhooks'
 import type { SuggestAPI } from './suggest'
+import type { AssistantAPI } from './assistant'
 
 // ─── HTTP (API tester) ───────────────────────────────────────────────────────
 
@@ -234,6 +236,7 @@ export interface DevForgeAPI {
   webhooks: WebhooksAPI
   suggest: SuggestAPI
   http: { request: (req: HttpRequest) => Promise<HttpResponse> }
+  assistant: AssistantAPI
 
   // SSH
   getSshConnections: () => Promise<SSHConnection[]>
