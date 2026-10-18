@@ -226,6 +226,18 @@ const fr = {
   },
 
   assistant: {
+    mascotName: "Forgy",
+    greeting: "Salut, moi c'est Forgy ! Je lis ton code, tes logs et tes bases pour t'aider.",
+    moods: {
+      idle: "disponible",
+      listening: "t'écoute",
+      thinking: "réfléchit…",
+      searching: "cherche…",
+      working: "écrit…",
+      happy: "a terminé",
+      sad: "a eu un souci",
+      sleeping: "fait une sieste"
+    },
     title: "Assistant",
     newConversation: "Nouvelle conversation",
     history: "Historique",
