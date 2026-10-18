@@ -1,5 +1,6 @@
 import { resolve } from 'path'
-import { readFileSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
+import { execFileSync } from 'child_process'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -22,6 +23,12 @@ const CSP = [
   "form-action 'none'",
   "frame-src 'none'"
 ].join('; ')
+
+function gitCommit(): string {
+  try { return execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf-8' }).trim() } catch { return 'dev' }
+}
+
+const changelogPath = resolve(__dirname, 'CHANGELOG.md')
 
 function csp(): Plugin {
   return {
@@ -78,7 +85,10 @@ export default defineConfig({
     },
     plugins: [react(), tailwindcss(), csp()],
     define: {
-      __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')).version)
+      __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')).version),
+      __APP_COMMIT__: JSON.stringify(gitCommit()),
+      __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+      __CHANGELOG__: JSON.stringify(existsSync(changelogPath) ? readFileSync(changelogPath, 'utf-8') : '')
     },
     resolve: {
       alias: {

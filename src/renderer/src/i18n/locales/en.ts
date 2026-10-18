@@ -257,7 +257,18 @@ const en = {
     browse:         'Browse',
     sectionBehavior:   'Behavior',
     startWithWindows:  'Start with Windows',
-    minimizeToTray:    'Minimize to tray on close'
+    minimizeToTray:    'Minimize to tray on close',
+    channelStable: "Stable",
+    channelPre: "Pre-release",
+    builtOn: "built on {d}",
+    releaseNotes: "Release notes",
+    allReleases: "All releases on GitHub",
+    allVersions: "See every version",
+    noReleaseNotes: "No notes for this version.",
+    installed: "installed",
+    updatedTo: "DevForge updated to v{v}",
+    updatedFrom: "Previous version: v{v}",
+    seeWhatsNew: "See what's new"
   },
 
   // ── Common ────────────────────────────────────────────────────────────────

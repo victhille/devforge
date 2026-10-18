@@ -1,5 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react'
-import { Check } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { Check, ExternalLink, ScrollText } from 'lucide-react'
 import type { AppSettings, PackageManager, DefaultIDE, Theme, AppLanguage } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
@@ -7,6 +8,9 @@ import Card from '@renderer/components/ui/Card'
 import Switch from '@renderer/components/ui/Switch'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Input } from '@renderer/components/ui/Input'
+import Badge from '@renderer/components/ui/Badge'
+import Modal from '@renderer/components/ui/Modal'
+import ReleaseNotes from './ReleaseNotes'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -40,6 +44,10 @@ export default function SettingsPage() {
   const { t, setLang } = useI18n()
   const [settings, setSettings] = useState<AppSettings | null>(null)
   const [saved, setSaved] = useState(false)
+  // ?notes=<version> (from the "what's new" toast) opens the release notes
+  const [params, setParams] = useSearchParams()
+  const [notes, setNotes] = useState<string | null>(() => params.get('notes'))
+  const prerelease = __APP_VERSION__.includes('-')
 
   useEffect(() => {
     window.devforge.getSettings().then(setSettings)
@@ -138,9 +146,29 @@ export default function SettingsPage() {
 
       <Section title={t.settings.sectionAbout}>
         <Row label={t.settings.version}>
-          <span className="text-fg">DevForge v{__APP_VERSION__}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-fg">DevForge v{__APP_VERSION__}</span>
+            <Badge color={prerelease ? 'warning' : 'success'}>{prerelease ? t.settings.channelPre : t.settings.channelStable}</Badge>
+            <span className="font-mono text-xs text-fg-muted" title={__BUILD_DATE__}>
+              {__APP_COMMIT__} · {t.settings.builtOn.replace('{d}', new Date(__BUILD_DATE__).toLocaleDateString())}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="secondary" onClick={() => setNotes('all')}><ScrollText size={13} /> {t.settings.releaseNotes}</Button>
+            <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal('https://github.com/victhille/devforge/releases')}>
+              <ExternalLink size={13} /> {t.settings.allReleases}
+            </Button>
+          </div>
         </Row>
       </Section>
+      {notes && (
+        <Modal title={t.settings.releaseNotes} onClose={() => { setNotes(null); if (params.has('notes')) setParams({}, { replace: true }) }}>
+          <div className="max-h-[65vh] overflow-y-auto pr-1">
+            <ReleaseNotes markdown={__CHANGELOG__} only={notes === 'all' ? undefined : notes} />
+          </div>
+          {notes !== 'all' && <Button size="sm" variant="ghost" onClick={() => setNotes('all')}>{t.settings.allVersions}</Button>}
+        </Modal>
+      )}
     </Page>
   )
 }

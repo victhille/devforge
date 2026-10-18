@@ -248,7 +248,18 @@ const fr = {
     browse:         'Parcourir',
     sectionBehavior:   'Comportement',
     startWithWindows:  'Démarrer avec Windows',
-    minimizeToTray:    'Réduire dans la barre système à la fermeture'
+    minimizeToTray:    'Réduire dans la barre système à la fermeture',
+    channelStable: "Stable",
+    channelPre: "Préversion",
+    builtOn: "compilé le {d}",
+    releaseNotes: "Notes de version",
+    allReleases: "Toutes les versions sur GitHub",
+    allVersions: "Voir toutes les versions",
+    noReleaseNotes: "Pas de notes pour cette version.",
+    installed: "installée",
+    updatedTo: "DevForge mis à jour en v{v}",
+    updatedFrom: "Version précédente : v{v}",
+    seeWhatsNew: "Voir les nouveautés"
   },
 
   toolbox: {
