@@ -7,6 +7,8 @@ import initSqlJs, { type Database as SqlJsDb, type SqlJsStatic } from 'sql.js'
 import type { DbConnection, DbQueryResult, DbTable } from '@shared/types'
 import { getDbConnection } from './dbStorage'
 import { openTunnel } from '../ssh/sshClient'
+import { sshServerFor } from '../ssh/sshStorage'
+import { loadSettings } from '../settings/settingsService'
 
 const ROW_LIMIT = 1000
 const TIMEOUT_MS = 15_000
@@ -140,6 +142,11 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
 const DEFAULT_PORT = { mysql: 3306, postgres: 5432 }
 
 async function open(c: DbConnection): Promise<Driver> {
+  // Database on one of our SSH servers: its port is usually firewalled, so go
+  // through SSH and reach it on the server's loopback
+  const server = c.type !== 'sqlite' && !c.sshConnectionId ? sshServerFor(c.host) : undefined
+  if (server) c = { ...c, host: '127.0.0.1', sshConnectionId: server.id }
+
   // Through SSH: the driver talks to a local port forwarded to the server
   if (c.type !== 'sqlite' && c.sshConnectionId) {
     const tunnel = await openTunnel(c.sshConnectionId, c.host || '127.0.0.1', c.port ?? DEFAULT_PORT[c.type])
@@ -152,11 +159,26 @@ async function open(c: DbConnection): Promise<Driver> {
       throw err
     }
   }
-  switch (c.type) {
-    case 'mysql':    return mysqlDriver(c)
-    case 'postgres': return postgresDriver(c)
-    case 'sqlite':   return sqliteDriver(c)
+  try {
+    switch (c.type) {
+      case 'mysql':    return await mysqlDriver(c)
+      case 'postgres': return await postgresDriver(c)
+      case 'sqlite':   return await sqliteDriver(c)
+    }
+  } catch (err) {
+    throw unreachableHint(err as Error & { code?: string }, c)
   }
+}
+
+/** A remote DB port that does not answer is almost always firewalled */
+function unreachableHint(err: Error & { code?: string }, c: DbConnection): Error {
+  const local = !c.host || ['127.0.0.1', 'localhost', '::1'].includes(c.host)
+  if (local || !['ETIMEDOUT', 'ECONNREFUSED', 'EHOSTUNREACH'].includes(err.code ?? '')) return err
+  return new Error(loadSettings().language === 'fr'
+    ? `${c.host}:${c.port} ne répond pas (${err.code}). Le port est sans doute fermé par le pare-feu : ` +
+      'ajoutez le serveur dans SSH puis choisissez « Se connecter via » ce serveur.'
+    : `${c.host}:${c.port} does not answer (${err.code}). The port is probably firewalled: ` +
+      'add the server in SSH, then pick it in "Connect through".')
 }
 
 // ─── Connection pool (one open driver per saved connection) ─────────────────
