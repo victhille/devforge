@@ -120,6 +120,10 @@ const api: DevForgeAPI = {
     onRequest:   on('webhooks:request')
   },
 
+  http: {
+    request: invoke('http:request')
+  },
+
   suggest: {
     logFiles:    invoke('suggest:log-files'),
     monitorUrls: invoke('suggest:monitor-urls'),

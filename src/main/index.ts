@@ -75,7 +75,7 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false
+      sandbox: true
     }
   })
 
@@ -92,15 +92,21 @@ function createWindow(): void {
     }
   })
 
+  // Links with target=_blank open in the browser, http(s) only
   win.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url)
+    if (/^https?:\/\//i.test(url)) shell.openExternal(url)
     return { action: 'deny' }
+  })
+  // The window never navigates away from the app (dev server reloads are fine)
+  win.webContents.on('will-navigate', (e, url) => {
+    const devUrl = process.env['ELECTRON_RENDERER_URL']
+    if (!(devUrl && url.startsWith(devUrl)) && !url.startsWith('file://')) e.preventDefault()
   })
 
   registerIpcHandlers(win)
 
-  if (isDev) {
-    win.loadURL(process.env['ELECTRON_RENDERER_URL']!)
+  if (isDev && process.env['ELECTRON_RENDERER_URL']) {
+    win.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     win.loadFile(join(__dirname, '../renderer/index.html'))
   }
