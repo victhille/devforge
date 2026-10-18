@@ -30,10 +30,9 @@ function parseField(raw: string, min: number, max: number, names?: string[]): Cr
     if (range === '*') { lo = min; hi = max }
     else if (range.includes('-')) { const [a, b] = range.split('-'); lo = toNum(a); hi = toNum(b) }
     else { lo = toNum(range); hi = stepRaw === undefined ? lo : max }
-    // 7 = Sunday too
-    if (names === DAYS) { if (lo === 7) lo = 0; if (hi === 7 && lo !== 0) hi = 6 }
     if (lo < min || hi > max || lo > hi) throw new Error(`Out of range "${part}" (${min}-${max})`)
-    for (let v = lo; v <= hi; v += step) values.add(v)
+    // 7 = Sunday too
+    for (let v = lo; v <= hi; v += step) values.add(names === DAYS && v === 7 ? 0 : v)
   }
   return { values: [...values].sort((a, b) => a - b), any: raw === '*' }
 }
