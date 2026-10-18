@@ -1,6 +1,6 @@
 import { ipcMain, type BrowserWindow } from 'electron'
 import type { AssistantConfigUpdate, AssistantSendRequest } from '@shared/types'
-import { getConfig, listConversations, loadConversation, publicConversation, removeConversation, saveConfig } from '../services/assistant/assistantStorage'
+import { getConfig, listConversations, loadConversation, monthUsage, publicConversation, removeConversation, saveConfig } from '../services/assistant/assistantStorage'
 import { sendToAssistant, setAssistantEmitter, stopAssistant } from '../services/assistant/assistantService'
 
 export function registerAssistantHandlers(win: BrowserWindow): void {
@@ -12,4 +12,5 @@ export function registerAssistantHandlers(win: BrowserWindow): void {
   ipcMain.handle('assistant:list',        () => listConversations())
   ipcMain.handle('assistant:get',         (_e, id: string) => { const c = loadConversation(id); return c ? publicConversation(c) : null })
   ipcMain.handle('assistant:remove',      (_e, id: string) => removeConversation(id))
+  ipcMain.handle('assistant:usage',       () => monthUsage())
 }

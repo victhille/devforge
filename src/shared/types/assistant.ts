@@ -1,20 +1,36 @@
 // ─── AI assistant ─────────────────────────────────────────────────────────────
 
+import type { AssistantSkillId, TokenUsage } from '../data/assistantSkills'
+export type { AssistantSkillId, TokenUsage } from '../data/assistantSkills'
+
 export type AssistantModel = 'claude-opus-5-5' | 'claude-sonnet-5-5' | 'claude-haiku-5-5'
 export type AssistantEffort = 'low' | 'medium' | 'high'
 
 export interface AssistantConfig {
   /** An API key is saved (it never leaves the main process) */
   hasKey: boolean
-  model: AssistantModel
-  effort: AssistantEffort
+  /** 'auto': each skill uses its own cheapest suitable model */
+  model: AssistantModel | 'auto'
+  /** 'auto': each skill uses its own effort */
+  effort: AssistantEffort | 'auto'
+  /** Monthly spending cap in USD, 0 = none */
+  monthlyBudget: number
 }
 
 export interface AssistantConfigUpdate {
   apiKey?: string
   clearKey?: boolean
-  model?: AssistantModel
-  effort?: AssistantEffort
+  model?: AssistantModel | 'auto'
+  effort?: AssistantEffort | 'auto'
+  monthlyBudget?: number
+}
+
+/** Estimated spending of the current month */
+export interface AssistantUsage {
+  /** YYYY-MM */
+  month: string
+  spent: number
+  budget: number
 }
 
 /** What the current page shows, sent along with a question when the user keeps it attached */
@@ -41,6 +57,14 @@ export interface AssistantConversationSummary {
 export interface AssistantConversation extends AssistantConversationSummary {
   projectPath: string | null
   items: AssistantItem[]
+  /** Fixed for the conversation (switching would restart the prompt cache) */
+  skill: AssistantSkillId
+  model: AssistantModel
+  /** Estimated cost in USD and tokens used */
+  cost: number
+  tokens: TokenUsage
+  /** Input tokens of the last request: grows with the conversation */
+  lastInput: number
 }
 
 export interface AssistantSendRequest {
@@ -50,9 +74,11 @@ export interface AssistantSendRequest {
   /** Saved project the conversation is about */
   projectPath?: string | null
   pageContext?: AssistantPageContext | null
+  /** Skill of a new conversation (ignored for an existing one) */
+  skill?: AssistantSkillId
 }
 
-export type AssistantErrorCode = 'no-key' | 'auth' | 'rate' | 'network' | 'refusal' | 'truncated' | 'other'
+export type AssistantErrorCode = 'no-key' | 'auth' | 'rate' | 'network' | 'refusal' | 'truncated' | 'budget' | 'limit' | 'other'
 
 export type AssistantEvent =
   | { conversationId: string; type: 'text'; delta: string }
@@ -70,5 +96,6 @@ export interface AssistantAPI {
   list: () => Promise<AssistantConversationSummary[]>
   get: (id: string) => Promise<AssistantConversation | null>
   remove: (id: string) => Promise<void>
+  usage: () => Promise<AssistantUsage>
   onEvent: (cb: (e: AssistantEvent) => void) => () => void
 }

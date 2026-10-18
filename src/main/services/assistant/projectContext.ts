@@ -20,7 +20,7 @@ export async function projectContext(p: Project): Promise<string> {
   const [git, entries, readme, pkg, composer] = await Promise.all([
     getRepoDetails(p.path).catch(() => null),
     readdir(p.path, { withFileTypes: true }).catch(() => []),
-    readText(join(p.path, 'README.md'), 2500),
+    readText(join(p.path, 'README.md'), 1200),
     readJson(join(p.path, 'package.json')),
     readJson(join(p.path, 'composer.json'))
   ])

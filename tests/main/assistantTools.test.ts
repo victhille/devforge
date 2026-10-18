@@ -53,6 +53,15 @@ describe('assistant tools', () => {
     await expect(runTool('read_file', { project: 'Shop' })).rejects.toThrow(/path/)
   })
 
+  it('shows 250 lines by default and says how to read the rest', async () => {
+    const dir = project()
+    writeFileSync(join(dir, 'src', 'big.ts'), Array.from({ length: 600 }, (_, i) => `line ${i + 1}`).join('\n'))
+    const out = await runTool('read_file', { project: 'Shop', path: 'src/big.ts' })
+    expect(out).toContain('(lines 1-250 of 600)')
+    expect(out).toContain('lines 251-600 not shown')
+    expect(out).not.toContain('line 251\n')
+  })
+
   it('lists files and searches without dependencies or secrets', async () => {
     project()
     const tree = await runTool('list_files', { project: 'Shop' })
@@ -73,9 +82,10 @@ describe('assistant tools', () => {
 
 describe('assistant config', () => {
   it('stores the API key encrypted and never returns it', () => {
-    expect(getConfig()).toEqual({ hasKey: false, model: 'claude-opus-5-5', effort: 'medium' })
-    const c = saveConfig({ apiKey: ' sk-ant-secret ', model: 'claude-sonnet-5-5', effort: 'high' })
-    expect(c).toEqual({ hasKey: true, model: 'claude-sonnet-5-5', effort: 'high' })
+    expect(getConfig()).toEqual({ hasKey: false, model: 'auto', effort: 'auto', monthlyBudget: 5 })
+    const c = saveConfig({ apiKey: ' sk-ant-secret ', model: 'claude-sonnet-5-5', effort: 'high', monthlyBudget: 12.345 })
+    expect(c).toEqual({ hasKey: true, model: 'claude-sonnet-5-5', effort: 'high', monthlyBudget: 12.35 })
+    expect(saveConfig({ monthlyBudget: -3 }).monthlyBudget).toBe(12.35)
     expect(readFileSync(join(userData(), 'assistant', 'config.json'), 'utf-8')).not.toContain('sk-ant-secret')
     expect(getApiKey()).toBe('sk-ant-secret')
     expect(saveConfig({ model: 'gpt-4' as never }).model).toBe('claude-sonnet-5-5')

@@ -76,10 +76,15 @@ describe('assistant loop', () => {
 
     // Request shape
     const first = h.calls[0] as Record<string, unknown>
+    // Free question in auto mode: Sonnet 5.5 at low effort
     expect(first).toMatchObject({
-      model: 'claude-opus-5-5', max_tokens: 64000, output_config: { effort: 'medium' },
+      model: 'claude-sonnet-5-5', max_tokens: 16000, output_config: { effort: 'low' },
       cache_control: { type: 'ephemeral' }, fallbacks: 'default', betas: ['server-side-fallback-2026-07-01']
     })
+    // Explicit breakpoint on the static system text, skill instructions after it
+    const system = first.system as { text: string; cache_control?: unknown }[]
+    expect(system[0].cache_control).toEqual({ type: 'ephemeral' })
+    expect(system[1].cache_control).toBeUndefined()
     const userBlocks = (first.messages as { content: { text: string }[] }[])[0].content
     expect(userBlocks[0].text).toMatch(/^<project_context>\nProject: Shop/)
     expect(userBlocks[1].text).toContain('<page_context label="API Tester — GET x">')
@@ -151,5 +156,49 @@ describe('assistant loop', () => {
     expect(events.some(e => e.type === 'error' && e.code === 'truncated')).toBe(true)
     // No dangling tool_use in the saved history
     expect(loadConversation(id)!.api.map(m => m.role)).toEqual(['user'])
+  })
+
+  it('a skill picks its model and effort, kept for the whole conversation', async () => {
+    const msg = { stop_reason: 'end_turn', model: 'claude-haiku-5-5', content: [{ type: 'text', text: 'ok' }], usage: { input_tokens: 1000, output_tokens: 200, cache_read_input_tokens: 3000, cache_creation_input_tokens: 0 } }
+    h.script.push({ ...msg }, { ...msg })
+    const { id } = await ask('Explique ce projet', { skill: 'explain-project', projectPath: dir })
+    expect(h.calls[0]).toMatchObject({ model: 'claude-haiku-5-5', output_config: { effort: 'low' } })
+    // Haiku has no server-side fallback
+    expect(h.calls[0].fallbacks).toBeUndefined()
+    expect((h.calls[0].system as { text: string }[])[1].text).toMatch(/présenter le projet|present the project/)
+    // Second question: same model even if another skill is asked
+    await ask('Et ensuite ?', { conversationId: id, skill: 'review-changes' })
+    expect(h.calls[1]).toMatchObject({ model: 'claude-haiku-5-5' })
+  })
+
+  it('counts the cost of each response and stops at the monthly budget', async () => {
+    const { costOf } = await import('../../src/shared/data/assistantSkills')
+    const { saveConfig, monthUsage } = await import('../../src/main/services/assistant/assistantStorage')
+    const usage = { input_tokens: 2000, output_tokens: 500, cache_read_input_tokens: 10000, cache_creation_input_tokens: 1000 }
+    h.script.push({ stop_reason: 'end_turn', model: 'claude-sonnet-5-5', content: [{ type: 'text', text: 'ok' }], usage })
+    const before = monthUsage().spent
+    const { id } = await ask('Combien ?')
+    const expected = costOf('claude-sonnet-5-5', { input: 2000, output: 500, cacheRead: 10000, cacheWrite: 1000 })
+    // 2000×2 + 500×10 + 10000×0.2 + 1000×2.5 per million = 0.0135 $
+    expect(expected).toBeCloseTo(0.0135, 6)
+    const conv = loadConversation(id)!
+    expect(conv.cost).toBeCloseTo(expected, 6)
+    expect(conv.lastInput).toBe(13000)
+    expect(monthUsage().spent - before).toBeCloseTo(expected, 6)
+
+    // Budget already spent: no request at all
+    saveConfig({ monthlyBudget: 0.01 })
+    const calls = h.calls.length
+    const r = await ask('Encore ?')
+    expect(h.calls.length).toBe(calls)
+    expect(r.events.some(e => e.type === 'error' && e.code === 'budget')).toBe(true)
+    saveConfig({ monthlyBudget: 0 })
+  })
+
+  it('caps the tool rounds of one question', async () => {
+    for (let i = 0; i < 8; i++) h.script.push({ stop_reason: 'tool_use', content: [{ type: 'tool_use', id: `t${i}`, name: 'list_projects', input: {} }] })
+    const { events } = await ask('Boucle')
+    expect(h.calls).toHaveLength(8)
+    expect(events.some(e => e.type === 'error' && e.code === 'limit')).toBe(true)
   })
 })
