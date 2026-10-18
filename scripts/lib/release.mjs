@@ -51,7 +51,7 @@ const TYPES = new Set(['feat', 'fix', 'perf', 'refactor', 'docs', 'test', 'build
  */
 export function parseCommit(hash, subject, body = '') {
   subject = subject.trim()
-  if (/^chore\(release\)/.test(subject) || /^Release \d/.test(subject)) return null
+  if (/^chore\(release\): v?\d/.test(subject) || /^Release \d/.test(subject)) return null
   const breakingBody = /^BREAKING[ -]CHANGE:/m.test(body)
   const notes = notesOf(body)
   const m = subject.match(CONVENTIONAL)
@@ -134,19 +134,19 @@ export const SECTIONS = /** @type {const} */ ([
   ['fix', { fr: 'Corrections', en: 'Fixes' }],
   ['perf', { fr: 'Performances', en: 'Performance' }],
   ['refactor', { fr: 'Améliorations internes', en: 'Internal improvements' }],
-  ['build', { fr: 'Dépendances et build', en: 'Dependencies and build' }],
-  ['docs', { fr: 'Documentation', en: 'Documentation' }]
+  ['build', { fr: 'Dépendances et build', en: 'Dependencies and build' }]
 ])
-const HIDDEN = new Set(['test', 'ci', 'chore', 'style', 'revert'])
+// Not for app users: repository docs, tests, tooling
+const HIDDEN = new Set(['docs', 'test', 'ci', 'chore', 'style', 'revert'])
 
 const TEXT = {
   fr: {
-    hidden: (/** @type {number} */ n) => `_${n} changement(s) technique(s) (tests, CI, maintenance) non listé(s)._`,
+    hidden: (/** @type {number} */ n) => `_${n} changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._`,
     none: '_Aucun changement notable._',
     header: '# Notes de version\n\nToutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).\n'
   },
   en: {
-    hidden: (/** @type {number} */ n) => `_${n} technical change(s) (tests, CI, maintenance) not listed._`,
+    hidden: (/** @type {number} */ n) => `_${n} technical change(s) (tests, CI, repository docs) not listed._`,
     none: '_No notable change._',
     header: '# Release notes\n\nEvery DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.\n'
   }

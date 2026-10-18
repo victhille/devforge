@@ -24,6 +24,7 @@ describe('parseCommit', () => {
   it('skips release commits', () => {
     expect(parseCommit('c1', 'chore(release): v1.2.0')).toBeNull()
     expect(parseCommit('c2', 'Release 1.1.0')).toBeNull()
+    expect(parseCommit('c3', 'chore(release): tweak the notes')).toMatchObject({ kind: 'chore' })
   })
 })
 

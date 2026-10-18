@@ -23,8 +23,7 @@ Format [Conventional Commits](https://www.conventionalcommits.org/fr/) : `type(z
 | `perf` | `perf(git): cache du tableau de bord` | correctif | Performances |
 | `refactor` | `refactor: découpe du client BDD` | correctif | Améliorations internes |
 | `build` | `build: Electron 45` | correctif | Dépendances et build |
-| `docs` | `docs: guide des versions` | correctif | Documentation |
-| `test`, `ci`, `chore`, `style` | `test: cas du cron` | correctif | non listé |
+| `docs`, `test`, `ci`, `chore`, `style` | `test: cas du cron` | correctif | non listé |
 | `type!` ou `BREAKING CHANGE:` dans le corps | `feat!: nouveau stockage` | majeure | Changements majeurs |
 
 La version suivante = le changement le plus important depuis le dernier tag.
