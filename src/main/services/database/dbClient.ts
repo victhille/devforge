@@ -21,6 +21,20 @@ interface Driver {
   schema(): Promise<DbTable[]>
   query(sql: string): Promise<Omit<DbQueryResult, 'durationMs'>>
   close(): Promise<void>
+  /** Called once if the server drops the connection (restart, container stopped…) */
+  onLost?(cb: () => void): void
+}
+
+/**
+ * Lost-connection hook. Drivers emit 'error' when the server goes away; with
+ * no listener that would crash the main process.
+ */
+function lostSignal(emitter: { on(event: string, fn: (...args: unknown[]) => void): unknown }, events: string[]) {
+  let cb: (() => void) | null = null
+  let fired = false
+  const fire = () => { if (!fired) { fired = true; cb?.() } }
+  for (const ev of events) emitter.on(ev, fire)
+  return (fn: () => void) => { cb = fn; if (fired) fn() }
 }
 
 function limitRows(rows: unknown[][]): { rows: unknown[][]; truncated: boolean } {
@@ -41,7 +55,9 @@ async function mysqlDriver(c: DbConnection): Promise<Driver> {
     host: c.host, port: c.port ?? 3306, user: c.user, password: c.password, database: c.database,
     connectTimeout: TIMEOUT_MS, multipleStatements: false, dateStrings: true
   })
+  const onLost = lostSignal(conn, ['error', 'end'])
   return {
+    onLost,
     async version() { const [r] = await conn.query('SELECT VERSION() AS v'); return `MySQL ${(r as { v: string }[])[0].v}` },
     async schema() {
       const [cols] = await conn.query(
@@ -70,8 +86,10 @@ async function postgresDriver(c: DbConnection): Promise<Driver> {
     host: c.host, port: c.port ?? 5432, user: c.user, password: c.password, database: c.database,
     connectionTimeoutMillis: TIMEOUT_MS, statement_timeout: 60_000
   })
+  const onLost = lostSignal(client, ['error', 'end'])
   await client.connect()
   return {
+    onLost,
     async version() { const r = await client.query('SHOW server_version'); return `PostgreSQL ${r.rows[0].server_version}` },
     async schema() {
       const r = await client.query(
@@ -247,8 +265,10 @@ function driverFor(id: string): Promise<Driver> {
   if (!d) {
     const c = getDbConnection(id)
     if (!c) throw new Error('Unknown connection')
-    d = open(c)
-    d.catch(() => open$.delete(id))
+    const opening = open(c)
+    d = opening
+    // Dropped by the server: forget it, the next query reconnects
+    opening.then(dr => dr.onLost?.(() => { if (open$.get(id) === opening) open$.delete(id) }), () => open$.delete(id))
     open$.set(id, d)
   }
   return d
