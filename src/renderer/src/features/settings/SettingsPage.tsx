@@ -41,7 +41,7 @@ function ToggleRow({ label, checked, onChange }: { label: string; checked: boole
 }
 
 export default function SettingsPage() {
-  const { t, setLang } = useI18n()
+  const { t, lang, setLang } = useI18n()
   const [settings, setSettings] = useState<AppSettings | null>(null)
   const [saved, setSaved] = useState(false)
   // ?notes=<version> (from the "what's new" toast) opens the release notes
@@ -164,7 +164,7 @@ export default function SettingsPage() {
       {notes && (
         <Modal title={t.settings.releaseNotes} onClose={() => { setNotes(null); if (params.has('notes')) setParams({}, { replace: true }) }}>
           <div className="max-h-[65vh] overflow-y-auto pr-1">
-            <ReleaseNotes markdown={__CHANGELOG__} only={notes === 'all' ? undefined : notes} />
+            <ReleaseNotes markdown={__CHANGELOGS__[lang] || __CHANGELOGS__.fr} only={notes === 'all' ? undefined : notes} />
           </div>
           {notes !== 'all' && <Button size="sm" variant="ghost" onClick={() => setNotes('all')}>{t.settings.allVersions}</Button>}
         </Modal>

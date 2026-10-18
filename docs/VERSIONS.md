@@ -29,6 +29,19 @@ Format [Conventional Commits](https://www.conventionalcommits.org/fr/) : `type(z
 
 La version suivante = le changement le plus important depuis le dernier tag.
 
+### Texte des notes (FR / EN)
+
+Les notes existent en français et en anglais, affichées selon la langue choisie dans l'application. Le texte se donne dans le corps du commit :
+
+```
+feat(db): table explorer
+
+fr: Explorateur de tables façon phpMyAdmin
+en: Table explorer like phpMyAdmin
+```
+
+Sans ligne `fr:` ou `en:`, le sujet du commit est utilisé dans cette langue.
+
 ## Sortir une version
 
 ```bash
@@ -39,7 +52,7 @@ npm run release -- --push      # publie
 `--push` enchaîne :
 
 1. `npm run check` (types, lint, tests, build)
-2. mise à jour de `package.json` et `CHANGELOG.md`
+2. mise à jour de `package.json`, `CHANGELOG.md` (FR) et `CHANGELOG.en.md` (EN)
 3. commit `chore(release): vX.Y.Z` + tag `vX.Y.Z`
 4. push → le workflow GitHub **Release** construit l'installeur et publie la release
 
@@ -69,7 +82,7 @@ Une préversion est publiée comme *pre-release*.
 
 ## Dans l'application
 
-- **Paramètres → À propos** : version, canal (Stable / Préversion), commit, date de build, notes de version.
+- **Paramètres → À propos** : version, canal (Stable / Préversion), commit, date de build, notes de version dans la langue de l'application.
 - Après une mise à jour : notification avec lien vers les nouveautés.
 
 ## Fichiers
@@ -78,7 +91,7 @@ Une préversion est publiée comme *pre-release*.
 |---|---|
 | `scripts/release.mjs` | commande `npm run release` |
 | `scripts/lib/release.mjs` | règles : lecture des commits, calcul de version, changelog |
-| `scripts/release-notes.mjs` | notes d'une version (utilisé par la CI) |
-| `CHANGELOG.md` | historique, généré — ne pas éditer les versions publiées |
+| `scripts/release-notes.mjs` | notes d'une version pour GitHub : FR, puis EN dépliable |
+| `CHANGELOG.md`, `CHANGELOG.en.md` | historique FR / EN, généré — ne pas éditer les versions publiées |
 | `.github/workflows/release.yml` | build et publication |
 | `tests/scripts/release.test.ts` | tests des règles |

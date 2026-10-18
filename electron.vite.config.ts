@@ -28,7 +28,11 @@ function gitCommit(): string {
   try { return execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf-8' }).trim() } catch { return 'dev' }
 }
 
-const changelogPath = resolve(__dirname, 'CHANGELOG.md')
+/** Release notes per UI language: CHANGELOG.md is French, CHANGELOG.<lang>.md the others */
+function changelogs(): Record<'fr' | 'en', string> {
+  const read = (file: string) => { const p = resolve(__dirname, file); return existsSync(p) ? readFileSync(p, 'utf-8') : '' }
+  return { fr: read('CHANGELOG.md'), en: read('CHANGELOG.en.md') }
+}
 
 function csp(): Plugin {
   return {
@@ -88,7 +92,7 @@ export default defineConfig({
       __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')).version),
       __APP_COMMIT__: JSON.stringify(gitCommit()),
       __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
-      __CHANGELOG__: JSON.stringify(existsSync(changelogPath) ? readFileSync(changelogPath, 'utf-8') : '')
+      __CHANGELOGS__: JSON.stringify(changelogs())
     },
     resolve: {
       alias: {
