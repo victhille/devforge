@@ -1,9 +1,9 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
-import { exec } from 'child_process'
 import { app, shell } from 'electron'
 import type { Stack, StackStep } from '@shared/types'
 import { processManager } from './processManager'
+import { assertSafeDir, launch } from '../../lib/safe'
 
 function storagePath(): string {
   return join(app.getPath('userData'), 'stacks.json')
@@ -47,7 +47,7 @@ async function runStep(stackId: string, step: StackStep): Promise<void> {
       if (step.command && step.cwd) processManager.start(key(stackId, step.id), step.command, step.cwd)
       break
     case 'vscode':
-      if (step.cwd) exec(`code "${step.cwd}"`, { windowsHide: true })
+      if (step.cwd) await launch('code', [assertSafeDir(step.cwd)])
       break
     case 'url':
       if (step.url && /^https?:\/\//i.test(step.url)) {

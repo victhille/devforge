@@ -6,6 +6,7 @@ import { createProject } from '../services/projects/projectCreator'
 import { scanDirectory } from '../services/projects/projectScanner'
 import { loadProjects, saveProject, removeProject, updateLastOpened, toggleFavorite } from '../services/projects/projectStorage'
 import { commandRunner } from '../services/system/commandRunner'
+import { assertSafeDir, assertScriptName } from '../lib/safe'
 import type { Project, ProjectCreationOptions, LogLine, CommandResult, PackageManager } from '@shared/types'
 
 export function registerProjectHandlers(mainWindow: BrowserWindow): void {
@@ -46,6 +47,11 @@ export function registerProjectHandlers(mainWindow: BrowserWindow): void {
   })
 
   ipcMain.handle('scripts:run', async (_event, projectPath: string, script: string, pm: PackageManager): Promise<string> => {
+    // The command goes through a shell: only real scripts of this package.json, with plain names
+    assertSafeDir(projectPath)
+    assertScriptName(script)
+    const pkg = JSON.parse(readFileSync(join(projectPath, 'package.json'), 'utf-8'))
+    if (!pkg.scripts || !(script in pkg.scripts)) throw new Error(`Unknown script: ${script}`)
     const pmExe = pm === 'pnpm' ? 'pnpm' : pm === 'yarn' ? 'yarn' : 'npm'
     return commandRunner.run({
       executable: pmExe,
