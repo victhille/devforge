@@ -2,6 +2,21 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [1.4.0](https://github.com/victhille/devforge/compare/v1.3.0...v1.4.0) — 2026-10-18
+
+### Nouveautés
+
+- **assistant** : Recherche web dans l'assistant (avec sources) et raccourcis vers Claude Code, Codex, Antigravity, Gemini et les apps web ([e093320](https://github.com/victhille/devforge/commit/e093320e242818181c5256f77bfca948d11d7558))
+- **assistant** : Forgy, le petit robot de l'assistant, montre ce qu'il fait (réfléchit, cherche, écrit, a fini…) ([70a57d3](https://github.com/victhille/devforge/commit/70a57d3ad3208122e21d40df90a8fed95c3d1f0a))
+- **assistant** : Tâches prêtes à l'emploi et maîtrise du coût de l'assistant (modèle adapté à chaque tâche, budget mensuel) ([96c722a](https://github.com/victhille/devforge/commit/96c722a05296734d92d7246f536338eb8b1b7c28))
+- **assistant** : Assistant IA intégré (Ctrl+J) qui connaît le projet et la page en cours, en lecture seule ([5c60467](https://github.com/victhille/devforge/commit/5c60467bc19a5203db1757404071a65cd3aed8e6))
+
+### Corrections
+
+- **settings** : « Voir les nouveautés » ouvre aussi les notes quand on est déjà sur la page Paramètres ([5776309](https://github.com/victhille/devforge/commit/5776309ec58a767ede609a545082565bbc5a59c8))
+
+_1 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [1.3.0](https://github.com/victhille/devforge/compare/v1.2.2...v1.3.0) — 2026-10-18
 
 ### Nouveautés
