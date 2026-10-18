@@ -3,9 +3,41 @@
 // Commits follow Conventional Commits (`feat(db): …`, `fix: …`, `feat!: …`).
 // Older free-form messages ("Database: …", "Fix …") are classified by keyword.
 // Bump: breaking → major, feat → minor, anything else → patch.
+//
+// The changelog exists in French (CHANGELOG.md) and English (CHANGELOG.en.md).
+// A commit gives its user-facing text per language with body lines
+// `fr: …` and `en: …`; without them the subject is used in both.
 
 /** @typedef {'breaking' | 'feat' | 'fix' | 'security' | 'perf' | 'refactor' | 'docs' | 'test' | 'build' | 'ci' | 'chore' | 'style' | 'revert'} Kind */
-/** @typedef {{ hash: string, kind: Kind, scope: string, subject: string, breaking: boolean }} Change */
+/** @typedef {'fr' | 'en'} Lang */
+/** @typedef {{ hash: string, kind: Kind, scope: string, subject: string, breaking: boolean, notes: Partial<Record<Lang, string>> }} Change */
+
+export const LANGS = /** @type {const} */ (['fr', 'en'])
+
+/** Changelog file of a language */
+export const changelogFile = (/** @type {Lang} */ lang) => (lang === 'fr' ? 'CHANGELOG.md' : `CHANGELOG.${lang}.md`)
+
+/**
+ * `fr: …` / `en: …` lines of a commit body
+ * @param {string} body
+ * @returns {Partial<Record<Lang, string>>}
+ */
+function notesOf(body) {
+  /** @type {Partial<Record<Lang, string>>} */
+  const notes = {}
+  for (const lang of LANGS) {
+    const m = body.match(new RegExp(`^${lang}:\\s*(.+)$`, 'mi'))
+    if (m) notes[lang] = m[1].trim()
+  }
+  return notes
+}
+
+/**
+ * Text of a change in one language
+ * @param {Change} c
+ * @param {Lang} lang
+ */
+export const textOf = (c, lang) => c.notes?.[lang] ?? c.subject
 
 const CONVENTIONAL = /^(\w+)(?:\(([^)]+)\))?(!)?:\s*(.+)$/
 const TYPES = new Set(['feat', 'fix', 'perf', 'refactor', 'docs', 'test', 'build', 'ci', 'chore', 'style', 'revert', 'security'])
@@ -21,10 +53,11 @@ export function parseCommit(hash, subject, body = '') {
   subject = subject.trim()
   if (/^chore\(release\)/.test(subject) || /^Release \d/.test(subject)) return null
   const breakingBody = /^BREAKING[ -]CHANGE:/m.test(body)
+  const notes = notesOf(body)
   const m = subject.match(CONVENTIONAL)
   if (m && TYPES.has(m[1].toLowerCase())) {
     const breaking = !!m[3] || breakingBody
-    return { hash, kind: breaking ? 'breaking' : /** @type {Kind} */ (m[1].toLowerCase()), scope: m[2] ?? '', subject: m[4], breaking }
+    return { hash, kind: breaking ? 'breaking' : /** @type {Kind} */ (m[1].toLowerCase()), scope: m[2] ?? '', subject: m[4], breaking, notes }
   }
   // Free-form history: "Area: what changed" or a plain sentence
   // "Area: …" unless the "area" is already a sentence ("Fix remote scripts: …")
@@ -42,7 +75,7 @@ export function parseCommit(hash, subject, body = '') {
   else if (/^tests?\b/i.test(text)) kind = 'test'
   // Technical commit that also fixes user-visible bugs: worth listing
   if (['test', 'docs', 'build'].includes(kind) && /\bfix(es|ed)?\b/i.test(subject)) kind = 'fix'
-  return { hash, kind: breakingBody ? 'breaking' : kind, scope: scope === 'security' ? '' : scope, subject: text, breaking: breakingBody }
+  return { hash, kind: breakingBody ? 'breaking' : kind, scope: scope === 'security' ? '' : scope, subject: text, breaking: breakingBody, notes }
 }
 
 /**
@@ -95,25 +128,39 @@ export function nextVersion(current, bump, pre = null) {
 
 /** Changelog sections, in display order */
 export const SECTIONS = /** @type {const} */ ([
-  ['breaking', '⚠️ Changements majeurs'],
-  ['feat', 'Nouveautés'],
-  ['security', 'Sécurité'],
-  ['fix', 'Corrections'],
-  ['perf', 'Performances'],
-  ['refactor', 'Améliorations internes'],
-  ['build', 'Dépendances et build'],
-  ['docs', 'Documentation']
+  ['breaking', { fr: '⚠️ Changements majeurs', en: '⚠️ Breaking changes' }],
+  ['feat', { fr: 'Nouveautés', en: 'New features' }],
+  ['security', { fr: 'Sécurité', en: 'Security' }],
+  ['fix', { fr: 'Corrections', en: 'Fixes' }],
+  ['perf', { fr: 'Performances', en: 'Performance' }],
+  ['refactor', { fr: 'Améliorations internes', en: 'Internal improvements' }],
+  ['build', { fr: 'Dépendances et build', en: 'Dependencies and build' }],
+  ['docs', { fr: 'Documentation', en: 'Documentation' }]
 ])
 const HIDDEN = new Set(['test', 'ci', 'chore', 'style', 'revert'])
 
+const TEXT = {
+  fr: {
+    hidden: (/** @type {number} */ n) => `_${n} changement(s) technique(s) (tests, CI, maintenance) non listé(s)._`,
+    none: '_Aucun changement notable._',
+    header: '# Notes de version\n\nToutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).\n'
+  },
+  en: {
+    hidden: (/** @type {number} */ n) => `_${n} technical change(s) (tests, CI, maintenance) not listed._`,
+    none: '_No notable change._',
+    header: '# Release notes\n\nEvery DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.\n'
+  }
+}
+
 /**
- * Markdown section for one version.
+ * Markdown section for one version, in one language.
  * @param {string} version
  * @param {Change[]} changes
- * @param {{ date?: string, repoUrl?: string, previous?: string | null }} [opts]
+ * @param {{ lang?: Lang, date?: string, repoUrl?: string | null, previous?: string | null }} [opts]
  * @returns {string}
  */
 export function renderSection(version, changes, opts = {}) {
+  const lang = opts.lang ?? 'fr'
   const date = opts.date ?? new Date().toISOString().slice(0, 10)
   const title = opts.repoUrl && opts.previous
     ? `## [${version}](${opts.repoUrl}/compare/v${opts.previous}...v${version}) — ${date}`
@@ -122,33 +169,35 @@ export function renderSection(version, changes, opts = {}) {
   for (const [kind, label] of SECTIONS) {
     const list = changes.filter(c => c.kind === kind)
     if (!list.length) continue
-    lines.push(`### ${label}`, '')
+    lines.push(`### ${label[lang]}`, '')
     for (const c of list) {
       const hash = opts.repoUrl ? `([${c.hash.slice(0, 7)}](${opts.repoUrl}/commit/${c.hash}))` : `(${c.hash.slice(0, 7)})`
-      lines.push(`- ${c.scope ? `**${c.scope}** : ` : ''}${capitalize(c.subject)} ${hash}`)
+      // French typography: space before the colon
+      lines.push(`- ${c.scope ? `**${c.scope}**${lang === 'fr' ? ' :' : ':'} ` : ''}${capitalize(textOf(c, lang))} ${hash}`)
     }
     lines.push('')
   }
   const hidden = changes.filter(c => HIDDEN.has(c.kind)).length
-  if (hidden) lines.push(`_${hidden} changement(s) technique(s) (tests, CI, maintenance) non listé(s)._`, '')
-  if (lines.length === 2) lines.push('_Aucun changement notable._', '')
+  if (hidden) lines.push(TEXT[lang].hidden(hidden), '')
+  if (lines.length === 2) lines.push(TEXT[lang].none, '')
   return lines.join('\n')
 }
 
 const capitalize = (/** @type {string} */ s) => s.charAt(0).toUpperCase() + s.slice(1)
 
-export const CHANGELOG_HEADER = '# Notes de version\n\nToutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).\n'
+export const changelogHeader = (/** @type {Lang} */ lang) => TEXT[lang].header
 
 /**
- * Insert a version section at the top of CHANGELOG.md content.
+ * Insert a version section at the top of a changelog.
  * @param {string} existing
  * @param {string} section
+ * @param {Lang} [lang]
  * @returns {string}
  */
-export function prependSection(existing, section) {
+export function prependSection(existing, section, lang = 'fr') {
   const body = existing.startsWith('# ') ? existing.slice(existing.indexOf('\n## ') + 1 || existing.length) : existing
   const rest = body.startsWith('## ') ? body : ''
-  return `${CHANGELOG_HEADER}\n${section.trimEnd()}\n\n${rest}`.trimEnd() + '\n'
+  return `${TEXT[lang].header}\n${section.trimEnd()}\n\n${rest}`.trimEnd() + '\n'
 }
 
 /**

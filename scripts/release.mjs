@@ -11,7 +11,7 @@
 
 import { execFileSync, spawnSync } from 'child_process'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
-import { bumpFor, extractSection, nextVersion, parseCommit, prependSection, renderSection } from './lib/release.mjs'
+import { LANGS, bumpFor, changelogFile, extractSection, nextVersion, parseCommit, prependSection, renderSection } from './lib/release.mjs'
 
 const args = process.argv.slice(2)
 const flag = name => args.includes(name)
@@ -55,10 +55,12 @@ try {
   repoUrl = git('remote', 'get-url', 'origin').replace(/^git@([^:]+):/, 'https://$1/').replace(/\.git$/, '')
 } catch { /* no remote */ }
 
-const section = renderSection(version, changes, { repoUrl, previous: lastTag?.replace(/^v/, '') ?? null })
+const previous = lastTag?.replace(/^v/, '') ?? null
+const sections = Object.fromEntries(LANGS.map(lang => [lang, renderSection(version, changes, { lang, repoUrl, previous })]))
 
 console.log(`\n${pkg.version} → ${version}  (${positional === 'auto' ? `${bump}, from ${changes.length} commit(s)` : bump}${pre ? `, ${pre}` : ''})\n`)
-console.log(section)
+console.log(sections.fr)
+console.log(sections.en)
 if (dryRun) process.exit(0)
 
 // ─── Release ──────────────────────────────────────────────────────────────────
@@ -66,10 +68,12 @@ if (dryRun) process.exit(0)
 if (!flag('--no-check')) npm('run', 'check')
 
 npm('version', version, '--no-git-tag-version', '--allow-same-version')
-const changelog = existsSync('CHANGELOG.md') ? readFileSync('CHANGELOG.md', 'utf-8') : ''
-writeFileSync('CHANGELOG.md', prependSection(changelog, section))
+for (const lang of LANGS) {
+  const file = changelogFile(lang)
+  writeFileSync(file, prependSection(existsSync(file) ? readFileSync(file, 'utf-8') : '', sections[lang], lang))
+}
 
-git('add', 'package.json', 'package-lock.json', 'CHANGELOG.md')
+git('add', 'package.json', 'package-lock.json', ...LANGS.map(changelogFile))
 git('commit', '-m', `chore(release): v${version}`)
 git('tag', '-a', `v${version}`, '-m', extractSection(readFileSync('CHANGELOG.md', 'utf-8'), version) ?? `v${version}`)
 console.log(`\n✔ Tagged v${version}`)

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  bumpFor, extractSection, nextVersion, parseCommit, prependSection, renderSection
+  bumpFor, changelogFile, extractSection, nextVersion, parseCommit, prependSection, renderSection
 } from '../../scripts/lib/release.mjs'
 
 describe('parseCommit', () => {
@@ -84,5 +84,34 @@ describe('changelog', () => {
     expect(extractSection(file, '1.1.0')).toContain('Cron day 7')
     expect(extractSection(file, '1.1.0')).not.toContain('Explorer')
     expect(extractSection(file, '9.9.9')).toBeNull()
+  })
+})
+
+describe('bilingual notes', () => {
+  const c = parseCommit('abc1234def', 'feat(db): table explorer', 'Longer explanation.\n\nfr: explorateur de tables\nen: table explorer like phpMyAdmin')!
+
+  it('reads fr: and en: lines from the commit body', () => {
+    expect(c.notes).toEqual({ fr: 'explorateur de tables', en: 'table explorer like phpMyAdmin' })
+    expect(parseCommit('x', 'fix: crash')?.notes).toEqual({})
+  })
+
+  it('renders each language with its own headings and text', () => {
+    const fr = renderSection('1.0.0', [c], { lang: 'fr', date: '2026-01-01' })
+    const en = renderSection('1.0.0', [c], { lang: 'en', date: '2026-01-01' })
+    expect(fr).toContain('### Nouveautés')
+    expect(fr).toContain('- **db** : Explorateur de tables (abc1234)')
+    expect(en).toContain('### New features')
+    expect(en).toContain('- **db**: Table explorer like phpMyAdmin (abc1234)')
+  })
+
+  it('falls back to the subject when a language is missing', () => {
+    const only = parseCommit('d', 'fix(ssh): reconnect', 'fr: reconnexion')!
+    expect(renderSection('1.0.1', [only], { lang: 'en' })).toContain('Reconnect')
+  })
+
+  it('keeps the header of the right language', () => {
+    expect(prependSection('', renderSection('1.0.0', [c], { lang: 'en' }), 'en').startsWith('# Release notes')).toBe(true)
+    expect(changelogFile('fr')).toBe('CHANGELOG.md')
+    expect(changelogFile('en')).toBe('CHANGELOG.en.md')
   })
 })

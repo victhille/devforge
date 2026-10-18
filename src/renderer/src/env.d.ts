@@ -5,5 +5,5 @@ declare const __APP_VERSION__: string
 declare const __APP_COMMIT__: string
 /** ISO date of the build */
 declare const __BUILD_DATE__: string
-/** CHANGELOG.md content at build time */
-declare const __CHANGELOG__: string
+/** Release notes at build time, per UI language (CHANGELOG.md, CHANGELOG.en.md) */
+declare const __CHANGELOGS__: Record<'fr' | 'en', string>
