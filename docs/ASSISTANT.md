@@ -29,7 +29,8 @@ Chaque tâche a son modèle, son effort, ses consignes et un format de réponse 
 
 | Tâche | Modèle (Auto) | Effort | Besoin |
 |---|---|---|---|
-| Question libre | Sonnet 5.5 | faible | — |
+| Question libre | Sonnet 5.5 | faible | — (recherche web possible) |
+| Recherche web | Sonnet 5.5 | faible | — (recherche web) |
 | Expliquer une erreur | Haiku 5.5 | faible | — |
 | Message de commit | Haiku 5.5 | faible | projet |
 | Revue des changements | Sonnet 5.5 | moyen | projet |
@@ -39,6 +40,31 @@ Chaque tâche a son modèle, son effort, ses consignes et un format de réponse 
 | Analyser la réponse API | Haiku 5.5 | faible | page API Tester |
 
 La tâche, le modèle et l'effort sont **fixés pour toute la conversation**. Pour en changer : nouvelle conversation.
+
+## Recherche web
+
+| Point | Règle |
+|---|---|
+| Tâches concernées | Question libre, Recherche web |
+| Modèles | Sonnet 5.5 et Opus 5.5 (pas Haiku) |
+| Limite | 3 recherches par appel |
+| Coût | 0,01 $ par recherche + les tokens des résultats, inclus dans l'estimation |
+| Sources | ajoutées en fin de réponse (liens cliquables) |
+| Prérequis | recherche web activée pour l'organisation dans la console Anthropic |
+
+## Ouvrir avec (abonnements)
+
+Rangée **Ouvrir avec** du panneau. Ces outils utilisent **ton abonnement**, pas la clé API ni le budget.
+
+| Bouton | Ouvre | Abonnement |
+|---|---|---|
+| Claude Code | terminal dans le projet choisi (sinon le dossier personnel) | Claude |
+| Codex | idem | ChatGPT |
+| Antigravity | idem | Google |
+| Gemini CLI | idem | Google |
+| Claude / ChatGPT / Gemini | l'app web dans le navigateur | celui du service |
+
+Outil non installé : bouton en pointillés, il ouvre la page d'installation. DevForge ne lit ni ne réutilise la connexion de ces outils : les conditions des éditeurs réservent l'abonnement à leurs propres applications.
 
 ## Contexte envoyé
 
@@ -74,6 +100,7 @@ La tâche, le modèle et l'effort sont **fixés pour toute la conversation**. Po
 | Modèle par tâche (Auto) | Haiku coûte 20× moins que Sonnet, 40× moins qu'Opus |
 | Cache de prompt | la partie fixe (consignes + outils) et l'historique sont relus depuis le cache |
 | Réponses courtes | consignes « pas de préambule », ~150 mots max |
+| Recherche web limitée | tâches dédiées, 3 recherches par appel, pas sur Haiku |
 | Sorties d'outils limitées | chaque résultat est renvoyé à chaque message suivant |
 | Budget mensuel | blocage avant chaque appel une fois atteint |
 | Conversation longue | un message propose d'en démarrer une nouvelle (moins chère) |
@@ -113,7 +140,8 @@ Animations coupées si Windows demande moins d'animations.
 | `src/main/services/assistant/assistantTools.ts` | outils et garde-fous |
 | `src/main/services/assistant/assistantStorage.ts` | clé chiffrée, réglages, conversations, dépenses |
 | `src/main/services/assistant/projectContext.ts` | résumé du projet |
-| `src/shared/data/assistantSkills.ts` | tâches, prix des modèles |
+| `src/shared/data/assistantSkills.ts` | tâches, prix des modèles et de la recherche web |
+| `src/main/services/system/aiTools.ts` | détection et lancement de Claude Code, Codex, Antigravity, Gemini CLI |
 | `src/renderer/src/features/assistant/` | panneau, Markdown, contexte de page, Forgy |
 | `tests/main/assistant*.test.ts` | tests (outils, boucle, coût, budget) |
 

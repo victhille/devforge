@@ -226,6 +226,11 @@ const fr = {
   },
 
   assistant: {
+    openWith: "Ouvrir avec",
+    launchHint: "Ouvre {name} dans un terminal, dans le projet choisi (utilise ton abonnement)",
+    notInstalled: "{name} n'est pas installé : clique pour voir comment l'installer",
+    webAppHint: "Ouvre {name} dans le navigateur (ton abonnement)",
+    launchFailed: "Impossible d'ouvrir {name}",
     mascotName: "Forgy",
     greeting: "Salut, moi c'est Forgy ! Je lis ton code, tes logs et tes bases pour t'aider.",
     moods: {
@@ -288,6 +293,7 @@ const fr = {
     budgetHint: "L'assistant s'arrête quand le mois atteint ce montant (estimation d'après les tokens). 0 = sans limite.",
     spentThisMonth: "{n} $ dépensés ce mois",
     tools: {
+      web_search: "Recherche web",
       list_projects: "Projets",
       list_files: "Fichiers",
       read_file: "Lecture",

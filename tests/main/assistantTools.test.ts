@@ -93,3 +93,23 @@ describe('assistant config', () => {
     expect(getApiKey()).toBeNull()
   })
 })
+
+describe('official AI tools', () => {
+  it('lists the known tools and refuses anything else', async () => {
+    const { listAiTools, launchAiTool } = await import('../../src/main/services/system/aiTools')
+    const tools = await listAiTools()
+    expect(tools.map(t => t.id)).toEqual(['claude-code', 'codex', 'antigravity', 'gemini-cli'])
+    expect(tools.every(t => typeof t.installed === 'boolean' && t.installUrl.startsWith('https://'))).toBe(true)
+    await expect(launchAiTool('calc.exe', null)).rejects.toThrow(/Unknown tool/)
+    // Not installed: refused before anything starts
+    const missing = tools.find(t => !t.installed)
+    if (missing) await expect(launchAiTool(missing.id, null)).rejects.toThrow(/not installed/)
+    // Installed: only saved project folders (checked before any terminal opens)
+    const installed = tools.find(t => t.installed)
+    if (installed) {
+      saveProjects([])
+      await expect(launchAiTool(installed.id, tempDir('not-a-project'))).rejects.toThrow(/Not a saved project/)
+      await expect(launchAiTool(installed.id, 'C:/x & calc')).rejects.toThrow()
+    }
+  })
+})

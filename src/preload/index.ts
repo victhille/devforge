@@ -137,6 +137,11 @@ const api: DevForgeAPI = {
     onEvent:    on('assistant:event')
   },
 
+  aiTools: {
+    list:   invoke('ai-tools:list'),
+    launch: invoke('ai-tools:launch')
+  },
+
   http: {
     request: invoke('http:request')
   },

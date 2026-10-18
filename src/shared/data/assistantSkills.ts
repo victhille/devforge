@@ -7,7 +7,7 @@ import type { AssistantEffort, AssistantModel } from '../types/assistant'
  * the model; the user can force one in Settings.
  */
 export type AssistantSkillId =
-  | 'chat' | 'explain-error' | 'commit-message' | 'review-changes'
+  | 'chat' | 'web-search' | 'explain-error' | 'commit-message' | 'review-changes'
   | 'explain-project' | 'write-sql' | 'debug-container' | 'analyze-response'
 
 type Text = { fr: string; en: string }
@@ -26,15 +26,30 @@ export interface AssistantSkill {
   prompt?: Text
   /** What the skill needs to be useful */
   needs?: 'project' | 'page'
+  /** Can search the web (Sonnet and Opus only; $0.01 per search) */
+  web?: boolean
 }
+
+/** Price of one web search (USD) */
+export const WEB_SEARCH_PRICE = 0.01
 
 export const ASSISTANT_SKILLS: AssistantSkill[] = [
   {
     id: 'chat', icon: 'MessageSquare',
     label: { fr: 'Question libre', en: 'Free question' },
     description: { fr: 'Tout le reste', en: 'Anything else' },
-    model: 'claude-sonnet-5-5', effort: 'low',
+    model: 'claude-sonnet-5-5', effort: 'low', web: true,
     instructions: { fr: 'Réponds à la question posée, rien de plus.', en: 'Answer the question asked, nothing more.' }
+  },
+  {
+    id: 'web-search', icon: 'Search',
+    label: { fr: 'Recherche web', en: 'Web search' },
+    description: { fr: 'Actualité, questions du quotidien', en: 'News, everyday questions' },
+    model: 'claude-sonnet-5-5', effort: 'low', web: true,
+    instructions: {
+      fr: "Tâche : question générale ou d'actualité. Cherche sur le web si la réponse dépend d'informations récentes ou que tu n'as pas (2 recherches au plus). Réponse courte et datée si utile. Les sources sont ajoutées automatiquement : ne les liste pas.",
+      en: 'Task: general or current-events question. Search the web when the answer depends on recent information or facts you lack (2 searches at most). Short answer, dated when useful. Sources are added automatically: do not list them.'
+    }
   },
   {
     id: 'explain-error', icon: 'Bug',
