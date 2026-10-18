@@ -5,7 +5,8 @@ import mysql from 'mysql2/promise'
 import pg from 'pg'
 import initSqlJs, { type Database as SqlJsDb, type SqlJsStatic } from 'sql.js'
 import type { DbConnection, DbQueryResult, DbTable } from '@shared/types'
-import { getDbConnection } from './dbStorage'
+import { getDbConnection, saveDbConnection } from './dbStorage'
+import { findOnServer } from './dbDetect'
 import { openTunnel } from '../ssh/sshClient'
 import { sshServerFor } from '../ssh/sshStorage'
 import { loadSettings } from '../settings/settingsService'
@@ -147,16 +148,19 @@ async function open(c: DbConnection): Promise<Driver> {
   const server = c.type !== 'sqlite' && !c.sshConnectionId ? sshServerFor(c.host) : undefined
   if (server) c = { ...c, host: '127.0.0.1', sshConnectionId: server.id }
 
-  // Through SSH: the driver talks to a local port forwarded to the server
   if (c.type !== 'sqlite' && c.sshConnectionId) {
-    const tunnel = await openTunnel(c.sshConnectionId, c.host || '127.0.0.1', c.port ?? DEFAULT_PORT[c.type])
     try {
-      const direct = { ...c, host: '127.0.0.1', port: tunnel.localPort, sshConnectionId: undefined }
-      const d = await (c.type === 'mysql' ? mysqlDriver(direct) : postgresDriver(direct))
-      return { ...d, close: async () => { await d.close().catch(() => {}); tunnel.close() } }
+      return await viaSsh(c, c.sshConnectionId)
     } catch (err) {
-      tunnel.close()
-      throw err
+      if (!(err instanceof UnreachableFromServer)) throw err
+      // The server cannot reach that address: look for the database on it
+      const match = await findOnServer(c.sshConnectionId, c).catch(() => undefined)
+      if (!match || (match.host === c.host && match.port === c.port)) throw err.withHint(c)
+      const fixed = { ...c, host: match.host, port: match.port }
+      const d = await viaSsh(fixed, c.sshConnectionId)
+      // Remember the address that works (saved connections only; keeps credentials)
+      if (getDbConnection(c.id)) saveDbConnection({ ...fixed, password: undefined })
+      return d
     }
   }
   try {
@@ -167,6 +171,32 @@ async function open(c: DbConnection): Promise<Driver> {
     }
   } catch (err) {
     throw unreachableHint(err as Error & { code?: string }, c)
+  }
+}
+
+class UnreachableFromServer extends Error {
+  constructor(readonly cause: Error) { super(cause.message) }
+  withHint(c: DbConnection): Error {
+    return new Error(loadSettings().language === 'fr'
+      ? `Le serveur SSH n'arrive pas à joindre ${c.host}:${c.port} (${this.cause.message}), ` +
+        "et aucune base de ce type n'a été trouvée dans ses conteneurs Docker. Vérifiez l'hôte et le port."
+      : `The SSH server cannot reach ${c.host}:${c.port} (${this.cause.message}), ` +
+        'and no database of that type was found in its Docker containers. Check the host and port.')
+  }
+}
+
+/** The driver talks to a local port forwarded through the SSH server */
+async function viaSsh(c: DbConnection, sshConnectionId: string): Promise<Driver> {
+  const tunnel = await openTunnel(sshConnectionId, c.host || '127.0.0.1', c.port ?? DEFAULT_PORT[c.type as 'mysql'])
+  try {
+    const direct = { ...c, host: '127.0.0.1', port: tunnel.localPort, sshConnectionId: undefined }
+    const d = await (c.type === 'mysql' ? mysqlDriver(direct) : postgresDriver(direct))
+    return { ...d, close: async () => { await d.close().catch(() => {}); tunnel.close() } }
+  } catch (err) {
+    tunnel.close()
+    // The driver only sees a closed socket; the real reason is on the SSH side
+    const reason = tunnel.lastError()
+    throw reason ? new UnreachableFromServer(reason) : err
   }
 }
 
