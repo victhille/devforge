@@ -9,6 +9,8 @@ interface Toast {
   tone: Tone
   title: string
   description?: string
+  /** Button under the text; the toast stays longer when it has one */
+  action?: { label: string; onClick: () => void }
 }
 
 interface ToastContextValue {
@@ -32,7 +34,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const show = useCallback((toast: Omit<Toast, 'id'>) => {
     const id = nextId++
     setToasts(list => [...list.slice(-3), { ...toast, id }])
-    setTimeout(() => dismiss(id), DURATION[toast.tone])
+    setTimeout(() => dismiss(id), toast.action ? 10_000 : DURATION[toast.tone])
   }, [dismiss])
 
   // Stable value: consumers can safely put the toast API in effect deps
@@ -57,6 +59,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   <p className="mt-0.5 max-h-28 overflow-y-auto font-mono text-xs whitespace-pre-wrap break-words text-fg-secondary">
                     {t.description}
                   </p>
+                )}
+                {t.action && (
+                  <button onClick={() => { t.action!.onClick(); dismiss(t.id) }} className="mt-1.5 text-sm font-medium text-accent hover:underline">
+                    {t.action.label}
+                  </button>
                 )}
               </div>
               <button onClick={() => dismiss(t.id)} aria-label="Close" className="text-fg-muted hover:text-fg">

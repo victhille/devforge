@@ -7,6 +7,7 @@ import Layout from '@renderer/components/layout/Layout'
 import HomePage from '@renderer/features/home/HomePage'
 import { PAGES } from './navigation'
 import ErrorBoundary from './ErrorBoundary'
+import WhatsNew from './WhatsNew'
 import { useI18n } from '@renderer/i18n/I18nContext'
 
 // Every page except Home is its own chunk: faster startup, heavy deps
@@ -32,6 +33,7 @@ export default function App() {
 
   return (
     <ToastProvider>
+      <WhatsNew />
       <ConsoleProvider>
         <VPSProvider>
           <Layout>
