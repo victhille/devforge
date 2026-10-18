@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react'
 import translations, { type Lang, type Translations } from './translations'
 import type { Theme } from '@shared/types'
 
@@ -15,26 +15,23 @@ const I18nContext = createContext<I18nContextValue>({
 })
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('en')
+  const [lang, setLang] = useState<Lang | null>(null)
 
+  // The UI waits for the saved language (a few ms): nothing renders, toasts
+  // included, in a language the user did not pick
   useEffect(() => {
-    window.devforge.getSettings().then(s => {
-      const l  = (s as { language?: Lang }).language ?? 'en'
-      const th = (s as { theme?: Theme }).theme ?? 'dark'
-      setLangState(l)
-      document.documentElement.setAttribute('data-theme', th)
-    })
+    window.devforge.getSettings()
+      .then(s => {
+        setLang((s as { language?: Lang }).language ?? 'en')
+        document.documentElement.setAttribute('data-theme', (s as { theme?: Theme }).theme ?? 'dark')
+      })
+      .catch(() => setLang('en'))
   }, [])
 
-  function setLang(l: Lang) {
-    setLangState(l)
-  }
+  const value = useMemo(() => lang && { lang, setLang, t: translations[lang] }, [lang])
+  if (!value) return null
 
-  return (
-    <I18nContext.Provider value={{ lang, setLang, t: translations[lang] }}>
-      {children}
-    </I18nContext.Provider>
-  )
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }
 
 export function useI18n() {
