@@ -102,9 +102,12 @@ function ComposeRow({ p, busy, onAction }: { p: ComposeProject; busy: boolean; o
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="flex items-center gap-2 font-medium text-fg">
             {p.name}
-            {p.projects?.map(name => <Badge key={name}>{name}</Badge>)}
+            {p.services?.map(name => <Badge key={name}>{name}</Badge>)}
           </span>
           <span className="truncate font-mono text-2xs text-fg-muted">{p.dir ?? p.configFiles}</span>
+          {p.projects?.length ? (
+            <span className="truncate text-2xs text-fg-muted">{d.composeProjects.replace('{list}', p.projects.join(', '))}</span>
+          ) : null}
         </div>
         <span className="shrink-0 text-xs text-fg-secondary">{state}</span>
         {busy ? <Spinner className="mx-2" /> : (

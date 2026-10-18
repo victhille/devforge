@@ -31,6 +31,8 @@ export interface ComposeProject {
   dir?: string
   /** DevForge projects using it */
   projects?: string[]
+  /** Service names (database, backend, proxy…) */
+  services?: string[]
   running: number
   total: number
 }

@@ -534,6 +534,7 @@ const en = {
     pruneText:     'Removes stopped containers (except Compose projects ones), unused networks, dangling images and the build cache. Volumes are kept.',
     pruned:        'Docker cleaned up',
     composeNever:       'Never started',
+    composeProjects:    'DevForge project: {list}',
     composeRunning:     '{n}/{total} running',
     composeStarted:     '{name} started',
     composeDown:        'Remove containers',

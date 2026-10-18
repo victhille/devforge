@@ -2,7 +2,7 @@ import { dirname } from 'path'
 import type { ComposeAction, ComposeProject, ComposeTarget, ContainerAction, DockerContainer, DockerImage, DockerOverview } from '@shared/types'
 import { runFile } from '../../lib/exec'
 import { processManager } from '../stacks/processManager'
-import { localComposeProjects } from './composeProjects'
+import { composeConfig, localComposeProjects } from './composeProjects'
 
 const docker = (args: string[], timeout = 15_000) => runFile('docker', args, { timeout })
 
@@ -55,8 +55,11 @@ export async function getOverview(): Promise<DockerOverview> {
 
   // Compose projects of DevForge projects first: they can be started even when
   // no container exists yet (never started, or removed)
-  const projects: ComposeProject[] = localComposeProjects().map(l => ({
+  const locals = localComposeProjects()
+  const configs = await Promise.all(locals.map(l => composeConfig(l.dir)))
+  const projects: ComposeProject[] = locals.map((l, i) => ({
     name: l.name, dir: l.dir, projects: l.projects,
+    services: Object.keys(configs[i]?.services ?? {}),
     status: known.find(k => k.Name === l.name)?.Status ?? '',
     configFiles: known.find(k => k.Name === l.name)?.ConfigFiles ?? '',
     ...count(l.name)
