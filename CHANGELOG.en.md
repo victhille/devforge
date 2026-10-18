@@ -2,6 +2,21 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [1.4.0](https://github.com/victhille/devforge/compare/v1.3.0...v1.4.0) — 2026-10-18
+
+### New features
+
+- **assistant**: Web search in the assistant (with sources) and shortcuts to Claude Code, Codex, Antigravity, Gemini and the web apps ([e093320](https://github.com/victhille/devforge/commit/e093320e242818181c5256f77bfca948d11d7558))
+- **assistant**: Forgy, the assistant's little robot, shows what it is doing (thinking, searching, writing, done…) ([70a57d3](https://github.com/victhille/devforge/commit/70a57d3ad3208122e21d40df90a8fed95c3d1f0a))
+- **assistant**: Ready-made tasks and cost control for the assistant (right model per task, monthly budget) ([96c722a](https://github.com/victhille/devforge/commit/96c722a05296734d92d7246f536338eb8b1b7c28))
+- **assistant**: Built-in AI assistant (Ctrl+J) that knows the project and the current page, read-only ([5c60467](https://github.com/victhille/devforge/commit/5c60467bc19a5203db1757404071a65cd3aed8e6))
+
+### Fixes
+
+- **settings**: "See what's new" also opens the notes when already on the Settings page ([5776309](https://github.com/victhille/devforge/commit/5776309ec58a767ede609a545082565bbc5a59c8))
+
+_1 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [1.3.0](https://github.com/victhille/devforge/compare/v1.2.2...v1.3.0) — 2026-10-18
 
 ### New features
