@@ -1,5 +1,5 @@
 import type { DetectedDeploy } from '@shared/types'
-import { connectSsh, sshRun } from '../ssh/sshClient'
+import { connectSsh, shQuote, sshRun } from '../ssh/sshClient'
 import { loadProjects } from '../projects/projectStorage'
 import { git } from '../git/gitRepo'
 
@@ -52,7 +52,7 @@ export async function detectDeploys(sshConnectionId: string): Promise<DetectedDe
   const client = await connectSsh(sshConnectionId)
   let output: string
   try {
-    output = (await sshRun(client, `bash -lc ${JSON.stringify(SCRIPT)}`, 30_000)).output
+    output = (await sshRun(client, `bash -lc ${shQuote(SCRIPT)}`, 30_000)).output
   } finally {
     client.end()
   }

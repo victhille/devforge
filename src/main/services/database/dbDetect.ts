@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
 import type { DbConnection, DetectedDatabase } from '@shared/types'
-import { connectSsh, sshRun } from '../ssh/sshClient'
+import { connectSsh, shQuote, sshRun } from '../ssh/sshClient'
 import { getSshConnectionWithSecret, sshServerFor } from '../ssh/sshStorage'
 import { loadProjects } from '../projects/projectStorage'
 import { parseEnv } from '../envfiles/envFiles'
@@ -69,7 +69,7 @@ export async function detectRemote(sshConnectionId: string): Promise<DetectedDat
   const client = await connectSsh(sshConnectionId)
   let output: string
   try {
-    output = (await sshRun(client, `bash -c ${JSON.stringify(REMOTE_SCRIPT)}`)).output
+    output = (await sshRun(client, `bash -c ${shQuote(REMOTE_SCRIPT)}`)).output
   } finally {
     client.end()
   }
@@ -89,7 +89,7 @@ export async function findOnServer(sshConnectionId: string, c: DbConnection): Pr
   const client = await connectSsh(sshConnectionId)
   let output: string
   try {
-    output = (await sshRun(client, `bash -c ${JSON.stringify(REMOTE_SCRIPT)}`)).output
+    output = (await sshRun(client, `bash -c ${shQuote(REMOTE_SCRIPT)}`)).output
   } finally {
     client.end()
   }
