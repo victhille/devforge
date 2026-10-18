@@ -48,6 +48,8 @@ export default function SettingsPage() {
   // ?notes=<version> (from the "what's new" toast) opens the release notes
   const [params, setParams] = useSearchParams()
   const [notes, setNotes] = useState<string | null>(() => params.get('notes'))
+  // Also when already on this page (the "what's new" toast navigates here)
+  useEffect(() => { const v = params.get('notes'); if (v) setNotes(v) }, [params])
   const prerelease = __APP_VERSION__.includes('-')
 
   useEffect(() => {
