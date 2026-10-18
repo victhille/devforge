@@ -2,6 +2,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { app, safeStorage } from 'electron'
 import type { SSHConnection } from '@shared/types'
+import { knownFingerprint } from './knownHosts'
 
 /** On-disk shape: password is never stored in clear, only encrypted by the OS (DPAPI / Keychain / libsecret). */
 interface StoredSSHConnection extends Omit<SSHConnection, 'password' | 'hasPassword'> {
@@ -55,7 +56,8 @@ function persist(conns: StoredSSHConnection[]): void {
 export function loadSshConnections(): SSHConnection[] {
   return readStored().map(({ passwordEnc, password, ...rest }) => ({
     ...rest,
-    hasPassword: Boolean(passwordEnc || password)
+    hasPassword: Boolean(passwordEnc || password),
+    fingerprint: knownFingerprint(rest.host, rest.port)
   }))
 }
 
@@ -71,7 +73,7 @@ export function getSshConnectionWithSecret(id: string): SSHConnection | undefine
 export function saveSshConnection(conn: SSHConnection): void {
   const conns = readStored()
   const idx = conns.findIndex(c => c.id === conn.id)
-  const { password, hasPassword: _hasPassword, ...rest } = conn
+  const { password, hasPassword: _hasPassword, fingerprint: _fp, ...rest } = conn
 
   let passwordEnc: string | undefined
   if (conn.authMethod === 'password') {

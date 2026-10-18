@@ -128,6 +128,8 @@ export interface SSHConnection {
   password?: string
   /** True when an encrypted password is stored */
   hasPassword?: boolean
+  /** Remembered server key fingerprint (read-only, set on first connection) */
+  fingerprint?: string | null
   privateKeyPath?: string
   color: string
   createdAt: string
@@ -215,6 +217,8 @@ export interface DevForgeAPI {
   getSshConnections: () => Promise<SSHConnection[]>
   saveSshConnection: (conn: SSHConnection) => Promise<void>
   removeSshConnection: (id: string) => Promise<void>
+  /** Forget the remembered server key (after a legitimate reinstall) */
+  forgetSshHostKey: (id: string) => Promise<void>
   sshConnect:          (connectionId: string) => Promise<string>
   sshConnectDashboard: (connectionId: string) => Promise<string>
   sshExec:             (sessionId: string, command: string) => Promise<string>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Key, Lock } from 'lucide-react'
+import { Key, Lock, ShieldCheck } from 'lucide-react'
 import type { SSHAuthMethod, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -30,6 +30,7 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
   const [keyPath,    setKeyPath]    = useState(initial?.privateKeyPath ?? '')
   const [color,      setColor]      = useState(initial?.color ?? CONNECTION_COLORS[0])
   const [errors,     setErrors]     = useState<Record<string, string>>({})
+  const [fingerprint, setFingerprint] = useState(initial?.fingerprint ?? null)
 
   async function browseKey() {
     const file = await window.devforge.selectFile()
@@ -105,7 +106,7 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
       </div>
 
       {authMethod === 'password' ? (
-        <Field label={t.ssh.labelPassword} hint={initial?.hasPassword ? undefined : 'Stored encrypted by the OS'}>
+        <Field label={t.ssh.labelPassword} hint={initial?.hasPassword ? undefined : t.ssh.passwordEncrypted}>
           <Input
             type="password"
             value={password}
@@ -120,6 +121,21 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
             <Button variant="secondary" onClick={browseKey}>{t.ssh.browseKey}</Button>
           </div>
         </Field>
+      )}
+
+      {initial && (
+        <div className="flex items-center gap-2 rounded-lg border border-line-subtle bg-canvas px-3 py-2">
+          <ShieldCheck size={14} className={fingerprint ? 'text-success' : 'text-fg-muted'} />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <span className="text-xs font-medium text-fg-secondary">{t.ssh.hostKey}</span>
+            <span className="truncate font-mono text-2xs text-fg-muted">{fingerprint ?? t.ssh.hostKeyUnknown}</span>
+          </div>
+          {fingerprint && (
+            <Button size="sm" variant="ghost" onClick={async () => { await window.devforge.forgetSshHostKey(initial.id); setFingerprint(null) }}>
+              {t.ssh.forgetHostKey}
+            </Button>
+          )}
+        </div>
       )}
 
       <div className="flex flex-col gap-1.5">

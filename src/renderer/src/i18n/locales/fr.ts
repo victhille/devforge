@@ -194,6 +194,10 @@ const fr = {
   },
 
   ssh: {
+    hostKey:        'Clé du serveur',
+    hostKeyUnknown: 'Mémorisée à la première connexion',
+    forgetHostKey:  'Oublier la clé',
+    passwordEncrypted: 'Stocké chiffré par le système',
     showServers:    'Afficher les serveurs',
     hideServers:    'Masquer les serveurs',
     databases:      'Bases de données du serveur',

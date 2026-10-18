@@ -202,6 +202,10 @@ const en = {
 
   // ── SSH ───────────────────────────────────────────────────────────────────
   ssh: {
+    hostKey:        'Server key',
+    hostKeyUnknown: 'Remembered at the first connection',
+    forgetHostKey:  'Forget key',
+    passwordEncrypted: 'Stored encrypted by the OS',
     showServers:    'Show servers',
     hideServers:    'Hide servers',
     databases:      'Databases on this server',

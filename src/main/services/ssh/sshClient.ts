@@ -3,10 +3,18 @@ import { readFileSync, existsSync } from 'fs'
 import net from 'net'
 import type { SSHConnection } from '@shared/types'
 import { getSshConnectionWithSecret } from './sshStorage'
+import { makeHostVerifier } from './knownHosts'
 
-/** ssh2 config from a saved connection (password or private key) */
-export function buildSshConfig(conn: SSHConnection): ConnectConfig {
-  const cfg: ConnectConfig = { host: conn.host, port: conn.port, username: conn.username, readyTimeout: 10_000, keepaliveInterval: 15_000 }
+/**
+ * ssh2 config from a saved connection (password or private key). The server
+ * key is checked against known hosts; `onHostMismatch` receives the reason
+ * when it is rejected, since ssh2 itself only reports a generic error.
+ */
+export function buildSshConfig(conn: SSHConnection, onHostMismatch: (err: Error) => void = () => {}): ConnectConfig {
+  const cfg: ConnectConfig = {
+    host: conn.host, port: conn.port, username: conn.username, readyTimeout: 10_000, keepaliveInterval: 15_000,
+    hostVerifier: makeHostVerifier(conn.host, conn.port, onHostMismatch)
+  }
   if (conn.authMethod === 'password') cfg.password = conn.password
   else {
     const keyPath = conn.privateKeyPath ?? ''
@@ -22,9 +30,10 @@ export function connectSsh(connectionId: string): Promise<Client> {
   if (!conn) return Promise.reject(new Error('SSH connection not found'))
   return new Promise((resolve, reject) => {
     const client = new Client()
+    let hostError: Error | null = null
     client.once('ready', () => resolve(client))
-    client.once('error', reject)
-    try { client.connect(buildSshConfig(conn)) } catch (err) { reject(err) }
+    client.once('error', err => reject(hostError ?? err))
+    try { client.connect(buildSshConfig(conn, err => { hostError = err })) } catch (err) { reject(err) }
   })
 }
 
