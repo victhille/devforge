@@ -10,6 +10,7 @@ import { stopProxy } from './services/domains/domainProxy'
 import { closeAllDbs } from './services/database/dbClient'
 import { closeAllTails } from './services/logs/logTail'
 import { stopWebhooks } from './services/webhooks/webhookServer'
+import { applyLoginItem, startedHidden } from './lib/loginItem'
 
 const isDev = !app.isPackaged
 
@@ -79,7 +80,7 @@ function createWindow(): void {
     }
   })
 
-  win.on('ready-to-show', () => win.show())
+  win.on('ready-to-show', () => { if (!startedHidden) win.show() })
 
   // Minimize to tray instead of closing
   win.on('close', (e) => {
@@ -117,10 +118,7 @@ function createWindow(): void {
 app.whenReady().then(() => {
   // Apply saved startup settings
   const settings = loadSettings()
-  app.setLoginItemSettings({
-    openAtLogin: settings.startWithWindows,
-    openAsHidden: settings.minimizeToTray
-  })
+  applyLoginItem(settings)
 
   createWindow()
 
