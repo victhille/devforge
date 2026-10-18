@@ -15,3 +15,7 @@ npm run dist       # installeur Windows dans dist/
 ## Versions
 
 Versions SemVer, commits conventionnels, `npm run release` pour publier : voir [docs/VERSIONS.md](docs/VERSIONS.md).
+
+## Assistant IA
+
+Forgy, l'assistant intégré (Ctrl+J) : tâches, contexte, outils en lecture seule, maîtrise du coût. Voir [docs/ASSISTANT.md](docs/ASSISTANT.md).
