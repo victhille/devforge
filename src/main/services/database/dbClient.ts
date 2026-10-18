@@ -144,24 +144,26 @@ const DEFAULT_PORT = { mysql: 3306, postgres: 5432 }
 
 async function open(c: DbConnection): Promise<Driver> {
   // Database on one of our SSH servers: its port is usually firewalled, so go
-  // through SSH and reach it on the server's loopback
+  // through SSH. Docker may publish it on loopback or on the public address
+  // only, so try both from the server.
   const server = c.type !== 'sqlite' && !c.sshConnectionId ? sshServerFor(c.host) : undefined
-  if (server) c = { ...c, host: '127.0.0.1', sshConnectionId: server.id }
-
-  if (c.type !== 'sqlite' && c.sshConnectionId) {
-    try {
-      return await viaSsh(c, c.sshConnectionId)
-    } catch (err) {
-      if (!(err instanceof UnreachableFromServer)) throw err
-      // The server cannot reach that address: look for the database on it
-      const match = await findOnServer(c.sshConnectionId, c).catch(() => undefined)
-      if (!match || (match.host === c.host && match.port === c.port)) throw err.withHint(c)
-      const fixed = { ...c, host: match.host, port: match.port }
-      const d = await viaSsh(fixed, c.sshConnectionId)
-      // Remember the address that works (saved connections only; keeps credentials)
-      if (getDbConnection(c.id)) saveDbConnection({ ...fixed, password: undefined })
-      return d
+  const sshId = c.sshConnectionId ?? server?.id
+  if (c.type !== 'sqlite' && sshId) {
+    const hosts = server ? ['127.0.0.1', c.host!] : [c.host || '127.0.0.1']
+    let last: UnreachableFromServer | null = null
+    for (const host of hosts) {
+      try {
+        return await reachVia({ ...c, host, sshConnectionId: sshId }, c)
+      } catch (err) {
+        if (!(err instanceof UnreachableFromServer)) throw err
+        last = err
+      }
     }
+    // The server cannot reach any of these: look for the database on it
+    const target = { ...c, host: hosts[0], sshConnectionId: sshId }
+    const match = await findOnServer(sshId, target).catch(() => undefined)
+    if (!match || (hosts.includes(match.host) && match.port === c.port)) throw last!.withHint(target)
+    return reachVia({ ...target, host: match.host, port: match.port }, c)
   }
   try {
     switch (c.type) {
@@ -183,6 +185,15 @@ class UnreachableFromServer extends Error {
       : `The SSH server cannot reach ${c.host}:${c.port} (${this.cause.message}), ` +
         'and no database of that type was found in its Docker containers. Check the host and port.')
   }
+}
+
+/** Connect through SSH; remember the address when it differs from the saved one */
+async function reachVia(target: DbConnection, original: DbConnection): Promise<Driver> {
+  const d = await viaSsh(target, target.sshConnectionId!)
+  const moved = target.host !== original.host || target.port !== original.port || target.sshConnectionId !== original.sshConnectionId
+  // Saved connections only; credentials are kept
+  if (moved && getDbConnection(original.id)) saveDbConnection({ ...target, password: undefined })
+  return d
 }
 
 /** The driver talks to a local port forwarded through the SSH server */
