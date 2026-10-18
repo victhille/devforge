@@ -24,10 +24,19 @@ export interface DockerImage {
 
 export interface ComposeProject {
   name: string
-  /** e.g. "running(2)", "exited(1)" */
+  /** e.g. "running(2)", "exited(1)"; empty when no container exists yet */
   status: string
   configFiles: string
+  /** Folder of the compose file, for projects found in DevForge projects */
+  dir?: string
+  /** DevForge projects using it */
+  projects?: string[]
+  running: number
+  total: number
 }
+
+export type ComposeAction = 'up' | 'stop' | 'restart' | 'down'
+export type ComposeTarget = Pick<ComposeProject, 'name' | 'configFiles' | 'dir'>
 
 export interface DockerOverview {
   /** false when the CLI is missing or the daemon is not running */
@@ -44,8 +53,11 @@ export type ContainerAction = 'start' | 'stop' | 'restart' | 'remove'
 export interface DockerAPI {
   overview: () => Promise<DockerOverview>
   container: (id: string, action: ContainerAction) => Promise<{ ok: boolean; output: string }>
-  compose: (name: string, configFiles: string, action: 'up' | 'down' | 'restart') => Promise<{ ok: boolean; output: string }>
-  /** Removes stopped containers, dangling images, unused networks and build cache */
+  compose: (target: ComposeTarget, action: ComposeAction) => Promise<{ ok: boolean; output: string }>
+  /** Streams `docker compose logs -f` under key `compose:<name>` */
+  composeLogs: (target: ComposeTarget) => Promise<string>
+  stopComposeLogs: (name: string) => Promise<void>
+  /** Removes stopped containers (except Compose ones), dangling images, unused networks and build cache */
   prune: () => Promise<{ ok: boolean; output: string }>
   /** Streams `docker logs -f` into the process log channel under key `docker:<id>` */
   followLogs: (id: string) => Promise<string>

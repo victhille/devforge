@@ -1,7 +1,8 @@
 import { dirname } from 'path'
-import type { ComposeProject, ContainerAction, DockerContainer, DockerImage, DockerOverview } from '@shared/types'
+import type { ComposeAction, ComposeProject, ComposeTarget, ContainerAction, DockerContainer, DockerImage, DockerOverview } from '@shared/types'
 import { runFile } from '../../lib/exec'
 import { processManager } from '../stacks/processManager'
+import { localComposeProjects } from './composeProjects'
 
 const docker = (args: string[], timeout = 15_000) => runFile('docker', args, { timeout })
 
@@ -45,10 +46,24 @@ export async function getOverview(): Promise<DockerOverview> {
     createdSince: i.CreatedSince
   }))
 
-  let projects: ComposeProject[] = []
-  try {
-    projects = (JSON.parse(compose.stdout || '[]') as RawCompose[]).map(p => ({ name: p.Name, status: p.Status, configFiles: p.ConfigFiles }))
-  } catch { /* compose plugin missing */ }
+  const count = (name: string) => {
+    const own = containers.filter(c => c.composeProject === name)
+    return { running: own.filter(c => c.state === 'running').length, total: own.length }
+  }
+  let known: RawCompose[] = []
+  try { known = JSON.parse(compose.stdout || '[]') as RawCompose[] } catch { /* compose plugin missing */ }
+
+  // Compose projects of DevForge projects first: they can be started even when
+  // no container exists yet (never started, or removed)
+  const projects: ComposeProject[] = localComposeProjects().map(l => ({
+    name: l.name, dir: l.dir, projects: l.projects,
+    status: known.find(k => k.Name === l.name)?.Status ?? '',
+    configFiles: known.find(k => k.Name === l.name)?.ConfigFiles ?? '',
+    ...count(l.name)
+  }))
+  for (const k of known) {
+    if (!projects.some(p => p.name === k.Name)) projects.push({ name: k.Name, status: k.Status, configFiles: k.ConfigFiles, ...count(k.Name) })
+  }
 
   return { available: true, version: info.stdout.trim(), containers, images: imgs, compose: projects }
 }
@@ -62,20 +77,65 @@ export async function containerAction(id: string, action: ContainerAction) {
   return { ok: r.ok, output: (r.stdout + r.stderr).trim() }
 }
 
-export async function composeAction(name: string, configFiles: string, action: 'up' | 'down' | 'restart') {
-  if (!ID_RE.test(name)) return { ok: false, output: 'Invalid project name' }
-  const files = configFiles.split(',').map(f => f.trim()).filter(Boolean)
-  const args = ['compose', '-p', name, ...files.flatMap(f => ['-f', f])]
-  const r = await runFile('docker', [...args, ...(action === 'up' ? ['up', '-d'] : [action])], {
-    timeout: 300_000,
-    cwd: files[0] ? dirname(files[0]) : undefined
-  })
+/**
+ * `docker compose` arguments and folder for a project. A DevForge project runs
+ * in its folder (compose reads the override and .env files by itself); others
+ * reuse the files `docker compose ls` reported.
+ */
+function composeCall(target: ComposeTarget): { args: string[]; cwd?: string } {
+  if (!ID_RE.test(target.name)) throw new Error('Invalid project name')
+  if (target.dir) {
+    // Only folders DevForge found itself
+    const local = localComposeProjects().find(l => l.dir === target.dir)
+    if (!local) throw new Error('Unknown compose project')
+    return { args: ['compose'], cwd: local.dir }
+  }
+  const files = target.configFiles.split(',').map(f => f.trim()).filter(Boolean)
+  return { args: ['compose', '-p', target.name, ...files.flatMap(f => ['-f', f])], cwd: files[0] ? dirname(files[0]) : undefined }
+}
+
+const COMPOSE_ARGS: Record<ComposeAction, string[]> = { up: ['up', '-d'], stop: ['stop'], restart: ['restart'], down: ['down'] }
+
+export async function composeAction(target: ComposeTarget, action: ComposeAction) {
+  let call: ReturnType<typeof composeCall>
+  try { call = composeCall(target) } catch (err) { return { ok: false, output: (err as Error).message } }
+  // `up` may build images: allow a long time
+  const r = await runFile('docker', [...call.args, ...COMPOSE_ARGS[action]], { timeout: 900_000, cwd: call.cwd })
   return { ok: r.ok, output: (r.stdout + r.stderr).trim() }
 }
 
+const composeLogKey = (name: string) => `compose:${name}`
+
+export async function followComposeLogs(target: ComposeTarget): Promise<string> {
+  const call = composeCall(target)
+  const key = composeLogKey(target.name)
+  const files = call.args.slice(1).map(a => (a.startsWith('-') ? a : `"${a}"`)).join(' ')
+  if (!processManager.isRunning(key)) {
+    processManager.start(key, `docker compose ${files ? files + ' ' : ''}logs -f --tail 200`,call.cwd ?? process.cwd())
+  }
+  return key
+}
+
+export const stopComposeLogs = (name: string) => processManager.stop(composeLogKey(name))
+
+/**
+ * Like `docker system prune`, but containers of Compose projects are kept:
+ * a stopped project must stay startable (its containers hold its state).
+ */
 export async function prune() {
-  const r = await docker(['system', 'prune', '-f'], 300_000)
-  return { ok: r.ok, output: (r.stdout + r.stderr).trim() }
+  const steps = [
+    ['container', 'prune', '-f', '--filter', 'label!=com.docker.compose.project'],
+    ['image', 'prune', '-f'],
+    ['network', 'prune', '-f'],
+    ['builder', 'prune', '-f']
+  ]
+  let output = ''
+  for (const args of steps) {
+    const r = await docker(args, 300_000)
+    output += (r.stdout + r.stderr).trim() + '\n'
+    if (!r.ok) return { ok: false, output: output.trim() }
+  }
+  return { ok: true, output: output.trim() }
 }
 
 const logKey = (id: string) => `docker:${id}`

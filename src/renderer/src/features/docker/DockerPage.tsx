@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Box, ChevronDown, ChevronRight, Container, ExternalLink, Layers, Play, RefreshCw, RotateCcw, Square, Trash2, Eraser } from 'lucide-react'
-import type { ContainerAction, DockerContainer, DockerOverview } from '@shared/types'
+import type { ComposeAction, ComposeProject, ContainerAction, DockerContainer, DockerOverview } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
@@ -79,6 +79,59 @@ function ContainerRow({ c, onAction, busy }: { c: DockerContainer; onAction: (a:
   )
 }
 
+function ComposeRow({ p, busy, onAction }: { p: ComposeProject; busy: boolean; onAction: (a: ComposeAction) => void }) {
+  const { t } = useI18n()
+  const d = t.docker
+  const [logs, setLogs] = useState<string | null>(null)
+  const target = { name: p.name, configFiles: p.configFiles, dir: p.dir }
+
+  async function toggleLogs() {
+    if (logs) { window.devforge.docker.stopComposeLogs(p.name); setLogs(null) }
+    else setLogs(await window.devforge.docker.composeLogs(target))
+  }
+  useEffect(() => () => { if (logs) window.devforge.docker.stopComposeLogs(p.name) }, [logs, p.name])
+
+  const state = p.total === 0 ? d.composeNever : d.composeRunning.replace('{n}', String(p.running)).replace('{total}', String(p.total))
+  return (
+    <div className="px-4 py-3">
+      <div className="flex items-center gap-3">
+        <button onClick={toggleLogs} className="text-fg-muted hover:text-fg disabled:opacity-40" aria-label={d.logs} disabled={p.total === 0}>
+          {logs ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        </button>
+        <span className={cn('size-2 shrink-0 rounded-full', p.running > 0 ? 'bg-success' : p.total > 0 ? 'bg-fg-muted' : 'border border-fg-muted')} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="flex items-center gap-2 font-medium text-fg">
+            {p.name}
+            {p.projects?.map(name => <Badge key={name}>{name}</Badge>)}
+          </span>
+          <span className="truncate font-mono text-2xs text-fg-muted">{p.dir ?? p.configFiles}</span>
+        </div>
+        <span className="shrink-0 text-xs text-fg-secondary">{state}</span>
+        {busy ? <Spinner className="mx-2" /> : (
+          <div className="flex shrink-0 gap-2">
+            {(p.total === 0 || p.running < p.total) && (
+              <Button size="sm" onClick={() => onAction('up')}><Play size={12} /> {d.start}</Button>
+            )}
+            {p.running > 0 && (
+              <>
+                <Button size="sm" variant="secondary" onClick={() => onAction('restart')}><RotateCcw size={12} /> {d.restart}</Button>
+                <Button size="sm" variant="secondary" onClick={() => onAction('stop')}><Square size={11} /> {d.stop}</Button>
+              </>
+            )}
+            {p.total > 0 && (
+              <IconButton title={d.composeDown} tone="danger"
+                onClick={() => { if (window.confirm(d.composeDownConfirm.replace('{name}', p.name))) onAction('down') }}>
+                <Trash2 size={13} />
+              </IconButton>
+            )}
+          </div>
+        )}
+      </div>
+      {logs && <div className="mt-2.5"><LogPanel procKey={logs} /></div>}
+    </div>
+  )
+}
+
 export default function DockerPage() {
   const { t } = useI18n()
   const d = t.docker
@@ -91,16 +144,22 @@ export default function DockerPage() {
 
   const reload = useCallback(async () => {
     setLoading(true)
-    try { setData(await window.devforge.docker.overview()) } finally { setLoading(false) }
+    try {
+      const o = await window.devforge.docker.overview()
+      setData(o)
+      return o
+    } finally { setLoading(false) }
   }, [])
 
-  useEffect(() => { reload() }, [reload])
+  // Nothing running yet: open on the projects that can be started
+  useEffect(() => { reload().then(o => { if (o.available && o.containers.length === 0 && o.compose.length) setTab('compose') }) }, [reload])
 
-  async function withBusy(id: string, fn: () => Promise<{ ok: boolean; output: string }>, label: string) {
+  async function withBusy(id: string, fn: () => Promise<{ ok: boolean; output: string }>, label: string, success?: string) {
     setBusy(prev => new Set(prev).add(id))
     try {
       const r = await fn()
-      if (!r.ok) toast.show({ tone: 'error', title: `${label} — ${d.failed}`, description: r.output })
+      if (!r.ok) toast.show({ tone: 'error', title: `${label} — ${d.failed}`, description: r.output.split('\n').slice(-6).join('\n') })
+      else if (success) toast.show({ tone: 'success', title: success })
       await reload()
     } finally {
       setBusy(prev => { const n = new Set(prev); n.delete(id); return n })
@@ -184,21 +243,9 @@ export default function DockerPage() {
           {tab === 'compose' && (data.compose.length === 0 ? <EmptyState title={d.noCompose} /> : (
             <Card className="divide-y divide-line-subtle">
               {data.compose.map(p => (
-                <div key={p.name} className="flex items-center gap-4 px-4 py-3">
-                  <span className={cn('size-2 rounded-full', p.status.startsWith('running') ? 'bg-success' : 'bg-fg-muted')} />
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <span className="font-medium text-fg">{p.name}</span>
-                    <span className="truncate font-mono text-2xs text-fg-muted">{p.configFiles}</span>
-                  </div>
-                  <Badge>{p.status}</Badge>
-                  {busy.has(p.name) ? <Spinner /> : (
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="secondary" onClick={() => withBusy(p.name, () => window.devforge.docker.compose(p.name, p.configFiles, 'up'), p.name)}><Play size={12} /> Up</Button>
-                      <Button size="sm" variant="secondary" onClick={() => withBusy(p.name, () => window.devforge.docker.compose(p.name, p.configFiles, 'restart'), p.name)}><RotateCcw size={12} /> Restart</Button>
-                      <Button size="sm" variant="ghost" onClick={() => withBusy(p.name, () => window.devforge.docker.compose(p.name, p.configFiles, 'down'), p.name)}><Square size={11} /> Down</Button>
-                    </div>
-                  )}
-                </div>
+                <ComposeRow key={p.name} p={p} busy={busy.has(p.name)}
+                  onAction={a => withBusy(p.name, () => window.devforge.docker.compose({ name: p.name, configFiles: p.configFiles, dir: p.dir }, a), p.name,
+                    a === 'up' ? d.composeStarted.replace('{name}', p.name) : undefined)} />
               ))}
             </Card>
           ))}

@@ -58,6 +58,8 @@ const api: DevForgeAPI = {
     overview:   invoke('docker:overview'),
     container:  invoke('docker:container'),
     compose:    invoke('docker:compose'),
+    composeLogs:     invoke('docker:compose-logs'),
+    stopComposeLogs: invoke('docker:stop-compose-logs'),
     prune:      invoke('docker:prune'),
     followLogs: invoke('docker:follow-logs'),
     stopLogs:   invoke('docker:stop-logs')

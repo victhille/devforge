@@ -7,6 +7,7 @@ import { getSshConnectionWithSecret, sshServerFor } from '../ssh/sshStorage'
 import { loadProjects } from '../projects/projectStorage'
 import { parseEnv } from '../envfiles/envFiles'
 import { listDbConnections, saveDbConnection } from './dbStorage'
+import { composeConfig, composeDirFor, localComposeProjects } from '../docker/composeProjects'
 
 type Found = Omit<DetectedDatabase, 'key' | 'exists' | 'hasPassword'> & { password?: string; sshConnectionId?: string }
 
@@ -214,9 +215,60 @@ function fromEnv(env: Record<string, string>): Omit<Found, 'name' | 'source' | '
   return null
 }
 
+/**
+ * Databases a compose project publishes on this PC, read from the resolved
+ * config: the port really used (override files, variables) and the
+ * credentials given to the container. More reliable than the app's .env,
+ * which often targets the Docker network (`database:5432`).
+ */
+async function fromCompose(dir: string, label: string): Promise<Found[]> {
+  const config = await composeConfig(dir)
+  const found: Found[] = []
+  for (const [service, s] of Object.entries(config?.services ?? {})) {
+    const img = (s.image ?? '').toLowerCase()
+    const type = /postgres|postgis|timescale/.test(img) ? 'postgres' : /mysql|mariadb|percona/.test(img) ? 'mysql' : null
+    if (!type) continue
+    const inner = type === 'postgres' ? 5432 : 3306
+    const port = Number(s.ports?.find(p => p.target === inner)?.published)
+    if (!port) continue
+    const env = Object.fromEntries(Object.entries(s.environment ?? {}).map(([k, v]) => [k, v ?? '']))
+    const user = type === 'postgres' ? env.POSTGRES_USER || 'postgres' : env.MYSQL_USER || env.MARIADB_USER || 'root'
+    const password = type === 'postgres' ? env.POSTGRES_PASSWORD
+      : env.MYSQL_USER || env.MARIADB_USER ? env.MYSQL_PASSWORD || env.MARIADB_PASSWORD : env.MYSQL_ROOT_PASSWORD || env.MARIADB_ROOT_PASSWORD
+    const database = type === 'postgres' ? env.POSTGRES_DB || user : env.MYSQL_DATABASE || env.MARIADB_DATABASE
+    found.push({
+      name: `${database ?? service} (${label})`, type, host: '127.0.0.1', port, user, password: password || undefined, database,
+      source: 'docker', origin: `${label}/compose · ${service}`
+    })
+  }
+  return found
+}
+
+/**
+ * Same database published by a local compose project on another port, e.g.
+ * 5433 because a PostgreSQL installed on Windows already holds 5432.
+ */
+export async function findInCompose(c: DbConnection): Promise<Found | undefined> {
+  for (const p of localComposeProjects()) {
+    const match = (await fromCompose(p.dir, p.projects[0])).find(f =>
+      f.type === c.type && f.port !== c.port && (c.database ? f.database === c.database : f.user === c.user))
+    if (match) return match
+  }
+  return undefined
+}
+
 export async function detectLocal(): Promise<DetectedDatabase[]> {
   const found: Found[] = []
+  const composeDone = new Set<string>()
   await Promise.all(loadProjects().map(async p => {
+    // A compose project describes its database better than the app's .env
+    const dir = composeDirFor(p.path)
+    if (dir) {
+      if (composeDone.has(dir)) return
+      composeDone.add(dir)
+      const fromDocker = await fromCompose(dir, p.name)
+      if (fromDocker.length) { found.push(...fromDocker); return }
+    }
     // .env.local overrides .env, like most frameworks
     const merged: Record<string, string> = {}
     let origin = ''
