@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+import { ArrowDown, ArrowUp } from 'lucide-react'
 import type { DbQueryResult } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -12,7 +14,20 @@ function toCsv(r: DbQueryResult): string {
   return [r.columns.map(q).join(','), ...r.rows.map(row => row.map(q).join(','))].join('\n')
 }
 
-export default function ResultGrid({ result }: { result: DbQueryResult }) {
+export interface GridSort { column: string; desc: boolean }
+
+interface Props {
+  result: DbQueryResult
+  /** Number of the first row (paged browsing) */
+  rowOffset?: number
+  /** Clickable headers when set */
+  sort?: GridSort | null
+  onSort?: (sort: GridSort | null) => void
+  /** Replaces the row count on the left of the toolbar (pagination) */
+  toolbar?: ReactNode
+}
+
+export default function ResultGrid({ result, rowOffset = 0, sort, onSort, toolbar }: Props) {
   const { t } = useI18n()
   const d = t.database
 
@@ -27,10 +42,14 @@ export default function ResultGrid({ result }: { result: DbQueryResult }) {
     )
   }
 
+  // asc → desc → none
+  const nextSort = (column: string): GridSort | null =>
+    sort?.column !== column ? { column, desc: false } : !sort.desc ? { column, desc: true } : null
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex shrink-0 items-center gap-3 border-b border-line-subtle px-3 py-1.5 text-xs text-fg-muted">
-        <span>{d.rows.replace('{n}', String(result.rows.length))}{result.truncated ? ` (${d.truncated})` : ''}</span>
+        {toolbar ?? <span>{d.rows.replace('{n}', String(result.rows.length))}{result.truncated ? ` (${d.truncated})` : ''}</span>}
         <span>{result.durationMs} ms</span>
         <span className="ml-auto flex items-center gap-1">CSV <CopyButton text={toCsv(result)} /></span>
       </div>
@@ -40,14 +59,22 @@ export default function ResultGrid({ result }: { result: DbQueryResult }) {
             <tr>
               <th className="border-r border-b border-line-subtle px-2 py-1.5 text-right text-fg-muted">#</th>
               {result.columns.map((c, i) => (
-                <th key={i} className="border-r border-b border-line-subtle px-3 py-1.5 text-left font-semibold whitespace-nowrap text-fg">{c}</th>
+                <th key={i} className="border-r border-b border-line-subtle p-0 text-left font-semibold whitespace-nowrap text-fg">
+                  {onSort ? (
+                    <button onClick={() => onSort(nextSort(c))} title={d.sortHint}
+                      className="flex w-full items-center gap-1 px-3 py-1.5 hover:bg-hover">
+                      {c}
+                      {sort?.column === c && (sort.desc ? <ArrowDown size={11} className="text-accent" /> : <ArrowUp size={11} className="text-accent" />)}
+                    </button>
+                  ) : <span className="block px-3 py-1.5">{c}</span>}
+                </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {result.rows.map((row, ri) => (
               <tr key={ri} className="hover:bg-hover">
-                <td className="border-r border-b border-line-subtle px-2 py-1 text-right text-fg-muted">{ri + 1}</td>
+                <td className="border-r border-b border-line-subtle px-2 py-1 text-right text-fg-muted">{rowOffset + ri + 1}</td>
                 {row.map((v, ci) => (
                   <td key={ci} title={v === null ? 'NULL' : String(v)}
                     className={cn('max-w-80 truncate border-r border-b border-line-subtle px-3 py-1', v === null ? 'italic text-fg-muted' : 'text-fg-secondary')}>

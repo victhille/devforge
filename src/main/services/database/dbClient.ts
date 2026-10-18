@@ -4,7 +4,9 @@ import { dirname, join } from 'path'
 import mysql from 'mysql2/promise'
 import pg from 'pg'
 import initSqlJs, { type Database as SqlJsDb, type SqlJsStatic } from 'sql.js'
-import type { DbConnection, DbQueryResult, DbTable } from '@shared/types'
+import type { DbBrowseOptions, DbBrowseResult, DbConnection, DbOverview, DbQueryResult, DbTable, DbTableDetails, DbTableRef } from '@shared/types'
+import { detailsFor, overviewFor, type Raw } from './dbMeta'
+import { quoteColumn, quoteIdent } from '@shared/lib/sqlQuote'
 import { getDbConnection, saveDbConnection } from './dbStorage'
 import { findInCompose, findOnServer } from './dbDetect'
 import { openTunnel } from '../ssh/sshClient'
@@ -20,6 +22,8 @@ interface Driver {
   version(): Promise<string>
   schema(): Promise<DbTable[]>
   query(sql: string): Promise<Omit<DbQueryResult, 'durationMs'>>
+  /** Parameterized catalog query, rows as objects */
+  raw: Raw
   close(): Promise<void>
   /** Called once if the server drops the connection (restart, container stopped…) */
   onLost?(cb: () => void): void
@@ -58,7 +62,11 @@ async function mysqlDriver(c: DbConnection): Promise<Driver> {
   const onLost = lostSignal(conn, ['error', 'end'])
   return {
     onLost,
-    async version() { const [r] = await conn.query('SELECT VERSION() AS v'); return `MySQL ${(r as { v: string }[])[0].v}` },
+    async version() {
+      const v = (await conn.query('SELECT VERSION() AS v'))[0] as { v: string }[]
+      const m = v[0].v.match(/^([\d.]+)-MariaDB/)
+      return m ? `MariaDB ${m[1]}` : `MySQL ${v[0].v}`
+    },
     async schema() {
       const [cols] = await conn.query(
         `SELECT c.TABLE_NAME t, c.COLUMN_NAME n, c.COLUMN_TYPE ty, c.IS_NULLABLE nu, c.COLUMN_KEY k, tb.TABLE_TYPE tt
@@ -77,6 +85,7 @@ async function mysqlDriver(c: DbConnection): Promise<Driver> {
       const { rows, truncated } = limitRows((result as unknown[][]).map(r => r.map(cell)))
       return { columns: (fields ?? []).map(f => f.name), rows, affected: null, truncated }
     },
+    async raw(sql, params = []) { const [rows] = await conn.query({ sql, values: params, timeout: 60_000 }); return rows as Record<string, unknown>[] },
     close: () => conn.end()
   }
 }
@@ -114,6 +123,7 @@ async function postgresDriver(c: DbConnection): Promise<Driver> {
       const { rows, truncated } = limitRows((res.rows as unknown[][]).map(row => row.map(cell)))
       return { columns: res.fields.map((f: { name: string }) => f.name), rows, affected: null, truncated }
     },
+    async raw(sql, params = []) { return (await client.query(sql, params as unknown[])).rows },
     close: () => client.end()
   }
 }
@@ -153,6 +163,15 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
       if (!last) return { columns: [], rows: [], affected: changed, truncated: false }
       const { rows, truncated } = limitRows(last.values.map(r => r.map(cell)))
       return { columns: last.columns, rows, affected: null, truncated }
+    },
+    async raw(sql, params = []) {
+      const stmt = db.prepare(sql)
+      try {
+        stmt.bind(params as (string | number | null)[])
+        const rows: Record<string, unknown>[] = []
+        while (stmt.step()) rows.push(stmt.getAsObject())
+        return rows
+      } finally { stmt.free() }
     },
     async close() { db.close() }
   }
@@ -305,4 +324,38 @@ export async function dbQuery(id: string, sql: string): Promise<DbQueryResult> {
     if (/closed|terminated|ECONNRESET|Connection lost/i.test(String(err))) await closeDb(id)
     return { columns: [], rows: [], affected: null, truncated: false, durationMs: Date.now() - start, error: err instanceof Error ? err.message : String(err) }
   }
+}
+
+// ─── Explorer (overview, table details, paged rows) ───────────────────────────
+
+function connOf(id: string): DbConnection {
+  const c = getDbConnection(id)
+  if (!c) throw new Error('Unknown connection')
+  return c
+}
+
+export async function dbOverview(id: string): Promise<DbOverview> {
+  const c = connOf(id)
+  const d = await driverFor(id)
+  return overviewFor(c.type, d.raw, await d.version(), c.file)
+}
+
+export async function dbDetails(id: string, t: DbTableRef): Promise<DbTableDetails> {
+  const c = connOf(id)
+  const d = await driverFor(id)
+  const stats = (await overviewFor(c.type, d.raw, '', c.file).catch(() => null))?.tables
+    .find(s => s.name === t.name && s.schema === t.schema) ?? null
+  return detailsFor(c.type, d.raw, t, stats)
+}
+
+export async function dbBrowse(id: string, t: DbTableRef, o: DbBrowseOptions): Promise<DbBrowseResult> {
+  const c = connOf(id)
+  const table = quoteIdent(c.type, t)
+  const limit = Math.min(Math.max(Math.floor(o.limit) || 50, 1), ROW_LIMIT)
+  const offset = Math.max(Math.floor(o.offset) || 0, 0)
+  const order = o.orderBy ? ` ORDER BY ${quoteColumn(c.type, o.orderBy)} ${o.desc ? 'DESC' : 'ASC'}` : ''
+  const page = await dbQuery(id, `SELECT * FROM ${table}${order} LIMIT ${limit} OFFSET ${offset}`)
+  if (page.error) return { ...page, total: null }
+  const count = await dbQuery(id, `SELECT COUNT(*) FROM ${table}`)
+  return { ...page, total: count.error ? null : Number(count.rows[0]?.[0]) }
 }

@@ -39,6 +39,81 @@ export interface DbQueryResult {
   error?: string
 }
 
+export interface DbTableRef { name: string; schema: string }
+
+/** One table in the database overview (sizes and counts may be estimates) */
+export interface DbTableStat extends DbTableRef {
+  type: 'table' | 'view'
+  rows: number | null
+  dataBytes: number | null
+  indexBytes: number | null
+  engine?: string
+  collation?: string
+  comment?: string
+}
+
+export interface DbOverview {
+  version: string
+  database: string
+  sizeBytes: number | null
+  encoding?: string
+  collation?: string
+  tables: DbTableStat[]
+}
+
+export interface DbColumnInfo {
+  name: string
+  type: string
+  nullable: boolean
+  default: string | null
+  /** PRI primary key, UNI unique, MUL first column of a non-unique index */
+  key: 'PRI' | 'UNI' | 'MUL' | ''
+  /** auto_increment, identity, generated… */
+  extra: string
+  comment: string
+}
+
+export interface DbIndexInfo {
+  name: string
+  columns: string[]
+  unique: boolean
+  primary: boolean
+  type: string
+}
+
+export interface DbForeignKey {
+  name: string
+  /** Referencing table (for "referenced by") or referenced table */
+  table: string
+  columns: string[]
+  refColumns: string[]
+  onUpdate: string
+  onDelete: string
+}
+
+export interface DbTableDetails {
+  columns: DbColumnInfo[]
+  indexes: DbIndexInfo[]
+  /** This table → other tables */
+  foreignKeys: DbForeignKey[]
+  /** Other tables → this table (`table` is the referencing one) */
+  referencedBy: DbForeignKey[]
+  ddl: string | null
+  stats: DbTableStat | null
+}
+
+export interface DbBrowseOptions {
+  offset: number
+  limit: number
+  orderBy?: string
+  desc?: boolean
+}
+
+export interface DbBrowseResult extends DbQueryResult {
+  /** Exact row count, null if it could not be computed */
+  total: number | null
+}
+
 /** A database found on a server, ready to be added in one click */
 export interface DetectedDatabase {
   /** Opaque key: credentials stay in the main process */
@@ -65,6 +140,12 @@ export interface DatabaseAPI {
   test:   (c: DbConnection) => Promise<string>
   schema: (id: string) => Promise<DbTable[]>
   query:  (id: string, sql: string) => Promise<DbQueryResult>
+  /** Database info and every table with its size and row estimate */
+  overview: (id: string) => Promise<DbOverview>
+  /** Columns, indexes, foreign keys and DDL of one table */
+  details: (id: string, table: DbTableRef) => Promise<DbTableDetails>
+  /** One page of a table's rows */
+  browse: (id: string, table: DbTableRef, opts: DbBrowseOptions) => Promise<DbBrowseResult>
   /** Look for databases on a server (Docker containers + native services) */
   detectRemote: (sshConnectionId: string) => Promise<DetectedDatabase[]>
   /** Save a detected database as a connection, returns its id */
