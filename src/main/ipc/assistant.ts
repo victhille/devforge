@@ -2,6 +2,7 @@ import { ipcMain, type BrowserWindow } from 'electron'
 import type { AssistantConfigUpdate, AssistantSendRequest } from '@shared/types'
 import { getConfig, listConversations, loadConversation, monthUsage, publicConversation, removeConversation, saveConfig } from '../services/assistant/assistantStorage'
 import { sendToAssistant, setAssistantEmitter, stopAssistant } from '../services/assistant/assistantService'
+import { launchAiTool, listAiTools } from '../services/system/aiTools'
 
 export function registerAssistantHandlers(win: BrowserWindow): void {
   setAssistantEmitter(e => { if (!win.isDestroyed()) win.webContents.send('assistant:event', e) })
@@ -13,4 +14,6 @@ export function registerAssistantHandlers(win: BrowserWindow): void {
   ipcMain.handle('assistant:get',         (_e, id: string) => { const c = loadConversation(id); return c ? publicConversation(c) : null })
   ipcMain.handle('assistant:remove',      (_e, id: string) => removeConversation(id))
   ipcMain.handle('assistant:usage',       () => monthUsage())
+  ipcMain.handle('ai-tools:list',         () => listAiTools())
+  ipcMain.handle('ai-tools:launch',       (_e, id: unknown, dir: unknown) => launchAiTool(id, dir))
 }

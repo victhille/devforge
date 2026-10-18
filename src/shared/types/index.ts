@@ -196,7 +196,7 @@ import type { DatabaseAPI } from './database'
 import type { LogsAPI } from './logs'
 import type { WebhooksAPI } from './webhooks'
 import type { SuggestAPI } from './suggest'
-import type { AssistantAPI } from './assistant'
+import type { AiToolsAPI, AssistantAPI } from './assistant'
 
 // ─── HTTP (API tester) ───────────────────────────────────────────────────────
 
@@ -237,6 +237,7 @@ export interface DevForgeAPI {
   suggest: SuggestAPI
   http: { request: (req: HttpRequest) => Promise<HttpResponse> }
   assistant: AssistantAPI
+  aiTools: AiToolsAPI
 
   // SSH
   getSshConnections: () => Promise<SSHConnection[]>

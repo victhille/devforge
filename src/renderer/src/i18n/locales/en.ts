@@ -235,6 +235,11 @@ const en = {
 
   // ── Settings ──────────────────────────────────────────────────────────────
   assistant: {
+    openWith: "Open with",
+    launchHint: "Opens {name} in a terminal, in the chosen project (uses your subscription)",
+    notInstalled: "{name} is not installed: click to see how to install it",
+    webAppHint: "Opens {name} in the browser (your subscription)",
+    launchFailed: "Could not open {name}",
     mascotName: "Forgy",
     greeting: "Hi, I'm Forgy! I read your code, logs and databases to help you.",
     moods: {
@@ -297,6 +302,7 @@ const en = {
     budgetHint: "The assistant stops when the month reaches this amount (estimated from tokens). 0 = no limit.",
     spentThisMonth: "${n} spent this month",
     tools: {
+      web_search: "Web search",
       list_projects: "Projects",
       list_files: "Files",
       read_file: "Reading",

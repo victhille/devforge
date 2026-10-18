@@ -28,8 +28,11 @@ vi.mock('@anthropic-ai/sdk', () => {
           const msg = h.script.shift()!
           if (msg.throw) throw msg.throw
           return {
-            on: (event: string, cb: (t: string) => void) => {
-              if (event === 'text') for (const b of (msg.content ?? []) as { type: string; text?: string }[]) if (b.type === 'text') cb(b.text!)
+            on: (event: string, cb: (t: unknown) => void) => {
+              const content = (msg.content ?? []) as { type: string; text?: string }[]
+              if (event === 'text') for (const b of content) if (b.type === 'text') cb(b.text!)
+              // Server tools announce themselves with a content_block_start event
+              if (event === 'streamEvent') content.forEach((b, index) => { if (b.type === 'server_tool_use') cb({ type: 'content_block_start', index, content_block: b }) })
             },
             finalMessage: async () => { if (msg.rejectFinal) throw msg.rejectFinal; return msg }
           }
@@ -200,5 +203,43 @@ describe('assistant loop', () => {
     const { events } = await ask('Boucle')
     expect(h.calls).toHaveLength(8)
     expect(events.some(e => e.type === 'error' && e.code === 'limit')).toBe(true)
+  })
+})
+
+describe('web search', () => {
+  it('is offered to web skills on Sonnet, shown while it runs, billed and cited', async () => {
+    h.calls.length = 0
+    h.script.push({
+      stop_reason: 'end_turn', model: 'claude-sonnet-5-5',
+      usage: { input_tokens: 1000, output_tokens: 100, cache_read_input_tokens: 0, cache_creation_input_tokens: 0, server_tool_use: { web_search_requests: 2, web_fetch_requests: 0 } },
+      content: [
+        { type: 'server_tool_use', id: 'srv1', name: 'web_search', input: { query: 'météo Paris' } },
+        { type: 'web_search_tool_result', tool_use_id: 'srv1', content: [{ type: 'web_search_result', url: 'https://meteo.example/paris', title: 'Météo Paris' }] },
+        { type: 'text', text: 'Il fait beau.', citations: [{ type: 'web_search_result_location', url: 'https://meteo.example/paris', title: 'Météo Paris', cited_text: '…', encrypted_index: 'x' }] }
+      ]
+    })
+    const { id } = await ask('Quel temps à Paris ?', { skill: 'web-search' })
+    const tools = h.calls[0].tools as { name: string; type?: string; max_uses?: number; user_location?: { country?: string } }[]
+    const web = tools.find(t => t.name === 'web_search')!
+    expect(web).toMatchObject({ type: 'web_search_20260209', max_uses: 3, user_location: { type: 'approximate', country: 'FR' } })
+
+    const conv = loadConversation(id)!
+    expect(conv.items.find(i => i.kind === 'tool')).toMatchObject({ name: 'web_search', summary: 'météo Paris', status: 'done' })
+    expect(conv.items.at(-1)).toMatchObject({ kind: 'assistant' })
+    expect((conv.items.at(-1) as { text: string }).text).toContain('[Météo Paris](https://meteo.example/paris)')
+    const { costOf } = await import('../../src/shared/data/assistantSkills')
+    expect(conv.cost).toBeCloseTo(costOf('claude-sonnet-5-5', { input: 1000, output: 100, cacheRead: 0, cacheWrite: 0 }) + 0.02, 6)
+  })
+
+  it('is not offered to other skills nor on Haiku', async () => {
+    h.calls.length = 0
+    const ok = { stop_reason: 'end_turn', content: [{ type: 'text', text: 'ok' }] }
+    h.script.push({ ...ok }, { ...ok })
+    await ask('Erreur ?', { skill: 'explain-error' })
+    const { saveConfig } = await import('../../src/main/services/assistant/assistantStorage')
+    saveConfig({ model: 'claude-haiku-5-5' })
+    await ask('Actu ?', { skill: 'web-search' })
+    saveConfig({ model: 'auto' })
+    for (const call of h.calls) expect((call.tools as { name: string }[]).some(t => t.name === 'web_search')).toBe(false)
   })
 })

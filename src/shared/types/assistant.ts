@@ -87,6 +87,24 @@ export type AssistantEvent =
   | { conversationId: string; type: 'error'; code: AssistantErrorCode; message: string }
   | { conversationId: string; type: 'done'; stopped: boolean }
 
+// ─── Official AI tools (run on the user's own subscriptions) ─────────────────
+
+export type AiToolId = 'claude-code' | 'codex' | 'antigravity' | 'gemini-cli'
+
+export interface AiToolInfo {
+  id: AiToolId
+  name: string
+  command: string
+  installUrl: string
+  installed: boolean
+}
+
+export interface AiToolsAPI {
+  list: () => Promise<AiToolInfo[]>
+  /** Opens a terminal running the tool in the project folder (home folder when null) */
+  launch: (id: AiToolId, projectPath: string | null) => Promise<void>
+}
+
 export interface AssistantAPI {
   getConfig: () => Promise<AssistantConfig>
   saveConfig: (update: AssistantConfigUpdate) => Promise<AssistantConfig>
