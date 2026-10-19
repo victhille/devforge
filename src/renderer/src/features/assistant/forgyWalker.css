@@ -1,0 +1,80 @@
+/* Forgy strolling along the bottom of the window, Boulon the dog with him.
+   Built from plain boxes: every motion is a transform on an HTML element, so
+   the compositor animates it without touching the main thread (an animated
+   SVG would cost a style and layout pass per frame). */
+
+.fw-stage { position: absolute; inset: auto 0 0 0; height: 96px; overflow: hidden; pointer-events: none; z-index: 20; }
+
+/* Movers slide with a CSS transition; the duration is set from the distance */
+.fw-mover { position: absolute; bottom: 4px; left: 0; transition-property: transform; transition-timing-function: linear; will-change: transform; }
+.fw-face { transition: transform .18s ease; }
+.fw-face[data-dir='-1'] { transform: scaleX(-1); }
+
+/* ─── Forgy ─── */
+.fw-forgy { position: relative; width: 48px; height: 72px; }
+.fw-up { position: absolute; inset: 0; }
+.fw-head { position: absolute; left: 2px; top: 0; }
+.fw-torso { position: absolute; left: 13px; top: 36px; width: 22px; height: 19px; border-radius: 8px; background: #F3F5F8; box-shadow: inset 0 -3px 0 #DDE2E9; }
+.fw-core { position: absolute; left: 7px; top: 6px; width: 8px; height: 5px; border-radius: 3px; background: #151A22; }
+.fw-core::after { content: ''; position: absolute; left: 2.5px; top: 1.5px; width: 3px; height: 2px; border-radius: 1px; background: #FF9A3C; }
+.fw-arm { position: absolute; top: 39px; width: 5px; height: 14px; border-radius: 3px; background: #DDE2E9; transform-origin: 50% 2px; }
+.fw-arm.l { left: 8px; } .fw-arm.r { right: 8px; }
+.fw-leg { position: absolute; top: 53px; width: 6px; height: 15px; border-radius: 3px; background: #C9CFD8; transform-origin: 50% 0; }
+.fw-leg::after { content: ''; position: absolute; bottom: -2px; left: -2px; width: 10px; height: 5px; border-radius: 3px; background: #AEB6C2; }
+.fw-leg.l { left: 16px; } .fw-leg.r { right: 16px; }
+
+/* Each animation packs 4 swings (8 bobs) into one long iteration: a short
+   alternating loop restarts several times a second, and every restart costs
+   a style pass on the main thread. --cy is the length of one step cycle. */
+@keyframes fw-leg  { 0%, 25%, 50%, 75%, 100% { transform: rotate(20deg); } 12.5%, 37.5%, 62.5%, 87.5% { transform: rotate(-20deg); } }
+@keyframes fw-arm  { 0%, 25%, 50%, 75%, 100% { transform: rotate(-16deg); } 12.5%, 37.5%, 62.5%, 87.5% { transform: rotate(16deg); } }
+@keyframes fw-bob  { 0%, 12.5%, 25%, 37.5%, 50%, 62.5%, 75%, 87.5%, 100% { transform: translateY(0); } 6.25%, 18.75%, 31.25%, 43.75%, 56.25%, 68.75%, 81.25%, 93.75% { transform: translateY(-2px); } }
+@keyframes fw-wave { 0%, 25%, 50%, 75%, 100% { transform: rotate(-165deg); } 12.5%, 37.5%, 62.5%, 87.5% { transform: rotate(-125deg); } }
+@keyframes fw-breathe { 0%, 100% { transform: translateY(8px); } 50% { transform: translateY(9.5px); } }
+
+[data-pose='walk'] { --cy: 1s; }
+[data-pose='run'] { --cy: .56s; }
+[data-pose='walk'] .fw-leg, [data-pose='run'] .fw-leg { animation: fw-leg calc(var(--cy) * 4) ease-in-out infinite; }
+[data-pose='walk'] .fw-arm, [data-pose='run'] .fw-arm { animation: fw-arm calc(var(--cy) * 4) ease-in-out infinite; }
+/* Opposite limbs half a step apart */
+[data-pose] .fw-leg.r, [data-pose] .fw-arm.l { animation-delay: calc(var(--cy) / -2); }
+[data-pose='walk'] .fw-up, [data-pose='run'] .fw-up { animation: fw-bob calc(var(--cy) * 4) ease-in-out infinite; }
+[data-pose='wave'] .fw-arm.r { z-index: 1; animation: fw-wave 3.6s ease-in-out infinite; }
+[data-pose='sit'] .fw-leg, [data-pose='sleep'] .fw-leg { transform-origin: 50% 100%; transform: scaleY(.45); }
+[data-pose='sit'] .fw-up { transform: translateY(8px); }
+[data-pose='sit'] .fw-arm.l { transform: rotate(-25deg); }
+[data-pose='sit'] .fw-arm.r { transform: rotate(25deg); }
+[data-pose='sleep'] .fw-up { animation: fw-breathe 3.2s ease-in-out infinite; }
+
+/* Speech bubble while waving */
+.fw-bubble { position: absolute; left: 40px; top: -6px; white-space: nowrap; padding: 4px 9px; border-radius: 10px 10px 10px 3px; background: var(--forgy); color: #1A0E04; font-size: 12px; font-weight: 600; animation: df-pop .25s cubic-bezier(.3, .7, .4, 1.4) both; }
+
+/* ─── Boulon ─── */
+.fw-dog { position: relative; width: 46px; height: 30px; }
+.fw-dog-up { position: absolute; inset: 0; }
+.fw-dog-body { position: absolute; left: 6px; top: 11px; width: 28px; height: 12px; border-radius: 6px; background: #E8ECF1; }
+.fw-dog-head { position: absolute; left: 28px; top: 2px; width: 16px; height: 14px; border-radius: 6px; background: #F3F5F8; }
+.fw-dog-head::before { content: ''; position: absolute; left: 1px; top: -4px; border-left: 3px solid transparent; border-right: 3px solid transparent; border-bottom: 6px solid #C9CFD8; }
+.fw-dog-visor { position: absolute; left: 6px; top: 4px; width: 9px; height: 6px; border-radius: 3px; background: #151A22; }
+.fw-dog-visor::after { content: ''; position: absolute; left: 4px; top: 1.5px; width: 3px; height: 3px; border-radius: 50%; background: #FF9A3C; }
+.fw-dog-collar { position: absolute; left: 28px; top: 15px; width: 4px; height: 4px; border-radius: 1px; background: #FF9A3C; }
+.fw-dog-tail { position: absolute; left: 3px; top: 3px; width: 3px; height: 11px; border-radius: 2px; background: #C9CFD8; transform-origin: 50% 100%; transform: rotate(-30deg); }
+.fw-dog-leg { position: absolute; top: 21px; width: 4px; height: 8px; border-radius: 2px; background: #AEB6C2; transform-origin: 50% 0; }
+.fw-dog-leg.a1 { left: 9px; } .fw-dog-leg.b1 { left: 14px; } .fw-dog-leg.a2 { left: 24px; } .fw-dog-leg.b2 { left: 29px; }
+
+@keyframes fw-dleg { 0%, 25%, 50%, 75%, 100% { transform: rotate(28deg); } 12.5%, 37.5%, 62.5%, 87.5% { transform: rotate(-28deg); } }
+@keyframes fw-wag  { 0%, 25%, 50%, 75%, 100% { transform: rotate(-40deg); } 12.5%, 37.5%, 62.5%, 87.5% { transform: rotate(-5deg); } }
+
+/* Boulon trots a bit faster than Forgy walks */
+[data-pose='walk'] .fw-dog-leg, [data-pose='run'] .fw-dog-leg { animation: fw-dleg calc(var(--cy) * 3.2) ease-in-out infinite; }
+[data-pose] .fw-dog-leg.b1, [data-pose] .fw-dog-leg.b2 { animation-delay: calc(var(--cy) * -.4); }
+[data-pose='walk'] .fw-dog-up, [data-pose='run'] .fw-dog-up { animation: fw-bob calc(var(--cy) * 3.2) ease-in-out infinite; }
+[data-pose='walk'] .fw-dog-tail, [data-pose='run'] .fw-dog-tail, [data-pose='wave'] .fw-dog-tail { animation: fw-wag 2.4s ease-in-out infinite; }
+[data-pose='sit'] .fw-dog-tail { animation: fw-wag 9.6s ease-in-out infinite; }
+[data-pose='sit'] .fw-dog-leg, [data-pose='sleep'] .fw-dog-leg { transform: scaleY(.25); }
+[data-pose='sit'] .fw-dog-up, [data-pose='sleep'] .fw-dog-up { transform: translateY(6px); }
+[data-pose='sleep'] .fw-dog-visor::after { height: 1px; top: 2.5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fw-mover { transition: none; }
+}

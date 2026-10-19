@@ -13,8 +13,21 @@ interface Toast {
   action?: { label: string; onClick: () => void }
 }
 
+/** A past success or error, shown in the home page's activity card */
+export interface ActivityEntry { at: number; tone: Tone; title: string }
+
 interface ToastContextValue {
   show: (toast: Omit<Toast, 'id'>) => void
+}
+
+// Separate context: the toast API stays stable while the log changes
+const ActivityContext = createContext<ActivityEntry[]>([])
+
+const ACTIVITY_KEY = 'devforge:activity'
+const ACTIVITY_MAX = 20
+
+function loadActivity(): ActivityEntry[] {
+  try { return JSON.parse(localStorage.getItem(ACTIVITY_KEY) ?? '[]') as ActivityEntry[] } catch { return [] }
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null)
@@ -28,6 +41,7 @@ let nextId = 1
 /** Small stacked notifications in the bottom-right corner. */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
+  const [activity, setActivity] = useState<ActivityEntry[]>(loadActivity)
 
   const dismiss = useCallback((id: number) => setToasts(list => list.filter(t => t.id !== id)), [])
 
@@ -35,6 +49,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const id = nextId++
     setToasts(list => [...list.slice(-3), { ...toast, id }])
     setTimeout(() => dismiss(id), toast.action ? 10_000 : DURATION[toast.tone])
+    // Every notification also lands in the activity log (newest first)
+    setActivity(list => {
+      const next = [{ at: Date.now(), tone: toast.tone, title: toast.title }, ...list].slice(0, ACTIVITY_MAX)
+      try { localStorage.setItem(ACTIVITY_KEY, JSON.stringify(next)) } catch { /* ignore */ }
+      return next
+    })
   }, [dismiss])
 
   // Stable value: consumers can safely put the toast API in effect deps
@@ -42,7 +62,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   return (
     <ToastContext.Provider value={value}>
-      {children}
+      <ActivityContext.Provider value={activity}>{children}</ActivityContext.Provider>
       <div className="pointer-events-none fixed right-5 bottom-5 z-[60] flex w-96 flex-col gap-2">
         {toasts.map(t => {
           const Icon = ICON[t.tone]
@@ -81,4 +101,9 @@ export function useToast() {
   const ctx = useContext(ToastContext)
   if (!ctx) throw new Error('useToast must be used inside ToastProvider')
   return ctx
+}
+
+/** Recent notifications, newest first (kept across restarts) */
+export function useActivity(): ActivityEntry[] {
+  return useContext(ActivityContext)
 }

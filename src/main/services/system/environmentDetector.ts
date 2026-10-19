@@ -62,7 +62,8 @@ const TOOL_DEFINITIONS: ToolDef[] = [
     args: ['--version'],
     required: false,
     parseVersion: (o) => {
-      const m = o.match(/[\d.]+/)
+      // "git version 2.45.1.windows.1" → v2.45.1
+      const m = o.match(/\d+(?:\.\d+)+/)
       return m ? `v${m[0]}` : o.trim()
     }
   },
@@ -117,7 +118,9 @@ function toTool(def: ToolDef, output: string | null): EnvironmentTool {
     id: def.id,
     name: def.name,
     command: `${def.command} ${def.args.join(' ')}`,
-    version: output === null ? null : def.parseVersion(output),
+    // Some CLIs (symfony) colour their output even when piped
+    // eslint-disable-next-line no-control-regex
+    version: output === null ? null : def.parseVersion(output.replace(/\u001b\[[\d;]*m/g, '')),
     status: output === null ? 'not_detected' : 'detected',
     required: def.required
   }

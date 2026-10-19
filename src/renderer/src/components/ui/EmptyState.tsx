@@ -13,7 +13,7 @@ export default function EmptyState({ icon, title, description, action, className
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-line px-6 py-12 text-center',
+        'df-rise flex flex-col items-center justify-center gap-3 rounded-[14px] border border-dashed border-line px-6 py-12 text-center',
         className
       )}
     >

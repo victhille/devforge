@@ -134,7 +134,16 @@ const api: DevForgeAPI = {
     get:        invoke('assistant:get'),
     remove:     invoke('assistant:remove'),
     usage:      invoke('assistant:usage'),
-    onEvent:    on('assistant:event')
+    onEvent:    on('assistant:event'),
+    onOpenConversation: on('assistant:open-conversation')
+  },
+
+  widget: {
+    resize:    invoke('widget:resize'),
+    setOpen:   invoke('widget:set-open'),
+    openInApp: invoke('widget:open-in-app'),
+    shortcut:  invoke('widget:shortcut'),
+    onToggle:  (cb) => on<void>('widget:toggle')(() => cb())
   },
 
   aiTools: {
@@ -223,6 +232,8 @@ const api: DevForgeAPI = {
 
   // Ports
   getListeningPorts: () => ipcRenderer.invoke('ports:get-listening'),
+  getUserName: () => ipcRenderer.invoke('system:user-name'),
+  freePort: (port, pid) => ipcRenderer.invoke('ports:free', port, pid),
 
   // Scripts
   getProjectScripts:  (path)               => ipcRenderer.invoke('scripts:get', path),

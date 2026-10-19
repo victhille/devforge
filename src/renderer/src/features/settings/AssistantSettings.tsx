@@ -7,6 +7,8 @@ import Card from '@renderer/components/ui/Card'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Input, Select } from '@renderer/components/ui/Input'
 import { SectionTitle } from '@renderer/components/ui/Page'
+import Switch from '@renderer/components/ui/Switch'
+import { useAssistant } from '@renderer/features/assistant/AssistantContext'
 
 /** Saved on change, apart from the page's "Save" button: the key never goes through the settings file */
 export default function AssistantSettings() {
@@ -16,6 +18,12 @@ export default function AssistantSettings() {
   const [key, setKey] = useState('')
   const [usage, setUsage] = useState<AssistantUsage | null>(null)
   const [budget, setBudget] = useState('')
+  const [shortcut, setShortcut] = useState<string | null>(null)
+  const { walker, setWalker, walkerDog, setWalkerDog } = useAssistant()
+
+  // The widget's global shortcut, once it is on (another app may own the first choice)
+  const widgetOn = !!config?.desktopWidget
+  useEffect(() => { if (widgetOn) window.devforge.widget.shortcut().then(setShortcut) }, [widgetOn])
 
   useEffect(() => {
     window.devforge.assistant.getConfig().then(c => { setConfig(c); setBudget(String(c.monthlyBudget)) })
@@ -77,6 +85,27 @@ export default function AssistantSettings() {
             {usage && <span className="ml-auto text-sm text-fg-secondary">{a.spentThisMonth.replace('{n}', usage.spent.toFixed(2))}</span>}
           </div>
           <span className="text-xs text-fg-muted">{a.budgetHint}</span>
+        </div>
+        <div className="flex flex-col gap-3 px-5 py-4">
+          <label className="flex items-center gap-3">
+            <Switch checked={walker} onChange={setWalker} label={a.walker} />
+            <span className="text-base text-fg">{a.walker}</span>
+          </label>
+          <label className="flex items-center gap-3 pl-12">
+            <Switch checked={walkerDog && walker} onChange={setWalkerDog} label={a.walkerDog} className={walker ? '' : 'pointer-events-none opacity-40'} />
+            <span className="text-base text-fg-secondary">{a.walkerDog}</span>
+          </label>
+          <span className="text-xs text-fg-muted">{a.walkerHint}</span>
+        </div>
+        <div className="flex flex-col gap-2 px-5 py-4">
+          <label className="flex items-center gap-3">
+            <Switch checked={config.desktopWidget} onChange={desktopWidget => save({ desktopWidget })} label={a.widget.toggle} />
+            <span className="text-base text-fg">{a.widget.toggle}</span>
+          </label>
+          <span className="text-xs text-fg-muted">
+            {a.widget.toggleHint}
+            {config.desktopWidget && <> {shortcut ? a.widget.shortcut.replace('{key}', shortcut) : a.widget.shortcutTaken}</>}
+          </span>
         </div>
       </Card>
     </section>

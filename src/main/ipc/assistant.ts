@@ -3,11 +3,19 @@ import type { AssistantConfigUpdate, AssistantSendRequest } from '@shared/types'
 import { getConfig, listConversations, loadConversation, monthUsage, publicConversation, removeConversation, saveConfig } from '../services/assistant/assistantStorage'
 import { sendToAssistant, setAssistantEmitter, stopAssistant } from '../services/assistant/assistantService'
 import { launchAiTool, listAiTools } from '../services/system/aiTools'
+import { setWidgetEnabled, widgetWindow } from '../widget'
 
 export function registerAssistantHandlers(win: BrowserWindow): void {
-  setAssistantEmitter(e => { if (!win.isDestroyed()) win.webContents.send('assistant:event', e) })
+  // Both the app and the desktop widget show answers (and Forgy's mood)
+  setAssistantEmitter(e => {
+    for (const w of [win, widgetWindow()]) if (w && !w.isDestroyed()) w.webContents.send('assistant:event', e)
+  })
   ipcMain.handle('assistant:get-config',  () => getConfig())
-  ipcMain.handle('assistant:save-config', (_e, u: AssistantConfigUpdate) => saveConfig(u))
+  ipcMain.handle('assistant:save-config', (_e, u: AssistantConfigUpdate) => {
+    const config = saveConfig(u)
+    if (typeof u?.desktopWidget === 'boolean') setWidgetEnabled(config.desktopWidget)
+    return config
+  })
   ipcMain.handle('assistant:send',        (_e, req: AssistantSendRequest) => sendToAssistant(req))
   ipcMain.handle('assistant:stop',        (_e, id: string) => stopAssistant(id))
   ipcMain.handle('assistant:list',        () => listConversations())

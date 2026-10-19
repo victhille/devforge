@@ -174,6 +174,18 @@ describe('assistant loop', () => {
     expect(h.calls[1]).toMatchObject({ model: 'claude-haiku-5-5' })
   })
 
+  it('a new conversation can ask for its own effort (desktop widget), fixed afterwards', async () => {
+    const msg = { stop_reason: 'end_turn', model: 'claude-sonnet-5-5', content: [{ type: 'text', text: 'ok' }], usage: { input_tokens: 10, output_tokens: 2 } }
+    h.script.push({ ...msg }, { ...msg }, { ...msg })
+    const { id } = await ask('Pourquoi ?', { effort: 'high' })
+    expect(h.calls[0]).toMatchObject({ output_config: { effort: 'high' } })
+    await ask('Et ?', { conversationId: id, effort: 'low' })
+    expect(h.calls[1]).toMatchObject({ output_config: { effort: 'high' } })
+    // Unknown values fall back to the configured effort
+    await ask('Autre', { effort: 'max' })
+    expect(h.calls[2]).toMatchObject({ output_config: { effort: 'low' } })
+  })
+
   it('counts the cost of each response and stops at the monthly budget', async () => {
     const { costOf } = await import('../../src/shared/data/assistantSkills')
     const { saveConfig, monthUsage } = await import('../../src/main/services/assistant/assistantStorage')

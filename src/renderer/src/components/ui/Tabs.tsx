@@ -19,7 +19,7 @@ export default function Tabs<T extends string>({ items, value, onChange, classNa
   return (
     <div
       role="tablist"
-      className={cn('inline-flex h-9 w-fit shrink-0 items-center gap-0.5 self-start rounded-lg border border-line-subtle bg-canvas p-0.5', className)}
+      className={cn('inline-flex h-9 w-fit shrink-0 items-center gap-0.5 self-start rounded-[10px] border border-line bg-canvas p-[3px]', className)}
     >
       {items.map(item => {
         const active = value === item.value
@@ -31,10 +31,10 @@ export default function Tabs<T extends string>({ items, value, onChange, classNa
             aria-selected={active}
             onClick={() => onChange(item.value)}
             className={cn(
-              'inline-flex h-full items-center gap-1.5 rounded-md px-3.5 text-sm font-medium transition-all',
+              'inline-flex h-full items-center gap-1.5 rounded-[7px] px-3 text-[12.5px] font-medium transition-colors',
               active
-                ? 'bg-active text-fg shadow-sm ring-1 ring-line'
-                : 'text-fg-secondary hover:bg-hover hover:text-fg'
+                ? 'bg-elevated text-fg shadow-sm'
+                : 'text-fg-secondary hover:text-fg'
             )}
           >
             {item.icon && <span className={cn(active ? 'text-accent' : 'text-current')}>{item.icon}</span>}

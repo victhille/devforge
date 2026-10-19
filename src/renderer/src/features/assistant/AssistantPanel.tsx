@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  ArrowUp, BookOpen, Bug, Check, ChevronLeft, Container, Database, FileText, GitCommitHorizontal, Globe, History, KeyRound,
+  ArrowUp, BookOpen, Bug, Check, ChevronDown, ChevronLeft, Container, Database, ExternalLink, FileText, GitCommitHorizontal, Globe, History, KeyRound,
   Loader2, MessageSquare, Paperclip, Plus, Search, ShieldCheck, Square, Trash2, Wrench, X, XCircle, type LucideIcon
 } from 'lucide-react'
 import type { AssistantConfig, AssistantConversation, AssistantConversationSummary, AssistantItem, AssistantUsage, Project } from '@shared/types'
@@ -11,7 +11,6 @@ import { cn } from '@renderer/lib/cn'
 import { formatRelative } from '@renderer/lib/format'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
-import { Select } from '@renderer/components/ui/Input'
 import { useAssistant } from './AssistantContext'
 import Markdown from './Markdown'
 import Mascot from './Mascot'
@@ -30,7 +29,7 @@ function ToolRow({ item }: { item: AssistantItem & { kind: 'tool' } }) {
   const { t } = useI18n()
   const label = (t.assistant.tools as Record<string, string>)[item.name] ?? item.name
   return (
-    <div className="flex items-center gap-2 rounded-md bg-canvas px-2.5 py-1.5 text-xs text-fg-muted">
+    <div className="flex items-center gap-2 font-mono text-[11px] text-fg-muted">
       {item.status === 'running' ? <Loader2 size={12} className="animate-spin text-accent" />
         : item.status === 'done' ? <Check size={12} className="text-success" /> : <XCircle size={12} className="text-danger" />}
       <Wrench size={11} />
@@ -45,7 +44,7 @@ export default function AssistantPanel() {
   const a = t.assistant
   const l = lang === 'fr' ? 'fr' : 'en'
   const navigate = useNavigate()
-  const { setOpen, pageContext, projectPath, setProjectPath, mood, markSending, setTyping } = useAssistant()
+  const { setOpen, pageContext, projectPath, setProjectPath, mood, markSending, setTyping, pendingConversation, clearPendingConversation } = useAssistant()
   const typingTimer = useRef<ReturnType<typeof setTimeout>>()
   const [config, setConfig] = useState<AssistantConfig | null>(null)
   const [usage, setUsage] = useState<AssistantUsage | null>(null)
@@ -57,6 +56,8 @@ export default function AssistantPanel() {
   const [input, setInput] = useState('')
   const [attachPage, setAttachPage] = useState(true)
   const [history, setHistory] = useState<AssistantConversationSummary[] | null>(null)
+  const [launchers, setLaunchers] = useState(false)
+  const [showAllSkills, setShowAllSkills] = useState(false)
   const idRef = useRef<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -81,6 +82,13 @@ export default function AssistantPanel() {
     if (c.projectPath) setProjectPath(c.projectPath)
     setHistory(null)
   }, [setProjectPath])
+
+  // A conversation started in the desktop widget, continued here
+  useEffect(() => {
+    if (!pendingConversation) return
+    clearPendingConversation()
+    load(pendingConversation)
+  }, [pendingConversation, clearPendingConversation, load])
 
   // Streamed events of the shown conversation
   useEffect(() => window.devforge.assistant.onEvent(e => {
@@ -147,28 +155,56 @@ export default function AssistantPanel() {
 
   const project = projects.find(p => p.path === projectPath)
   const skill = skillById(skillId)
-  const SkillIcon = SKILL_ICON[skill.icon] ?? MessageSquare
   const started = items.length > 0
   const modelShown = conversation?.model ?? (config?.model === 'auto' ? skill.model : config?.model)
   const available = (s: AssistantSkill) => !(s.needs === 'project' && !project) && !(s.needs === 'page' && !pageContext)
   const longConversation = (conversation?.lastInput ?? 0) > LONG_CONVERSATION
 
+  const effortLabel = !config ? null : config.effort === 'auto' ? a.effortAuto
+    : { low: a.effortLow, medium: a.effortMedium, high: a.effortHigh }[config.effort]
+  const spentPct = usage && usage.budget > 0 ? Math.min(100, (usage.spent / usage.budget) * 100) : 0
+  // Chips under the conversation: tasks this page or project makes possible first
+  const chips = [...ASSISTANT_SKILLS]
+    .filter(available)
+    .sort((x, y) => (y.needs ? 1 : 0) - (x.needs ? 1 : 0))
+  const shownChips = showAllSkills ? chips : chips.slice(0, 3)
+
   return (
-    <aside className="flex w-[440px] shrink-0 flex-col border-l border-line-subtle bg-surface">
-      {/* Header */}
-      <div className="flex h-11 shrink-0 items-center gap-2 border-b border-line-subtle px-3">
-        <Mascot mood={mood} size={26} />
-        <span className="flex flex-col leading-tight">
-          <span className="font-semibold text-fg">{a.mascotName}</span>
-          <span className="text-2xs text-fg-muted">{a.moods[mood]}</span>
-        </span>
-        {modelShown && <span className="rounded bg-active px-1.5 py-px text-2xs text-fg-muted">{MODEL_LABEL[modelShown]}</span>}
-        <span className="ml-auto flex gap-0.5">
+    <aside className="flex w-[380px] shrink-0 flex-col border-l border-line-subtle bg-sidebar">
+      {/* Header: Forgy, what he is doing, with which model */}
+      <div className="flex shrink-0 items-center gap-3 border-b border-line-subtle p-4">
+        <Mascot mood={mood} size={60} />
+        <div className="min-w-0 flex-1">
+          <div className="text-md font-semibold text-fg">{a.mascotName}</div>
+          <div className="truncate text-sm text-fg-secondary">
+            {[a.moods[mood], modelShown && MODEL_LABEL[modelShown], effortLabel?.toLowerCase()].filter(Boolean).join(' · ')}
+          </div>
+        </div>
+        <span className="flex gap-0.5">
+          <IconButton size="sm" title={a.openWith} active={launchers} onClick={() => setLaunchers(v => !v)}><ExternalLink size={14} /></IconButton>
           <IconButton size="sm" title={a.newConversation} onClick={newConversation}><Plus size={14} /></IconButton>
           <IconButton size="sm" title={a.history} active={!!history} onClick={openHistory}><History size={14} /></IconButton>
           <IconButton size="sm" title={a.close} onClick={() => setOpen(false)}><X size={14} /></IconButton>
         </span>
       </div>
+
+      {/* Monthly spending */}
+      {usage && (
+        <div className="flex shrink-0 items-center gap-2.5 border-b border-line-subtle px-4 py-2.5 font-mono text-[11.5px] text-fg-secondary" title={a.costHint}>
+          <span>{conversation ? `${money(conversation.cost)} · ` : ''}{money(usage.spent)}{usage.budget > 0 ? ` / ${usage.budget} $` : ''}</span>
+          <div className="h-1 flex-1 overflow-hidden rounded-full bg-line">
+            <div className="df-grow h-full rounded-full bg-forgy" style={{ width: `${spentPct}%` }} />
+          </div>
+          <span>{new Date().toLocaleDateString(l === 'fr' ? 'fr-FR' : 'en-GB', { month: 'short' })}</span>
+        </div>
+      )}
+
+      {/* "Open with": official AI tools on the user's subscriptions */}
+      {launchers && (
+        <div className="df-pop shrink-0 border-b border-line-subtle px-4 py-2.5">
+          <AiLaunchers projectPath={projectPath} />
+        </div>
+      )}
 
       {history ? (
         <div className="flex-1 overflow-y-auto p-2">
@@ -189,96 +225,99 @@ export default function AssistantPanel() {
         </div>
       ) : (
         <>
-          {/* Context */}
-          <div className="flex shrink-0 flex-col gap-2 border-b border-line-subtle px-3 py-2">
-            <Select value={projectPath ?? ''} onChange={e => setProjectPath(e.target.value || null)} className="h-8 text-xs">
-              <option value="">{a.noProject}</option>
-              {projects.map(p => <option key={p.id} value={p.path}>{p.name}</option>)}
-            </Select>
-            <AiLaunchers projectPath={projectPath} />
-            {pageContext && (
-              <button onClick={() => setAttachPage(v => !v)} title={attachPage ? a.detachPage : a.attachPage}
-                className={cn('flex items-center gap-1.5 self-start rounded-full border px-2.5 py-0.5 text-xs transition-colors',
-                  attachPage ? 'border-accent/40 bg-accent-soft text-accent' : 'border-line-subtle text-fg-muted line-through')}>
-                <Paperclip size={11} /> <span className="max-w-[340px] truncate">{pageContext.label}</span>
-              </button>
-            )}
-          </div>
-
           {/* Conversation */}
-          <div ref={scrollRef} className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
+          <div ref={scrollRef} className="flex flex-1 flex-col gap-3 overflow-y-auto p-4 text-base leading-relaxed">
             {config && !config.hasKey && (
-              <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning-soft p-3 text-xs text-warning">
+              <div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning-soft p-3 text-xs text-warning">
                 <KeyRound size={14} className="mt-0.5 shrink-0" />
                 <span className="flex-1">{a.noKey}</span>
                 <Button size="sm" variant="secondary" onClick={() => navigate('/settings')}>{a.openSettings}</Button>
               </div>
             )}
             {!started && (
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-col items-center gap-1 py-2 text-center">
-                  <Mascot mood={mood} size={84} />
-                  <p className="text-sm font-medium text-fg">{a.greeting}</p>
-                </div>
-                <p className="text-xs text-fg-muted">{a.pickSkill}</p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {ASSISTANT_SKILLS.map(s => {
-                    const Icon = SKILL_ICON[s.icon] ?? MessageSquare
-                    const ok = available(s)
-                    return (
-                      <button key={s.id} disabled={!ok} onClick={() => pickSkill(s)}
-                        title={!ok ? (s.needs === 'project' ? a.needsProject : a.needsPage) : s.description[l]}
-                        className={cn('flex flex-col gap-0.5 rounded-lg border px-2.5 py-2 text-left transition-colors disabled:opacity-40',
-                          skillId === s.id ? 'border-accent/50 bg-accent-soft' : 'border-line-subtle hover:border-accent/40 hover:bg-hover')}>
-                        <span className="flex items-center gap-1.5 text-xs font-medium text-fg"><Icon size={13} className="text-accent" /> {s.label[l]}</span>
-                        <span className="truncate text-2xs text-fg-muted">{s.description[l]}</span>
-                      </button>
-                    )
-                  })}
-                </div>
+              <div className="df-rise flex flex-1 flex-col items-center justify-center gap-3 py-6 text-center">
+                <Mascot mood={mood} size={96} />
+                <p className="max-w-[260px] text-sm text-fg-secondary">{a.greeting}</p>
               </div>
             )}
             {items.map((item, i) => {
               if (item.kind === 'user') return (
-                <div key={i} className="flex flex-col items-end gap-1">
+                <div key={i} className="df-rise flex flex-col items-end gap-1">
                   {item.context.length > 0 && (
                     <span className="flex items-center gap-1 text-2xs text-fg-muted"><FileText size={10} /> {item.context.join(' · ')}</span>
                   )}
-                  <div className="max-w-[90%] rounded-xl rounded-br-sm bg-accent-soft px-3 py-2 text-sm whitespace-pre-wrap text-fg">{item.text}</div>
+                  <div className="max-w-[85%] rounded-[12px_12px_4px_12px] bg-active px-3 py-[9px] whitespace-pre-wrap text-fg">{item.text}</div>
                 </div>
               )
-              if (item.kind === 'assistant') return <Markdown key={i} text={item.text} />
+              if (item.kind === 'assistant') return (
+                <div key={i} className="df-rise max-w-[92%] rounded-[12px_12px_12px_4px] border border-line-subtle bg-surface px-3 py-2.5">
+                  <Markdown text={item.text} />
+                </div>
+              )
               if (item.kind === 'tool') return <ToolRow key={i} item={item} />
               return (
-                <div key={i} className={cn('rounded-lg px-3 py-2 text-xs', item.tone === 'error' ? 'bg-danger-soft text-danger' : 'bg-active text-fg-muted')}>
+                <div key={i} className={cn('rounded-xl px-3 py-2 text-xs', item.tone === 'error' ? 'bg-danger-soft text-danger' : 'bg-active text-fg-muted')}>
                   {item.text === 'No API key' ? a.noKey : item.text}
                 </div>
               )
             })}
             {running && items[items.length - 1]?.kind !== 'assistant' && (
-              <div className="flex items-center gap-2 text-xs text-fg-muted"><Loader2 size={12} className="animate-spin" /> {a.thinking}</div>
+              <div className="df-typing flex gap-1 text-xl leading-none text-forgy" aria-label={a.thinking}>
+                <span>•</span><span>•</span><span>•</span>
+              </div>
             )}
             {longConversation && !running && (
-              <div className="flex items-center gap-2 rounded-lg border border-line-subtle bg-canvas p-2.5 text-xs text-fg-muted">
+              <div className="flex items-center gap-2 rounded-xl border border-line-subtle bg-canvas p-2.5 text-xs text-fg-muted">
                 <span className="flex-1">{a.longConversation}</span>
                 <Button size="sm" variant="secondary" onClick={newConversation}>{a.newConversation}</Button>
               </div>
             )}
           </div>
 
-          {/* Input */}
-          <div className="shrink-0 border-t border-line-subtle p-3">
-            <div className="mb-1.5 flex items-center gap-1.5 text-2xs text-fg-muted">
-              <SkillIcon size={11} className="text-accent" />
-              <span>{skill.label[l]}</span>
-              {!started && skillId !== 'chat' && (
-                <button onClick={() => setSkillId('chat')} className="hover:text-fg" aria-label={a.resetSkill}><X size={10} /></button>
+          {/* Tasks, context and input */}
+          <div className="flex shrink-0 flex-col gap-2.5 border-t border-line-subtle px-4 pt-3 pb-4">
+            <div className="flex flex-wrap gap-1.5">
+              {shownChips.map(s => {
+                const Icon = SKILL_ICON[s.icon] ?? MessageSquare
+                return (
+                  <button key={s.id} onClick={() => pickSkill(s)} title={s.description[l]}
+                    className={cn('flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors',
+                      skillId === s.id ? 'border-forgy/50 bg-forgy-soft text-forgy' : 'border-line bg-surface text-fg-secondary hover:bg-hover hover:text-fg')}>
+                    <Icon size={12} /> {s.label[l]}
+                  </button>
+                )
+              })}
+              {chips.length > 3 && (
+                <button onClick={() => setShowAllSkills(v => !v)} className="h-7 rounded-full px-2 text-xs text-fg-muted hover:text-fg">
+                  {showAllSkills ? '−' : `+${chips.length - 3}`}
+                </button>
               )}
             </div>
-            <div className="flex items-end gap-2 rounded-xl border border-line bg-canvas p-2 focus-within:border-accent/60">
+
+            <div className="flex flex-wrap items-center gap-1.5">
+              <label className="relative flex h-[26px] items-center rounded-lg border border-line bg-elevated pr-1 pl-2.5 text-xs text-fg-secondary">
+                <span className="sr-only">{a.noProject}</span>
+                <select value={projectPath ?? ''} onChange={e => setProjectPath(e.target.value || null)}
+                  className="max-w-[170px] cursor-pointer appearance-none truncate bg-transparent pr-4 outline-none">
+                  <option value="">{a.noProject}</option>
+                  {projects.map(p => <option key={p.id} value={p.path}>{p.name}</option>)}
+                </select>
+                <ChevronDown size={11} className="pointer-events-none absolute right-1.5" />
+              </label>
+              {pageContext && (
+                <button onClick={() => setAttachPage(v => !v)} title={attachPage ? a.detachPage : a.attachPage}
+                  className={cn('flex h-[26px] max-w-[180px] items-center gap-1 rounded-lg border px-2.5 text-xs transition-colors',
+                    attachPage ? 'border-accent/40 bg-accent-soft text-accent' : 'border-line text-fg-muted line-through')}>
+                  <Paperclip size={11} className="shrink-0" /> <span className="truncate">{pageContext.label}</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-end gap-2 rounded-xl border border-line bg-canvas py-1.5 pr-1.5 pl-3 focus-within:border-forgy/50" title={a.footer}>
               <textarea
                 ref={inputRef}
                 value={input}
+                aria-label={skill.label[l]}
                 onChange={e => {
                   setInput(e.target.value)
                   setTyping(true)
@@ -287,24 +326,18 @@ export default function AssistantPanel() {
                 }}
                 onBlur={() => setTyping(false)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
-                placeholder={a.placeholder}
+                placeholder={skillId === 'chat' ? a.askForgy : `${skill.label[l]}…`}
                 rows={Math.min(6, Math.max(1, input.split('\n').length))}
-                className="max-h-40 flex-1 resize-none bg-transparent px-1 text-sm text-fg outline-none placeholder:text-fg-muted"
+                className="max-h-40 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-base text-fg outline-none placeholder:text-fg-muted"
               />
               {running ? (
-                <IconButton size="sm" title={a.stop} onClick={() => idRef.current && window.devforge.assistant.stop(idRef.current)}><Square size={13} /></IconButton>
+                <button title={a.stop} aria-label={a.stop} onClick={() => idRef.current && window.devforge.assistant.stop(idRef.current)}
+                  className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-line bg-elevated text-fg hover:bg-hover"><Square size={13} /></button>
               ) : (
-                <IconButton size="sm" title={a.send} disabled={!input.trim()} onClick={() => send()} className="bg-accent text-white hover:bg-accent-hover hover:text-white"><ArrowUp size={14} /></IconButton>
+                <button title={a.send} aria-label={a.send} disabled={!input.trim()} onClick={() => send()}
+                  className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-forgy text-[#1A0E04] transition-[transform,opacity] active:scale-95 disabled:opacity-40"><ArrowUp size={16} strokeWidth={2.4} /></button>
               )}
             </div>
-            <p className="mt-1.5 flex justify-between gap-2 text-2xs text-fg-muted">
-              <span>{a.footer}</span>
-              {usage && (
-                <span className="shrink-0" title={a.costHint}>
-                  {conversation ? `${money(conversation.cost)} · ` : ''}{a.month} {money(usage.spent)}{usage.budget > 0 ? ` / ${usage.budget} $` : ''}
-                </span>
-              )}
-            </p>
           </div>
         </>
       )}

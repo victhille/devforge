@@ -30,6 +30,7 @@
   },
   "include": [
     "tests/**/*",
+    "src/renderer/src/env.d.ts",
     "vitest.config.ts",
     "scripts/**/*.mjs"
   ]

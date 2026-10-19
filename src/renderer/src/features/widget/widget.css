@@ -1,0 +1,51 @@
+/* Forgy's desktop widget (src/main/widget.ts): a transparent window sized to
+   its content, anchored bottom-right. At rest nothing animates: the pop, the
+   ring and the shimmer run only on opening, a new answer or while thinking. */
+
+html, body, #root { background: transparent; overflow: hidden; }
+
+.wg-root {
+  position: fixed; right: 0; bottom: 0;
+  /* The window starts small: lay out at the content's own width, then the window follows */
+  width: max-content;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+  padding: 10px;
+}
+.wg-root[data-open='true'] { padding: 16px; }
+
+.wg-card {
+  background: color-mix(in srgb, var(--bg-surface) 96%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 22px var(--shadow-color);
+}
+
+.wg-pop { transform-origin: bottom right; animation: wg-pop .3s cubic-bezier(.2, .8, .2, 1.05) both; }
+@keyframes wg-pop { from { opacity: 0; transform: translateY(10px) scale(.95); } to { opacity: 1; transform: none; } }
+
+.wg-bubble {
+  position: relative; width: 84px; height: 84px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  box-shadow: 0 4px 14px var(--shadow-color);
+  transition: transform .1s;
+}
+.wg-bubble:active { transform: scale(.95); }
+.wg-bubble[data-alert='true'] { border-color: var(--danger); }
+/* A new answer: a few rings, then still */
+.wg-bubble[data-unread='true'] { animation: wg-ring 2.2s 3; }
+@keyframes wg-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--forgy) 45%, transparent); }
+  80%, 100% { box-shadow: 0 0 0 10px transparent; }
+}
+
+.wg-shim {
+  height: 8px; border-radius: 4px;
+  background: linear-gradient(90deg, var(--bg-elevated) 0, var(--bg-active) 50%, var(--bg-elevated) 100%);
+  background-size: 200px 100%;
+  animation: wg-shimmer 1.3s linear infinite;
+}
+@keyframes wg-shimmer { from { background-position: -200px 0; } to { background-position: 200px 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .wg-pop, .wg-bubble, .wg-shim { animation: none !important; }
+}

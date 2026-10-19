@@ -38,16 +38,16 @@ export default function TitleBar() {
   }, [])
 
   return (
-    <div className="app-drag flex h-[38px] shrink-0 select-none items-center border-b border-line-subtle bg-surface pl-4">
-      <div className="flex flex-1 items-center gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-fg-muted">
-        <img src={logo} alt="" className="size-6 object-contain" />
+    <div className="app-drag flex h-[42px] shrink-0 select-none items-center gap-3 border-b border-line-subtle bg-chrome pl-3.5">
+      <div className="flex w-[200px] shrink-0 items-center gap-2 text-base font-semibold text-fg">
+        <img src={logo} alt="" className="size-5 object-contain" />
         <span>DevForge</span>
       </div>
 
       {/* Opens the command palette (same as Ctrl+K) */}
       <button
         onClick={() => window.dispatchEvent(new Event('devforge:open-palette'))}
-        className="app-no-drag mr-3 flex h-7 w-80 items-center gap-2 rounded-lg border border-line-subtle bg-canvas px-2.5 text-sm text-fg-muted transition-colors hover:border-line hover:text-fg-secondary"
+        className="app-no-drag mx-auto flex h-[30px] w-full max-w-[440px] items-center gap-2 rounded-lg border border-line bg-canvas px-2.5 text-sm text-fg-muted transition-colors hover:border-fg-disabled hover:text-fg-secondary"
       >
         <Search size={13} />
         <span className="flex-1 text-left">{t.palette.search}…</span>
@@ -58,10 +58,11 @@ export default function TitleBar() {
       <button
         onClick={() => setOpen(o => !o)}
         title={`${t.assistant.mascotName} — ${t.assistant.moods[mood]} (Ctrl+J)`}
-        className={cn('app-no-drag mr-3 flex h-7 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition-colors',
-          open ? 'border-accent/40 bg-accent-soft text-accent' : 'border-line-subtle text-fg-muted hover:border-line hover:text-fg-secondary')}
+        className={cn('app-no-drag flex h-[30px] items-center gap-1.5 rounded-full border pr-3 pl-1 text-sm font-medium transition-colors',
+          open ? 'border-forgy/50 bg-forgy-soft text-forgy' : 'border-forgy/25 bg-forgy-soft/50 text-forgy hover:border-forgy/50')}
       >
-        <Mascot mood={mood} size={20} followCursor={false} /> {t.assistant.mascotName}
+        <Mascot mood={mood} size={22} followCursor={false} /> {t.assistant.mascotName}
+        <kbd className="font-mono text-2xs opacity-70">Ctrl J</kbd>
       </button>
 
       <div className="app-no-drag flex h-full items-stretch">

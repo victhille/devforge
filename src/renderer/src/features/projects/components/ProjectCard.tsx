@@ -1,4 +1,5 @@
-import { Code2, FolderOpen, Plus, Star, Terminal, Trash2 } from 'lucide-react'
+import type { CSSProperties } from 'react'
+import { Code2, FolderOpen, GitBranch, Plus, Star, Terminal, Trash2 } from 'lucide-react'
 import type { DetectedProject, GitStatus, Project } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -39,32 +40,45 @@ interface SavedProps {
   onDetail: () => void
   onRemove?: () => void
   onRunScript?: (script: string) => void
+  /** Position in the list, to stagger the entrance */
+  index?: number
 }
 
 export function ProjectCard(props: SavedProps) {
-  const { project, layout, gitStatus, scripts = {}, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript } = props
+  const { project, layout, gitStatus, scripts = {}, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript, index = 0 } = props
   const { t } = useI18n()
   const label = FRAMEWORK_LABEL[project.framework] ?? project.framework
 
   if (layout === 'grid') {
+    const git = !gitStatus?.branch ? null
+      : gitStatus.ahead > 0 ? { text: `↑ ${gitStatus.ahead}`, color: 'text-accent' }
+      : gitStatus.dirty ? { text: t.projects.uncommitted, color: 'text-warning' }
+      : { text: t.home.upToDate, color: 'text-success' }
+    const action = 'h-8 rounded-lg border text-[12.5px] font-medium transition-colors'
     return (
-      <Card interactive onClick={onDetail} className="flex flex-col gap-3 p-4">
-        <div className="flex items-start justify-between">
+      <Card interactive onClick={onDetail} className="df-rise group flex flex-col gap-3 rounded-[14px] p-[18px]" style={{ '--i': index } as CSSProperties}>
+        <div className="flex items-center gap-3">
           <ProjectIcon framework={project.framework} size="lg" />
-          <div className="flex items-center gap-2">
-            <Badge>{label}</Badge>
-            <FavoriteButton active={project.favorite} onClick={onToggleFavorite} title={t.projects.favorite} />
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate text-[15px] font-semibold text-fg">{project.name}</h2>
+            <div className="truncate font-mono text-[11.5px] text-fg-muted" title={project.path}>{project.path}</div>
           </div>
+          <FavoriteButton active={project.favorite} onClick={onToggleFavorite} title={t.projects.favorite} />
         </div>
-        <div className="flex min-w-0 flex-col gap-1">
-          <span className="truncate text-md font-semibold text-fg">{project.name}</span>
-          <span className="truncate font-mono text-xs text-fg-muted">{project.path}</span>
-          <div><GitBadge status={gitStatus} /></div>
+        <div className="flex flex-wrap gap-1.5">
+          {[label, project.packageManager].filter(Boolean).map(tag => (
+            <span key={tag} className="rounded-md border border-line bg-elevated px-2 py-0.5 font-mono text-[11px] text-fg-secondary">{tag}</span>
+          ))}
         </div>
-        <div className="mt-auto flex items-center gap-2" onClick={e => e.stopPropagation()}>
-          <Button variant="secondary" size="sm" className="flex-1" onClick={onOpen}>{t.projects.open}</Button>
-          <IconButton title={t.projects.vsCode} onClick={onOpenVSCode}><Code2 size={13} /></IconButton>
-          <IconButton title={t.projects.terminal} onClick={onTerminal}><Terminal size={13} /></IconButton>
+        {git && (
+          <div className="flex items-center gap-2 font-mono text-xs text-fg-secondary">
+            <GitBranch size={14} /> {gitStatus!.branch} <span className={git.color}>{git.text}</span>
+          </div>
+        )}
+        <div className="mt-auto flex items-center gap-1.5 opacity-60 transition-opacity group-hover:opacity-100" onClick={e => e.stopPropagation()}>
+          <button onClick={onOpenVSCode} className={cn(action, 'flex-1 border-line bg-elevated text-fg hover:bg-hover')}>{t.projects.vsCode}</button>
+          <button onClick={onTerminal} className={cn(action, 'flex-1 border-line bg-elevated text-fg hover:bg-hover')}>{t.projects.terminal}</button>
+          <button onClick={onOpen} className={cn(action, 'flex-1 border-transparent bg-accent-soft font-semibold text-accent hover:bg-accent hover:text-accent-fg')}>{t.projects.open}</button>
           {onRunScript && <ScriptsMenu scripts={scripts} onRun={onRunScript} />}
           {onRemove && <IconButton tone="danger" title={t.projects.remove} onClick={onRemove}><Trash2 size={13} /></IconButton>}
         </div>

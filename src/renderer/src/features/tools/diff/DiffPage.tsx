@@ -37,8 +37,8 @@ export default function DiffPage() {
 
       <div className="grid shrink-0 grid-cols-2 gap-3">
         {[
-          { label: t.diff.original, value: left,  set: setLeft,  placeholder: 'Paste original text here...' },
-          { label: t.diff.modified, value: right, set: setRight, placeholder: 'Paste modified text here...' }
+          { label: t.diff.original, value: left,  set: setLeft,  placeholder: t.diff.pasteOriginal },
+          { label: t.diff.modified, value: right, set: setRight, placeholder: t.diff.pasteModified }
         ].map(panel => (
           <div key={panel.label} className="flex flex-col gap-1.5">
             <SectionTitle>{panel.label}</SectionTitle>

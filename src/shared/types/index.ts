@@ -196,7 +196,7 @@ import type { DatabaseAPI } from './database'
 import type { LogsAPI } from './logs'
 import type { WebhooksAPI } from './webhooks'
 import type { SuggestAPI } from './suggest'
-import type { AiToolsAPI, AssistantAPI } from './assistant'
+import type { AiToolsAPI, AssistantAPI, WidgetAPI } from './assistant'
 
 // ─── HTTP (API tester) ───────────────────────────────────────────────────────
 
@@ -238,6 +238,7 @@ export interface DevForgeAPI {
   http: { request: (req: HttpRequest) => Promise<HttpResponse> }
   assistant: AssistantAPI
   aiTools: AiToolsAPI
+  widget: WidgetAPI
 
   // SSH
   getSshConnections: () => Promise<SSHConnection[]>
@@ -298,6 +299,10 @@ export interface DevForgeAPI {
 
   // Ports
   getListeningPorts: () => Promise<ListeningPort[]>
+  /** First name for greetings (git user.name, else the Windows account) */
+  getUserName: () => Promise<string>
+  /** Ends the process listening on a port (refused for Windows services) */
+  freePort: (port: number, pid: number) => Promise<void>
 
   // Scripts
   getProjectScripts: (path: string) => Promise<Record<string, string>>

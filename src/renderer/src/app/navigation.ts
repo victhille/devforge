@@ -2,7 +2,7 @@ import type { ComponentType } from 'react'
 import {
   Home, FolderOpen, Plus, Monitor, Terminal, Settings, Wifi, BookOpen,
   Wrench, Send, Code, Columns, Key, GitBranch, HardDrive, FileKey2, Rocket, Container, UploadCloud, Activity, Globe, Database, ScrollText, Webhook,
-  type LucideIcon
+  Code2, Server, Cpu, type LucideIcon
 } from 'lucide-react'
 import type { Translations } from '@renderer/i18n/translations'
 
@@ -75,3 +75,24 @@ export const SECTIONS: SectionKey[] = ['sectionMain', 'sectionServers', 'section
 
 /** Pages shown in the sidebar and the palette. */
 export const LISTED_PAGES = PAGES.filter(p => !p.route)
+
+/**
+ * Sidebar layout: a few favorites always visible, every other page in a
+ * folding group. Settings is pinned at the bottom on its own.
+ */
+export const FAVORITES = ['/', '/projects', '/docker', '/database', '/api-tester']
+
+export type GroupKey = 'groupDev' | 'groupServers' | 'groupSystem' | 'groupTools'
+
+export const MENU_GROUPS: { key: GroupKey; icon: LucideIcon; paths: string[] }[] = [
+  { key: 'groupDev',     icon: Code2,  paths: ['/git', '/stacks', '/new-project', '/snippets', '/diff', '/generator'] },
+  { key: 'groupServers', icon: Server, paths: ['/ssh', '/deploy', '/monitor', '/webhooks', '/logs'] },
+  { key: 'groupSystem',  icon: Cpu,    paths: ['/environment', '/ports', '/env-files', '/domains', '/cleaner'] },
+  { key: 'groupTools',   icon: Wrench, paths: ['/toolbox', '/docs'] }
+]
+
+/** Group holding a route (detail pages count for their parent: /vps/… is SSH) */
+export function groupOf(pathname: string): GroupKey | null {
+  const path = pathname.startsWith('/vps/') ? '/ssh' : pathname
+  return MENU_GROUPS.find(g => g.paths.some(p => path === p || path.startsWith(p + '/')))?.key ?? null
+}

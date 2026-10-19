@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FolderSearch, LayoutList, LayoutGrid, Plus, Search, FolderOpen } from 'lucide-react'
 import type { DetectedProject, Framework } from '@shared/types'
@@ -8,8 +8,7 @@ import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import Tabs from '@renderer/components/ui/Tabs'
-import { Input } from '@renderer/components/ui/Input'
-import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
+import { Page, SectionTitle } from '@renderer/components/ui/Page'
 import { ProjectCard, DetectedProjectCard, type CardLayout } from './components/ProjectCard'
 import { useProjects, sortProjects } from './hooks/useProjects'
 
@@ -29,7 +28,7 @@ const FILTERS: { id: Framework | 'all'; label: string }[] = [
 const VIEW_KEY = 'projects-view'
 
 function readView(): CardLayout {
-  try { return localStorage.getItem(VIEW_KEY) === 'grid' ? 'grid' : 'list' } catch { return 'list' }
+  try { return localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'grid' } catch { return 'grid' }
 }
 
 export default function ProjectsPage() {
@@ -80,7 +79,7 @@ export default function ProjectsPage() {
 
   const container = view === 'list'
     ? 'flex flex-col gap-2'
-    : 'grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3'
+    : 'grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4'
 
   const subtitle = t.projects.subtitle
     .replace('{n}', String(projects.length))
@@ -90,55 +89,55 @@ export default function ProjectsPage() {
       : '')
 
   return (
-    <Page>
-      <PageHeader
-        title={t.projects.title}
-        subtitle={subtitle}
-        actions={<Button onClick={() => navigate('/new-project')}><Plus size={14} /> {t.projects.newProject}</Button>}
-      />
-
-      {/* Toolbar */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search size={13} className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-fg-muted" />
-            <Input
-              placeholder={t.projects.searchPlaceholder}
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-          {scanDir && (
-            <Button variant="secondary" loading={scanning} onClick={() => runScan(scanDir)}>
-              {!scanning && <FolderSearch size={13} />} {t.projects.rescan}
-            </Button>
-          )}
-          <Tabs<CardLayout>
-            value={view}
-            onChange={changeView}
-            items={[
-              { value: 'list', label: <LayoutList size={15} aria-label="List view" /> },
-              { value: 'grid', label: <LayoutGrid size={15} aria-label="Grid view" /> }
-            ]}
+    <Page className="max-w-[1280px] gap-5 px-8 pt-7">
+      {/* Title, filter box and actions on one row */}
+      <header className="flex flex-wrap items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-[26px] leading-tight font-semibold tracking-[-.02em] text-fg">{t.projects.title}</h1>
+          <p className="text-sm text-fg-muted">{subtitle}</p>
+        </div>
+        <label className="flex h-9 w-[260px] items-center gap-2 rounded-[9px] border border-line bg-canvas px-3 text-fg-muted focus-within:border-accent/60">
+          <Search size={14} />
+          <span className="sr-only">{t.projects.searchPlaceholder}</span>
+          <input
+            placeholder={t.projects.searchPlaceholder}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="min-w-0 flex-1 bg-transparent text-base text-fg outline-none placeholder:text-fg-muted"
           />
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {FILTERS.map(f => (
-            <button
-              key={f.id}
-              onClick={() => setFilter(f.id)}
-              className={cn(
-                'rounded-full border px-3 py-1 text-sm transition-colors',
-                filter === f.id
-                  ? 'border-accent bg-accent-soft text-accent'
-                  : 'border-line-subtle text-fg-secondary hover:border-line hover:text-fg'
-              )}
-            >
-              {f.id === 'all' ? t.projects.filterAll : f.label}
-            </button>
-          ))}
-        </div>
+        </label>
+        {scanDir && (
+          <Button variant="secondary" loading={scanning} onClick={() => runScan(scanDir)}>
+            {!scanning && <FolderSearch size={14} />} {t.projects.rescan}
+          </Button>
+        )}
+        <Tabs<CardLayout>
+          value={view}
+          onChange={changeView}
+          items={[
+            { value: 'grid', label: <LayoutGrid size={15} aria-label="Grid view" /> },
+            { value: 'list', label: <LayoutList size={15} aria-label="List view" /> }
+          ]}
+        />
+        <Button onClick={() => navigate('/new-project')}><Plus size={15} /> {t.projects.newProject}</Button>
+      </header>
+
+      {/* Stack filters */}
+      <div className="df-rise flex flex-wrap gap-1.5" style={{ '--i': 1 } as CSSProperties}>
+        {FILTERS.map(f => (
+          <button
+            key={f.id}
+            onClick={() => setFilter(f.id)}
+            className={cn(
+              'h-[30px] rounded-full border px-3 text-[12.5px] font-medium transition-colors',
+              filter === f.id
+                ? 'border-accent/40 bg-active text-fg'
+                : 'border-line bg-surface text-fg-secondary hover:bg-hover hover:text-fg'
+            )}
+          >
+            {f.id === 'all' ? t.projects.filterAll : f.label}
+          </button>
+        ))}
       </div>
 
       {/* Saved */}
@@ -146,9 +145,10 @@ export default function ProjectsPage() {
         <section className="flex flex-col gap-2.5">
           <SectionTitle>{t.projects.yourProjects}</SectionTitle>
           <div className={container}>
-            {filteredSaved.map(p => (
+            {filteredSaved.map((p, i) => (
               <ProjectCard
                 key={p.id}
+                index={i + 2}
                 project={p}
                 layout={view}
                 gitStatus={gitStatuses[p.id]}

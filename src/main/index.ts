@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, nativeImage, Tray, Menu } from 'electron'
+import { app, BrowserWindow, nativeImage, Tray, Menu } from 'electron'
 import { join } from 'path'
 import { registerIpcHandlers } from './ipc'
 import { sshService } from './services/ssh/sshService'
@@ -11,6 +11,8 @@ import { closeAllDbs } from './services/database/dbClient'
 import { closeAllTails } from './services/logs/logTail'
 import { stopWebhooks } from './services/webhooks/webhookServer'
 import { applyLoginItem, startedHidden } from './lib/loginItem'
+import { guardNavigation } from './lib/windowGuards'
+import { disposeWidget, initWidget } from './widget'
 
 const isDev = !app.isPackaged
 
@@ -22,6 +24,7 @@ const gotLock = app.requestSingleInstanceLock()
 if (!gotLock) app.quit()
 
 let tray: Tray | null = null
+let mainWindow: BrowserWindow | null = null
 let forceQuit = false
 
 function getIconPath(): string {
@@ -93,16 +96,9 @@ function createWindow(): void {
     }
   })
 
-  // Links with target=_blank open in the browser, http(s) only
-  win.webContents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:\/\//i.test(url)) shell.openExternal(url)
-    return { action: 'deny' }
-  })
-  // The window never navigates away from the app (dev server reloads are fine)
-  win.webContents.on('will-navigate', (e, url) => {
-    const devUrl = process.env['ELECTRON_RENDERER_URL']
-    if (!(devUrl && url.startsWith(devUrl)) && !url.startsWith('file://')) e.preventDefault()
-  })
+  // Links open in the browser (http(s) only), the window never navigates away
+  guardNavigation(win)
+  mainWindow = win
 
   registerIpcHandlers(win)
 
@@ -113,6 +109,7 @@ function createWindow(): void {
   }
 
   createTray(win)
+  initWidget(win)
 }
 
 app.whenReady().then(() => {
@@ -126,9 +123,9 @@ app.whenReady().then(() => {
   detectEnvironment().catch(() => {})
 
   app.on('second-instance', () => {
-    const windows = BrowserWindow.getAllWindows()
-    if (windows.length > 0) {
-      const win = windows[0]
+    // The main window, never the desktop widget
+    const win = mainWindow
+    if (win && !win.isDestroyed()) {
       if (win.isMinimized()) win.restore()
       win.show()
       win.focus()
@@ -141,7 +138,7 @@ app.whenReady().then(() => {
 })
 
 // Never leave dev servers running after DevForge quits
-app.on('before-quit', () => { processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks() })
+app.on('before-quit', () => { disposeWidget(); processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks() })
 
 app.on('window-all-closed', () => {
   sshService.disconnectAll()
