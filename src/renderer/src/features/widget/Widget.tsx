@@ -7,6 +7,7 @@ import { useCopy } from '@renderer/hooks/useCopy'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import Mascot, { type MascotMood } from '@renderer/features/assistant/Mascot'
 import Markdown from '@renderer/features/assistant/Markdown'
+import { useActiveProject } from '@renderer/hooks/useActiveProject'
 
 type Phase = 'idle' | 'thinking' | 'searching' | 'working' | 'happy' | 'sad'
 /** The last question and its answer, as shown on the card */
@@ -64,6 +65,9 @@ export default function Widget() {
   const [projects, setProjects] = useState<Project[]>([])
   const [shortcut, setShortcut] = useState<string | null>(null)
   const [projectPath, setProjectPath] = usePersistentState<string | null>('devforge:widget-project', null)
+  // Same project as the app
+  const { active } = useActiveProject()
+  useEffect(() => { if (active) setProjectPath(active.path) }, [active, setProjectPath])
   const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   // Read from event callbacks

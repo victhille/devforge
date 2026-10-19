@@ -191,7 +191,8 @@ function fromUrl(url: string): Omit<Found, 'name' | 'source' | 'origin'> | null 
   }
 }
 
-function fromEnv(env: Record<string, string>): Omit<Found, 'name' | 'source' | 'origin'> | null {
+/** Database described by a project's .env (URL, Laravel or Docker style) */
+export function fromEnv(env: Record<string, string>): Omit<Found, 'name' | 'source' | 'origin'> | null {
   for (const k of ['DATABASE_URL', 'DB_URL', 'POSTGRES_URL', 'MYSQL_URL']) {
     if (env[k]) { const r = fromUrl(env[k]); if (r) return r }
   }

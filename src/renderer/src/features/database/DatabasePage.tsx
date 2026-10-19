@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   ChevronDown, ChevronRight, Code2, Database, Eye, Info, KeyRound, LayoutGrid, Link2, ListTree,
@@ -15,6 +15,7 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import { formatSize } from '@renderer/lib/format'
+import { useActiveHub } from '@renderer/hooks/useActiveHub'
 import { SectionTitle } from '@renderer/components/ui/Page'
 import DbConnectionForm from './DbConnectionForm'
 import DetectDialog from './DetectDialog'
@@ -54,6 +55,14 @@ export default function DatabasePage() {
 
   const reloadConnections = useCallback(() => window.devforge.db.list().then(setConnections), [])
   useEffect(() => { reloadConnections() }, [reloadConnections])
+  // ?conn=<id>: opened from a project page
+  const wantedConn = useRef(params.get('conn'))
+  useEffect(() => {
+    const id = wantedConn.current
+    if (id && connections.some(c => c.id === id)) { wantedConn.current = null; select(id) }
+  // select is stable enough here: it only runs once per link
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connections])
 
   const conn = connections.find(c => c.id === active)
 
@@ -144,6 +153,12 @@ export default function DatabasePage() {
 
   const toggle = (key: string) => setOpen(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else n.add(key); return n })
 
+  // Active project only (its linked databases)
+  const activeHub = useActiveHub()
+  const [onlyActive, setOnlyActive] = usePersistentState('devforge:db-only-active', false)
+  const filterOn = onlyActive && !!activeHub?.databases.length
+  const shownConnections = filterOn ? connections.filter(c => activeHub!.databases.some(d => d.id === c.id)) : connections
+
   const shownTables = useMemo(() => {
     const f = filter.trim().toLowerCase()
     return f ? tables?.filter(tb => `${tb.schema}.${tb.name}`.toLowerCase().includes(f)) : tables
@@ -169,7 +184,12 @@ export default function DatabasePage() {
       {/* Connections + tables (collapsible: more room for the data) */}
       <aside className={cn('flex shrink-0 flex-col border-r border-line-subtle bg-sidebar transition-[width] duration-200', collapsed ? 'w-14' : 'w-[260px]')}>
         <div className={cn('flex h-11 shrink-0 items-center border-b border-line-subtle', collapsed ? 'justify-center' : 'justify-between px-3')}>
-          {!collapsed && <SectionTitle>{d.connections}</SectionTitle>}
+          {!collapsed && (activeHub?.databases.length
+            ? <button onClick={() => setOnlyActive(v => !v)} aria-pressed={filterOn}
+                className={cn('truncate rounded-full border px-2.5 py-0.5 text-xs font-medium', filterOn ? 'border-accent/40 bg-active text-fg' : 'border-line text-fg-secondary hover:text-fg')}>
+                {filterOn ? t.hub.onlyActive.replace('{name}', activeHub.project.name) : d.connections}
+              </button>
+            : <SectionTitle>{d.connections}</SectionTitle>)}
           <span className="flex gap-0.5">
             {!collapsed && <IconButton title={d.detectTitle} onClick={() => setDetect({})}><Search size={14} /></IconButton>}
             {!collapsed && <IconButton title={d.newTitle} onClick={() => setForm({})}><Plus size={15} /></IconButton>}
@@ -181,7 +201,7 @@ export default function DatabasePage() {
 
         {collapsed ? (
           <div className="flex flex-1 flex-col items-center gap-1 overflow-y-auto py-2">
-            {connections.map(c => (
+            {shownConnections.map(c => (
               <button key={c.id} onClick={() => select(c.id)} title={`${c.name} — ${c.type}`}
                 className={cn('flex size-10 items-center justify-center rounded-lg transition-colors hover:bg-hover', active === c.id && 'bg-active')}>
                 <Database size={16} style={{ color: c.color }} />
@@ -192,7 +212,7 @@ export default function DatabasePage() {
         ) : (
           <div className="flex-1 overflow-y-auto p-1.5">
             {connections.length === 0 && <p className="p-4 text-center text-sm text-fg-muted">{d.noConnections}</p>}
-            {connections.map(c => (
+            {shownConnections.map(c => (
               <div key={c.id}>
                 <div className={cn('group flex items-center gap-2 rounded-lg px-2.5 py-2', active === c.id ? 'bg-active' : 'hover:bg-hover')}>
                   <button className="flex min-w-0 flex-1 items-center gap-2 text-left" onClick={() => select(c.id)}>

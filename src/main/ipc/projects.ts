@@ -7,9 +7,20 @@ import { scanDirectory } from '../services/projects/projectScanner'
 import { loadProjects, saveProject, removeProject, updateLastOpened, toggleFavorite } from '../services/projects/projectStorage'
 import { commandRunner } from '../services/system/commandRunner'
 import { assertSafeDir, assertScriptName } from '../lib/safe'
-import type { Project, ProjectCreationOptions, LogLine, CommandResult, PackageManager } from '@shared/types'
+import type { Project, ProjectCreationOptions, LogLine, CommandResult, PackageManager, LinkKind } from '@shared/types'
+import { getActiveProject, getProjectHub, linkResource, setActiveProject } from '../services/projects/projectHub'
 
 export function registerProjectHandlers(mainWindow: BrowserWindow): void {
+  // ─── Project hub and active project ─────────────────────────────────────────
+  ipcMain.handle('hub:get', (_e, id: string) => getProjectHub(String(id)))
+  ipcMain.handle('hub:link', (_e, id: string, kind: LinkKind, ref: string, linked: boolean) => linkResource(String(id), kind, String(ref), linked === true))
+  ipcMain.handle('hub:get-active', () => getActiveProject())
+  ipcMain.handle('hub:set-active', (_e, id: string | null) => {
+    setActiveProject(typeof id === 'string' ? id : null)
+    // The app and the desktop widget follow the same project
+    for (const w of BrowserWindow.getAllWindows()) if (!w.isDestroyed()) w.webContents.send('hub:active', getActiveProject())
+  })
+
   // ─── Project Creation ─────────────────────────────────────────────────────────
   ipcMain.handle('create-project', async (_event, options: ProjectCreationOptions): Promise<string> => {
     const taskId = randomUUID()

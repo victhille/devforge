@@ -13,6 +13,8 @@ import { Page } from '@renderer/components/ui/Page'
 import { useProjects } from '@renderer/features/projects/hooks/useProjects'
 import { useVPS } from '@renderer/features/ssh/VPSContext'
 import { useVpsStats } from '@renderer/features/ssh/vps/useVpsStats'
+import { useActiveProject } from '@renderer/hooks/useActiveProject'
+import ProjectIcon from '@renderer/features/projects/components/ProjectIcon'
 
 // ─── Building blocks ──────────────────────────────────────────────────────────
 
@@ -252,6 +254,54 @@ function PortsTile({ ports, i }: { ports: ListeningPort[] | null; i: number }) {
 
 // ─── Activity ─────────────────────────────────────────────────────────────────
 
+// ─── Active project ───────────────────────────────────────────────────────────
+
+/** The project Forgy and the widget work on, with a quick way to change it */
+function ActiveProjectCard({ projects, repos }: { projects: Project[]; repos: { project: Project; details: GitRepoDetails }[] | null }) {
+  const { t } = useI18n()
+  const h = t.hub
+  const navigate = useNavigate()
+  const { active, setActive } = useActiveProject()
+  const details = active ? repos?.find(r => r.project.id === active.id)?.details : undefined
+
+  const picker = (
+    <label className="flex items-center">
+      <span className="sr-only">{h.choose}</span>
+      <select value={active?.id ?? ''} onChange={e => setActive(e.target.value || null)}
+        className="h-8 max-w-[200px] rounded-lg border border-line bg-elevated px-2.5 text-sm text-fg-secondary outline-none">
+        <option value="">{h.choose}</option>
+        {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+      </select>
+    </label>
+  )
+
+  return (
+    <Card className="df-rise flex flex-wrap items-center gap-4 rounded-[14px] border-accent/25 p-[18px]" style={{ '--i': 1 } as CSSProperties}>
+      {active ? (
+        <>
+          <ProjectIcon framework={active.framework} size="lg" />
+          <div className="min-w-0 flex-1">
+            <div className="font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{h.activeTitle}</div>
+            <button onClick={() => navigate(`/project/${active.id}`)} className="block max-w-full truncate text-left text-lg font-semibold text-fg hover:text-accent">{active.name}</button>
+            <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-fg-muted">
+              {details?.branch && <span>{details.branch}</span>}
+              {!!details?.changes && <span className="text-warning">{h.gitChanges.replace('{n}', String(details.changes))}</span>}
+              {!!details?.ahead && <span className="text-accent">{h.gitAhead.replace('{n}', String(details.ahead))}</span>}
+            </div>
+          </div>
+          {picker}
+          <Button onClick={() => navigate(`/project/${active.id}`)}>{h.openHub}</Button>
+        </>
+      ) : (
+        <>
+          <p className="min-w-0 flex-1 text-sm text-fg-secondary">{h.activeNone}</p>
+          {picker}
+        </>
+      )}
+    </Card>
+  )
+}
+
 function ActivityTile({ i }: { i: number }) {
   const { t } = useI18n()
   const activity = useActivity()
@@ -362,14 +412,14 @@ export default function HomePage() {
         </div>
       </header>
 
-      {loaded && projects.length === 0 && <Onboarding />}
+      {loaded && projects.length === 0 ? <Onboarding /> : <ActiveProjectCard projects={projects} repos={repos} />}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <DockerTile i={1} docker={docker} reload={loadDocker} />
-        <VpsTile i={2} conn={conn} onState={setVps} />
-        <GitTile i={3} repos={repos} fetching={fetching} onFetchAll={fetchAll} />
-        <PortsTile i={4} ports={ports} />
-        <ActivityTile i={5} />
+        <DockerTile i={2} docker={docker} reload={loadDocker} />
+        <VpsTile i={3} conn={conn} onState={setVps} />
+        <GitTile i={4} repos={repos} fetching={fetching} onFetchAll={fetchAll} />
+        <PortsTile i={5} ports={ports} />
+        <ActivityTile i={6} />
       </div>
     </Page>
   )
