@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Container, Eraser, Layers, RefreshCw } from 'lucide-react'
-import type { DockerOverview } from '@shared/types'
+import type { DockerOverview, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
@@ -12,6 +12,8 @@ import Spinner from '@renderer/components/ui/Spinner'
 import { Page } from '@renderer/components/ui/Page'
 import { useAssistantPageContext } from '@renderer/features/assistant/AssistantContext'
 import { ComposeDetail, ContainerDetail, hostPorts } from './ComposeDetail'
+import RemoteDocker from './RemoteDocker'
+import Tabs from '@renderer/components/ui/Tabs'
 import { useActiveHub } from '@renderer/hooks/useActiveHub'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
 
@@ -50,6 +52,10 @@ export default function DockerPage() {
   const [selection, setSelection] = useState<Selection | null>(null)
   const [busy, setBusy] = useState<Set<string>>(new Set())
   const [pruning, setPruning] = useState<'confirm' | 'running' | null>(null)
+  // Local Docker, or a VPS through SSH
+  const [where, setWhere] = usePersistentState<'local' | 'vps'>('devforge:docker-where', 'local')
+  const [servers, setServers] = useState<SSHConnection[]>([])
+  useEffect(() => { window.devforge.getSshConnections().then(setServers).catch(() => {}) }, [])
 
   const reload = useCallback(async () => {
     setLoading(true)
@@ -119,12 +125,17 @@ export default function DockerPage() {
           <h1 className="text-[26px] leading-tight font-semibold tracking-[-.02em] text-fg">{d.title}</h1>
           <p className="text-sm text-fg-muted">{data?.available ? d.subtitle.replace('{v}', data.version ?? '').replace('{n}', String(running)) : d.subtitleOff}</p>
         </div>
-        {activeHub?.composeName && <FilterChip on={filterOn} label={t.hub.onlyActive.replace('{name}', activeHub.project.name)} onClick={() => setOnlyActive(v => !v)} />}
-        <Button variant="secondary" onClick={reload} loading={loading}>{!loading && <RefreshCw size={14} />} {t.common.refresh}</Button>
-        <Button variant="secondary" onClick={() => setPruning('confirm')} disabled={!data?.available}><Eraser size={14} /> {d.prune}</Button>
+        <Tabs<'local' | 'vps'> value={where} onChange={setWhere} items={[{ value: 'local', label: t.watch.local }, { value: 'vps', label: t.watch.vps }]} />
+        {where === 'local' && (
+          <>
+            {activeHub?.composeName && <FilterChip on={filterOn} label={t.hub.onlyActive.replace('{name}', activeHub.project.name)} onClick={() => setOnlyActive(v => !v)} />}
+            <Button variant="secondary" onClick={reload} loading={loading}>{!loading && <RefreshCw size={14} />} {t.common.refresh}</Button>
+            <Button variant="secondary" onClick={() => setPruning('confirm')} disabled={!data?.available}><Eraser size={14} /> {d.prune}</Button>
+          </>
+        )}
       </header>
 
-      {data && !data.available ? (
+      {where === 'vps' ? <RemoteDocker connections={servers} /> : data && !data.available ? (
         <EmptyState icon={<Container size={32} />} title={d.unavailable} description={data.error} />
       ) : !data ? <Spinner /> : (
         <div className="flex flex-wrap items-start gap-4">

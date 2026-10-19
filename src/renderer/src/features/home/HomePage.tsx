@@ -11,8 +11,9 @@ import Card from '@renderer/components/ui/Card'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Page } from '@renderer/components/ui/Page'
 import { useProjects } from '@renderer/features/projects/hooks/useProjects'
-import { useVPS } from '@renderer/features/ssh/VPSContext'
-import { useVpsStats } from '@renderer/features/ssh/vps/useVpsStats'
+import { useHistory, useWatch } from '@renderer/hooks/useWatch'
+import { TimeChart } from '@renderer/components/charts/TimeChart'
+import { formatRelative } from '@renderer/lib/format'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
 import ProjectIcon from '@renderer/features/projects/components/ProjectIcon'
 
@@ -150,24 +151,21 @@ function DockerTile({ docker, reload, i }: { docker: DockerOverview | null; relo
 // ─── VPS ──────────────────────────────────────────────────────────────────────
 
 function VpsTile({ conn, onState, i }: { conn: SSHConnection | null | undefined; onState: (s: 'ok' | 'disk' | 'down') => void; i: number }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const navigate = useNavigate()
-  const { sessions, getOrConnect, reconnect } = useVPS()
-  const session = conn ? sessions.get(conn.id) : undefined
-  const sessionId = session?.status === 'connected' ? session.sessionId : null
-  const { stats } = useVpsStats(sessionId)
+  // Read from the background watch: no SSH session from this page
+  const { statuses, config, saveConfig } = useWatch()
+  const watched = !!conn && !!config?.watched.includes(conn.id)
+  const status = conn ? statuses.find(s => s.connectionId === conn.id) : undefined
+  const history = useHistory(watched && conn ? `vps:${conn.id}` : null, 24, 30)
+  const diskAlert = config?.diskAlert ?? 85
 
-  useEffect(() => { if (conn) getOrConnect(conn.id).catch(() => {}) }, [conn, getOrConnect])
-
-  const mem = stats && stats.memory.total ? (stats.memory.used / stats.memory.total) * 100 : 0
-  const root = stats?.disks.find(d => d.mount === '/') ?? stats?.disks[0]
-  const diskPct = root?.pct ?? 0
   useEffect(() => {
-    if (session?.status === 'error') onState('down')
-    else if (stats) onState(diskPct >= 80 ? 'disk' : 'ok')
-  }, [session?.status, stats, diskPct, onState])
+    if (status?.state === 'down') onState('down')
+    else if (status?.state === 'ok') onState((status.disk ?? 0) >= diskAlert ? 'disk' : 'ok')
+  }, [status, diskAlert, onState])
 
-  if (conn === undefined) return <Tile i={i} title="VPS"><Spinner /></Tile>
+  if (conn === undefined || !config) return <Tile i={i} title="VPS"><Spinner /></Tile>
   if (conn === null) {
     return (
       <Tile i={i} title="VPS">
@@ -176,23 +174,34 @@ function VpsTile({ conn, onState, i }: { conn: SSHConnection | null | undefined;
       </Tile>
     )
   }
+  if (!watched) {
+    return (
+      <Tile i={i} title={conn.name} aside={<span className="font-mono text-xs text-fg-muted">{t.watch.off}</span>}>
+        <SmallButton className="mt-auto" onClick={() => saveConfig({ watched: [...config.watched, conn.id] })}>{t.watch.enableWatch}</SmallButton>
+      </Tile>
+    )
+  }
 
-  const state = session?.status === 'connected' ? t.home.sshConnected : session?.status === 'error' ? t.home.sshOffline : t.home.sshConnecting
+  const state = status?.state === 'ok' ? t.home.sshConnected : status?.state === 'down' ? t.home.sshOffline : t.home.sshConnecting
   return (
-    <Tile i={i} title={conn.name} aside={<span className={cn('font-mono text-xs', session?.status === 'error' ? 'text-danger' : 'text-fg-secondary')}>{state}</span>}>
-      {session?.status === 'error' ? (
-        <SmallButton className="mt-auto" onClick={() => reconnect(conn.id).catch(() => {})}>{t.home.retry}</SmallButton>
-      ) : !stats ? <Spinner /> : (
+    <Tile i={i} title={conn.name} aside={<span className={cn('font-mono text-xs', status?.state === 'down' ? 'text-danger' : 'text-fg-secondary')} title={status?.at ? new Date(status.at).toLocaleTimeString() : undefined}>{state}</span>}>
+      {status?.state === 'down' ? (
+        <p className="text-sm text-danger">{status.error}</p>
+      ) : status?.state !== 'ok' ? <Spinner /> : (
         <>
-          <Gauge i={0} label="CPU" pct={stats.cpu} />
-          <Gauge i={1} label={t.home.memory} pct={mem} />
-          <Gauge i={2} label={t.home.disk} pct={diskPct} />
-          {diskPct >= 80 && (
+          <Gauge i={0} label="CPU" pct={status.cpu ?? 0} />
+          <Gauge i={1} label={t.home.memory} pct={status.memory ?? 0} />
+          <Gauge i={2} label={t.home.disk} pct={status.disk ?? 0} />
+          {history && history.points.length > 1 && (
+            <TimeChart points={history.points} field={0} max={100} label={`CPU · ${t.watch.last24h.toLowerCase()}`} format={v => `${Math.round(v)} %`} height={40} />
+          )}
+          {(status.disk ?? 0) >= diskAlert && (
             <p className="mt-auto text-xs text-fg-secondary">
               {t.home.diskFull}{' '}
               <button onClick={() => navigate(`/vps/${conn.id}`)} className="text-accent hover:underline">{t.home.openDashboard}</button>
             </p>
           )}
+          {status.at && <span className="font-mono text-2xs text-fg-muted">{t.watch.lastSample.replace('{when}', formatRelative(new Date(status.at).toISOString(), lang))}</span>}
         </>
       )}
     </Tile>

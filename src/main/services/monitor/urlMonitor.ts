@@ -4,6 +4,8 @@ import { app, Notification } from 'electron'
 import type { Monitor, MonitorCheck, MonitorState } from '@shared/types'
 import { loadSettings } from '../settings/settingsService'
 import { writeJsonFile } from '../../lib/jsonFile'
+import { appendPoint, removeSeries } from './history'
+import { emitAlert } from './vpsWatch'
 
 const MAX_CHECKS = 60
 const MIN_INTERVAL = 30
@@ -88,9 +90,12 @@ export async function check(id: string): Promise<MonitorState> {
         body: next === 'down' ? `${m.url}\n${result.error ?? ''}` : `${m.url} — ${result.latency} ms`
       }).show()
     }
+    if (s.status !== 'unknown' && next === 'down') emitAlert('site', notifTitle(m.name, 'down'), result.error ?? m.url)
     s.status = next
     s.since = result.at
   }
+  // Kept 7 days for the charts: up (0/1) and response time
+  appendPoint(`site:${id}`, ['up', 'latency'], [result.ok ? 1 : 0, result.latency])
   s.checks = [result, ...s.checks].slice(0, MAX_CHECKS)
   onState({ ...s })
   persist()
@@ -141,6 +146,7 @@ export function removeMonitor(id: string): void {
   timers.delete(id)
   monitors = monitors.filter(m => m.id !== id)
   states.delete(id)
+  removeSeries(`site:${id}`)
   persist()
 }
 

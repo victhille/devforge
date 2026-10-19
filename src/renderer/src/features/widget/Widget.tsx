@@ -145,6 +145,14 @@ export default function Widget() {
   }, [collapse])
 
   // Streamed events of the widget's conversation
+  // A server, container or site alert: Forgy looks worried and shows the alert badge
+  useEffect(() => window.devforge.watch.onAlert(() => {
+    setPhase('sad')
+    clearTimeout(reaction.current)
+    reaction.current = setTimeout(() => setPhase('idle'), 8000)
+    if (!openRef.current) setAlert(true)
+  }), [])
+
   useEffect(() => window.devforge.assistant.onEvent(e => {
     if (e.conversationId !== idRef.current) return
     if (e.type === 'text') {

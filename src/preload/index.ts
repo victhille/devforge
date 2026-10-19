@@ -229,6 +229,18 @@ const api: DevForgeAPI = {
   // Settings
   getSettings:  ()         => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
+  watch: {
+    status:       invoke('watch:status'),
+    onStatus:     on('watch:status'),
+    config:       invoke('watch:config'),
+    saveConfig:   invoke('watch:save-config'),
+    history:      invoke('watch:history'),
+    onAlert:      on('watch:alert'),
+    docker:       invoke('watch:docker'),
+    dockerAction: invoke('watch:docker-action'),
+    dockerLogs:   invoke('watch:docker-logs')
+  },
+
   hub: {
     get:       invoke('hub:get'),
     link:      invoke('hub:link'),

@@ -202,12 +202,14 @@ export * from './webhooks'
 export * from './suggest'
 export * from './assistant'
 export * from './hub'
+export * from './watch'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
 import type { VersionsAPI } from './versions'
 import type { StacksAPI } from './stacks'
 import type { HubAPI } from './hub'
+import type { WatchAPI } from './watch'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -315,6 +317,7 @@ export interface DevForgeAPI {
   saveSettings: (settings: AppSettings) => Promise<void>
   updates: UpdatesAPI
   hub: HubAPI
+  watch: WatchAPI
 
   // Git
   getGitStatus: (path: string) => Promise<GitStatus>
