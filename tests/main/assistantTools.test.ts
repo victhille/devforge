@@ -82,15 +82,22 @@ describe('assistant tools', () => {
 
 describe('assistant config', () => {
   it('stores the API key encrypted and never returns it', () => {
-    expect(getConfig()).toEqual({ hasKey: false, model: 'auto', effort: 'auto', monthlyBudget: 5 })
+    expect(getConfig()).toEqual({ hasKey: false, model: 'auto', effort: 'auto', monthlyBudget: 5, desktopWidget: false })
     const c = saveConfig({ apiKey: ' sk-ant-secret ', model: 'claude-sonnet-5-5', effort: 'high', monthlyBudget: 12.345 })
-    expect(c).toEqual({ hasKey: true, model: 'claude-sonnet-5-5', effort: 'high', monthlyBudget: 12.35 })
+    expect(c).toEqual({ hasKey: true, model: 'claude-sonnet-5-5', effort: 'high', monthlyBudget: 12.35, desktopWidget: false })
     expect(saveConfig({ monthlyBudget: -3 }).monthlyBudget).toBe(12.35)
     expect(readFileSync(join(userData(), 'assistant', 'config.json'), 'utf-8')).not.toContain('sk-ant-secret')
     expect(getApiKey()).toBe('sk-ant-secret')
     expect(saveConfig({ model: 'gpt-4' as never }).model).toBe('claude-sonnet-5-5')
     expect(saveConfig({ clearKey: true }).hasKey).toBe(false)
     expect(getApiKey()).toBeNull()
+  })
+
+  it('keeps the desktop widget off unless turned on', () => {
+    expect(saveConfig({ desktopWidget: 'yes' as never }).desktopWidget).toBe(false)
+    expect(saveConfig({ desktopWidget: true }).desktopWidget).toBe(true)
+    expect(saveConfig({ model: 'auto' }).desktopWidget).toBe(true)
+    expect(saveConfig({ desktopWidget: false }).desktopWidget).toBe(false)
   })
 })
 

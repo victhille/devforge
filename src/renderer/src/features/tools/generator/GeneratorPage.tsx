@@ -21,10 +21,11 @@ function Slider({ label, value, min, max, onChange }: { label: string; value: nu
 }
 
 function ResultRow({ value, onGenerate, label }: { value: string; onGenerate: () => void; label: string }) {
+  const { t } = useI18n()
   return (
     <div className="flex items-center gap-2">
-      <div className="min-h-8 flex-1 break-all rounded-lg border border-line bg-elevated px-3 py-1.5 font-mono text-sm text-fg">
-        {value || <span className="font-sans text-fg-muted">Click Generate</span>}
+      <div className="min-h-8 flex-1 break-all rounded-[9px] border border-line bg-canvas px-3 py-1.5 font-mono text-sm text-fg">
+        {value || <span className="font-sans text-fg-muted">{t.generator.clickGenerate}</span>}
       </div>
       <IconButton title="Regenerate" onClick={onGenerate}><RefreshCw size={14} /></IconButton>
       {value && <CopyButton text={value} />}

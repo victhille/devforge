@@ -18,6 +18,7 @@ import { registerWebhookHandlers } from './webhooks'
 import { registerSuggestHandlers } from './suggest'
 import { registerHttpHandlers } from './http'
 import { registerAssistantHandlers } from './assistant'
+import { registerWidgetHandlers } from './widget'
 
 export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerSshHandlers(mainWindow)
@@ -39,4 +40,5 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerSuggestHandlers()
   registerHttpHandlers()
   registerAssistantHandlers(mainWindow)
+  registerWidgetHandlers()
 }

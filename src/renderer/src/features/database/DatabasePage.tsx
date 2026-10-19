@@ -14,7 +14,7 @@ import Button from '@renderer/components/ui/Button'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
-import Tabs from '@renderer/components/ui/Tabs'
+import { formatSize } from '@renderer/lib/format'
 import { SectionTitle } from '@renderer/components/ui/Page'
 import DbConnectionForm from './DbConnectionForm'
 import DetectDialog from './DetectDialog'
@@ -149,6 +149,8 @@ export default function DatabasePage() {
     return f ? tables?.filter(tb => `${tb.schema}.${tb.name}`.toLowerCase().includes(f)) : tables
   }, [tables, filter])
 
+  const dbName = overview?.database || conn?.database || conn?.name || ''
+
   const tabItems = table
     ? [
         { value: 'browse' as Tab,    label: d.tabBrowse,    icon: <Rows3 size={13} /> },
@@ -165,7 +167,7 @@ export default function DatabasePage() {
   return (
     <div className="flex h-full">
       {/* Connections + tables (collapsible: more room for the data) */}
-      <aside className={cn('flex shrink-0 flex-col border-r border-line-subtle bg-surface transition-[width] duration-200', collapsed ? 'w-14' : 'w-72')}>
+      <aside className={cn('flex shrink-0 flex-col border-r border-line-subtle bg-sidebar transition-[width] duration-200', collapsed ? 'w-14' : 'w-[260px]')}>
         <div className={cn('flex h-11 shrink-0 items-center border-b border-line-subtle', collapsed ? 'justify-center' : 'justify-between px-3')}>
           {!collapsed && <SectionTitle>{d.connections}</SectionTitle>}
           <span className="flex gap-0.5">
@@ -263,24 +265,51 @@ export default function DatabasePage() {
           </div>
         ) : (
           <>
-            <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-line-subtle bg-surface px-4 py-2">
-              <nav className="flex min-w-0 items-center gap-1.5 text-sm">
-                <button onClick={() => { setTable(null); setTab('overview') }}
-                  className={cn('flex min-w-0 items-center gap-1.5 truncate font-medium', table ? 'text-fg-secondary hover:text-fg' : 'text-fg')}>
-                  <Database size={14} style={{ color: conn.color }} className="shrink-0" />
-                  <span className="truncate">{overview?.database || conn.database || conn.name}</span>
-                </button>
-                {table && (
-                  <>
-                    <ChevronRight size={13} className="shrink-0 text-fg-muted" />
-                    <span className="flex items-center gap-1.5 truncate font-mono font-medium text-fg">
-                      <Table2 size={13} className="shrink-0 text-accent" />
-                      {table.schema && table.schema !== 'public' ? `${table.schema}.` : ''}{table.name}
-                    </span>
-                  </>
-                )}
-              </nav>
-              <Tabs<Tab> value={tab} onChange={changeTab} items={tabItems} className="ml-auto" />
+            <div className="df-rise flex shrink-0 flex-col gap-4 px-7 pt-6">
+              {/* Breadcrumb, table name and actions */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="min-w-[200px] flex-1">
+                  <nav className="flex min-w-0 items-center gap-1.5 font-mono text-[11.5px] text-fg-muted">
+                    <span>{conn.type}</span>
+                    <ChevronRight size={11} />
+                    <button onClick={() => { setTable(null); setTab('overview') }} className="truncate hover:text-fg">{dbName}</button>
+                    {table?.schema && <><ChevronRight size={11} /><span>{table.schema}</span></>}
+                  </nav>
+                  <h1 className="mt-0.5 flex items-center gap-2 truncate text-2xl font-semibold tracking-[-.02em] text-fg">
+                    {table ? table.name : dbName}
+                  </h1>
+                </div>
+                <Button variant="secondary" size="sm" onClick={refresh}><RefreshCw size={13} /> {t.common.refresh}</Button>
+                <Button size="sm" onClick={() => changeTab('sql')}><Code2 size={13} /> {d.newQuery}</Button>
+              </div>
+
+              {/* Tabs, underlined */}
+              <div role="tablist" className="flex gap-1 border-b border-line">
+                {tabItems.map(item => (
+                  <button key={item.value} role="tab" aria-selected={tab === item.value} onClick={() => changeTab(item.value)}
+                    className={cn('flex h-9 items-center gap-1.5 border-b-2 px-3.5 text-base font-medium transition-colors',
+                      tab === item.value ? 'border-accent text-fg' : 'border-transparent text-fg-secondary hover:text-fg')}>
+                    {item.icon} {item.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Key figures of the open table */}
+              {table && details && sameTable(table, detailsFor) && (
+                <div className="flex flex-wrap gap-3">
+                  {[
+                    [d.rowsEstimate, details.stats?.rows != null ? details.stats.rows.toLocaleString() : '—'],
+                    [d.size, details.stats?.dataBytes != null ? formatSize((details.stats.dataBytes ?? 0) + (details.stats.indexBytes ?? 0)) : '—'],
+                    [d.statIndexes, String(details.indexes.length)],
+                    [d.statForeignKeys, details.foreignKeys.length ? `${details.foreignKeys.length} → ${details.foreignKeys[0].table}` : '0']
+                  ].map(([label, value]) => (
+                    <div key={label} className="min-w-[140px] flex-1 rounded-xl border border-line-subtle bg-surface px-3.5 py-3">
+                      <div className="font-mono text-[11px] text-fg-muted uppercase">{label}</div>
+                      <div className="mt-0.5 truncate text-xl font-semibold text-fg">{value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div key={`${active}:${table?.schema}.${table?.name}:${rev}`} className={cn('flex min-h-0 flex-1 flex-col', tab !== 'browse' && tab !== 'sql' && 'overflow-y-auto')}>

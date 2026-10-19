@@ -30,7 +30,12 @@ const fr = {
     logs: 'Logs',
     webhooks: 'Webhooks',
     collapse: 'Réduire le menu',
-    expand: 'Agrandir le menu'
+    expand: 'Agrandir le menu',
+    favorites: 'Favoris',
+    groupDev: 'Développement',
+    groupServers: 'Serveurs',
+    groupSystem: 'Système',
+    groupTools: 'Outils'
   },
 
   palette: {
@@ -66,7 +71,45 @@ const fr = {
     openVSCode:     'VS Code',
     open:           'Ouvrir',
     pinnedProjects: 'Projets épinglés',
-    noRecentHint:   'Vos projets récents apparaîtront ici.'
+    noRecentHint:   'Vos projets récents apparaîtront ici.',
+    greetingMorning: 'Bonjour',
+    greetingEvening: 'Bonsoir',
+    statusLine:     '{c} conteneur{s} en ligne · {p} port{sp} en écoute',
+    dockerOff:      "Docker n'est pas lancé",
+    dockerNone:     'Aucun projet Compose',
+    portsTitle:     'Ports en écoute',
+    portsNone:      'Aucun port de dev en écoute',
+    seeAll:         'Tout voir',
+    servicesOne:    '1 service tourne',
+    servicesMany:   '{n} services tournent',
+    nothingRuns:    'rien ne tourne',
+    pushOne:        '1 dépôt à pousser',
+    pushMany:       '{n} dépôts à pousser',
+    vpsOk:          'le VPS va bien',
+    vpsDiskFull:    'le disque du VPS est presque plein',
+    vpsDown:        'le VPS ne répond pas',
+    openTerminal:   'Ouvrir un terminal',
+    composeOnline:  '{r}/{t} en ligne',
+    logs:           'Logs',
+    stop:           'Arrêter',
+    start:          'Démarrer',
+    sshConnected:   'SSH · connecté',
+    sshConnecting:  'connexion…',
+    sshOffline:     'hors ligne',
+    retry:          'Réessayer',
+    memory:         'Mémoire',
+    disk:           'Disque',
+    diskFull:       'Disque presque plein :',
+    openDashboard:  'ouvrir le tableau de bord',
+    noServer:       'Aucun serveur SSH enregistré.',
+    addServer:      'Ajouter un serveur',
+    ahead:          '↑ {n}',
+    changed:        '{n} modifié{s}',
+    upToDate:       'à jour',
+    fetchAll:       'Tout récupérer (fetch)',
+    noRepos:        'Aucun dépôt Git dans tes projets.',
+    activity:       'Activité',
+    noActivity:     'Tes actions (commit, compose, déploiement…) apparaîtront ici.'
   },
 
   projects: {
@@ -75,7 +118,8 @@ const fr = {
     detectedSuffix:    ' · {n} détecté{s}',
     newProject:        'Nouveau projet',
     filterAll:         'Tous',
-    searchPlaceholder: 'Rechercher des projets...',
+    searchPlaceholder: 'Filtrer…',
+    uncommitted:       'modifs en cours',
     rescan:            'Rescanner',
     yourProjects:      'Vos projets',
     detectedIn:        'Détectés dans {dir}',
@@ -178,7 +222,13 @@ const fr = {
     process:  'Processus',
     pid:      'PID',
     noResults:'Aucun port en écoute trouvé.',
-    scanning: 'Scan des ports...'
+    scanning: 'Scan des ports...',
+    showDev:  'Dev',
+    showAll:  'Tous',
+    free:     'Libérer',
+    freeConfirm: 'Arrêter « {name} » (PID {pid}) pour libérer le port {port} ?',
+    freed:    'Port {port} libéré',
+    freeFailed: 'Impossible de libérer le port {port}'
   },
 
   console: {
@@ -226,6 +276,11 @@ const fr = {
   },
 
   assistant: {
+    walker: "Forgy se promène en bas de l'app",
+    walkerHint: "Il marche, fait coucou et s'endort quand tu ne fais rien. Les clics passent à travers lui.",
+    walkerDog: "Avec Boulon, son chien robot",
+    walkerHello: "Coucou !",
+    askForgy: "Demande à Forgy…",
     openWith: "Ouvrir avec",
     launchHint: "Ouvre {name} dans un terminal, dans le projet choisi (utilise ton abonnement)",
     notInstalled: "{name} n'est pas installé : clique pour voir comment l'installer",
@@ -292,6 +347,28 @@ const fr = {
     budget: "Budget mensuel",
     budgetHint: "L'assistant s'arrête quand le mois atteint ce montant (estimation d'après les tokens). 0 = sans limite.",
     spentThisMonth: "{n} $ dépensés ce mois",
+    widget: {
+      toggle: "Forgy sur le bureau",
+      toggleHint: "Une bulle toujours au premier plan, en bas à droite de l'écran, même quand DevForge est dans la barre des tâches.",
+      shortcut: "Raccourci pour l'ouvrir de n'importe où : {key}",
+      shortcutTaken: "Ctrl+Alt+Espace et Ctrl+Alt+J sont pris par d'autres applis : clique sur la bulle pour l'ouvrir.",
+      open: "Ouvrir Forgy",
+      collapse: "Replier",
+      label: "Question pour Forgy",
+      placeholder: "Demande à Forgy…",
+      dictate: "Dicter",
+      dictateHint: "Dictée Windows : Win + H",
+      copy: "Copier",
+      copied: "Copié",
+      openInApp: "Ouvrir dans DevForge",
+      newQuestion: "Nouvelle question",
+      context: "Contexte : {name}",
+      noContext: "Sans projet",
+      effortHint: "Profondeur de réflexion de la prochaine conversation",
+      effortLocked: "Fixée pour cette conversation : « Nouvelle question » pour en changer",
+      unread: "{n} réponse(s) à lire",
+      alert: "Forgy a eu un souci"
+    },
     tools: {
       web_search: "Recherche web",
       list_projects: "Projets",
@@ -345,6 +422,7 @@ const fr = {
   },
 
   toolbox: {
+    search:       'Chercher un outil…',
     tabCron:      'Cron',
     tabTimestamp: 'Timestamp',
     tabUrl:       'URL',
@@ -401,7 +479,9 @@ const fr = {
     noResponse:   'Envoyez une requête pour voir la réponse',
     error:        'Requête échouée',
     tabPreview: "Aperçu",
-    previewNote: "Rendu de la page, scripts désactivés"
+    previewNote: "Aperçu isolé · scripts désactivés",
+    tabRaw: "Brut",
+    history: "Historique"
   },
 
   snippets: {
@@ -429,6 +509,8 @@ const fr = {
     subtitle: 'Comparer deux textes côte à côte',
     original: 'Original',
     modified: 'Modifié',
+    pasteOriginal: 'Colle le texte original…',
+    pasteModified: 'Colle le texte modifié…',
     result:   'Résultat',
     added:    'ajouté',
     removed:  'supprimé',
@@ -443,6 +525,7 @@ const fr = {
     sectionPass:   'Mot de passe',
     sectionSecret: 'Secret / Token',
     sectionUuid:   'UUID',
+    clickGenerate: 'Clique sur Générer',
     length:        'Longueur',
     uppercase:     'Majuscules (A-Z)',
     lowercase:     'Minuscules (a-z)',
@@ -618,7 +701,20 @@ const fr = {
     composeRunning:     '{n}/{total} en cours',
     composeStarted:     '{name} démarré',
     composeDown:        'Supprimer les conteneurs',
-    composeDownConfirm: "Supprimer les conteneurs de « {name} » ? Les volumes (données des bases) sont conservés, le projet pourra être relancé."
+    composeDownConfirm: "Supprimer les conteneurs de « {name} » ? Les volumes (données des bases) sont conservés, le projet pourra être relancé.",
+    navCompose:    'Compose',
+    navStandalone: 'Seuls',
+    colService:    'Service',
+    colImage:      'Image',
+    colPorts:      'Ports',
+    colStatus:     'Statut',
+    colState:      'État',
+    stateRunning:  'en ligne',
+    stateStopped:  'arrêté',
+    logsOf:        'Logs · {name}',
+    live:          'en direct',
+    askForgy:      'Demander à Forgy',
+    allServices:   'tous les services'
   },
 
   deploy: {
@@ -745,6 +841,9 @@ const fr = {
     emptyTitle:      'Choisissez ou ajoutez une base',
     emptyHint:       'PostgreSQL, MySQL / MariaDB et SQLite. Les mots de passe sont chiffrés par l\'OS.',
     tabOverview: "Base",
+    newQuery: "Nouvelle requête",
+    statIndexes: "Index",
+    statForeignKeys: "Clés étrangères",
     tabBrowse: "Parcourir",
     tabStructure: "Structure",
     tabRelations: "Relations",

@@ -14,7 +14,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANTS: Record<Variant, string> = {
   primary:
-    'bg-accent text-white shadow-sm shadow-accent/20 ring-1 ring-inset ring-white/10 ' +
+    'bg-accent font-semibold text-accent-fg shadow-sm shadow-accent/20 ring-1 ring-inset ring-white/10 ' +
     'hover:bg-accent-hover',
   secondary:
     'bg-elevated text-fg border border-line shadow-sm ' +
@@ -27,7 +27,7 @@ const VARIANTS: Record<Variant, string> = {
 
 const SIZES: Record<Size, string> = {
   sm: 'h-8 gap-1.5 rounded-md px-3 text-sm',
-  md: 'h-9 gap-2 rounded-lg px-4 text-base',
+  md: 'h-9 gap-2 rounded-[9px] px-3.5 text-base',
   lg: 'h-11 gap-2 rounded-lg px-6 text-md'
 }
 

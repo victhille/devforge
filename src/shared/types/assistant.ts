@@ -15,6 +15,8 @@ export interface AssistantConfig {
   effort: AssistantEffort | 'auto'
   /** Monthly spending cap in USD, 0 = none */
   monthlyBudget: number
+  /** Forgy's always-on-top bubble on the desktop (off by default) */
+  desktopWidget: boolean
 }
 
 export interface AssistantConfigUpdate {
@@ -23,6 +25,7 @@ export interface AssistantConfigUpdate {
   model?: AssistantModel | 'auto'
   effort?: AssistantEffort | 'auto'
   monthlyBudget?: number
+  desktopWidget?: boolean
 }
 
 /** Estimated spending of the current month */
@@ -76,6 +79,8 @@ export interface AssistantSendRequest {
   pageContext?: AssistantPageContext | null
   /** Skill of a new conversation (ignored for an existing one) */
   skill?: AssistantSkillId
+  /** Effort of a new conversation, over the configured one (ignored for an existing one) */
+  effort?: AssistantEffort | 'auto'
 }
 
 export type AssistantErrorCode = 'no-key' | 'auth' | 'rate' | 'network' | 'refusal' | 'truncated' | 'budget' | 'limit' | 'other'
@@ -116,4 +121,20 @@ export interface AssistantAPI {
   remove: (id: string) => Promise<void>
   usage: () => Promise<AssistantUsage>
   onEvent: (cb: (e: AssistantEvent) => void) => () => void
+  /** The desktop widget asks the app to show one of its conversations */
+  onOpenConversation: (cb: (id: string) => void) => () => void
+}
+
+/** Desktop widget window only */
+export interface WidgetAPI {
+  /** Fits the window to the content, anchored bottom-right above the taskbar */
+  resize: (width: number, height: number) => Promise<void>
+  /** Open: the window takes focus for typing. Collapsed: it never steals focus */
+  setOpen: (open: boolean) => Promise<void>
+  /** Brings DevForge to the front with this conversation in the assistant panel */
+  openInApp: (conversationId: string | null) => Promise<void>
+  /** The global shortcut that opens the widget, e.g. "Ctrl+Alt+Space" (null when none was free) */
+  shortcut: () => Promise<string | null>
+  /** Global shortcut pressed */
+  onToggle: (cb: () => void) => () => void
 }

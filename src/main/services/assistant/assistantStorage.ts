@@ -14,7 +14,7 @@ const dir = () => join(app.getPath('userData'), 'assistant')
 const configPath = () => join(dir(), 'config.json')
 const conversationsDir = () => join(dir(), 'conversations')
 
-interface StoredConfig { keyEnc?: string; model?: AssistantModel | 'auto'; effort?: AssistantEffort | 'auto'; monthlyBudget?: number }
+interface StoredConfig { keyEnc?: string; model?: AssistantModel | 'auto'; effort?: AssistantEffort | 'auto'; monthlyBudget?: number; desktopWidget?: boolean }
 
 function readConfig(): StoredConfig {
   try { return JSON.parse(readFileSync(configPath(), 'utf-8')) as StoredConfig } catch { return {} }
@@ -31,7 +31,8 @@ export function getConfig(): AssistantConfig {
     hasKey: !!c.keyEnc,
     model: c.model && MODELS.includes(c.model) ? c.model : 'auto',
     effort: c.effort && EFFORTS.includes(c.effort) ? c.effort : 'auto',
-    monthlyBudget: typeof c.monthlyBudget === 'number' && c.monthlyBudget >= 0 ? c.monthlyBudget : DEFAULT_BUDGET
+    monthlyBudget: typeof c.monthlyBudget === 'number' && c.monthlyBudget >= 0 ? c.monthlyBudget : DEFAULT_BUDGET,
+    desktopWidget: c.desktopWidget === true
   }
 }
 
@@ -52,6 +53,7 @@ export function saveConfig(u: AssistantConfigUpdate): AssistantConfig {
   if (u.model && MODELS.includes(u.model)) c.model = u.model
   if (u.effort && EFFORTS.includes(u.effort)) c.effort = u.effort
   if (typeof u.monthlyBudget === 'number' && Number.isFinite(u.monthlyBudget) && u.monthlyBudget >= 0) c.monthlyBudget = Math.round(u.monthlyBudget * 100) / 100
+  if (typeof u.desktopWidget === 'boolean') c.desktopWidget = u.desktopWidget
   writeJson(configPath(), c)
   return getConfig()
 }

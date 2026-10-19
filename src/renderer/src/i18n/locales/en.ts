@@ -31,7 +31,12 @@ const en = {
     logs: 'Log viewer',
     webhooks: 'Webhooks',
     collapse: 'Collapse sidebar',
-    expand: 'Expand sidebar'
+    expand: 'Expand sidebar',
+    favorites: 'Favorites',
+    groupDev: 'Development',
+    groupServers: 'Servers',
+    groupSystem: 'System',
+    groupTools: 'Tools'
   },
 
   palette: {
@@ -56,6 +61,44 @@ const en = {
 
   // ── Home ─────────────────────────────────────────────────────────────────
   home: {
+    greetingMorning: 'Good morning',
+    greetingEvening: 'Good evening',
+    statusLine:     '{c} container{s} running · {p} port{sp} listening',
+    dockerOff:      'Docker is not running',
+    dockerNone:     'No Compose project',
+    portsTitle:     'Listening ports',
+    portsNone:      'No dev port listening',
+    seeAll:         'See all',
+    servicesOne:    '1 service running',
+    servicesMany:   '{n} services running',
+    nothingRuns:    'nothing running',
+    pushOne:        '1 repository to push',
+    pushMany:       '{n} repositories to push',
+    vpsOk:          'the VPS is fine',
+    vpsDiskFull:    'the VPS disk is almost full',
+    vpsDown:        'the VPS does not answer',
+    openTerminal:   'Open a terminal',
+    composeOnline:  '{r}/{t} online',
+    logs:           'Logs',
+    stop:           'Stop',
+    start:          'Start',
+    sshConnected:   'SSH · connected',
+    sshConnecting:  'connecting…',
+    sshOffline:     'offline',
+    retry:          'Retry',
+    memory:         'Memory',
+    disk:           'Disk',
+    diskFull:       'Disk almost full:',
+    openDashboard:  'open the dashboard',
+    noServer:       'No SSH server saved.',
+    addServer:      'Add a server',
+    ahead:          '↑ {n}',
+    changed:        '{n} changed',
+    upToDate:       'up to date',
+    fetchAll:       'Fetch all',
+    noRepos:        'No Git repository in your projects.',
+    activity:       'Activity',
+    noActivity:     'Your actions (commit, compose, deploy…) will show up here.',
     welcome:        'Welcome back',
     subtitle:       'What are you building today?',
     newProject:     'New Project',
@@ -78,7 +121,8 @@ const en = {
     detectedSuffix:    ' · {n} detected',
     newProject:        'New Project',
     filterAll:         'All',
-    searchPlaceholder: 'Search projects...',
+    searchPlaceholder: 'Filter…',
+    uncommitted:       'uncommitted',
     rescan:            'Rescan',
     yourProjects:      'Your Projects',
     detectedIn:        'Detected in {dir}',
@@ -184,7 +228,13 @@ const en = {
     process:  'Process',
     pid:      'PID',
     noResults:'No listening ports found.',
-    scanning: 'Scanning ports...'
+    scanning: 'Scanning ports...',
+    showDev:  'Dev',
+    showAll:  'All',
+    free:     'Free',
+    freeConfirm: 'Stop "{name}" (PID {pid}) to free port {port}?',
+    freed:    'Port {port} freed',
+    freeFailed: 'Could not free port {port}'
   },
 
   // ── Console (bottom panel) ────────────────────────────────────────────────
@@ -235,6 +285,11 @@ const en = {
 
   // ── Settings ──────────────────────────────────────────────────────────────
   assistant: {
+    walker: "Forgy strolls along the bottom of the app",
+    walkerHint: "He walks, waves and falls asleep when you are away. Clicks go through him.",
+    walkerDog: "With Boulon, his robot dog",
+    walkerHello: "Hi!",
+    askForgy: "Ask Forgy…",
     openWith: "Open with",
     launchHint: "Opens {name} in a terminal, in the chosen project (uses your subscription)",
     notInstalled: "{name} is not installed: click to see how to install it",
@@ -301,6 +356,28 @@ const en = {
     budget: "Monthly budget",
     budgetHint: "The assistant stops when the month reaches this amount (estimated from tokens). 0 = no limit.",
     spentThisMonth: "${n} spent this month",
+    widget: {
+      toggle: "Forgy on the desktop",
+      toggleHint: "An always-on-top bubble at the bottom right of the screen, even when DevForge sits in the tray.",
+      shortcut: "Shortcut to open it from anywhere: {key}",
+      shortcutTaken: "Ctrl+Alt+Space and Ctrl+Alt+J are taken by other apps: click the bubble to open it.",
+      open: "Open Forgy",
+      collapse: "Collapse",
+      label: "Question for Forgy",
+      placeholder: "Ask Forgy…",
+      dictate: "Dictate",
+      dictateHint: "Windows dictation: Win + H",
+      copy: "Copy",
+      copied: "Copied",
+      openInApp: "Open in DevForge",
+      newQuestion: "New question",
+      context: "Context: {name}",
+      noContext: "No project",
+      effortHint: "Thinking depth of the next conversation",
+      effortLocked: "Fixed for this conversation: “New question” to change it",
+      unread: "{n} answer(s) to read",
+      alert: "Forgy ran into a problem"
+    },
     tools: {
       web_search: "Web search",
       list_projects: "Projects",
@@ -356,6 +433,7 @@ const en = {
   // ── Common ────────────────────────────────────────────────────────────────
   // ── Toolbox ───────────────────────────────────────────────────────────────
   toolbox: {
+    search:       'Find a tool…',
     tabCron:      'Cron',
     tabTimestamp: 'Timestamp',
     tabUrl:       'URL',
@@ -413,7 +491,9 @@ const en = {
     noResponse:   'Send a request to see the response',
     error:        'Request failed',
     tabPreview: "Preview",
-    previewNote: "Rendered page, scripts disabled"
+    previewNote: "Isolated preview · scripts disabled",
+    tabRaw: "Raw",
+    history: "History"
   },
 
   // ── Snippets ──────────────────────────────────────────────────────────────
@@ -443,6 +523,8 @@ const en = {
     subtitle: 'Compare two texts side by side',
     original: 'Original',
     modified: 'Modified',
+    pasteOriginal: 'Paste the original text…',
+    pasteModified: 'Paste the modified text…',
     result:   'Diff Result',
     added:    'added',
     removed:  'removed',
@@ -458,6 +540,7 @@ const en = {
     sectionPass:   'Password',
     sectionSecret: 'Secret / Token',
     sectionUuid:   'UUID',
+    clickGenerate: 'Click Generate',
     length:        'Length',
     uppercase:     'Uppercase (A-Z)',
     lowercase:     'Lowercase (a-z)',
@@ -633,7 +716,20 @@ const en = {
     composeRunning:     '{n}/{total} running',
     composeStarted:     '{name} started',
     composeDown:        'Remove containers',
-    composeDownConfirm: 'Remove the containers of "{name}"? Volumes (database data) are kept and the project can be started again.'
+    composeDownConfirm: 'Remove the containers of "{name}"? Volumes (database data) are kept and the project can be started again.',
+    navCompose:    'Compose',
+    navStandalone: 'Standalone',
+    colService:    'Service',
+    colImage:      'Image',
+    colPorts:      'Ports',
+    colStatus:     'Status',
+    colState:      'State',
+    stateRunning:  'online',
+    stateStopped:  'stopped',
+    logsOf:        'Logs · {name}',
+    live:          'live',
+    askForgy:      'Ask Forgy',
+    allServices:   'all services'
   },
 
   deploy: {
@@ -760,6 +856,9 @@ const en = {
     emptyTitle:      'Pick or add a database',
     emptyHint:       'PostgreSQL, MySQL / MariaDB and SQLite. Passwords are encrypted by the OS.',
     tabOverview: "Database",
+    newQuery: "New query",
+    statIndexes: "Indexes",
+    statForeignKeys: "Foreign keys",
     tabBrowse: "Browse",
     tabStructure: "Structure",
     tabRelations: "Relations",

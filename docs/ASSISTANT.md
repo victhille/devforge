@@ -122,6 +122,28 @@ Coût affiché en bas du panneau : `conversation · mois / budget`. C'est une es
 
 Animations coupées si Windows demande moins d'animations.
 
+### En balade
+
+Panneau fermé, Forgy marche en bas de l'app avec **Boulon**, son chien robot : balade, coucou, pause, course, sieste (avec l'assistant).
+
+- Les clics passent à travers.
+- Assis et immobile quand la fenêtre n'a pas le focus.
+- Coût : environ 3 % du fil principal en marchant, rien au repos.
+- Réglages → Assistant IA : désactiver Forgy ou seulement Boulon.
+
+## Sur le bureau (widget)
+
+Paramètres → Assistant IA → **Forgy sur le bureau** (désactivé par défaut). Une bulle reste au premier plan en bas à droite de l'écran principal, au-dessus de l'horloge, même quand DevForge est dans la barre des tâches.
+
+- **Ouvrir** : clic sur la bulle ou **Ctrl+Alt+Espace** depuis n'importe quelle appli. Si une autre appli a déjà ce raccourci, c'est **Ctrl+Alt+J** ; le raccourci actif est affiché sous l'interrupteur.
+- **Demander** : une ligne, Entrée. La réponse s'affiche au-dessus, avec **Copier** et **Ouvrir dans DevForge** (la conversation continue dans le panneau).
+- **Pastilles** : bulle repliée pendant une réponse → pastille orange quand elle arrive, rouge en cas d'erreur.
+- **Puces** : profondeur de réflexion (fixée pour la conversation) et projet en contexte.
+- **Micro** : place le curseur dans le champ ; la dictée Windows (Win + H) écrit dedans.
+- **Replier** : chevron, Échap ou le raccourci. Un clic ailleurs replie aussi si rien n'est affiché. Replier après une réponse démarre une nouvelle conversation.
+
+Même assistant que le panneau : même clé, même budget, même historique. Repliée, la bulle ne prend jamais le focus et rien n'y est animé (sauf quelques anneaux à l'arrivée d'une réponse). Elle se replace quand la barre des tâches ou l'écran change.
+
 ## Erreurs
 
 | Message | Cause | Solution |
@@ -139,6 +161,8 @@ Animations coupées si Windows demande moins d'animations.
 | `src/main/services/assistant/assistantService.ts` | boucle d'appel à Claude, coût, budget |
 | `src/main/services/assistant/assistantTools.ts` | outils et garde-fous |
 | `src/main/services/assistant/assistantStorage.ts` | clé chiffrée, réglages, conversations, dépenses |
+| `src/main/widget.ts` | fenêtre du widget de bureau, position, raccourci global |
+| `src/renderer/src/features/widget/Widget.tsx` | interface du widget (`widget.html`) |
 | `src/main/services/assistant/projectContext.ts` | résumé du projet |
 | `src/shared/data/assistantSkills.ts` | tâches, prix des modèles et de la recherche web |
 | `src/main/services/system/aiTools.ts` | détection et lancement de Claude Code, Codex, Antigravity, Gemini CLI |

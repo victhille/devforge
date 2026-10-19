@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto'
 import { app } from 'electron'
 import Anthropic from '@anthropic-ai/sdk'
-import type { AssistantErrorCode, AssistantEvent, AssistantItem, AssistantSendRequest } from '@shared/types'
+import type { AssistantEffort, AssistantErrorCode, AssistantEvent, AssistantItem, AssistantSendRequest } from '@shared/types'
 import { WEB_SEARCH_PRICE, costOf, skillById } from '@shared/data/assistantSkills'
 import { loadSettings } from '../settings/settingsService'
 import { loadProjects } from '../projects/projectStorage'
@@ -14,6 +14,7 @@ const MAX_TOOL_ROUNDS = 8
 const MAX_PAGE_CONTEXT = 8_000
 /** Backstop only: answers are asked to be short */
 const MAX_TOKENS = 16_000
+const EFFORTS: AssistantEffort[] = ['low', 'medium', 'high']
 
 /**
  * Fixed per language and shared by every conversation: identical bytes on
@@ -106,7 +107,8 @@ export async function sendToAssistant(req: AssistantSendRequest): Promise<string
       projectPath: project?.path ?? null, projectName: project?.name ?? null, items: [], api: [], contextProject: null,
       skill: skill.id,
       model: config.model === 'auto' ? skill.model : config.model,
-      effort: config.effort === 'auto' ? skill.effort : config.effort,
+      effort: req.effort && EFFORTS.includes(req.effort as AssistantEffort) ? req.effort as AssistantEffort
+        : config.effort === 'auto' ? skill.effort : config.effort,
       cost: 0, tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, lastInput: 0
     } as StoredConversation
   }

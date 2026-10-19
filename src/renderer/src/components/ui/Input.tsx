@@ -2,8 +2,8 @@ import { forwardRef, type InputHTMLAttributes, type SelectHTMLAttributes, type T
 import { cn } from '@renderer/lib/cn'
 
 const FIELD =
-  'w-full rounded-lg border border-line bg-elevated px-3 text-base text-fg placeholder:text-fg-muted ' +
-  'outline-none transition-colors focus:border-accent focus-visible:outline-none disabled:opacity-50'
+  'w-full rounded-[9px] border border-line bg-canvas px-3 text-base text-fg placeholder:text-fg-muted ' +
+  'outline-none transition-colors focus:border-accent/60 focus-visible:outline-none disabled:opacity-50'
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }>(
   function Input({ className, invalid, ...rest }, ref) {

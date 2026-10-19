@@ -10,8 +10,8 @@ export default function Card({ interactive, className, ...rest }: Props) {
     <div
       {...rest}
       className={cn(
-        'rounded-xl border border-line-subtle bg-surface',
-        interactive && 'cursor-pointer transition-colors hover:border-line hover:bg-elevated',
+        'rounded-[14px] border border-line-subtle bg-surface',
+        interactive && 'df-lift cursor-pointer hover:border-line hover:bg-elevated',
         className
       )}
     />

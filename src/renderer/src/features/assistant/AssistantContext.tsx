@@ -18,6 +18,14 @@ interface AssistantState {
   markSending: () => void
   /** The user is typing in the assistant input */
   setTyping: (typing: boolean) => void
+  /** Forgy strolls along the bottom of the window, Boulon the dog with him */
+  walker: boolean
+  setWalker: (v: boolean) => void
+  walkerDog: boolean
+  setWalkerDog: (v: boolean) => void
+  /** A conversation the desktop widget asked to show, until the panel loads it */
+  pendingConversation: string | null
+  clearPendingConversation: () => void
 }
 
 /** After this long without activity, the mascot falls asleep */
@@ -30,9 +38,12 @@ const Ctx = createContext<AssistantState | null>(null)
 export function AssistantProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = usePersistentState('devforge:assistant-open', false)
   const [projectPath, setProjectPath] = usePersistentState<string | null>('devforge:assistant-project', null)
+  const [walker, setWalker] = usePersistentState('devforge:walker', true)
+  const [walkerDog, setWalkerDog] = usePersistentState('devforge:walker-dog', true)
   const [page, setPage] = useState<{ owner: symbol; ctx: AssistantPageContext } | null>(null)
   const [phase, setPhase] = useState<'idle' | 'thinking' | 'searching' | 'working' | 'happy' | 'sad'>('idle')
   const [typing, setTypingState] = useState(false)
+  const [pendingConversation, setPendingConversation] = useState<string | null>(null)
   const [sleepy, setSleepy] = useState(false)
   const lastActive = useRef(Date.now())
   const errored = useRef(false)
@@ -68,6 +79,10 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     setPage(prev => (ctx ? { owner, ctx } : prev?.owner === owner ? null : prev))
   }, [])
 
+  // "Open in DevForge" from the desktop widget
+  useEffect(() => window.devforge.assistant.onOpenConversation(id => { setPendingConversation(id); setOpen(true) }), [setOpen])
+  const clearPendingConversation = useCallback(() => setPendingConversation(null), [])
+
   // Ctrl+J toggles the panel from anywhere
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -78,8 +93,10 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   }, [setOpen])
 
   const value = useMemo(() => ({
-    open, setOpen, pageContext: page?.ctx ?? null, setPageContext, projectPath, setProjectPath, mood, markSending, setTyping
-  }), [open, setOpen, page, setPageContext, projectPath, setProjectPath, mood, markSending, setTyping])
+    open, setOpen, pageContext: page?.ctx ?? null, setPageContext, projectPath, setProjectPath, mood, markSending, setTyping,
+    walker, setWalker, walkerDog, setWalkerDog, pendingConversation, clearPendingConversation
+  }), [open, setOpen, page, setPageContext, projectPath, setProjectPath, mood, markSending, setTyping, walker, setWalker, walkerDog, setWalkerDog,
+    pendingConversation, clearPendingConversation])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
