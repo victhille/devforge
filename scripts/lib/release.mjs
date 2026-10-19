@@ -166,6 +166,8 @@ export function renderSection(version, changes, opts = {}) {
     ? `## [${version}](${opts.repoUrl}/compare/v${opts.previous}...v${version}) — ${date}`
     : `## ${version} — ${date}`
   const lines = [title, '']
+  // One-line summary shown on the release card and in "What's new"
+  if (opts.summary) lines.push(`> ${opts.summary}`, '')
   for (const [kind, label] of SECTIONS) {
     const list = changes.filter(c => c.kind === kind)
     if (!list.length) continue

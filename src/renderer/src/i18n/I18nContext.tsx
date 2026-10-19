@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react'
 import translations, { type Lang, type Translations } from './translations'
-import type { Theme } from '@shared/types'
+import { applyAppearance } from '@renderer/lib/appearance'
 
 interface I18nContextValue {
   lang: Lang
@@ -23,7 +23,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     window.devforge.getSettings()
       .then(s => {
         setLang((s as { language?: Lang }).language ?? 'en')
-        document.documentElement.setAttribute('data-theme', (s as { theme?: Theme }).theme ?? 'dark')
+        applyAppearance(s)
       })
       .catch(() => setLang('en'))
   }, [])

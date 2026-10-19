@@ -8,6 +8,9 @@ import { getOverview } from '../docker/dockerService'
 import { listDbConnections } from '../database/dbStorage'
 import { dbSchema } from '../database/dbClient'
 import { runFile } from '../../lib/exec'
+import { loadSshConnections } from '../ssh/sshStorage'
+import { executions as n8nExecutions, listInstances as n8nInstances, workflows as n8nWorkflows } from '../n8n/n8nService'
+import { deployments as vercelDeployments } from '../vercel/vercelService'
 
 /**
  * Read-only tools the assistant can call. Every path stays inside a saved
@@ -191,6 +194,53 @@ async function dbStructure(connection: unknown): Promise<string> {
     t.columns.map(col => `  ${col.name} ${col.type}${col.nullable ? '' : ' NOT NULL'}${col.key ? ' PK' : ''}`).join('\n')).join('\n'))
 }
 
+// ─── n8n and Vercel ───────────────────────────────────────────────────────────
+
+/** The n8n server meant by "server" (its SSH name); optional when there is only one */
+export function n8nServer(ref: unknown): { id: string; name: string } {
+  const conns = loadSshConnections()
+  const named = n8nInstances().map(i => ({ id: i.connectionId, name: conns.find(c => c.id === i.connectionId)?.name ?? i.connectionId }))
+  if (!named.length) throw new ToolError('n8n is not installed from DevForge on any server (page n8n).')
+  if (typeof ref !== 'string' || !ref.trim()) {
+    if (named.length === 1) return named[0]
+    throw new ToolError(`Several n8n servers: ${named.map(n => n.name).join(', ')}. Pass "server".`)
+  }
+  const hit = named.find(n => n.name.toLowerCase() === ref.trim().toLowerCase() || n.id === ref.trim())
+  if (!hit) throw new ToolError(`No n8n on "${ref}". Servers with n8n: ${named.map(n => n.name).join(', ')}`)
+  return hit
+}
+
+/** Errors of the services, in words the model can act on */
+export function cloudError(err: unknown): never {
+  const m = err instanceof Error ? err.message : String(err)
+  if (m === 'NO_KEY') throw new ToolError('No n8n API key saved: the user adds it on the n8n page.')
+  if (m === 'BAD_KEY') throw new ToolError('n8n refuses the saved API key.')
+  if (m === 'NO_TOKEN') throw new ToolError('Vercel is not connected: the user adds a token in the Vercel tab of the project page.')
+  if (m === 'BAD_TOKEN') throw new ToolError('Vercel refuses the saved token.')
+  if (m === 'NOT_LINKED') throw new ToolError('This project folder is not linked to Vercel (no .vercel/project.json): run `vercel link` in it.')
+  throw err
+}
+
+async function n8nWorkflowList(server: unknown): Promise<string> {
+  const s = n8nServer(server)
+  const list = await n8nWorkflows(s.id).catch(cloudError)
+  if (!list.length) return `No workflow on ${s.name}.`
+  return [`n8n on ${s.name}:`, ...list.map(w => `- ${w.name} (id ${w.id}) ${w.active ? 'ACTIVE' : 'inactive'}, updated ${w.updatedAt}${w.tags.length ? `, tags ${w.tags.join(', ')}` : ''}`)].join('\n')
+}
+
+async function n8nExecutionList(server: unknown, onlyErrors: unknown): Promise<string> {
+  const s = n8nServer(server)
+  const list = await n8nExecutions(s.id, onlyErrors !== false).catch(cloudError)
+  if (!list.length) return onlyErrors !== false ? `No failed execution on ${s.name}.` : `No execution on ${s.name}.`
+  return list.map(e => `- #${e.id} ${e.workflowName} [${e.status}] ${e.mode}, started ${e.startedAt}${e.stoppedAt ? `, stopped ${e.stoppedAt}` : ''}`).join('\n')
+}
+
+async function vercelDeploymentList(p: Project): Promise<string> {
+  const list = await vercelDeployments(p.id).catch(cloudError)
+  if (!list.length) return 'No deployment.'
+  return list.map(d => `- ${d.id} [${d.state}] ${d.target ?? 'preview'}${d.current ? ' (CURRENT PRODUCTION)' : ''} ${new Date(d.createdAt).toISOString()}${d.branch ? ` ${d.branch}` : ''}${d.commitMessage ? ` "${d.commitMessage}"` : ''} ${d.url}`).join('\n')
+}
+
 // ─── Definitions ──────────────────────────────────────────────────────────────
 
 const project = { type: 'string', description: 'Project name (or its path), from list_projects' } as const
@@ -206,7 +256,10 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   { name: 'docker_status', description: 'Local Docker containers and compose projects with their state.', input_schema: { type: 'object', properties: {} } },
   { name: 'container_logs', description: 'Last lines of a local Docker container log.', input_schema: { type: 'object', properties: { container: { type: 'string' }, lines: { type: 'integer', description: 'Default 60, max 300' } }, required: ['container'] } },
   { name: 'db_connections', description: 'Database connections saved in DevForge (no credentials).', input_schema: { type: 'object', properties: {} } },
-  { name: 'db_schema', description: 'Tables and columns of a saved database connection.', input_schema: { type: 'object', properties: { connection: { type: 'string', description: 'Connection name from db_connections' } }, required: ['connection'] } }
+  { name: 'db_schema', description: 'Tables and columns of a saved database connection.', input_schema: { type: 'object', properties: { connection: { type: 'string', description: 'Connection name from db_connections' } }, required: ['connection'] } },
+  { name: 'n8n_workflows', description: 'Workflows of the n8n installed on a VPS from DevForge (name, id, active, last change).', input_schema: { type: 'object', properties: { server: { type: 'string', description: 'SSH server name; optional when n8n runs on one server only' } } } },
+  { name: 'n8n_executions', description: 'Recent n8n executions with their workflow and status (failed ones only by default).', input_schema: { type: 'object', properties: { server: { type: 'string' }, only_errors: { type: 'boolean', description: 'Default true' } } } },
+  { name: 'vercel_deployments', description: 'Last Vercel deployments of a project linked with `vercel link`: state, production or preview, branch, commit, which one production points to.', input_schema: { type: 'object', properties: { project }, required: ['project'] } }
 ].map(t => ({ ...t, eager_input_streaming: true }) as Anthropic.Beta.BetaTool)
 
 /** Short label shown in the conversation while the tool runs */
@@ -220,6 +273,8 @@ export function describeTool(name: string, input: Record<string, unknown>): stri
     case 'git_status': case 'git_diff': return p + (str(input.file) ? `/${str(input.file)}` : '')
     case 'container_logs': return str(input.container) ?? ''
     case 'db_schema': return str(input.connection) ?? ''
+    case 'n8n_workflows': case 'n8n_executions': return str(input.server) ?? 'n8n'
+    case 'vercel_deployments': return p
     default: return ''
   }
 }
@@ -239,6 +294,9 @@ export async function runTool(name: string, input: unknown): Promise<string> {
     case 'container_logs': return containerLogs(i.container, i.lines)
     case 'db_connections': return dbList()
     case 'db_schema': return dbStructure(i.connection)
+    case 'n8n_workflows': return n8nWorkflowList(i.server)
+    case 'n8n_executions': return n8nExecutionList(i.server, i.only_errors)
+    case 'vercel_deployments': return vercelDeploymentList(findProject(i.project))
     default: throw new ToolError(`Unknown tool ${name}`)
   }
 }

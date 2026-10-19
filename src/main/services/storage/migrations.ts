@@ -27,7 +27,7 @@ export const MIGRATIONS: Migration[] = []
 export const DATA_ENTRIES = [
   'settings.json', 'projects.json', 'ssh-connections.json', 'known_hosts.json', 'databases.json',
   'deploy.json', 'stacks.json', 'domains.json', 'monitors.json', 'assistant', 'env-backups',
-  'project-links.json', 'active-project.json', 'watch.json', 'history'
+  'project-links.json', 'active-project.json', 'watch.json', 'history', 'n8n.json', 'vercel.json'
 ]
 
 const MANIFEST = 'storage.json'
@@ -50,18 +50,43 @@ export function readSchemaVersion(dataDir: string): number {
   }
 }
 
-/** Copies the data files to backups/v<from>-<date>, keeping the last few backups */
-export function backupData(dataDir: string, from: number, now = new Date()): string {
+export type BackupReason = 'format' | 'manual' | 'restore'
+
+/** backups/v1-<stamp> (before a format change), manual-v1-<stamp>, restore-v1-<stamp> */
+const BACKUP_RE = /^(?:(manual|restore)-)?v(\d+)-(.+)$/
+
+export function parseBackupName(name: string): { reason: BackupReason; version: number; stamp: string } | null {
+  const m = BACKUP_RE.exec(name)
+  return m ? { reason: (m[1] as BackupReason | undefined) ?? 'format', version: Number(m[2]), stamp: m[3] } : null
+}
+
+/** Copies the data files to backups/, keeping the last few backups */
+export function backupData(dataDir: string, from: number, now = new Date(), reason: BackupReason = 'format'): string {
   const stamp = now.toISOString().replace(/[:.]/g, '-')
-  const dest = join(dataDir, BACKUPS, `v${from}-${stamp}`)
+  const dest = join(dataDir, BACKUPS, `${reason === 'format' ? '' : `${reason}-`}v${from}-${stamp}`)
   mkdirSync(dest, { recursive: true })
   for (const entry of [...DATA_ENTRIES, MANIFEST]) {
     const src = join(dataDir, entry)
     if (existsSync(src)) cpSync(src, join(dest, entry), { recursive: true })
   }
-  const all = readdirSync(join(dataDir, BACKUPS)).sort()
+  // Oldest first by date, whatever the reason
+  const all = readdirSync(join(dataDir, BACKUPS)).filter(n => parseBackupName(n))
+    .sort((a, b) => parseBackupName(a)!.stamp.localeCompare(parseBackupName(b)!.stamp))
   for (const old of all.slice(0, Math.max(0, all.length - KEEP_BACKUPS))) rmSync(join(dataDir, BACKUPS, old), { recursive: true, force: true })
   return dest
+}
+
+/** Puts a backup's files back, after a backup of the current ones (the app restarts afterwards) */
+export function restoreData(dataDir: string, name: string): string {
+  if (!parseBackupName(name) || /[\\/]/.test(name)) throw new Error('Unknown backup')
+  const src = join(dataDir, BACKUPS, name)
+  if (!existsSync(src)) throw new Error('Unknown backup')
+  const safety = backupData(dataDir, readSchemaVersion(dataDir), new Date(), 'restore')
+  for (const entry of [...DATA_ENTRIES, MANIFEST]) {
+    rmSync(join(dataDir, entry), { recursive: true, force: true })
+    if (existsSync(join(src, entry))) cpSync(join(src, entry), join(dataDir, entry), { recursive: true })
+  }
+  return safety
 }
 
 /** Brings the data folder to `target`; never touches data written by a newer version */

@@ -1,6 +1,7 @@
 // ─── Project hub: a project and everything that belongs to it ─────────────────
 
 import type { Project } from './index'
+import type { VercelLink } from './vercel'
 
 /** How a resource is tied to the project: found by DevForge, or added by hand */
 export type LinkOrigin = 'auto' | 'manual'
@@ -20,6 +21,8 @@ export interface ProjectHub {
   /** Ports the project serves on: .env, scripts, compose */
   ports: { port: number; source: string }[]
   deployTargets: { id: string; name: string }[]
+  /** .vercel/project.json (`vercel link`), null when the folder is not linked */
+  vercel: VercelLink | null
   /** Resources found but hidden by the user, so they can be shown again */
   hidden: Record<LinkKind, string[]>
 }

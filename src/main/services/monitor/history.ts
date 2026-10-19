@@ -80,6 +80,13 @@ export function removeSeries(key: string): void {
   rmSync(pathOf(key), { force: true })
 }
 
+/** Every series, on disk and in memory */
+export function clearHistory(): void {
+  cache.clear()
+  dirty.clear()
+  rmSync(join(app.getPath('userData'), 'history'), { recursive: true, force: true })
+}
+
 let timer: ReturnType<typeof setInterval> | null = null
 export function startHistoryFlush(): void {
   timer ??= setInterval(flushHistory, 5 * 60_000)

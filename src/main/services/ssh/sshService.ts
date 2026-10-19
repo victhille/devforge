@@ -154,6 +154,15 @@ export class SSHService {
     })
   }
 
+  /** A TCP stream to a port of the server itself, through the SSH session (the port never needs to be public) */
+  forwardOut(sessionId: string, port: number): Promise<import('stream').Duplex> {
+    return new Promise((resolve, reject) => {
+      const session = this.sessions.get(sessionId)
+      if (!session) { reject(new Error('Session not found')); return }
+      session.client.forwardOut('127.0.0.1', 0, '127.0.0.1', port, (err, stream) => (err ? reject(err) : resolve(stream)))
+    })
+  }
+
   /** Run a command and stream its output; resolves with the exit code. */
   execStream(sessionId: string, command: string, onData: (text: string) => void, timeoutMs = 30 * 60_000): Promise<number | null> {
     return new Promise((resolve, reject) => {

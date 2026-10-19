@@ -257,7 +257,7 @@ export default function AssistantPanel() {
               <div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning-soft p-3 text-xs text-warning">
                 <KeyRound size={14} className="mt-0.5 shrink-0" />
                 <span className="flex-1">{a.noKey}</span>
-                <Button size="sm" variant="secondary" onClick={() => navigate('/settings')}>{a.openSettings}</Button>
+                <Button size="sm" variant="secondary" onClick={() => navigate('/settings?section=forgy')}>{a.openSettings}</Button>
               </div>
             )}
             {!started && (

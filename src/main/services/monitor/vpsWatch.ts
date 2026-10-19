@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { app, Notification } from 'electron'
-import type { RemoteCompose, RemoteContainer, VpsStatus, WatchAlert, WatchConfig } from '@shared/types'
+import type { AlertKind, RemoteCompose, RemoteContainer, VpsStatus, WatchAlert, WatchConfig } from '@shared/types'
 import { CMD_CPU, CMD_DISK, CMD_MEM, CMD_UPTIME, parseStats } from '@shared/lib/vpsStats'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { log } from '../../lib/log'
@@ -35,13 +35,18 @@ let onAlert: (a: WatchAlert) => void = () => {}
 let timer: ReturnType<typeof setInterval> | null = null
 let ticking = false
 
+const ALERT_KINDS: AlertKind[] = ['disk', 'container', 'server', 'site']
+const allAlerts = (): Record<AlertKind, boolean> => ({ disk: true, container: true, server: true, site: true })
+
 export function watchConfig(): WatchConfig {
   try {
     const c = JSON.parse(readFileSync(configPath(), 'utf-8')) as Partial<WatchConfig>
-    return { watched: Array.isArray(c.watched) ? c.watched.filter(x => typeof x === 'string') : [], diskAlert: Number(c.diskAlert) > 0 ? Number(c.diskAlert) : 85 }
+    const alerts = allAlerts()
+    for (const k of ALERT_KINDS) if (c.alerts && typeof c.alerts[k] === 'boolean') alerts[k] = c.alerts[k]
+    return { watched: Array.isArray(c.watched) ? c.watched.filter(x => typeof x === 'string') : [], diskAlert: Number(c.diskAlert) > 0 ? Number(c.diskAlert) : 85, alerts }
   } catch {
     // First run: every saved server is watched
-    return { watched: loadSshConnections().map(c => c.id), diskAlert: 85 }
+    return { watched: loadSshConnections().map(c => c.id), diskAlert: 85, alerts: allAlerts() }
   }
 }
 
@@ -49,6 +54,7 @@ export function saveWatchConfig(u: Partial<WatchConfig>): WatchConfig {
   const c = { ...watchConfig() }
   if (Array.isArray(u.watched)) c.watched = u.watched.filter(x => typeof x === 'string')
   if (typeof u.diskAlert === 'number' && u.diskAlert >= 50 && u.diskAlert <= 99) c.diskAlert = Math.round(u.diskAlert)
+  if (u.alerts) for (const k of ALERT_KINDS) if (typeof u.alerts[k] === 'boolean') c.alerts[k] = u.alerts[k]
   writeJsonFile(configPath(), c)
   // Servers no longer watched: forget them and close their session
   for (const id of [...statuses.keys()]) if (!c.watched.includes(id)) { statuses.delete(id); closeSession(id) }
@@ -60,12 +66,14 @@ export const vpsStatuses = (): VpsStatus[] => [...statuses.values()]
 
 /** Alerts raised elsewhere (sites) reach the app the same way; they notify on their own */
 export function emitAlert(kind: WatchAlert['kind'], title: string, body: string): void {
+  if (!watchConfig().alerts[kind]) return
   onAlert({ kind, title, body, at: Date.now() })
 }
 
 function alert(kind: WatchAlert['kind'], title: string, body: string): void {
   const a: WatchAlert = { kind, title, body, at: Date.now() }
   log('warn', 'watch', `${title} — ${body}`)
+  if (!watchConfig().alerts[kind]) return
   if (Notification.isSupported()) new Notification({ title, body }).show()
   onAlert(a)
 }

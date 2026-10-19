@@ -2,7 +2,7 @@ import type { ComponentType } from 'react'
 import {
   Home, FolderOpen, Plus, Monitor, Terminal, Settings, Wifi, BookOpen,
   Wrench, Send, Code, Columns, Key, GitBranch, HardDrive, FileKey2, Rocket, Container, UploadCloud, Activity, Globe, Database, ScrollText, Webhook,
-  Code2, Server, Cpu, type LucideIcon
+  Code2, Server, Cpu, Workflow, type LucideIcon
 } from 'lucide-react'
 import type { Translations } from '@renderer/i18n/translations'
 
@@ -41,6 +41,7 @@ export const PAGES: NavPage[] = [
   { path: '/docker',      labelKey: 'docker',      icon: Container,  section: 'sectionServers', load: () => import('@renderer/features/docker/DockerPage'), keywords: ['container', 'conteneur', 'compose', 'image'] },
   { path: '/deploy',      labelKey: 'deploy',      icon: UploadCloud, section: 'sectionServers', load: () => import('@renderer/features/deploy/DeployPage'), keywords: ['deploy', 'déployer', 'production', 'pm2', 'release', 'mise en prod'] },
   { path: '/monitor',     labelKey: 'monitor',     icon: Activity,   section: 'sectionServers', load: () => import('@renderer/features/monitor/MonitorPage'), keywords: ['uptime', 'ping', 'status', 'down', 'surveillance'] },
+  { path: '/n8n',         labelKey: 'n8n',         icon: Workflow,   section: 'sectionServers', load: () => import('@renderer/features/n8n/N8nPage'), keywords: ['n8n', 'workflow', 'automation', 'automatisation', 'zapier'] },
 
   // System
   { path: '/environment', labelKey: 'environment', icon: Monitor,    section: 'sectionSystem', load: () => import('@renderer/features/system/EnvironmentPage'), keywords: ['node', 'npm', 'php', 'git', 'docker'] },
@@ -86,7 +87,7 @@ export type GroupKey = 'groupDev' | 'groupServers' | 'groupSystem' | 'groupTools
 
 export const MENU_GROUPS: { key: GroupKey; icon: LucideIcon; paths: string[] }[] = [
   { key: 'groupDev',     icon: Code2,  paths: ['/git', '/stacks', '/new-project', '/snippets', '/diff', '/generator'] },
-  { key: 'groupServers', icon: Server, paths: ['/ssh', '/deploy', '/monitor', '/webhooks', '/logs'] },
+  { key: 'groupServers', icon: Server, paths: ['/ssh', '/deploy', '/monitor', '/n8n', '/webhooks', '/logs'] },
   { key: 'groupSystem',  icon: Cpu,    paths: ['/environment', '/ports', '/env-files', '/domains', '/cleaner'] },
   { key: 'groupTools',   icon: Wrench, paths: ['/toolbox', '/docs'] }
 ]

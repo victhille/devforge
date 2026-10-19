@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useAssistant } from './AssistantContext'
 import Mascot from './Mascot'
+import { reducedMotion } from '@renderer/lib/appearance'
 import './forgyWalker.css'
 
 type Pose = 'stand' | 'walk' | 'run' | 'wave' | 'sit' | 'sleep'
@@ -58,7 +59,7 @@ function Stroll({ dog, sleeping }: { dog: boolean; sleeping: boolean }) {
 
   useEffect(() => {
     const show = (next: Scene) => { scene.current = next; setView(next) }
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const reduced = reducedMotion()
 
     if (sleeping || reduced) {
       show({ ...scene.current, pose: sleeping ? 'sleep' : 'sit', dur: 0, hello: false })
