@@ -229,6 +229,14 @@ const api: DevForgeAPI = {
   // Settings
   getSettings:  ()         => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
+  hub: {
+    get:       invoke('hub:get'),
+    link:      invoke('hub:link'),
+    getActive: invoke('hub:get-active'),
+    setActive: invoke('hub:set-active'),
+    onActive:  on('hub:active')
+  },
+
   updates: {
     status:   invoke('update:status'),
     check:    invoke('update:check'),

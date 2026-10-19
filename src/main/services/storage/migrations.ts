@@ -26,7 +26,8 @@ export const MIGRATIONS: Migration[] = []
 /** Files and folders that make up the user's data (Chromium's own folders are left out) */
 export const DATA_ENTRIES = [
   'settings.json', 'projects.json', 'ssh-connections.json', 'known_hosts.json', 'databases.json',
-  'deploy.json', 'stacks.json', 'domains.json', 'monitors.json', 'assistant', 'env-backups'
+  'deploy.json', 'stacks.json', 'domains.json', 'monitors.json', 'assistant', 'env-backups',
+  'project-links.json', 'active-project.json'
 ]
 
 const MANIFEST = 'storage.json'

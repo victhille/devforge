@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAssistantPageContext } from '@renderer/features/assistant/AssistantContext'
 import { ArrowDownToLine, Eraser, FileText, Pause, Play, Plus, Search, WrapText, X } from 'lucide-react'
 import type { LogFileSuggestion } from '@shared/types'
@@ -45,6 +46,9 @@ export default function LogsPage() {
   const [wrap, setWrap] = useState(true)
   const listRef = useRef<HTMLDivElement>(null)
   const openedOnce = useRef(false)
+  // ?file=<path>: opened from a project page
+  const [params] = useSearchParams()
+  const wantedFile = useRef(params.get('file'))
 
   const open = useCallback(async (path: string) => {
     try {
@@ -61,6 +65,8 @@ export default function LogsPage() {
     if (!openedOnce.current) {
       openedOnce.current = true
       try { (JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as string[]).forEach(open) } catch { /* ignore */ }
+      const wanted = wantedFile.current
+      if (wanted) open(wanted)
     }
     return window.devforge.logs.onLines(e => setFiles(prev => prev.map(f => {
       if (f.id !== e.id) return f

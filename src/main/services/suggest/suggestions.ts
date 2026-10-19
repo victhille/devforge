@@ -11,7 +11,7 @@ import { run } from '../../lib/exec'
 /** Folders where frameworks write their logs */
 const LOG_DIRS = ['storage/logs', 'var/log', 'logs', 'log', 'tmp/logs', '.']
 
-async function readEnvs(p: Project): Promise<Record<string, string>> {
+export async function readEnvs(p: Project): Promise<Record<string, string>> {
   const merged: Record<string, string> = {}
   for (const name of ['.env', '.env.local']) {
     const content = await readFile(join(p.path, name), 'utf-8').catch(() => null)
@@ -20,19 +20,23 @@ async function readEnvs(p: Project): Promise<Record<string, string>> {
   return merged
 }
 
-export async function suggestLogFiles(): Promise<LogFileSuggestion[]> {
+/** .log files in the folders a project's framework writes to */
+export async function projectLogFiles(p: Project): Promise<LogFileSuggestion[]> {
   const out: LogFileSuggestion[] = []
-  await Promise.all(loadProjects().map(async p => {
-    for (const dir of LOG_DIRS) {
-      const full = join(p.path, dir)
-      const names = await readdir(full).catch(() => [] as string[])
-      for (const name of names.filter(n => /\.log$/i.test(n))) {
-        const s = await stat(join(full, name)).catch(() => null)
-        if (s?.isFile()) out.push({ projectName: p.name, path: join(full, name), size: s.size, modifiedAt: s.mtime.toISOString() })
-      }
+  for (const dir of LOG_DIRS) {
+    const full = join(p.path, dir)
+    const names = await readdir(full).catch(() => [] as string[])
+    for (const name of names.filter(n => /\.log$/i.test(n))) {
+      const s = await stat(join(full, name)).catch(() => null)
+      if (s?.isFile()) out.push({ projectName: p.name, path: join(full, name), size: s.size, modifiedAt: s.mtime.toISOString() })
     }
-  }))
-  return out.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt)).slice(0, 40)
+  }
+  return out
+}
+
+export async function suggestLogFiles(): Promise<LogFileSuggestion[]> {
+  const all = (await Promise.all(loadProjects().map(projectLogFiles))).flat()
+  return all.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt)).slice(0, 40)
 }
 
 const URL_KEYS = ['APP_URL', 'SITE_URL', 'PUBLIC_URL', 'FRONTEND_URL', 'BASE_URL', 'NEXT_PUBLIC_SITE_URL', 'NEXT_PUBLIC_APP_URL', 'NEXTAUTH_URL', 'VITE_APP_URL', 'VITE_API_URL', 'API_URL']
@@ -64,7 +68,7 @@ export async function suggestMonitorUrls(): Promise<UrlSuggestion[]> {
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
 /** Port written in the project config: .env, package.json scripts, vite/next config */
-async function explicitPort(p: Project, env: Record<string, string>): Promise<[number, string] | null> {
+export async function explicitPort(p: Project, env: Record<string, string>): Promise<[number, string] | null> {
   for (const k of ['PORT', 'APP_PORT', 'SERVER_PORT', 'DEV_PORT', 'VITE_PORT']) {
     if (Number(env[k]) > 0) return [Number(env[k]), `.env ${k}`]
   }

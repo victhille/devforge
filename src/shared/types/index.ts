@@ -201,11 +201,13 @@ export * from './logs'
 export * from './webhooks'
 export * from './suggest'
 export * from './assistant'
+export * from './hub'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
 import type { VersionsAPI } from './versions'
 import type { StacksAPI } from './stacks'
+import type { HubAPI } from './hub'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -312,6 +314,7 @@ export interface DevForgeAPI {
   getSettings: () => Promise<AppSettings>
   saveSettings: (settings: AppSettings) => Promise<void>
   updates: UpdatesAPI
+  hub: HubAPI
 
   // Git
   getGitStatus: (path: string) => Promise<GitStatus>

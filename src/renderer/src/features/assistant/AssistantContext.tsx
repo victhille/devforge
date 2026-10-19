@@ -3,6 +3,7 @@ import type { AssistantPageContext } from '@shared/types'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import { useToast } from '@renderer/app/ToastContext'
 import { useI18n } from '@renderer/i18n/I18nContext'
+import { useActiveProject } from '@renderer/hooks/useActiveProject'
 import type { MascotMood } from './Mascot'
 
 interface AssistantState {
@@ -40,6 +41,9 @@ const Ctx = createContext<AssistantState | null>(null)
 export function AssistantProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = usePersistentState('devforge:assistant-open', false)
   const [projectPath, setProjectPath] = usePersistentState<string | null>('devforge:assistant-project', null)
+  // Forgy follows the active project (the panel can still pick another one)
+  const { active } = useActiveProject()
+  useEffect(() => { if (active) setProjectPath(active.path) }, [active, setProjectPath])
   const [walker, setWalker] = usePersistentState('devforge:walker', true)
   const [walkerDog, setWalkerDog] = usePersistentState('devforge:walker-dog', true)
   const [page, setPage] = useState<{ owner: symbol; ctx: AssistantPageContext } | null>(null)
