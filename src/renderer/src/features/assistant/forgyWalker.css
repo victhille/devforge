@@ -78,3 +78,9 @@
 @media (prefers-reduced-motion: reduce) {
   .fw-mover { transition: none; }
 }
+
+/* Light theme: a thin outline keeps the white robots visible (static, no repaint) */
+[data-theme='light'] :is(.fw-torso, .fw-arm, .fw-leg, .fw-dog-body, .fw-dog-head, .fw-dog-leg, .fw-dog-tail) { box-shadow: 0 0 0 1px rgba(20, 26, 34, .2); }
+@media (prefers-color-scheme: light) {
+  [data-theme='system'] :is(.fw-torso, .fw-arm, .fw-leg, .fw-dog-body, .fw-dog-head, .fw-dog-leg, .fw-dog-tail) { box-shadow: 0 0 0 1px rgba(20, 26, 34, .2); }
+}

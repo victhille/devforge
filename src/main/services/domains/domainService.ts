@@ -1,9 +1,10 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { app } from 'electron'
 import type { DomainsStatus, LocalDomain } from '@shared/types'
 import { HOSTS_PATH, managedDomains, readHosts, withManagedBlock, writeHostsElevated } from './hostsFile'
 import { proxyState, syncProxy } from './domainProxy'
+import { writeJsonFile } from '../../lib/jsonFile'
 
 /** Only reserved TLDs that never hit real DNS */
 export const DOMAIN_RE = /^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+(test|localhost)$/
@@ -21,7 +22,7 @@ export function listDomains(): LocalDomain[] {
 function persist(list: LocalDomain[]): void {
   const p = storePath()
   mkdirSync(dirname(p), { recursive: true })
-  writeFileSync(p, JSON.stringify(list, null, 2), 'utf-8')
+  writeJsonFile(p, list)
 }
 
 export async function saveDomain(d: LocalDomain): Promise<void> {

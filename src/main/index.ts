@@ -1,4 +1,4 @@
-import { app, BrowserWindow, nativeImage, Tray, Menu } from 'electron'
+import { app, BrowserWindow, dialog, nativeImage, Tray, Menu } from 'electron'
 import { join } from 'path'
 import { registerIpcHandlers } from './ipc'
 import { sshService } from './services/ssh/sshService'
@@ -13,6 +13,9 @@ import { stopWebhooks } from './services/webhooks/webhookServer'
 import { applyLoginItem, startedHidden } from './lib/loginItem'
 import { guardNavigation } from './lib/windowGuards'
 import { disposeWidget, initWidget } from './widget'
+import { initLog, log } from './lib/log'
+import { migrateData } from './services/storage/migrations'
+import { initUpdater, stopUpdater } from './services/updates/updater'
 
 const isDev = !app.isPackaged
 
@@ -72,7 +75,7 @@ function createWindow(): void {
     minHeight: 600,
     frame: false,
     titleBarStyle: 'hidden',
-    backgroundColor: '#0F1117',
+    backgroundColor: '#0D0F13',
     icon,
     show: false,
     webPreferences: {
@@ -84,6 +87,7 @@ function createWindow(): void {
   })
 
   win.on('ready-to-show', () => { if (!startedHidden) win.show() })
+  win.webContents.on('render-process-gone', (_e, details) => log('error', 'renderer', `process gone: ${details.reason} (${details.exitCode})`))
 
   // Minimize to tray instead of closing
   win.on('close', (e) => {
@@ -112,12 +116,47 @@ function createWindow(): void {
   initWidget(win)
 }
 
+// Crashes land in the local log (Settings → About → Copy report)
+process.on('uncaughtException', err => log('error', 'main', err))
+process.on('unhandledRejection', reason => log('error', 'main', reason instanceof Error ? reason : String(reason)))
+
+/** Brings saved data to the current format before anything reads it */
+function prepareData(): void {
+  const dataDir = app.getPath('userData')
+  initLog(join(dataDir, 'logs'))
+  log('info', 'app', `DevForge ${app.getVersion()} started`)
+  try {
+    const r = migrateData(dataDir)
+    if (r.status === 'migrated') log('info', 'storage', `data v${r.from} → v${r.to}: ${r.applied.join(', ')} (backup: ${r.backup})`)
+    if (r.status === 'newer') {
+      log('warn', 'storage', `data written by a newer DevForge (format v${r.version})`)
+      dialog.showMessageBoxSync({
+        type: 'warning',
+        title: 'DevForge',
+        message: 'Your data was saved by a newer version of DevForge.',
+        detail: 'This version may not read all of it. Install the latest DevForge to avoid losing settings.'
+      })
+    }
+  } catch (err) {
+    log('error', 'storage', err instanceof Error ? err : String(err))
+    dialog.showMessageBoxSync({
+      type: 'error',
+      title: 'DevForge',
+      message: 'Updating your saved data failed.',
+      detail: `A backup was made in ${join(dataDir, 'backups')}. Details are in ${join(dataDir, 'logs')}.`
+    })
+  }
+}
+
 app.whenReady().then(() => {
+  prepareData()
+
   // Apply saved startup settings
   const settings = loadSettings()
   applyLoginItem(settings)
 
   createWindow()
+  if (mainWindow) initUpdater(mainWindow, settings.updateChannel === 'beta')
 
   // Warm the cache so the Environment page opens instantly
   detectEnvironment().catch(() => {})
@@ -138,7 +177,7 @@ app.whenReady().then(() => {
 })
 
 // Never leave dev servers running after DevForge quits
-app.on('before-quit', () => { disposeWidget(); processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks() })
+app.on('before-quit', () => { disposeWidget(); processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks(); stopUpdater() })
 
 app.on('window-all-closed', () => {
   sshService.disconnectAll()

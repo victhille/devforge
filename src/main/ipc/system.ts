@@ -1,6 +1,8 @@
-import { ipcMain, dialog, shell, BrowserWindow } from 'electron'
+import { app, ipcMain, dialog, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
-import { userInfo } from 'os'
+import { arch, release, type, userInfo } from 'os'
+import { log, tailLog } from '../lib/log'
+import { readSchemaVersion } from '../services/storage/migrations'
 import { existsSync } from 'fs'
 import { readdir, stat } from 'fs/promises'
 import { detectEnvironment } from '../services/system/environmentDetector'
@@ -103,6 +105,18 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
     const r = await runFile('taskkill', ['/PID', String(pid), '/T', '/F'], { timeout: 10_000 })
     if (!r.ok) throw new Error(r.stderr || 'taskkill failed')
   })
+
+  // ─── Local log ───────────────────────────────────────────────────────────────
+  ipcMain.handle('log:error', (_e, scope: string, message: string) => {
+    log('error', `renderer:${String(scope).slice(0, 40)}`, String(message).slice(0, 4000))
+  })
+  // System details + last log lines, secrets masked: pasted into a bug ticket
+  ipcMain.handle('log:report', () => [
+    `${type()} ${release()} ${arch()} · Electron ${process.versions.electron} · Node ${process.versions.node}`,
+    `Data format v${readSchemaVersion(app.getPath('userData'))}`,
+    '',
+    tailLog(200) || '(empty log)'
+  ].join('\n'))
 
   // ─── User ────────────────────────────────────────────────────────────────────
   // First name for the home greeting: git's user.name, else the Windows account

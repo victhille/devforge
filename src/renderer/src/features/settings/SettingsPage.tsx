@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Check, ExternalLink, ScrollText } from 'lucide-react'
+import { Check, ClipboardCopy, ExternalLink, ScrollText } from 'lucide-react'
 import type { AppSettings, PackageManager, DefaultIDE, Theme, AppLanguage } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
@@ -13,6 +13,8 @@ import Modal from '@renderer/components/ui/Modal'
 import ReleaseNotes from './ReleaseNotes'
 import AssistantSettings from './AssistantSettings'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
+import { useToast } from '@renderer/app/ToastContext'
+import UpdatesRow from './UpdatesRow'
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -23,11 +25,12 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-function Row({ label, children }: { label: string; children: ReactNode }) {
+function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-2 px-5 py-4">
       <span className="text-sm font-medium uppercase tracking-wide text-fg-secondary">{label}</span>
       {children}
+      {hint && <span className="text-xs text-fg-muted">{hint}</span>}
     </div>
   )
 }
@@ -51,6 +54,14 @@ export default function SettingsPage() {
   // Also when already on this page (the "what's new" toast navigates here)
   useEffect(() => { const v = params.get('notes'); if (v) setNotes(v) }, [params])
   const prerelease = __APP_VERSION__.includes('-')
+  const toast = useToast()
+
+  /** Version, system and the last log lines, ready to paste in a bug ticket */
+  async function copyReport() {
+    const report = [`DevForge v${__APP_VERSION__} (${__APP_COMMIT__}, ${__BUILD_DATE__})`, await window.devforge.getReport()].join('\n')
+    await navigator.clipboard.writeText(report)
+    toast.show({ tone: 'success', title: t.settings.reportCopied })
+  }
 
   useEffect(() => {
     window.devforge.getSettings().then(setSettings)
@@ -164,6 +175,12 @@ export default function SettingsPage() {
               <ExternalLink size={13} /> {t.settings.allReleases}
             </Button>
           </div>
+        </Row>
+        <Row label={t.settings.updates}>
+          <UpdatesRow channel={settings.updateChannel ?? 'stable'} onChannel={c => set('updateChannel', c)} />
+        </Row>
+        <Row label={t.settings.report} hint={t.settings.reportHint}>
+          <Button size="sm" variant="secondary" onClick={copyReport}><ClipboardCopy size={13} /> {t.settings.copyReport}</Button>
         </Row>
       </Section>
       {notes && (

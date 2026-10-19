@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { randomUUID } from 'crypto'
 import { app } from 'electron'
@@ -7,6 +7,7 @@ import { getSshConnectionWithSecret } from '../ssh/sshStorage'
 import { sshService } from '../ssh/sshService'
 import { gitPush } from '../git/gitRepo'
 import { shQuote as shq } from '../ssh/sshClient'
+import { writeJsonFile } from '../../lib/jsonFile'
 
 const MAX_LOG = 100_000
 const MAX_RUNS = 20
@@ -26,7 +27,7 @@ function load(): Store {
 function persist(store: Store): void {
   const p = storePath()
   mkdirSync(dirname(p), { recursive: true })
-  writeFileSync(p, JSON.stringify(store, null, 2), 'utf-8')
+  writeJsonFile(p, store)
 }
 
 export const listTargets = () => load().targets

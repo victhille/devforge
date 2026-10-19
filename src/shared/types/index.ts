@@ -111,6 +111,24 @@ export interface AppSettings {
   language: AppLanguage
   startWithWindows: boolean
   minimizeToTray: boolean
+  /** 'beta' also installs pre-releases (2.0.0-beta.1…) */
+  updateChannel: 'stable' | 'beta'
+}
+
+export type UpdateStatus =
+  | { state: 'idle' | 'checking' }
+  | { state: 'up-to-date'; checkedAt: number }
+  | { state: 'downloading'; version: string; percent: number }
+  | { state: 'ready'; version: string }
+  /** dev build, or the release feed cannot be read (offline, private repository) */
+  | { state: 'unavailable'; reason: 'dev' | 'feed' }
+
+export interface UpdatesAPI {
+  status: () => Promise<UpdateStatus>
+  check: () => Promise<UpdateStatus>
+  /** Restarts DevForge on the downloaded version */
+  install: () => Promise<void>
+  onStatus: (cb: (s: UpdateStatus) => void) => () => void
 }
 
 // ─── SSH ─────────────────────────────────────────────────────────────────────
@@ -293,6 +311,7 @@ export interface DevForgeAPI {
   // Settings
   getSettings: () => Promise<AppSettings>
   saveSettings: (settings: AppSettings) => Promise<void>
+  updates: UpdatesAPI
 
   // Git
   getGitStatus: (path: string) => Promise<GitStatus>
@@ -303,6 +322,10 @@ export interface DevForgeAPI {
   getUserName: () => Promise<string>
   /** Ends the process listening on a port (refused for Windows services) */
   freePort: (port: number, pid: number) => Promise<void>
+  /** Writes a renderer error to the local log */
+  logError: (scope: string, message: string) => Promise<void>
+  /** System details and the last log lines, secrets masked */
+  getReport: () => Promise<string>
 
   // Scripts
   getProjectScripts: (path: string) => Promise<Record<string, string>>

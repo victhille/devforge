@@ -1,7 +1,8 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { app } from 'electron'
 import type { Project } from '@shared/types'
+import { writeJsonFile } from '../../lib/jsonFile'
 
 function getStoragePath(): string {
   const dataDir = app.getPath('userData')
@@ -26,7 +27,7 @@ export function getProjectPaths(): Set<string> {
 function persist(projects: Project[]): void {
   const path = getStoragePath()
   mkdirSync(dirname(path), { recursive: true })
-  writeFileSync(path, JSON.stringify(projects, null, 2), 'utf-8')
+  writeJsonFile(path, projects)
 }
 
 export function saveProject(project: Project): void {

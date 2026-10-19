@@ -1,6 +1,7 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'fs'
 import { join } from 'path'
 import { app, safeStorage } from 'electron'
+import { writeJsonFile } from '../../lib/jsonFile'
 import type Anthropic from '@anthropic-ai/sdk'
 import type {
   AssistantConfig, AssistantConfigUpdate, AssistantConversation, AssistantConversationSummary, AssistantEffort, AssistantModel, AssistantUsage
@@ -22,7 +23,7 @@ function readConfig(): StoredConfig {
 
 function writeJson(path: string, data: unknown): void {
   mkdirSync(join(path, '..'), { recursive: true })
-  writeFileSync(path, JSON.stringify(data), 'utf-8')
+  writeJsonFile(path, data, false)
 }
 
 export function getConfig(): AssistantConfig {
