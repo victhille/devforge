@@ -5,6 +5,7 @@
 //   npm run release -- minor        force the bump (major | minor | patch | 1.4.0)
 //   npm run release -- --pre beta   prerelease: 1.3.0-beta.1, then -beta.2… ; a plain release finalizes it
 //   npm run release -- --dry-run    show the version and notes, change nothing
+//   --summary-fr "…" --summary-en "…"  one-line summary of the version (release notes card)
 //   --build  also build the installer locally (dist/)
 //   --push   push the commit and tag: GitHub Actions builds and publishes the release
 //   --no-check  skip `npm run check` (typecheck, lint, tests, build)
@@ -16,7 +17,7 @@ import { LANGS, bumpFor, changelogFile, extractSection, nextVersion, parseCommit
 const args = process.argv.slice(2)
 const flag = name => args.includes(name)
 const option = name => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : null }
-const positional = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--pre')[0] ?? 'auto'
+const positional = args.filter((a, i) => !a.startsWith('--') && !['--pre', '--summary-fr', '--summary-en'].includes(args[i - 1]))[0] ?? 'auto'
 
 const git = (...a) => execFileSync('git', a, { encoding: 'utf-8' }).trim()
 const npm = (...a) => {
@@ -56,7 +57,7 @@ try {
 } catch { /* no remote */ }
 
 const previous = lastTag?.replace(/^v/, '') ?? null
-const sections = Object.fromEntries(LANGS.map(lang => [lang, renderSection(version, changes, { lang, repoUrl, previous })]))
+const sections = Object.fromEntries(LANGS.map(lang => [lang, renderSection(version, changes, { lang, repoUrl, previous, summary: option(`--summary-${lang}`) })]))
 
 console.log(`\n${pkg.version} → ${version}  (${positional === 'auto' ? `${bump}, from ${changes.length} commit(s)` : bump}${pre ? `, ${pre}` : ''})\n`)
 console.log(sections.fr)

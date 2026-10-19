@@ -92,7 +92,7 @@ test('Forgy asks for an API key when none is saved', async () => {
 test('Settings copies a diagnostic report without secrets', async () => {
   run = await launch()
   const { app, page } = run
-  await goTo(page, '/settings')
+  await goTo(page, '/settings?section=data')
   await page.getByRole('button', { name: 'Copier le rapport' }).click()
   await expect(page.getByText('Rapport copié')).toBeVisible()
   const report = await app.evaluate(({ clipboard }) => clipboard.readText())

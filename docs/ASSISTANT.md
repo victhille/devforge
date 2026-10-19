@@ -83,7 +83,7 @@ Outil non installé : bouton en pointillés, il ouvre la page d'installation. De
 
 ## Outils de lecture
 
-`list_projects` · `list_files` · `read_file` · `search_code` · `git_status` · `git_diff` · `docker_status` · `container_logs` · `db_connections` · `db_schema`
+`list_projects` · `list_files` · `read_file` · `search_code` · `git_status` · `git_diff` · `docker_status` · `container_logs` · `db_connections` · `db_schema` · `n8n_workflows` · `n8n_executions` · `vercel_deployments`
 
 | Garde-fou | Règle |
 |---|---|
@@ -108,6 +108,10 @@ Forgy peut aussi agir. Chaque action s'affiche en **carte** dans le panneau : ce
 | `free_port` | arrête le processus qui écoute sur un port | non | non |
 | `run_script` | lance un script `package.json` en arrière-plan | oui (arrêt) | oui |
 | `env_add` | ajoute une **nouvelle** clé à un `.env` (valeur masquée sur la carte) | oui (suppression) | oui |
+| `n8n_set_workflow` | active ou désactive un workflow n8n | oui (inverse) | oui |
+| `n8n_retry_execution` | relance une exécution n8n en échec | non | non |
+| `vercel_redeploy` | relance un build Vercel (par défaut celui en production) | non | non |
+| `vercel_promote` | met un déploiement Vercel en production (aperçu, ou retour en arrière) | oui (production précédente) | non |
 
 | Garde-fou | Règle |
 |---|---|

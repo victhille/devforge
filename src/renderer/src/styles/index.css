@@ -219,6 +219,8 @@
 /* Cards that react to the pointer */
 @utility df-lift { transition: transform .2s, border-color .2s, background-color .2s; &:hover { transform: translateY(-2px); } }
 
+/* Settings → Appearance → Animations: "system" follows Windows, "reduced" / "full" override it */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  :root:not([data-motion=full]) *, :root:not([data-motion=full]) *::before, :root:not([data-motion=full]) *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+:root[data-motion=reduced] *, :root[data-motion=reduced] *::before, :root[data-motion=reduced] *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }

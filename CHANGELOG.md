@@ -4,17 +4,23 @@ Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachange
 
 ## [1.5.0](https://github.com/victhille/devforge/compare/v1.4.1...v1.5.0) — 2026-10-19
 
+> DevForge change de tête : menu repensé, accueil vivant, et Forgy qui se promène avec Boulon.
+
 ### Nouveautés
 
 - Nouveau design : menu repensé, accueil vivant, panneau Forgy, pages refaites, Forgy se promène avec Boulon et widget de bureau ([3260e55](https://github.com/victhille/devforge/commit/3260e55c94c7707bc823420a483f058c5ed7fbae))
 
 ## [1.4.1](https://github.com/victhille/devforge/compare/v1.4.0...v1.4.1) — 2026-10-18
 
+> Une application plus fluide, surtout quand elle tourne en arrière-plan.
+
 ### Performances
 
 - Application plus fluide : la mascotte ne consomme plus rien au repos, pages Git et Docker plus rapides ([c2c739e](https://github.com/victhille/devforge/commit/c2c739e5e17fc765fc6e9e0ec0d487b27fac6285))
 
 ## [1.4.0](https://github.com/victhille/devforge/compare/v1.3.0...v1.4.0) — 2026-10-18
+
+> Arrivée de Forgy, l'assistant qui connaît ton projet et la page où tu es.
 
 ### Nouveautés
 
@@ -30,6 +36,8 @@ Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachange
 _1 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
 
 ## [1.3.0](https://github.com/victhille/devforge/compare/v1.2.2...v1.3.0) — 2026-10-18
+
+> L'API Tester sait afficher les pages HTML.
 
 ### Nouveautés
 

@@ -32,6 +32,8 @@ export interface WatchConfig {
   watched: string[]
   /** Disk use (%) that raises an alert */
   diskAlert: number
+  /** Which alerts notify (history is kept either way) */
+  alerts: Record<AlertKind, boolean>
 }
 
 export type AlertKind = 'disk' | 'container' | 'server' | 'site'

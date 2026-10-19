@@ -113,6 +113,32 @@ export interface AppSettings {
   minimizeToTray: boolean
   /** 'beta' also installs pre-releases (2.0.0-beta.1…) */
   updateChannel: 'stable' | 'beta'
+  /** 'system' follows Windows' "animation effects" */
+  motion: MotionSetting
+  /** "What's new" window on the first launch after an update */
+  showWhatsNew: boolean
+}
+
+export type MotionSetting = 'full' | 'reduced' | 'system'
+
+/** Settings → Data */
+export interface DataInfo {
+  dir: string
+  /** Bytes used by DevForge's own files */
+  size: number
+  schemaVersion: number
+  backups: { name: string; at: string; reason: 'format' | 'manual' | 'restore'; version: number }[]
+}
+
+export interface DataAPI {
+  info: () => Promise<DataInfo>
+  backup: () => Promise<DataInfo>
+  /** Puts a backup back and restarts the app */
+  restore: (name: string) => Promise<void>
+  openDir: () => Promise<void>
+  openLog: () => Promise<void>
+  /** Monitoring charts start over */
+  clearHistory: () => Promise<void>
 }
 
 export type UpdateStatus =
@@ -203,6 +229,8 @@ export * from './suggest'
 export * from './assistant'
 export * from './hub'
 export * from './watch'
+export * from './n8n'
+export * from './vercel'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
@@ -210,6 +238,8 @@ import type { VersionsAPI } from './versions'
 import type { StacksAPI } from './stacks'
 import type { HubAPI } from './hub'
 import type { WatchAPI } from './watch'
+import type { N8nAPI } from './n8n'
+import type { VercelAPI } from './vercel'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -316,8 +346,11 @@ export interface DevForgeAPI {
   getSettings: () => Promise<AppSettings>
   saveSettings: (settings: AppSettings) => Promise<void>
   updates: UpdatesAPI
+  data: DataAPI
   hub: HubAPI
   watch: WatchAPI
+  n8n: N8nAPI
+  vercel: VercelAPI
 
   // Git
   getGitStatus: (path: string) => Promise<GitStatus>

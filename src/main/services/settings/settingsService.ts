@@ -13,7 +13,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   language: 'en',
   startWithWindows: false,
   minimizeToTray: false,
-  updateChannel: 'stable'
+  updateChannel: 'stable',
+  motion: 'system',
+  showWhatsNew: true
 }
 
 function getSettingsPath(): string {

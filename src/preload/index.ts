@@ -241,6 +241,35 @@ const api: DevForgeAPI = {
     dockerLogs:   invoke('watch:docker-logs')
   },
 
+  n8n: {
+    instances:      invoke('n8n:instances'),
+    precheck:       invoke('n8n:precheck'),
+    install:        invoke('n8n:install'),
+    onLog:          on('n8n:log'),
+    status:         invoke('n8n:status'),
+    logs:           invoke('n8n:logs'),
+    update:         invoke('n8n:update'),
+    control:        invoke('n8n:control'),
+    saveKey:        invoke('n8n:save-key'),
+    forget:         invoke('n8n:forget'),
+    workflows:      invoke('n8n:workflows'),
+    executions:     invoke('n8n:executions'),
+    setActive:      invoke('n8n:set-active'),
+    exportWorkflow: invoke('n8n:export')
+  },
+
+  vercel: {
+    account:     invoke('vercel:account'),
+    saveToken:   invoke('vercel:save-token'),
+    project:     invoke('vercel:project'),
+    deployments: invoke('vercel:deployments'),
+    buildLogs:   invoke('vercel:build-logs'),
+    redeploy:    invoke('vercel:redeploy'),
+    promote:     invoke('vercel:promote'),
+    env:         invoke('vercel:env'),
+    domains:     invoke('vercel:domains')
+  },
+
   hub: {
     get:       invoke('hub:get'),
     link:      invoke('hub:link'),
@@ -254,6 +283,14 @@ const api: DevForgeAPI = {
     check:    invoke('update:check'),
     install:  invoke('update:install'),
     onStatus: on('update:status')
+  },
+  data: {
+    info:         invoke('data:info'),
+    backup:       invoke('data:backup'),
+    restore:      invoke('data:restore'),
+    openDir:      invoke('data:open-dir'),
+    openLog:      invoke('data:open-log'),
+    clearHistory: invoke('data:clear-history')
   },
 
   // Git

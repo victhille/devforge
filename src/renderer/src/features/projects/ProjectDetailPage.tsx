@@ -22,9 +22,10 @@ import { ComposeDetail } from '@renderer/features/docker/ComposeDetail'
 import ProjectEnvEditor from '@renderer/features/envfiles/ProjectEnvEditor'
 import ProjectIcon from './components/ProjectIcon'
 import FileTree from './components/FileTree'
+import VercelPanel from './VercelPanel'
 
-type Tab = 'overview' | 'git' | 'docker' | 'env' | 'database' | 'logs' | 'ports' | 'deploy' | 'files'
-const TABS: Tab[] = ['overview', 'git', 'docker', 'env', 'database', 'logs', 'ports', 'deploy', 'files']
+type Tab = 'overview' | 'git' | 'docker' | 'env' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
+const TABS: Tab[] = ['overview', 'git', 'docker', 'env', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const fileName = (p: string) => p.split(/[\\/]/).pop() ?? p
@@ -421,6 +422,8 @@ export default function ProjectDetailPage() {
       </Card>
     ),
 
+    vercel: hub.vercel ? <VercelPanel projectId={p.id} /> : null,
+
     files: (
       <div className="flex flex-wrap gap-4">
         <Card className="h-[520px] min-w-[280px] flex-[1_1_320px] overflow-hidden"><FileTree rootPath={p.path} /></Card>
@@ -466,7 +469,7 @@ export default function ProjectDetailPage() {
 
       {/* Tabs, underlined */}
       <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-line">
-        {TABS.map(x => (
+        {TABS.filter(x => x !== 'vercel' || hub.vercel).map(x => (
           <button key={x} role="tab" aria-selected={tab === x} onClick={() => setTab(x)}
             className={cn('flex h-9 shrink-0 items-center gap-1.5 border-b-2 px-3 text-base font-medium transition-colors',
               tab === x ? 'border-accent text-fg' : 'border-transparent text-fg-secondary hover:text-fg')}>

@@ -12,7 +12,9 @@ import { dbQuery } from '../database/dbClient'
 import { readEnvProject, writeEnvValues } from '../envfiles/envFiles'
 import { freePort, getListeningPorts } from '../system/portService'
 import { processManager } from '../stacks/processManager'
-import { ToolError, findProject } from './assistantTools'
+import { ToolError, cloudError, findProject, n8nServer } from './assistantTools'
+import { retryExecution, setActive as n8nSetActive, workflows as n8nWorkflows } from '../n8n/n8nService'
+import { deployments as vercelDeployments, promote as vercelPromote, redeploy as vercelRedeploy } from '../vercel/vercelService'
 
 /**
  * Actions Forgy may propose. Nothing runs from the model alone: each tool
@@ -39,6 +41,8 @@ export type UndoSpec =
   | { type: 'container'; id: string; action: 'start' | 'stop' }
   | { type: 'env-remove'; path: string; file: string; key: string }
   | { type: 'stop-process'; key: string }
+  | { type: 'n8n-active'; connectionId: string; workflowId: string; active: boolean }
+  | { type: 'vercel-promote'; projectId: string; deploymentId: string }
 
 const project = { type: 'string', description: 'Project name or path from list_projects' } as const
 
@@ -51,6 +55,10 @@ export const ACTION_TOOLS: Anthropic.Beta.BetaTool[] = [
   { name: 'sql_execute', description: 'Run ONE SQL statement on a saved connection: reads return up to 50 rows, writes need a WHERE. DROP, TRUNCATE and the like are refused. Needs the user\'s approval.', input_schema: { type: 'object', properties: { connection: { type: 'string', description: 'Connection name from db_connections' }, sql: { type: 'string' } }, required: ['connection', 'sql'] } },
   { name: 'free_port', description: 'Free a local port by ending the process listening on it (never a Windows service). Needs the user\'s approval.', input_schema: { type: 'object', properties: { port: { type: 'integer' } }, required: ['port'] } },
   { name: 'run_script', description: 'Start a package.json script of a project in the background (dev server, build, tests). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project, script: { type: 'string' } }, required: ['project', 'script'] } },
+  { name: 'n8n_set_workflow', description: 'Activate or deactivate an n8n workflow. Needs the user\'s approval; can be undone.', input_schema: { type: 'object', properties: { server: { type: 'string', description: 'SSH server name; optional with one n8n server' }, workflow: { type: 'string', description: 'Workflow name or id from n8n_workflows' }, active: { type: 'boolean' } }, required: ['workflow', 'active'] } },
+  { name: 'n8n_retry_execution', description: 'Retry a failed n8n execution. Needs the user\'s approval.', input_schema: { type: 'object', properties: { server: { type: 'string' }, execution: { type: 'string', description: 'Execution id from n8n_executions' } }, required: ['execution'] } },
+  { name: 'vercel_redeploy', description: 'Start a new Vercel build from a deployment (default: the one production points to). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project, deployment: { type: 'string', description: 'Deployment id from vercel_deployments' } }, required: ['project'] } },
+  { name: 'vercel_promote', description: 'Point production to a READY Vercel deployment: a preview, or an older production one to roll back. Needs the user\'s approval; can be undone.', input_schema: { type: 'object', properties: { project, deployment: { type: 'string' } }, required: ['project', 'deployment'] } },
   { name: 'env_add', description: 'Add a NEW key to a .env file of a project (existing keys are never changed). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project, key: { type: 'string' }, value: { type: 'string' }, file: { type: 'string', description: 'Default .env' } }, required: ['project', 'key', 'value'] } }
 ]
 
@@ -239,6 +247,68 @@ async function envPlan(p: Project, key: string, value: unknown, file: unknown): 
   }
 }
 
+// ─── n8n and Vercel ───────────────────────────────────────────────────────────
+
+async function n8nTogglePlan(server: unknown, ref: string, active: unknown): Promise<ActionPlan> {
+  if (typeof active !== 'boolean') throw new ToolError('"active" must be true or false')
+  const s = n8nServer(server)
+  const list = await n8nWorkflows(s.id).catch(cloudError)
+  const wf = list.find(w => w.id === ref) ?? list.find(w => w.name.toLowerCase() === ref.toLowerCase())
+  if (!wf) throw new ToolError(`Unknown workflow "${ref}" on ${s.name}`)
+  if (wf.active === active) throw new ActionRefused(`${wf.name} is already ${active ? 'active' : 'inactive'}`)
+  return {
+    title: `${active ? 'Activate' : 'Deactivate'} n8n workflow · ${wf.name}`,
+    preview: `${s.name} · workflow ${wf.id}\n${wf.active ? 'active' : 'inactive'} → ${active ? 'active' : 'inactive'}`,
+    reversible: true, safe: true,
+    run: async () => {
+      const u = await n8nSetActive(s.id, wf.id, active)
+      return { output: `${u.name} is now ${u.active ? 'active' : 'inactive'}`, undo: { type: 'n8n-active', connectionId: s.id, workflowId: wf.id, active: !active } }
+    }
+  }
+}
+
+function n8nRetryPlan(server: unknown, execution: string): ActionPlan {
+  if (!/^[\w-]{1,64}$/.test(execution)) throw new ToolError('Invalid execution id')
+  const s = n8nServer(server)
+  return {
+    title: `Retry n8n execution #${execution}`,
+    preview: `${s.name} · POST /executions/${execution}/retry\nThe workflow runs again with the same input.`,
+    reversible: false, safe: false,
+    run: async () => ({ output: await retryExecution(s.id, execution).catch(cloudError) })
+  }
+}
+
+async function vercelRedeployPlan(p: Project, ref: unknown): Promise<ActionPlan> {
+  const list = await vercelDeployments(p.id).catch(cloudError)
+  const asked = typeof ref === 'string' && ref.trim() ? ref.trim() : null
+  const d = asked ? list.find(x => x.id === asked) : list.find(x => x.current) ?? list[0]
+  if (!d) throw new ToolError(asked ? `Unknown deployment "${asked}"` : 'No deployment to rebuild')
+  return {
+    title: `Redeploy on Vercel · ${p.name}`,
+    preview: `${d.target ?? 'preview'} · ${d.id}${d.branch ? ` · ${d.branch}` : ''}${d.commitMessage ? `\n"${d.commitMessage}"` : ''}\nA new build starts from the same source.`,
+    reversible: false, safe: false,
+    run: async () => { const n = await vercelRedeploy(p.id, d.id).catch(cloudError); return { output: `New deployment ${n.id} (${n.state}) ${n.url}` } }
+  }
+}
+
+async function vercelPromotePlan(p: Project, ref: string): Promise<ActionPlan> {
+  const list = await vercelDeployments(p.id).catch(cloudError)
+  const d = list.find(x => x.id === ref)
+  if (!d) throw new ToolError(`Unknown deployment "${ref}"`)
+  if (d.current) throw new ActionRefused('Production already points to this deployment')
+  if (d.state !== 'READY') throw new ActionRefused(`This deployment is ${d.state}, not READY`)
+  const previous = list.find(x => x.current)
+  return {
+    title: `${d.target === 'production' ? 'Roll back' : 'Promote'} on Vercel · ${p.name}`,
+    preview: `Production → ${d.id}${d.commitMessage ? ` "${d.commitMessage}"` : ''}${previous ? `\nwas ${previous.id}` : ''}`,
+    reversible: !!previous, safe: false,
+    run: async () => {
+      await vercelPromote(p.id, d.id).catch(cloudError)
+      return { output: `Production now points to ${d.url}`, undo: previous ? { type: 'vercel-promote', projectId: p.id, deploymentId: previous.id } : undefined }
+    }
+  }
+}
+
 /** Validates a tool call and describes it; throws ToolError (bad input) or ActionRefused (guard rail) */
 export async function planAction(name: string, input: Record<string, unknown>): Promise<ActionPlan> {
   switch (name) {
@@ -251,6 +321,10 @@ export async function planAction(name: string, input: Record<string, unknown>): 
     case 'free_port': return freePortPlan(input.port)
     case 'run_script': return scriptPlan(findProject(input.project), str(input.script, 'script'))
     case 'env_add': return envPlan(findProject(input.project), str(input.key, 'key'), input.value, input.file)
+    case 'n8n_set_workflow': return n8nTogglePlan(input.server, str(input.workflow, 'workflow'), input.active)
+    case 'n8n_retry_execution': return n8nRetryPlan(input.server, str(input.execution, 'execution'))
+    case 'vercel_redeploy': return vercelRedeployPlan(findProject(input.project), input.deployment)
+    case 'vercel_promote': return vercelPromotePlan(findProject(input.project), str(input.deployment, 'deployment'))
     default: throw new ToolError(`Unknown action ${name}`)
   }
 }
@@ -311,6 +385,8 @@ async function runUndo(u: UndoSpec): Promise<string> {
     case 'container': { const r = await containerAction(u.id, u.action); if (!r.ok) throw new Error(r.output); return `docker ${u.action}` }
     case 'env-remove': await writeEnvValues(u.path, u.file, { [u.key]: null }); return `${u.key} removed from ${u.file}`
     case 'stop-process': await processManager.stop(u.key); return 'Stopped'
+    case 'n8n-active': { const w = await n8nSetActive(u.connectionId, u.workflowId, u.active); return `${w.name} ${w.active ? 'active' : 'inactive'} again` }
+    case 'vercel-promote': await vercelPromote(u.projectId, u.deploymentId); return 'Production points back to the previous deployment'
   }
 }
 
