@@ -1,7 +1,8 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { app, safeStorage } from 'electron'
 import type { DbConnection } from '@shared/types'
+import { writeJsonFile } from '../../lib/jsonFile'
 
 interface Stored extends Omit<DbConnection, 'password' | 'hasPassword'> { passwordEnc?: string }
 
@@ -16,7 +17,7 @@ function read(): Stored[] {
 
 function write(list: Stored[]): void {
   mkdirSync(dirname(path()), { recursive: true })
-  writeFileSync(path(), JSON.stringify(list, null, 2), 'utf-8')
+  writeJsonFile(path(), list)
 }
 
 /** Renderer-safe list: no password */

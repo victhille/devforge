@@ -1,7 +1,8 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { app } from 'electron'
 import type { AppSettings } from '@shared/types'
+import { writeJsonFile } from '../../lib/jsonFile'
 
 const DEFAULT_SETTINGS: AppSettings = {
   defaultProjectsDir: '',
@@ -11,7 +12,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultTerminal: 'powershell',
   language: 'en',
   startWithWindows: false,
-  minimizeToTray: false
+  minimizeToTray: false,
+  updateChannel: 'stable'
 }
 
 function getSettingsPath(): string {
@@ -37,5 +39,5 @@ export function loadSettings(): AppSettings {
 export function saveSettings(settings: AppSettings): void {
   const path = getSettingsPath()
   mkdirSync(dirname(path), { recursive: true })
-  writeFileSync(path, JSON.stringify(settings, null, 2), 'utf-8')
+  writeJsonFile(path, settings)
 }

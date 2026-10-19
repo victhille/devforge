@@ -73,16 +73,32 @@ Une release sans `--pre` après une préversion la finalise : `1.3.0-beta.2` →
 
 | Workflow | Déclencheur | Rôle |
 |---|---|---|
-| CI | push sur `main`, pull request | types, lint, tests, build |
+| CI | push sur `main`, pull request | types, lint, tests unitaires, build, tests de bout en bout |
 | Release | tag `v*` | vérifie tag = `package.json`, tests, installeur, release avec notes |
 
-Fichiers publiés : `DevForge-Setup-vX.Y.Z.exe`, `.blockmap`, `latest.yml` (pour la future mise à jour automatique).
+Fichiers publiés : `DevForge-Setup-vX.Y.Z.exe`, `.blockmap`, `latest.yml` (lu par la mise à jour automatique).
 Une préversion est publiée comme *pre-release*.
+
+## Mise à jour automatique
+
+- `electron-updater` lit les releases GitHub : au démarrage (après 15 s), puis toutes les 6 h. Téléchargement en arrière-plan, installation au redémarrage.
+- **Canal** dans Paramètres → À propos : *Stable* (versions finales) ou *Bêta* (aussi les préversions `2.0.0-beta…`).
+- **Limite actuelle** : le dépôt est privé, donc l'app installée ne peut pas lire les releases. Le statut affiché est alors « Impossible de lire les versions publiées ». Il faut publier les installeurs dans un dépôt public, ou rendre ce dépôt public.
 
 ## Dans l'application
 
-- **Paramètres → À propos** : version, canal (Stable / Préversion), commit, date de build, notes de version dans la langue de l'application.
+- **Paramètres → À propos** : version, canal, commit, date de build, notes de version dans la langue de l'application, mises à jour, rapport de diagnostic.
 - Après une mise à jour : notification avec lien vers les nouveautés.
+
+## Données et diagnostic
+
+- **Format des données** : `userData/storage.json` (`schemaVersion`). Au démarrage, les migrations en attente tournent une fois, après une copie des données dans `userData/backups/` (5 gardées). Une donnée écrite par une version plus récente n'est jamais modifiée. Voir `src/main/services/storage/migrations.ts`.
+- **Écriture** : chaque fichier passe par un fichier temporaire puis un renommage (`writeJsonFile`). Un plantage pendant une écriture ne laisse pas de fichier coupé.
+- **Journal local** : `userData/logs/devforge.log`, 1 Mo × 3 fichiers, avec les secrets masqués. *Copier le rapport* (Paramètres → À propos) donne la version, le système et les 200 dernières lignes. Rien n'est envoyé.
+
+## Tests de bout en bout
+
+`npm run build` puis `npm run test:e2e` (Playwright). Chaque test lance l'app compilée sur un profil vide : `tests/e2e/`.
 
 ## Fichiers
 

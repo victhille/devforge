@@ -1,9 +1,10 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { app, shell } from 'electron'
 import type { Stack, StackStep } from '@shared/types'
 import { processManager } from './processManager'
 import { assertSafeDir, launch } from '../../lib/safe'
+import { writeJsonFile } from '../../lib/jsonFile'
 
 function storagePath(): string {
   return join(app.getPath('userData'), 'stacks.json')
@@ -18,7 +19,7 @@ export function loadStacks(): Stack[] {
 function persist(stacks: Stack[]): void {
   const path = storagePath()
   mkdirSync(dirname(path), { recursive: true })
-  writeFileSync(path, JSON.stringify(stacks, null, 2), 'utf-8')
+  writeJsonFile(path, stacks)
 }
 
 export function saveStack(stack: Stack): void {

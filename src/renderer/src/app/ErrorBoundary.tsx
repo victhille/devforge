@@ -23,6 +23,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     console.error('Page crashed:', error, info.componentStack)
+    window.devforge.logError('page', `${error.stack ?? error.message}\n${info.componentStack ?? ''}`).catch(() => {})
   }
 
   componentDidUpdate(prev: Props): void {

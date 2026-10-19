@@ -1,8 +1,9 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { app, safeStorage } from 'electron'
 import type { SSHConnection } from '@shared/types'
 import { knownFingerprint } from './knownHosts'
+import { writeJsonFile } from '../../lib/jsonFile'
 
 /** On-disk shape: password is never stored in clear, only encrypted by the OS (DPAPI / Keychain / libsecret). */
 interface StoredSSHConnection extends Omit<SSHConnection, 'password' | 'hasPassword'> {
@@ -49,7 +50,7 @@ function readStored(): StoredSSHConnection[] {
 function persist(conns: StoredSSHConnection[]): void {
   const path = getPath()
   mkdirSync(dirname(path), { recursive: true })
-  writeFileSync(path, JSON.stringify(conns, null, 2), 'utf-8')
+  writeJsonFile(path, conns)
 }
 
 /** Safe for the renderer: no password, only a flag. */

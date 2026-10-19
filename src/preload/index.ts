@@ -226,6 +226,12 @@ const api: DevForgeAPI = {
   // Settings
   getSettings:  ()         => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
+  updates: {
+    status:   invoke('update:status'),
+    check:    invoke('update:check'),
+    install:  invoke('update:install'),
+    onStatus: on('update:status')
+  },
 
   // Git
   getGitStatus: (path) => ipcRenderer.invoke('git:get-status', path),
@@ -234,6 +240,8 @@ const api: DevForgeAPI = {
   getListeningPorts: () => ipcRenderer.invoke('ports:get-listening'),
   getUserName: () => ipcRenderer.invoke('system:user-name'),
   freePort: (port, pid) => ipcRenderer.invoke('ports:free', port, pid),
+  logError: (scope, message) => ipcRenderer.invoke('log:error', scope, message),
+  getReport: () => ipcRenderer.invoke('log:report'),
 
   // Scripts
   getProjectScripts:  (path)               => ipcRenderer.invoke('scripts:get', path),

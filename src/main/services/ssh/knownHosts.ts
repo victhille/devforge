@@ -1,8 +1,9 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { createHash } from 'crypto'
 import { app } from 'electron'
 import { loadSettings } from '../settings/settingsService'
+import { writeJsonFile } from '../../lib/jsonFile'
 
 /** host:port → SHA256 fingerprint, like OpenSSH's known_hosts (trust on first use) */
 type Store = Record<string, { fingerprint: string; firstSeen: string }>
@@ -18,7 +19,7 @@ function read(): Store {
 
 function write(store: Store): void {
   mkdirSync(dirname(path()), { recursive: true })
-  writeFileSync(path(), JSON.stringify(store, null, 2), 'utf-8')
+  writeJsonFile(path(), store)
 }
 
 const hostKey = (host: string, port: number) => `${host.toLowerCase()}:${port}`

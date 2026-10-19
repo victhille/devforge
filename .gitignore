@@ -6,3 +6,5 @@ dist/
 Thumbs.db
 .claude/settings.local.json
 *.tsbuildinfo
+test-results/
+playwright-report/

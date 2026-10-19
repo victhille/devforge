@@ -1,8 +1,9 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { app, Notification } from 'electron'
 import type { Monitor, MonitorCheck, MonitorState } from '@shared/types'
 import { loadSettings } from '../settings/settingsService'
+import { writeJsonFile } from '../../lib/jsonFile'
 
 const MAX_CHECKS = 60
 const MIN_INTERVAL = 30
@@ -23,7 +24,7 @@ function persist(): void {
   const p = storePath()
   mkdirSync(dirname(p), { recursive: true })
   const data: Persisted = { monitors, states: [...states.values()] }
-  writeFileSync(p, JSON.stringify(data), 'utf-8')
+  writeJsonFile(p, data, false)
 }
 
 function stateOf(id: string): MonitorState {
