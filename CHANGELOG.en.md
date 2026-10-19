@@ -2,6 +2,12 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [1.5.0](https://github.com/victhille/devforge/compare/v1.4.1...v1.5.0) — 2026-10-19
+
+### New features
+
+- New design: reworked menu, live home page, Forgy panel, redone pages, Forgy strolls with Boulon and a desktop widget ([3260e55](https://github.com/victhille/devforge/commit/3260e55c94c7707bc823420a483f058c5ed7fbae))
+
 ## [1.4.1](https://github.com/victhille/devforge/compare/v1.4.0...v1.4.1) — 2026-10-18
 
 ### Performance
