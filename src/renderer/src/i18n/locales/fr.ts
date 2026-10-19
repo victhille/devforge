@@ -855,6 +855,35 @@ const fr = {
     emptyHint:      'Une cible = un serveur, un dossier et un script (git pull, build, redémarrage…).'
   },
 
+  watch: {
+    serversTitle: 'Serveurs',
+    serversHint: "DevForge relève l'état de chaque serveur surveillé toutes les minutes (session SSH dédiée) et garde 7 jours d'historique. Alerte si le disque dépasse le seuil, si un conteneur s'arrête ou si le serveur ne répond plus.",
+    watched: 'Surveiller en arrière-plan',
+    noServers: 'Aucun serveur SSH : ajoute-en un dans SSH / VPS.',
+    cpu: 'CPU',
+    memory: 'Mémoire',
+    disk: 'Disque',
+    diskAlert: 'Alerte disque à',
+    lastSample: 'relevé {when}',
+    down: 'injoignable',
+    connecting: 'connexion…',
+    off: 'non surveillé',
+    containers: '{r}/{t} conteneurs en ligne',
+    last24h: '24 dernières heures',
+    uptime24: 'Disponibilité 24 h : {p} %',
+    latency: 'Temps de réponse',
+    stateUp: 'en ligne',
+    statePartial: 'coupures',
+    stateDown: 'hors ligne',
+    stateNone: 'pas de mesure',
+    enableWatch: 'Surveiller ce serveur',
+    local: 'Local',
+    vps: 'VPS',
+    vpsLogs: 'Logs · {name}',
+    vpsNoDocker: "Docker n'est pas accessible sur ce serveur : {error}",
+    refreshLogs: 'Rafraîchir'
+  },
+
   monitor: {
     suggestions:     'Trouvées dans vos projets',
     title:           'Monitoring',

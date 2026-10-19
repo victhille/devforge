@@ -13,6 +13,7 @@ import Modal from '@renderer/components/ui/Modal'
 import { Field, Input, Select } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import Suggestions from '@renderer/components/ui/Suggestions'
+import ServersSection, { SiteHistory } from './ServersSection'
 
 const INTERVALS = [30, 60, 300, 900, 3600]
 
@@ -134,7 +135,8 @@ export default function MonitorPage() {
             const uptime = s?.checks.length ? Math.round((okCount / s.checks.length) * 1000) / 10 : null
             const status = !mon.enabled ? 'paused' : s?.status ?? 'unknown'
             return (
-              <div key={mon.id} className="flex items-center gap-4 px-4 py-3">
+              <div key={mon.id}>
+              <div className="flex items-center gap-4 px-4 py-3">
                 <span className={cn('size-2.5 shrink-0 rounded-full', {
                   up: 'bg-success', down: 'bg-danger animate-pulse', unknown: 'bg-fg-muted', paused: 'bg-fg-disabled'
                 }[status])} />
@@ -167,12 +169,16 @@ export default function MonitorPage() {
                   <IconButton title={t.common.delete} tone="danger" onClick={async () => { await window.devforge.monitor.remove(mon.id); reload() }}><Trash2 size={13} /></IconButton>
                 </div>
               </div>
+              <SiteHistory monitorId={mon.id} />
+              </div>
             )
           })}
         </Card>
       )}
 
       {monitors.length > 0 && <p className="text-xs text-fg-muted">{m.backgroundHint}</p>}
+
+      <ServersSection />
 
       {editing && <Editor initial={editing.monitor} onSave={save} onClose={() => setEditing(null)} />}
     </Page>

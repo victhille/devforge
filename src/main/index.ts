@@ -16,6 +16,8 @@ import { disposeWidget, initWidget } from './widget'
 import { initLog, log } from './lib/log'
 import { migrateData } from './services/storage/migrations'
 import { initUpdater, stopUpdater } from './services/updates/updater'
+import { stopWatch } from './services/monitor/vpsWatch'
+import { stopHistory } from './services/monitor/history'
 
 const isDev = !app.isPackaged
 
@@ -177,7 +179,7 @@ app.whenReady().then(() => {
 })
 
 // Never leave dev servers running after DevForge quits
-app.on('before-quit', () => { disposeWidget(); processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks(); stopUpdater() })
+app.on('before-quit', () => { disposeWidget(); processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks(); stopUpdater(); stopWatch(); stopHistory() })
 
 app.on('window-all-closed', () => {
   sshService.disconnectAll()

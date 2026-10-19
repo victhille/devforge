@@ -16,3 +16,11 @@ export const safeStorage = {
 export const shell = { openPath: async () => '', openExternal: async () => {} }
 export const ipcMain = { handle: () => {}, on: () => {} }
 export const BrowserWindow = { getAllWindows: () => [] }
+
+/** Desktop notifications: recorded instead of shown */
+export class Notification {
+  static shown: { title: string; body: string }[] = []
+  static isSupported = () => true
+  constructor(private opts: { title: string; body: string }) {}
+  show(): void { Notification.shown.push(this.opts) }
+}

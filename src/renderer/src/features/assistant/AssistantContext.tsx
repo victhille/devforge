@@ -86,6 +86,15 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     }
   }), [touch, setOpen, show, t])
 
+  // Background alerts (disk, container, server, site): a toast, and Forgy looks worried a while
+  useEffect(() => window.devforge.watch.onAlert(a => {
+    touch()
+    show({ tone: 'error', title: a.title, description: a.body })
+    setPhase('sad')
+    clearTimeout(reaction.current)
+    reaction.current = setTimeout(() => setPhase('idle'), 8000)
+  }), [touch, show])
+
   useEffect(() => {
     const id = setInterval(() => { if (Date.now() - lastActive.current > SLEEP_AFTER) setSleepy(true) }, 10_000)
     return () => { clearInterval(id); clearTimeout(reaction.current) }
