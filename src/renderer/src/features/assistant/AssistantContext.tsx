@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { AssistantPageContext } from '@shared/types'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
+import { useToast } from '@renderer/app/ToastContext'
+import { useI18n } from '@renderer/i18n/I18nContext'
 import type { MascotMood } from './Mascot'
 
 interface AssistantState {
@@ -54,8 +56,21 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const setTyping = useCallback((v: boolean) => { touch(); setTypingState(v) }, [touch])
 
   // Assistant events drive the mood, panel open or not
+  const { show } = useToast()
+  const { t } = useI18n()
+  const actionTitles = useRef(new Map<string, string>())
+
   useEffect(() => window.devforge.assistant.onEvent(e => {
     touch()
+    if (e.type === 'action') {
+      actionTitles.current.set(e.id, e.title)
+      // An action waits for a click: show the card
+      if (!e.auto) setOpen(true)
+    } else if (e.type === 'action-done' && (e.status === 'done' || e.status === 'failed')) {
+      // Also lands in the home page's activity log
+      const title = actionTitles.current.get(e.id) ?? ''
+      show({ tone: e.status === 'done' ? 'success' : 'error', title: (e.status === 'done' ? t.assistant.actionDone : t.assistant.actionFailed).replace('{title}', title) })
+    }
     if (e.type === 'text') setPhase('working')
     else if (e.type === 'tool') setPhase('searching')
     else if (e.type === 'tool-done') setPhase('thinking')
@@ -65,7 +80,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       clearTimeout(reaction.current)
       reaction.current = setTimeout(() => setPhase('idle'), REACTION_MS)
     }
-  }), [touch])
+  }), [touch, setOpen, show, t])
 
   useEffect(() => {
     const id = setInterval(() => { if (Date.now() - lastActive.current > SLEEP_AFTER) setSleepy(true) }, 10_000)

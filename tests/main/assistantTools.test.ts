@@ -82,9 +82,9 @@ describe('assistant tools', () => {
 
 describe('assistant config', () => {
   it('stores the API key encrypted and never returns it', () => {
-    expect(getConfig()).toEqual({ hasKey: false, model: 'auto', effort: 'auto', monthlyBudget: 5, desktopWidget: false })
+    expect(getConfig()).toEqual({ hasKey: false, model: 'auto', effort: 'auto', monthlyBudget: 5, desktopWidget: false, actionMode: 'ask' })
     const c = saveConfig({ apiKey: ' sk-ant-secret ', model: 'claude-sonnet-5-5', effort: 'high', monthlyBudget: 12.345 })
-    expect(c).toEqual({ hasKey: true, model: 'claude-sonnet-5-5', effort: 'high', monthlyBudget: 12.35, desktopWidget: false })
+    expect(c).toEqual({ hasKey: true, model: 'claude-sonnet-5-5', effort: 'high', monthlyBudget: 12.35, desktopWidget: false, actionMode: 'ask' })
     expect(saveConfig({ monthlyBudget: -3 }).monthlyBudget).toBe(12.35)
     expect(readFileSync(join(userData(), 'assistant', 'config.json'), 'utf-8')).not.toContain('sk-ant-secret')
     expect(getApiKey()).toBe('sk-ant-secret')
@@ -98,6 +98,9 @@ describe('assistant config', () => {
     expect(saveConfig({ desktopWidget: true }).desktopWidget).toBe(true)
     expect(saveConfig({ model: 'auto' }).desktopWidget).toBe(true)
     expect(saveConfig({ desktopWidget: false }).desktopWidget).toBe(false)
+    // Approval mode: only the two known values are kept
+    expect(saveConfig({ actionMode: 'whatever' as never }).actionMode).toBe('ask')
+    expect(saveConfig({ actionMode: 'auto-safe' }).actionMode).toBe('auto-safe')
   })
 })
 

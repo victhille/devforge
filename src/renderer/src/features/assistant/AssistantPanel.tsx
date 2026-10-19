@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  ArrowUp, BookOpen, Bug, Check, ChevronDown, ChevronLeft, Container, Database, ExternalLink, FileText, GitCommitHorizontal, Globe, History, KeyRound,
+  ArrowUp, BookOpen, Bug, Check, ChevronDown, ListChecks, ChevronLeft, Container, Database, ExternalLink, FileText, GitCommitHorizontal, Globe, History, KeyRound,
   Loader2, MessageSquare, Paperclip, Plus, Search, ShieldCheck, Square, Trash2, Wrench, X, XCircle, type LucideIcon
 } from 'lucide-react'
-import type { AssistantConfig, AssistantConversation, AssistantConversationSummary, AssistantItem, AssistantUsage, Project } from '@shared/types'
+import type { AssistantAction, AssistantConfig, AssistantConversation, AssistantConversationSummary, AssistantItem, AssistantUsage, Project } from '@shared/types'
 import { ASSISTANT_SKILLS, skillById, type AssistantSkill, type AssistantSkillId } from '@shared/data/assistantSkills'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -15,6 +15,7 @@ import { useAssistant } from './AssistantContext'
 import Markdown from './Markdown'
 import Mascot from './Mascot'
 import AiLaunchers from './AiLaunchers'
+import ActionCard from './ActionCard'
 
 const SKILL_ICON: Record<string, LucideIcon> = { MessageSquare, Search, Bug, GitCommitHorizontal, ShieldCheck, BookOpen, Database, Container, Globe }
 const MODEL_LABEL: Record<string, string> = {
@@ -56,6 +57,7 @@ export default function AssistantPanel() {
   const [input, setInput] = useState('')
   const [attachPage, setAttachPage] = useState(true)
   const [history, setHistory] = useState<AssistantConversationSummary[] | null>(null)
+  const [journal, setJournal] = useState<AssistantAction[] | null>(null)
   const [launchers, setLaunchers] = useState(false)
   const [showAllSkills, setShowAllSkills] = useState(false)
   const idRef = useRef<string | null>(null)
@@ -104,6 +106,10 @@ export default function AssistantPanel() {
       setItems(list => [...list, { kind: 'tool', id: e.id, name: e.name, summary: e.summary, status: 'running' }])
     } else if (e.type === 'tool-done') {
       setItems(list => list.map(i => (i.kind === 'tool' && i.id === e.id ? { ...i, status: e.ok ? 'done' : 'error' } : i)))
+    } else if (e.type === 'action') {
+      setItems(list => [...list, { kind: 'action', id: e.id, title: e.title, preview: e.preview, reversible: e.reversible, status: e.auto ? 'running' : 'pending' }])
+    } else if (e.type === 'action-done') {
+      setItems(list => list.map(i => (i.kind === 'action' && i.id === e.id ? { ...i, status: e.status, output: e.output } : i)))
     } else if (e.type === 'done') {
       setRunning(false)
       // The saved version is the reference (notices, cost)
@@ -149,7 +155,13 @@ export default function AssistantPanel() {
     setHistory(null)
   }
 
+  async function openJournal() {
+    setHistory(null)
+    setJournal(journal ? null : await window.devforge.assistant.actions())
+  }
+
   async function openHistory() {
+    setJournal(null)
     setHistory(history ? null : await window.devforge.assistant.list())
   }
 
@@ -184,6 +196,7 @@ export default function AssistantPanel() {
           <IconButton size="sm" title={a.openWith} active={launchers} onClick={() => setLaunchers(v => !v)}><ExternalLink size={14} /></IconButton>
           <IconButton size="sm" title={a.newConversation} onClick={newConversation}><Plus size={14} /></IconButton>
           <IconButton size="sm" title={a.history} active={!!history} onClick={openHistory}><History size={14} /></IconButton>
+          <IconButton size="sm" title={a.actionJournal} active={!!journal} onClick={openJournal}><ListChecks size={14} /></IconButton>
           <IconButton size="sm" title={a.close} onClick={() => setOpen(false)}><X size={14} /></IconButton>
         </span>
       </div>
@@ -206,7 +219,20 @@ export default function AssistantPanel() {
         </div>
       )}
 
-      {history ? (
+      {journal ? (
+        <div className="flex-1 overflow-y-auto p-3">
+          <button onClick={() => setJournal(null)} className="mb-2 flex items-center gap-1 px-1 text-xs text-fg-muted hover:text-fg"><ChevronLeft size={12} /> {a.back}</button>
+          {journal.length === 0 && <p className="p-4 text-center text-sm text-fg-muted">{a.actionJournalEmpty}</p>}
+          <div className="flex flex-col gap-2">
+            {journal.map(j => (
+              <div key={j.id} className="flex flex-col gap-1">
+                <span className="px-1 font-mono text-2xs text-fg-muted">{formatRelative(j.at, lang)}{j.auto ? ` · ${a.actionAuto}` : ''}</span>
+                <ActionCard action={j} onChange={patch => setJournal(list => list && list.map(x => (x.id === j.id ? { ...x, ...patch, canUndo: false } : x)))} />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : history ? (
         <div className="flex-1 overflow-y-auto p-2">
           <button onClick={() => setHistory(null)} className="mb-2 flex items-center gap-1 px-2 text-xs text-fg-muted hover:text-fg"><ChevronLeft size={12} /> {a.back}</button>
           {history.length === 0 && <p className="p-4 text-center text-sm text-fg-muted">{a.noHistory}</p>}
@@ -255,6 +281,10 @@ export default function AssistantPanel() {
                 </div>
               )
               if (item.kind === 'tool') return <ToolRow key={i} item={item} />
+              if (item.kind === 'action') return (
+                <ActionCard key={item.id} action={item}
+                  onChange={patch => setItems(list => list.map(x => (x.kind === 'action' && x.id === item.id ? { ...x, ...patch } : x)))} />
+              )
               return (
                 <div key={i} className={cn('rounded-xl px-3 py-2 text-xs', item.tone === 'error' ? 'bg-danger-soft text-danger' : 'bg-active text-fg-muted')}>
                   {item.text === 'No API key' ? a.noKey : item.text}

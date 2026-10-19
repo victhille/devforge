@@ -4,7 +4,7 @@ import { app, safeStorage } from 'electron'
 import { writeJsonFile } from '../../lib/jsonFile'
 import type Anthropic from '@anthropic-ai/sdk'
 import type {
-  AssistantConfig, AssistantConfigUpdate, AssistantConversation, AssistantConversationSummary, AssistantEffort, AssistantModel, AssistantUsage
+  AssistantActionMode, AssistantConfig, AssistantConfigUpdate, AssistantConversation, AssistantConversationSummary, AssistantEffort, AssistantModel, AssistantUsage
 } from '@shared/types'
 
 const MODELS: (AssistantModel | 'auto')[] = ['auto', 'claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5']
@@ -15,7 +15,7 @@ const dir = () => join(app.getPath('userData'), 'assistant')
 const configPath = () => join(dir(), 'config.json')
 const conversationsDir = () => join(dir(), 'conversations')
 
-interface StoredConfig { keyEnc?: string; model?: AssistantModel | 'auto'; effort?: AssistantEffort | 'auto'; monthlyBudget?: number; desktopWidget?: boolean }
+interface StoredConfig { keyEnc?: string; model?: AssistantModel | 'auto'; effort?: AssistantEffort | 'auto'; monthlyBudget?: number; desktopWidget?: boolean; actionMode?: AssistantActionMode }
 
 function readConfig(): StoredConfig {
   try { return JSON.parse(readFileSync(configPath(), 'utf-8')) as StoredConfig } catch { return {} }
@@ -33,7 +33,8 @@ export function getConfig(): AssistantConfig {
     model: c.model && MODELS.includes(c.model) ? c.model : 'auto',
     effort: c.effort && EFFORTS.includes(c.effort) ? c.effort : 'auto',
     monthlyBudget: typeof c.monthlyBudget === 'number' && c.monthlyBudget >= 0 ? c.monthlyBudget : DEFAULT_BUDGET,
-    desktopWidget: c.desktopWidget === true
+    desktopWidget: c.desktopWidget === true,
+    actionMode: c.actionMode === 'auto-safe' ? 'auto-safe' : 'ask'
   }
 }
 
@@ -55,6 +56,7 @@ export function saveConfig(u: AssistantConfigUpdate): AssistantConfig {
   if (u.effort && EFFORTS.includes(u.effort)) c.effort = u.effort
   if (typeof u.monthlyBudget === 'number' && Number.isFinite(u.monthlyBudget) && u.monthlyBudget >= 0) c.monthlyBudget = Math.round(u.monthlyBudget * 100) / 100
   if (typeof u.desktopWidget === 'boolean') c.desktopWidget = u.desktopWidget
+  if (u.actionMode === 'ask' || u.actionMode === 'auto-safe') c.actionMode = u.actionMode
   writeJson(configPath(), c)
   return getConfig()
 }

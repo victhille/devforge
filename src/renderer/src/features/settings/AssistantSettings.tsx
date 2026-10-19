@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Check, KeyRound } from 'lucide-react'
-import type { AssistantConfig, AssistantEffort, AssistantModel, AssistantUsage } from '@shared/types'
+import type { AssistantActionMode, AssistantConfig, AssistantEffort, AssistantModel, AssistantUsage } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
@@ -74,6 +74,15 @@ export default function AssistantSettings() {
               { value: 'high', label: a.effortHigh }
             ]}
           />
+        </div>
+        <div className="flex flex-col gap-2 px-5 py-4">
+          <span className="text-sm font-medium uppercase tracking-wide text-fg-secondary">{a.actionMode}</span>
+          <Tabs<AssistantActionMode>
+            value={config.actionMode}
+            onChange={actionMode => save({ actionMode })}
+            items={[{ value: 'ask', label: a.actionModeAsk }, { value: 'auto-safe', label: a.actionModeAuto }]}
+          />
+          <span className="text-xs text-fg-muted">{a.actionModeHint}</span>
         </div>
         <div className="flex flex-col gap-2 px-5 py-4">
           <span className="text-sm font-medium uppercase tracking-wide text-fg-secondary">{a.budget}</span>
