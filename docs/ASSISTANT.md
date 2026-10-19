@@ -81,7 +81,7 @@ Outil non installé : bouton en pointillés, il ouvre la page d'installation. De
 | Docker | conteneurs et projets Compose |
 | Fiche projet | sélectionne le projet en contexte |
 
-## Outils (lecture seule)
+## Outils de lecture
 
 `list_projects` · `list_files` · `read_file` · `search_code` · `git_status` · `git_diff` · `docker_status` · `container_logs` · `db_connections` · `db_schema`
 
@@ -92,6 +92,37 @@ Outil non installé : bouton en pointillés, il ouvre la page d'installation. De
 | Taille | `read_file` 250 lignes par défaut, recherche 30 résultats, arborescence 150 entrées |
 | Étapes | 8 appels d'outils au plus par question |
 | Contenu des pages | traité comme donnée, jamais comme instruction |
+
+## Actions
+
+Forgy peut aussi agir. Chaque action s'affiche en **carte** dans le panneau : ce qui va se passer, puis **Valider** ou **Refuser**. Rien ne s'exécute avant le clic. Une action proposée depuis le widget ouvre DevForge sur la carte.
+
+| Outil | Ce qu'il fait | Annulable | Auto possible |
+|---|---|---|---|
+| `git_commit` | commit des fichiers modifiés (ou d'une liste) | oui : `reset --soft`, si pas encore poussé | oui |
+| `git_pull` | `pull --ff-only` | non | non |
+| `git_push` | push vers l'upstream, jamais forcé | non | non |
+| `compose_action` | Compose `up` / `stop` / `restart` d'un projet | oui (`up` ↔ `stop`) | `up` / `stop` |
+| `container_action` | `start` / `stop` / `restart` d'un conteneur | oui (`start` ↔ `stop`) | non |
+| `sql_execute` | une requête SQL : lecture (50 lignes) ou écriture | non | lecture seule |
+| `free_port` | arrête le processus qui écoute sur un port | non | non |
+| `run_script` | lance un script `package.json` en arrière-plan | oui (arrêt) | oui |
+| `env_add` | ajoute une **nouvelle** clé à un `.env` (valeur masquée sur la carte) | oui (suppression) | oui |
+
+| Garde-fou | Règle |
+|---|---|
+| SQL | une seule requête ; `DROP`, `TRUNCATE`, `ALTER … DROP`, `GRANT`, accès fichiers refusés ; `DELETE` / `UPDATE` sans `WHERE` refusés |
+| Git | jamais de push forcé ; un premier push (sans upstream) se fait depuis la page Git |
+| `.env` | jamais de modification d'une clé existante |
+| Ports | jamais un service Windows ni DevForge |
+| Refus | Forgy est prévenu et ne relance pas l'action |
+| Arrêt | arrêter la réponse vaut refus des actions en attente |
+
+**Réglage** (Paramètres → Assistant IA → Actions de Forgy) :
+- *Toujours demander* (par défaut) ;
+- *Auto pour les actions sûres* : seules les actions de la colonne « Auto possible » partent sans clic.
+
+**Journal** : bouton ☑ du panneau. Il liste chaque action proposée (faite, refusée, échouée, annulée), avec **Annuler** quand c'est possible. Stocké dans `userData/assistant/actions.json` (200 dernières). Chaque action faite ou échouée apparaît aussi dans l'activité de l'accueil.
 
 ## Maîtrise du coût
 

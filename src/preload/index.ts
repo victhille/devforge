@@ -135,7 +135,10 @@ const api: DevForgeAPI = {
     remove:     invoke('assistant:remove'),
     usage:      invoke('assistant:usage'),
     onEvent:    on('assistant:event'),
-    onOpenConversation: on('assistant:open-conversation')
+    onOpenConversation: on('assistant:open-conversation'),
+    decideAction: invoke('assistant:decide-action'),
+    actions:      invoke('assistant:actions'),
+    undoAction:   invoke('assistant:undo-action')
   },
 
   widget: {

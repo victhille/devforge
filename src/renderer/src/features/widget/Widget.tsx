@@ -156,6 +156,11 @@ export default function Widget() {
       setStatus(`${label}${e.summary ? ` · ${e.summary}` : ''}…`)
     } else if (e.type === 'tool-done') {
       setPhase('thinking')
+    } else if (e.type === 'action') {
+      needBreak.current = true
+      setStatus(`${e.title}${e.auto ? '' : ` · ${a.actionInApp}`}`)
+      // The approval card lives in the app: bring it up on this conversation
+      if (!e.auto) window.devforge.widget.openInApp(e.conversationId)
     } else if (e.type === 'error') {
       errored.current = true
     } else if (e.type === 'done') {

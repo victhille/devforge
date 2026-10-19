@@ -1,5 +1,5 @@
 import type { ListeningPort } from '@shared/types'
-import { run } from '../../lib/exec'
+import { run, runFile } from '../../lib/exec'
 
 export async function getListeningPorts(): Promise<ListeningPort[]> {
   try {
@@ -62,4 +62,22 @@ async function getUnixPorts(): Promise<ListeningPort[]> {
     })
   }
   return result.sort((a, b) => a.port - b.port)
+}
+
+const SYSTEM_PROCESS = /^(system|svchost|lsass|services|wininit|smss|csrss)(\.exe)?$/i
+
+/**
+ * Frees a port by ending the process listening on it (and its children).
+ * Only a process that really listens right now, never a Windows service nor
+ * DevForge itself. `pid` pins the process the user saw; omitted, the one
+ * listening now. Returns the process that was stopped.
+ */
+export async function freePort(port: number, pid?: number): Promise<ListeningPort> {
+  const owner = (await getListeningPorts()).find(p => p.port === port && (pid === undefined || p.pid === pid))
+  if (!owner || owner.pid === null) throw new Error(`Nothing is listening on port ${port}`)
+  if (owner.pid <= 4 || SYSTEM_PROCESS.test(owner.processName)) throw new Error(`Port ${port} is held by a Windows service (${owner.processName})`)
+  if (owner.pid === process.pid) throw new Error('This port is DevForge itself')
+  const r = await runFile('taskkill', ['/PID', String(owner.pid), '/T', '/F'], { timeout: 10_000 })
+  if (!r.ok) throw new Error(r.stderr || 'taskkill failed')
+  return owner
 }

@@ -17,6 +17,8 @@ export interface AssistantConfig {
   monthlyBudget: number
   /** Forgy's always-on-top bubble on the desktop (off by default) */
   desktopWidget: boolean
+  /** How Forgy's actions are approved */
+  actionMode: AssistantActionMode
 }
 
 export interface AssistantConfigUpdate {
@@ -26,6 +28,7 @@ export interface AssistantConfigUpdate {
   effort?: AssistantEffort | 'auto'
   monthlyBudget?: number
   desktopWidget?: boolean
+  actionMode?: AssistantActionMode
 }
 
 /** Estimated spending of the current month */
@@ -49,6 +52,31 @@ export type AssistantItem =
   | { kind: 'assistant'; text: string }
   | { kind: 'tool'; id: string; name: string; summary: string; status: 'running' | 'done' | 'error' }
   | { kind: 'notice'; tone: 'error' | 'info'; text: string }
+  | { kind: 'action'; id: string; title: string; preview: string; reversible: boolean; status: AssistantActionStatus; output?: string }
+
+/** pending: waits for the user's click */
+export type AssistantActionStatus = 'pending' | 'running' | 'done' | 'failed' | 'refused' | 'undone'
+
+/** Journal entry of an action Forgy proposed (assistant/actions.json) */
+export interface AssistantAction {
+  id: string
+  at: string
+  conversationId: string
+  /** Tool name, e.g. git_commit */
+  kind: string
+  title: string
+  preview: string
+  reversible: boolean
+  /** Approved without a click (trust setting) */
+  auto: boolean
+  status: AssistantActionStatus
+  output?: string
+  /** An undo is still possible */
+  canUndo: boolean
+}
+
+/** 'ask': every action waits for a click. 'auto-safe': reversible or read-only ones run at once */
+export type AssistantActionMode = 'ask' | 'auto-safe'
 
 export interface AssistantConversationSummary {
   id: string
@@ -91,6 +119,9 @@ export type AssistantEvent =
   | { conversationId: string; type: 'tool-done'; id: string; ok: boolean }
   | { conversationId: string; type: 'error'; code: AssistantErrorCode; message: string }
   | { conversationId: string; type: 'done'; stopped: boolean }
+  /** Forgy proposes an action: shown as a card, waits for decideAction unless auto-approved */
+  | { conversationId: string; type: 'action'; id: string; title: string; preview: string; reversible: boolean; auto: boolean }
+  | { conversationId: string; type: 'action-done'; id: string; status: AssistantActionStatus; output?: string }
 
 // ─── Official AI tools (run on the user's own subscriptions) ─────────────────
 
@@ -123,6 +154,11 @@ export interface AssistantAPI {
   onEvent: (cb: (e: AssistantEvent) => void) => () => void
   /** The desktop widget asks the app to show one of its conversations */
   onOpenConversation: (cb: (id: string) => void) => () => void
+  /** Answer to an action card */
+  decideAction: (id: string, approve: boolean) => Promise<void>
+  /** Journal of actions, newest first */
+  actions: () => Promise<AssistantAction[]>
+  undoAction: (id: string) => Promise<AssistantAction>
 }
 
 /** Desktop widget window only */

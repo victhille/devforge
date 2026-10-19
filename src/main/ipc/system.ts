@@ -7,7 +7,7 @@ import { existsSync } from 'fs'
 import { readdir, stat } from 'fs/promises'
 import { detectEnvironment } from '../services/system/environmentDetector'
 import { getGitStatus } from '../services/git/gitStatus'
-import { getListeningPorts } from '../services/system/portService'
+import { freePort, getListeningPorts } from '../services/system/portService'
 import { spawn } from 'child_process'
 import { runFile } from '../lib/exec'
 import type { FileEntry } from '@shared/types'
@@ -94,17 +94,8 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
   // ─── Ports ───────────────────────────────────────────────────────────────────
   ipcMain.handle('ports:get-listening', async () => getListeningPorts())
 
-  // Frees a port by ending the process listening on it. Only a process that
-  // really listens right now, and never a Windows service.
-  ipcMain.handle('ports:free', async (_e, port: number, pid: number) => {
-    const owner = (await getListeningPorts()).find(p => p.port === port && p.pid === pid)
-    if (!owner || pid <= 4 || /^(system|svchost|lsass|services|wininit|smss|csrss)(\.exe)?$/i.test(owner.processName)) {
-      throw new Error('This port is not held by a process DevForge may stop')
-    }
-    if (pid === process.pid) throw new Error('DevForge itself')
-    const r = await runFile('taskkill', ['/PID', String(pid), '/T', '/F'], { timeout: 10_000 })
-    if (!r.ok) throw new Error(r.stderr || 'taskkill failed')
-  })
+  // Ends the process listening on a port (never a Windows service)
+  ipcMain.handle('ports:free', async (_e, port: number, pid: number) => { await freePort(port, pid) })
 
   // ─── Local log ───────────────────────────────────────────────────────────────
   ipcMain.handle('log:error', (_e, scope: string, message: string) => {

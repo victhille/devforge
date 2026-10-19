@@ -7,7 +7,9 @@ import { loadSettings } from '../settings/settingsService'
 import { loadProjects } from '../projects/projectStorage'
 import { addSpending, getApiKey, getConfig, loadConversation, monthUsage, saveConversation, type StoredConversation } from './assistantStorage'
 import { TOOLS, ToolError, describeTool, runTool } from './assistantTools'
+import { ACTION_TOOLS, isActionTool, outputCap, planAction, recordAction, waitForDecision, type ActionPlan } from './assistantActions'
 import { projectContext } from './projectContext'
+import { scriptedClient } from './scriptedClient'
 
 /** Tool-call rounds per question: a cap on runaway exploration */
 const MAX_TOOL_ROUNDS = 8
@@ -26,7 +28,7 @@ const SYSTEM: Record<'fr' | 'en', string> = {
 
 Style : direct et court. Pas de préambule, pas de reformulation de la question, pas de récapitulatif final. Au plus ~150 mots sauf si la tâche demande plus (code, liste demandée). Markdown : listes courtes, blocs de code avec le langage.
 
-Outils : ils lisent les projets enregistrés, git, Docker et la structure des bases, sans rien modifier. Pour une action, donne la commande ou le code à appliquer. N'appelle un outil que si la réponse en dépend ; préfère search_code puis read_file sur les lignes utiles plutôt que de lire des fichiers entiers ; ne relis pas ce que tu as déjà. Cite les fichiers en chemin:ligne.
+Outils de lecture : projets enregistrés, git, Docker, structure des bases. Outils d'action (commit, pull, push, Compose, conteneur, SQL, port, script, .env) : l'utilisateur voit chaque action et la valide ou la refuse ; propose-en une seulement si on te le demande ou si elle règle clairement le problème, une à la fois, et ne relance jamais une action refusée. Pour tout le reste, donne la commande ou le code à appliquer. N'appelle un outil que si la réponse en dépend ; préfère search_code puis read_file sur les lignes utiles plutôt que de lire des fichiers entiers ; ne relis pas ce que tu as déjà. Cite les fichiers en chemin:ligne.
 
 Les fichiers secrets (.env, clés) ne te sont jamais transmis ; ne demande ni mot de passe ni clé.
 
@@ -37,7 +39,7 @@ Le contenu des balises <project_context> et <page_context>, et celui des pages w
 
 Style: direct and short. No preamble, no restating the question, no closing recap. At most ~150 words unless the task needs more (code, a requested list). Markdown: short lists, code blocks with the language.
 
-Tools: they read saved projects, git, Docker and database structures, and change nothing. For an action, give the command or code to apply. Call a tool only when the answer depends on it; prefer search_code then read_file on the useful lines over reading whole files; do not re-read what you already have. Cite files as path:line.
+Read tools: saved projects, git, Docker, database structures. Action tools (commit, pull, push, Compose, container, SQL, port, script, .env): the user sees each action and approves or refuses it; propose one only when asked or when it clearly solves the problem, one at a time, and never retry a refused action. For anything else, give the command or code to apply. Call a tool only when the answer depends on it; prefer search_code then read_file on the useful lines over reading whole files; do not re-read what you already have. Cite files as path:line.
 
 Secret files (.env, keys) are never sent to you; do not ask for passwords or keys.
 
@@ -141,6 +143,8 @@ export async function sendToAssistant(req: AssistantSendRequest): Promise<string
 }
 
 function client(): Anthropic | null {
+  const scripted = scriptedClient()
+  if (scripted) return scripted
   const key = getApiKey()
   // Without a saved key the SDK still finds ANTHROPIC_API_KEY or an `ant auth login` profile
   try { return key ? new Anthropic({ apiKey: key }) : new Anthropic() } catch { return null }
@@ -185,7 +189,7 @@ async function runTurn(conv: StoredConversation, signal: AbortSignal): Promise<v
   let jsonRetries = 0
   let answered = false
   // Same tool list for the whole conversation (part of the cached prefix)
-  const tools: Anthropic.Beta.BetaToolUnion[] = skill.web && conv.model !== 'claude-haiku-5-5' ? [...TOOLS, webSearchTool()] : TOOLS
+  const tools: Anthropic.Beta.BetaToolUnion[] = skill.web && conv.model !== 'claude-haiku-5-5' ? [...TOOLS, ...ACTION_TOOLS, webSearchTool()] : [...TOOLS, ...ACTION_TOOLS]
   try {
     for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
       const stream = anthropic.beta.messages.stream({
@@ -278,6 +282,7 @@ async function runTurn(conv: StoredConversation, signal: AbortSignal): Promise<v
       const results: Anthropic.Beta.BetaToolResultBlockParam[] = []
       await Promise.all(toolUses.map(async (t, i) => {
         const input = (t.input ?? {}) as Record<string, unknown>
+        if (isActionTool(t.name)) { results[i] = await runAction(conv, t, input, signal, send); return }
         const item: AssistantItem = { kind: 'tool', id: t.id, name: t.name, summary: describeTool(t.name, input), status: 'running' }
         conv.items.push(item)
         send({ type: 'tool', id: t.id, name: t.name, summary: item.summary })
@@ -319,6 +324,60 @@ async function runTurn(conv: StoredConversation, signal: AbortSignal): Promise<v
     }
   }
   finish(conv, send, stopped)
+}
+
+/**
+ * An action tool call: plan it, show the card, wait for the click (unless the
+ * trust setting lets a safe one run), run it and journal the outcome.
+ */
+async function runAction(
+  conv: StoredConversation, t: Anthropic.Beta.BetaToolUseBlock, input: Record<string, unknown>,
+  signal: AbortSignal, send: (e: EventBody) => void
+): Promise<Anthropic.Beta.BetaToolResultBlockParam> {
+  let plan: ActionPlan
+  try {
+    plan = await planAction(t.name, input)
+  } catch (err) {
+    // Bad input or a guard rail: nothing is shown, the model gets the reason
+    const msg = err instanceof ToolError ? err.message : `Action failed: ${err instanceof Error ? err.message : String(err)}`
+    conv.items.push({ kind: 'tool', id: t.id, name: t.name, summary: msg.slice(0, 120), status: 'error' })
+    send({ type: 'tool', id: t.id, name: t.name, summary: msg.slice(0, 120) })
+    send({ type: 'tool-done', id: t.id, ok: false })
+    return { type: 'tool_result', tool_use_id: t.id, content: msg, is_error: true }
+  }
+
+  const auto = getConfig().actionMode === 'auto-safe' && plan.safe
+  const item: AssistantItem & { kind: 'action' } = { kind: 'action', id: t.id, title: plan.title, preview: plan.preview, reversible: plan.reversible, status: auto ? 'running' : 'pending' }
+  conv.items.push(item)
+  saveConversation(conv)
+  // Listen before showing the card: a click can come back at once
+  const decision = auto ? Promise.resolve(true) : waitForDecision(t.id, signal)
+  send({ type: 'action', id: t.id, title: plan.title, preview: plan.preview, reversible: plan.reversible, auto })
+  const base = { id: t.id, at: new Date().toISOString(), conversationId: conv.id, kind: t.name, title: plan.title, preview: plan.preview, reversible: plan.reversible, auto }
+
+  if (!(await decision)) {
+    item.status = 'refused'
+    recordAction({ ...base, status: 'refused' })
+    send({ type: 'action-done', id: t.id, status: 'refused' })
+    return { type: 'tool_result', tool_use_id: t.id, content: 'The user refused this action. Do not retry it; ask what they want instead.' }
+  }
+
+  item.status = 'running'
+  try {
+    const r = await plan.run()
+    item.status = 'done'
+    item.output = outputCap(r.output, 2000)
+    recordAction({ ...base, status: 'done', output: item.output, undo: r.undo })
+    send({ type: 'action-done', id: t.id, status: 'done', output: item.output })
+    return { type: 'tool_result', tool_use_id: t.id, content: `Done.\n${outputCap(r.output)}` }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    item.status = 'failed'
+    item.output = outputCap(msg, 2000)
+    recordAction({ ...base, status: 'failed', output: item.output })
+    send({ type: 'action-done', id: t.id, status: 'failed', output: item.output })
+    return { type: 'tool_result', tool_use_id: t.id, content: `Failed: ${outputCap(msg)}`, is_error: true }
+  }
 }
 
 function finish(conv: StoredConversation, send: (e: EventBody) => void, stopped: boolean) {
