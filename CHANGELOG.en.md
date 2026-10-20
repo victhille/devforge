@@ -2,6 +2,14 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [2.0.0-beta.3](https://github.com/victhille/devforge/compare/v2.0.0-beta.2...v2.0.0-beta.3) — 2026-10-20
+
+> n8n can show its editor in French: an option on the n8n page uses the community translation, rebuilt for every n8n version.
+
+### New features
+
+- **n8n**: Interface de n8n en français ([f83a32d](https://github.com/victhille/devforge/commit/f83a32df23758f5d4dc8903bc333227fa61d1431))
+
 ## [2.0.0-beta.2](https://github.com/victhille/devforge/compare/v2.0.0-beta.1...v2.0.0-beta.2) — 2026-10-20
 
 > n8n opens from DevForge with no command, and the domain is checked before the install.
