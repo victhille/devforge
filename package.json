@@ -1,6 +1,6 @@
 {
   "name": "devforge",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0-beta.2",
   "description": "Developer Project Launcher",
   "main": "out/main/index.js",
   "scripts": {

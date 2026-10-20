@@ -2,6 +2,14 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [2.0.0-beta.2](https://github.com/victhille/devforge/compare/v2.0.0-beta.1...v2.0.0-beta.2) — 2026-10-20
+
+> n8n opens from DevForge with no command, and the domain is checked before the install.
+
+### Fixes
+
+- **n8n**: N8n opens from DevForge with no command, the sub-domain is checked before an HTTPS install, and the old Caddy is removed ([3e07965](https://github.com/victhille/devforge/commit/3e0796573e688197574e1b3ceaac1703daa129bc))
+
 ## [2.0.0-beta.1](https://github.com/victhille/devforge/compare/v1.5.0...v2.0.0-beta.1) — 2026-10-20
 
 > DevForge 2.0: Forgy acts, one page per project, a watched VPS, n8n and Vercel.
