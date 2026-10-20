@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { AlertTriangle, Check, Download, ExternalLink, FolderDown, KeyRound, Play, RefreshCw, RotateCcw, ScrollText, Square } from 'lucide-react'
-import type { N8nDomainCheck, N8nExecution, N8nExposure, N8nInstance, N8nPrecheck, N8nStatus, N8nWorkflow, Project, SSHConnection } from '@shared/types'
+import type { N8nDomainCheck, N8nExecution, N8nExposure, N8nInstance, N8nLocale, N8nPrecheck, N8nStatus, N8nWorkflow, Project, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
@@ -84,8 +84,23 @@ function LogBox({ text, title }: { text: string; title: string }) {
   )
 }
 
-function Install({ conn, onDone }: { conn: SSHConnection; onDone: () => void }) {
+/** French editor on / off: the community image github.com/victhille/n8n-fr */
+function FrenchRow({ locale, onChange, busy }: { locale: N8nLocale; onChange: (l: N8nLocale) => void; busy?: boolean }) {
   const { t } = useI18n()
+  const n = t.n8n
+  return (
+    <div className="flex items-start gap-3">
+      <div className="min-w-0 flex-1">
+        <div className="text-[13.5px] font-medium text-fg">{n.frenchUi}</div>
+        <p className="mt-0.5 text-xs text-fg-secondary">{n.frenchUiHint}</p>
+      </div>
+      {busy ? <Spinner /> : <Switch checked={locale === 'fr'} label={n.frenchUi} onChange={on => onChange(on ? 'fr' : 'en')} />}
+    </div>
+  )
+}
+
+function Install({ conn, onDone }: { conn: SSHConnection; onDone: () => void }) {
+  const { t, lang } = useI18n()
   const n = t.n8n
   const toast = useToast()
   const [check, setCheck] = useState<N8nPrecheck | null>(null)
@@ -93,6 +108,7 @@ function Install({ conn, onDone }: { conn: SSHConnection; onDone: () => void }) 
   const [exposure, setExposure] = useState<N8nExposure>('caddy')
   const [domain, setDomain] = useState('')
   const [email, setEmail] = useState('')
+  const [locale, setLocale] = useState<N8nLocale>(lang === 'fr' ? 'fr' : 'en')
   const [running, setRunning] = useState(false)
   const [log, setLog] = useServerLog(conn.id)
   const [dns, setDns] = useState<{ domain: string; check: N8nDomainCheck | null } | null>(null)
@@ -118,12 +134,12 @@ function Install({ conn, onDone }: { conn: SSHConnection; onDone: () => void }) 
   async function install() {
     setRunning(true); setLog('')
     try {
-      const r = await window.devforge.n8n.install(conn.id, { domain, exposure, email })
+      const r = await window.devforge.n8n.install(conn.id, { domain, exposure, email, locale })
       toast.show({ tone: r.ok ? 'success' : 'error', title: r.ok ? n.installOk : n.installFailed })
       if (r.ok) onDone()
     } catch (err) {
       const e = errorText(err)
-      toast.show({ tone: 'error', title: e === 'DOMAIN_UNKNOWN' || e.startsWith('DOMAIN_ELSEWHERE') ? n.installFailed : e })
+      toast.show({ tone: 'error', title: e.startsWith('FR_NOT_READY:') ? n.frenchNotReady.replace('{version}', e.slice(13)) : e === 'DOMAIN_UNKNOWN' || e.startsWith('DOMAIN_ELSEWHERE') ? n.installFailed : e })
     }
     finally { setRunning(false) }
   }
@@ -192,6 +208,8 @@ function Install({ conn, onDone }: { conn: SSHConnection; onDone: () => void }) 
             : n.domainUnknown.replace('{domain}', dns.domain).replace('{name}', dns.domain.split('.')[0]).replace('{ip}', ip)
           return <p role="alert" className="flex items-start gap-2 rounded-[10px] bg-warning-soft px-3 py-2.5 text-[13px] text-fg"><AlertTriangle size={15} className="mt-0.5 shrink-0 text-warning" /> {msg}</p>
         })()}
+
+        <FrenchRow locale={locale} onChange={setLocale} />
 
         <div className="flex justify-end">
           <Button disabled={!check || blocked} loading={running} onClick={install}>{!running && <Download size={14} />} {n.install}</Button>
@@ -303,6 +321,21 @@ function Installed({ conn, instance, onChange }: { conn: SSHConnection; instance
       </Card>
 
       {showLog && <LogBox title={showLog === 'logs' ? n.logs : n.journal} text={log} />}
+
+      <Card className="df-rise max-w-2xl p-5" style={{ '--i': 1 } as CSSProperties}>
+        <FrenchRow locale={instance.locale} busy={busy === 'locale'} onChange={async locale => {
+          if (!window.confirm(locale === 'fr' ? n.frenchUiConfirmOn : n.frenchUiConfirmOff)) return
+          setBusy('locale'); setLog(''); setShowLog('run')
+          try {
+            await window.devforge.n8n.setLocale(conn.id, locale)
+            toast.show({ tone: 'success', title: locale === 'fr' ? n.frenchUiOn : n.frenchUiOff })
+            onChange()
+          } catch (err) {
+            const e = errorText(err)
+            toast.show({ tone: 'error', title: e.startsWith('FR_NOT_READY:') ? n.frenchNotReady.replace('{version}', e.slice(13)) : e === 'LOCALE_FAILED' ? n.localeFailed : e })
+          } finally { setBusy(null); loadStatus() }
+        }} />
+      </Card>
 
       {!instance.hasKey ? (
         <Card className="df-rise flex max-w-2xl flex-col gap-3 p-5" style={{ '--i': 1 } as CSSProperties}>
