@@ -109,6 +109,9 @@ describe('n8n', () => {
     expect(script).toContain('/dev/urandom')
     // Back to 'local' after an HTTPS install: the old Caddy goes away
     expect(script).toContain('docker compose up -d --remove-orphans')
+    // Done only once the editor answers, not on n8n's early "Cannot GET /"
+    expect(script.indexOf('wget -q -O /dev/null http://127.0.0.1:5678/')).toBeGreaterThan(script.indexOf('up -d --remove-orphans'))
+    expect(n8n.updateScript()).toContain(n8n.waitEditor())
     expect(() => n8n.validateInstall({ domain: 'not a domain', exposure: 'caddy', email: 'me@example.com' })).toThrow('Invalid domain')
     expect(n8n.validateInstall({ domain: 'whatever', exposure: 'local', email: '' })).toEqual({ domain: '', exposure: 'local', email: '', locale: 'en' })
   })
