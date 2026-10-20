@@ -7,12 +7,16 @@ export type N8nExposure =
   /** Only on the server (127.0.0.1:5678): an existing proxy or an SSH tunnel serves it */
   | 'local'
 
+/** Language of the n8n editor: 'fr' runs the community French image (github.com/victhille/n8n-fr) */
+export type N8nLocale = 'en' | 'fr'
+
 export interface N8nInstance {
   connectionId: string
   /** "n8n.example.com", empty in 'local' mode */
   domain: string
   exposure: N8nExposure
   installedAt: string
+  locale: N8nLocale
   /** An API key is saved (encrypted, never sent to the window) */
   hasKey: boolean
 }
@@ -67,7 +71,9 @@ export interface N8nAPI {
   instances: () => Promise<N8nInstance[]>
   precheck: (connectionId: string) => Promise<N8nPrecheck>
   /** Writes ~/devforge/n8n and starts it; output streams on `onLog` */
-  install: (connectionId: string, opts: { domain: string; exposure: N8nExposure; email: string }) => Promise<{ ok: boolean }>
+  install: (connectionId: string, opts: { domain: string; exposure: N8nExposure; email: string; locale: N8nLocale }) => Promise<{ ok: boolean }>
+  /** Database dump, then n8n restarted with the other editor language; output streams on `onLog` */
+  setLocale: (connectionId: string, locale: N8nLocale) => Promise<N8nInstance>
   onLog: (cb: (e: { connectionId: string; text: string }) => void) => () => void
   /** Checked again by `install` in 'caddy' mode */
   checkDomain: (connectionId: string, domain: string) => Promise<N8nDomainCheck>

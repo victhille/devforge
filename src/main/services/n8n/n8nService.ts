@@ -4,7 +4,7 @@ import { request } from 'http'
 import { createServer, isIP, type AddressInfo, type Server } from 'net'
 import { lookup, resolve4 } from 'dns/promises'
 import { app, safeStorage } from 'electron'
-import type { N8nDomainCheck, N8nExecution, N8nExposure, N8nInstance, N8nPrecheck, N8nStatus, N8nWorkflow } from '@shared/types'
+import type { N8nDomainCheck, N8nExecution, N8nExposure, N8nInstance, N8nLocale, N8nPrecheck, N8nStatus, N8nWorkflow } from '@shared/types'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { log } from '../../lib/log'
 import { sshService } from '../ssh/sshService'
@@ -27,15 +27,17 @@ const SEP = '@@DF@@'
 const DOMAIN_RE = /^(?=.{4,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i
 const EMAIL_RE = /^[^\s@'"]+@[^\s@'"]+\.[^\s@'"]+$/
 const ID_RE = /^[\w-]{1,64}$/
+/** The official image, or the same one with the community French editor (github.com/victhille/n8n-fr) */
+const IMAGE = { en: 'docker.n8n.io/n8nio/n8n', fr: 'ghcr.io/victhille/n8n-fr' } as const
 
-interface Stored { connectionId: string; domain: string; exposure: N8nExposure; installedAt: string; keyEnc?: string }
+interface Stored { connectionId: string; domain: string; exposure: N8nExposure; installedAt: string; locale?: N8nLocale; keyEnc?: string }
 
 const storePath = () => join(app.getPath('userData'), 'n8n.json')
 function readStore(): Stored[] {
   try { return (JSON.parse(readFileSync(storePath(), 'utf-8')) as { instances?: Stored[] }).instances ?? [] } catch { return [] }
 }
 const writeStore = (instances: Stored[]) => writeJsonFile(storePath(), { instances })
-const publicOf = (s: Stored): N8nInstance => ({ connectionId: s.connectionId, domain: s.domain, exposure: s.exposure, installedAt: s.installedAt, hasKey: !!s.keyEnc })
+const publicOf = (s: Stored): N8nInstance => ({ connectionId: s.connectionId, domain: s.domain, exposure: s.exposure, installedAt: s.installedAt, locale: s.locale ?? 'en', hasKey: !!s.keyEnc })
 
 export const listInstances = (): N8nInstance[] => readStore().map(publicOf)
 
@@ -65,7 +67,7 @@ export function forgetInstance(connectionId: string): void {
 // ─── Install ──────────────────────────────────────────────────────────────────
 
 /** The compose file: Postgres, n8n on 127.0.0.1 only, Caddy for HTTPS when asked */
-export function composeFile(domain: string, exposure: N8nExposure): string {
+export function composeFile(domain: string, exposure: N8nExposure, locale: N8nLocale = 'en'): string {
   const https = exposure === 'caddy'
   const host = https ? domain : 'localhost'
   return `# Written by DevForge. Secrets are in .env (made on this server).
@@ -86,7 +88,7 @@ services:
       retries: 10
 
   n8n:
-    image: docker.n8n.io/n8nio/n8n:latest
+    image: ${IMAGE[locale]}:latest
     restart: unless-stopped
     ports:
       - "127.0.0.1:${PORT}:5678"
@@ -102,7 +104,7 @@ services:
       WEBHOOK_URL: ${https ? `https://${domain}/` : `http://localhost:${PORT}/`}
       N8N_SECURE_COOKIE: "${https}"
       N8N_RUNNERS_ENABLED: "true"
-      GENERIC_TIMEZONE: Europe/Paris
+      GENERIC_TIMEZONE: Europe/Paris${locale === 'fr' ? '\n      N8N_DEFAULT_LOCALE: fr' : ''}
     volumes:
       - n8n_data:/home/node/.n8n
     depends_on:
@@ -137,13 +139,30 @@ ${domain} {
 }
 `
 
+const b64 = (s: string) => Buffer.from(s, 'utf-8').toString('base64')
+
+/**
+ * The French image is built a few hours after each n8n release. When n8n
+ * already runs, the French image of that same version is used, so the
+ * database is never handed to an older n8n; without it, the script stops.
+ */
+const pinFrench = (locale: N8nLocale) => locale !== 'fr' ? [] : [
+  'TAG=latest',
+  "V=$(docker compose exec -T n8n n8n --version 2>/dev/null | tail -n 1 | tr -d '\\r' || true)",
+  `if echo "$V" | grep -Eq '^[0-9]+\\.[0-9]+\\.[0-9]+$'; then if docker pull -q ${IMAGE.fr}:"$V" >/dev/null 2>&1; then TAG="$V"; else echo "${SEP}FR_NOT_READY:$V"; exit 3; fi; fi`
+]
+const writeCompose = (domain: string, exposure: N8nExposure, locale: N8nLocale) => [
+  `echo ${b64(composeFile(domain, exposure, locale))} | base64 -d > docker-compose.yml`,
+  ...(locale === 'fr' ? [`sed -i "s#${IMAGE.fr}:latest#${IMAGE.fr}:$TAG#" docker-compose.yml`] : [])
+]
+
 /** Shell script run on the server: writes the files, makes the .env once, starts the stack */
-export function installScript(domain: string, exposure: N8nExposure, email: string): string {
-  const b64 = (s: string) => Buffer.from(s, 'utf-8').toString('base64')
+export function installScript(domain: string, exposure: N8nExposure, email: string, locale: N8nLocale = 'en'): string {
   return [
     'set -e',
     `mkdir -p ${DIR}/backups && cd ${DIR}`,
-    `echo ${b64(composeFile(domain, exposure))} | base64 -d > docker-compose.yml`,
+    ...pinFrench(locale),
+    ...writeCompose(domain, exposure, locale),
     exposure === 'caddy' ? `echo ${b64(caddyFile(domain, email))} | base64 -d > Caddyfile` : 'rm -f Caddyfile',
     // Made here once: the secrets never travel and a re-install keeps the data readable
     "if [ ! -f .env ]; then umask 077; R() { head -c \"$1\" /dev/urandom | od -An -tx1 | tr -d ' \\n'; }; printf 'POSTGRES_PASSWORD=%s\\nN8N_ENCRYPTION_KEY=%s\\n' \"$(R 24)\" \"$(R 32)\" > .env; fi",
@@ -154,15 +173,18 @@ export function installScript(domain: string, exposure: N8nExposure, email: stri
   ].join('\n')
 }
 
-export function validateInstall(opts: { domain: string; exposure: N8nExposure; email: string }): { domain: string; exposure: N8nExposure; email: string } {
+type InstallOptions = { domain: string; exposure: N8nExposure; email: string; locale?: N8nLocale }
+
+export function validateInstall(opts: InstallOptions): Required<InstallOptions> {
   const exposure: N8nExposure = opts.exposure === 'caddy' ? 'caddy' : 'local'
+  const locale: N8nLocale = opts.locale === 'fr' ? 'fr' : 'en'
   const domain = (opts.domain ?? '').trim().toLowerCase()
   const email = (opts.email ?? '').trim()
   if (exposure === 'caddy') {
     if (!DOMAIN_RE.test(domain)) throw new Error('Invalid domain')
     if (!EMAIL_RE.test(email)) throw new Error('Invalid email')
   }
-  return { domain: exposure === 'caddy' ? domain : '', exposure, email }
+  return { domain: exposure === 'caddy' ? domain : '', exposure, email, locale }
 }
 
 export async function precheck(connectionId: string): Promise<N8nPrecheck> {
@@ -188,25 +210,28 @@ async function stream(connectionId: string, script: string, onLog: (text: string
   let all = ''
   const code = await sshService.execStream(sid, `bash -lc ${shQuote(script)} 2>&1; echo "${SEP}$?"`, text => {
     all += text
-    const clean = text.replace(new RegExp(`${SEP}\\d*\\s*$`), '')
+    const clean = text.replace(new RegExp(`${SEP}FR_NOT_READY:\\S*\\s*`), '').replace(new RegExp(`${SEP}\\d*\\s*$`), '')
     if (clean) onLog(clean)
   }, 20 * 60_000)
+  // The French image of the running version is not built yet
+  const missing = new RegExp(`${SEP}FR_NOT_READY:(\\S*)`).exec(all)
+  if (missing) throw new Error(`FR_NOT_READY:${missing[1]}`)
   const m = new RegExp(`${SEP}(\\d+)\\s*$`).exec(all)
   return (m ? Number(m[1]) : code) === 0
 }
 
-export async function install(connectionId: string, raw: { domain: string; exposure: N8nExposure; email: string }, onLog: (text: string) => void): Promise<{ ok: boolean }> {
+export async function install(connectionId: string, raw: InstallOptions, onLog: (text: string) => void): Promise<{ ok: boolean }> {
   const opts = validateInstall(raw)
   if (opts.exposure === 'caddy') {
     const check = await checkDomain(connectionId, opts.domain)
     if (!check.ok) throw new Error(check.domainIps.length ? `DOMAIN_ELSEWHERE:${check.domainIps.join(', ')}` : 'DOMAIN_UNKNOWN')
   }
-  log('info', 'n8n', `Install on ${connectionId} (${opts.exposure}${opts.domain ? ` ${opts.domain}` : ''})`)
-  const ok = await stream(connectionId, installScript(opts.domain, opts.exposure, opts.email), onLog)
+  log('info', 'n8n', `Install on ${connectionId} (${opts.exposure}${opts.domain ? ` ${opts.domain}` : ''}, ${opts.locale})`)
+  const ok = await stream(connectionId, installScript(opts.domain, opts.exposure, opts.email, opts.locale), onLog)
   if (ok) {
     const all = readStore().filter(i => i.connectionId !== connectionId)
     const keyEnc = readStore().find(i => i.connectionId === connectionId)?.keyEnc
-    all.push({ connectionId, domain: opts.domain, exposure: opts.exposure, installedAt: new Date().toISOString(), ...(keyEnc ? { keyEnc } : {}) })
+    all.push({ connectionId, domain: opts.domain, exposure: opts.exposure, installedAt: new Date().toISOString(), locale: opts.locale, ...(keyEnc ? { keyEnc } : {}) })
     writeStore(all)
   }
   return { ok }
@@ -294,17 +319,46 @@ export async function control(connectionId: string, action: 'start' | 'stop' | '
   return { ok: code.trim() === '0', output: output.trim() }
 }
 
-/** Dump of the database first (last 5 kept), then the newest n8n image */
-export const updateScript = () => [
-  'set -e',
+const backup = [
   `cd ${DIR} && mkdir -p backups`,
   'f="backups/n8n-$(date +%Y%m%d-%H%M%S).sql.gz"',
   'docker compose exec -T postgres pg_dump -U n8n n8n | gzip > "$f"',
   'echo "Backup: $f ($(du -h "$f" | cut -f1))"',
-  'ls -1t backups/*.sql.gz | tail -n +6 | xargs -r rm --',
+  'ls -1t backups/*.sql.gz | tail -n +6 | xargs -r rm --'
+]
+
+/** Dump of the database first (last 5 kept), then the newest n8n image (a pinned French one goes back to latest) */
+export const updateScript = () => [
+  'set -e',
+  ...backup,
+  `sed -i "s#${IMAGE.fr}:[^[:space:]]*#${IMAGE.fr}:latest#" docker-compose.yml`,
   'docker compose pull n8n',
   'docker compose up -d n8n'
 ].join('\n')
+
+/** Same data, other editor: dump, then n8n restarted on the official or the French image */
+export function localeScript(domain: string, exposure: N8nExposure, locale: N8nLocale): string {
+  return [
+    'set -e',
+    ...backup,
+    ...pinFrench(locale),
+    ...writeCompose(domain, exposure, locale),
+    'docker compose pull n8n',
+    'docker compose up -d n8n'
+  ].join('\n')
+}
+
+export async function setLocale(connectionId: string, locale: N8nLocale, onLog: (text: string) => void): Promise<N8nInstance> {
+  if (locale !== 'en' && locale !== 'fr') throw new Error('Invalid language')
+  const s = instance(connectionId)
+  log('info', 'n8n', `Editor language ${locale} on ${connectionId}`)
+  if (!(await stream(connectionId, localeScript(s.domain, s.exposure, locale), onLog))) throw new Error('LOCALE_FAILED')
+  const all = readStore()
+  const stored = all.find(i => i.connectionId === connectionId)!
+  stored.locale = locale
+  writeStore(all)
+  return publicOf(stored)
+}
 
 export async function update(connectionId: string, onLog: (text: string) => void): Promise<{ ok: boolean }> {
   log('info', 'n8n', `Update on ${connectionId}`)

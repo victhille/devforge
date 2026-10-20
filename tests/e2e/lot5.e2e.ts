@@ -34,6 +34,11 @@ test('n8n offers an install on a saved server, and a Vercel-linked project gets 
   await expect(page.getByRole('button', { name: 'Installer' })).toBeDisabled()
   await page.getByRole('radio', { name: /Seulement sur le serveur/ }).click()
   await expect(page.getByPlaceholder('n8n.mondomaine.fr')).toHaveCount(0)
+  // The app is in French: the French n8n editor is proposed, and can be turned off
+  const french = page.getByRole('switch', { name: 'Interface en français' })
+  await expect(french).toHaveAttribute('aria-checked', 'true')
+  await french.click()
+  await expect(french).toHaveAttribute('aria-checked', 'false')
 
   await goTo(page, '/project/p1')
   await page.getByRole('tab', { name: 'Vercel' }).click()

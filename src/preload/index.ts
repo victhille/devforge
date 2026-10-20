@@ -246,6 +246,7 @@ const api: DevForgeAPI = {
     instances:      invoke('n8n:instances'),
     precheck:       invoke('n8n:precheck'),
     install:        invoke('n8n:install'),
+    setLocale:      invoke('n8n:set-locale'),
     onLog:          on('n8n:log'),
     status:         invoke('n8n:status'),
     checkDomain:    invoke('n8n:check-domain'),

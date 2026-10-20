@@ -110,7 +110,23 @@ describe('n8n', () => {
     // Back to 'local' after an HTTPS install: the old Caddy goes away
     expect(script).toContain('docker compose up -d --remove-orphans')
     expect(() => n8n.validateInstall({ domain: 'not a domain', exposure: 'caddy', email: 'me@example.com' })).toThrow('Invalid domain')
-    expect(n8n.validateInstall({ domain: 'whatever', exposure: 'local', email: '' })).toEqual({ domain: '', exposure: 'local', email: '' })
+    expect(n8n.validateInstall({ domain: 'whatever', exposure: 'local', email: '' })).toEqual({ domain: '', exposure: 'local', email: '', locale: 'en' })
+  })
+
+  it('runs the community French image, pinned to the running version', () => {
+    expect(n8n.composeFile('', 'local')).toContain('image: docker.n8n.io/n8nio/n8n:latest')
+    const fr = n8n.composeFile('', 'local', 'fr')
+    expect(fr).toContain('image: ghcr.io/victhille/n8n-fr:latest')
+    expect(fr).toContain('      N8N_DEFAULT_LOCALE: fr\n')
+    // The same n8n version in French, never an older one on the same database
+    const script = n8n.localeScript('', 'local', 'fr')
+    expect(script).toContain('docker pull -q ghcr.io/victhille/n8n-fr:"$V"')
+    expect(script).toContain('sed -i "s#ghcr.io/victhille/n8n-fr:latest#ghcr.io/victhille/n8n-fr:$TAG#"')
+    expect(script.indexOf('pg_dump')).toBeLessThan(script.indexOf('docker compose pull n8n'))
+    expect(n8n.localeScript('', 'local', 'en')).not.toContain('n8n-fr:"$V"')
+    // An update takes a pinned French image back to the newest one
+    expect(n8n.updateScript()).toContain('ghcr.io/victhille/n8n-fr:latest#')
+    expect(n8n.validateInstall({ domain: '', exposure: 'local', email: '', locale: 'fr' }).locale).toBe('fr')
   })
 
   it('checks the server, installs, then reads workflows through the tunnel', async () => {
@@ -153,6 +169,20 @@ describe('n8n', () => {
     expect((await n8n.checkDomain('v1', 'n8n.mine.fr', { domain: dns({ 'n8n.mine.fr': ['10.0.0.1'] }), server })).ok).toBe(true)
     // install() checks with the real DNS: a name under .invalid never resolves
     await expect(n8n.install('v1', { domain: 'n8n.devforge.invalid', exposure: 'caddy', email: 'me@example.com' }, () => {})).rejects.toThrow('DOMAIN_UNKNOWN')
+  })
+
+  it('switches the editor language and says when the French build is not ready', async () => {
+    expect(n8n.listInstances()[0].locale).toBe('en')
+    ssh.outputs.push('Backup: backups/n8n.sql.gz\n')
+    expect(await n8n.setLocale('v1', 'fr', () => {})).toMatchObject({ locale: 'fr' })
+    expect(ssh.commands.at(-1)).toContain('n8n-fr')
+    const log: string[] = []
+    ssh.outputs.push('Backup: backups/n8n.sql.gz\n@@DF@@FR_NOT_READY:2.50.1\n')
+    await expect(n8n.setLocale('v1', 'fr', t => log.push(t))).rejects.toThrow('FR_NOT_READY:2.50.1')
+    expect(log.join('')).not.toContain('FR_NOT_READY')
+    expect(n8n.listInstances()[0].locale).toBe('fr')
+    ssh.outputs.push('')
+    expect(await n8n.setLocale('v1', 'en', () => {})).toMatchObject({ locale: 'en' })
   })
 
   it('opens n8n on this PC through the SSH session', async () => {
