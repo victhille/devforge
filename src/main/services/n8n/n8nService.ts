@@ -142,6 +142,14 @@ ${domain} {
 const b64 = (s: string) => Buffer.from(s, 'utf-8').toString('base64')
 
 /**
+ * n8n answers "Cannot GET /" for a few seconds after it starts, before the
+ * editor is served: wait for the editor itself before saying it is done.
+ */
+export const waitEditor = (tries = 90) =>
+  `ok=; for i in $(seq 1 ${tries}); do if docker compose exec -T n8n wget -q -O /dev/null http://127.0.0.1:${PORT}/ 2>/dev/null; then ok=1; break; fi; sleep 2; done; ` +
+  `if [ -n "$ok" ]; then echo "n8n is ready"; else echo "n8n did not answer after ${tries * 2} s: see the logs"; exit 4; fi`
+
+/**
  * The French image is built a few hours after each n8n release. When n8n
  * already runs, the French image of that same version is used, so the
  * database is never handed to an older n8n; without it, the script stops.
@@ -169,6 +177,7 @@ export function installScript(domain: string, exposure: N8nExposure, email: stri
     'docker compose pull',
     // --remove-orphans: going back to "local" removes the Caddy of an earlier HTTPS install
     'docker compose up -d --remove-orphans',
+    waitEditor(),
     'docker compose ps'
   ].join('\n')
 }
@@ -314,7 +323,7 @@ export async function logs(connectionId: string, lines: number): Promise<string>
 
 export async function control(connectionId: string, action: 'start' | 'stop' | 'restart'): Promise<{ ok: boolean; output: string }> {
   if (!['start', 'stop', 'restart'].includes(action)) throw new Error('Invalid action')
-  const out = await runOn(connectionId, `cd ${DIR} && docker compose ${action} 2>&1; echo "${SEP}$?"`, 180_000)
+  const out = await runOn(connectionId, `cd ${DIR} && docker compose ${action} 2>&1${action === 'stop' ? '' : ` && { ${waitEditor(60)}; }`}; echo "${SEP}$?"`, 180_000)
   const [output = '', code = '1'] = out.split(SEP)
   return { ok: code.trim() === '0', output: output.trim() }
 }
@@ -333,7 +342,8 @@ export const updateScript = () => [
   ...backup,
   `sed -i "s#${IMAGE.fr}:[^[:space:]]*#${IMAGE.fr}:latest#" docker-compose.yml`,
   'docker compose pull n8n',
-  'docker compose up -d n8n'
+  'docker compose up -d n8n',
+  waitEditor()
 ].join('\n')
 
 /** Same data, other editor: dump, then n8n restarted on the official or the French image */
@@ -344,7 +354,8 @@ export function localeScript(domain: string, exposure: N8nExposure, locale: N8nL
     ...pinFrench(locale),
     ...writeCompose(domain, exposure, locale),
     'docker compose pull n8n',
-    'docker compose up -d n8n'
+    'docker compose up -d n8n',
+    waitEditor()
   ].join('\n')
 }
 
