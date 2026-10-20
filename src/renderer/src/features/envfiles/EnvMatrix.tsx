@@ -85,7 +85,7 @@ export default function EnvMatrix({ env, onChange }: Props) {
                         ) : (
                           <span className="text-fg-disabled">—</span>
                         )}
-                        <span className="ml-auto flex opacity-0 group-hover:opacity-100">
+                        <span className="ml-auto flex opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
                           <IconButton
                             size="sm"
                             title={e.edit}

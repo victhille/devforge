@@ -19,7 +19,7 @@
 
   --text-primary:   #E8ECF2;
   --text-secondary: #9AA4B2;
-  --text-muted:     #7C8696;
+  --text-muted:     #8792A2;
   --text-disabled:  #3A4250;
 
   --accent:         #5B9BFF;
@@ -38,6 +38,8 @@
   /* Forgy, the assistant: its orange is kept for everything assistant-related */
   --forgy:          #FF9A3C;
   --forgy-dim:      rgba(255, 154, 60, 0.12);
+  /* Text on a Forgy background */
+  --forgy-fg:       #1A0E04;
 
   --shadow-color:   rgba(0, 0, 0, 0.5);
 }
@@ -57,23 +59,24 @@
 
   --text-primary:   #111827;
   --text-secondary: #4B5563;
-  --text-muted:     #9CA3AF;
+  --text-muted:     #5D6675;
   --text-disabled:  #D1D5DB;
 
-  --accent:         #2563EB;
-  --accent-hover:   #1D4ED8;
-  --accent-dim:     rgba(37, 99, 235, 0.10);
+  --accent:         #1D4ED8;
+  --accent-hover:   #1E40AF;
+  --accent-dim:     rgba(29, 78, 216, 0.10);
   --accent-fg:      #FFFFFF;
 
-  --success:        #059669;
-  --success-dim:    rgba(5, 150, 105, 0.10);
-  --warning:        #D97706;
-  --warning-dim:    rgba(217, 119, 6, 0.10);
-  --danger:         #DC2626;
-  --danger-dim:     rgba(220, 38, 38, 0.10);
+  --success:        #036A4B;
+  --success-dim:    rgba(3, 106, 75, 0.10);
+  --warning:        #9A4A07;
+  --warning-dim:    rgba(154, 74, 7, 0.10);
+  --danger:         #B91C1C;
+  --danger-dim:     rgba(185, 28, 28, 0.10);
 
-  --forgy:          #E07A1F;
-  --forgy-dim:      rgba(224, 122, 31, 0.12);
+  --forgy:          #B03B0A;
+  --forgy-dim:      rgba(176, 59, 10, 0.10);
+  --forgy-fg:       #FFFFFF;
 
   --shadow-color:   rgba(0, 0, 0, 0.12);
 }
@@ -92,20 +95,21 @@
     --border-subtle:  #E5E7EB;
     --text-primary:   #111827;
     --text-secondary: #4B5563;
-    --text-muted:     #9CA3AF;
+    --text-muted:     #5D6675;
     --text-disabled:  #D1D5DB;
-    --accent:         #2563EB;
-    --accent-hover:   #1D4ED8;
-    --accent-dim:     rgba(37, 99, 235, 0.10);
+    --accent:         #1D4ED8;
+    --accent-hover:   #1E40AF;
+    --accent-dim:     rgba(29, 78, 216, 0.10);
   --accent-fg:      #FFFFFF;
-    --success:        #059669;
-    --success-dim:    rgba(5, 150, 105, 0.10);
-    --warning:        #D97706;
-    --warning-dim:    rgba(217, 119, 6, 0.10);
-    --danger:         #DC2626;
-    --danger-dim:     rgba(220, 38, 38, 0.10);
-    --forgy:          #E07A1F;
-    --forgy-dim:      rgba(224, 122, 31, 0.12);
+    --success:        #036A4B;
+    --success-dim:    rgba(3, 106, 75, 0.10);
+    --warning:        #9A4A07;
+    --warning-dim:    rgba(154, 74, 7, 0.10);
+    --danger:         #B91C1C;
+    --danger-dim:     rgba(185, 28, 28, 0.10);
+    --forgy:          #B03B0A;
+    --forgy-dim:      rgba(176, 59, 10, 0.10);
+    --forgy-fg:       #FFFFFF;
     --shadow-color:   rgba(0, 0, 0, 0.12);
   }
 }
@@ -142,6 +146,7 @@
   --color-danger-soft:  var(--danger-dim);
   --color-forgy:        var(--forgy);
   --color-forgy-soft:   var(--forgy-dim);
+  --color-forgy-fg:     var(--forgy-fg);
 
   --shadow-pop: 0 8px 32px var(--shadow-color);
 }

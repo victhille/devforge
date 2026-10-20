@@ -61,7 +61,7 @@ function LinkRow({ children, origin, onUntie, actions }: { children: ReactNode; 
       <div className="min-w-0 flex-1">{children}</div>
       <Origin origin={origin} />
       {actions}
-      <IconButton size="sm" title={t.hub.untie} onClick={onUntie} className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"><X size={13} /></IconButton>
+      <IconButton size="sm" title={t.hub.untie} onClick={onUntie} className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"><X size={13} /></IconButton>
     </div>
   )
 }
@@ -376,7 +376,7 @@ export default function ProjectDetailPage() {
                 <span className="flex-1 font-mono text-xs text-fg-muted">{x.source}</span>
                 <span className={cn('font-mono text-xs', l ? 'text-success' : 'text-fg-muted')}>{l ? h.listening.replace('{name}', l.processName) : h.notListening}</span>
                 {l && l.pid !== null && l.pid > 4 && (
-                  <button onClick={() => freePort(l)} className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-danger/30 bg-danger-soft px-2.5 text-xs font-medium text-danger opacity-0 transition-opacity group-hover:opacity-100 hover:bg-danger hover:text-white">
+                  <button onClick={() => freePort(l)} className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-danger/30 bg-danger-soft px-2.5 text-xs font-medium text-danger opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-danger hover:text-white">
                     <XCircle size={12} /> {h.free}
                   </button>
                 )}

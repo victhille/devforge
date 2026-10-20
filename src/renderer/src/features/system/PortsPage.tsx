@@ -108,7 +108,7 @@ export default function PortsPage() {
                     {port.pid !== null && port.pid > 4 && (
                       <button onClick={() => free(port)} disabled={freeing === port.port}
                         className={cn('inline-flex h-7 items-center gap-1.5 rounded-lg border border-danger/30 bg-danger-soft px-2.5 text-xs font-medium text-danger transition-[opacity,background-color] hover:bg-danger hover:text-white',
-                          freeing === port.port ? 'opacity-60' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100')}>
+                          freeing === port.port ? 'opacity-60' : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100')}>
                         <XCircle size={12} /> {p.free}
                       </button>
                     )}

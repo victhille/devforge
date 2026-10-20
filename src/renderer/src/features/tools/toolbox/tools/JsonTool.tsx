@@ -30,7 +30,7 @@ export default function JsonTool({ t }: { t: ToolboxT }) {
           <textarea className={IO_TEXTAREA} value={input} onChange={e => setInput(e.target.value)} placeholder='{"key": "value"}' spellCheck={false} />
         </IoPanel>
         <IoPanel label={t.output} actions={output && <CopyButton text={output} />}>
-          <textarea className={cn(IO_TEXTAREA, error && 'text-danger')} value={error || output} readOnly spellCheck={false} />
+          <textarea className={cn(IO_TEXTAREA, error && 'text-danger')} value={error || output} readOnly aria-label={t.output} spellCheck={false} />
         </IoPanel>
       </IoGrid>
       <ToolActions>

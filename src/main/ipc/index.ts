@@ -13,6 +13,7 @@ import { registerDeployHandlers } from './deploy'
 import { registerMonitorHandlers } from './monitor'
 import { registerN8nHandlers } from './n8n'
 import { registerVercelHandlers } from './vercel'
+import { registerDictationHandlers } from './dictation'
 import { registerDomainHandlers } from './domains'
 import { registerDatabaseHandlers } from './database'
 import { registerLogHandlers } from './logs'
@@ -37,6 +38,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerMonitorHandlers(mainWindow)
   registerN8nHandlers(mainWindow)
   registerVercelHandlers()
+  registerDictationHandlers()
   registerDomainHandlers()
   registerDatabaseHandlers()
   registerLogHandlers(mainWindow)

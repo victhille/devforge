@@ -4,6 +4,7 @@ import type { RemoteCompose, RemoteContainer, SSHConnection } from '@shared/type
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
+import { pressable } from '@renderer/lib/a11y'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
@@ -108,13 +109,13 @@ export default function RemoteDocker({ connections }: { connections: SSHConnecti
                   {list.map(c => {
                     const on = c.state === 'running'
                     return (
-                      <div key={c.id} onClick={() => { setSelected(c.name); loadLogs(c.name) }}
+                      <div key={c.id} onClick={() => { setSelected(c.name); loadLogs(c.name) }} {...pressable(() => { setSelected(c.name); loadLogs(c.name) })}
                         className={cn('group flex cursor-pointer items-center gap-3 border-t border-line-subtle px-[18px] py-2.5 first:border-t-0 hover:bg-hover', selected === c.name && 'bg-hover')}>
                         <span className={cn('size-2 shrink-0 rounded-full', on ? 'df-ping bg-success' : 'bg-fg-disabled')} />
                         <span className="w-40 shrink-0 truncate font-medium text-fg">{shortName(c)}</span>
                         <span className="min-w-0 flex-1 truncate font-mono text-xs text-fg-secondary">{c.image}</span>
                         <span className="hidden w-44 truncate text-right text-xs text-fg-secondary md:block">{c.status}</span>
-                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100" onClick={e => e.stopPropagation()}>
+                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100" onClick={e => e.stopPropagation()}>
                           {busy === c.name ? <Spinner /> : on ? (
                             <>
                               <IconButton size="sm" title={d.restart} onClick={() => act(c.name, { container: c.name }, 'restart')}><RotateCcw size={12} /></IconButton>

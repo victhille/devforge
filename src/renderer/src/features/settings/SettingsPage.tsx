@@ -191,7 +191,7 @@ export default function SettingsPage() {
             </SettingsCard>
           )}
 
-          {section === 'forgy' && <AssistantSettings onSaved={onSaved} />}
+          {section === 'forgy' && <AssistantSettings onSaved={onSaved} settings={settings} set={set} />}
           {section === 'servers' && <ServerSettings onSaved={onSaved} />}
           {section === 'data' && <DataSettings onCopyReport={copyReport} />}
           {section === 'updates' && <UpdatesSettings settings={settings} set={set} onNotes={() => setParams({ notes: 'all' }, { replace: true })} />}

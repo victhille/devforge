@@ -1,5 +1,5 @@
 import { dirname } from 'path'
-import type { ComposeAction, ComposeProject, ComposeTarget, ContainerAction, DockerContainer, DockerImage, DockerOverview } from '@shared/types'
+import type { ComposeAction, ComposeProject, ComposeTarget, ContainerAction, ContainerStats, DockerContainer, DockerImage, DockerOverview } from '@shared/types'
 import { runFile } from '../../lib/exec'
 import { processManager } from '../stacks/processManager'
 import { composeConfig, localComposeProjects } from './composeProjects'
@@ -72,6 +72,18 @@ export async function getOverview(): Promise<DockerOverview> {
 }
 
 const ID_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/
+
+/** CPU and memory of running containers (`docker stats` takes ~2 s: asked apart from the overview) */
+export async function containerStats(ids: string[]): Promise<Record<string, ContainerStats>> {
+  const wanted = ids.filter(id => ID_RE.test(id)).slice(0, 50)
+  if (!wanted.length) return {}
+  const r = await docker(['stats', '--no-stream', '--format', '{{json .}}', ...wanted], 20_000)
+  const out: Record<string, ContainerStats> = {}
+  for (const s of jsonLines<{ ID: string; CPUPerc: string; MemUsage: string; MemPerc: string }>(r.stdout)) {
+    out[s.ID.slice(0, 12)] = { cpu: parseFloat(s.CPUPerc) || 0, memory: s.MemUsage.split('/')[0].trim(), memoryPct: parseFloat(s.MemPerc) || 0 }
+  }
+  return out
+}
 
 export async function containerAction(id: string, action: ContainerAction) {
   if (!ID_RE.test(id)) return { ok: false, output: 'Invalid container id' }

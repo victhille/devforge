@@ -174,10 +174,19 @@ Paramètres → Assistant IA → **Forgy sur le bureau** (désactivé par défau
 - **Demander** : une ligne, Entrée. La réponse s'affiche au-dessus, avec **Copier** et **Ouvrir dans DevForge** (la conversation continue dans le panneau).
 - **Pastilles** : bulle repliée pendant une réponse → pastille orange quand elle arrive, rouge en cas d'erreur.
 - **Puces** : profondeur de réflexion (fixée pour la conversation) et projet en contexte.
-- **Micro** : place le curseur dans le champ ; la dictée Windows (Win + H) écrit dedans.
+- **Micro** : clic pour parler, clic pour finir (60 s au plus). Le texte s'ajoute au champ. Même bouton dans le panneau.
 - **Replier** : chevron, Échap ou le raccourci. Un clic ailleurs replie aussi si rien n'est affiché. Replier après une réponse démarre une nouvelle conversation.
 
 Même assistant que le panneau : même clé, même budget, même historique. Repliée, la bulle ne prend jamais le focus et rien n'y est animé (sauf quelques anneaux à l'arrivée d'une réponse). Elle se replace quand la barre des tâches ou l'écran change.
+
+## Dictée
+
+Whisper tourne sur ce PC (transformers.js + ONNX Runtime, dans le processus principal) : la voix ne quitte pas l'ordinateur et aucun compte n'est nécessaire.
+
+- **Modèle** (Paramètres → Forgy → Dictée) : *Rapide* (whisper-base, ~75 Mo) ou *Précise* (whisper-small, ~250 Mo, meilleur sur les mots techniques). Il se télécharge depuis Hugging Face à la première dictée (ou avec « Télécharger maintenant »), dans `userData/models`, puis tout marche hors ligne.
+- **Langue** : celle de l'interface.
+- **Garde-fous** : un silence ne donne rien (Whisper invente du texte sur le silence) et une phrase qui boucle est coupée à sa première occurrence.
+- **Micro refusé** : Paramètres Windows → Confidentialité → Microphone.
 
 ## Erreurs
 

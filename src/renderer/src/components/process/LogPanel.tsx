@@ -8,7 +8,7 @@ export default function LogPanel({ procKey: key }: { procKey: string }) {
   const end = useRef<HTMLDivElement>(null)
   useEffect(() => { end.current?.scrollIntoView({ block: 'nearest' }) }, [logs])
   return (
-    <div className="max-h-64 overflow-y-auto rounded-lg bg-console p-3 font-mono text-xs leading-relaxed">
+    <div role="log" tabIndex={0} className="max-h-64 overflow-y-auto rounded-lg bg-console p-3 font-mono text-xs leading-relaxed">
       {logs.length === 0 && <span className="text-fg-muted">—</span>}
       {logs.map((l, i) => (
         <div key={i} className={cn('whitespace-pre-wrap break-all', l.stream === 'stderr' ? 'text-warning' : l.stream === 'system' ? 'text-accent' : 'text-fg-secondary')}>

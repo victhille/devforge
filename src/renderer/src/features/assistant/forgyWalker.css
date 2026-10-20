@@ -47,7 +47,7 @@
 [data-pose='sleep'] .fw-up { animation: fw-breathe 3.2s ease-in-out infinite; }
 
 /* Speech bubble while waving */
-.fw-bubble { position: absolute; left: 40px; top: -6px; white-space: nowrap; padding: 4px 9px; border-radius: 10px 10px 10px 3px; background: var(--forgy); color: #1A0E04; font-size: 12px; font-weight: 600; animation: df-pop .25s cubic-bezier(.3, .7, .4, 1.4) both; }
+.fw-bubble { position: absolute; left: 40px; top: -6px; white-space: nowrap; padding: 4px 9px; border-radius: 10px 10px 10px 3px; background: var(--forgy); color: var(--forgy-fg); font-size: 12px; font-weight: 600; animation: df-pop .25s cubic-bezier(.3, .7, .4, 1.4) both; }
 
 /* ─── Boulon ─── */
 .fw-dog { position: relative; width: 46px; height: 30px; }

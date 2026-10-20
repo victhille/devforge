@@ -15,7 +15,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   minimizeToTray: false,
   updateChannel: 'stable',
   motion: 'system',
-  showWhatsNew: true
+  showWhatsNew: true,
+  dictationModel: 'base',
+  onboarded: false
 }
 
 function getSettingsPath(): string {
@@ -32,7 +34,8 @@ export function loadSettings(): AppSettings {
     }
   }
   try {
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(readFileSync(path, 'utf-8')) }
+    // A settings file from before the first-launch tour: that user is not new
+    return { ...DEFAULT_SETTINGS, onboarded: true, ...JSON.parse(readFileSync(path, 'utf-8')) }
   } catch {
     return DEFAULT_SETTINGS
   }

@@ -62,7 +62,7 @@ export default function TitleBar() {
           open ? 'border-forgy/50 bg-forgy-soft text-forgy' : 'border-forgy/25 bg-forgy-soft/50 text-forgy hover:border-forgy/50')}
       >
         <Mascot mood={mood} size={22} followCursor={false} /> {t.assistant.mascotName}
-        <kbd className="font-mono text-2xs opacity-70">Ctrl J</kbd>
+        <kbd className="font-mono text-2xs text-fg-secondary">Ctrl J</kbd>
       </button>
 
       <div className="app-no-drag flex h-full items-stretch">

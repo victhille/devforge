@@ -56,6 +56,7 @@ const api: DevForgeAPI = {
 
   docker: {
     overview:   invoke('docker:overview'),
+    stats:      invoke('docker:stats'),
     container:  invoke('docker:container'),
     compose:    invoke('docker:compose'),
     composeLogs:     invoke('docker:compose-logs'),
@@ -256,6 +257,14 @@ const api: DevForgeAPI = {
     executions:     invoke('n8n:executions'),
     setActive:      invoke('n8n:set-active'),
     exportWorkflow: invoke('n8n:export')
+  },
+
+  dictation: {
+    status:     invoke('dictation:status'),
+    prepare:    invoke('dictation:prepare'),
+    onProgress: on('dictation:progress'),
+    transcribe: invoke('dictation:transcribe'),
+    remove:     invoke('dictation:remove')
   },
 
   vercel: {
