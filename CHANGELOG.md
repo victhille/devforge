@@ -2,6 +2,19 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [2.0.0-beta.1](https://github.com/victhille/devforge/compare/v1.5.0...v2.0.0-beta.1) — 2026-10-20
+
+> DevForge 2.0 : Forgy agit, une page par projet, le VPS surveillé, n8n et Vercel.
+
+### Nouveautés
+
+- Dictée Whisper sur ton PC, premier démarrage guidé, meilleure accessibilité (clavier, contrastes) et CPU des services Docker ([1d0366a](https://github.com/victhille/devforge/commit/1d0366ae1554bcca1ad8478f97f108bfef765a5d))
+- Paramètres et notes de version repensés, fenêtre « Quoi de neuf », n8n installé et suivi sur le VPS, déploiements Vercel sur la page projet ([0264ac2](https://github.com/victhille/devforge/commit/0264ac2bf75376957f3ba28115cf9a8c9144979e))
+- **monitor** : Surveillance du VPS en arrière-plan avec 7 jours d'historique, courbes 24 h, alertes, et Docker sur le VPS ([7176d77](https://github.com/victhille/devforge/commit/7176d77e811826a95f870136f85330bb3617506e))
+- **projects** : Page projet qui réunit Git, Docker, variables, bases, logs, ports et déploiement, avec un projet actif suivi par Forgy et l'accueil ([1973870](https://github.com/victhille/devforge/commit/1973870fb7e39e26a2a99490810568505b959a2e))
+- **assistant** : Forgy peut agir : commit, Compose, SQL, ports, scripts, variables .env, toujours après ta validation, avec journal et annulation ([298a5f2](https://github.com/victhille/devforge/commit/298a5f29f487553cae1cebd6e30b61151605a3de))
+- Bases de la v2 : données versionnées et sauvegardées, journal local avec rapport de diagnostic, canal bêta, thème clair revu ([f2581d2](https://github.com/victhille/devforge/commit/f2581d2b52cc27ee58b0e373d73e4c9312a247ff))
+
 ## [1.5.0](https://github.com/victhille/devforge/compare/v1.4.1...v1.5.0) — 2026-10-19
 
 > DevForge change de tête : menu repensé, accueil vivant, et Forgy qui se promène avec Boulon.
