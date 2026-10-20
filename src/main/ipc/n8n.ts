@@ -1,7 +1,7 @@
 import { BrowserWindow, ipcMain } from 'electron'
 import type { N8nExposure } from '@shared/types'
 import {
-  control, executions, exportWorkflow, forgetInstance, install, listInstances, logs, precheck, saveApiKey, setActive, status, update, workflows
+  checkDomain, control, executions, openTunnel, exportWorkflow, forgetInstance, install, listInstances, logs, precheck, saveApiKey, setActive, status, update, workflows
 } from '../services/n8n/n8nService'
 
 export function registerN8nHandlers(mainWindow: BrowserWindow): void {
@@ -12,6 +12,8 @@ export function registerN8nHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle('n8n:precheck', (_e, c: unknown) => precheck(id(c)))
   ipcMain.handle('n8n:install', (_e, c: unknown, opts: { domain: string; exposure: N8nExposure; email: string }) => install(id(c), opts ?? { domain: '', exposure: 'local', email: '' }, send(id(c))))
   ipcMain.handle('n8n:status', (_e, c: unknown) => status(id(c)))
+  ipcMain.handle('n8n:check-domain', (_e, c: unknown, domain: unknown) => checkDomain(id(c), String(domain ?? '').trim().toLowerCase()))
+  ipcMain.handle('n8n:open-tunnel', (_e, c: unknown) => openTunnel(id(c)))
   ipcMain.handle('n8n:logs', (_e, c: unknown, lines: number) => logs(id(c), Number(lines)))
   ipcMain.handle('n8n:update', (_e, c: unknown) => update(id(c), send(id(c))))
   ipcMain.handle('n8n:control', (_e, c: unknown, action: 'start' | 'stop' | 'restart') => control(id(c), action))

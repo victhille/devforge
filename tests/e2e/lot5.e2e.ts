@@ -28,6 +28,10 @@ test('n8n offers an install on a saved server, and a Vercel-linked project gets 
   await goTo(page, '/n8n')
   await expect(page.getByRole('heading', { name: 'Installer n8n sur Prod' })).toBeVisible()
   await expect(page.getByRole('radio', { name: /HTTPS sur un sous-domaine/ })).toBeVisible()
+  // A sub-domain that does not exist is caught before the install
+  await page.getByPlaceholder('n8n.mondomaine.fr').fill('n8n.devforge.invalid')
+  await expect(page.getByText(/n'existe pas dans le DNS/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Installer' })).toBeDisabled()
   await page.getByRole('radio', { name: /Seulement sur le serveur/ }).click()
   await expect(page.getByPlaceholder('n8n.mondomaine.fr')).toHaveCount(0)
 

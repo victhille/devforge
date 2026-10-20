@@ -1,14 +1,17 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { request } from 'http'
+import { createServer, isIP, type AddressInfo, type Server } from 'net'
+import { lookup, resolve4 } from 'dns/promises'
 import { app, safeStorage } from 'electron'
-import type { N8nExecution, N8nExposure, N8nInstance, N8nPrecheck, N8nStatus, N8nWorkflow } from '@shared/types'
+import type { N8nDomainCheck, N8nExecution, N8nExposure, N8nInstance, N8nPrecheck, N8nStatus, N8nWorkflow } from '@shared/types'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { log } from '../../lib/log'
 import { sshService } from '../ssh/sshService'
 import { shQuote } from '../ssh/sshClient'
 import { runOn, sessionFor } from '../monitor/vpsWatch'
 import { loadProjects } from '../projects/projectStorage'
+import { loadSshConnections } from '../ssh/sshStorage'
 
 /**
  * n8n on a VPS, installed and followed from DevForge. Everything lives in
@@ -55,6 +58,7 @@ export function saveApiKey(connectionId: string, apiKey: string | null): N8nInst
 }
 
 export function forgetInstance(connectionId: string): void {
+  closeTunnel(connectionId)
   writeStore(readStore().filter(i => i.connectionId !== connectionId))
 }
 
@@ -144,7 +148,8 @@ export function installScript(domain: string, exposure: N8nExposure, email: stri
     // Made here once: the secrets never travel and a re-install keeps the data readable
     "if [ ! -f .env ]; then umask 077; R() { head -c \"$1\" /dev/urandom | od -An -tx1 | tr -d ' \\n'; }; printf 'POSTGRES_PASSWORD=%s\\nN8N_ENCRYPTION_KEY=%s\\n' \"$(R 24)\" \"$(R 32)\" > .env; fi",
     'docker compose pull',
-    'docker compose up -d',
+    // --remove-orphans: going back to "local" removes the Caddy of an earlier HTTPS install
+    'docker compose up -d --remove-orphans',
     'docker compose ps'
   ].join('\n')
 }
@@ -192,6 +197,10 @@ async function stream(connectionId: string, script: string, onLog: (text: string
 
 export async function install(connectionId: string, raw: { domain: string; exposure: N8nExposure; email: string }, onLog: (text: string) => void): Promise<{ ok: boolean }> {
   const opts = validateInstall(raw)
+  if (opts.exposure === 'caddy') {
+    const check = await checkDomain(connectionId, opts.domain)
+    if (!check.ok) throw new Error(check.domainIps.length ? `DOMAIN_ELSEWHERE:${check.domainIps.join(', ')}` : 'DOMAIN_UNKNOWN')
+  }
   log('info', 'n8n', `Install on ${connectionId} (${opts.exposure}${opts.domain ? ` ${opts.domain}` : ''})`)
   const ok = await stream(connectionId, installScript(opts.domain, opts.exposure, opts.email), onLog)
   if (ok) {
@@ -201,6 +210,56 @@ export async function install(connectionId: string, raw: { domain: string; expos
     writeStore(all)
   }
   return { ok }
+}
+
+/** Name → IPv4 addresses (injectable for tests) */
+type Resolver = (name: string) => Promise<string[]>
+const publicDns: Resolver = name => resolve4(name)
+const systemDns: Resolver = async name => (isIP(name) ? [name] : (await lookup(name, { all: true, family: 4 })).map(a => a.address))
+
+/**
+ * Before an HTTPS install: the sub-domain must point to the server, or Caddy
+ * cannot get a certificate and the site is unreachable.
+ */
+export async function checkDomain(connectionId: string, domain: string, dns: { domain: Resolver; server: Resolver } = { domain: publicDns, server: systemDns }): Promise<N8nDomainCheck> {
+  const conn = loadSshConnections().find(c => c.id === connectionId)
+  if (!conn) throw new Error('Unknown server')
+  const [domainIps, serverIps] = await Promise.all([dns.domain(domain).catch(() => [] as string[]), dns.server(conn.host).catch(() => [] as string[])])
+  return { ok: domainIps.length > 0 && domainIps.some(ip => serverIps.includes(ip)), domainIps, serverIps }
+}
+
+// ─── Local tunnel ─────────────────────────────────────────────────────────────
+
+/** 127.0.0.1:<port> on this PC → n8n on the server, through DevForge's SSH session */
+const tunnels = new Map<string, Server>()
+
+export async function openTunnel(connectionId: string): Promise<string> {
+  const known = tunnels.get(connectionId)
+  if (known?.listening) return `http://localhost:${(known.address() as AddressInfo).port}`
+  await sessionFor(connectionId)
+  const server = createServer(sock => {
+    sock.pause()
+    sessionFor(connectionId)
+      .then(sid => sshService.forwardOut(sid, PORT))
+      .then(remote => { sock.pipe(remote).pipe(sock); remote.on('error', () => sock.destroy()); sock.on('error', () => remote.destroy()); sock.resume() })
+      .catch(err => { log('warn', 'n8n', `Tunnel: ${err instanceof Error ? err.message : err}`); sock.destroy() })
+  })
+  // n8n's own port when free (its links then match), any port otherwise
+  const listen = (port: number) => new Promise<void>((ok, ko) => { server.once('error', ko); server.listen(port, '127.0.0.1', () => { server.off('error', ko); ok() }) })
+  await listen(PORT).catch(() => listen(0))
+  tunnels.set(connectionId, server)
+  const url = `http://localhost:${(server.address() as AddressInfo).port}`
+  log('info', 'n8n', `Tunnel ${url} → ${connectionId}`)
+  return url
+}
+
+export function closeTunnel(connectionId: string): void {
+  tunnels.get(connectionId)?.close()
+  tunnels.delete(connectionId)
+}
+
+export function closeTunnels(): void {
+  for (const id of [...tunnels.keys()]) closeTunnel(id)
 }
 
 // ─── Follow ───────────────────────────────────────────────────────────────────
