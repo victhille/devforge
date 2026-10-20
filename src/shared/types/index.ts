@@ -117,6 +117,10 @@ export interface AppSettings {
   motion: MotionSetting
   /** "What's new" window on the first launch after an update */
   showWhatsNew: boolean
+  /** Whisper model for voice typing */
+  dictationModel: 'base' | 'small'
+  /** The first-launch tour was shown */
+  onboarded: boolean
 }
 
 export type MotionSetting = 'full' | 'reduced' | 'system'
@@ -231,6 +235,7 @@ export * from './hub'
 export * from './watch'
 export * from './n8n'
 export * from './vercel'
+export * from './dictation'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
@@ -240,6 +245,7 @@ import type { HubAPI } from './hub'
 import type { WatchAPI } from './watch'
 import type { N8nAPI } from './n8n'
 import type { VercelAPI } from './vercel'
+import type { DictationAPI } from './dictation'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -351,6 +357,7 @@ export interface DevForgeAPI {
   watch: WatchAPI
   n8n: N8nAPI
   vercel: VercelAPI
+  dictation: DictationAPI
 
   // Git
   getGitStatus: (path: string) => Promise<GitStatus>

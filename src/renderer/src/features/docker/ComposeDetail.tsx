@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ExternalLink, Play, RotateCcw, Square, Trash2 } from 'lucide-react'
-import type { ComposeAction, ComposeProject, ContainerAction, DockerContainer } from '@shared/types'
+import type { ComposeAction, ComposeProject, ContainerAction, ContainerStats, DockerContainer } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
+import { pressable } from '@renderer/lib/a11y'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import IconButton from '@renderer/components/ui/IconButton'
@@ -77,6 +78,18 @@ export function ComposeDetail({ p, containers, busy, onAction, onContainer }: {
   const stopLogs = useCallback(() => { if (shown) window.devforge.docker.stopLogs(shown.id); else window.devforge.docker.stopComposeLogs(p.name) }, [shown, p.name])
   const isBusy = busy.has(p.name)
 
+  // CPU / memory of the running services, every 5 s while the project is shown
+  const runningIds = containers.filter(c => c.state === 'running').map(c => c.id).join(',')
+  const [stats, setStats] = useState<Record<string, ContainerStats>>({})
+  useEffect(() => {
+    if (!runningIds) { setStats({}); return }
+    let alive = true
+    const load = () => window.devforge.docker.stats(runningIds.split(',')).then(s => { if (alive) setStats(s) }).catch(() => {})
+    load()
+    const id = setInterval(load, 5000)
+    return () => { alive = false; clearInterval(id) }
+  }, [runningIds])
+
   return (
     <>
       <Card className="overflow-hidden rounded-[14px]">
@@ -109,6 +122,7 @@ export function ComposeDetail({ p, containers, busy, onAction, onContainer }: {
                   <th className="px-[18px] py-2.5 font-medium">{d.colService}</th>
                   <th className="px-2.5 py-2.5 font-medium">{d.colImage}</th>
                   <th className="px-2.5 py-2.5 font-medium">{d.colPorts}</th>
+                  <th className="px-2.5 py-2.5 font-medium">{d.colCpu}</th>
                   <th className="px-2.5 py-2.5 font-medium">{d.colStatus}</th>
                   <th className="px-2.5 py-2.5 font-medium">{d.colState}</th>
                   <th />
@@ -118,7 +132,7 @@ export function ComposeDetail({ p, containers, busy, onAction, onContainer }: {
                 {containers.map(c => {
                   const running = c.state === 'running'
                   return (
-                    <tr key={c.id} onClick={() => setLogsOf(shown?.id === c.id ? null : c)}
+                    <tr key={c.id} onClick={() => setLogsOf(shown?.id === c.id ? null : c)} {...pressable(() => setLogsOf(shown?.id === c.id ? null : c))} aria-selected={shown?.id === c.id}
                       className={cn('group cursor-pointer border-t border-line-subtle transition-colors hover:bg-hover', shown?.id === c.id && 'bg-hover')}>
                       <td className="px-[18px] py-3 font-medium text-fg">{serviceName(c)}</td>
                       <td className="max-w-[200px] truncate px-2.5 py-3 font-mono text-xs text-fg-secondary">{c.image}</td>
@@ -128,10 +142,13 @@ export function ComposeDetail({ p, containers, busy, onAction, onContainer }: {
                             className="mr-1.5 inline-flex items-center gap-0.5 text-accent hover:underline">{port}<ExternalLink size={9} /></button>
                         ))}
                       </td>
+                      <td className="px-2.5 py-3 font-mono text-xs text-fg-secondary" title={stats[c.id] ? `${stats[c.id].memory} · ${stats[c.id].memoryPct.toFixed(1)} %` : undefined}>
+                        {running ? (stats[c.id] ? `${stats[c.id].cpu < 10 ? stats[c.id].cpu.toFixed(1) : Math.round(stats[c.id].cpu)} %` : '…') : '—'}
+                      </td>
                       <td className="px-2.5 py-3 text-xs text-fg-secondary">{c.status}</td>
                       <td className="px-2.5 py-3"><StatePill running={running} /></td>
                       <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
-                        <div className="flex justify-end gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                        <div className="flex justify-end gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
                           {busy.has(c.id) ? <Spinner /> : running ? (
                             <>
                               <IconButton size="sm" title={d.restart} onClick={() => onContainer(c, 'restart')}><RotateCcw size={12} /></IconButton>

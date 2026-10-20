@@ -75,7 +75,7 @@ export default function ReleaseNotes({ focus, onBack }: { focus?: string | null;
             <button key={f.id} role="radio" aria-checked={filter === f.id} onClick={() => setFilter(f.id)}
               className={cn('flex h-[30px] items-center gap-1.5 rounded-full border px-3 text-[12.5px] font-medium transition-colors',
                 filter === f.id ? 'border-accent/50 bg-accent-soft text-fg' : 'border-line bg-surface text-fg-secondary hover:text-fg')}>
-              <f.icon size={13} className={f.tone} aria-hidden />{f.label}<span className="font-mono text-[11px] text-fg-muted">{count(f.id)}</span>
+              <f.icon size={13} className={f.tone} aria-hidden />{f.label}<span className="font-mono text-[11px] text-fg-secondary">{count(f.id)}</span>
             </button>
           ))}
         </div>

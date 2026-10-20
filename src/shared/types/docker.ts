@@ -52,7 +52,17 @@ export interface DockerOverview {
 
 export type ContainerAction = 'start' | 'stop' | 'restart' | 'remove'
 
+export interface ContainerStats {
+  /** % of one CPU (can go above 100 on several cores) */
+  cpu: number
+  /** "152MiB" */
+  memory: string
+  memoryPct: number
+}
+
 export interface DockerAPI {
+  /** CPU and memory of running containers, by short id */
+  stats: (ids: string[]) => Promise<Record<string, ContainerStats>>
   overview: () => Promise<DockerOverview>
   container: (id: string, action: ContainerAction) => Promise<{ ok: boolean; output: string }>
   compose: (target: ComposeTarget, action: ComposeAction) => Promise<{ ok: boolean; output: string }>

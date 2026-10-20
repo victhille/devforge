@@ -77,7 +77,7 @@ export default function WebhooksPage() {
         <Webhook size={18} className="text-accent" />
         <h1 className="text-lg font-semibold text-fg">{w.title}</h1>
         <div className="ml-4 flex items-center gap-2">
-          <Input type="number" value={port} onChange={e => setPort(e.target.value)} disabled={!!status?.port} className="h-8 w-24 font-mono" />
+          <Input type="number" value={port} onChange={e => setPort(e.target.value)} disabled={!!status?.port} aria-label="Port" className="h-8 w-24 font-mono" />
           <Button size="sm" variant={status?.port ? 'danger' : 'primary'} onClick={toggle}>
             <Power size={13} /> {status?.port ? w.stop : w.start}
           </Button>
@@ -164,7 +164,7 @@ export default function WebhooksPage() {
                   <Button variant="secondary" onClick={() => doReplay(req.id)}><Repeat size={13} /> {w.send}</Button>
                 </div>
                 <p className="text-xs text-fg-muted">{w.replayHint}</p>
-                {replayResult && <pre className="max-h-64 overflow-auto rounded-xl bg-console p-3 font-mono text-xs whitespace-pre-wrap break-all text-fg-secondary">{replayResult}</pre>}
+                {replayResult && <pre tabIndex={0} className="max-h-64 overflow-auto rounded-xl bg-console p-3 font-mono text-xs whitespace-pre-wrap break-all text-fg-secondary">{replayResult}</pre>}
               </section>
             </>
           )}

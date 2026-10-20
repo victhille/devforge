@@ -1,16 +1,43 @@
 import { useEffect, useState } from 'react'
 import { Check, KeyRound } from 'lucide-react'
-import type { AssistantActionMode, AssistantConfig, AssistantEffort, AssistantModel, AssistantUsage } from '@shared/types'
+import type { AppSettings, AssistantActionMode, AssistantConfig, AssistantEffort, AssistantModel, AssistantUsage, DictationStatus } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
 import { Input } from '@renderer/components/ui/Input'
 import Switch from '@renderer/components/ui/Switch'
 import { useAssistant } from '@renderer/features/assistant/AssistantContext'
 import Mascot from '@renderer/features/assistant/Mascot'
+import { formatSize } from '@renderer/lib/format'
 import { Segmented, SettingRow, SettingsCard } from './parts'
 
+/** Whisper model for voice typing: choice, download, removal */
+function DictationRow({ settings, set }: { settings: AppSettings; set: <K extends keyof AppSettings>(k: K, v: AppSettings[K]) => Promise<void> }) {
+  const { t } = useI18n()
+  const d = t.dictation
+  const [status, setStatus] = useState<DictationStatus | null>(null)
+  const [pct, setPct] = useState<number | null>(null)
+  const [busy, setBusy] = useState(false)
+  const model = settings.dictationModel ?? 'base'
+  useEffect(() => { window.devforge.dictation.status().then(setStatus).catch(() => {}) }, [model])
+  useEffect(() => window.devforge.dictation.onProgress(p => setPct(p.total ? Math.round((p.loaded / p.total) * 100) : null)), [])
+
+  return (
+    <SettingRow label={d.setting} hint={<>{d.settingHint}<br /><span className="font-mono text-xs">
+      {busy ? (pct === null ? d.downloadingNoPct : d.downloading.replace('{p}', String(pct))) : status?.downloaded ? d.downloaded.replace('{size}', formatSize(status.size)) : d.notDownloaded}
+    </span></>}>
+      <div className="flex flex-col items-end gap-2">
+        <Segmented<'base' | 'small'> label={d.setting} value={model} onChange={v => set('dictationModel', v)}
+          items={[{ value: 'base', label: d.modelBase }, { value: 'small', label: d.modelSmall }]} />
+        {status && (status.downloaded
+          ? <Button size="sm" variant="ghost" onClick={async () => setStatus(await window.devforge.dictation.remove())}>{d.removeModel}</Button>
+          : <Button size="sm" variant="secondary" loading={busy} onClick={async () => { setBusy(true); try { setStatus(await window.devforge.dictation.prepare()) } finally { setBusy(false); setPct(null) } }}>{d.download}</Button>)}
+      </div>
+    </SettingRow>
+  )
+}
+
 /** Forgy: key, model, actions, budget, walker and widget (saved apart: the key never goes through settings.json) */
-export default function AssistantSettings({ onSaved }: { onSaved: () => void }) {
+export default function AssistantSettings({ onSaved, settings, set }: { onSaved: () => void; settings: AppSettings; set: <K extends keyof AppSettings>(k: K, v: AppSettings[K]) => Promise<void> }) {
   const { t } = useI18n()
   const a = t.assistant
   const s = t.settings
@@ -87,6 +114,7 @@ export default function AssistantSettings({ onSaved }: { onSaved: () => void }) 
           <Switch checked={walker} onChange={setWalker} label={a.walker} />
         </div>
       </SettingRow>
+      <DictationRow settings={settings} set={set} />
       <SettingRow label={a.widget.toggle} hint={<>{a.widget.toggleHint}{config.desktopWidget && <> {shortcut ? a.widget.shortcut.replace('{key}', shortcut) : a.widget.shortcutTaken}</>}</>}>
         <Switch checked={config.desktopWidget} onChange={desktopWidget => save({ desktopWidget })} label={a.widget.toggle} />
       </SettingRow>

@@ -67,7 +67,7 @@ export default function ActionCard({ action, onChange }: { action: ActionView; o
         <>
           <span className="text-xs text-fg-secondary">{action.reversible ? a.actionReversible : a.actionIrreversible}</span>
           <div className="flex gap-2">
-            <button onClick={() => decide(true)} className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg bg-forgy text-sm font-semibold text-[#1A0E04] transition-transform active:scale-95">
+            <button onClick={() => decide(true)} className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg bg-forgy text-sm font-semibold text-forgy-fg transition-transform active:scale-95">
               <Check size={14} /> {a.actionApprove}
             </button>
             <button onClick={() => decide(false)} className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg border border-line bg-elevated text-sm font-medium text-fg hover:bg-hover">

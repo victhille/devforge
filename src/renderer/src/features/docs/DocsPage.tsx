@@ -13,7 +13,7 @@ function EntryCard({ entry }: { entry: DocEntry }) {
     <div className="group flex flex-col gap-1.5 rounded-lg border border-line-subtle bg-surface p-3 transition-colors hover:border-line">
       <div className="flex items-start justify-between gap-2">
         <code className="font-mono text-sm break-all text-fg">{entry.cmd}</code>
-        <CopyButton text={entry.example ?? entry.cmd} className="opacity-0 group-hover:opacity-100" />
+        <CopyButton text={entry.example ?? entry.cmd} className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100" />
       </div>
       <span className="text-sm text-fg-secondary">{entry.desc}</span>
       {entry.example && (

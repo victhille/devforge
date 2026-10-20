@@ -4,6 +4,7 @@ import {
   ArrowUp, BookOpen, Bug, Check, ChevronDown, ListChecks, ChevronLeft, Container, Database, ExternalLink, FileText, GitCommitHorizontal, Globe, History, KeyRound,
   Loader2, MessageSquare, Paperclip, Plus, Search, ShieldCheck, Square, Trash2, Wrench, X, XCircle, type LucideIcon
 } from 'lucide-react'
+import DictateButton from '@renderer/components/DictateButton'
 import type { AssistantAction, AssistantConfig, AssistantConversation, AssistantConversationSummary, AssistantItem, AssistantUsage, Project } from '@shared/types'
 import { ASSISTANT_SKILLS, skillById, type AssistantSkill, type AssistantSkillId } from '@shared/data/assistantSkills'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -55,6 +56,7 @@ export default function AssistantPanel() {
   const [skillId, setSkillId] = useState<AssistantSkillId>('chat')
   const [running, setRunning] = useState(false)
   const [input, setInput] = useState('')
+  const [dictateLine, setDictateLine] = useState<string | null>(null)
   const [attachPage, setAttachPage] = useState(true)
   const [history, setHistory] = useState<AssistantConversationSummary[] | null>(null)
   const [journal, setJournal] = useState<AssistantAction[] | null>(null)
@@ -365,9 +367,12 @@ export default function AssistantPanel() {
                   className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-line bg-elevated text-fg hover:bg-hover"><Square size={13} /></button>
               ) : (
                 <button title={a.send} aria-label={a.send} disabled={!input.trim()} onClick={() => send()}
-                  className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-forgy text-[#1A0E04] transition-[transform,opacity] active:scale-95 disabled:opacity-40"><ArrowUp size={16} strokeWidth={2.4} /></button>
+                  className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-forgy text-forgy-fg transition-[transform,opacity] active:scale-95 disabled:opacity-40"><ArrowUp size={16} strokeWidth={2.4} /></button>
               )}
+              {!running && <DictateButton className="size-8 rounded-lg" onStatus={setDictateLine}
+                onText={text => { setInput(prev => (prev.trim() ? `${prev.trimEnd()} ${text}` : text)); inputRef.current?.focus() }} />}
             </div>
+            {dictateLine && <p role="status" className="px-1 text-xs text-fg-muted">{dictateLine}</p>}
           </div>
         </>
       )}

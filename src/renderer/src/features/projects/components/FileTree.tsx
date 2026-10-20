@@ -4,6 +4,7 @@ import type { FileEntry } from '@shared/types'
 import { formatSize } from '@renderer/lib/format'
 import IconButton from '@renderer/components/ui/IconButton'
 import { SectionTitle } from '@renderer/components/ui/Page'
+import { pressable } from '@renderer/lib/a11y'
 
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', '.next', 'build', 'out', '.nuxt', 'vendor', '__pycache__', '.cache'])
 
@@ -53,6 +54,7 @@ function TreeNode({ entry, depth, dirs, expanded, onToggle }: NodeProps) {
     <>
       <div
         onClick={() => entry.isDirectory && onToggle(entry.path)}
+        {...(entry.isDirectory ? { ...pressable(() => onToggle(entry.path)), role: 'button', 'aria-expanded': isOpen } : {})}
         style={{ paddingLeft: 8 + depth * 14 }}
         className="flex h-6 cursor-default items-center gap-1.5 rounded pr-2 text-sm text-fg-secondary hover:bg-hover hover:text-fg"
       >

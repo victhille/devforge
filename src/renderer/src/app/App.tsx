@@ -8,6 +8,7 @@ import HomePage from '@renderer/features/home/HomePage'
 import { PAGES } from './navigation'
 import ErrorBoundary from './ErrorBoundary'
 import WhatsNew from './WhatsNew'
+import Onboarding from './Onboarding'
 import UpdateNotice from './UpdateNotice'
 import { AssistantProvider } from '@renderer/features/assistant/AssistantContext'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -36,6 +37,7 @@ export default function App() {
   return (
     <ToastProvider>
       <WhatsNew />
+      <Onboarding />
       <UpdateNotice />
       <ConsoleProvider>
         <VPSProvider>

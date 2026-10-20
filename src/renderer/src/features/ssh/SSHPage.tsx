@@ -12,6 +12,7 @@ import { SectionTitle } from '@renderer/components/ui/Page'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import ConnectionForm from './components/ConnectionForm'
 import TerminalPane from './components/TerminalPane'
+import { pressable } from '@renderer/lib/a11y'
 
 interface ActiveSession {
   sessionId:       string
@@ -167,6 +168,7 @@ export default function SSHPage() {
                   role="tab"
                   aria-selected={s.sessionId === activeId}
                   onClick={() => setActiveId(s.sessionId)}
+                  {...pressable(() => setActiveId(s.sessionId))}
                   className={cn(
                     'flex h-8 cursor-pointer items-center gap-2 rounded-t-md border border-b-0 px-3 text-sm transition-colors',
                     s.sessionId === activeId

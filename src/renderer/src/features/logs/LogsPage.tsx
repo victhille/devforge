@@ -6,6 +6,7 @@ import type { LogFileSuggestion } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
+import { pressable } from '@renderer/lib/a11y'
 import Button from '@renderer/components/ui/Button'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
@@ -128,7 +129,7 @@ export default function LogsPage() {
       {/* File tabs */}
       <div className="flex h-10 shrink-0 items-end gap-0.5 overflow-x-auto border-b border-line-subtle bg-surface px-2">
         {files.map(f => (
-          <div key={f.id} onClick={() => setActive(f.id)} title={f.path}
+          <div key={f.id} role="tab" aria-selected={f.id === active} onClick={() => setActive(f.id)} {...pressable(() => setActive(f.id))} title={f.path}
             className={cn('flex h-9 cursor-pointer items-center gap-2 rounded-t-md border border-b-0 px-3 text-sm',
               f.id === active ? 'border-line-subtle bg-canvas text-fg' : 'border-transparent text-fg-secondary hover:bg-hover')}>
             <FileText size={13} />

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowUp, Check, ChevronDown, Copy, ExternalLink, KeyRound, Loader2, Mic, Plus, Square } from 'lucide-react'
+import { ArrowUp, Check, ChevronDown, Copy, ExternalLink, KeyRound, Loader2, Plus, Square } from 'lucide-react'
 import type { AssistantConfig, AssistantEffort, Project } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -8,6 +8,7 @@ import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import Mascot, { type MascotMood } from '@renderer/features/assistant/Mascot'
 import Markdown from '@renderer/features/assistant/Markdown'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
+import DictateButton from '@renderer/components/DictateButton'
 
 type Phase = 'idle' | 'thinking' | 'searching' | 'working' | 'happy' | 'sad'
 /** The last question and its answer, as shown on the card */
@@ -59,7 +60,7 @@ export default function Widget() {
   const [cost, setCost] = useState<number | null>(null)
   const [unread, setUnread] = useState(0)
   const [alert, setAlert] = useState(false)
-  const [dictateHint, setDictateHint] = useState(false)
+  const [dictateLine, setDictateLine] = useState<string | null>(null)
   const [config, setConfig] = useState<AssistantConfig | null>(null)
   const [effort, setEffort] = useState<AssistantEffort | 'auto'>('auto')
   const [projects, setProjects] = useState<Project[]>([])
@@ -120,7 +121,6 @@ export default function Widget() {
   const collapse = useCallback(() => {
     openRef.current = false
     setOpenState(false)
-    setDictateHint(false)
     setTyping(false)
     // A finished answer is done with; one still coming shows a badge when it lands
     if (!runningRef.current) reset()
@@ -210,7 +210,6 @@ export default function Widget() {
     setTurn({ question: q, text: '', notices: [] })
     setInput('')
     setTyping(false)
-    setDictateHint(false)
     setRunning(true)
     setPhase('thinking')
     setStatus(null)
@@ -223,11 +222,11 @@ export default function Widget() {
     }
   }
 
-  function dictate() {
-    // Windows voice typing writes into the focused field
+  /** Dictated text goes after what is already typed */
+  const addDictation = useCallback((text: string) => {
+    setInput(prev => (prev.trim() ? `${prev.trimEnd()} ${text}` : text))
     inputRef.current?.focus()
-    setDictateHint(true)
-  }
+  }, [])
 
   const project = projects.find(p => p.path === projectPath)
   const mood: MascotMood = phase !== 'idle' ? phase : alert ? 'sad' : typing ? 'listening' : 'idle'
@@ -244,7 +243,7 @@ export default function Widget() {
           <Mascot mood={mood} size={58} />
           {(unread > 0 || alert) && (
             <span className={cn('absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-xs font-bold',
-              alert ? 'bg-danger text-white' : 'bg-forgy text-[#1A0E04]')}>
+              alert ? 'bg-danger text-white' : 'bg-forgy text-forgy-fg')}>
               {alert ? '!' : unread}
             </span>
           )}
@@ -304,14 +303,11 @@ export default function Widget() {
                 </button>
               ) : (
                 <button onClick={send} disabled={!input.trim()} title={a.send} aria-label={a.send}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-forgy text-[#1A0E04] transition-opacity disabled:opacity-50">
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-forgy text-forgy-fg transition-opacity disabled:opacity-50">
                   <ArrowUp size={16} />
                 </button>
               )}
-              <button onClick={dictate} title={w.dictateHint} aria-label={w.dictate}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-line bg-elevated text-fg-secondary hover:text-fg">
-                <Mic size={16} />
-              </button>
+              <DictateButton onText={addDictation} onStatus={setDictateLine} />
             </div>
 
             {config && !config.hasKey && (
@@ -321,7 +317,7 @@ export default function Widget() {
                 <button onClick={() => window.devforge.widget.openInApp(null)} className="shrink-0 underline">{a.openSettings}</button>
               </div>
             )}
-            {dictateHint && <p className="px-1.5 text-xs text-fg-muted">{w.dictateHint}</p>}
+            {dictateLine && <p role="status" className="px-1.5 text-xs text-fg-muted">{dictateLine}</p>}
             {running && !turn?.text && (
               <div className="flex flex-col gap-1.5 px-1.5 pb-1">
                 <div className="truncate font-mono text-xs text-forgy">{status ?? a.thinking}</div>

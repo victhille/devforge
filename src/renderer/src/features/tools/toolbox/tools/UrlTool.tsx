@@ -23,7 +23,7 @@ export default function UrlTool({ t }: { t: ToolboxT }) {
           <textarea className={IO_TEXTAREA} value={input} onChange={e => setInput(e.target.value)} spellCheck={false} />
         </IoPanel>
         <IoPanel label={t.output} actions={output && <CopyButton text={output} />}>
-          <textarea className={IO_TEXTAREA} value={output} readOnly spellCheck={false} />
+          <textarea className={IO_TEXTAREA} value={output} readOnly aria-label={t.output} spellCheck={false} />
         </IoPanel>
       </IoGrid>
       <ToolActions>
