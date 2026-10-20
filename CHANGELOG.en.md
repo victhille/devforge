@@ -2,6 +2,14 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [2.0.0-beta.4](https://github.com/victhille/devforge/compare/v2.0.0-beta.3...v2.0.0-beta.4) — 2026-10-20
+
+> n8n opens only once its editor is ready: no more "Cannot GET /" right after a start.
+
+### Fixes
+
+- **n8n**: Attendre l'éditeur avant d'annoncer que n8n est prêt ([d163a8d](https://github.com/victhille/devforge/commit/d163a8dc4d68c0b548d63db7b8399526c9eea9eb))
+
 ## [2.0.0-beta.3](https://github.com/victhille/devforge/compare/v2.0.0-beta.2...v2.0.0-beta.3) — 2026-10-20
 
 > n8n can show its editor in French: an option on the n8n page uses the community translation, rebuilt for every n8n version.
