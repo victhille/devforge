@@ -27,6 +27,14 @@ export interface N8nPrecheck {
   existing: boolean
 }
 
+/** Does the sub-domain point to the server? */
+export interface N8nDomainCheck {
+  ok: boolean
+  /** What public DNS answers for the sub-domain (empty: it does not exist) */
+  domainIps: string[]
+  serverIps: string[]
+}
+
 export interface N8nStatus {
   installed: boolean
   /** n8n container state ("running", "exited"…), null when absent */
@@ -61,7 +69,11 @@ export interface N8nAPI {
   /** Writes ~/devforge/n8n and starts it; output streams on `onLog` */
   install: (connectionId: string, opts: { domain: string; exposure: N8nExposure; email: string }) => Promise<{ ok: boolean }>
   onLog: (cb: (e: { connectionId: string; text: string }) => void) => () => void
+  /** Checked again by `install` in 'caddy' mode */
+  checkDomain: (connectionId: string, domain: string) => Promise<N8nDomainCheck>
   status: (connectionId: string) => Promise<N8nStatus>
+  /** 'local' mode: a tunnel from this PC through DevForge's SSH session; returns its http://localhost URL */
+  openTunnel: (connectionId: string) => Promise<string>
   logs: (connectionId: string, lines: number) => Promise<string>
   /** Database dump in ~/devforge/n8n/backups, then a newer image */
   update: (connectionId: string) => Promise<{ ok: boolean }>

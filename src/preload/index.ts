@@ -248,6 +248,8 @@ const api: DevForgeAPI = {
     install:        invoke('n8n:install'),
     onLog:          on('n8n:log'),
     status:         invoke('n8n:status'),
+    checkDomain:    invoke('n8n:check-domain'),
+    openTunnel:     invoke('n8n:open-tunnel'),
     logs:           invoke('n8n:logs'),
     update:         invoke('n8n:update'),
     control:        invoke('n8n:control'),

@@ -107,6 +107,8 @@ describe('n8n', () => {
     const script = n8n.installScript('n8n.example.com', 'caddy', 'me@example.com')
     expect(script).toContain('if [ ! -f .env ]')
     expect(script).toContain('/dev/urandom')
+    // Back to 'local' after an HTTPS install: the old Caddy goes away
+    expect(script).toContain('docker compose up -d --remove-orphans')
     expect(() => n8n.validateInstall({ domain: 'not a domain', exposure: 'caddy', email: 'me@example.com' })).toThrow('Invalid domain')
     expect(n8n.validateInstall({ domain: 'whatever', exposure: 'local', email: '' })).toEqual({ domain: '', exposure: 'local', email: '' })
   })
@@ -141,6 +143,27 @@ describe('n8n', () => {
 
     status = 401
     await expect(n8n.workflows('v1')).rejects.toThrow('BAD_KEY')
+  })
+
+  it('refuses an HTTPS install when the sub-domain does not point to the server', async () => {
+    const dns = (answers: Record<string, string[]>) => async (name: string) => { if (!answers[name]) throw new Error('ENOTFOUND'); return answers[name] }
+    const server = dns({ '10.0.0.1': ['10.0.0.1'] })
+    expect(await n8n.checkDomain('v1', 'n8n.nowhere.fr', { domain: dns({}), server })).toEqual({ ok: false, domainIps: [], serverIps: ['10.0.0.1'] })
+    expect((await n8n.checkDomain('v1', 'n8n.other.fr', { domain: dns({ 'n8n.other.fr': ['9.9.9.9'] }), server })).ok).toBe(false)
+    expect((await n8n.checkDomain('v1', 'n8n.mine.fr', { domain: dns({ 'n8n.mine.fr': ['10.0.0.1'] }), server })).ok).toBe(true)
+    // install() checks with the real DNS: a name under .invalid never resolves
+    await expect(n8n.install('v1', { domain: 'n8n.devforge.invalid', exposure: 'caddy', email: 'me@example.com' }, () => {})).rejects.toThrow('DOMAIN_UNKNOWN')
+  })
+
+  it('opens n8n on this PC through the SSH session', async () => {
+    const url = await n8n.openTunnel('v1')
+    expect(url).toMatch(/^http:\/\/localhost:\d+$/)
+    // Same tunnel when asked again
+    expect(await n8n.openTunnel('v1')).toBe(url)
+    const res = await fetch(`${url}/api/v1/workflows?limit=1`, { headers: { 'X-N8N-API-KEY': 'secret-key' } })
+    expect((await res.json()).data[0].name).toBe('Zeta')
+    n8n.closeTunnels()
+    await expect(fetch(url)).rejects.toThrow()
   })
 
   it('lets Forgy toggle a workflow with an undo', async () => {

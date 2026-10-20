@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { AlertTriangle, Download, ExternalLink, FolderDown, KeyRound, Play, RefreshCw, RotateCcw, ScrollText, Square } from 'lucide-react'
-import type { N8nExecution, N8nExposure, N8nInstance, N8nPrecheck, N8nStatus, N8nWorkflow, Project, SSHConnection } from '@shared/types'
+import { AlertTriangle, Check, Download, ExternalLink, FolderDown, KeyRound, Play, RefreshCw, RotateCcw, ScrollText, Square } from 'lucide-react'
+import type { N8nDomainCheck, N8nExecution, N8nExposure, N8nInstance, N8nPrecheck, N8nStatus, N8nWorkflow, Project, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
@@ -95,12 +95,25 @@ function Install({ conn, onDone }: { conn: SSHConnection; onDone: () => void }) 
   const [email, setEmail] = useState('')
   const [running, setRunning] = useState(false)
   const [log, setLog] = useServerLog(conn.id)
+  const [dns, setDns] = useState<{ domain: string; check: N8nDomainCheck | null } | null>(null)
+
+  // The sub-domain must point to the server before Caddy can get a certificate
+  useEffect(() => {
+    const d = domain.trim().toLowerCase()
+    if (exposure !== 'caddy' || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(d)) { setDns(null); return }
+    setDns({ domain: d, check: null })
+    const id = setTimeout(() => {
+      window.devforge.n8n.checkDomain(conn.id, d).then(check => setDns(cur => (cur?.domain === d ? { domain: d, check } : cur))).catch(() => setDns(null))
+    }, 500)
+    return () => clearTimeout(id)
+  }, [domain, exposure, conn.id])
+  const sslip = /^\d+\.\d+\.\d+\.\d+$/.test(conn.host) ? `n8n.${conn.host.replace(/\./g, '-')}.sslip.io` : null
 
   useEffect(() => {
     window.devforge.n8n.precheck(conn.id).then(c => { setCheck(c); if (c.busyPorts.length) setExposure('local') }).catch(err => setCheckError(errorText(err)))
   }, [conn.id])
 
-  const blocked = !check?.docker || !check.compose || (exposure === 'caddy' && (check.busyPorts.length > 0 || !domain.trim() || !email.trim()))
+  const blocked = !check?.docker || !check.compose || (exposure === 'caddy' && (check.busyPorts.length > 0 || !domain.trim() || !email.trim() || !dns?.check?.ok))
 
   async function install() {
     setRunning(true); setLog('')
@@ -108,7 +121,10 @@ function Install({ conn, onDone }: { conn: SSHConnection; onDone: () => void }) 
       const r = await window.devforge.n8n.install(conn.id, { domain, exposure, email })
       toast.show({ tone: r.ok ? 'success' : 'error', title: r.ok ? n.installOk : n.installFailed })
       if (r.ok) onDone()
-    } catch (err) { toast.show({ tone: 'error', title: errorText(err) }) }
+    } catch (err) {
+      const e = errorText(err)
+      toast.show({ tone: 'error', title: e === 'DOMAIN_UNKNOWN' || e.startsWith('DOMAIN_ELSEWHERE') ? n.installFailed : e })
+    }
     finally { setRunning(false) }
   }
 
@@ -158,12 +174,24 @@ function Install({ conn, onDone }: { conn: SSHConnection; onDone: () => void }) 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1.5 text-[13px] text-fg-secondary">{n.domain}
               <Input value={domain} onChange={e => setDomain(e.target.value)} placeholder={n.domainPlaceholder} className="font-mono" />
+              {sslip && !domain && <button type="button" onClick={() => setDomain(sslip)} className="self-start text-xs text-accent hover:underline">{n.useSslip.replace('{name}', sslip)}</button>}
             </label>
             <label className="flex flex-col gap-1.5 text-[13px] text-fg-secondary">{n.email}
               <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="toi@exemple.fr" />
             </label>
           </div>
         )}
+
+        {exposure === 'caddy' && dns && (() => {
+          const c = dns.check
+          const ip = c?.serverIps[0] ?? conn.host
+          if (!c) return <p className="flex items-center gap-2 text-[13px] text-fg-muted"><Spinner /> {n.domainChecking}</p>
+          if (c.ok) return <p className="flex items-center gap-2 text-[13px] text-success"><Check size={14} /> {n.domainOk.replace('{domain}', dns.domain).replace('{ip}', ip)}</p>
+          const msg = c.domainIps.length
+            ? n.domainElsewhere.replace('{domain}', dns.domain).replace('{ips}', c.domainIps.join(', ')).replace('{ip}', ip)
+            : n.domainUnknown.replace('{domain}', dns.domain).replace('{name}', dns.domain.split('.')[0]).replace('{ip}', ip)
+          return <p role="alert" className="flex items-start gap-2 rounded-[10px] bg-warning-soft px-3 py-2.5 text-[13px] text-fg"><AlertTriangle size={15} className="mt-0.5 shrink-0 text-warning" /> {msg}</p>
+        })()}
 
         <div className="flex justify-end">
           <Button disabled={!check || blocked} loading={running} onClick={install}>{!running && <Download size={14} />} {n.install}</Button>
@@ -218,7 +246,14 @@ function Installed({ conn, instance, onChange }: { conn: SSHConnection; instance
   }
 
   const on = status?.state === 'running'
-  const target = `${conn.username}@${conn.host}${conn.port && conn.port !== 22 ? ` -p ${conn.port}` : ''}`
+  const [tunnel, setTunnel] = useState<string | null>(null)
+  async function openN8n() {
+    if (status?.url) { window.devforge.openExternal(status.url); return }
+    setBusy('tunnel')
+    try { const url = await window.devforge.n8n.openTunnel(conn.id); setTunnel(url); window.devforge.openExternal(url) }
+    catch (err) { toast.show({ tone: 'error', title: errorText(err) }) }
+    finally { setBusy(null) }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -235,11 +270,11 @@ function Installed({ conn, instance, onChange }: { conn: SSHConnection; instance
             )}
           </div>
           <div className="mt-1 font-mono text-xs text-fg-muted">
-            {instance.exposure === 'caddy' ? `https://${instance.domain}` : n.tunnelHint.replace('{target}', target)}
+            {instance.exposure === 'caddy' ? `https://${instance.domain}` : tunnel ? n.tunnelOpen.replace('{url}', tunnel) : n.tunnelHint}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {status?.url && <Button variant="secondary" onClick={() => window.devforge.openExternal(status.url!)}><ExternalLink size={14} /> {n.open}</Button>}
+          {on && <Button variant="secondary" loading={busy === 'tunnel'} onClick={openN8n}>{busy !== 'tunnel' && <ExternalLink size={14} />} {n.open}</Button>}
           {on ? (
             <>
               <Button variant="secondary" loading={busy === 'restart'} onClick={() => run('restart', () => window.devforge.n8n.control(conn.id, 'restart'))}>{busy !== 'restart' && <RotateCcw size={14} />} {n.restart}</Button>
