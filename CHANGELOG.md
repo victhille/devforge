@@ -2,6 +2,20 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [2.0.0-beta.5](https://github.com/victhille/devforge/compare/v2.0.0-beta.4...v2.0.0-beta.5) — 2026-10-22
+
+> Nouvelle page VPN : les clients WireGuard du VPS, avec ajout, suppression et QR code, sans ligne de commande.
+
+### Nouveautés
+
+- **vpn** : Page VPN pour le WireGuard du VPS (wg-easy) ([f107860](https://github.com/victhille/devforge/commit/f1078600d0dee28d3bc5b18dd61b20ef45631a4f))
+
+### Corrections
+
+- **ui** : Sélecteurs alignés avec les boutons, version au-dessus de « Réduire le menu » ([2e4632d](https://github.com/victhille/devforge/commit/2e4632dda0997daf2e8746947df56df08609b38a))
+
+_2 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [2.0.0-beta.4](https://github.com/victhille/devforge/compare/v2.0.0-beta.3...v2.0.0-beta.4) — 2026-10-20
 
 > n8n s'ouvre seulement quand son éditeur est prêt : plus de « Cannot GET / » juste après un démarrage.
