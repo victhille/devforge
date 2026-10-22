@@ -2,6 +2,20 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [2.1.0-beta.1](https://github.com/victhille/devforge/compare/v2.0.0...v2.1.0-beta.1) — 2026-10-22
+
+> An Update button next to Forgy, and your VPS under control: its web services open in one click, and a Health page points out what needs your attention.
+
+### New features
+
+- **vps**: Bouton Mise à jour, services et santé du VPS ([5dca864](https://github.com/victhille/devforge/commit/5dca864aaa6b301f8caf5065de0323aab020021d))
+
+### Fixes
+
+- **i18n**: Pas de texte vide pour les niveaux de santé impossibles ([d6f467d](https://github.com/victhille/devforge/commit/d6f467dc059d6de1cef7cf3d80681cb8e30c20ff))
+
+_1 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [2.0.0](https://github.com/victhille/devforge/compare/v2.0.0-beta.5...v2.0.0) — 2026-10-22
 
 > DevForge 2.0: Forgy acts for you, n8n installs and runs on your VPS (French editor too), a VPN page for WireGuard, Vercel, local voice typing, and settings and a menu shaped your way.
