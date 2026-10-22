@@ -5,6 +5,7 @@ import { cn } from '@renderer/lib/cn'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useAssistant } from '@renderer/features/assistant/AssistantContext'
 import Mascot from '@renderer/features/assistant/Mascot'
+import UpdateButton from './UpdateButton'
 
 function WindowButton({ title, onClick, danger, children }: {
   title: string
@@ -53,6 +54,9 @@ export default function TitleBar() {
         <span className="flex-1 text-left">{t.palette.search}…</span>
         <kbd className="rounded border border-line bg-elevated px-1.5 font-mono text-2xs">Ctrl K</kbd>
       </button>
+
+      {/* A new version on its way: progress, then restart to update */}
+      <UpdateButton />
 
       {/* AI assistant (Ctrl+J) */}
       <button

@@ -49,7 +49,12 @@ export function installUpdate(): void {
 
 export function initUpdater(window: BrowserWindow, beta: boolean): void {
   win = window
-  if (!app.isPackaged) { status = { state: 'unavailable', reason: 'dev' }; return }
+  if (!app.isPackaged) {
+    // Tests of the title-bar button set a status by hand (never in the installed app)
+    const fake = process.env.DEVFORGE_TEST_UPDATE
+    status = fake ? (JSON.parse(fake) as UpdateStatus) : { state: 'unavailable', reason: 'dev' }
+    return
+  }
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
   autoUpdater.logger = {

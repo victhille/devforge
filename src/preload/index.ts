@@ -277,6 +277,15 @@ const api: DevForgeAPI = {
     openWeb:    invoke('vpn:open-web')
   },
 
+  vpsOps: {
+    services:    invoke('vps:services'),
+    openService: invoke('vps:open-service'),
+    health:      invoke('vps:health'),
+    fixCommand:  invoke('vps:fix-command'),
+    runFix:      invoke('vps:run-fix'),
+    onFixLog:    on('vps:fix-log')
+  },
+
   dictation: {
     status:     invoke('dictation:status'),
     prepare:    invoke('dictation:prepare'),
