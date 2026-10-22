@@ -44,23 +44,35 @@ export function closeAllForwards(): void {
   forwards.clear()
 }
 
+/**
+ * An SSH channel is a Duplex, not a net.Socket: Node's HTTP client calls
+ * socket.setTimeout / setNoDelay / setKeepAlive on it, and a missing one
+ * throws before the request is sent (the server then answers 408).
+ */
+export function asSocket(stream: import('stream').Duplex): Socket {
+  const s = stream as unknown as Record<string, unknown>
+  for (const m of ['setTimeout', 'setNoDelay', 'setKeepAlive']) if (typeof s[m] !== 'function') s[m] = () => stream
+  return stream as unknown as Socket
+}
+
 export interface SshHttpResponse { status: number; headers: Record<string, string | string[] | undefined>; body: Buffer }
 
 /** One HTTP request to 127.0.0.1:<port> on the server, through the SSH session (no local port opened) */
 export async function sshHttp(connectionId: string, port: number, opts: { method: string; path: string; headers?: Record<string, string>; body?: string; timeoutMs?: number }): Promise<SshHttpResponse> {
-  const sock = await sshService.forwardOut(await sessionFor(connectionId), port)
+  const sock = asSocket(await sshService.forwardOut(await sessionFor(connectionId), port))
   return new Promise((resolve, reject) => {
+    // Our own timer: the channel has no real socket timeout
+    const timer = setTimeout(() => req.destroy(new Error('The server did not answer')), opts.timeoutMs ?? 20_000)
     const req = request({
       host: '127.0.0.1', port, method: opts.method, path: opts.path,
       headers: { ...(opts.body !== undefined ? { 'content-type': 'application/json', 'content-length': String(Buffer.byteLength(opts.body)) } : {}), ...opts.headers },
-      createConnection: () => sock as unknown as Socket
+      createConnection: () => sock
     }, res => {
       const chunks: Buffer[] = []
       res.on('data', c => chunks.push(c as Buffer))
-      res.on('end', () => { sock.destroy(); resolve({ status: res.statusCode ?? 500, headers: res.headers, body: Buffer.concat(chunks) }) })
+      res.on('end', () => { clearTimeout(timer); sock.destroy(); resolve({ status: res.statusCode ?? 500, headers: res.headers, body: Buffer.concat(chunks) }) })
     })
-    req.setTimeout(opts.timeoutMs ?? 20_000, () => req.destroy(new Error('The server did not answer')))
-    req.on('error', err => { sock.destroy(); reject(err) })
+    req.on('error', err => { clearTimeout(timer); sock.destroy(); reject(err) })
     req.end(opts.body)
   })
 }

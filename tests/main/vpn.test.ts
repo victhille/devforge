@@ -13,7 +13,8 @@ vi.mock('../../src/main/services/ssh/sshService', () => ({
     connectForDashboard: async () => 'sid',
     disconnect: () => {},
     exec: async (_sid: string, command: string) => { ssh.commands.push(command); return ssh.outputs.shift() ?? '' },
-    forwardOut: async () => connect(ssh.port, '127.0.0.1')
+    // Like an ssh2 channel: a Duplex without net.Socket's setTimeout / setNoDelay / setKeepAlive
+    forwardOut: async () => Object.assign(connect(ssh.port, '127.0.0.1'), { setTimeout: undefined, setNoDelay: undefined, setKeepAlive: undefined })
   }
 }))
 

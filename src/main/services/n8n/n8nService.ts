@@ -8,7 +8,7 @@ import type { N8nDomainCheck, N8nExecution, N8nExposure, N8nInstance, N8nLocale,
 import { writeJsonFile } from '../../lib/jsonFile'
 import { log } from '../../lib/log'
 import { sshService } from '../ssh/sshService'
-import { closeForward, openForward } from '../ssh/localForward'
+import { asSocket, closeForward, openForward } from '../ssh/localForward'
 import { shQuote } from '../ssh/sshClient'
 import { runOn, sessionFor } from '../monitor/vpsWatch'
 import { loadProjects } from '../projects/projectStorage'
@@ -364,17 +364,19 @@ function apiKey(connectionId: string): string {
 
 async function api<T>(connectionId: string, method: 'GET' | 'POST', path: string): Promise<T> {
   const key = apiKey(connectionId)
-  const sock = await sshService.forwardOut(await sessionFor(connectionId), PORT)
+  const sock = asSocket(await sshService.forwardOut(await sessionFor(connectionId), PORT))
   return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => req.destroy(new Error('n8n did not answer')), 20_000)
     const req = request({
       host: '127.0.0.1', port: PORT, method, path: `/api/v1${path}`,
       headers: { 'X-N8N-API-KEY': key, accept: 'application/json' },
-      createConnection: () => sock as unknown as import('net').Socket
+      createConnection: () => sock
     }, res => {
       let body = ''
       res.setEncoding('utf-8')
       res.on('data', c => { body += c })
       res.on('end', () => {
+        clearTimeout(timer)
         sock.destroy()
         if ((res.statusCode ?? 500) >= 400) {
           let msg = body
@@ -385,8 +387,7 @@ async function api<T>(connectionId: string, method: 'GET' | 'POST', path: string
         try { resolve(JSON.parse(body || '{}') as T) } catch { reject(new Error('n8n answered something that is not JSON')) }
       })
     })
-    req.setTimeout(20_000, () => req.destroy(new Error('n8n did not answer')))
-    req.on('error', err => { sock.destroy(); reject(err) })
+    req.on('error', err => { clearTimeout(timer); sock.destroy(); reject(err) })
     req.end()
   })
 }
