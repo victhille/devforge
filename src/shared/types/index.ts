@@ -234,6 +234,7 @@ export * from './assistant'
 export * from './hub'
 export * from './watch'
 export * from './n8n'
+export * from './vpn'
 export * from './vercel'
 export * from './dictation'
 import type { GitAPI } from './git'
@@ -244,6 +245,7 @@ import type { StacksAPI } from './stacks'
 import type { HubAPI } from './hub'
 import type { WatchAPI } from './watch'
 import type { N8nAPI } from './n8n'
+import type { VpnAPI } from './vpn'
 import type { VercelAPI } from './vercel'
 import type { DictationAPI } from './dictation'
 import type { DockerAPI } from './docker'
@@ -356,6 +358,7 @@ export interface DevForgeAPI {
   hub: HubAPI
   watch: WatchAPI
   n8n: N8nAPI
+  vpn: VpnAPI
   vercel: VercelAPI
   dictation: DictationAPI
 

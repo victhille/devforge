@@ -12,6 +12,7 @@ import { registerDockerHandlers } from './docker'
 import { registerDeployHandlers } from './deploy'
 import { registerMonitorHandlers } from './monitor'
 import { registerN8nHandlers } from './n8n'
+import { registerVpnHandlers } from './vpn'
 import { registerVercelHandlers } from './vercel'
 import { registerDictationHandlers } from './dictation'
 import { registerDomainHandlers } from './domains'
@@ -37,6 +38,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerDeployHandlers(mainWindow)
   registerMonitorHandlers(mainWindow)
   registerN8nHandlers(mainWindow)
+  registerVpnHandlers(mainWindow)
   registerVercelHandlers()
   registerDictationHandlers()
   registerDomainHandlers()

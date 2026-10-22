@@ -24,3 +24,9 @@ export class Notification {
   constructor(private opts: { title: string; body: string }) {}
   show(): void { Notification.shown.push(this.opts) }
 }
+
+/** Save / open dialogs: `next` is the path the user "picks", empty for Cancel */
+export const dialog = {
+  next: '',
+  showSaveDialog: async () => (dialog.next ? { canceled: false, filePath: dialog.next } : { canceled: true, filePath: undefined })
+}

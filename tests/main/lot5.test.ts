@@ -24,6 +24,7 @@ vi.mock('../../src/main/services/ssh/sshService', () => ({
 const { parseChangelog } = await import('../../src/shared/lib/changelog')
 const { backupData, parseBackupName, restoreData } = await import('../../src/main/services/storage/migrations')
 const n8n = await import('../../src/main/services/n8n/n8nService')
+const { closeAllForwards } = await import('../../src/main/services/ssh/localForward')
 const vercel = await import('../../src/main/services/vercel/vercelService')
 const { planAction } = await import('../../src/main/services/assistant/assistantActions')
 
@@ -195,7 +196,7 @@ describe('n8n', () => {
     expect(await n8n.openTunnel('v1')).toBe(url)
     const res = await fetch(`${url}/api/v1/workflows?limit=1`, { headers: { 'X-N8N-API-KEY': 'secret-key' } })
     expect((await res.json()).data[0].name).toBe('Zeta')
-    n8n.closeTunnels()
+    closeAllForwards()
     await expect(fetch(url)).rejects.toThrow()
   })
 

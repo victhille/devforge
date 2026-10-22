@@ -262,6 +262,20 @@ const api: DevForgeAPI = {
     exportWorkflow: invoke('n8n:export')
   },
 
+  vpn: {
+    servers:    invoke('vpn:servers'),
+    detect:     invoke('vpn:detect'),
+    saveLogin:  invoke('vpn:save-login'),
+    forget:     invoke('vpn:forget'),
+    clients:    invoke('vpn:clients'),
+    create:     invoke('vpn:create'),
+    remove:     invoke('vpn:remove'),
+    setEnabled: invoke('vpn:set-enabled'),
+    qrcode:     invoke('vpn:qrcode'),
+    saveConfig: invoke('vpn:save-config'),
+    openWeb:    invoke('vpn:open-web')
+  },
+
   dictation: {
     status:     invoke('dictation:status'),
     prepare:    invoke('dictation:prepare'),
