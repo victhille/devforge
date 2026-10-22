@@ -497,17 +497,17 @@ const fr = {
     unknownText: "Impossible de lire cette information sur ce serveur.",
     checks: {
       updates: { title: "Mises à jour", ok: "Le système est à jour.", warn: "{count} mises à jour en attente.", bad: "{count} mises à jour en attente, dont {security} de sécurité." },
-      reboot: { title: "Redémarrage", ok: "Aucun redémarrage nécessaire.", warn: "Une mise à jour demande de redémarrer le serveur.", bad: "" },
+      reboot: { title: "Redémarrage", ok: "Aucun redémarrage nécessaire.", warn: "Une mise à jour demande de redémarrer le serveur." },
       disk: { title: "Disque", ok: "{percent} % utilisé, {free} libres.", warn: "{percent} % utilisé, plus que {free} libres.", bad: "{percent} % utilisé : plus que {free} libres." },
-      inodes: { title: "Fichiers", ok: "", warn: "{percent} % des inodes utilisés : beaucoup de petits fichiers.", bad: "{percent} % des inodes utilisés : bientôt plus possible de créer des fichiers." },
+      inodes: { title: "Fichiers", warn: "{percent} % des inodes utilisés : beaucoup de petits fichiers.", bad: "{percent} % des inodes utilisés : bientôt plus possible de créer des fichiers." },
       memory: { title: "Mémoire", ok: "{available} % de la mémoire disponible ({total}).", warn: "Plus que {available} % de mémoire disponible ({total}).", bad: "Plus que {available} % de mémoire disponible ({total})." },
-      ports: { title: "Ports ouverts", ok: "Seuls SSH et les ports attendus (web, WireGuard) sont ouverts sur Internet.", warn: "Ouverts sur Internet : {ports}. Si ce n'est pas voulu, publie-les sur 127.0.0.1.", bad: "" },
-      "ssh-root": { title: "Connexion root", ok: "root ne peut pas se connecter avec un mot de passe ({value}).", warn: "", bad: "root peut se connecter avec un mot de passe." },
-      "ssh-password": { title: "Mots de passe SSH", ok: "Connexion par clé uniquement.", warn: "Les mots de passe sont acceptés : des robots essaient de les deviner.", bad: "" },
-      fail2ban: { title: "fail2ban", ok: "fail2ban bloque les adresses qui insistent.", warn: "fail2ban n'est pas actif : rien ne bloque les essais en série.", bad: "" },
-      "ssh-failures": { title: "Essais de connexion", ok: "{count} essais refusés en 24 h, bloqués par fail2ban.", warn: "{count} essais refusés en 24 h, sans fail2ban pour les bloquer.", bad: "" },
+      ports: { title: "Ports ouverts", ok: "Seuls SSH et les ports attendus (web, WireGuard) sont ouverts sur Internet.", warn: "Ouverts sur Internet : {ports}. Si ce n'est pas voulu, publie-les sur 127.0.0.1." },
+      "ssh-root": { title: "Connexion root", ok: "root ne peut pas se connecter avec un mot de passe ({value}).", bad: "root peut se connecter avec un mot de passe." },
+      "ssh-password": { title: "Mots de passe SSH", ok: "Connexion par clé uniquement.", warn: "Les mots de passe sont acceptés : des robots essaient de les deviner." },
+      fail2ban: { title: "fail2ban", ok: "fail2ban bloque les adresses qui insistent.", warn: "fail2ban n'est pas actif : rien ne bloque les essais en série." },
+      "ssh-failures": { title: "Essais de connexion", ok: "{count} essais refusés en 24 h, bloqués par fail2ban.", warn: "{count} essais refusés en 24 h, sans fail2ban pour les bloquer." },
       containers: { title: "Conteneurs", ok: "Tous les conteneurs tournent normalement.", warn: "Redémarrent souvent : {looping}.", bad: "Arrêtés sur une erreur ou en boucle : {broken}." },
-      "docker-space": { title: "Espace Docker", ok: "Peu de place à récupérer ({size}).", warn: "{size} récupérables : images inutilisées et cache.", bad: "" }
+      "docker-space": { title: "Espace Docker", ok: "Peu de place à récupérer ({size}).", warn: "{size} récupérables : images inutilisées et cache." }
     },
     fixes: {
       "apt-upgrade": "Installer les mises à jour",

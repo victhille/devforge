@@ -506,17 +506,17 @@ const en = {
     unknownText: "This could not be read on this server.",
     checks: {
       updates: { title: "Updates", ok: "The system is up to date.", warn: "{count} updates pending.", bad: "{count} updates pending, {security} of them security updates." },
-      reboot: { title: "Restart", ok: "No restart needed.", warn: "An update needs the server to restart.", bad: "" },
+      reboot: { title: "Restart", ok: "No restart needed.", warn: "An update needs the server to restart." },
       disk: { title: "Disk", ok: "{percent} % used, {free} free.", warn: "{percent} % used, only {free} free.", bad: "{percent} % used: only {free} free." },
-      inodes: { title: "Files", ok: "", warn: "{percent} % of inodes used: many small files.", bad: "{percent} % of inodes used: new files will soon fail." },
+      inodes: { title: "Files", warn: "{percent} % of inodes used: many small files.", bad: "{percent} % of inodes used: new files will soon fail." },
       memory: { title: "Memory", ok: "{available} % of memory available ({total}).", warn: "Only {available} % of memory available ({total}).", bad: "Only {available} % of memory available ({total})." },
-      ports: { title: "Open ports", ok: "Only SSH and the expected ports (web, WireGuard) are open to the internet.", warn: "Open to the internet: {ports}. If that is not intended, publish them on 127.0.0.1.", bad: "" },
-      "ssh-root": { title: "Root login", ok: "root cannot log in with a password ({value}).", warn: "", bad: "root can log in with a password." },
-      "ssh-password": { title: "SSH passwords", ok: "Key login only.", warn: "Passwords are accepted: bots try to guess them.", bad: "" },
-      fail2ban: { title: "fail2ban", ok: "fail2ban blocks addresses that keep trying.", warn: "fail2ban is not running: nothing blocks repeated attempts.", bad: "" },
-      "ssh-failures": { title: "Login attempts", ok: "{count} refused attempts in 24 h, blocked by fail2ban.", warn: "{count} refused attempts in 24 h, with no fail2ban to block them.", bad: "" },
+      ports: { title: "Open ports", ok: "Only SSH and the expected ports (web, WireGuard) are open to the internet.", warn: "Open to the internet: {ports}. If that is not intended, publish them on 127.0.0.1." },
+      "ssh-root": { title: "Root login", ok: "root cannot log in with a password ({value}).", bad: "root can log in with a password." },
+      "ssh-password": { title: "SSH passwords", ok: "Key login only.", warn: "Passwords are accepted: bots try to guess them." },
+      fail2ban: { title: "fail2ban", ok: "fail2ban blocks addresses that keep trying.", warn: "fail2ban is not running: nothing blocks repeated attempts." },
+      "ssh-failures": { title: "Login attempts", ok: "{count} refused attempts in 24 h, blocked by fail2ban.", warn: "{count} refused attempts in 24 h, with no fail2ban to block them." },
       containers: { title: "Containers", ok: "Every container runs normally.", warn: "Restart often: {looping}.", bad: "Stopped on an error or looping: {broken}." },
-      "docker-space": { title: "Docker space", ok: "Little space to reclaim ({size}).", warn: "{size} can be reclaimed: unused images and cache.", bad: "" }
+      "docker-space": { title: "Docker space", ok: "Little space to reclaim ({size}).", warn: "{size} can be reclaimed: unused images and cache." }
     },
     fixes: {
       "apt-upgrade": "Install the updates",
