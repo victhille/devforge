@@ -12,6 +12,7 @@ import { fmtBytes, fmtUptime } from './stats'
 import { useVpsStats } from './useVpsStats'
 import StatCard, { CardLabel } from './components/StatCard'
 import { DisksPanel, DockerPanel, ProcessesPanel } from './components/Panels'
+import { HealthCard } from '@renderer/features/vps/HealthPage'
 
 function CenterState({ children }: { children: ReactNode }) {
   return <div className="flex flex-1 flex-col items-center justify-center gap-3 p-10 text-center text-fg-secondary">{children}</div>
@@ -122,6 +123,11 @@ export default function VPSDashboardPage() {
               {sysInfo && <span className="font-mono text-xs text-fg-muted">{sysInfo.kernel}</span>}
             </Card>
           </div>
+
+          {connectionId && <HealthCard connectionId={connectionId} onOpen={() => {
+            try { localStorage.setItem('devforge:vps-server', connectionId) } catch { /* not kept */ }
+            navigate('/health')
+          }} />}
 
           <div className="grid grid-cols-[1fr_2fr] gap-4">
             <DisksPanel disks={stats.disks} />
