@@ -2,6 +2,18 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [2.0.0](https://github.com/victhille/devforge/compare/v2.0.0-beta.5...v2.0.0) — 2026-10-22
+
+> DevForge 2.0 : Forgy agit pour toi, n8n s'installe et se pilote sur ton VPS (aussi en français), une page VPN pour WireGuard, Vercel, la dictée vocale en local, des paramètres et un menu à ton goût.
+
+### Nouveautés
+
+- **menu** : Favoris du menu au choix ([0d8f5f3](https://github.com/victhille/devforge/commit/0d8f5f3bdcc8db4fa10485b3fcf14ed307781767))
+
+### Corrections
+
+- **ssh** : Requêtes HTTP par la session SSH (wg-easy 408, clé d'API n8n) ([cfd4107](https://github.com/victhille/devforge/commit/cfd410730bc6d222a76254ecd2e2481932e038e9))
+
 ## [2.0.0-beta.5](https://github.com/victhille/devforge/compare/v2.0.0-beta.4...v2.0.0-beta.5) — 2026-10-22
 
 > Nouvelle page VPN : les clients WireGuard du VPS, avec ajout, suppression et QR code, sans ligne de commande.
