@@ -28,8 +28,8 @@ const PS = [
 describe('vpn (wg-easy)', () => {
   let server: Server
   const calls: { method: string; url: string; auth: string; body: string }[] = []
-  let clients = [
-    { id: 2, name: 'alice', enabled: true, ipv4Address: '10.8.0.2', ipv6Address: 'fdcc::2', createdAt: '2026-10-01T00:00:00Z', expiresAt: null as string | null, latestHandshakeAt: '2026-10-22T08:00:00Z', transferRx: 4_770_000, transferTx: 38_650_000 },
+  let clients: { id: number; name: string; enabled: boolean; ipv4Address: string; ipv6Address: string | null; createdAt: string | null; expiresAt: string | null; latestHandshakeAt: string | null; transferRx: number | null; transferTx: number | null }[] = [
+    { id: 2, name: 'alice', enabled: true, ipv4Address: '10.8.0.2', ipv6Address: 'fdcc::2', createdAt: '2026-10-01T00:00:00Z', expiresAt: null, latestHandshakeAt: '2026-10-22T08:00:00Z', transferRx: 4_770_000, transferTx: 38_650_000 },
     { id: 4, name: 'Tommas', enabled: true, ipv4Address: '10.8.0.4', ipv6Address: null, createdAt: '2026-10-01T00:00:00Z', expiresAt: null, latestHandshakeAt: null, transferRx: null, transferTx: null }
   ]
   const good = 'Basic ' + Buffer.from('admin:s3cret:with:colons').toString('base64')
