@@ -155,17 +155,18 @@ export default function Sidebar() {
       {/* Settings and the collapse toggle stay pinned at the bottom */}
       <div className="flex shrink-0 flex-col gap-0.5 border-t border-line-subtle px-2.5 py-2.5 shadow-[0_-12px_16px_-12px_var(--shadow-color)]">
         <NavEntry to={settings.path} label={t.nav.settings} Icon={settings.icon} collapsed={collapsed} />
+        {!collapsed && <span className="px-2.5 pt-1.5 font-mono text-[11px] text-fg-muted">v{__APP_VERSION__}</span>}
         <button
           onClick={() => setCollapsed(c => !c)}
           title={`${collapsed ? t.nav.expand : t.nav.collapse} (Ctrl+B)`}
           aria-label={collapsed ? t.nav.expand : t.nav.collapse}
           className={cn(
-            'flex h-[34px] items-center rounded-[9px] font-mono text-xs text-fg-muted transition-colors hover:bg-hover hover:text-fg',
+            'flex h-[34px] items-center rounded-[9px] text-[13px] text-fg-muted transition-colors hover:bg-hover hover:text-fg',
             collapsed ? 'justify-center' : 'gap-2.5 px-2.5'
           )}
         >
           {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-          {!collapsed && <span>v{__APP_VERSION__} · {t.nav.collapse.toLowerCase()}</span>}
+          {!collapsed && <span>{t.nav.collapse}</span>}
         </button>
       </div>
     </aside>

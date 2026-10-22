@@ -19,7 +19,7 @@ export default function Tabs<T extends string>({ items, value, onChange, classNa
   return (
     <div
       role="tablist"
-      className={cn('inline-flex h-9 w-fit shrink-0 items-center gap-0.5 self-start rounded-[10px] border border-line bg-canvas p-[3px]', className)}
+      className={cn('inline-flex h-9 w-fit shrink-0 items-center gap-0.5 rounded-[10px] border border-line bg-canvas p-[3px]', className)}
     >
       {items.map(item => {
         const active = value === item.value
