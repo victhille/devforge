@@ -40,6 +40,11 @@ test('n8n offers an install on a saved server, and a Vercel-linked project gets 
   await french.click()
   await expect(french).toHaveAttribute('aria-checked', 'false')
 
+  // VPN page: same server picker, looks for wg-easy on it (unreachable here)
+  await goTo(page, '/vpn')
+  await expect(page.getByRole('heading', { name: 'VPN', level: 1 })).toBeVisible()
+  await expect(page.getByRole('combobox')).toHaveValue(/.+/)
+
   await goTo(page, '/project/p1')
   await page.getByRole('tab', { name: 'Vercel' }).click()
   await expect(page.getByRole('heading', { name: 'Connecter Vercel' })).toBeVisible()

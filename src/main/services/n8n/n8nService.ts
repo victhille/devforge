@@ -1,13 +1,14 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { request } from 'http'
-import { createServer, isIP, type AddressInfo, type Server } from 'net'
+import { isIP } from 'net'
 import { lookup, resolve4 } from 'dns/promises'
 import { app, safeStorage } from 'electron'
 import type { N8nDomainCheck, N8nExecution, N8nExposure, N8nInstance, N8nLocale, N8nPrecheck, N8nStatus, N8nWorkflow } from '@shared/types'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { log } from '../../lib/log'
 import { sshService } from '../ssh/sshService'
+import { closeForward, openForward } from '../ssh/localForward'
 import { shQuote } from '../ssh/sshClient'
 import { runOn, sessionFor } from '../monitor/vpsWatch'
 import { loadProjects } from '../projects/projectStorage'
@@ -264,36 +265,13 @@ export async function checkDomain(connectionId: string, domain: string, dns: { d
 
 // ─── Local tunnel ─────────────────────────────────────────────────────────────
 
-/** 127.0.0.1:<port> on this PC → n8n on the server, through DevForge's SSH session */
-const tunnels = new Map<string, Server>()
-
+/** 127.0.0.1:<port> on this PC → n8n on the server, n8n's own port when free (its links then match) */
 export async function openTunnel(connectionId: string): Promise<string> {
-  const known = tunnels.get(connectionId)
-  if (known?.listening) return `http://localhost:${(known.address() as AddressInfo).port}`
-  await sessionFor(connectionId)
-  const server = createServer(sock => {
-    sock.pause()
-    sessionFor(connectionId)
-      .then(sid => sshService.forwardOut(sid, PORT))
-      .then(remote => { sock.pipe(remote).pipe(sock); remote.on('error', () => sock.destroy()); sock.on('error', () => remote.destroy()); sock.resume() })
-      .catch(err => { log('warn', 'n8n', `Tunnel: ${err instanceof Error ? err.message : err}`); sock.destroy() })
-  })
-  // n8n's own port when free (its links then match), any port otherwise
-  const listen = (port: number) => new Promise<void>((ok, ko) => { server.once('error', ko); server.listen(port, '127.0.0.1', () => { server.off('error', ko); ok() }) })
-  await listen(PORT).catch(() => listen(0))
-  tunnels.set(connectionId, server)
-  const url = `http://localhost:${(server.address() as AddressInfo).port}`
-  log('info', 'n8n', `Tunnel ${url} → ${connectionId}`)
-  return url
+  return `http://localhost:${await openForward(connectionId, PORT)}`
 }
 
 export function closeTunnel(connectionId: string): void {
-  tunnels.get(connectionId)?.close()
-  tunnels.delete(connectionId)
-}
-
-export function closeTunnels(): void {
-  for (const id of [...tunnels.keys()]) closeTunnel(id)
+  closeForward(connectionId, PORT)
 }
 
 // ─── Follow ───────────────────────────────────────────────────────────────────
