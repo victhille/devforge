@@ -230,6 +230,7 @@ const api: DevForgeAPI = {
   // Settings
   getSettings:  ()         => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
+  setFavorites: (paths) => ipcRenderer.invoke('settings:favorites', paths),
   watch: {
     status:       invoke('watch:status'),
     onStatus:     on('watch:status'),

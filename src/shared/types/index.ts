@@ -121,6 +121,8 @@ export interface AppSettings {
   dictationModel: 'base' | 'small'
   /** The first-launch tour was shown */
   onboarded: boolean
+  /** Pages pinned at the top of the menu, in order (only written by `setFavorites`) */
+  favorites: string[]
 }
 
 export type MotionSetting = 'full' | 'reduced' | 'system'
@@ -353,6 +355,8 @@ export interface DevForgeAPI {
   // Settings
   getSettings: () => Promise<AppSettings>
   saveSettings: (settings: AppSettings) => Promise<void>
+  /** Saves the menu favorites alone; returns them cleaned */
+  setFavorites: (paths: string[]) => Promise<string[]>
   updates: UpdatesAPI
   data: DataAPI
   hub: HubAPI
