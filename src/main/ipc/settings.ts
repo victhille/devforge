@@ -1,7 +1,7 @@
 import { app, ipcMain, shell } from 'electron'
 import { existsSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
-import { loadSettings, saveSettings } from '../services/settings/settingsService'
+import { loadSettings, saveSettings, setFavorites } from '../services/settings/settingsService'
 import { applyLoginItem } from '../lib/loginItem'
 import { log } from '../lib/log'
 import { checkForUpdates, getUpdateStatus, installUpdate, setUpdateChannel } from '../services/updates/updater'
@@ -48,6 +48,8 @@ export function registerSettingsHandlers(): void {
     applyLoginItem(settings)
     setUpdateChannel(settings.updateChannel === 'beta')
   })
+
+  ipcMain.handle('settings:favorites', (_event, paths: unknown) => setFavorites(paths))
 
   // ─── Updates ─────────────────────────────────────────────────────────────────
   ipcMain.handle('update:status', () => getUpdateStatus())

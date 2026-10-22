@@ -82,15 +82,15 @@ export const LISTED_PAGES = PAGES.filter(p => !p.route)
  * Sidebar layout: a few favorites always visible, every other page in a
  * folding group. Settings is pinned at the bottom on its own.
  */
-export const FAVORITES = ['/', '/projects', '/docker', '/database', '/api-tester']
+export { DEFAULT_FAVORITES } from '@shared/lib/favorites'
 
 export type GroupKey = 'groupDev' | 'groupServers' | 'groupSystem' | 'groupTools'
 
 export const MENU_GROUPS: { key: GroupKey; icon: LucideIcon; paths: string[] }[] = [
-  { key: 'groupDev',     icon: Code2,  paths: ['/git', '/stacks', '/new-project', '/snippets', '/diff', '/generator'] },
-  { key: 'groupServers', icon: Server, paths: ['/ssh', '/deploy', '/monitor', '/n8n', '/vpn', '/webhooks', '/logs'] },
+  { key: 'groupDev',     icon: Code2,  paths: ['/projects', '/git', '/stacks', '/new-project', '/snippets', '/diff', '/generator'] },
+  { key: 'groupServers', icon: Server, paths: ['/ssh', '/docker', '/deploy', '/monitor', '/n8n', '/vpn', '/webhooks', '/logs'] },
   { key: 'groupSystem',  icon: Cpu,    paths: ['/environment', '/ports', '/env-files', '/domains', '/cleaner'] },
-  { key: 'groupTools',   icon: Wrench, paths: ['/toolbox', '/docs'] }
+  { key: 'groupTools',   icon: Wrench, paths: ['/database', '/api-tester', '/toolbox', '/docs'] }
 ]
 
 /** Group holding a route (detail pages count for their parent: /vps/… is SSH) */

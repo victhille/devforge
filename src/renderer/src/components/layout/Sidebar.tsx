@@ -1,13 +1,49 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { ChevronRight, PanelLeftClose, PanelLeftOpen, type LucideIcon } from 'lucide-react'
+import { ChevronRight, PanelLeftClose, PanelLeftOpen, RotateCcw, Star, type LucideIcon } from 'lucide-react'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
-import { FAVORITES, HOME, LISTED_PAGES, MENU_GROUPS, groupOf, type GroupKey, type NavKey } from '@renderer/app/navigation'
+import { DEFAULT_FAVORITES, HOME, LISTED_PAGES, MENU_GROUPS, groupOf, type GroupKey, type NavKey } from '@renderer/app/navigation'
+import { MAX_FAVORITES } from '@shared/lib/favorites'
 
 const ENTRIES = [HOME, ...LISTED_PAGES]
 const entry = (path: string) => ENTRIES.find(p => p.path === path)!
+const known = (path: string) => path !== '/' && ENTRIES.some(p => p.path === path)
+
+/** The pinned pages, saved in the settings */
+function useFavorites() {
+  const [favorites, setLocal] = useState<string[]>(DEFAULT_FAVORITES)
+  useEffect(() => { window.devforge.getSettings().then(s => setLocal(s.favorites ?? DEFAULT_FAVORITES)).catch(() => {}) }, [])
+  const save = useCallback((next: string[]) => {
+    setLocal(next)
+    window.devforge.setFavorites(next).then(setLocal).catch(() => {})
+  }, [])
+  return [favorites, save] as const
+}
+
+/** ☆ shown on hover / focus: pins or unpins a page */
+function PinButton({ pinned, full, onToggle }: { pinned: boolean; full: boolean; onToggle: () => void }) {
+  const { t } = useI18n()
+  const label = pinned ? t.nav.unpin : full ? t.nav.favoritesFull.replace('{max}', String(MAX_FAVORITES)) : t.nav.pin
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      aria-pressed={pinned}
+      disabled={!pinned && full}
+      onClick={e => { e.preventDefault(); e.stopPropagation(); onToggle() }}
+      className={cn(
+        'absolute top-1/2 right-1.5 flex size-6 -translate-y-1/2 items-center justify-center rounded-md text-fg-muted opacity-0 transition-opacity',
+        'group-hover/row:opacity-100 focus-visible:opacity-100 hover:bg-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-40',
+        pinned && 'text-warning hover:text-warning'
+      )}
+    >
+      <Star size={13} strokeWidth={2} fill={pinned ? 'currentColor' : 'none'} />
+    </button>
+  )
+}
 
 /** Top-level link: favorites and Settings, with an icon */
 function NavEntry({ to, label, Icon, collapsed }: { to: string; label: string; Icon: LucideIcon; collapsed: boolean }) {
@@ -35,11 +71,13 @@ function NavEntry({ to, label, Icon, collapsed }: { to: string; label: string; I
 }
 
 /** A folding group: header, then its pages without icons */
-function NavGroup({ group, open, collapsed, onToggle }: {
+function NavGroup({ group, open, collapsed, onToggle, favorites, onPin }: {
   group: (typeof MENU_GROUPS)[number]
   open: boolean
   collapsed: boolean
   onToggle: () => void
+  favorites: string[]
+  onPin: (path: string) => void
 }) {
   const { t } = useI18n()
   const { pathname } = useLocation()
@@ -77,17 +115,20 @@ function NavGroup({ group, open, collapsed, onToggle }: {
         <div className="df-pop mb-1.5 ml-[18px] flex flex-col gap-px border-l border-line pl-2.5">
           {group.paths.map(path => {
             const page = entry(path)
+            const pinned = favorites.includes(path)
             return (
-              <NavLink
-                key={path}
-                to={path}
-                className={({ isActive }) => cn(
-                  'flex h-[30px] items-center truncate rounded-lg px-2.5 text-[12.5px] font-medium transition-colors',
-                  isActive ? 'bg-active text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg'
-                )}
-              >
-                {t.nav[page.labelKey as NavKey]}
-              </NavLink>
+              <div key={path} className="group/row relative">
+                <NavLink
+                  to={path}
+                  className={({ isActive }) => cn(
+                    'flex h-[30px] items-center truncate rounded-lg pr-8 pl-2.5 text-[12.5px] font-medium transition-colors',
+                    isActive ? 'bg-active text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg'
+                  )}
+                >
+                  {t.nav[page.labelKey as NavKey]}
+                </NavLink>
+                <PinButton pinned={pinned} full={favorites.length >= MAX_FAVORITES} onToggle={() => onPin(path)} />
+              </div>
             )
           })}
         </div>
@@ -102,11 +143,32 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = usePersistentState('devforge:sidebar-collapsed', false)
   const [openGroup, setOpenGroup] = usePersistentState<GroupKey | null>('devforge:sidebar-group', null)
   const settings = entry('/settings')
+  const [favorites, saveFavorites] = useFavorites()
+  const [dragged, setDragged] = useState<number | null>(null)
+  const shown = favorites.filter(known)
+  const isDefault = favorites.join() === DEFAULT_FAVORITES.join()
 
-  // Going to a page opens its group, so the current page is always visible
+  const togglePin = (path: string) => saveFavorites(favorites.includes(path) ? favorites.filter(p => p !== path) : [...favorites, path])
+  const move = (from: number, to: number) => {
+    if (to < 0 || to >= shown.length || from === to) return
+    const next = [...shown]
+    next.splice(to, 0, ...next.splice(from, 1))
+    saveFavorites(next)
+  }
+  const onFavKey = (i: number) => (e: ReactKeyboardEvent) => {
+    if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return
+    e.preventDefault()
+    const to = i + (e.key === 'ArrowUp' ? -1 : 1)
+    move(i, to)
+    // Focus follows the moved page
+    requestAnimationFrame(() => document.querySelectorAll<HTMLElement>('[data-fav] a')[Math.max(0, Math.min(to, shown.length - 1))]?.focus())
+  }
+
+  // Going to a page opens its group, so the current page is always visible (a favorite already is)
   useEffect(() => {
     const g = groupOf(pathname)
-    if (g) setOpenGroup(g)
+    if (g && !favorites.some(p => pathname === p || pathname.startsWith(p + '/'))) setOpenGroup(g)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, setOpenGroup])
 
   // Ctrl+B toggles the sidebar, like in most editors
@@ -136,19 +198,39 @@ export default function Sidebar() {
     >
       <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-x-hidden overflow-y-auto px-2.5 pt-3.5 pb-3">
         {!collapsed && (
-          <span className="truncate px-2.5 pb-1.5 font-mono text-2xs font-medium uppercase tracking-widest text-fg-muted">
-            {t.nav.favorites}
-          </span>
+          <div className="group/head flex items-center justify-between px-2.5 pb-1.5">
+            <span className="truncate font-mono text-2xs font-medium uppercase tracking-widest text-fg-muted">{t.nav.favorites}</span>
+            {!isDefault && (
+              <button type="button" title={t.nav.favoritesReset} aria-label={t.nav.favoritesReset} onClick={() => saveFavorites([...DEFAULT_FAVORITES])}
+                className="flex size-5 items-center justify-center rounded text-fg-muted opacity-0 transition-opacity group-hover/head:opacity-100 focus-visible:opacity-100 hover:text-fg">
+                <RotateCcw size={12} />
+              </button>
+            )}
+          </div>
         )}
-        {FAVORITES.map(path => {
+        <NavEntry to="/" label={t.nav[HOME.labelKey]} Icon={HOME.icon} collapsed={collapsed} />
+        {!collapsed && shown.length === 0 && <p className="px-2.5 py-1 text-xs text-fg-muted">{t.nav.favoritesEmpty}</p>}
+        {shown.map((path, i) => {
           const page = entry(path)
-          return <NavEntry key={path} to={path} label={t.nav[page.labelKey]} Icon={page.icon} collapsed={collapsed} />
+          return (
+            <div key={path} data-fav className={cn('group/row relative', dragged === i && 'opacity-40')}
+              title={collapsed ? undefined : t.nav.favoritesMove}
+              draggable={!collapsed}
+              onDragStart={e => { setDragged(i); e.dataTransfer.effectAllowed = 'move' }}
+              onDragOver={e => { if (dragged !== null) e.preventDefault() }}
+              onDrop={e => { e.preventDefault(); if (dragged !== null) move(dragged, i); setDragged(null) }}
+              onDragEnd={() => setDragged(null)}
+              onKeyDown={onFavKey(i)}>
+              <NavEntry to={path} label={t.nav[page.labelKey]} Icon={page.icon} collapsed={collapsed} />
+              {!collapsed && <PinButton pinned full={false} onToggle={() => togglePin(path)} />}
+            </div>
+          )
         })}
 
         <span className="mx-1 my-3 shrink-0 border-t border-line-subtle" />
 
         {MENU_GROUPS.map(group => (
-          <NavGroup key={group.key} group={group} open={openGroup === group.key} collapsed={collapsed} onToggle={() => toggleGroup(group.key)} />
+          <NavGroup key={group.key} group={group} open={openGroup === group.key} collapsed={collapsed} onToggle={() => toggleGroup(group.key)} favorites={favorites} onPin={togglePin} />
         ))}
       </nav>
 
