@@ -2,6 +2,14 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [2.1.0-beta.3](https://github.com/victhille/devforge/compare/v2.1.0-beta.2...v2.1.0-beta.3) — 2026-10-23
+
+> Updates finally arrive on their own: DevForge reads the releases with your GitHub CLI sign-in, and the Update button shows next to Forgy.
+
+### Fixes
+
+- **updates**: Lire les versions du dépôt privé avec le jeton de GitHub CLI ([6fd7b84](https://github.com/victhille/devforge/commit/6fd7b84899122c08c75ccdce621c1b3f3cd95d75))
+
 ## [2.1.0-beta.2](https://github.com/victhille/devforge/compare/v2.1.0-beta.1...v2.1.0-beta.2) — 2026-10-23
 
 > Nightly VPS backups with a copy on the PC, a Home page you compose, a palette that acts, compact mode, .env synced with the server, GitHub on the project page, and Forgy watching the VPS.
