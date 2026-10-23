@@ -163,6 +163,18 @@ export class SSHService {
     })
   }
 
+  /** Copies a file of the server to this PC over SFTP (to `localPath`, written in place) */
+  download(sessionId: string, remotePath: string, localPath: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const session = this.sessions.get(sessionId)
+      if (!session) { reject(new Error('Session not found')); return }
+      session.client.sftp((err, sftp) => {
+        if (err) { reject(err); return }
+        sftp.fastGet(remotePath, localPath, e => { sftp.end(); if (e) reject(e); else resolve() })
+      })
+    })
+  }
+
   /** Run a command and stream its output; resolves with the exit code. */
   execStream(sessionId: string, command: string, onData: (text: string) => void, timeoutMs = 30 * 60_000): Promise<number | null> {
     return new Promise((resolve, reject) => {

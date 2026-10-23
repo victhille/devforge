@@ -2,7 +2,7 @@ import type { ComponentType } from 'react'
 import {
   Home, FolderOpen, Plus, Monitor, Terminal, Settings, Wifi, BookOpen,
   Wrench, Send, Code, Columns, Key, GitBranch, HardDrive, FileKey2, Rocket, Container, UploadCloud, Activity, Globe, Database, ScrollText, Webhook,
-  Code2, Server, Cpu, Workflow, ShieldCheck, AppWindow, HeartPulse, type LucideIcon
+  Code2, Server, Cpu, Workflow, ShieldCheck, AppWindow, HeartPulse, HardDriveDownload, type LucideIcon
 } from 'lucide-react'
 import type { Translations } from '@renderer/i18n/translations'
 
@@ -44,6 +44,7 @@ export const PAGES: NavPage[] = [
   { path: '/n8n',         labelKey: 'n8n',         icon: Workflow,   section: 'sectionServers', load: () => import('@renderer/features/n8n/N8nPage'), keywords: ['n8n', 'workflow', 'automation', 'automatisation', 'zapier'] },
   { path: '/services',    labelKey: 'services',    icon: AppWindow,  section: 'sectionServers', load: () => import('@renderer/features/vps/ServicesPage'), keywords: ['portainer', 'phpmyadmin', 'adminer', 'tunnel', 'interface', 'web', 'conteneur'] },
   { path: '/health',      labelKey: 'health',      icon: HeartPulse, section: 'sectionServers', load: () => import('@renderer/features/vps/HealthPage'), keywords: ['santé', 'sécurité', 'security', 'updates', 'mises à jour', 'fail2ban', 'disque', 'disk', 'ports'] },
+  { path: '/backups',     labelKey: 'backups',     icon: HardDriveDownload, section: 'sectionServers', load: () => import('@renderer/features/vps/BackupsPage'), keywords: ['sauvegarde', 'backup', 'restaurer', 'restore', 'dump', 'cron'] },
   { path: '/vpn',         labelKey: 'vpn',         icon: ShieldCheck, section: 'sectionServers', load: () => import('@renderer/features/vpn/VpnPage'), keywords: ['vpn', 'wireguard', 'wg-easy', 'qr', 'client', 'tunnel'] },
 
   // System
@@ -90,7 +91,7 @@ export type GroupKey = 'groupDev' | 'groupServers' | 'groupSystem' | 'groupTools
 
 export const MENU_GROUPS: { key: GroupKey; icon: LucideIcon; paths: string[] }[] = [
   { key: 'groupDev',     icon: Code2,  paths: ['/projects', '/git', '/stacks', '/new-project', '/snippets', '/diff', '/generator'] },
-  { key: 'groupServers', icon: Server, paths: ['/ssh', '/health', '/services', '/docker', '/deploy', '/monitor', '/n8n', '/vpn', '/webhooks', '/logs'] },
+  { key: 'groupServers', icon: Server, paths: ['/ssh', '/health', '/services', '/backups', '/docker', '/deploy', '/monitor', '/n8n', '/vpn', '/webhooks', '/logs'] },
   { key: 'groupSystem',  icon: Cpu,    paths: ['/environment', '/ports', '/env-files', '/domains', '/cleaner'] },
   { key: 'groupTools',   icon: Wrench, paths: ['/database', '/api-tester', '/toolbox', '/docs'] }
 ]

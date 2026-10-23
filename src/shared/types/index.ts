@@ -238,6 +238,7 @@ export * from './watch'
 export * from './n8n'
 export * from './vpn'
 export * from './vpsops'
+export * from './backups'
 export * from './vercel'
 export * from './dictation'
 import type { GitAPI } from './git'
@@ -250,6 +251,7 @@ import type { WatchAPI } from './watch'
 import type { N8nAPI } from './n8n'
 import type { VpnAPI } from './vpn'
 import type { VpsOpsAPI } from './vpsops'
+import type { BackupsAPI } from './backups'
 import type { VercelAPI } from './vercel'
 import type { DictationAPI } from './dictation'
 import type { DockerAPI } from './docker'
@@ -366,6 +368,7 @@ export interface DevForgeAPI {
   n8n: N8nAPI
   vpn: VpnAPI
   vpsOps: VpsOpsAPI
+  backups: BackupsAPI
   vercel: VercelAPI
   dictation: DictationAPI
 

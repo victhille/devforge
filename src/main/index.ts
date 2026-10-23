@@ -17,6 +17,7 @@ import { initLog, log } from './lib/log'
 import { migrateData } from './services/storage/migrations'
 import { initUpdater, stopUpdater } from './services/updates/updater'
 import { stopWatch } from './services/monitor/vpsWatch'
+import { startBackupWatch, stopBackupWatch } from './services/backups/backupsService'
 import { stopHistory } from './services/monitor/history'
 import { closeAllForwards } from './services/ssh/localForward'
 
@@ -160,6 +161,8 @@ app.whenReady().then(() => {
 
   createWindow()
   if (mainWindow) initUpdater(mainWindow, settings.updateChannel === 'beta')
+  // Copies the night's VPS backup to this PC, warns about a missed one
+  startBackupWatch()
 
   // Warm the cache so the Environment page opens instantly
   detectEnvironment().catch(() => {})
@@ -180,7 +183,7 @@ app.whenReady().then(() => {
 })
 
 // Never leave dev servers running after DevForge quits
-app.on('before-quit', () => { disposeWidget(); processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks(); stopUpdater(); stopWatch(); stopHistory(); closeAllForwards() })
+app.on('before-quit', () => { disposeWidget(); processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks(); stopUpdater(); stopWatch(); stopHistory(); stopBackupWatch(); closeAllForwards() })
 
 app.on('window-all-closed', () => {
   sshService.disconnectAll()

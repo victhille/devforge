@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useId, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { cn } from '@renderer/lib/cn'
 import IconButton from './IconButton'
@@ -13,6 +13,8 @@ interface Props {
 
 /** Centered dialog over a dimmed backdrop. Closes on Escape or backdrop click. */
 export default function Modal({ title, onClose, footer, className, children }: Props) {
+  // The title names the dialog for screen readers
+  const titleId = useId()
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', onKey)
@@ -27,10 +29,11 @@ export default function Modal({ title, onClose, footer, className, children }: P
       <div
         role="dialog"
         aria-modal="true"
+        aria-labelledby={titleId}
         className={cn('flex max-h-full w-full max-w-md flex-col rounded-xl border border-line bg-surface shadow-pop', className)}
       >
         <div className="flex items-center justify-between border-b border-line-subtle px-5 py-3.5">
-          <h3 className="text-md font-semibold text-fg">{title}</h3>
+          <h3 id={titleId} className="text-md font-semibold text-fg">{title}</h3>
           <IconButton title="Close" onClick={onClose}><X size={16} /></IconButton>
         </div>
         <div className="flex flex-col gap-4 overflow-y-auto px-5 py-4">{children}</div>
