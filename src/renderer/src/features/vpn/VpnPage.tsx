@@ -16,7 +16,8 @@ import { Input, Select } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
-const KEY = 'devforge:vpn-server'
+/** Shared with the other VPS pages (Services, Health, Backups) */
+const KEY = 'devforge:vps-server'
 /** Clients refresh while the page is open: transfers and last handshakes move */
 const REFRESH_MS = 15_000
 
@@ -132,7 +133,14 @@ function Clients({ conn, found, onForget }: { conn: SSHConnection; found: VpnDet
   const [tunnel, setTunnel] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [qr, setQr] = useState<{ name: string; url: string } | null>(null)
-  const [creating, setCreating] = useState(false)
+  // "New VPN client" from the command palette opens the form straight away
+  const [creating, setCreating] = useState(() => {
+    try {
+      if (sessionStorage.getItem('devforge:vpn-new') !== conn.id) return false
+      sessionStorage.removeItem('devforge:vpn-new')
+      return true
+    } catch { return false }
+  })
 
   const say = useCallback((err: unknown) => { const e = errorText(err); return e === 'BAD_LOGIN' ? v.badLogin : e }, [v.badLogin])
   const load = useCallback(() => window.devforge.vpn.clients(conn.id).then(c => { setClients(c); setError('') }).catch(err => setError(say(err))), [conn.id, say])

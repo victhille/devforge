@@ -1,7 +1,7 @@
 import { app, ipcMain, shell } from 'electron'
 import { existsSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
-import { loadSettings, saveSettings, setFavorites } from '../services/settings/settingsService'
+import { loadSettings, saveSettings, setFavorites, setHomeWidgets } from '../services/settings/settingsService'
 import { applyLoginItem } from '../lib/loginItem'
 import { log } from '../lib/log'
 import { checkForUpdates, getUpdateStatus, installUpdate, setUpdateChannel } from '../services/updates/updater'
@@ -50,6 +50,7 @@ export function registerSettingsHandlers(): void {
   })
 
   ipcMain.handle('settings:favorites', (_event, paths: unknown) => setFavorites(paths))
+  ipcMain.handle('settings:home-widgets', (_event, widgets: unknown) => setHomeWidgets(widgets))
 
   // ─── Updates ─────────────────────────────────────────────────────────────────
   ipcMain.handle('update:status', () => getUpdateStatus())

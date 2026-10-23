@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Layers, Plus, RefreshCw, TerminalSquare } from 'lucide-react'
-import type { DockerOverview, GitRepoDetails, ListeningPort, Project, SSHConnection } from '@shared/types'
+import { Check, GripVertical, LayoutDashboard, Layers, Maximize2, Minimize2, Plus, RefreshCw, RotateCcw, TerminalSquare, X } from 'lucide-react'
+import type { DockerOverview, GitRepoDetails, HomeWidget, ListeningPort, Project, SSHConnection, WidgetId } from '@shared/types'
+import { DEFAULT_WIDGETS, WIDGET_IDS } from '@shared/lib/homeWidgets'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useActivity, useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
@@ -16,70 +17,8 @@ import { TimeChart } from '@renderer/components/charts/TimeChart'
 import { formatRelative } from '@renderer/lib/format'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
 import ProjectIcon from '@renderer/features/projects/components/ProjectIcon'
-
-// ─── Building blocks ──────────────────────────────────────────────────────────
-
-const plural = (n: number, one: string, many: string) => (n === 1 ? one : many.replace('{n}', String(n)))
-
-/** A dashboard card: title row, then content; `i` staggers the entrance */
-function Tile({ i, title, aside, className, children }: { i: number; title: ReactNode; aside?: ReactNode; className?: string; children: ReactNode }) {
-  return (
-    <Card className={cn('df-rise df-lift flex min-w-0 flex-col gap-3 rounded-[14px] p-[18px] hover:border-line', className)} style={{ '--i': i } as CSSProperties}>
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="truncate text-md font-semibold text-fg">{title}</h2>
-        {aside}
-      </div>
-      {children}
-    </Card>
-  )
-}
-
-function Pill({ tone, children }: { tone: 'success' | 'warning' | 'accent' | 'muted'; children: ReactNode }) {
-  const tones = {
-    success: 'bg-success-soft text-success',
-    warning: 'bg-warning-soft text-warning',
-    accent: 'bg-accent-soft text-accent',
-    muted: 'bg-elevated text-fg-muted'
-  }
-  return <span className={cn('shrink-0 rounded-full px-2 py-0.5 font-mono text-xs font-medium', tones[tone])}>{children}</span>
-}
-
-function Dot({ live, delay = 0 }: { live: boolean; delay?: number }) {
-  return (
-    <span
-      className={cn('size-2 shrink-0 rounded-full', live ? 'df-ping bg-success' : 'bg-fg-disabled')}
-      style={{ animationDelay: `${delay}s` }}
-    />
-  )
-}
-
-function Gauge({ label, pct, i }: { label: string; pct: number; i: number }) {
-  return (
-    <div className="flex flex-col gap-1.5 text-[12.5px]">
-      <div className="flex justify-between">
-        <span className="text-fg-secondary">{label}</span>
-        <span className="font-mono text-fg">{Math.round(pct)} %</span>
-      </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-line">
-        <div
-          className={cn('df-grow h-full rounded-full', pct >= 80 ? 'bg-warning' : 'bg-accent')}
-          style={{ width: `${Math.min(100, pct)}%`, animationDelay: `${i * 0.15}s` }}
-        />
-      </div>
-    </div>
-  )
-}
-
-const SmallButton = ({ danger, className, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { danger?: boolean }) => (
-  <button
-    {...rest}
-    className={cn(
-      'h-8 rounded-lg border text-[12.5px] font-medium transition-colors disabled:opacity-50',
-      danger ? 'border-danger/30 bg-danger-soft text-danger hover:bg-danger hover:text-white' : 'border-line bg-elevated text-fg hover:bg-hover',
-      className
-    )}
-  />
-)
+import { Dot, Gauge, Pill, SmallButton, Tile, plural } from './parts'
+import { BackupsWidget, HealthWidget, N8nWidget, ServicesWidget, VpnWidget } from './vpsWidgets'
 
 // ─── Docker ───────────────────────────────────────────────────────────────────
 
@@ -285,7 +224,7 @@ function ActiveProjectCard({ projects, repos }: { projects: Project[]; repos: { 
   )
 
   return (
-    <Card className="df-rise flex flex-wrap items-center gap-4 rounded-[14px] border-accent/25 p-[18px]" style={{ '--i': 1 } as CSSProperties}>
+    <Card className="df-rise flex h-full flex-wrap items-center gap-4 rounded-[14px] border-accent/25 p-[18px]" style={{ '--i': 1 } as CSSProperties}>
       {active ? (
         <>
           <ProjectIcon framework={active.framework} size="lg" />
@@ -315,7 +254,7 @@ function ActivityTile({ i }: { i: number }) {
   const { t } = useI18n()
   const activity = useActivity()
   return (
-    <Tile i={i} title={t.home.activity} className="md:col-span-2">
+    <Tile i={i} title={t.home.activity}>
       {activity.length === 0 ? <p className="text-sm text-fg-muted">{t.home.noActivity}</p> : (
         <ol className="flex flex-col gap-2.5 text-base">
           {activity.slice(0, 5).map(a => (
@@ -349,6 +288,74 @@ function Onboarding() {
   )
 }
 
+// ─── Layout ───────────────────────────────────────────────────────────────────
+
+const move = (list: HomeWidget[], from: number, to: number): HomeWidget[] => {
+  if (to < 0 || to >= list.length || from === to) return list
+  const next = [...list]
+  next.splice(to, 0, ...next.splice(from, 1))
+  return next
+}
+
+/** A widget; while customizing: drag it (or Alt + ↑ ↓ on its handle), widen it, remove it */
+function WidgetFrame({ widget, index, count, editing, dragging, children, onDragStart, onDragEnd, onDrop, onMove, onResize, onRemove }: {
+  widget: HomeWidget; index: number; count: number; editing: boolean; dragging: boolean; children: ReactNode
+  onDragStart: () => void; onDragEnd: () => void; onDrop: () => void; onMove: (to: number) => void; onResize: () => void; onRemove: () => void
+}) {
+  const { t } = useI18n()
+  const w = t.home.widgets
+  const name = w.names[widget.id]
+  const onKey = (e: ReactKeyboardEvent) => {
+    if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return
+    e.preventDefault()
+    const to = index + (e.key === 'ArrowUp' ? -1 : 1)
+    if (to < 0 || to >= count) return
+    onMove(to)
+    // Focus follows the moved widget
+    requestAnimationFrame(() => document.querySelectorAll<HTMLElement>('[data-widget-grip]')[to]?.focus())
+  }
+  return (
+    <div data-widget={widget.id}
+      className={cn('relative min-w-0', widget.size === 'full' && 'md:col-span-2', editing && 'rounded-[16px] outline-2 outline-offset-2 outline-line outline-dashed', dragging && 'opacity-40')}
+      draggable={editing} onDragStart={e => { onDragStart(); e.dataTransfer.effectAllowed = 'move' }} onDragEnd={onDragEnd}
+      onDragOver={e => { if (editing) e.preventDefault() }} onDrop={e => { e.preventDefault(); onDrop() }}>
+      <div className={cn('h-full', editing && 'pointer-events-none select-none')} aria-hidden={editing || undefined}>{children}</div>
+      {editing && (
+        <div className="absolute -top-4 right-4 z-10 flex items-center gap-0.5 rounded-lg border border-line bg-elevated p-0.5 shadow-pop">
+          <button type="button" data-widget-grip title={w.move} aria-label={`${name} — ${w.move}`} onKeyDown={onKey}
+            className="flex size-7 cursor-grab items-center justify-center rounded-md text-fg-muted hover:bg-hover hover:text-fg"><GripVertical size={14} /></button>
+          <button type="button" onClick={onResize} title={widget.size === 'full' ? w.narrow : w.widen} aria-label={`${name} — ${widget.size === 'full' ? w.narrow : w.widen}`}
+            className="hidden size-7 items-center justify-center rounded-md text-fg-muted hover:bg-hover hover:text-fg md:flex">{widget.size === 'full' ? <Minimize2 size={13} /> : <Maximize2 size={13} />}</button>
+          <button type="button" onClick={onRemove} title={w.remove.replace('{name}', name)} aria-label={w.remove.replace('{name}', name)}
+            className="flex size-7 items-center justify-center rounded-md text-fg-muted hover:bg-danger-soft hover:text-danger"><X size={14} /></button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** While customizing: add a widget, back to the defaults, done */
+function WidgetBar({ widgets, onAdd, onReset, onDone }: { widgets: HomeWidget[]; onAdd: (id: WidgetId) => void; onReset: () => void; onDone: () => void }) {
+  const { t } = useI18n()
+  const w = t.home.widgets
+  const missing = WIDGET_IDS.filter(id => !widgets.some(x => x.id === id))
+  return (
+    <Card className="df-rise flex flex-wrap items-center gap-3 rounded-[14px] border-accent/30 p-3.5">
+      <p className="min-w-[220px] flex-1 text-[13px] text-fg-secondary">{w.hint}</p>
+      <label className="flex items-center">
+        <span className="sr-only">{w.add}</span>
+        <select value="" disabled={!missing.length} onChange={e => { if (e.target.value) onAdd(e.target.value as WidgetId) }}
+          className="h-9 rounded-[9px] border border-line bg-canvas px-3 text-sm text-fg outline-none disabled:opacity-50">
+          <option value="">{missing.length ? `+ ${w.add}` : w.allShown}</option>
+          {missing.map(id => <option key={id} value={id}>{w.names[id]}</option>)}
+        </select>
+      </label>
+      <Button variant="ghost" onClick={onReset}><RotateCcw size={14} /> {w.reset}</Button>
+      <Button onClick={onDone}><Check size={14} /> {w.done}</Button>
+    </Card>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
@@ -362,6 +369,15 @@ export default function HomePage() {
   const [repos, setRepos] = useState<{ project: Project; details: GitRepoDetails }[] | null>(null)
   const [fetching, setFetching] = useState(false)
   const [vps, setVps] = useState<'ok' | 'disk' | 'down' | null>(null)
+  const [widgets, setWidgets] = useState<HomeWidget[] | null>(null)
+  const [editing, setEditing] = useState(false)
+  const [dragged, setDragged] = useState<number | null>(null)
+
+  useEffect(() => { window.devforge.getSettings().then(s => setWidgets(s.homeWidgets ?? DEFAULT_WIDGETS)).catch(() => setWidgets(DEFAULT_WIDGETS)) }, [])
+  const saveWidgets = useCallback((next: HomeWidget[]) => {
+    setWidgets(next)
+    window.devforge.setHomeWidgets(next).then(setWidgets).catch(() => {})
+  }, [])
 
   const loadDocker = useCallback(() => {
     window.devforge.docker.overview().then(setDocker).catch(() => {})
@@ -414,6 +430,7 @@ export default function HomePage() {
           <p className="text-md text-fg-secondary">{docker ? `${summary[0].toUpperCase()}${summary.slice(1)}.` : t.home.subtitle}</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {!editing && <Button variant="ghost" onClick={() => setEditing(true)}><LayoutDashboard size={15} /> {t.home.widgets.customize}</Button>}
           <Button variant="secondary" onClick={() => projects[0] && window.devforge.openTerminal(projects[0].path)} disabled={!projects.length}>
             <TerminalSquare size={15} /> {t.home.openTerminal}
           </Button>
@@ -421,14 +438,43 @@ export default function HomePage() {
         </div>
       </header>
 
-      {loaded && projects.length === 0 ? <Onboarding /> : <ActiveProjectCard projects={projects} repos={repos} />}
+      {loaded && projects.length === 0 && <Onboarding />}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <DockerTile i={2} docker={docker} reload={loadDocker} />
-        <VpsTile i={3} conn={conn} onState={setVps} />
-        <GitTile i={4} repos={repos} fetching={fetching} onFetchAll={fetchAll} />
-        <PortsTile i={5} ports={ports} />
-        <ActivityTile i={6} />
+      {editing && widgets && (
+        <WidgetBar widgets={widgets} onAdd={id => saveWidgets([...widgets, { id, size: id === 'activity' || id === 'active-project' ? 'full' : 'half' }])}
+          onReset={() => saveWidgets(DEFAULT_WIDGETS.map(w => ({ ...w })))} onDone={() => setEditing(false)} />
+      )}
+
+      {widgets && widgets.length === 0 && !editing && <p className="text-sm text-fg-muted">{t.home.widgets.empty}</p>}
+
+      {/* More room between rows while customizing: each widget's toolbar sits on its top edge */}
+      <div className={cn('grid grid-cols-1 gap-4 md:grid-cols-2', editing && 'gap-y-8 pt-3')}>
+        {(widgets ?? []).map((w, i) => {
+          const content: Record<WidgetId, ReactNode> = {
+            'active-project': loaded && projects.length > 0 ? <ActiveProjectCard projects={projects} repos={repos} /> : null,
+            docker: <DockerTile i={i + 2} docker={docker} reload={loadDocker} />,
+            vps: <VpsTile i={i + 2} conn={conn} onState={setVps} />,
+            git: <GitTile i={i + 2} repos={repos} fetching={fetching} onFetchAll={fetchAll} />,
+            ports: <PortsTile i={i + 2} ports={ports} />,
+            activity: <ActivityTile i={i + 2} />,
+            health: <HealthWidget i={i + 2} />,
+            services: <ServicesWidget i={i + 2} />,
+            backups: <BackupsWidget i={i + 2} />,
+            n8n: <N8nWidget i={i + 2} />,
+            vpn: <VpnWidget i={i + 2} />
+          }
+          if (!content[w.id] && !editing) return null
+          return (
+            <WidgetFrame key={w.id} widget={w} index={i} count={widgets!.length} editing={editing} dragging={dragged === i}
+              onDragStart={() => setDragged(i)} onDragEnd={() => setDragged(null)}
+              onDrop={() => { if (dragged !== null) saveWidgets(move(widgets!, dragged, i)); setDragged(null) }}
+              onMove={to => saveWidgets(move(widgets!, i, to))}
+              onResize={() => saveWidgets(widgets!.map(x => (x.id === w.id ? { ...x, size: x.size === 'full' ? 'half' : 'full' } : x)))}
+              onRemove={() => saveWidgets(widgets!.filter(x => x.id !== w.id))}>
+              {content[w.id] ?? <Tile i={i} title={t.home.widgets.names[w.id]}><p className="text-sm text-fg-muted">{t.home.noProjects}</p></Tile>}
+            </WidgetFrame>
+          )
+        })}
       </div>
     </Page>
   )

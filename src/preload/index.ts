@@ -231,6 +231,7 @@ const api: DevForgeAPI = {
   getSettings:  ()         => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
   setFavorites: (paths) => ipcRenderer.invoke('settings:favorites', paths),
+  setHomeWidgets: (widgets) => ipcRenderer.invoke('settings:home-widgets', widgets),
   watch: {
     status:       invoke('watch:status'),
     onStatus:     on('watch:status'),
@@ -287,6 +288,7 @@ const api: DevForgeAPI = {
   },
 
   backups: {
+    plans:          invoke('backups:plans'),
     candidates:     invoke('backups:candidates'),
     state:          invoke('backups:state'),
     save:           invoke('backups:save'),

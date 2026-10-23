@@ -1,3 +1,5 @@
+import type { HomeWidget } from '../lib/homeWidgets'
+export type { HomeWidget, WidgetId } from '../lib/homeWidgets'
 // ─── Project ─────────────────────────────────────────────────────────────────
 
 export type Framework =
@@ -115,6 +117,8 @@ export interface AppSettings {
   updateChannel: 'stable' | 'beta'
   /** 'system' follows Windows' "animation effects" */
   motion: MotionSetting
+  /** 'compact': smaller spacing and text, for small screens */
+  density: Density
   /** "What's new" window on the first launch after an update */
   showWhatsNew: boolean
   /** Whisper model for voice typing */
@@ -123,9 +127,12 @@ export interface AppSettings {
   onboarded: boolean
   /** Pages pinned at the top of the menu, in order (only written by `setFavorites`) */
   favorites: string[]
+  /** Widgets of the Home page, in order (only written by `setHomeWidgets`) */
+  homeWidgets: HomeWidget[]
 }
 
 export type MotionSetting = 'full' | 'reduced' | 'system'
+export type Density = 'comfortable' | 'compact'
 
 /** Settings → Data */
 export interface DataInfo {
@@ -361,6 +368,8 @@ export interface DevForgeAPI {
   saveSettings: (settings: AppSettings) => Promise<void>
   /** Saves the menu favorites alone; returns them cleaned */
   setFavorites: (paths: string[]) => Promise<string[]>
+  /** Saves the Home widgets alone; returns them cleaned */
+  setHomeWidgets: (widgets: HomeWidget[]) => Promise<HomeWidget[]>
   updates: UpdatesAPI
   data: DataAPI
   hub: HubAPI

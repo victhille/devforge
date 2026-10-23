@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CornerDownLeft, Search } from 'lucide-react'
 import { useI18n } from '@renderer/i18n/I18nContext'
+import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
 import { useCommands, scoreCommand, type Command } from './useCommands'
 
@@ -15,6 +16,7 @@ export default function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef  = useRef<HTMLDivElement>(null)
   const commands = useCommands(open)
+  const toast = useToast()
 
   // Global shortcut + custom event (title bar button)
   useEffect(() => {
@@ -70,8 +72,14 @@ export default function CommandPalette() {
 
   function execute(cmd: Command | undefined) {
     if (!cmd) return
+    if (cmd.confirm && !window.confirm(cmd.confirm)) return
     setOpen(false)
-    cmd.run()
+    const r = cmd.run()
+    // An action says when it is done, or why it failed
+    if (r instanceof Promise) {
+      r.then(() => toast.show({ tone: 'success', title: t.palette.done.replace('{title}', cmd.title) }))
+        .catch(err => toast.show({ tone: 'error', title: t.palette.failed.replace('{title}', cmd.title), description: String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') }))
+    }
   }
 
   function onKeyDown(e: React.KeyboardEvent) {

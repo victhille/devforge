@@ -28,6 +28,9 @@ function readStore(): Store {
 }
 const writeStore = (s: Store) => writeJsonFile(storePath(), s)
 
+/** Saved plans (local read: no SSH) */
+export const listPlans = (): BackupPlan[] => readStore().plans
+
 const engineOf = (image: string): DbEngine | null => (/postgres|postgis|timescale/i.test(image) ? 'postgres' : /mariadb|mysql/i.test(image) ? 'mariadb' : null)
 
 // ─── What can be backed up ────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Check, Database, Info, Palette, RefreshCw, Search, Server, SlidersHorizontal, Bot, type LucideIcon } from 'lucide-react'
-import type { AppSettings, DefaultIDE, PackageManager, Theme, AppLanguage, MotionSetting } from '@shared/types'
+import type { AppSettings, DefaultIDE, PackageManager, Theme, AppLanguage, MotionSetting, Density } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { applyAppearance } from '@renderer/lib/appearance'
@@ -20,7 +20,7 @@ import { Segmented, SettingRow, SettingsCard } from './parts'
 type Section = 'general' | 'appearance' | 'forgy' | 'servers' | 'data' | 'updates' | 'about'
 const SECTIONS: { id: Section; icon: LucideIcon; words: string }[] = [
   { id: 'general', icon: SlidersHorizontal, words: 'dossier folder projets projects paquets package npm pnpm yarn éditeur editor ide vs code windows démarrer start barre tray' },
-  { id: 'appearance', icon: Palette, words: 'thème theme sombre dark clair light langue language anglais english français animations motion' },
+  { id: 'appearance', icon: Palette, words: 'thème theme sombre dark clair light langue language anglais english français animations motion densité density compact compacte' },
   { id: 'forgy', icon: Bot, words: 'assistant clé key api modèle model effort budget actions widget raccourci shortcut promène walk boulon' },
   { id: 'servers', icon: Server, words: 'surveillance watch vps ssh alertes alerts disque disk conteneur container notifications site' },
   { id: 'data', icon: Database, words: 'données data sauvegardes backups restaurer restore journal log diagnostic rapport report dossier effacer clear historique history' },
@@ -67,7 +67,7 @@ export default function SettingsPage() {
     if (!persist) return
     await window.devforge.saveSettings(next)
     if (key === 'language') setLang(value as AppLanguage)
-    if (key === 'theme' || key === 'motion') applyAppearance(next)
+    if (key === 'theme' || key === 'motion' || key === 'density') applyAppearance(next)
     onSaved()
   }
 
@@ -183,6 +183,10 @@ export default function SettingsPage() {
               <SettingRow label={s.language} hint={s.languageHint}>
                 <Segmented<AppLanguage> label={s.language} value={settings.language} onChange={v => set('language', v)}
                   items={[{ value: 'fr', label: 'Français' }, { value: 'en', label: 'English' }]} />
+              </SettingRow>
+              <SettingRow label={s.density} hint={s.densityHint}>
+                <Segmented<Density> label={s.density} value={settings.density ?? 'comfortable'} onChange={v => set('density', v)}
+                  items={[{ value: 'comfortable', label: s.densityComfortable }, { value: 'compact', label: s.densityCompact }]} />
               </SettingRow>
               <SettingRow label={s.motion} hint={s.motionHint}>
                 <Segmented<MotionSetting> label={s.motion} value={settings.motion ?? 'system'} onChange={v => set('motion', v)}

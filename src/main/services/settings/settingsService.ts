@@ -4,6 +4,8 @@ import { app } from 'electron'
 import type { AppSettings } from '@shared/types'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { DEFAULT_FAVORITES, cleanFavorites } from '@shared/lib/favorites'
+import { DEFAULT_WIDGETS, cleanWidgets } from '@shared/lib/homeWidgets'
+import type { HomeWidget } from '@shared/types'
 
 const DEFAULT_SETTINGS: AppSettings = {
   defaultProjectsDir: '',
@@ -16,10 +18,12 @@ const DEFAULT_SETTINGS: AppSettings = {
   minimizeToTray: false,
   updateChannel: 'stable',
   motion: 'system',
+  density: 'comfortable',
   showWhatsNew: true,
   dictationModel: 'base',
   onboarded: false,
-  favorites: DEFAULT_FAVORITES
+  favorites: DEFAULT_FAVORITES,
+  homeWidgets: DEFAULT_WIDGETS
 }
 
 function getSettingsPath(): string {
@@ -38,17 +42,26 @@ export function loadSettings(): AppSettings {
   try {
     // A settings file from before the first-launch tour: that user is not new
     const s = { ...DEFAULT_SETTINGS, onboarded: true, ...JSON.parse(readFileSync(path, 'utf-8')) } as AppSettings
-    return { ...s, favorites: cleanFavorites(s.favorites) }
+    return { ...s, favorites: cleanFavorites(s.favorites), homeWidgets: cleanWidgets(s.homeWidgets) }
   } catch {
     return DEFAULT_SETTINGS
   }
 }
 
-/** Favorites keep the value on disk: a page holding an older copy of the settings cannot undo a pin */
+/** Favorites and Home widgets keep the value on disk: a page holding an older copy of the settings cannot undo them */
 export function saveSettings(settings: AppSettings): void {
   const path = getSettingsPath()
   mkdirSync(dirname(path), { recursive: true })
-  writeJsonFile(path, { ...settings, favorites: loadSettings().favorites })
+  const disk = loadSettings()
+  writeJsonFile(path, { ...settings, favorites: disk.favorites, homeWidgets: disk.homeWidgets })
+}
+
+export function setHomeWidgets(widgets: unknown): HomeWidget[] {
+  const path = getSettingsPath()
+  mkdirSync(dirname(path), { recursive: true })
+  const homeWidgets = cleanWidgets(widgets)
+  writeJsonFile(path, { ...loadSettings(), homeWidgets })
+  return homeWidgets
 }
 
 export function setFavorites(paths: unknown): string[] {
