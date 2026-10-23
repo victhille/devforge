@@ -2,6 +2,14 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [2.1.0-beta.4](https://github.com/victhille/devforge/compare/v2.1.0-beta.3...v2.1.0-beta.4) — 2026-10-23
+
+> Your Automations automations show on DevForge's Home page, and Forgy can read their feed.
+
+### New features
+
+- **automations**: Widget Automatisations et lecture du flux par Forgy ([ac6ca1f](https://github.com/victhille/devforge/commit/ac6ca1f1f1269b5eb9f52700352c4997ad5bc815))
+
 ## [2.1.0-beta.3](https://github.com/victhille/devforge/compare/v2.1.0-beta.2...v2.1.0-beta.3) — 2026-10-23
 
 > Updates finally arrive on their own: DevForge reads the releases with your GitHub CLI sign-in, and the Update button shows next to Forgy.
