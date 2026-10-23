@@ -1,12 +1,13 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import type { BackupPlan } from '@shared/types'
-import { candidates, copyLatest, disable, localFolder, restore, runNow, save, state } from '../services/backups/backupsService'
+import { candidates, copyLatest, disable, listPlans, localFolder, restore, runNow, save, state } from '../services/backups/backupsService'
 
 export function registerBackupsHandlers(mainWindow: BrowserWindow): void {
   const id = (v: unknown) => { if (typeof v !== 'string' || !v) throw new Error('Unknown server'); return v }
   const send = (connectionId: string) => (text: string) => { if (!mainWindow.isDestroyed()) mainWindow.webContents.send('backups:log', { connectionId, text }) }
 
+  ipcMain.handle('backups:plans', () => listPlans())
   ipcMain.handle('backups:candidates', (_e, c: unknown) => candidates(id(c)))
   ipcMain.handle('backups:state', (_e, c: unknown) => state(id(c)))
   ipcMain.handle('backups:save', (_e, plan: Omit<BackupPlan, 'savedAt'>) => save({ ...plan, connectionId: id(plan?.connectionId) }, send(id(plan?.connectionId))))

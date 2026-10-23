@@ -5,6 +5,7 @@ import type { Project, SSHConnection, Stack } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useConsole } from '@renderer/app/ConsoleContext'
 import { HOME, LISTED_PAGES, type NavPage } from '@renderer/app/navigation'
+import { useActions } from './useActions'
 
 export interface Command {
   id: string
@@ -15,7 +16,10 @@ export interface Command {
   /** Hex color for the icon, e.g. a project's framework */
   color?: string
   keywords?: string
-  run: () => void
+  /** Asked before the command runs (it changes something) */
+  confirm?: string
+  /** A promise: the palette says when it is done, or why it failed */
+  run: () => void | Promise<void>
 }
 
 /** Every action the palette can run, built from pages, projects and SSH connections. */
@@ -27,6 +31,7 @@ export function useCommands(open: boolean): Command[] {
   const [connections, setConnections] = useState<SSHConnection[]>([])
   const [scripts, setScripts] = useState<Record<string, Record<string, string>>>({})
   const [stacks, setStacks] = useState<Stack[]>([])
+  const actions = useActions(open)
 
   // Refresh data each time the palette opens (cheap local reads)
   useEffect(() => {
@@ -106,8 +111,9 @@ export function useCommands(open: boolean): Command[] {
       })
     }
 
-    return list
-  }, [t, navigate, runScript, projects, scripts, connections, stacks])
+    // Actions after the pages: they show first for a matching search
+    return [...list.slice(0, pages.length), ...actions, ...list.slice(pages.length)]
+  }, [t, navigate, runScript, projects, scripts, connections, stacks, actions])
 }
 
 /** Lowercase, accent-free text for matching. */

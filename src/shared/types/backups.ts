@@ -51,6 +51,8 @@ export interface BackupState {
 }
 
 export interface BackupsAPI {
+  /** Saved plans, read locally */
+  plans: () => Promise<BackupPlan[]>
   candidates: (connectionId: string) => Promise<BackupCandidates>
   state: (connectionId: string) => Promise<BackupState>
   /** Installs or updates the nightly backup; output streams on `onLog` */

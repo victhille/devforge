@@ -1,10 +1,11 @@
-import type { MotionSetting, Theme } from '@shared/types'
+import type { Density, MotionSetting, Theme } from '@shared/types'
 
-/** Theme and animation level, as attributes the CSS reads */
-export function applyAppearance(s: { theme?: Theme; motion?: MotionSetting }): void {
+/** Theme, animation level and density, as attributes the CSS reads */
+export function applyAppearance(s: { theme?: Theme; motion?: MotionSetting; density?: Density }): void {
   const root = document.documentElement
   root.setAttribute('data-theme', s.theme ?? 'dark')
   root.setAttribute('data-motion', s.motion ?? 'system')
+  root.setAttribute('data-density', s.density ?? 'comfortable')
 }
 
 /** True when animations should stay still (setting, or Windows when it follows the system) */

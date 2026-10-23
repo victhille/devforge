@@ -167,6 +167,23 @@
   --text-3xl: 28px;  --text-3xl--line-height: 1.2;
 }
 
+/* ─── Compact density ───────────────────────────────────────────────────────
+   Tailwind's spacing and the text sizes are variables: redefining them makes
+   every page denser at once (paddings, gaps, heights, text). */
+:root[data-density='compact'] {
+  --spacing: 0.21rem;
+  --text-2xs: 9.5px;
+  --text-xs: 10.5px;
+  --text-sm: 11.5px;
+  --text-base: 12px;
+  --text-md: 13px;
+  --text-lg: 15px;
+  --text-xl: 17px;
+  --text-2xl: 20px;
+  --text-3xl: 25px;
+}
+:root[data-density='compact'] body { font-size: 12px; }
+
 /* ─── Base ─────────────────────────────────────────────────────────────────── */
 
 @layer base {
