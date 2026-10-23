@@ -312,6 +312,11 @@ const api: DevForgeAPI = {
     hasToken:  invoke('github:has-token')
   },
 
+  automations: {
+    feed: invoke('automations:feed'),
+    open: invoke('automations:open')
+  },
+
   dictation: {
     status:     invoke('dictation:status'),
     prepare:    invoke('dictation:prepare'),

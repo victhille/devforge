@@ -19,6 +19,7 @@ import { useActiveProject } from '@renderer/hooks/useActiveProject'
 import ProjectIcon from '@renderer/features/projects/components/ProjectIcon'
 import { Dot, Gauge, Pill, SmallButton, Tile, plural } from './parts'
 import { BackupsWidget, HealthWidget, N8nWidget, ServicesWidget, VpnWidget } from './vpsWidgets'
+import AutomationsWidget from './AutomationsWidget'
 
 // ─── Docker ───────────────────────────────────────────────────────────────────
 
@@ -461,7 +462,8 @@ export default function HomePage() {
             services: <ServicesWidget i={i + 2} />,
             backups: <BackupsWidget i={i + 2} />,
             n8n: <N8nWidget i={i + 2} />,
-            vpn: <VpnWidget i={i + 2} />
+            vpn: <VpnWidget i={i + 2} />,
+            automations: <AutomationsWidget i={i + 2} />
           }
           if (!content[w.id] && !editing) return null
           return (
