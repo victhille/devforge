@@ -286,6 +286,19 @@ const api: DevForgeAPI = {
     onFixLog:    on('vps:fix-log')
   },
 
+  backups: {
+    candidates:     invoke('backups:candidates'),
+    state:          invoke('backups:state'),
+    save:           invoke('backups:save'),
+    disable:        invoke('backups:disable'),
+    runNow:         invoke('backups:run-now'),
+    copyNow:        invoke('backups:copy-now'),
+    restore:        invoke('backups:restore'),
+    chooseLocalDir: invoke('backups:choose-dir'),
+    openLocalDir:   invoke('backups:open-dir'),
+    onLog:          on('backups:log')
+  },
+
   dictation: {
     status:     invoke('dictation:status'),
     prepare:    invoke('dictation:prepare'),
