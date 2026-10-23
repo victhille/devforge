@@ -2,6 +2,16 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [2.1.0-beta.2](https://github.com/victhille/devforge/compare/v2.1.0-beta.1...v2.1.0-beta.2) — 2026-10-23
+
+> Sauvegardes de nuit du VPS avec copie sur le PC, accueil à composer soi-même, palette qui agit, mode compact, .env synchronisés avec le serveur, GitHub sur la page projet, et Forgy qui veille sur le VPS.
+
+### Nouveautés
+
+- Synchronisation des .env, GitHub sur la page projet, Forgy plus complet ([1412c5d](https://github.com/victhille/devforge/commit/1412c5d0da1a2acf6ed4bf6a810f8f36ade478a7))
+- **home** : Accueil personnalisable, palette avec actions, mode compact ([7165e94](https://github.com/victhille/devforge/commit/7165e941ad1131fe18b0f2e15d7bd1149c73447b))
+- **backups** : Sauvegardes automatiques du VPS ([ce3b025](https://github.com/victhille/devforge/commit/ce3b025bcdc53142ed18a42ebb79984e81af3201))
+
 ## [2.1.0-beta.1](https://github.com/victhille/devforge/compare/v2.0.0...v2.1.0-beta.1) — 2026-10-22
 
 > Un bouton « Mettre à jour » à côté de Forgy, et ton VPS sous contrôle : ses services web s'ouvrent en un clic, et une page Santé signale ce qui demande ton attention.
