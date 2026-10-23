@@ -12,6 +12,7 @@ import { loadSshConnections } from '../ssh/sshStorage'
 import { executions as n8nExecutions, listInstances as n8nInstances, workflows as n8nWorkflows } from '../n8n/n8nService'
 import { deployments as vercelDeployments } from '../vercel/vercelService'
 import { backupsText, githubText, vpsHealthText, vpsServicesText } from './vpsTools'
+import { AUTOMATIONS, readFeed } from '../automations/automationsService'
 
 /**
  * Read-only tools the assistant can call. Every path stays inside a saved
@@ -242,6 +243,21 @@ async function vercelDeploymentList(p: Project): Promise<string> {
   return list.map(d => `- ${d.id} [${d.state}] ${d.target ?? 'preview'}${d.current ? ' (CURRENT PRODUCTION)' : ''} ${new Date(d.createdAt).toISOString()}${d.branch ? ` ${d.branch}` : ''}${d.commitMessage ? ` "${d.commitMessage}"` : ''} ${d.url}`).join('\n')
 }
 
+// ─── Automations ──────────────────────────────────────────────────────────────────
+
+function automationsText(): string {
+  const f = readFeed()
+  if (!f.found) return f.installed ? 'Automations is installed but has received nothing from n8n yet.' : 'Automations is not installed on this PC.'
+  const known = new Set(AUTOMATIONS.map(a => a.key))
+  return [
+    `Automations cache, last change ${f.updatedAt ?? '?'}`,
+    'Automations (key: unread, last item):',
+    ...f.automations.filter(a => known.has(a.key) || a.unread || a.last).map(a => `- ${a.key} (${a.types.join(', ')}): ${a.unread} unread, last ${a.last ? `"${a.last.titre}" [${a.last.gravite}] ${a.last.date}` : 'none'}`),
+    `Unread (${f.unread.length}):`,
+    ...f.unread.map(x => `- [${x.gravite}] ${x.type}: "${x.titre}" ${x.date}`)
+  ].join('\n')
+}
+
 // ─── Definitions ──────────────────────────────────────────────────────────────
 
 const project = { type: 'string', description: 'Project name (or its path), from list_projects' } as const
@@ -264,7 +280,8 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   { name: 'vps_health', description: 'Health and security of a VPS: pending updates, restart needed, disk, memory, ports open to the internet, SSH settings, fail2ban, failing containers, Docker space.', input_schema: { type: 'object', properties: { server: { type: 'string', description: 'SSH server name; optional with one server' } } } },
   { name: 'vps_services', description: 'Web interfaces published by the containers of a VPS (Portainer, phpMyAdmin, n8n…), and whether they are open to the internet.', input_schema: { type: 'object', properties: { server: { type: 'string' } } } },
   { name: 'backups_status', description: 'Nightly backups of a VPS made from DevForge: last run, failures, copy on this PC.', input_schema: { type: 'object', properties: { server: { type: 'string' } } } },
-  { name: 'github_status', description: 'GitHub Actions runs (with ids), open pull requests and releases of a project whose origin is on GitHub.', input_schema: { type: 'object', properties: { project }, required: ['project'] } }
+  { name: 'github_status', description: 'GitHub Actions runs (with ids), open pull requests and releases of a project whose origin is on GitHub.', input_schema: { type: 'object', properties: { project }, required: ['project'] } },
+  { name: 'automations_feed', description: 'The personal automations shown in Automations (n8n): what each one published last, and the titles of the unread items (briefing, mail, deals, expenses, subscriptions…). Titles only, no content.', input_schema: { type: 'object', properties: {} } }
 ].map(t => ({ ...t, eager_input_streaming: true }) as Anthropic.Beta.BetaTool)
 
 /** Short label shown in the conversation while the tool runs */
@@ -281,6 +298,7 @@ export function describeTool(name: string, input: Record<string, unknown>): stri
     case 'n8n_workflows': case 'n8n_executions': return str(input.server) ?? 'n8n'
     case 'vercel_deployments': case 'github_status': return p
     case 'vps_health': case 'vps_services': case 'backups_status': return str(input.server) ?? 'VPS'
+    case 'automations_feed': return 'Automations'
     default: return ''
   }
 }
@@ -307,6 +325,7 @@ export async function runTool(name: string, input: unknown): Promise<string> {
     case 'vps_services': return vpsServicesText(i.server)
     case 'backups_status': return backupsText(i.server)
     case 'github_status': return githubText(findProject(i.project))
+    case 'automations_feed': return automationsText()
     default: throw new ToolError(`Unknown tool ${name}`)
   }
 }

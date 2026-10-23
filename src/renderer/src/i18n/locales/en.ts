@@ -118,6 +118,21 @@ const en = {
       n8nNone: "n8n is not installed from DevForge on this server.",
       vpnNoLogin: "Sign in to wg-easy on the VPN page.",
       vpnOnline: "{n} connected",
+      automationsUnread: "{n} unread",
+      automationsAllRead: "all read",
+      automationsNoData: "Automations has received nothing from n8n on this PC yet.",
+      automationsMissing: "Automations is not installed on this PC.",
+      automationsOpen: "Open Automations",
+      automations: {
+        briefing: "Morning briefing",
+        mail: "Mail",
+        connexion: "Google sign-in",
+        deals: "Deals",
+        expenses: "Expenses",
+        subscriptions: "Subscriptions",
+        birthdays: "Birthdays",
+        other: "Others"
+      },
       names: {
         "active-project": "Active project",
         docker: "Docker",
@@ -129,7 +144,8 @@ const en = {
         services: "VPS services",
         backups: "Backups",
         n8n: "n8n",
-        vpn: "VPN"
+        vpn: "VPN",
+        automations: "Automations (Automations)"
       }
     },
     greetingMorning: 'Good morning',
