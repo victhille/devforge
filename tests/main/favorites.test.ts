@@ -25,6 +25,14 @@ describe('menu favorites', () => {
     expect(loadSettings().favorites).toEqual([])
   })
 
+  it('a beta build follows the beta channel until the user picks one', () => {
+    // The test app's version is 0.0.0-test: a pre-release
+    writeFileSync(join(userData(), 'settings.json'), JSON.stringify({ language: 'fr' }))
+    expect(loadSettings().updateChannel).toBe('beta')
+    writeFileSync(join(userData(), 'settings.json'), JSON.stringify({ language: 'fr', updateChannel: 'stable' }))
+    expect(loadSettings().updateChannel).toBe('stable')
+  })
+
   it('Home widgets: known ones only, once each, and kept from an older copy of the settings', () => {
     expect(cleanWidgets(undefined)).toEqual(DEFAULT_WIDGETS)
     expect(cleanWidgets([{ id: 'health', size: 'full' }, { id: 'health', size: 'half' }, { id: 'nope', size: 'half' }, { id: 'vpn', size: 'huge' }]))

@@ -32,7 +32,7 @@ export default function UpdatesSettings({ settings, set, onNotes }: {
     : status.state === 'up-to-date' ? u.updateUpToDate
     : status.state === 'downloading' ? u.updateDownloading.replace('{v}', status.version).replace('{p}', String(status.percent))
     : status.state === 'ready' ? u.updateReady.replace('{v}', status.version)
-    : status.state === 'unavailable' ? (status.reason === 'dev' ? u.updateDev : u.updateFeed)
+    : status.state === 'unavailable' ? (status.reason === 'dev' ? u.updateDev : status.reason === 'auth' ? u.updateAuth : u.updateFeed)
     : ''
 
   return (

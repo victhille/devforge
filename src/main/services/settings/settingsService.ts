@@ -41,7 +41,10 @@ export function loadSettings(): AppSettings {
   }
   try {
     // A settings file from before the first-launch tour: that user is not new
-    const s = { ...DEFAULT_SETTINGS, onboarded: true, ...JSON.parse(readFileSync(path, 'utf-8')) } as AppSettings
+    const raw = JSON.parse(readFileSync(path, 'utf-8')) as Partial<AppSettings>
+    // Never chosen: a pre-release build (2.1.0-beta.2) follows the beta channel
+    const channel = raw.updateChannel ?? (app.getVersion().includes('-') ? 'beta' : 'stable')
+    const s = { ...DEFAULT_SETTINGS, onboarded: true, ...raw, updateChannel: channel } as AppSettings
     return { ...s, favorites: cleanFavorites(s.favorites), homeWidgets: cleanWidgets(s.homeWidgets) }
   } catch {
     return DEFAULT_SETTINGS
