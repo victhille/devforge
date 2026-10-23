@@ -15,6 +15,11 @@ import { processManager } from '../stacks/processManager'
 import { ToolError, cloudError, findProject, n8nServer } from './assistantTools'
 import { retryExecution, setActive as n8nSetActive, workflows as n8nWorkflows } from '../n8n/n8nService'
 import { deployments as vercelDeployments, promote as vercelPromote, redeploy as vercelRedeploy } from '../vercel/vercelService'
+import { create as vpnCreate, listServers as vpnServers } from '../vpn/vpnService'
+import { listPlans, runNow as backupRunNow } from '../backups/backupsService'
+import { rerunFailed, status as githubStatus } from '../github/githubService'
+import { sshServer } from './vpsTools'
+import { BrowserWindow } from 'electron'
 
 /**
  * Actions Forgy may propose. Nothing runs from the model alone: each tool
@@ -59,6 +64,9 @@ export const ACTION_TOOLS: Anthropic.Beta.BetaTool[] = [
   { name: 'n8n_retry_execution', description: 'Retry a failed n8n execution. Needs the user\'s approval.', input_schema: { type: 'object', properties: { server: { type: 'string' }, execution: { type: 'string', description: 'Execution id from n8n_executions' } }, required: ['execution'] } },
   { name: 'vercel_redeploy', description: 'Start a new Vercel build from a deployment (default: the one production points to). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project, deployment: { type: 'string', description: 'Deployment id from vercel_deployments' } }, required: ['project'] } },
   { name: 'vercel_promote', description: 'Point production to a READY Vercel deployment: a preview, or an older production one to roll back. Needs the user\'s approval; can be undone.', input_schema: { type: 'object', properties: { project, deployment: { type: 'string' } }, required: ['project', 'deployment'] } },
+  { name: 'vpn_create_client', description: 'Create a WireGuard client on the VPS (wg-easy) and show its QR code to the user. Needs the user\'s approval.', input_schema: { type: 'object', properties: { server: { type: 'string', description: 'SSH server name; optional with one server' }, name: { type: 'string', description: 'Device name, e.g. "Phone of Léa"' }, expires: { type: 'string', description: 'Optional expiry date YYYY-MM-DD' } }, required: ['name'] } },
+  { name: 'backup_now', description: 'Run the VPS nightly backup now (databases and volumes set in DevForge). Needs the user\'s approval.', input_schema: { type: 'object', properties: { server: { type: 'string' } } } },
+  { name: 'github_rerun', description: 'Re-run the failed jobs of a GitHub Actions run of a project (run id from github_status). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project, run: { type: 'integer', description: 'Run id from github_status' } }, required: ['project', 'run'] } },
   { name: 'env_add', description: 'Add a NEW key to a .env file of a project (existing keys are never changed). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project, key: { type: 'string' }, value: { type: 'string' }, file: { type: 'string', description: 'Default .env' } }, required: ['project', 'key', 'value'] } }
 ]
 
@@ -309,6 +317,55 @@ async function vercelPromotePlan(p: Project, ref: string): Promise<ActionPlan> {
   }
 }
 
+function vpnClientPlan(server: unknown, name: string, expires: unknown): ActionPlan {
+  const s = sshServer(server)
+  if (!vpnServers().some(v => v.connectionId === s.id)) throw new ToolError(`wg-easy is not connected for ${s.name}: the user signs in on the VPN page first.`)
+  if (name.length > 64) throw new ToolError('Name too long (64 characters max)')
+  const exp = typeof expires === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(expires) ? expires : null
+  return {
+    title: `New VPN client · ${name}`,
+    preview: `${s.name} · wg-easy\nA WireGuard device "${name}"${exp ? `, valid until ${exp}` : ', permanent'}. Its QR code opens on the VPN page.`,
+    reversible: false, safe: false,
+    run: async () => {
+      const id = await vpnCreate(s.id, name, exp).catch(cloudError)
+      // The window opens the VPN page on this client's QR code
+      for (const w of BrowserWindow.getAllWindows()) if (!w.isDestroyed()) w.webContents.send('vpn:show-qr', { connectionId: s.id, clientId: id })
+      return { output: `Client "${name}" created (id ${id}) on ${s.name}. Its QR code is shown on the VPN page; it holds the private key, so only the user scans it.` }
+    }
+  }
+}
+
+function backupNowPlan(server: unknown): ActionPlan {
+  const s = sshServer(server)
+  const plan = listPlans().find(p => p.connectionId === s.id)
+  if (!plan) throw new ToolError(`Nightly backups are not turned on for ${s.name} (Serveurs › Sauvegardes).`)
+  return {
+    title: `Back up ${s.name} now`,
+    preview: `${[...plan.databases.map(d => `database ${d.container}`), ...plan.volumes.map(v => `volume ${v}`)].join(', ')}\nSame as the nightly run; old backups rotate as usual.`,
+    reversible: false, safe: false,
+    run: async () => {
+      let log = ''
+      const r = await backupRunNow(s.id, t => { log += t }).catch(cloudError)
+      return { output: cap(`${r.ok ? 'Backup done' : 'Backup FAILED'}\n${log.trim()}`, 1500) }
+    }
+  }
+}
+
+async function githubRerunPlan(p: Project, run: unknown): Promise<ActionPlan> {
+  const id = Number(run)
+  if (!Number.isInteger(id) || id <= 0) throw new ToolError('Invalid run id')
+  const st = await githubStatus(p.path).catch(cloudError)
+  const r = st.runs.find(x => x.id === id)
+  if (!r) throw new ToolError(`Run ${id} is not among the last runs of ${st.repo.owner}/${st.repo.repo}`)
+  if (r.status !== 'completed' || r.conclusion !== 'failure') throw new ActionRefused(`Run ${id} did not fail (${r.status}${r.conclusion ? `, ${r.conclusion}` : ''})`)
+  return {
+    title: `Re-run failed jobs · ${r.name} #${r.number}`,
+    preview: `${st.repo.owner}/${st.repo.repo} · ${r.branch}\n"${r.title}"`,
+    reversible: false, safe: false,
+    run: async () => { await rerunFailed(p.path, id).catch(cloudError); return { output: `The failed jobs of ${r.name} #${r.number} run again: ${r.url}` } }
+  }
+}
+
 /** Validates a tool call and describes it; throws ToolError (bad input) or ActionRefused (guard rail) */
 export async function planAction(name: string, input: Record<string, unknown>): Promise<ActionPlan> {
   switch (name) {
@@ -325,6 +382,9 @@ export async function planAction(name: string, input: Record<string, unknown>): 
     case 'n8n_retry_execution': return n8nRetryPlan(input.server, str(input.execution, 'execution'))
     case 'vercel_redeploy': return vercelRedeployPlan(findProject(input.project), input.deployment)
     case 'vercel_promote': return vercelPromotePlan(findProject(input.project), str(input.deployment, 'deployment'))
+    case 'vpn_create_client': return vpnClientPlan(input.server, str(input.name, 'name'), input.expires)
+    case 'backup_now': return backupNowPlan(input.server)
+    case 'github_rerun': return githubRerunPlan(findProject(input.project), input.run)
     default: throw new ToolError(`Unknown action ${name}`)
   }
 }

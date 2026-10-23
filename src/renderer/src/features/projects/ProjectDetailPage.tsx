@@ -23,9 +23,11 @@ import ProjectEnvEditor from '@renderer/features/envfiles/ProjectEnvEditor'
 import ProjectIcon from './components/ProjectIcon'
 import FileTree from './components/FileTree'
 import VercelPanel from './VercelPanel'
+import EnvSyncPanel from './EnvSyncPanel'
+import GithubPanel from './GithubPanel'
 
-type Tab = 'overview' | 'git' | 'docker' | 'env' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
-const TABS: Tab[] = ['overview', 'git', 'docker', 'env', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
+type Tab = 'overview' | 'git' | 'github' | 'docker' | 'env' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
+const TABS: Tab[] = ['overview', 'git', 'github', 'docker', 'env', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const fileName = (p: string) => p.split(/[\\/]/).pop() ?? p
@@ -105,6 +107,8 @@ export default function ProjectDetailPage() {
   const [connections, setConnections] = useState<DbConnection[]>([])
   const [domains, setDomains] = useState<LocalDomain[]>([])
   const [scripts, setScripts] = useState<Record<string, string>>({})
+  /** Deploy target whose .env sync panel is open */
+  const [envSync, setEnvSync] = useState<string | null>(null)
   const [ide, setIde] = useState<DefaultIDE>('vscode')
   const [busy, setBusy] = useState<string | null>(null)
   const [committing, setCommitting] = useState(false)
@@ -413,16 +417,24 @@ export default function ProjectDetailPage() {
       <Card className="overflow-hidden">
         {hub.deployTargets.length === 0 && <div className="p-[18px]"><Muted>{h.deployNone}</Muted></div>}
         {hub.deployTargets.map(d => (
-          <div key={d.id} className="flex items-center gap-3 border-t border-line-subtle px-[18px] py-3 first:border-t-0">
-            <Rocket size={15} className="text-fg-muted" />
-            <span className="flex-1 font-medium text-fg">{d.name}</span>
-            <Button size="sm" variant="secondary" onClick={() => navigate('/deploy')}>{h.deployOpen}</Button>
+          <div key={d.id} className="border-t border-line-subtle first:border-t-0">
+            <div className="flex items-center gap-3 px-[18px] py-3">
+              <Rocket size={15} className="text-fg-muted" />
+              <span className="flex-1 font-medium text-fg">{d.name}</span>
+              <Button size="sm" variant={envSync === d.id ? 'primary' : 'ghost'} aria-expanded={envSync === d.id} onClick={() => setEnvSync(s => (s === d.id ? null : d.id))}>
+                <FileKey2 size={13} /> {h.envSync.open}
+              </Button>
+              <Button size="sm" variant="secondary" onClick={() => navigate('/deploy')}>{h.deployOpen}</Button>
+            </div>
+            {envSync === d.id && <EnvSyncPanel targetId={d.id} envFiles={hub.envFiles.map(f => f.name)} />}
           </div>
         ))}
       </Card>
     ),
 
     vercel: hub.vercel ? <VercelPanel projectId={p.id} /> : null,
+
+    github: hub.github ? <GithubPanel projectPath={p.path} repo={hub.github} /> : null,
 
     files: (
       <div className="flex flex-wrap gap-4">
@@ -469,7 +481,7 @@ export default function ProjectDetailPage() {
 
       {/* Tabs, underlined */}
       <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-line">
-        {TABS.filter(x => x !== 'vercel' || hub.vercel).map(x => (
+        {TABS.filter(x => (x !== 'vercel' || hub.vercel) && (x !== 'github' || hub.github)).map(x => (
           <button key={x} role="tab" aria-selected={tab === x} onClick={() => setTab(x)}
             className={cn('flex h-9 shrink-0 items-center gap-1.5 border-b-2 px-3 text-base font-medium transition-colors',
               tab === x ? 'border-accent text-fg' : 'border-transparent text-fg-secondary hover:text-fg')}>

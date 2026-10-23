@@ -2,6 +2,7 @@
 
 import type { Project } from './index'
 import type { VercelLink } from './vercel'
+import type { GithubRepo } from './github'
 
 /** How a resource is tied to the project: found by DevForge, or added by hand */
 export type LinkOrigin = 'auto' | 'manual'
@@ -23,6 +24,8 @@ export interface ProjectHub {
   deployTargets: { id: string; name: string }[]
   /** .vercel/project.json (`vercel link`), null when the folder is not linked */
   vercel: VercelLink | null
+  /** The GitHub repository of `origin`, null when it is elsewhere or missing */
+  github: GithubRepo | null
   /** Resources found but hidden by the user, so they can be shown again */
   hidden: Record<LinkKind, string[]>
 }

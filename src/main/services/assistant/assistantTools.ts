@@ -11,6 +11,7 @@ import { runFile } from '../../lib/exec'
 import { loadSshConnections } from '../ssh/sshStorage'
 import { executions as n8nExecutions, listInstances as n8nInstances, workflows as n8nWorkflows } from '../n8n/n8nService'
 import { deployments as vercelDeployments } from '../vercel/vercelService'
+import { backupsText, githubText, vpsHealthText, vpsServicesText } from './vpsTools'
 
 /**
  * Read-only tools the assistant can call. Every path stays inside a saved
@@ -259,7 +260,11 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   { name: 'db_schema', description: 'Tables and columns of a saved database connection.', input_schema: { type: 'object', properties: { connection: { type: 'string', description: 'Connection name from db_connections' } }, required: ['connection'] } },
   { name: 'n8n_workflows', description: 'Workflows of the n8n installed on a VPS from DevForge (name, id, active, last change).', input_schema: { type: 'object', properties: { server: { type: 'string', description: 'SSH server name; optional when n8n runs on one server only' } } } },
   { name: 'n8n_executions', description: 'Recent n8n executions with their workflow and status (failed ones only by default).', input_schema: { type: 'object', properties: { server: { type: 'string' }, only_errors: { type: 'boolean', description: 'Default true' } } } },
-  { name: 'vercel_deployments', description: 'Last Vercel deployments of a project linked with `vercel link`: state, production or preview, branch, commit, which one production points to.', input_schema: { type: 'object', properties: { project }, required: ['project'] } }
+  { name: 'vercel_deployments', description: 'Last Vercel deployments of a project linked with `vercel link`: state, production or preview, branch, commit, which one production points to.', input_schema: { type: 'object', properties: { project }, required: ['project'] } },
+  { name: 'vps_health', description: 'Health and security of a VPS: pending updates, restart needed, disk, memory, ports open to the internet, SSH settings, fail2ban, failing containers, Docker space.', input_schema: { type: 'object', properties: { server: { type: 'string', description: 'SSH server name; optional with one server' } } } },
+  { name: 'vps_services', description: 'Web interfaces published by the containers of a VPS (Portainer, phpMyAdmin, n8n…), and whether they are open to the internet.', input_schema: { type: 'object', properties: { server: { type: 'string' } } } },
+  { name: 'backups_status', description: 'Nightly backups of a VPS made from DevForge: last run, failures, copy on this PC.', input_schema: { type: 'object', properties: { server: { type: 'string' } } } },
+  { name: 'github_status', description: 'GitHub Actions runs (with ids), open pull requests and releases of a project whose origin is on GitHub.', input_schema: { type: 'object', properties: { project }, required: ['project'] } }
 ].map(t => ({ ...t, eager_input_streaming: true }) as Anthropic.Beta.BetaTool)
 
 /** Short label shown in the conversation while the tool runs */
@@ -274,7 +279,8 @@ export function describeTool(name: string, input: Record<string, unknown>): stri
     case 'container_logs': return str(input.container) ?? ''
     case 'db_schema': return str(input.connection) ?? ''
     case 'n8n_workflows': case 'n8n_executions': return str(input.server) ?? 'n8n'
-    case 'vercel_deployments': return p
+    case 'vercel_deployments': case 'github_status': return p
+    case 'vps_health': case 'vps_services': case 'backups_status': return str(input.server) ?? 'VPS'
     default: return ''
   }
 }
@@ -297,6 +303,10 @@ export async function runTool(name: string, input: unknown): Promise<string> {
     case 'n8n_workflows': return n8nWorkflowList(i.server)
     case 'n8n_executions': return n8nExecutionList(i.server, i.only_errors)
     case 'vercel_deployments': return vercelDeploymentList(findProject(i.project))
+    case 'vps_health': return vpsHealthText(i.server)
+    case 'vps_services': return vpsServicesText(i.server)
+    case 'backups_status': return backupsText(i.server)
+    case 'github_status': return githubText(findProject(i.project))
     default: throw new ToolError(`Unknown tool ${name}`)
   }
 }

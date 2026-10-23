@@ -33,7 +33,9 @@ const api: DevForgeAPI = {
     write:      invoke('env:write'),
     backup:     invoke('env:backup'),
     backupInfo: invoke('env:backup-info'),
-    restore:    invoke('env:restore')
+    restore:    invoke('env:restore'),
+    syncDiff:   invoke('env:sync-diff'),
+    syncApply:  invoke('env:sync-apply')
   },
 
   versions: {
@@ -275,7 +277,8 @@ const api: DevForgeAPI = {
     setEnabled: invoke('vpn:set-enabled'),
     qrcode:     invoke('vpn:qrcode'),
     saveConfig: invoke('vpn:save-config'),
-    openWeb:    invoke('vpn:open-web')
+    openWeb:    invoke('vpn:open-web'),
+    onShowQr:   on('vpn:show-qr')
   },
 
   vpsOps: {
@@ -299,6 +302,14 @@ const api: DevForgeAPI = {
     chooseLocalDir: invoke('backups:choose-dir'),
     openLocalDir:   invoke('backups:open-dir'),
     onLog:          on('backups:log')
+  },
+
+  github: {
+    repo:      invoke('github:repo'),
+    status:    invoke('github:status'),
+    rerun:     invoke('github:rerun'),
+    saveToken: invoke('github:save-token'),
+    hasToken:  invoke('github:has-token')
   },
 
   dictation: {

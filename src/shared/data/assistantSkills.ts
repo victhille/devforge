@@ -8,7 +8,7 @@ import type { AssistantEffort, AssistantModel } from '../types/assistant'
  */
 export type AssistantSkillId =
   | 'chat' | 'web-search' | 'explain-error' | 'commit-message' | 'review-changes'
-  | 'explain-project' | 'write-sql' | 'debug-container' | 'analyze-response'
+  | 'explain-project' | 'write-sql' | 'debug-container' | 'analyze-response' | 'vps-morning'
 
 type Text = { fr: string; en: string }
 
@@ -124,6 +124,17 @@ export const ASSISTANT_SKILLS: AssistantSkill[] = [
       en: 'Task: analyze the attached HTTP request and response, without tools. Format: **Status** (what it means), **Content** (structure and notable points), **To fix** if an error.'
     },
     prompt: { fr: 'Analyse cette réponse.', en: 'Analyze this response.' }
+  },
+  {
+    id: 'vps-morning', icon: 'Sunrise',
+    label: { fr: 'Point du matin sur le VPS', en: 'Morning check of the VPS' },
+    description: { fr: 'Santé, sauvegardes, services, n8n', en: 'Health, backups, services, n8n' },
+    model: 'claude-haiku-5-5', effort: 'low',
+    instructions: {
+      fr: "Tâche : point du matin sur le VPS. Appelle vps_health, backups_status et vps_services (une fois chacun), puis n8n_executions si n8n est installé. Format : une ligne d'état global, puis **À faire** (3 points au plus, les plus urgents d'abord, chacun avec où le faire dans DevForge), puis **Le reste va bien** en une ligne. Rien d'autre.",
+      en: 'Task: morning check of the VPS. Call vps_health, backups_status and vps_services (once each), then n8n_executions when n8n is installed. Format: one line of overall state, then **To do** (3 items at most, most urgent first, each with where to do it in DevForge), then **The rest is fine** in one line. Nothing else.'
+    },
+    prompt: { fr: 'Fais le point du matin sur mon VPS.', en: 'Give me the morning check of my VPS.' }
   }
 ]
 

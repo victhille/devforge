@@ -76,6 +76,13 @@ export async function writeEnvValues(projectPath: string, fileName: string, chan
   assertName(fileName)
   const path = join(projectPath, fileName)
   const original = existsSync(path) ? await readFile(path, 'utf-8') : ''
+  await writeFile(path, applyEnvChanges(original, changes), 'utf-8')
+}
+
+export const isEnvName = (name: string) => ENV_NAME.test(name)
+
+/** The text of an env file with values set (null removes the key): comments, order and other lines stay */
+export function applyEnvChanges(original: string, changes: Record<string, string | null>): string {
   const eol = original.includes('\r\n') ? '\r\n' : '\n'
   const pending = new Map(Object.entries(changes))
 
@@ -96,7 +103,7 @@ export async function writeEnvValues(projectPath: string, fileName: string, chan
   for (const [key, value] of pending) {
     if (value !== null) out.push(`${key}=${quoteIfNeeded(value)}`)
   }
-  await writeFile(path, out.join(eol) + eol, 'utf-8')
+  return out.join(eol) + eol
 }
 
 // ─── Encrypted backups ────────────────────────────────────────────────────────
