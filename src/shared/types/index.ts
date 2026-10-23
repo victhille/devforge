@@ -246,6 +246,7 @@ export * from './n8n'
 export * from './vpn'
 export * from './vpsops'
 export * from './backups'
+export * from './github'
 export * from './vercel'
 export * from './dictation'
 import type { GitAPI } from './git'
@@ -259,6 +260,7 @@ import type { N8nAPI } from './n8n'
 import type { VpnAPI } from './vpn'
 import type { VpsOpsAPI } from './vpsops'
 import type { BackupsAPI } from './backups'
+import type { GithubAPI } from './github'
 import type { VercelAPI } from './vercel'
 import type { DictationAPI } from './dictation'
 import type { DockerAPI } from './docker'
@@ -378,6 +380,7 @@ export interface DevForgeAPI {
   vpn: VpnAPI
   vpsOps: VpsOpsAPI
   backups: BackupsAPI
+  github: GithubAPI
   vercel: VercelAPI
   dictation: DictationAPI
 

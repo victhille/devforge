@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowUp, BookOpen, Bug, Check, ChevronDown, ListChecks, ChevronLeft, Container, Database, ExternalLink, FileText, GitCommitHorizontal, Globe, History, KeyRound,
-  Loader2, MessageSquare, Paperclip, Plus, Search, ShieldCheck, Square, Trash2, Wrench, X, XCircle, type LucideIcon
+  Loader2, MessageSquare, Paperclip, Plus, Search, ShieldCheck, Square, Sunrise, Trash2, Wrench, X, XCircle, type LucideIcon
 } from 'lucide-react'
 import DictateButton from '@renderer/components/DictateButton'
 import type { AssistantAction, AssistantConfig, AssistantConversation, AssistantConversationSummary, AssistantItem, AssistantUsage, Project } from '@shared/types'
@@ -18,7 +18,7 @@ import Mascot from './Mascot'
 import AiLaunchers from './AiLaunchers'
 import ActionCard from './ActionCard'
 
-const SKILL_ICON: Record<string, LucideIcon> = { MessageSquare, Search, Bug, GitCommitHorizontal, ShieldCheck, BookOpen, Database, Container, Globe }
+const SKILL_ICON: Record<string, LucideIcon> = { MessageSquare, Search, Bug, GitCommitHorizontal, ShieldCheck, BookOpen, Database, Container, Globe, Sunrise }
 const MODEL_LABEL: Record<string, string> = {
   'claude-opus-5-5': 'Opus 5.5', 'claude-sonnet-5-5': 'Sonnet 5.5', 'claude-haiku-5-5': 'Haiku 5.5', auto: 'Auto'
 }

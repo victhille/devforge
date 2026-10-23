@@ -167,6 +167,25 @@ function Clients({ conn, found, onForget }: { conn: SSHConnection; found: VpnDet
     finally { setBusy(null) }
   }
 
+  // A QR code asked from elsewhere (Forgy created the client)
+  useEffect(() => {
+    const check = () => {
+      let wanted: { connectionId: string; clientId: number } | null = null
+      try { wanted = JSON.parse(sessionStorage.getItem('devforge:vpn-qr') ?? 'null') } catch { /* none */ }
+      if (!wanted || wanted.connectionId !== conn.id) return
+      sessionStorage.removeItem('devforge:vpn-qr')
+      window.devforge.vpn.clients(conn.id).then(list => {
+        setClients(list)
+        const c = list.find(x => x.id === wanted!.clientId)
+        if (c) showQr(c)
+      }).catch(() => {})
+    }
+    check()
+    window.addEventListener('devforge:vpn-qr', check)
+    return () => window.removeEventListener('devforge:vpn-qr', check)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conn.id])
+
   async function openWeb() {
     setBusy('web')
     try { const url = await window.devforge.vpn.openWeb(conn.id); setTunnel(url); window.devforge.openExternal(url) }

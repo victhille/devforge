@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import TitleBar from './TitleBar'
 import BottomPanel from './BottomPanel'
@@ -11,6 +12,16 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 export default function Layout({ children }: { children: ReactNode }) {
   const { open } = useAssistant()
   const { t } = useI18n()
+  const navigate = useNavigate()
+  // Forgy created a VPN client: the VPN page opens on its QR code
+  useEffect(() => window.devforge.vpn.onShowQr(e => {
+    try {
+      localStorage.setItem('devforge:vps-server', e.connectionId)
+      sessionStorage.setItem('devforge:vpn-qr', JSON.stringify(e))
+    } catch { /* not kept */ }
+    navigate('/vpn')
+    window.dispatchEvent(new Event('devforge:vpn-qr'))
+  }), [navigate])
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-canvas">
       {/* First Tab stop: jumps over the title bar and the menu (a button: links are routes here) */}

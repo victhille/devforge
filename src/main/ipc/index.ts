@@ -15,6 +15,7 @@ import { registerN8nHandlers } from './n8n'
 import { registerVpnHandlers } from './vpn'
 import { registerVpsOpsHandlers } from './vpsOps'
 import { registerBackupsHandlers } from './backups'
+import { registerGithubHandlers } from './github'
 import { registerVercelHandlers } from './vercel'
 import { registerDictationHandlers } from './dictation'
 import { registerDomainHandlers } from './domains'
@@ -43,6 +44,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerVpnHandlers(mainWindow)
   registerVpsOpsHandlers(mainWindow)
   registerBackupsHandlers(mainWindow)
+  registerGithubHandlers()
   registerVercelHandlers()
   registerDictationHandlers()
   registerDomainHandlers()

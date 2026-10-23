@@ -11,6 +11,7 @@ import { fromEnv } from '../database/dbDetect'
 import { listDomains } from '../domains/domainService'
 import { listTargets } from '../deploy/deployService'
 import { readLink } from '../vercel/vercelService'
+import { repoOf } from '../github/githubService'
 import { explicitPort, projectLogFiles, readEnvs } from '../suggest/suggestions'
 
 /**
@@ -109,6 +110,7 @@ export async function getProjectHub(projectId: string): Promise<ProjectHub> {
     domains,
     ports,
     vercel: readLink(p.path),
+    github: await repoOf(p.path).catch(() => null),
     deployTargets: listTargets().filter(t => t.projectPath && resolve(t.projectPath).toLowerCase() === resolve(p.path).toLowerCase()).map(t => ({ id: t.id, name: t.name })),
     hidden: { databases: links.hide.databases, logs: links.hide.logs, domains: links.hide.domains }
   }

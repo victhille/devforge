@@ -83,7 +83,9 @@ Outil non installé : bouton en pointillés, il ouvre la page d'installation. De
 
 ## Outils de lecture
 
-`list_projects` · `list_files` · `read_file` · `search_code` · `git_status` · `git_diff` · `docker_status` · `container_logs` · `db_connections` · `db_schema` · `n8n_workflows` · `n8n_executions` · `vercel_deployments`
+`list_projects` · `list_files` · `read_file` · `search_code` · `git_status` · `git_diff` · `docker_status` · `container_logs` · `db_connections` · `db_schema` · `n8n_workflows` · `n8n_executions` · `vercel_deployments` · `vps_health` · `vps_services` · `backups_status` · `github_status`
+
+La compétence **Point du matin sur le VPS** enchaîne `vps_health`, `backups_status`, `vps_services` (et `n8n_executions`) et répond en trois parties : état global, à faire, le reste.
 
 | Garde-fou | Règle |
 |---|---|
@@ -112,6 +114,9 @@ Forgy peut aussi agir. Chaque action s'affiche en **carte** dans le panneau : ce
 | `n8n_retry_execution` | relance une exécution n8n en échec | non | non |
 | `vercel_redeploy` | relance un build Vercel (par défaut celui en production) | non | non |
 | `vercel_promote` | met un déploiement Vercel en production (aperçu, ou retour en arrière) | oui (production précédente) | non |
+| `vpn_create_client` | crée un client WireGuard (wg-easy) ; la page VPN s'ouvre sur son QR code | non | non |
+| `backup_now` | lance tout de suite la sauvegarde de nuit du VPS | non | non |
+| `github_rerun` | relance les jobs en échec d'un run GitHub Actions | non | non |
 
 | Garde-fou | Règle |
 |---|---|

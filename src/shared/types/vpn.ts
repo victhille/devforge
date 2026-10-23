@@ -54,4 +54,6 @@ export interface VpnAPI {
   saveConfig: (connectionId: string, clientId: number) => Promise<string | null>
   /** wg-easy's own interface on this PC through the SSH session; returns its http://localhost URL */
   openWeb: (connectionId: string) => Promise<string>
+  /** Forgy created a client: show its QR code */
+  onShowQr: (cb: (e: { connectionId: string; clientId: number }) => void) => () => void
 }
