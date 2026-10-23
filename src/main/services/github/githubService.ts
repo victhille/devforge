@@ -71,6 +71,15 @@ async function api<T>(path: string, init: { method?: string; token?: string } = 
   return (res.status === 204 || res.status === 201 ? {} : await res.json()) as T
 }
 
+/** A token to read GitHub with (GitHub CLI's, or the saved one), null when there is none */
+export const githubToken = (): Promise<string | null> => token().then(t => t.value).catch(() => null)
+
+/** The newest published (non-draft) release of a repository is a pre-release */
+export async function newestIsPrerelease(owner: string, repo: string, tok: string): Promise<boolean> {
+  const list = await api<{ draft: boolean; prerelease: boolean }[]>(`/repos/${owner}/${repo}/releases?per_page=10`, { token: tok })
+  return !!list.find(r => !r.draft)?.prerelease
+}
+
 export async function saveToken(value: string | null): Promise<{ login: string | null }> {
   if (!value?.trim()) {
     writeJsonFile(storePath(), {})

@@ -2,6 +2,7 @@ import { app, type BrowserWindow } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import type { UpdateStatus } from '@shared/types'
 import { log } from '../../lib/log'
+import { githubToken, newestIsPrerelease } from '../github/githubService'
 
 /**
  * Updates from the GitHub releases (electron-updater): checked at startup and
@@ -11,6 +12,10 @@ import { log } from '../../lib/log'
  * repository, offline) leaves the status "unavailable" without bothering the user.
  */
 const EVERY = 6 * 60 * 60 * 1000
+/** Where the releases are published (package.json › build.publish); the repository is private */
+const OWNER = 'victhille'
+const REPO = 'devforge'
+let beta = false
 
 let status: UpdateStatus = { state: 'idle' }
 let win: BrowserWindow | null = null
@@ -23,8 +28,9 @@ function set(next: UpdateStatus): void {
 
 export const getUpdateStatus = (): UpdateStatus => status
 
-export function setUpdateChannel(beta: boolean): void {
-  autoUpdater.allowPrerelease = beta
+export function setUpdateChannel(wantBeta: boolean): void {
+  beta = wantBeta
+  autoUpdater.allowPrerelease = wantBeta
   // Going back to stable never installs an older version by itself
   autoUpdater.allowDowngrade = false
 }
@@ -33,7 +39,14 @@ export async function checkForUpdates(): Promise<UpdateStatus> {
   if (!app.isPackaged) { set({ state: 'unavailable', reason: 'dev' }); return status }
   if (status.state === 'downloading' || status.state === 'ready') return status
   set({ state: 'checking' })
+  // A private repository: the releases are read with GitHub CLI's token (or the one saved in DevForge)
+  const tok = await githubToken()
+  if (!tok) { set({ state: 'unavailable', reason: 'auth' }); return status }
+  autoUpdater.setFeedURL({ provider: 'github', owner: OWNER, repo: REPO, private: true, token: tok })
   try {
+    // electron-updater's beta channel takes the first pre-release of the list, even when a newer final
+    // version exists: pre-releases are allowed only while the newest release is one
+    autoUpdater.allowPrerelease = beta && await newestIsPrerelease(OWNER, REPO, tok).catch(() => true)
     const r = await autoUpdater.checkForUpdates()
     if (!r?.isUpdateAvailable) set({ state: 'up-to-date', checkedAt: Date.now() })
   } catch (err) {

@@ -159,8 +159,8 @@ export type UpdateStatus =
   | { state: 'up-to-date'; checkedAt: number }
   | { state: 'downloading'; version: string; percent: number }
   | { state: 'ready'; version: string }
-  /** dev build, or the release feed cannot be read (offline, private repository) */
-  | { state: 'unavailable'; reason: 'dev' | 'feed' }
+  /** dev build, the release feed cannot be read (offline), or no GitHub token to read the private repository */
+  | { state: 'unavailable'; reason: 'dev' | 'feed' | 'auth' }
 
 export interface UpdatesAPI {
   status: () => Promise<UpdateStatus>
