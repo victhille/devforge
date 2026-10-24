@@ -87,13 +87,16 @@ export const LISTED_PAGES = PAGES.filter(p => !p.route)
  */
 export { DEFAULT_FAVORITES } from '@shared/lib/favorites'
 
-export type GroupKey = 'groupDev' | 'groupServers' | 'groupSystem' | 'groupTools'
+export type GroupKey = 'groupDev' | 'groupServers' | 'groupOnline' | 'groupData' | 'groupSystem' | 'groupTools'
 
+/** Five pages at most per group: a group stays readable at a glance */
 export const MENU_GROUPS: { key: GroupKey; icon: LucideIcon; paths: string[] }[] = [
-  { key: 'groupDev',     icon: Code2,  paths: ['/projects', '/git', '/stacks', '/new-project', '/snippets', '/diff', '/generator'] },
-  { key: 'groupServers', icon: Server, paths: ['/ssh', '/health', '/services', '/backups', '/docker', '/deploy', '/monitor', '/n8n', '/vpn', '/webhooks', '/logs'] },
-  { key: 'groupSystem',  icon: Cpu,    paths: ['/environment', '/ports', '/env-files', '/domains', '/cleaner'] },
-  { key: 'groupTools',   icon: Wrench, paths: ['/database', '/api-tester', '/toolbox', '/docs'] }
+  { key: 'groupDev',     icon: Code2,       paths: ['/projects', '/new-project', '/git', '/stacks', '/docker'] },
+  { key: 'groupServers', icon: Server,      paths: ['/ssh', '/health', '/services', '/backups', '/monitor'] },
+  { key: 'groupOnline',  icon: UploadCloud, paths: ['/deploy', '/n8n', '/vpn'] },
+  { key: 'groupData',    icon: Database,    paths: ['/database', '/api-tester', '/webhooks', '/logs'] },
+  { key: 'groupSystem',  icon: Cpu,         paths: ['/environment', '/ports', '/env-files', '/domains', '/cleaner'] },
+  { key: 'groupTools',   icon: Wrench,      paths: ['/toolbox', '/snippets', '/diff', '/generator', '/docs'] }
 ]
 
 /** Group holding a route (detail pages count for their parent: /vps/… is SSH) */

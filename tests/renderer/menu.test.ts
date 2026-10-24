@@ -7,13 +7,17 @@ describe('sidebar menu', () => {
     const pages = ['/', ...LISTED_PAGES.map(p => p.path)]
     expect([...placed].sort()).toEqual([...pages].sort())
     expect(new Set(placed).size).toBe(placed.length)
+    // A group stays short
+    for (const g of MENU_GROUPS) expect(g.paths.length).toBeLessThanOrEqual(5)
     for (const p of DEFAULT_FAVORITES) expect(placed).toContain(p)
   })
 
   it('finds the group of a route, detail pages included', () => {
     expect(groupOf('/git')).toBe('groupDev')
     expect(groupOf('/vps/abc')).toBe('groupServers')
-    expect(groupOf('/docker')).toBe('groupServers')
+    expect(groupOf('/docker')).toBe('groupDev')
+    expect(groupOf('/vpn')).toBe('groupOnline')
+    expect(groupOf('/logs')).toBe('groupData')
     expect(groupOf('/')).toBeNull()
   })
 })

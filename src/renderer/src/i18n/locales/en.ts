@@ -47,6 +47,8 @@ const en = {
     favoritesMove: 'Drag to reorder (or Alt + ↑ ↓)',
     groupDev: 'Development',
     groupServers: 'Servers',
+    groupOnline: 'Going live',
+    groupData: 'Data & API',
     groupSystem: 'System',
     groupTools: 'Tools'
   },

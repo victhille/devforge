@@ -46,6 +46,8 @@ const fr = {
     favoritesMove: 'Glisser pour réordonner (ou Alt + ↑ ↓)',
     groupDev: 'Développement',
     groupServers: 'Serveurs',
+    groupOnline: 'Mise en ligne',
+    groupData: 'Données & API',
     groupSystem: 'Système',
     groupTools: 'Outils'
   },
