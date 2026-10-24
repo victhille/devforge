@@ -2,6 +2,14 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [2.1.0](https://github.com/victhille/devforge/compare/v2.1.0-beta.4...v2.1.0) — 2026-10-24
+
+> DevForge 2.1: your VPS under control (one-click services, health, nightly backups), a Home you compose, a palette that acts, compact mode, synced .env files, GitHub on the project page, Automations on Home, Forgy watching it all, updates that arrive on their own and a tidier menu.
+
+### New features
+
+- **menu**: 6 groupes de 5 pages au plus ([863b6bc](https://github.com/victhille/devforge/commit/863b6bc3225cfeecc9b4449ff743e46221d06531))
+
 ## [2.1.0-beta.4](https://github.com/victhille/devforge/compare/v2.1.0-beta.3...v2.1.0-beta.4) — 2026-10-23
 
 > Your Automations automations show on DevForge's Home page, and Forgy can read their feed.
