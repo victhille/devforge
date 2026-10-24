@@ -20,8 +20,8 @@ test('pin, reorder and reset the menu favorites', async () => {
   const menu = page.getByRole('complementary')
   await expect(favs(run)).toHaveText(['Projets', 'Docker', 'Base de données', 'API Tester'])
 
-  // Pin VPN from the Servers group
-  await menu.getByRole('button', { name: 'Serveurs' }).click()
+  // Pin VPN from the "Going live" group
+  await menu.getByRole('button', { name: 'Mise en ligne' }).click()
   const vpnRow = menu.locator('.group\\/row', { has: page.getByRole('link', { name: 'VPN', exact: true }) }).last()
   await vpnRow.hover()
   await vpnRow.getByRole('button', { name: 'Ajouter aux favoris' }).click()
@@ -33,6 +33,7 @@ test('pin, reorder and reset the menu favorites', async () => {
   await dockerFav.hover()
   await dockerFav.getByRole('button', { name: 'Retirer des favoris' }).click()
   await expect(favs(run)).toHaveText(['Projets', 'Base de données', 'API Tester', 'VPN'])
+  await menu.getByRole('button', { name: 'Développement' }).click()
   await expect(menu.getByRole('link', { name: 'Docker', exact: true })).toBeVisible()
 
   // Keyboard reorder: VPN goes up one

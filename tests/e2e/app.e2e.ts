@@ -37,7 +37,7 @@ test('sidebar groups unfold and lead to their pages', async () => {
   await expect(page).toHaveURL(/#\/git$/)
   await expect(page.locator('main h1')).toHaveText('Tableau de bord Git')
   // Favorites stay one click away
-  await page.getByRole('link', { name: 'Docker' }).click()
+  await page.locator('[data-fav]').getByRole('link', { name: 'Docker' }).click()
   await expect(page.locator('main h1')).toHaveText('Docker')
 })
 
