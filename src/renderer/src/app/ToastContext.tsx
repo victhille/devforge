@@ -76,7 +76,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-fg">{t.title}</p>
                 {t.description && (
-                  <p className="mt-0.5 max-h-28 overflow-y-auto font-mono text-xs whitespace-pre-wrap break-words text-fg-secondary">
+                  <p tabIndex={0} className="mt-0.5 max-h-28 overflow-y-auto font-mono text-xs whitespace-pre-wrap break-words text-fg-secondary">
                     {t.description}
                   </p>
                 )}

@@ -1,8 +1,9 @@
 import { app } from 'electron'
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
+import { randomBytes } from 'crypto'
 import { dirname, join, relative } from 'path'
-import type { CommandResult, LogLine, NextCommand, NextInspect, NextRevertResult, NextRoute, SfApiConfig, SfEntityDraft, SfMigration, SfWriteResult } from '@shared/types'
+import type { AuthProvider, CommandResult, LogLine, NextAuthStatus, NextCommand, NextInspect, NextRevertResult, NextRoute, SfApiConfig, SfEntityDraft, SfMigration, SfWriteResult } from '@shared/types'
 import { ADAPTER, nextCommand } from '@shared/lib/nextCommands'
 import { assertSafeDir, isInsideProject } from '../../lib/safe'
 import { quote, runCapture, runFile } from '../../lib/exec'
@@ -11,6 +12,8 @@ import { checkDraft } from '../symfony/sfEntityWriter'
 import { isDangerous } from '../symfony/sfInspect'
 import { OPERATIONS } from '../symfony/sfApi'
 import { parseSchema, toEntities, writeModel as writePrismaModel } from './prismaSchema'
+import { AUTH_KEYS, authFile, authModels, handlerFile, meRouteFile, rewritable, signInPageFile, signUpPageFile, signUpRouteFile, withAuthModels } from './authFiles'
+import { mergeEnv } from '../projects/projectSetup'
 import { cleanDiff, createDatabaseSql, databaseName, dropDatabaseSql, findConfig, prismaStamp, revertConfig, revertFolder, revertMigration, shadowUrl } from './prismaRevert'
 import { GENERATED_MARK, prismaClientFile, routeFiles, routeFolder, seedFile } from './nextFiles'
 
@@ -234,6 +237,102 @@ export function writeSeed(projectPath: string, counts: Record<string, number>, o
   write(file, seedFile(entities, clean, libImport(file, l)))
   const c = nextCommand('seed', pmOf(dir))
   return commandRunner.run({ executable: c.exe, args: c.args, cwd: dir, onLog, onResult })
+}
+
+// ─── Auth.js ──────────────────────────────────────────────────────────────────
+
+const PROVIDERS: AuthProvider[] = ['github', 'google', 'credentials']
+const authConfigFile = (dir: string) => join(dir, '.devforge', 'auth.json')
+const authPaths = (dir: string, l: ReturnType<typeof layout>) => {
+  const ext = l.ts ? 'ts' : 'js'
+  return {
+    auth: join(l.base, `auth.${ext}`),
+    handler: join(l.appDir, 'api', 'auth', '[...nextauth]', `route.${ext}`),
+    me: join(l.appDir, 'api', 'moi', `route.${ext}`),
+    signUpRoute: join(l.appDir, 'api', 'inscription', `route.${ext}`),
+    signIn: join(l.appDir, 'connexion', `page.${ext}x`),
+    signUp: join(l.appDir, 'inscription', `page.${ext}x`)
+  }
+}
+/** Keys of .env.local that are set, never their values */
+function envKeys(dir: string): Record<string, boolean> {
+  const text = `${read(join(dir, '.env'))}\n${read(join(dir, '.env.local'))}`
+  return Object.fromEntries(AUTH_KEYS.map(k => [k, new RegExp(`^\\s*${k}\\s*=\\s*"?[^"\\s]`, 'm').test(text)]))
+}
+
+export function authStatus(projectPath: string): NextAuthStatus {
+  const dir = projectDir(projectPath)
+  const l = layout(dir)
+  let providers: AuthProvider[] = []
+  try { providers = (JSON.parse(read(authConfigFile(dir))).providers as AuthProvider[]).filter(p => PROVIDERS.includes(p)) } catch { /* none chosen yet */ }
+  return {
+    installed: installed(dir, 'next-auth') && installed(dir, '@auth/prisma-adapter') && installed(dir, 'bcryptjs'),
+    models: authModels(read(l.schemaFile)),
+    configured: read(authPaths(dir, l).auth).includes(GENERATED_MARK),
+    providers,
+    keys: envKeys(dir)
+  }
+}
+
+/** Auth.js for these providers: models added to the schema (the migration comes after), files, AUTH_SECRET */
+export function applyAuth(projectPath: string, providers: AuthProvider[]): SfWriteResult {
+  const dir = projectDir(projectPath)
+  const l = layout(dir)
+  if (!l.schema) throw new Error('NEEDS:install:prisma')
+  if (!existsSync(l.lib)) throw new Error('NEEDS:lib')
+  const chosen = PROVIDERS.filter(p => providers.includes(p))
+  if (!chosen.length) throw new Error('NO_PROVIDER')
+  const models = authModels(read(l.schemaFile))
+  if (models === 'conflict') throw new Error('USER_CONFLICT')
+  const p = authPaths(dir, l)
+  if (!rewritable(read(p.auth))) throw new Error(`HAND_EDITED:${rel(dir, p.auth)}`)
+
+  const result: SfWriteResult = { created: [], changed: [], removed: [] }
+  const put = (file: string, content: string, keepIfThere = false) => {
+    const old = read(file)
+    if (old && keepIfThere) return
+    if (old && !old.includes(GENERATED_MARK) && file !== p.auth) throw new Error(`HAND_EDITED:${rel(dir, file)}`)
+    if (old === content) return
+    write(file, content)
+    ;(old ? result.changed : result.created).push(rel(dir, file))
+  }
+  if (models === 'missing') { write(l.schemaFile, withAuthModels(read(l.schemaFile))); result.changed.push('prisma/schema.prisma') }
+  const authImport = (from: string) => importPath(from, p.auth.replace(/\.(ts|js)$/, ''))
+  put(p.auth, authFile(chosen, libImport(p.auth, l)))
+  put(p.handler, handlerFile(authImport(p.handler)), true)
+  put(p.me, meRouteFile(authImport(p.me)))
+  put(p.signIn, signInPageFile(chosen, authImport(p.signIn), l.ts))
+  if (chosen.includes('credentials')) {
+    put(p.signUpRoute, signUpRouteFile(libImport(p.signUpRoute, l), l.ts))
+    put(p.signUp, signUpPageFile(l.ts))
+  }
+
+  // The secret that signs the sessions: made here, never shown
+  const env = join(dir, '.env.local')
+  const keys = envKeys(dir)
+  const add: Record<string, string> = {}
+  if (!keys.AUTH_SECRET) add.AUTH_SECRET = randomBytes(32).toString('base64')
+  if (!keys.AUTH_TRUST_HOST) add.AUTH_TRUST_HOST = 'true'
+  if (Object.keys(add).length) {
+    ;(existsSync(env) ? result.changed : result.created).push('.env.local')
+    write(env, mergeEnv(read(env), add))
+  }
+  write(authConfigFile(dir), JSON.stringify({ providers: chosen }, null, 2) + '\n')
+  return result
+}
+
+/** The providers' keys typed in the workshop, to .env.local only (AUTH_* known names, one line each) */
+export function setAuthKeys(projectPath: string, values: Record<string, string>): string[] {
+  const dir = projectDir(projectPath)
+  const clean: Record<string, string> = {}
+  for (const [k, v] of Object.entries(values ?? {})) {
+    const value = String(v ?? '').trim()
+    if (AUTH_KEYS.includes(k) && k !== 'AUTH_SECRET' && value && !/["\r\n]/.test(value) && value.length <= 500) clean[k] = value
+  }
+  if (!Object.keys(clean).length) return []
+  const env = join(dir, '.env.local')
+  write(env, mergeEnv(read(env), clean))
+  return Object.keys(clean)
 }
 
 // ─── Going back ───────────────────────────────────────────────────────────────

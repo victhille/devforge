@@ -13,9 +13,10 @@ import MigrationsSection from '../symfony/MigrationsSection'
 import ApiSection from '../symfony/ApiSection'
 import { FixturesSection, RoutesSection } from '../symfony/ToolSections'
 import { DbAuthHint, RunButton, Section, errorText, useSfTasks } from '../symfony/parts'
+import AuthSection from './AuthSection'
 
-type Part = 'database' | 'entities' | 'migrations' | 'api' | 'fixtures' | 'routes' | 'server'
-const PARTS: Part[] = ['database', 'entities', 'migrations', 'api', 'fixtures', 'routes', 'server']
+type Part = 'database' | 'entities' | 'migrations' | 'api' | 'auth' | 'fixtures' | 'routes' | 'server'
+const PARTS: Part[] = ['database', 'entities', 'migrations', 'api', 'auth', 'fixtures', 'routes', 'server']
 const DEV_URL = 'http://localhost:3000'
 
 /** The Next.js workshop of a project: Prisma models, migrations, API routes, seed */
@@ -51,7 +52,7 @@ export default function NextPanel({ projectPath }: { projectPath: string }) {
     toast.show({
       tone: 'success', title: s.written.replace('{n}', String(count)),
       description: [...r.created.map(f => `+ ${f}`), ...r.changed.map(f => `~ ${f}`), ...r.removed.map(f => `− ${f}`)].join('\n'),
-      action: part === 'entities' ? { label: s.prepare, onClick: () => setPart('migrations') } : undefined
+      action: part === 'entities' || part === 'auth' ? { label: s.prepare, onClick: () => setPart('migrations') } : undefined
     })
     load()
   }
@@ -165,6 +166,10 @@ export default function NextPanel({ projectPath }: { projectPath: string }) {
             load={() => window.devforge.nextjs.apiConfig(projectPath)} save={config => window.devforge.nextjs.applyApi(projectPath, config)}
             filesNote={n.jsonFiles}
             needs={() => st.libPrisma ? null : { text: n.needsLib, button: <Button size="sm" variant="primary" disabled={!st.client} onClick={() => write(() => window.devforge.nextjs.writePrismaClient(projectPath))}>{n.writeLib}</Button> }} />
+        )}
+        {part === 'auth' && (
+          <AuthSection projectPath={projectPath} status={st} version={data} onWritten={written}
+            install={run('install:auth', s.install, 'primary')} />
         )}
         {part === 'fixtures' && (
           <FixturesSection entities={data.entities} ready={st.seedTools} install={run('install:seed', s.install, 'primary')}
