@@ -10,8 +10,9 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   // Several Electrons at once: each test has its own profile, and the
-  // single-instance lock is per profile. GitHub's Windows runners have 4 cores.
-  workers: process.env.CI ? 3 : 4,
+  // single-instance lock is per profile. On GitHub's runner, 3 at once made
+  // some fail to start: 2 there.
+  workers: process.env.CI ? 2 : 4,
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['list'], ['github']] : 'list'
