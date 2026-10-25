@@ -18,14 +18,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      # Same packages as the CI's (same key): restored instead of installed again
-      - uses: actions/cache@v4
+      # The CI's packages (same key, same folders): restored instead of installed again
+      - uses: actions/cache/restore@v4
         id: deps
         with:
           path: |
             node_modules
             ~\AppData\Local\electron\Cache
-            ~\AppData\Local\electron-builder\Cache
           key: deps-${{ runner.os }}-node22-${{ hashFiles('package-lock.json') }}
       - if: steps.deps.outputs.cache-hit != 'true'
         run: npm ci

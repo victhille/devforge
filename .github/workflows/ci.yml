@@ -16,7 +16,7 @@ jobs:
           node-version: 22
       # npm ci takes 2 to 3 minutes on Windows (583 packages, Electron's download):
       # the installed packages are kept as long as package-lock.json does not change
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
         id: deps
         with:
           path: |
@@ -25,6 +25,14 @@ jobs:
           key: deps-${{ runner.os }}-node22-${{ hashFiles('package-lock.json') }}
       - if: steps.deps.outputs.cache-hit != 'true'
         run: npm ci
+      # Saved right away: a failing test later must not lose it
+      - if: steps.deps.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            ~\AppData\Local\electron\Cache
+          key: ${{ steps.deps.outputs.cache-primary-key }}
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test

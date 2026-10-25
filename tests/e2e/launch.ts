@@ -25,7 +25,8 @@ export async function launch(opts: { settings?: Record<string, unknown>; seed?: 
   // "{userData}" in a value stands for the profile folder
   const env = { DEVFORGE_TEST_OFFSCREEN: '1', ...Object.fromEntries(Object.entries(opts.env ?? {}).map(([k, v]) => [k, v.replace('{userData}', userData)])) }
 
-  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`], cwd: ROOT, env: { ...process.env as Record<string, string>, ...env } })
+  // The CI runner has no real GPU: its GPU process fails when several apps start at once
+  const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`, ...(process.env.CI ? ['--disable-gpu'] : [])], cwd: ROOT, env: { ...process.env as Record<string, string>, ...env } })
   // The main window: the launcher and the desktop widget are windows too
   const isMain = (p: Page) => /index\.html/.test(p.url())
   let page = app.windows().find(isMain)
