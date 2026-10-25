@@ -19,13 +19,15 @@ jobs:
         with:
           node-version: 22
       # The CI's packages (same key, same folders): restored instead of installed again
+      - id: lock
+        run: echo "key=$(node scripts/deps-key.mjs)" >> "$GITHUB_OUTPUT"
       - uses: actions/cache/restore@v4
         id: deps
         with:
           path: |
             node_modules
             ~\AppData\Local\electron\Cache
-          key: deps-${{ runner.os }}-node22-${{ hashFiles('package-lock.json') }}
+          key: deps-${{ runner.os }}-node22-${{ steps.lock.outputs.key }}
       - if: steps.deps.outputs.cache-hit != 'true'
         run: npm ci
 
