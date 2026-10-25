@@ -2,7 +2,7 @@ import type { ComponentType } from 'react'
 import {
   Home, FolderOpen, Plus, Monitor, Terminal, Settings, Wifi, BookOpen,
   Wrench, Send, Code, Columns, Key, GitBranch, HardDrive, FileKey2, Rocket, Container, UploadCloud, Activity, Globe, Database, ScrollText, Webhook,
-  Code2, Server, Cpu, Workflow, ShieldCheck, AppWindow, HeartPulse, HardDriveDownload, type LucideIcon
+  Code2, Server, Cpu, Workflow, ShieldCheck, AppWindow, HeartPulse, HardDriveDownload, RadioTower, type LucideIcon
 } from 'lucide-react'
 import type { Translations } from '@renderer/i18n/translations'
 
@@ -45,6 +45,7 @@ export const PAGES: NavPage[] = [
   { path: '/services',    labelKey: 'services',    icon: AppWindow,  section: 'sectionServers', load: () => import('@renderer/features/vps/ServicesPage'), keywords: ['portainer', 'phpmyadmin', 'adminer', 'tunnel', 'interface', 'web', 'conteneur'] },
   { path: '/health',      labelKey: 'health',      icon: HeartPulse, section: 'sectionServers', load: () => import('@renderer/features/vps/HealthPage'), keywords: ['santé', 'sécurité', 'security', 'updates', 'mises à jour', 'fail2ban', 'disque', 'disk', 'ports'] },
   { path: '/backups',     labelKey: 'backups',     icon: HardDriveDownload, section: 'sectionServers', load: () => import('@renderer/features/vps/BackupsPage'), keywords: ['sauvegarde', 'backup', 'restaurer', 'restore', 'dump', 'cron'] },
+  { path: '/status',      labelKey: 'statusPage',  icon: RadioTower, section: 'sectionServers', load: () => import('@renderer/features/status/StatusPage'), keywords: ['statut', 'status', 'uptime', 'incident', 'surveillance', 'alerte', 'ntfy', 'disponibilité'] },
   { path: '/vpn',         labelKey: 'vpn',         icon: ShieldCheck, section: 'sectionServers', load: () => import('@renderer/features/vpn/VpnPage'), keywords: ['vpn', 'wireguard', 'wg-easy', 'qr', 'client', 'tunnel'] },
 
   // System
@@ -93,7 +94,7 @@ export type GroupKey = 'groupDev' | 'groupServers' | 'groupOnline' | 'groupData'
 export const MENU_GROUPS: { key: GroupKey; icon: LucideIcon; paths: string[] }[] = [
   { key: 'groupDev',     icon: Code2,       paths: ['/projects', '/new-project', '/git', '/stacks', '/docker'] },
   { key: 'groupServers', icon: Server,      paths: ['/ssh', '/health', '/services', '/backups', '/monitor'] },
-  { key: 'groupOnline',  icon: UploadCloud, paths: ['/deploy', '/n8n', '/vpn'] },
+  { key: 'groupOnline',  icon: UploadCloud, paths: ['/deploy', '/n8n', '/vpn', '/status'] },
   { key: 'groupData',    icon: Database,    paths: ['/database', '/api-tester', '/webhooks', '/logs'] },
   { key: 'groupSystem',  icon: Cpu,         paths: ['/environment', '/ports', '/env-files', '/domains', '/cleaner'] },
   { key: 'groupTools',   icon: Wrench,      paths: ['/toolbox', '/snippets', '/diff', '/generator', '/docs'] }

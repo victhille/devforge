@@ -345,6 +345,18 @@ const api: DevForgeAPI = {
     onToMain: on('launcher:to-main')
   },
 
+  status: {
+    precheck:      invoke('status:precheck'),
+    checkDomain:   invoke('status:check-domain'),
+    install:       invoke('status:install'),
+    onLog:         on('status:log'),
+    overview:      invoke('status:overview'),
+    saveConfig:    invoke('status:save-config'),
+    saveIncidents: invoke('status:save-incidents'),
+    testAlert:     invoke('status:test-alert'),
+    uninstall:     invoke('status:uninstall')
+  },
+
   dictation: {
     status:     invoke('dictation:status'),
     prepare:    invoke('dictation:prepare'),
