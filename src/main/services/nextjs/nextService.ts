@@ -1,15 +1,17 @@
 import { app } from 'electron'
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs'
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs'
+import { tmpdir } from 'os'
 import { dirname, join, relative } from 'path'
-import type { CommandResult, LogLine, NextCommand, NextInspect, NextRoute, SfApiConfig, SfEntityDraft, SfMigration, SfWriteResult } from '@shared/types'
+import type { CommandResult, LogLine, NextCommand, NextInspect, NextRevertResult, NextRoute, SfApiConfig, SfEntityDraft, SfMigration, SfWriteResult } from '@shared/types'
 import { ADAPTER, nextCommand } from '@shared/lib/nextCommands'
 import { assertSafeDir, isInsideProject } from '../../lib/safe'
-import { runCapture } from '../../lib/exec'
+import { quote, runCapture, runFile } from '../../lib/exec'
 import { commandRunner } from '../system/commandRunner'
 import { checkDraft } from '../symfony/sfEntityWriter'
 import { isDangerous } from '../symfony/sfInspect'
 import { OPERATIONS } from '../symfony/sfApi'
 import { parseSchema, toEntities, writeModel as writePrismaModel } from './prismaSchema'
+import { cleanDiff, createDatabaseSql, databaseName, dropDatabaseSql, findConfig, prismaStamp, revertConfig, revertFolder, revertMigration, shadowUrl } from './prismaRevert'
 import { GENERATED_MARK, prismaClientFile, routeFiles, routeFolder, seedFile } from './nextFiles'
 
 type LogCb = (log: LogLine) => void
@@ -232,4 +234,90 @@ export function writeSeed(projectPath: string, counts: Record<string, number>, o
   write(file, seedFile(entities, clean, libImport(file, l)))
   const c = nextCommand('seed', pmOf(dir))
   return commandRunner.run({ executable: c.exe, args: c.args, cwd: dir, onLog, onResult })
+}
+
+// ─── Going back ───────────────────────────────────────────────────────────────
+
+/** .env value, without quotes */
+const envValue = (dir: string, key: string) =>
+  read(join(dir, '.env')).match(new RegExp(`^\\s*${key}\\s*=\\s*"?([^"\\r\\n]*)"?`, 'm'))?.[1] ?? null
+
+/**
+ * The last applied migration undone as a new migration, not run: its SQL is
+ * read before "Apply". The SQL comes from `migrate diff` against the other
+ * migrations replayed in a shadow database (created for the moment, then
+ * dropped); schema.prisma goes back to its Git version from before that
+ * migration, when it matches.
+ */
+export async function prepareRevert(projectPath: string): Promise<NextRevertResult> {
+  const dir = projectDir(projectPath)
+  const l = layout(dir)
+  if (!l.schema) throw new Error('NEEDS:install:prisma')
+  const provider = l.schema.provider
+  const migDir = join(dir, 'prisma', 'migrations')
+  const names = existsSync(migDir) ? readdirSync(migDir).filter(n => /^\d{14}_/.test(n) && statSync(join(migDir, n)).isDirectory()).sort() : []
+  const last = names[names.length - 1]
+  if (!last) throw new Error('NO_MIGRATION')
+  const st = await runCapture('npx prisma migrate status', { cwd: dir, timeout: 90_000 })
+  const status = parseMigrateStatus(`${st.stdout}\n${st.stderr}`)
+  if (!status.reachable) throw new Error('NOT_REACHABLE')
+  if (status.pending.length) throw new Error('PENDING_FIRST')
+
+  const url = envValue(dir, 'DATABASE_URL') ?? ''
+  const shadow = shadowUrl(url, provider)
+  const shadowName = provider === 'sqlite' ? null : databaseName(shadow ?? '')
+  if (!shadow || (provider !== 'sqlite' && !shadowName)) throw new Error('NO_DATABASE_URL')
+
+  const work = mkdtempSync(join(tmpdir(), 'devforge-revert-'))
+  const before = join(work, 'migrations')
+  const configName = findConfig(readdirSync(dir))
+  const tempConfig = join(dir, 'prisma.devforge.config.ts')
+  const v7 = (l.version ?? 0) >= 7
+  const env = { DEVFORGE_SHADOW_URL: shadow }
+  // Prisma 7 takes the shadow database from its config; older ones from flags
+  const prisma = (args: string) => v7
+    ? `npx prisma ${args} --config ${quote(tempConfig)}`
+    : `npx prisma ${args.replace('--from-config-datasource', `--from-url ${quote(url)}`)} --shadow-database-url ${quote(shadow)}`
+  const execSql = (name: string, sql: string) => {
+    const f = join(work, name)
+    writeFileSync(f, sql)
+    return runCapture(`npx prisma db execute --file ${quote(f)}${v7 ? '' : ` --url ${quote(url)}`}`, { cwd: dir, timeout: 90_000 })
+  }
+  try {
+    mkdirSync(before)
+    for (const n of names.slice(0, -1)) cpSync(join(migDir, n), join(before, n), { recursive: true })
+    if (existsSync(join(migDir, 'migration_lock.toml'))) cpSync(join(migDir, 'migration_lock.toml'), join(before, 'migration_lock.toml'))
+    if (v7) {
+      if (!configName) throw new Error('NO_PRISMA_CONFIG')
+      writeFileSync(tempConfig, revertConfig(configName))
+    }
+    if (shadowName) await execSql('create.sql', createDatabaseSql(shadowName, provider))
+
+    const diff = await runCapture(prisma(`migrate diff --from-config-datasource --to-migrations ${quote(before)} --script`), { cwd: dir, timeout: 180_000, env })
+    if (!diff.ok) throw new Error(`PRISMA:${(diff.stderr || diff.stdout).trim().split(/\r?\n/).pop()}`)
+    const sql = cleanDiff(diff.stdout)
+    if (!sql) throw new Error('NOTHING_TO_REVERT')
+
+    // The schema from before that migration, if Git has it and it matches the other migrations
+    let schemaBack: string | null = null
+    const added = (await runFile('git', ['log', '-n', '1', '--format=%H', '--diff-filter=A', '--', `prisma/migrations/${last}`], { cwd: dir })).stdout.trim()
+    const shown = await runFile('git', ['show', `${added ? `${added}^` : 'HEAD'}:prisma/schema.prisma`], { cwd: dir })
+    if (shown.ok && shown.stdout.includes('datasource')) {
+      const candidate = join(work, 'schema.prisma')
+      writeFileSync(candidate, shown.stdout)
+      const check = await runCapture(prisma(`migrate diff --from-migrations ${quote(before)} --to-schema ${quote(candidate)} --exit-code`), { cwd: dir, timeout: 180_000, env })
+      if (check.ok) schemaBack = shown.stdout
+    }
+
+    const folder = revertFolder(last, prismaStamp(new Date()))
+    write(join(migDir, folder, 'migration.sql'), revertMigration(last, sql))
+    const result: SfWriteResult = { created: [`prisma/migrations/${folder}/migration.sql`], changed: [], removed: [] }
+    if (schemaBack !== null && schemaBack !== read(l.schemaFile)) { write(l.schemaFile, schemaBack); result.changed.push('prisma/schema.prisma') }
+    return { ...result, migration: last, schemaRestored: schemaBack !== null }
+  } finally {
+    if (shadowName) await execSql('drop.sql', dropDatabaseSql(shadowName, provider))
+    if (provider === 'sqlite') rmSync(join(dir, 'prisma', 'devforge-shadow.db'), { force: true })
+    rmSync(tempConfig, { force: true })
+    rmSync(work, { recursive: true, force: true })
+  }
 }

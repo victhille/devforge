@@ -379,7 +379,8 @@ const api: DevForgeAPI = {
     writePrismaClient: invoke('nextjs:write-client'),
     apiConfig:   invoke('nextjs:api-config'),
     applyApi:    invoke('nextjs:apply-api'),
-    writeSeed:   invoke('nextjs:write-seed')
+    writeSeed:   invoke('nextjs:write-seed'),
+    prepareRevert: invoke('nextjs:prepare-revert')
   },
 
   laravel: {

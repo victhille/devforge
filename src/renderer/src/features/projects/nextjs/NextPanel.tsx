@@ -55,6 +55,20 @@ export default function NextPanel({ projectPath }: { projectPath: string }) {
     })
     load()
   }
+  /** The undoing migration, written then shown like any pending one: "Apply" runs it */
+  async function revert() {
+    toast.show({ tone: 'info', title: n.revertBusy })
+    try {
+      const r = await window.devforge.nextjs.prepareRevert(projectPath)
+      written(r)
+      if (!r.schemaRestored) toast.show({ tone: 'info', title: n.revertSchemaByHand })
+    } catch (err) {
+      const code = errorText(err)
+      const [key, ...rest] = code.split(':')
+      toast.show({ tone: 'error', title: (n.revertErrors as Record<string, string>)[key]?.replace('{detail}', rest.join(':')) ?? code })
+    }
+  }
+
   async function write(start: () => Promise<SfWriteResult>) {
     try { written(await start()) } catch (err) { toast.show({ tone: 'error', title: errorText(err) }) }
   }
@@ -140,7 +154,11 @@ export default function NextPanel({ projectPath }: { projectPath: string }) {
           <MigrationsSection migrations={data.migrations} databaseOk={dbOk} note={n.migrationsNote}
             prepare={{ named: true, line: name => line('prisma:migrate', name), run: name => exec('prisma:migrate', name) }}
             apply={{ line: () => line('prisma:deploy'), run: () => exec('prisma:deploy') }}
-            rollback={null} />
+            rollback={{
+              label: n.revert, confirm: false,
+              line: () => n.revertLine,
+              run: () => { void revert() }
+            }} />
         )}
         {part === 'api' && (
           <ApiSection entities={data.entities} onWritten={written} serverUrl={null} defaultUrl={DEV_URL}
