@@ -55,6 +55,8 @@ export interface ProjectCreationOptions {
   openAfter: boolean
   libraries?: string[]
   devLibraries?: string[]
+  /** v2.2: database, options, Git and GitHub after the creation */
+  setup?: ProjectSetup
 }
 
 // ─── Environment ─────────────────────────────────────────────────────────────
@@ -250,6 +252,7 @@ export * from './github'
 export * from './automations'
 export * from './vercel'
 export * from './dictation'
+export * from './setup'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
@@ -265,6 +268,7 @@ import type { GithubAPI } from './github'
 import type { AutomationsAPI } from './automations'
 import type { VercelAPI } from './vercel'
 import type { DictationAPI } from './dictation'
+import type { ProjectSetup, SetupAPI } from './setup'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -385,6 +389,7 @@ export interface DevForgeAPI {
   github: GithubAPI
   automations: AutomationsAPI
   vercel: VercelAPI
+  setup: SetupAPI
   dictation: DictationAPI
 
   // Git

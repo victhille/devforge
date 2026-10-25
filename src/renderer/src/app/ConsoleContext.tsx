@@ -10,6 +10,8 @@ interface ConsoleState {
   result: CommandResult | null
   projectPath: string | null
   isCreation: boolean
+  /** Saved project of a finished creation */
+  projectId: string | null
 }
 
 interface ConsoleContextValue extends ConsoleState {
@@ -33,7 +35,8 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
     logs:        [],
     result:      null,
     projectPath: null,
-    isCreation:  false
+    isCreation:  false,
+    projectId:   null
   })
   const saveProjUnsubRef = useRef<(() => void) | null>(null)
 
@@ -75,7 +78,8 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
       logs:        [],
       result:      null,
       projectPath: projPath,
-      isCreation:  true
+      isCreation:  true,
+      projectId:   null
     })
 
     const taskId = await window.devforge.createProject(options)
@@ -87,8 +91,10 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
     // One-shot listener to save the project when creation succeeds
     const unsub = window.devforge.onTaskResult(result => {
       if (result.status === 'success') {
+        const id = crypto.randomUUID()
+        setState(prev => ({ ...prev, projectId: id }))
         window.devforge.saveProject({
-          id:            crypto.randomUUID(),
+          id,
           name:          options.name,
           path:          projPath,
           framework:     options.framework,
@@ -118,7 +124,8 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
       logs:        [],
       result:      null,
       projectPath,
-      isCreation:  false
+      isCreation:  false,
+      projectId:   null
     })
     const taskId = await window.devforge.runProjectScript(projectPath, script, pm)
     setState(prev => ({ ...prev, taskId }))

@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import { X, ChevronUp, ChevronDown, CheckCircle2, XCircle, FolderOpen, Code2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { X, ChevronUp, ChevronDown, CheckCircle2, XCircle, FolderOpen, Code2, ArrowRight } from 'lucide-react'
 import type { LogLine } from '@shared/types'
 import { useConsole } from '@renderer/app/ConsoleContext'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -32,10 +33,11 @@ function FooterButton({ onClick, className, children }: { onClick: () => void; c
 export default function BottomPanel() {
   const { t } = useI18n()
   const {
-    visible, minimized, label, logs, result, isCreation, taskId,
+    visible, minimized, label, logs, result, isCreation, taskId, projectId,
     cancelTask, hide, setMinimized, openFolder, openVSCode
   } = useConsole()
 
+  const navigate = useNavigate()
   const logEndRef = useRef<HTMLDivElement>(null)
   const running = visible && result === null && taskId !== null
 
@@ -112,6 +114,7 @@ export default function BottomPanel() {
             <>
               <FooterButton onClick={openFolder}><FolderOpen size={11} /> {t.console.openFolder}</FooterButton>
               <FooterButton onClick={openVSCode}><Code2 size={11} /> {t.console.openVSCode}</FooterButton>
+              {projectId && <FooterButton onClick={() => { navigate(`/project/${projectId}`); setMinimized(true) }}><ArrowRight size={11} /> {t.console.openProject}</FooterButton>}
             </>
           )}
           <FooterButton onClick={hide} className="ml-auto">{t.console.close}</FooterButton>

@@ -317,6 +317,13 @@ const api: DevForgeAPI = {
     open: invoke('automations:open')
   },
 
+  setup: {
+    freePort:    invoke('setup:free-port'),
+    githubLogin: invoke('setup:github-login'),
+    phpStatus:   invoke('setup:php-status'),
+    phpEnable:   invoke('setup:php-enable')
+  },
+
   dictation: {
     status:     invoke('dictation:status'),
     prepare:    invoke('dictation:prepare'),
