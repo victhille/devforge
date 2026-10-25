@@ -2,6 +2,21 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [2.3.0](https://github.com/victhille/devforge/compare/v2.2.0...v2.3.0) — 2026-10-25
+
+> Laravel Sail, Auth.js and Prisma rollback in the workshops, Forgy in all three workshops, a Docker database of its own per project, exit codes in cmd.
+
+### New features
+
+- **forgy**: Forgy dans les ateliers Laravel et Next.js ([0f44732](https://github.com/victhille/devforge/commit/0f44732863ecfd2674260aae8bcf82e284462b12))
+- **laravel**: Sail à la création et dans l'atelier ([2a9679b](https://github.com/victhille/devforge/commit/2a9679b3c0d680ae0ce0996334e87940516a50b0))
+- **nextjs**: Auth.js dans l'atelier (GitHub, Google, e-mail) ([2774c6d](https://github.com/victhille/devforge/commit/2774c6d458cd854e7691ee0f956eee51cd0e6db6))
+- **nextjs**: Revenir en arrière sur une migration Prisma ([fe6e632](https://github.com/victhille/devforge/commit/fe6e63284a7bf4b35d09e43e4b7b991f823d7daa))
+- **terminal**: Code de retour dans cmd, shells gardés sur la page projet ([1f36745](https://github.com/victhille/devforge/commit/1f36745208443c6c0fde983155f78add171251a8))
+- **projets**: Une base Docker propre à chaque projet ([7eb4af9](https://github.com/victhille/devforge/commit/7eb4af9e644880a5341dea5e9bbb6be262d4967e))
+
+_1 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [2.2.0](https://github.com/victhille/devforge/compare/v2.1.0...v2.2.0) — 2026-10-25
 
 > Complete projects from creation, Symfony, Laravel and Next.js workshops, global launcher, status page and block terminal.
