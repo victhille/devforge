@@ -131,6 +131,10 @@ export interface AppSettings {
   favorites: string[]
   /** Widgets of the Home page, in order (only written by `setHomeWidgets`) */
   homeWidgets: HomeWidget[]
+  /** Global launcher (v2.2): floating search over any application */
+  launcherEnabled: boolean
+  /** Electron accelerator, e.g. CommandOrControl+Alt+Space */
+  launcherShortcut: string
 }
 
 export type MotionSetting = 'full' | 'reduced' | 'system'
@@ -254,6 +258,7 @@ export * from './vercel'
 export * from './dictation'
 export * from './setup'
 export * from './symfony'
+export * from './launcher'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
@@ -271,6 +276,7 @@ import type { VercelAPI } from './vercel'
 import type { DictationAPI } from './dictation'
 import type { ProjectSetup, SetupAPI } from './setup'
 import type { SymfonyAPI } from './symfony'
+import type { LauncherAPI } from './launcher'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -393,6 +399,7 @@ export interface DevForgeAPI {
   vercel: VercelAPI
   setup: SetupAPI
   symfony: SymfonyAPI
+  launcher: LauncherAPI
   dictation: DictationAPI
 
   // Git

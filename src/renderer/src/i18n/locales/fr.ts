@@ -691,6 +691,33 @@ const fr = {
     composerInstall: "Installer les dépendances"
   },
 
+  launcher: {
+    placeholder: "Projet, page, action… ou un calcul",
+    results: "Résultats",
+    recent: "Utilisés récemment",
+    empty: "Tape pour chercher. Ce que tu lances souvent remonte en premier.",
+    noResults: "Rien trouvé",
+    askForgy: "Demander à Forgy « {q} »",
+    copy: "Copier",
+    copied: "Copié : {value}",
+    confirmAgain: "Entrée encore pour confirmer · {text}",
+    running: "{title}…",
+    done: "Fait : {title}",
+    failed: "Échec : {error}",
+    hintChoose: "choisir",
+    hintRun: "lancer",
+    hintClose: "fermer",
+    enter: "Entrée",
+    escape: "Échap",
+    kinds: {
+      calc: "Calcul",
+      timestamp: "Timestamp",
+      date: "Date",
+      base64: "Base64",
+      color: "Couleur"
+    }
+  },
+
   console: {
     cancel:     'Annuler',
     done:       'Terminé',
@@ -1185,6 +1212,17 @@ const fr = {
     tipSettings: "Tout se règle dans Paramètres, en bas du menu"
   },
   settings: {
+    launcherTitle: "Lanceur global",
+    launcherHint: "Une barre de recherche par-dessus n'importe quelle application : projets, pages, actions, calculs, Forgy.",
+    launcherEnabled: "Activer le lanceur",
+    launcherEnabledHint: "Il marche tant que DevForge tourne, même réduit dans la zone de notification.",
+    launcherShortcut: "Raccourci",
+    launcherShortcutHint: "Avec Ctrl, Alt ou Win. Le widget de Forgy passe alors sur Ctrl + Alt + J.",
+    launcherTaken: "Une autre application utilise déjà ce raccourci : choisis-en un autre.",
+    launcherPress: "Appuie sur le raccourci…",
+    launcherChange: "Changer",
+    launcherStartup: "Pour que le lanceur soit toujours prêt, démarre DevForge avec Windows, réduit dans la zone de notification.",
+    launcherStartupYes: "Activer",
     title:          'Paramètres',
     subtitle:       "Chaque changement s'applique tout de suite.",
     save:           'Enregistrer',

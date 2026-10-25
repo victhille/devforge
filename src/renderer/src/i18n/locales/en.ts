@@ -698,6 +698,33 @@ const en = {
     composerInstall: "Install dependencies"
   },
 
+  launcher: {
+    placeholder: "Project, page, action… or a calculation",
+    results: "Results",
+    recent: "Recently used",
+    empty: "Type to search. What you launch often comes first.",
+    noResults: "Nothing found",
+    askForgy: "Ask Forgy \"{q}\"",
+    copy: "Copy",
+    copied: "Copied: {value}",
+    confirmAgain: "Enter again to confirm · {text}",
+    running: "{title}…",
+    done: "Done: {title}",
+    failed: "Failed: {error}",
+    hintChoose: "choose",
+    hintRun: "run",
+    hintClose: "close",
+    enter: "Enter",
+    escape: "Esc",
+    kinds: {
+      calc: "Calculation",
+      timestamp: "Timestamp",
+      date: "Date",
+      base64: "Base64",
+      color: "Color"
+    }
+  },
+
   console: {
     cancel:     'Cancel',
     done:       'Done',
@@ -1194,6 +1221,17 @@ const en = {
     tipSettings: "Everything is set in Settings, at the bottom of the menu"
   },
   settings: {
+    launcherTitle: "Global launcher",
+    launcherHint: "A search bar over any application: projects, pages, actions, calculations, Forgy.",
+    launcherEnabled: "Turn on the launcher",
+    launcherEnabledHint: "It works while DevForge runs, even minimized to the tray.",
+    launcherShortcut: "Shortcut",
+    launcherShortcutHint: "With Ctrl, Alt or Win. Forgy's widget then moves to Ctrl + Alt + J.",
+    launcherTaken: "Another application already uses this shortcut: pick another one.",
+    launcherPress: "Press the shortcut…",
+    launcherChange: "Change",
+    launcherStartup: "To keep the launcher always ready, start DevForge with Windows, minimized to the tray.",
+    launcherStartupYes: "Turn on",
     title:          'Settings',
     subtitle:       'Every change applies right away.',
     save:           'Save Changes',

@@ -337,6 +337,14 @@ const api: DevForgeAPI = {
     onDraft:       on('symfony:draft')
   },
 
+  launcher: {
+    hide:     invoke('launcher:hide'),
+    toMain:   invoke('launcher:to-main'),
+    state:    invoke('launcher:state'),
+    onShown:  on('launcher:shown'),
+    onToMain: on('launcher:to-main')
+  },
+
   dictation: {
     status:     invoke('dictation:status'),
     prepare:    invoke('dictation:prepare'),

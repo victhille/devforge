@@ -12,7 +12,9 @@ import { closeAllTails } from './services/logs/logTail'
 import { stopWebhooks } from './services/webhooks/webhookServer'
 import { applyLoginItem, startedHidden } from './lib/loginItem'
 import { guardNavigation } from './lib/windowGuards'
+import { present } from './lib/present'
 import { disposeWidget, initWidget } from './widget'
+import { disposeLauncher, initLauncher } from './launcher'
 import { initLog, log } from './lib/log'
 import { migrateData } from './services/storage/migrations'
 import { initUpdater, stopUpdater } from './services/updates/updater'
@@ -90,7 +92,7 @@ function createWindow(): void {
     }
   })
 
-  win.on('ready-to-show', () => { if (!startedHidden) win.show() })
+  win.on('ready-to-show', () => { if (!startedHidden) present(win) })
   win.webContents.on('render-process-gone', (_e, details) => log('error', 'renderer', `process gone: ${details.reason} (${details.exitCode})`))
 
   // Minimize to tray instead of closing
@@ -117,6 +119,8 @@ function createWindow(): void {
   }
 
   createTray(win)
+  // Before the widget: the launcher owns Ctrl+Alt+Space, the widget falls back to Ctrl+Alt+J
+  initLauncher(win, loadSettings())
   initWidget(win)
 }
 
@@ -183,7 +187,7 @@ app.whenReady().then(() => {
 })
 
 // Never leave dev servers running after DevForge quits
-app.on('before-quit', () => { disposeWidget(); processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks(); stopUpdater(); stopWatch(); stopHistory(); stopBackupWatch(); closeAllForwards() })
+app.on('before-quit', () => { disposeWidget(); disposeLauncher(); processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks(); stopUpdater(); stopWatch(); stopHistory(); stopBackupWatch(); closeAllForwards() })
 
 app.on('window-all-closed', () => {
   sshService.disconnectAll()

@@ -23,7 +23,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   dictationModel: 'base',
   onboarded: false,
   favorites: DEFAULT_FAVORITES,
-  homeWidgets: DEFAULT_WIDGETS
+  homeWidgets: DEFAULT_WIDGETS,
+  launcherEnabled: true,
+  launcherShortcut: 'CommandOrControl+Alt+Space'
 }
 
 function getSettingsPath(): string {

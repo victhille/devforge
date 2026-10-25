@@ -19,9 +19,10 @@ export async function axeIssues(page: Page): Promise<AxeIssue[]> {
 export async function settledAxeIssues(page: Page): Promise<AxeIssue[]> {
   await page.evaluate(async () => {
     for (let i = 0; i < 20; i++) {
-      const running = document.getAnimations().filter(a => a.playState === 'running')
+      // Looping ones (Forgy, spinners) never end: only the fade-ins count
+      const running = document.getAnimations().filter(a => a.playState === 'running' && a.effect?.getTiming().iterations !== Infinity)
       if (!running.length) break
-      await Promise.all(running.map(a => a.finished.catch(() => {})))
+      await Promise.race([Promise.all(running.map(a => a.finished.catch(() => {}))), new Promise(r => setTimeout(r, 1000))])
       await new Promise(r => requestAnimationFrame(() => r(null)))
     }
   })

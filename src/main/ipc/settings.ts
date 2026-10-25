@@ -3,6 +3,7 @@ import { existsSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
 import { loadSettings, saveSettings, setFavorites, setHomeWidgets } from '../services/settings/settingsService'
 import { applyLoginItem } from '../lib/loginItem'
+import { applyLauncher } from '../launcher'
 import { log } from '../lib/log'
 import { checkForUpdates, getUpdateStatus, installUpdate, setUpdateChannel } from '../services/updates/updater'
 import { DATA_ENTRIES, backupData, parseBackupName, readSchemaVersion, restoreData } from '../services/storage/migrations'
@@ -44,8 +45,10 @@ export function registerSettingsHandlers(): void {
   ipcMain.handle('get-settings', async () => loadSettings())
 
   ipcMain.handle('save-settings', async (_event, settings: AppSettings) => {
+    const before = loadSettings()
     saveSettings(settings)
     applyLoginItem(settings)
+    if (before.launcherEnabled !== settings.launcherEnabled || before.launcherShortcut !== settings.launcherShortcut) applyLauncher(loadSettings())
     setUpdateChannel(settings.updateChannel === 'beta')
   })
 
