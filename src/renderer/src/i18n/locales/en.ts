@@ -444,7 +444,7 @@ const en = {
       featLaravel: {
         api:    'routes/api.php and Sanctum (install:api). Each model\'s routes are set in the workshop.',
         auth:   'Laravel Fortify: login, registration and password reset, server side.',
-        docker: 'FrankenPHP (Caddy and PHP) in the same compose.yaml.',
+        docker: 'Laravel Sail: PHP, Composer and the database in containers, driven by DevForge with docker compose.',
         tests:  'PHPUnit is already there, with two passing tests.',
         ci:     'Install and tests on every push.'
       },
@@ -814,7 +814,12 @@ const en = {
     serverTitle: "Server and cache",
     serverHelp: "php artisan serve, run in the console on port 8000. Stop it from the console.",
     serve: "Start the server",
-    openSite: "Open http://127.0.0.1:8000",
+    openSite: "Open {url}",
+    sailDown: "Sail is stopped: the app's containers are not running.",
+    sailStart: "Start Sail",
+    sailStop: "Stop Sail",
+    sailHelp: "The project runs in Sail: PHP, Composer and the database are in containers, driven by docker compose (the sail script only works on macOS, Linux or WSL2).",
+    sailDb: "Database in Sail: its port on this PC is FORWARD_DB_PORT (.env).",
     clear: "Clear the caches",
     seedTask: "Fake data (Laravel)"
   },

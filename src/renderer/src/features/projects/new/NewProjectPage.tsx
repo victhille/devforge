@@ -11,7 +11,7 @@ import LibrarySelector from './LibrarySelector'
 import FinishForm from './FinishForm'
 
 type Step = 'select' | 'configure' | 'stack' | 'libraries' | 'finish'
-type Stack = Pick<ProjectSetup, 'database' | 'dbName' | 'dbPort' | 'features'>
+type Stack = Pick<ProjectSetup, 'database' | 'dbName' | 'dbPort' | 'appPort' | 'features'>
 
 /** Wizard: technology → configuration → database and options → libraries (JS) → Git, GitHub and summary */
 export default function NewProjectPage() {

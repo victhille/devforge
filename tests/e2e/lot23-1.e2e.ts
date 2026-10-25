@@ -23,7 +23,7 @@ test('a refused password in a workshop explains the old Docker volume', async ()
       ]))
       writeFileSync(join(data, 'laravel.json'), JSON.stringify({
         status: {
-          booted: true, error: null, version: '13.38.0', connection: 'pgsql', composeDatabase: true, api: true, faker: true,
+          booted: true, error: null, version: '13.38.0', connection: 'pgsql', composeDatabase: true, api: true, faker: true, sail: false, appUrl: 'http://127.0.0.1:8000',
           database: { reachable: false, error: 'SQLSTATE[08006] [7] connection to server at "127.0.0.1", port 5461 failed: FATAL:  password authentication failed for user "app"' }
         },
         migrations: [],

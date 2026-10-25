@@ -153,7 +153,7 @@ async function openLaravel(): Promise<string> {
       writeFileSync(join(dir, 'routes', 'api.php'), "<?php\n\nuse Illuminate\\Support\\Facades\\Route;\n")
       writeFileSync(join(data, 'projects.json'), JSON.stringify([project('lv', 'atelier', dir, 'laravel')]))
       writeFileSync(join(data, 'laravel.json'), JSON.stringify({
-        status: { booted: true, error: null, version: '12.30.1', connection: 'pgsql', database: { reachable: true, error: null }, composeDatabase: true, api: true, faker: true },
+        status: { booted: true, error: null, version: '12.30.1', connection: 'pgsql', database: { reachable: true, error: null }, composeDatabase: true, api: true, faker: true, sail: false, appUrl: 'http://127.0.0.1:8000' },
         migrations: [
           { version: '2026_10_25_120000_create_factures_table', description: 'create factures table', executed: false, executedAt: null, file: 'database/migrations/2026_10_25_120000_create_factures_table.php', sql: ['create table "factures" ("id" bigserial not null primary key)'], dangerous: false },
           { version: '0001_01_01_000000_create_users_table', description: 'create users table', executed: true, executedAt: null, file: 'database/migrations/0001_01_01_000000_create_users_table.php', sql: [], dangerous: false }

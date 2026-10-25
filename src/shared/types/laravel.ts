@@ -16,6 +16,10 @@ export interface LaravelStatus {
   api: boolean
   /** fakerphp/faker is installed (the skeleton has it in require-dev) */
   faker: boolean
+  /** Runs in Sail (v2.3 lot 5): PHP and Composer in the app's container, through docker compose */
+  sail: boolean
+  /** Where the app answers: Sail's APP_PORT, or php artisan serve's */
+  appUrl: string
 }
 
 export interface LaravelInspect {
@@ -26,7 +30,7 @@ export interface LaravelInspect {
 
 export type LaravelCommand =
   | 'composer:install' | 'db:start' | 'make:migration' | 'migrate' | 'migrate:rollback'
-  | 'install:api' | 'seed' | 'serve' | 'optimize:clear'
+  | 'install:api' | 'seed' | 'serve' | 'optimize:clear' | 'sail:stop'
 
 export interface LaravelAPI {
   inspect: (projectPath: string) => Promise<LaravelInspect>
