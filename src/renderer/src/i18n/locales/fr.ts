@@ -709,6 +709,7 @@ const fr = {
       entities: "Modèles",
       migrations: "Migrations",
       api: "API",
+      auth: "Utilisateurs et connexion",
       fixtures: "Fausses données",
       routes: "Routes",
       server: "Serveur"
@@ -751,7 +752,33 @@ const fr = {
     serverHelp: "next dev, lancé dans la console. Arrête-le depuis la console.",
     devStart: "Lancer le serveur",
     openSite: "Ouvrir http://localhost:3000",
-    seedTask: "Fausses données (Prisma)"
+    seedTask: "Fausses données (Prisma)",
+    authTitle: "Utilisateurs et connexion",
+    authHelp: "Auth.js avec l'adaptateur Prisma : les comptes vont dans ta base, les pages de connexion et d'inscription sont écrites pour toi.",
+    authNotInstalled: "Auth.js, son adaptateur Prisma et bcryptjs ne sont pas installés.",
+    providers: "Moyens de connexion",
+    provider: { github: "GitHub", google: "Google", credentials: "E-mail et mot de passe" },
+    providerHelp: {
+      github: "· clés d'une OAuth App GitHub",
+      google: "· clés d'un client OAuth Google",
+      credentials: "· mots de passe hachés (bcrypt), page d'inscription"
+    },
+    authApply: "Écrire la configuration",
+    authAfter: "Ensuite : prépare et applique la migration (les tables des comptes).",
+    authErrors: {
+      USER_CONFLICT: "schema.prisma a déjà un modèle User (ou Account, Session) d'une autre forme : Auth.js a besoin des siens. Renomme le tien avant.",
+      NO_PROVIDER: "Choisis au moins un moyen de connexion.",
+      HAND_EDITED: "{name} a été modifié à la main : DevForge ne le réécrit pas.",
+      NEEDS: "Installe d'abord ce qu'il faut ({name}) ; lib/prisma.ts se crée dans « Base et Prisma »."
+    },
+    keysTitle: "Clés {name}",
+    keysSet: "renseignées",
+    keysMissing: "manquantes",
+    keysConsole: "Créer les clés",
+    keysCallback: "Adresse de retour à donner : {url}",
+    keysSave: "Enregistrer",
+    keysSaved: "{n} clé(s) enregistrée(s) dans .env.local.",
+    keysNote: "Les clés et AUTH_SECRET vont dans .env.local, qui ne se commite pas. DevForge ne les réaffiche jamais."
   },
   laravel: {
     navLabel: "Atelier Laravel",

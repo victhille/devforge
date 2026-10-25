@@ -716,6 +716,7 @@ const en = {
       entities: "Models",
       migrations: "Migrations",
       api: "API",
+      auth: "Users and sign-in",
       fixtures: "Fake data",
       routes: "Routes",
       server: "Server"
@@ -758,7 +759,33 @@ const en = {
     serverHelp: "next dev, run in the console. Stop it from the console.",
     devStart: "Start the server",
     openSite: "Open http://localhost:3000",
-    seedTask: "Fake data (Prisma)"
+    seedTask: "Fake data (Prisma)",
+    authTitle: "Users and sign-in",
+    authHelp: "Auth.js with the Prisma adapter: accounts go to your database, the sign-in and sign-up pages are written for you.",
+    authNotInstalled: "Auth.js, its Prisma adapter and bcryptjs are not installed.",
+    providers: "Ways to sign in",
+    provider: { github: "GitHub", google: "Google", credentials: "E-mail and password" },
+    providerHelp: {
+      github: "· keys of a GitHub OAuth App",
+      google: "· keys of a Google OAuth client",
+      credentials: "· hashed passwords (bcrypt), sign-up page"
+    },
+    authApply: "Write the setup",
+    authAfter: "Then: prepare and apply the migration (the accounts' tables).",
+    authErrors: {
+      USER_CONFLICT: "schema.prisma already has a User model (or Account, Session) of another shape: Auth.js needs its own. Rename yours first.",
+      NO_PROVIDER: "Choose at least one way to sign in.",
+      HAND_EDITED: "{name} was edited by hand: DevForge does not rewrite it.",
+      NEEDS: "Install what is needed first ({name}); lib/prisma.ts is made in \"Database and Prisma\"."
+    },
+    keysTitle: "{name} keys",
+    keysSet: "set",
+    keysMissing: "missing",
+    keysConsole: "Create the keys",
+    keysCallback: "Callback URL to give: {url}",
+    keysSave: "Save",
+    keysSaved: "{n} key(s) saved in .env.local.",
+    keysNote: "Keys and AUTH_SECRET go to .env.local, which is not committed. DevForge never shows them again."
   },
   laravel: {
     navLabel: "Laravel workshop",

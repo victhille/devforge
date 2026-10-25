@@ -34,6 +34,7 @@ export function nextCommand(command: NextCommand, pm: PM, arg = ''): { exe: stri
     case 'install:prisma':  return { exe: pm, args: pmAdd(pm, ['prisma', 'dotenv'], true) }
     case 'install:client':  return { exe: pm, args: [...pmAdd(pm, ['@prisma/client', ...(ADAPTER[arg] ? [ADAPTER[arg].pkg] : [])]), ...generate] }
     case 'install:seed':    return { exe: pm, args: pmAdd(pm, ['tsx', '@faker-js/faker'], true) }
+    case 'install:auth':    return { exe: pm, args: pmAdd(pm, ['next-auth@beta', '@auth/prisma-adapter', 'bcryptjs']) }
     case 'seed':            return { exe: 'npx', args: ['tsx', 'prisma/seed.ts'] }
     case 'dev':             return { exe: pm, args: ['run', 'dev'] }
   }

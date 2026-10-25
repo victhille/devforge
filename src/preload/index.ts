@@ -380,7 +380,10 @@ const api: DevForgeAPI = {
     apiConfig:   invoke('nextjs:api-config'),
     applyApi:    invoke('nextjs:apply-api'),
     writeSeed:   invoke('nextjs:write-seed'),
-    prepareRevert: invoke('nextjs:prepare-revert')
+    prepareRevert: invoke('nextjs:prepare-revert'),
+    authStatus:  invoke('nextjs:auth-status'),
+    applyAuth:   invoke('nextjs:apply-auth'),
+    setAuthKeys: invoke('nextjs:set-auth-keys')
   },
 
   laravel: {

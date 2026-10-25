@@ -37,6 +37,23 @@ export interface NextRoute {
   file: string
 }
 
+// ─── Auth.js (v2.3 lot 4) ─────────────────────────────────────────────────────
+
+export type AuthProvider = 'github' | 'google' | 'credentials'
+
+export interface NextAuthStatus {
+  /** next-auth, @auth/prisma-adapter and bcryptjs are installed */
+  installed: boolean
+  /** Auth.js's models in schema.prisma: all there, none, or a User of another shape */
+  models: 'missing' | 'present' | 'conflict'
+  /** auth.ts is DevForge's */
+  configured: boolean
+  /** The providers chosen last time */
+  providers: AuthProvider[]
+  /** Which keys .env.local has; never their values */
+  keys: Record<string, boolean>
+}
+
 /** A migration that undoes the last one, written, not run (v2.3 lot 3) */
 export interface NextRevertResult extends SfWriteResult {
   /** The migration it undoes */
@@ -47,7 +64,7 @@ export interface NextRevertResult extends SfWriteResult {
 
 export type NextCommand =
   | 'db:start' | 'prisma:migrate' | 'prisma:deploy' | 'prisma:generate' | 'prisma:studio'
-  | 'install:prisma' | 'install:client' | 'install:seed' | 'seed' | 'dev'
+  | 'install:prisma' | 'install:client' | 'install:seed' | 'install:auth' | 'seed' | 'dev'
 
 export interface NextjsAPI {
   inspect: (projectPath: string) => Promise<NextInspect>
@@ -63,4 +80,9 @@ export interface NextjsAPI {
   writeSeed: (projectPath: string, counts: Record<string, number>) => Promise<string>
   /** Writes the migration that undoes the last applied one; "Apply" runs it */
   prepareRevert: (projectPath: string) => Promise<NextRevertResult>
+  authStatus: (projectPath: string) => Promise<NextAuthStatus>
+  /** Models, auth.ts, pages and routes for these providers; AUTH_SECRET if missing */
+  applyAuth: (projectPath: string, providers: AuthProvider[]) => Promise<SfWriteResult>
+  /** Writes these keys to .env.local (AUTH_* only); resolves with the names written */
+  setAuthKeys: (projectPath: string, values: Record<string, string>) => Promise<string[]>
 }
