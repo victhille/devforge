@@ -173,6 +173,8 @@ export function installScript(domain: string, exposure: N8nExposure, email: stri
     ...pinFrench(locale),
     ...writeCompose(domain, exposure, locale),
     exposure === 'caddy' ? `echo ${b64(caddyFile(domain, email))} | base64 -d > Caddyfile` : 'rm -f Caddyfile',
+    // The status page's site (v2.2) stays in a rewritten Caddyfile
+    "if [ -f Caddyfile ] && [ -f ~/devforge/status/site.caddy ]; then cat ~/devforge/status/site.caddy >> Caddyfile; fi",
     // Made here once: the secrets never travel and a re-install keeps the data readable
     "if [ ! -f .env ]; then umask 077; R() { head -c \"$1\" /dev/urandom | od -An -tx1 | tr -d ' \\n'; }; printf 'POSTGRES_PASSWORD=%s\\nN8N_ENCRYPTION_KEY=%s\\n' \"$(R 24)\" \"$(R 32)\" > .env; fi",
     'docker compose pull',

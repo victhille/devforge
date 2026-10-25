@@ -20,6 +20,7 @@ import { registerAutomationsHandlers } from './automations'
 import { registerSetupHandlers } from './setup'
 import { registerSymfonyHandlers } from './symfony'
 import { registerLauncherHandlers } from './launcher'
+import { registerStatusHandlers } from './status'
 import { registerVercelHandlers } from './vercel'
 import { registerDictationHandlers } from './dictation'
 import { registerDomainHandlers } from './domains'
@@ -53,6 +54,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerSetupHandlers()
   registerSymfonyHandlers(mainWindow)
   registerLauncherHandlers()
+  registerStatusHandlers(mainWindow)
   registerVercelHandlers()
   registerDictationHandlers()
   registerDomainHandlers()
