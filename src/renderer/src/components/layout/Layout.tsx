@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import TitleBar from './TitleBar'
 import BottomPanel from './BottomPanel'
+import { setPendingDraft } from '@renderer/features/projects/symfony/draft'
 import CommandPalette from '@renderer/components/command-palette/CommandPalette'
 import { useAssistant } from '@renderer/features/assistant/AssistantContext'
 import AssistantPanel from '@renderer/features/assistant/AssistantPanel'
@@ -21,6 +22,11 @@ export default function Layout({ children }: { children: ReactNode }) {
     } catch { /* not kept */ }
     navigate('/vpn')
     window.dispatchEvent(new Event('devforge:vpn-qr'))
+  }), [navigate])
+  // Forgy prepared a Symfony entity: the project's workshop opens on the filled form
+  useEffect(() => window.devforge.symfony.onDraft(e => {
+    setPendingDraft(e.projectPath, e.draft)
+    navigate(`/project/${e.projectId}?tab=symfony`)
   }), [navigate])
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-canvas">

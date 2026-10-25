@@ -324,6 +324,19 @@ const api: DevForgeAPI = {
     phpEnable:   invoke('setup:php-enable')
   },
 
+  symfony: {
+    inspect:       invoke('symfony:inspect'),
+    routes:        invoke('symfony:routes'),
+    run:           invoke('symfony:run'),
+    writeEntity:   invoke('symfony:write-entity'),
+    apiConfig:     invoke('symfony:api-config'),
+    applyApi:      invoke('symfony:apply-api'),
+    writeFixtures: invoke('symfony:write-fixtures'),
+    useConnection: invoke('symfony:use-connection'),
+    serverUrl:     invoke('symfony:server-url'),
+    onDraft:       on('symfony:draft')
+  },
+
   dictation: {
     status:     invoke('dictation:status'),
     prepare:    invoke('dictation:prepare'),

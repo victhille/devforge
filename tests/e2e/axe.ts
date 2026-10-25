@@ -14,3 +14,16 @@ export async function axeIssues(page: Page): Promise<AxeIssue[]> {
     return r.violations.map(v => ({ id: v.id, impact: v.impact, nodes: v.nodes.map(n => `${n.target.join(' ')} :: ${(n.failureSummary ?? '').split('\n').slice(1, 2).join(' ').trim()}`) }))
   })
 }
+
+/** axeIssues once every fade-in is over: half-faded text would fail contrast */
+export async function settledAxeIssues(page: Page): Promise<AxeIssue[]> {
+  await page.evaluate(async () => {
+    for (let i = 0; i < 20; i++) {
+      const running = document.getAnimations().filter(a => a.playState === 'running')
+      if (!running.length) break
+      await Promise.all(running.map(a => a.finished.catch(() => {})))
+      await new Promise(r => requestAnimationFrame(() => r(null)))
+    }
+  })
+  return axeIssues(page)
+}

@@ -253,6 +253,7 @@ export * from './automations'
 export * from './vercel'
 export * from './dictation'
 export * from './setup'
+export * from './symfony'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
@@ -269,6 +270,7 @@ import type { AutomationsAPI } from './automations'
 import type { VercelAPI } from './vercel'
 import type { DictationAPI } from './dictation'
 import type { ProjectSetup, SetupAPI } from './setup'
+import type { SymfonyAPI } from './symfony'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -390,6 +392,7 @@ export interface DevForgeAPI {
   automations: AutomationsAPI
   vercel: VercelAPI
   setup: SetupAPI
+  symfony: SymfonyAPI
   dictation: DictationAPI
 
   // Git

@@ -1,4 +1,5 @@
-import { useState, type CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Send, Plus, Trash2, ShieldCheck } from 'lucide-react'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -68,8 +69,11 @@ function previewUrl(html: string, pageUrl: string): string {
 
 export default function ApiTesterPage() {
   const { t } = useI18n()
-  const [method,   setMethod]   = useState<Method>('GET')
-  const [url,      setUrl]      = useState('')
+  // ?method=GET&url=…: a request prepared elsewhere (Symfony workshop, routes)
+  const [params] = useSearchParams()
+  const asked = (params.get('method') ?? '').toUpperCase() as Method
+  const [method,   setMethod]   = useState<Method>(METHODS.includes(asked) ? asked : 'GET')
+  const [url,      setUrl]      = useState(params.get('url') ?? '')
   const [headers,  setHeaders]  = useState<Header[]>([{ key: 'Content-Type', value: 'application/json' }])
   const [body,     setBody]     = useState('')
   const [reqTab,   setReqTab]   = useState<ReqTab>('headers')
@@ -78,6 +82,13 @@ export default function ApiTesterPage() {
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
   const [history,  setHistory]  = useState<{ method: Method; url: string; status: number }[]>([])
+
+  useEffect(() => {
+    const u = params.get('url')
+    if (u) { setUrl(u); setResponse(null); setError('') }
+    const m = (params.get('method') ?? '').toUpperCase() as Method
+    if (METHODS.includes(m)) setMethod(m)
+  }, [params])
 
   useAssistantPageContext(url ? {
     label: `API Tester — ${method} ${url}`,

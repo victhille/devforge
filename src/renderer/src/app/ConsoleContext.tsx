@@ -17,6 +17,8 @@ interface ConsoleState {
 interface ConsoleContextValue extends ConsoleState {
   startCreation: (options: ProjectCreationOptions) => Promise<void>
   runScript: (projectPath: string, script: string, pm: PackageManager, projectName: string) => Promise<void>
+  /** Any command of the main process that streams task-log: shows it here, resolves with its task id */
+  runTask: (label: string, projectPath: string, start: () => Promise<string>) => Promise<string>
   cancelTask: () => void
   hide: () => void
   setMinimized: (v: boolean) => void
@@ -131,6 +133,23 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
     setState(prev => ({ ...prev, taskId }))
   }, [])
 
+  const runTask = useCallback(async (label: string, projectPath: string, start: () => Promise<string>) => {
+    setState({ visible: true, minimized: false, label, taskId: null, logs: [], result: null, projectPath, isCreation: false, projectId: null })
+    try {
+      const taskId = await start()
+      setState(prev => ({ ...prev, taskId }))
+      return taskId
+    } catch (err) {
+      const text = String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+      setState(prev => ({
+        ...prev,
+        logs: [...prev.logs, { taskId: '', type: 'error', text, timestamp: new Date().toISOString() }],
+        result: { taskId: '', exitCode: 1, status: 'failed' }
+      }))
+      throw err
+    }
+  }, [])
+
   const cancelTask = useCallback(() => {
     setState(prev => {
       if (prev.taskId) window.devforge.cancelTask(prev.taskId)
@@ -163,7 +182,7 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
   return (
     <ConsoleContext.Provider value={{
       ...state,
-      startCreation, runScript, cancelTask, hide, setMinimized, openFolder, openVSCode
+      startCreation, runScript, runTask, cancelTask, hide, setMinimized, openFolder, openVSCode
     }}>
       {children}
     </ConsoleContext.Provider>
