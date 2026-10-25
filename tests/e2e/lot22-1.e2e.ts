@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { goTo, launch, type Launched } from './launch'
-import { axeIssues } from './axe'
+import { settledAxeIssues as axeIssues } from './axe'
 
 /** v2.2 lot 1: the wizard up to the summary (nothing is created) */
 let run: Launched

@@ -18,6 +18,7 @@ import { registerBackupsHandlers } from './backups'
 import { registerGithubHandlers } from './github'
 import { registerAutomationsHandlers } from './automations'
 import { registerSetupHandlers } from './setup'
+import { registerSymfonyHandlers } from './symfony'
 import { registerVercelHandlers } from './vercel'
 import { registerDictationHandlers } from './dictation'
 import { registerDomainHandlers } from './domains'
@@ -49,6 +50,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerGithubHandlers()
   registerAutomationsHandlers()
   registerSetupHandlers()
+  registerSymfonyHandlers(mainWindow)
   registerVercelHandlers()
   registerDictationHandlers()
   registerDomainHandlers()

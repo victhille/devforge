@@ -25,9 +25,10 @@ import FileTree from './components/FileTree'
 import VercelPanel from './VercelPanel'
 import EnvSyncPanel from './EnvSyncPanel'
 import GithubPanel from './GithubPanel'
+import SymfonyPanel from './symfony/SymfonyPanel'
 
-type Tab = 'overview' | 'git' | 'github' | 'docker' | 'env' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
-const TABS: Tab[] = ['overview', 'git', 'github', 'docker', 'env', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
+type Tab = 'overview' | 'git' | 'github' | 'symfony' | 'docker' | 'env' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
+const TABS: Tab[] = ['overview', 'git', 'github', 'symfony', 'docker', 'env', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const fileName = (p: string) => p.split(/[\\/]/).pop() ?? p
@@ -435,6 +436,7 @@ export default function ProjectDetailPage() {
     vercel: hub.vercel ? <VercelPanel projectId={p.id} /> : null,
 
     github: hub.github ? <GithubPanel projectPath={p.path} repo={hub.github} /> : null,
+    symfony: p.framework === 'symfony' ? <SymfonyPanel projectPath={p.path} /> : null,
 
     files: (
       <div className="flex flex-wrap gap-4">
@@ -481,7 +483,7 @@ export default function ProjectDetailPage() {
 
       {/* Tabs, underlined */}
       <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-line">
-        {TABS.filter(x => (x !== 'vercel' || hub.vercel) && (x !== 'github' || hub.github)).map(x => (
+        {TABS.filter(x => (x !== 'vercel' || hub.vercel) && (x !== 'github' || hub.github) && (x !== 'symfony' || p.framework === 'symfony')).map(x => (
           <button key={x} role="tab" aria-selected={tab === x} onClick={() => setTab(x)}
             className={cn('flex h-9 shrink-0 items-center gap-1.5 border-b-2 px-3 text-base font-medium transition-colors',
               tab === x ? 'border-accent text-fg' : 'border-transparent text-fg-secondary hover:text-fg')}>
