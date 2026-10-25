@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import type { Framework, PackageManager, ProjectCreationOptions, AppSettings } from '@shared/types'
 import { PROJECT_TEMPLATES } from '@shared/data/projectTemplates'
-import { JS_FRAMEWORKS } from '@shared/data/projectLibraries'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
@@ -76,12 +75,11 @@ export default function ConfigForm({ framework, settings, onBack, onSubmit }: Pr
     onSubmit({ ...form, name: form.name.trim(), destination: form.destination.trim(), framework })
   }
 
+  // Git and VS Code are chosen on the last step
   const options: { id: BoolOption; label: string }[] = [
     { id: 'typescript',  label: t.newProject.optTypescript },
     { id: 'eslint',      label: t.newProject.optEslint },
-    { id: 'initGit',     label: t.newProject.optGit },
-    { id: 'installDeps', label: t.newProject.optInstall },
-    { id: 'openAfter',   label: t.newProject.optOpen }
+    { id: 'installDeps', label: t.newProject.optInstall }
   ].filter(o => template.options.some(opt => opt.id === o.id)) as { id: BoolOption; label: string }[]
 
   const sep = form.destination.includes('/') ? '/' : '\\'
@@ -144,9 +142,7 @@ export default function ConfigForm({ framework, settings, onBack, onSubmit }: Pr
 
       <div className="flex justify-end gap-2">
         <Button variant="ghost" onClick={onBack}>{t.newProject.cancel}</Button>
-        <Button size="lg" onClick={submit}>
-          {JS_FRAMEWORKS.includes(framework) ? t.newProject.next : t.newProject.create}
-        </Button>
+        <Button size="lg" onClick={submit}>{t.newProject.next}</Button>
       </div>
     </Page>
   )

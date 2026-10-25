@@ -46,7 +46,9 @@ export class CommandRunner {
       child = spawn(options.executable, options.args, {
         cwd: options.cwd,
         shell: true,
-        windowsHide: true
+        windowsHide: true,
+        // Nobody can answer a prompt here: it gets end-of-input instead of waiting forever
+        stdio: ['ignore', 'pipe', 'pipe']
       })
     } catch (err) {
       task.status = 'failed'

@@ -3,6 +3,7 @@ import { join } from 'path'
 import type { ProjectCreationOptions, LogLine, CommandResult } from '@shared/types'
 import { commandRunner } from '../system/commandRunner'
 import { detectTool } from '../system/environmentDetector'
+import { runSetup } from './projectSetup'
 
 type LogCb = (log: LogLine) => void
 type ResultCb = (result: CommandResult) => void
@@ -95,10 +96,12 @@ function createNextjsProject(
   const pm = packageManager
   const pmExe = pm === 'npm' ? 'npm' : pm === 'pnpm' ? 'pnpm' : 'yarn'
 
+  // npm keeps the flags before "--" for itself: create-next-app would then ask its questions
+  const flags = ['--yes', typescript ? '--ts' : '--js', `--use-${pm}`]
   const args =
     pm === 'npm'
-      ? ['create', 'next-app@latest', name, '--yes', ...(typescript ? ['--typescript'] : ['--no-typescript'])]
-      : ['create', 'next-app', name, '--yes', ...(typescript ? ['--typescript'] : ['--no-typescript'])]
+      ? ['create', 'next-app@latest', name, '--', ...flags]
+      : ['create', 'next-app', name, ...flags]
 
   return commandRunner.run({ executable: pmExe, args, cwd: destination, onLog, onResult })
 }
@@ -268,9 +271,14 @@ export function createProject(
   validatePath(options.destination)
   checkNoConflict(options.destination, options.name)
 
-  // Wrap onResult to chain library installation after project creation
+  // Chain: framework creation → libraries → DevForge setup (database, options, Git, GitHub)
   const taskId       = 'init'
-  const wrappedResult = withLibraryInstall(options, taskId, onLog, onResult, onResult)
+  const projPath     = join(options.destination, options.name)
+  const afterLibs: ResultCb = (result) => {
+    if (result.status === 'success' && options.setup) runSetup(options, projPath, result.taskId, onLog, onResult)
+    else onResult(result)
+  }
+  const wrappedResult = withLibraryInstall(options, taskId, onLog, onResult, afterLibs)
 
   switch (options.framework) {
     case 'react':
