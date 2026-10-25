@@ -351,7 +351,7 @@ const fr = {
     catFullstack:   'Full-Stack',
     catBackend:     'Backend',
     catOther:       'Autre',
-    back:           '← Retour',
+    back:           'Retour',
     configTitle:    'Projet {name}',
     configSubtitle: 'Configurez votre nouveau projet',
     labelName:      'Nom du projet',

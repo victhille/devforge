@@ -355,7 +355,7 @@ const en = {
     catFullstack:   'Full-Stack',
     catBackend:     'Backend',
     catOther:       'Other',
-    back:           '← Back',
+    back:           'Back',
     configTitle:    '{name} Project',
     configSubtitle: 'Configure your new project',
     labelName:      'Project name',
