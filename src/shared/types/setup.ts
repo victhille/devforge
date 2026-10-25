@@ -8,6 +8,8 @@ export interface ProjectSetup {
   /** Database name, and its port on this PC (Postgres and MySQL) */
   dbName: string
   dbPort: number
+  /** Laravel Sail: the app's port on this PC (APP_PORT), a free one from 8000 */
+  appPort?: number
   features: SetupFeature[]
   /** git init (if the framework did not) and a first commit */
   git: boolean
@@ -23,6 +25,8 @@ export type SetupStep =
   | { kind: 'env'; label: string; file: string; vars: Record<string, string> }
   | { kind: 'ignore'; label: string; lines: string[] }
   | { kind: 'scripts'; label: string; scripts: Record<string, string> }
+  /** Lines containing `match` taken out of a file (Sail's mounts Docker Desktop cannot read outside WSL) */
+  | { kind: 'drop-lines'; label: string; file: string; match: string }
   | { kind: 'connection'; label: string; type: 'postgres' | 'mysql' | 'sqlite'; port: number; user: string; database: string; file?: string }
 
 /** PHP on this PC, for a Symfony project */

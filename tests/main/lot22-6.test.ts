@@ -219,19 +219,18 @@ describe('v2.2 lot 6: Laravel', () => {
     expect(lv.factoryFile(entities.find(e => e.name === 'Produit')!)).toContain("'en_vente' => fake()->boolean(),")
   })
 
-  it('creates the project: DB_* in .env, Sanctum, Docker and CI', () => {
+  it('creates the project: DB_* in .env, Sanctum and CI', () => {
     expect(laravelCommandLine('make:migration', 'add_prix')).toBe('php artisan make:migration add_prix')
     expect(laravelCommandLine('migrate:rollback')).toBe('php artisan migrate:rollback --step=1 --no-interaction')
     const steps = planSetup({
       name: 'atelier', framework: 'laravel', packageManager: 'npm', typescript: false, eslint: false,
-      setup: { database: 'postgres', dbName: 'atelier', dbPort: 5461, features: ['api', 'docker', 'ci'], git: false, github: null, openVSCode: false }
+      setup: { database: 'postgres', dbName: 'atelier', dbPort: 5461, features: ['api', 'ci'], git: false, github: null, openVSCode: false }
     }, { password: 'pw', secret: 's', lang: 'fr', composeName: 'atelier-a1b2c3' })
     const env = steps.find(s => s.kind === 'env' && s.file === '.env')
     expect(env?.kind === 'env' && env.vars).toEqual({ DB_CONNECTION: 'pgsql', DB_HOST: '127.0.0.1', DB_PORT: '5461', DB_DATABASE: 'atelier', DB_USERNAME: 'app', DB_PASSWORD: 'pw' })
     const lines = steps.map(stepCommand).join('\n')
     expect(lines).toContain('php artisan install:api --without-migration-prompt --no-interaction')
     expect(lines).toContain('+ .github/workflows/ci.yml')
-    const docker = steps.find(s => s.kind === 'env' && s.file === '.env.docker')
-    expect(docker?.kind === 'env' && docker.vars.DB_URL).toBe('pgsql://app:pw@database:5432/atelier')
+    expect(lines).toContain('+ compose.yaml')
   })
 })

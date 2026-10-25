@@ -13,7 +13,7 @@ import { Page, PageHeader } from '@renderer/components/ui/Page'
 
 interface Props {
   options: ProjectCreationOptions
-  stack: Pick<ProjectSetup, 'database' | 'dbName' | 'dbPort' | 'features'> | null
+  stack: Pick<ProjectSetup, 'database' | 'dbName' | 'dbPort' | 'appPort' | 'features'> | null
   libraries: number
   onBack: () => void
   onSubmit: (setup: ProjectSetup) => void
@@ -49,7 +49,7 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
 
   const repoOk = REPO_RE.test(repo)
   const setup: ProjectSetup = {
-    database: stack?.database ?? 'none', dbName: stack?.dbName ?? '', dbPort: stack?.dbPort ?? 0, features: stack?.features ?? [],
+    database: stack?.database ?? 'none', dbName: stack?.dbName ?? '', dbPort: stack?.dbPort ?? 0, appPort: stack?.appPort, features: stack?.features ?? [],
     git: git || github, github: github ? { repo, private: isPrivate } : null, openVSCode
   }
   const steps = planSetup({ ...options, setup }, { password: '••••', secret: '••••', composeName: '', lang: lang === 'en' ? 'en' : 'fr' })

@@ -2,7 +2,7 @@ import { app } from 'electron'
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'fs'
 import { dirname, join, relative } from 'path'
 import type { CommandResult, LaravelCommand, LaravelInspect, LogLine, SfApiConfig, SfEntityDraft, SfMigration, SfRoute, SfWriteResult } from '@shared/types'
-import { laravelCommand } from '@shared/lib/laravelCommands'
+import { SAIL_SERVICE, isSailCompose, laravelCommand } from '@shared/lib/laravelCommands'
 import { assertSafeDir, isInsideProject } from '../../lib/safe'
 import { runCapture } from '../../lib/exec'
 import { commandRunner } from '../system/commandRunner'
@@ -49,6 +49,12 @@ function testData<K extends 'status' | 'migrations' | 'routes'>(key: K): { statu
 
 // ─── Reading ──────────────────────────────────────────────────────────────────
 
+const compose = (dir: string) => read(join(dir, 'compose.yaml')) || read(join(dir, 'docker-compose.yml'))
+const isSail = (dir: string) => isSailCompose(compose(dir))
+/** php artisan on this PC, or in Sail's app container */
+const artisanLine = (dir: string) => (args: string) =>
+  isSail(dir) ? `docker compose exec -T -u sail ${SAIL_SERVICE} php artisan ${args}` : `php artisan ${args}`
+
 /** Models from app/Models, tables from database/migrations: no database needed */
 function project(dir: string) {
   const migDir = join(dir, 'database', 'migrations')
@@ -73,13 +79,17 @@ export async function inspect(projectPath: string): Promise<LaravelInspect> {
   const p = project(dir)
   const canned = testData('status')
   if (canned) return { status: canned, entities: p.entities, migrations: testData('migrations') ?? [] }
+  const sail = isSail(dir)
   const status: LaravelInspect['status'] = {
     booted: false, error: null, version: null, connection: envValue(dir, 'DB_CONNECTION'),
     database: { reachable: false, error: null },
-    composeDatabase: /^\s{2}database:\s*$/m.test(read(join(dir, 'compose.yaml'))),
+    composeDatabase: sail || /^\s{2}database:\s*$/m.test(compose(dir)),
     api: existsSync(join(dir, 'routes', 'api.php')),
-    faker: existsSync(join(dir, 'vendor', 'fakerphp', 'faker'))
+    faker: existsSync(join(dir, 'vendor', 'fakerphp', 'faker')),
+    sail,
+    appUrl: sail ? `http://localhost:${envValue(dir, 'APP_PORT') || '80'}` : 'http://127.0.0.1:8000'
   }
+  const artisan = artisanLine(dir)
   const fromFiles = (name: string): SfMigration => {
     const sql = upBody(p.migrationPhp.get(name) ?? '').split(/;\s*\n/).map(s => s.trim()).filter(Boolean)
     return { version: name, description: migrationLabel(name), executed: false, executedAt: null, file: `database/migrations/${name}.php`, sql: sql.slice(1), dangerous: /->drop|Schema::drop/.test(upBody(p.migrationPhp.get(name) ?? '')) }
@@ -88,15 +98,16 @@ export async function inspect(projectPath: string): Promise<LaravelInspect> {
     status.error = 'NO_VENDOR'
     return { status, entities: p.entities, migrations: p.migrationNames.map(fromFiles).reverse() }
   }
-  const v = await runCapture('php artisan --version --no-ansi', { cwd: dir, timeout: 60_000 })
+  const v = await runCapture(artisan('--version --no-ansi'), { cwd: dir, timeout: 60_000 })
   status.version = plain(v.stdout).match(/Laravel Framework ([\d.]+)/)?.[1] ?? null
   status.booted = !!status.version
   if (!status.booted) {
-    status.error = firstError(`${v.stdout}\n${v.stderr}`) || 'NOT_BOOTED'
+    const out = `${v.stdout}\n${v.stderr}`
+    status.error = sail && /is not running|no such service|no container found/i.test(out) ? 'SAIL_DOWN' : firstError(out) || 'NOT_BOOTED'
     return { status, entities: p.entities, migrations: p.migrationNames.map(fromFiles).reverse() }
   }
 
-  const st = await runCapture('php artisan migrate:status --no-interaction --no-ansi', { cwd: dir, timeout: 90_000 })
+  const st = await runCapture(artisan('migrate:status --no-interaction --no-ansi'), { cwd: dir, timeout: 90_000 })
   const out = `${st.stdout}\n${st.stderr}`
   const parsed = parseMigrateStatus(out)
   status.database.reachable = parsed.ran.size > 0 || parsed.tableMissing
@@ -106,7 +117,7 @@ export async function inspect(projectPath: string): Promise<LaravelInspect> {
   let pretend = new Map<string, string[]>()
   const pending = p.migrationNames.filter(n => !parsed.ran.get(n))
   if (status.database.reachable && pending.length) {
-    const pr = await runCapture('php artisan migrate --pretend --no-interaction --no-ansi', { cwd: dir, timeout: 90_000 })
+    const pr = await runCapture(artisan('migrate --pretend --no-interaction --no-ansi'), { cwd: dir, timeout: 90_000 })
     pretend = parsePretend(`${pr.stdout}\n${pr.stderr}`)
   }
   const migrations = p.migrationNames.map(name => {
@@ -124,7 +135,7 @@ export async function routes(projectPath: string): Promise<SfRoute[]> {
   const dir = projectDir(projectPath)
   const canned = testData('routes')
   if (canned) return canned
-  const r = await runCapture('php artisan route:list --json --no-ansi', { cwd: dir, timeout: 60_000 })
+  const r = await runCapture(artisanLine(dir)('route:list --json --no-ansi'), { cwd: dir, timeout: 60_000 })
   let raw: { method: string; uri: string; name: string | null; action: string }[]
   try { raw = JSON.parse(r.stdout.slice(r.stdout.indexOf('['))) } catch { throw new Error(firstError(`${r.stdout}\n${r.stderr}`) || 'NOT_BOOTED') }
   return raw.filter(x => !TOOL_ROUTE.test(x.uri)).map(x => ({
@@ -137,7 +148,7 @@ export async function routes(projectPath: string): Promise<SfRoute[]> {
 
 export function run(projectPath: string, command: LaravelCommand, arg: string | undefined, onLog: LogCb, onResult: ResultCb): string {
   const dir = projectDir(projectPath)
-  const c = laravelCommand(command, arg)
+  const c = laravelCommand(command, arg, isSail(dir))
   return commandRunner.run({ executable: c.exe, args: c.args, cwd: dir, onLog, onResult })
 }
 
@@ -262,6 +273,6 @@ export function writeSeed(projectPath: string, counts: Record<string, number>, o
     if (!was || was.includes(GENERATED_MARK)) write(file, factoryFile(e))
   }
   write(seeder, content)
-  const c = laravelCommand('seed')
+  const c = laravelCommand('seed', '', isSail(dir))
   return commandRunner.run({ executable: c.exe, args: c.args, cwd: dir, onLog, onResult })
 }

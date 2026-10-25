@@ -10,7 +10,7 @@ import Checkbox from '@renderer/components/ui/Checkbox'
 import { Field, Input } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 
-type Stack = Pick<ProjectSetup, 'database' | 'dbName' | 'dbPort' | 'features'>
+type Stack = Pick<ProjectSetup, 'database' | 'dbName' | 'dbPort' | 'appPort' | 'features'>
 
 interface Props {
   framework: Framework
@@ -43,6 +43,14 @@ export default function StackForm({ framework, projectName, initial, onBack, onS
       .catch(() => {})
     return () => { alive = false }
   }, [])
+  // Laravel Sail serves the app on this PC: a free port from 8000
+  const [appPort, setAppPort] = useState(8000)
+  useEffect(() => {
+    if (framework !== 'laravel') return
+    let alive = true
+    window.devforge.setup.freePort(8000).then(p => { if (alive) setAppPort(p) }).catch(() => {})
+    return () => { alive = false }
+  }, [framework])
 
   // Symfony: Composer and the database driver need PHP extensions that a fresh Windows PHP keeps off
   const [php, setPhp] = useState<PhpStatus | null>(null)
@@ -74,7 +82,7 @@ export default function StackForm({ framework, projectName, initial, onBack, onS
   function submit() {
     if (server && !DB_NAME_RE.test(dbName)) { setError(s.dbNameError); return }
     const port = server ? ports[database as 'postgres' | 'mysql'] : 0
-    onSubmit({ database, dbName, dbPort: port, features: SETUP_FEATURES.filter(f => features.includes(f)) })
+    onSubmit({ database, dbName, dbPort: port, ...(framework === 'laravel' ? { appPort } : {}), features: SETUP_FEATURES.filter(f => features.includes(f)) })
   }
 
   const willDo = [

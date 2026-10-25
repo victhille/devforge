@@ -16,7 +16,6 @@ import { DbAuthHint, RunButton, Section, errorText, useSfTasks } from '../symfon
 
 type Part = 'database' | 'entities' | 'migrations' | 'api' | 'fixtures' | 'routes' | 'server'
 const PARTS: Part[] = ['database', 'entities', 'migrations', 'api', 'fixtures', 'routes', 'server']
-const SERVE_URL = 'http://127.0.0.1:8000'
 
 /** The Laravel workshop of a project: Eloquent models, migrations, API controllers, seeder */
 export default function LaravelPanel({ projectPath }: { projectPath: string }) {
@@ -39,9 +38,11 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
   useEffect(load, [load])
 
   const { track } = useSfTasks(projectPath, useCallback((line: string) => line, []), useCallback(() => load(), [load]))
-  const exec = (command: LaravelCommand, arg?: string) => track(laravelCommandLine(command, arg), () => window.devforge.laravel.run(projectPath, command, arg))
+  // With Sail, PHP runs in the app's container: the lines say so
+  const cl = (command: LaravelCommand, arg?: string) => laravelCommandLine(command, arg, !!data?.status.sail)
+  const exec = (command: LaravelCommand, arg?: string) => track(cl(command, arg), () => window.devforge.laravel.run(projectPath, command, arg))
   const run = (command: LaravelCommand, label: string, variant?: 'primary' | 'secondary') =>
-    <RunButton label={label} line={laravelCommandLine(command)} variant={variant} onRun={() => exec(command)} />
+    <RunButton label={label} line={cl(command)} variant={variant} onRun={() => exec(command)} />
 
   function written(r: SfWriteResult) {
     const count = r.created.length + r.changed.length + r.removed.length
@@ -72,10 +73,11 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
         <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4">
           <AlertTriangle size={18} className="shrink-0 text-warning" />
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-fg">{st.error === 'NO_VENDOR' ? s.noVendor : l.notBooted}</p>
-            {st.error && st.error !== 'NO_VENDOR' && <p className="mt-1 font-mono text-xs break-words text-fg-secondary">{st.error}</p>}
+            <p className="font-semibold text-fg">{st.error === 'NO_VENDOR' ? s.noVendor : st.error === 'SAIL_DOWN' ? l.sailDown : l.notBooted}</p>
+            {st.error && st.error !== 'NO_VENDOR' && st.error !== 'SAIL_DOWN' && <p className="mt-1 font-mono text-xs break-words text-fg-secondary">{st.error}</p>}
           </div>
           {st.error === 'NO_VENDOR' && run('composer:install', s.composerInstall, 'primary')}
+          {st.error === 'SAIL_DOWN' && run('db:start', l.sailStart, 'primary')}
         </div>
       )}
 
@@ -106,7 +108,8 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
                   <span className={dbOk ? 'text-success' : 'text-warning'}>{dbOk ? s.dbReachable : s.dbUnreachable}</span>
                   {st.database.error && <code className="font-mono text-xs break-words text-fg-muted">{st.database.error}</code>}
                   <DbAuthHint error={st.database.error} envFile=".env" />
-                  {!dbOk && st.composeDatabase && run('db:start', s.dbStart)}
+                  {!dbOk && st.composeDatabase && run('db:start', st.sail ? l.sailStart : s.dbStart)}
+                  {st.sail && <span className="text-xs text-fg-muted">{l.sailDb}</span>}
                 </dd>
               </dl>
             </Section>
@@ -125,29 +128,30 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
           )}
           {part === 'migrations' && (
             <MigrationsSection migrations={data.migrations} databaseOk={dbOk && st.booted} note={l.migrationsNote} help={l.migrationsHelp}
-              prepare={{ named: true, label: l.prepare, line: name => laravelCommandLine('make:migration', name), run: name => exec('make:migration', name) }}
-              apply={{ line: () => laravelCommandLine('migrate'), run: () => exec('migrate') }}
-              rollback={{ line: () => laravelCommandLine('migrate:rollback'), run: () => exec('migrate:rollback') }} />
+              prepare={{ named: true, label: l.prepare, line: name => cl('make:migration', name), run: name => exec('make:migration', name) }}
+              apply={{ line: () => cl('migrate'), run: () => exec('migrate') }}
+              rollback={{ line: () => cl('migrate:rollback'), run: () => exec('migrate:rollback') }} />
           )}
           {part === 'api' && (
-            <ApiSection entities={data.entities} onWritten={written} serverUrl={null} defaultUrl={SERVE_URL}
+            <ApiSection entities={data.entities} onWritten={written} serverUrl={null} defaultUrl={st.appUrl}
               load={() => window.devforge.laravel.apiConfig(projectPath)} save={config => window.devforge.laravel.applyApi(projectPath, config)}
               filesNote={l.jsonFiles}
               needs={() => st.api ? null : { text: l.needsApi, button: run('install:api', l.installApi, 'primary') }} />
           )}
           {part === 'fixtures' && (
             <FixturesSection entities={data.entities} ready={st.faker} install={<p className="text-sm text-fg-muted">{l.needsFaker}</p>}
-              line={laravelCommandLine('seed')} canRun={st.booted && dbOk}
+              line={cl('seed')} canRun={st.booted && dbOk}
               onRun={counts => track(l.seedTask, () => window.devforge.laravel.writeSeed(projectPath, counts))} />
           )}
           {part === 'routes' && (
-            <RoutesSection serverUrl={null} defaultUrl={SERVE_URL} help={l.routesHelp} load={() => window.devforge.laravel.routes(projectPath)} />
+            <RoutesSection serverUrl={null} defaultUrl={st.appUrl} help={l.routesHelp} load={() => window.devforge.laravel.routes(projectPath)} />
           )}
           {part === 'server' && (
-            <Section title={l.serverTitle} help={l.serverHelp}>
+            <Section title={l.serverTitle} help={st.sail ? l.sailHelp : l.serverHelp}>
               <div className="flex flex-wrap items-start gap-4">
-                {run('serve', l.serve, 'primary')}
-                <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(SERVE_URL)}><ExternalLink size={13} /> {l.openSite}</Button>
+                {run('serve', st.sail ? l.sailStart : l.serve, 'primary')}
+                {st.sail && run('sail:stop', l.sailStop)}
+                <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(st.appUrl)}><ExternalLink size={13} /> {l.openSite.replace('{url}', st.appUrl)}</Button>
               </div>
               <div className="flex flex-wrap gap-4 border-t border-line-subtle pt-4">
                 {run('optimize:clear', l.clear)}

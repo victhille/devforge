@@ -90,6 +90,11 @@ function applyStep(step: Exclude<SetupStep, { kind: 'run' }>, projPath: string, 
       writeText(file, mergeIgnore(readText(file), step.lines))
       return
     }
+    case 'drop-lines': {
+      const file = join(projPath, step.file)
+      writeText(file, readText(file).split('\n').filter(l => !l.includes(step.match)).join('\n'))
+      return
+    }
     case 'scripts': {
       const file = join(projPath, 'package.json')
       const pkg = JSON.parse(readFileSync(file, 'utf-8')) as { scripts?: Record<string, string> }

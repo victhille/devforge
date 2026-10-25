@@ -34,6 +34,7 @@ const LABELS = {
     user: 'Entité User', authJs: 'Auth.js', authFiles: 'Configuration Auth.js', docker: 'Docker pour l\'app', testDeps: 'Outils de test',
     firstTest: 'Premier test', ci: 'CI GitHub Actions', prisma: 'Prisma', prismaInit: 'Schéma Prisma', scripts: 'Script de test',
     sanctum: 'API (Sanctum)', fortify: 'Laravel Fortify', fortifyInstall: 'Connexion et inscription',
+    sail: 'Laravel Sail', sailInstall: 'Conteneurs Sail', sailInitScript: 'Base « testing » de Sail retirée (illisible hors WSL)', sailStart: 'Démarrage de Sail (construction de l\'image)',
     gitInit: 'Dépôt Git', gitAdd: 'Fichiers suivis', gitCommit: 'Premier commit', github: 'Dépôt GitHub', vscode: 'Ouverture dans VS Code'
   },
   en: {
@@ -42,6 +43,7 @@ const LABELS = {
     user: 'User entity', authJs: 'Auth.js', authFiles: 'Auth.js setup', docker: 'Docker for the app', testDeps: 'Test tools',
     firstTest: 'First test', ci: 'GitHub Actions CI', prisma: 'Prisma', prismaInit: 'Prisma schema', scripts: 'Test script',
     sanctum: 'API (Sanctum)', fortify: 'Laravel Fortify', fortifyInstall: 'Login and registration',
+    sail: 'Laravel Sail', sailInstall: 'Sail containers', sailInitScript: 'Sail\'s "testing" database removed (unreadable outside WSL)', sailStart: 'Starting Sail (building the image)',
     gitInit: 'Git repository', gitAdd: 'Tracked files', gitCommit: 'First commit', github: 'GitHub repository', vscode: 'Opening in VS Code'
   }
 }
@@ -165,22 +167,6 @@ function ciWorkflow(o: Opts): string {
 }
 
 function dockerFiles(o: Opts): { path: string; content: string }[] {
-  if (o.framework === 'laravel') {
-    return [
-      { path: 'Dockerfile', content: [
-        '# FrankenPHP: Caddy and PHP in one image, serves public/',
-        'FROM dunglas/frankenphp:1-php8.4',
-        'RUN install-php-extensions pdo_pgsql pdo_mysql intl zip opcache bcmath',
-        'COPY --from=composer:2 /usr/bin/composer /usr/bin/composer',
-        'ENV SERVER_NAME=:80 APP_ENV=production',
-        'WORKDIR /app',
-        'COPY . /app',
-        'RUN composer install --no-dev --optimize-autoloader',
-        ''
-      ].join('\n') },
-      { path: '.dockerignore', content: ['.git', 'vendor', 'node_modules', '.env', '.env.docker', 'storage/logs/*', ''].join('\n') }
-    ]
-  }
   if (o.framework === 'symfony') {
     return [
       { path: 'Dockerfile', content: [
@@ -279,10 +265,37 @@ export function laravelEnv(s: ProjectSetup, password: string): Record<string, st
   }
 }
 
+/**
+ * Sail's .env (v2.3 lot 5): the app reaches its database by the service's
+ * name; the ports on this PC are the ones chosen here; WWWUSER and WWWGROUP
+ * are what Sail's script would give (DevForge drives docker compose itself).
+ */
+export function sailEnv(s: ProjectSetup, password: string): Record<string, string> {
+  const vars: Record<string, string> = { APP_PORT: String(s.appPort ?? 8000), WWWUSER: '1000', WWWGROUP: '1000' }
+  if (s.database === 'sqlite') return { DB_CONNECTION: 'sqlite', ...vars }
+  if (!serverDb(s)) return vars
+  const mysql = s.database === 'mysql'
+  return {
+    DB_CONNECTION: mysql ? 'mysql' : 'pgsql', DB_HOST: mysql ? 'mysql' : 'pgsql', DB_PORT: mysql ? '3306' : '5432',
+    DB_DATABASE: s.dbName, DB_USERNAME: 'app', DB_PASSWORD: password, FORWARD_DB_PORT: String(s.dbPort), ...vars
+  }
+}
+
+/** Laravel with the Docker option: Sail, in place of DevForge's compose.yaml */
+export const usesSail = (o: Pick<Opts, 'framework' | 'setup'>) => o.framework === 'laravel' && o.setup.features.includes('docker')
+
 function laravelSteps(o: Opts, ctx: PlanContext): SetupStep[] {
   const s = o.setup, l = LABELS[ctx.lang], steps: SetupStep[] = []
   const has = (f: SetupFeature) => s.features.includes(f)
-  if (s.database !== 'none') steps.push({ kind: 'env', label: l.envDb, file: '.env', vars: laravelEnv(s, ctx.password) })
+  if (usesSail(o)) {
+    steps.push({ kind: 'run', label: l.sail, exe: 'composer', args: ['require', 'laravel/sail', '--dev'], skipIf: 'vendor/laravel/sail' })
+    const service = s.database === 'mysql' ? 'mysql' : s.database === 'postgres' ? 'pgsql' : 'none'
+    steps.push({ kind: 'run', label: l.sailInstall, exe: 'php', args: ['artisan', 'sail:install', `--with=${service}`, '--no-interaction'], skipIf: 'compose.yaml' })
+    // Its script that makes a "testing" database is mounted as one file: outside WSL, the database cannot read it and stops
+    if (serverDb(s)) steps.push({ kind: 'drop-lines', label: l.sailInitScript, file: 'compose.yaml', match: '/docker-entrypoint-initdb.d/' })
+    // After sail:install, which writes its own DB_* lines
+    steps.push({ kind: 'env', label: 'DB_*', file: '.env', vars: sailEnv(s, ctx.password) })
+  } else if (s.database !== 'none') steps.push({ kind: 'env', label: 'DB_*', file: '.env', vars: laravelEnv(s, ctx.password) })
   // routes/api.php and Sanctum; the tables come with the first migration in the workshop
   if (has('api')) steps.push({ kind: 'run', label: l.sanctum, exe: 'php', args: ['artisan', 'install:api', '--without-migration-prompt', '--no-interaction'], skipIf: 'routes/api.php' })
   if (has('auth')) {
@@ -329,14 +342,17 @@ export function planSetup(o: Opts, ctx: PlanContext): SetupStep[] {
   if (SETUP_FRAMEWORKS.includes(o.framework)) {
     steps.push(...(o.framework === 'symfony' ? symfonySteps(o, ctx) : o.framework === 'laravel' ? laravelSteps(o, ctx) : nextSteps(o, ctx)))
     const docker = s.features.includes('docker')
-    if (serverDb(s) || docker) {
+    const sail = usesSail(o)
+    if (!sail && (serverDb(s) || docker)) {
       steps.push({ kind: 'ignore', label: l.ignore, lines: ['/.env.docker'] })
       steps.push({ kind: 'env', label: '.env.docker', file: '.env.docker', vars: dockerEnv(o.framework, s, ctx.password) })
       steps.push({ kind: 'write', label: l.compose, files: [{ path: 'compose.yaml', content: composeFile(o.framework, s, ctx.composeName || undefined) }] })
     }
-    if (docker) steps.push({ kind: 'write', label: l.docker, files: dockerFiles(o) })
+    if (docker && !sail) steps.push({ kind: 'write', label: l.docker, files: dockerFiles(o) })
     if (s.features.includes('ci')) steps.push({ kind: 'write', label: l.ci, files: [{ path: '.github/workflows/ci.yml', content: ciWorkflow(o) }] })
-    if (serverDb(s)) {
+    // Sail: the app's image is built the first time (a few minutes)
+    if (sail) steps.push({ kind: 'run', label: l.sailStart, exe: 'docker', args: ['compose', 'up', '-d', '--wait'], optional: true })
+    else if (serverDb(s)) {
       steps.push({ kind: 'run', label: l.start, exe: 'docker', args: ['compose', 'up', '-d', '--wait', 'database'], optional: true })
     }
     if (s.database !== 'none') {
@@ -368,6 +384,7 @@ export function stepCommand(step: SetupStep): string {
     case 'env':        return `${Object.keys(step.vars).join(', ')} → ${step.file}`
     case 'ignore':     return `${step.lines.join(' ')} → .gitignore`
     case 'scripts':    return Object.entries(step.scripts).map(([k, v]) => `"${k}": "${v}" → package.json`).join('\n')
+    case 'drop-lines': return `− ${step.match} → ${step.file}`
     case 'connection': return step.label
   }
 }

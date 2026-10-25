@@ -440,7 +440,7 @@ const fr = {
       featLaravel: {
         api:    'routes/api.php et Sanctum (install:api). Les routes de chaque modèle se règlent dans l\'atelier.',
         auth:   'Laravel Fortify : connexion, inscription et mot de passe oublié, côté serveur.',
-        docker: 'FrankenPHP (Caddy et PHP) dans le même compose.yaml.',
+        docker: 'Laravel Sail : PHP, Composer et la base dans des conteneurs, pilotés par DevForge avec docker compose.',
         tests:  'PHPUnit est déjà là, avec deux tests qui passent.',
         ci:     'Installation et tests à chaque push.'
       },
@@ -807,7 +807,12 @@ const fr = {
     serverTitle: "Serveur et cache",
     serverHelp: "php artisan serve, lancé dans la console sur le port 8000. Arrête-le depuis la console.",
     serve: "Lancer le serveur",
-    openSite: "Ouvrir http://127.0.0.1:8000",
+    openSite: "Ouvrir {url}",
+    sailDown: "Sail est arrêté : les conteneurs de l'appli ne tournent pas.",
+    sailStart: "Démarrer Sail",
+    sailStop: "Arrêter Sail",
+    sailHelp: "Le projet tourne dans Sail : PHP, Composer et la base sont dans des conteneurs, pilotés par docker compose (le script sail ne marche que sous macOS, Linux ou WSL2).",
+    sailDb: "Base dans Sail : son port sur ce PC est FORWARD_DB_PORT (.env).",
     clear: "Vider les caches",
     seedTask: "Fausses données (Laravel)"
   },
