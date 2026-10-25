@@ -26,10 +26,10 @@ export default function Layout({ children }: { children: ReactNode }) {
     navigate('/vpn')
     window.dispatchEvent(new Event('devforge:vpn-qr'))
   }), [navigate])
-  // Forgy prepared a Symfony entity: the project's workshop opens on the filled form
+  // Forgy prepared a model: the project's workshop opens on the filled form
   useEffect(() => window.devforge.symfony.onDraft(e => {
     setPendingDraft(e.projectPath, e.draft)
-    navigate(`/project/${e.projectId}?tab=symfony`)
+    navigate(`/project/${e.projectId}?tab=${e.tab ?? 'symfony'}`)
   }), [navigate])
   // The global launcher hands over: a page, a script in the console, a question for Forgy
   useEffect(() => window.devforge.launcher.onToMain(m => {

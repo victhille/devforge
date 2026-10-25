@@ -13,7 +13,7 @@ import { executions as n8nExecutions, listInstances as n8nInstances, workflows a
 import { deployments as vercelDeployments } from '../vercel/vercelService'
 import { backupsText, githubText, vpsHealthText, vpsServicesText } from './vpsTools'
 import { AUTOMATIONS, readFeed } from '../automations/automationsService'
-import { symfonyDraft, symfonyEntitiesText } from './symfonyTools'
+import { workshopDraft, workshopModelsText } from './workshopTools'
 
 /**
  * Read-only tools the assistant can call. Every path stays inside a saved
@@ -283,8 +283,8 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   { name: 'backups_status', description: 'Nightly backups of a VPS made from DevForge: last run, failures, copy on this PC.', input_schema: { type: 'object', properties: { server: { type: 'string' } } } },
   { name: 'github_status', description: 'GitHub Actions runs (with ids), open pull requests and releases of a project whose origin is on GitHub.', input_schema: { type: 'object', properties: { project }, required: ['project'] } },
   { name: 'automations_feed', description: 'The personal automations shown in Automations (n8n): what each one published last, and the titles of the unread items (briefing, mail, deals, expenses, subscriptions…). Titles only, no content.', input_schema: { type: 'object', properties: {} } },
-  { name: 'symfony_entities', description: 'Doctrine entities of a Symfony project (fields with types, relations with their other side), database state and pending migrations.', input_schema: { type: 'object', properties: { project }, required: ['project'] } },
-  { name: 'symfony_entity_draft', description: 'Fill the New entity form of the Symfony workshop (a new entity, or fields and relations added to an existing one). Writes nothing: the user checks the form and clicks. Field types: string, text, integer, float, decimal, boolean, date, datetime, json. Relation kinds, seen from this entity: ManyToOne (belongs to one), OneToMany (has many; needs inverse), ManyToMany, OneToOne.', input_schema: { type: 'object', properties: { project, entity: { type: 'string', description: 'PascalCase, e.g. Facture' }, fields: { type: 'array', items: { type: 'object', properties: { name: { type: 'string', description: 'camelCase' }, type: { type: 'string' }, required: { type: 'boolean' }, unique: { type: 'boolean' }, length: { type: 'integer' } }, required: ['name', 'type'] } }, relations: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, kind: { type: 'string' }, target: { type: 'string', description: 'Existing entity' }, inverse: { type: 'string', description: 'Property on the other side, e.g. factures' }, required: { type: 'boolean' } }, required: ['name', 'kind', 'target'] } } }, required: ['project', 'entity'] } },
+  { name: 'workshop_models', description: 'Models of a project with a DevForge workshop: Symfony (Doctrine entities), Laravel (Eloquent models) or Next.js (Prisma models). Fields with types, relations with their other side, database state, and the SQL of each pending migration (explain it before it is applied).', input_schema: { type: 'object', properties: { project }, required: ['project'] } },
+  { name: 'workshop_model_draft', description: 'Fill the New model form of the workshop of the project (Symfony, Laravel or Next.js): a new model, or fields and relations added to an existing one. Writes nothing: the user checks the form and clicks. Field types: string, text, integer, float, decimal, boolean, date, datetime, json. Relation kinds, seen from this entity: ManyToOne (belongs to one), OneToMany (has many; needs inverse), ManyToMany, OneToOne.', input_schema: { type: 'object', properties: { project, entity: { type: 'string', description: 'PascalCase, e.g. Facture' }, fields: { type: 'array', items: { type: 'object', properties: { name: { type: 'string', description: 'camelCase' }, type: { type: 'string' }, required: { type: 'boolean' }, unique: { type: 'boolean' }, length: { type: 'integer' } }, required: ['name', 'type'] } }, relations: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, kind: { type: 'string' }, target: { type: 'string', description: 'Existing entity' }, inverse: { type: 'string', description: 'Property on the other side, e.g. factures' }, required: { type: 'boolean' } }, required: ['name', 'kind', 'target'] } } }, required: ['project', 'entity'] } },
 ].map(t => ({ ...t, eager_input_streaming: true }) as Anthropic.Beta.BetaTool)
 
 /** Short label shown in the conversation while the tool runs */
@@ -299,8 +299,8 @@ export function describeTool(name: string, input: Record<string, unknown>): stri
     case 'container_logs': return str(input.container) ?? ''
     case 'db_schema': return str(input.connection) ?? ''
     case 'n8n_workflows': case 'n8n_executions': return str(input.server) ?? 'n8n'
-    case 'vercel_deployments': case 'github_status': case 'symfony_entities': return p
-    case 'symfony_entity_draft': return `${str(input.entity) ?? ''} — ${p}`
+    case 'vercel_deployments': case 'github_status': case 'workshop_models': return p
+    case 'workshop_model_draft': return `${str(input.entity) ?? ''} — ${p}`
     case 'vps_health': case 'vps_services': case 'backups_status': return str(input.server) ?? 'VPS'
     case 'automations_feed': return 'Automations'
     default: return ''
@@ -330,8 +330,8 @@ export async function runTool(name: string, input: unknown): Promise<string> {
     case 'backups_status': return backupsText(i.server)
     case 'github_status': return githubText(findProject(i.project))
     case 'automations_feed': return automationsText()
-    case 'symfony_entities': return symfonyEntitiesText(findProject(i.project))
-    case 'symfony_entity_draft': return symfonyDraft(findProject(i.project), i)
+    case 'workshop_models': return workshopModelsText(findProject(i.project))
+    case 'workshop_model_draft': return workshopDraft(findProject(i.project), i)
     default: throw new ToolError(`Unknown tool ${name}`)
   }
 }

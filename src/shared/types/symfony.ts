@@ -136,5 +136,6 @@ export interface SymfonyAPI {
   useConnection: (projectPath: string, connectionId: string) => Promise<void>
   serverUrl: (projectPath: string) => Promise<string | null>
   /** Forgy filled the entity form of a project */
-  onDraft: (callback: (e: { projectId: string; projectPath: string; draft: SfEntityDraft }) => void) => () => void
+  /** Forgy's draft, for the workshop of its project (Symfony, Laravel or Next.js) */
+  onDraft: (callback: (e: { projectId: string; projectPath: string; tab?: 'symfony' | 'laravel' | 'nextjs'; draft: SfEntityDraft }) => void) => () => void
 }

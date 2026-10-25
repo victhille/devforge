@@ -629,6 +629,8 @@ const en = {
     migrationsNote: "The files are in migrations/: they are committed with the code.",
     rollbackConfirm: "Undo the last applied migration ({name})? Data in the columns it added will be lost.",
     dangerConfirm: "A pending migration deletes data. Apply anyway?",
+    explainWithForgy: "Explain with Forgy",
+    explainMigration: "Explain this migration ({state}) in plain words: what it changes in the database, what may break or lose data, and what to check before applying it.\nMigration: {name}\n\n```sql\n{sql}\n```",
     apiHelp: "Pick how the API is built, then what each entity exposes.",
     apiMode: "API mode",
     platformHelp: "Routes generated from the entities: pagination, filters, validation and OpenAPI docs on /api/docs.",
