@@ -622,6 +622,8 @@ const fr = {
     migrationsNote: "Les fichiers sont dans migrations/ : ils se commitent avec le code.",
     rollbackConfirm: "Annuler la dernière migration appliquée ({name}) ? Les données des colonnes ajoutées par elle seront perdues.",
     dangerConfirm: "Une migration en attente supprime des données. Appliquer quand même ?",
+    explainWithForgy: "Expliquer avec Forgy",
+    explainMigration: "Explique cette migration ({state}) en mots simples : ce qu'elle change dans la base, ce qui peut casser ou perdre des données, et ce qu'il faut vérifier avant de l'appliquer.\nMigration : {name}\n\n```sql\n{sql}\n```",
     apiHelp: "Choisis comment l'API est construite, puis ce que chaque entité expose.",
     apiMode: "Mode d'API",
     platformHelp: "Routes générées depuis les entités : pagination, filtres, validation et documentation OpenAPI sur /api/docs.",

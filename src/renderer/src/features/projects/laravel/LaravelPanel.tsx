@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AlertTriangle, ExternalLink, RefreshCw } from 'lucide-react'
-import type { LaravelCommand, LaravelInspect, SfWriteResult } from '@shared/types'
+import type { LaravelCommand, LaravelInspect, SfEntityDraft, SfWriteResult } from '@shared/types'
 import { laravelCommandLine } from '@shared/lib/laravelCommands'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -12,6 +12,7 @@ import EntitiesSection from '../symfony/EntitiesSection'
 import MigrationsSection from '../symfony/MigrationsSection'
 import ApiSection from '../symfony/ApiSection'
 import { FixturesSection, RoutesSection } from '../symfony/ToolSections'
+import { SF_DRAFT_EVENT, takePendingDraft } from '../symfony/draft'
 import { DbAuthHint, RunButton, Section, errorText, useSfTasks } from '../symfony/parts'
 
 type Part = 'database' | 'entities' | 'migrations' | 'api' | 'fixtures' | 'routes' | 'server'
@@ -27,6 +28,7 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
   const [loadError, setLoadError] = useState('')
   const [loading, setLoading] = useState(false)
   const [part, setPart] = useState<Part>('entities')
+  const [draft, setDraft] = useState<SfEntityDraft | null>(() => takePendingDraft(projectPath))
 
   const load = useCallback(() => {
     setLoading(true)
@@ -36,6 +38,16 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
       .finally(() => setLoading(false))
   }, [projectPath])
   useEffect(load, [load])
+
+  // A model prepared by Forgy opens in the form
+  useEffect(() => {
+    const onDraft = () => {
+      const d = takePendingDraft(projectPath)
+      if (d) { setDraft(d); setPart('entities') }
+    }
+    window.addEventListener(SF_DRAFT_EVENT, onDraft)
+    return () => window.removeEventListener(SF_DRAFT_EVENT, onDraft)
+  }, [projectPath])
 
   const { track } = useSfTasks(projectPath, useCallback((line: string) => line, []), useCallback(() => load(), [load]))
   // With Sail, PHP runs in the app's container: the lines say so
@@ -115,7 +127,7 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
             </Section>
           )}
           {part === 'entities' && (
-            <EntitiesSection entities={data.entities} draft={null} onDraftUsed={() => {}} onWritten={written}
+            <EntitiesSection key={draft ? JSON.stringify(draft) : 'list'} entities={data.entities} draft={draft} onDraftUsed={() => setDraft(null)} onWritten={written}
               kit={{
                 write: draft => window.devforge.laravel.writeModel(projectPath, draft),
                 files: (owner, existing, linked) => [

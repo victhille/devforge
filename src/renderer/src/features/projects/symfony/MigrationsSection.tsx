@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Bot } from 'lucide-react'
 import type { SfMigration } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import { formatDate } from '@renderer/lib/format'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import { Input } from '@renderer/components/ui/Input'
+import Button from '@renderer/components/ui/Button'
+import { useAssistant } from '@renderer/features/assistant/AssistantContext'
 import { RunButton, Section } from './parts'
 
 /** A migration button: the exact command line it runs, and what it does */
@@ -37,6 +39,7 @@ const shortVersion = (v: string) => v.replace(/^DoctrineMigrations\\/, '')
 /** Prepared, applied or rolled back: the SQL is always shown before it runs (Symfony, Prisma, Laravel) */
 export default function MigrationsSection({ migrations, databaseOk, prepare, apply, rollback, note, help }: Props) {
   const { t } = useI18n()
+  const { ask } = useAssistant()
   const s = t.symfony
   const pending = migrations.filter(m => !m.executed)
   const [selected, setSelected] = useState<string | null>(pending[pending.length - 1]?.version ?? migrations[0]?.version ?? null)
@@ -102,6 +105,16 @@ export default function MigrationsSection({ migrations, databaseOk, prepare, app
             <pre tabIndex={0} aria-label={s.sqlTitle} className="max-h-[420px] overflow-auto rounded-xl border border-line-subtle bg-canvas p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap text-fg-secondary">
               {current.sql.length ? current.sql.join(';\n') + ';' : s.noSql}
             </pre>
+            {current.sql.length > 0 && (
+              <div className="flex justify-end">
+                <Button size="sm" variant="secondary" className="border-forgy/30 text-forgy" onClick={() => ask(s.explainMigration
+                  .replace('{name}', current.description || shortVersion(current.version))
+                  .replace('{state}', current.executed ? s.applied : s.pending)
+                  .replace('{sql}', current.sql.join(';\n').slice(0, 6000) + ';'))}>
+                  <Bot size={13} /> {s.explainWithForgy}
+                </Button>
+              </div>
+            )}
           </>
         ) : <p className="text-sm text-fg-muted">{s.pickMigration}</p>}
         <p className="text-xs text-fg-muted">{note ?? s.migrationsNote}</p>
