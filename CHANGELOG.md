@@ -2,6 +2,25 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [2.2.0](https://github.com/victhille/devforge/compare/v2.1.0...v2.2.0) — 2026-10-25
+
+> Projets complets dès la création, ateliers Symfony, Laravel et Next.js, lanceur global, page de statut et terminal en blocs.
+
+### Nouveautés
+
+- **ateliers** : Ateliers Laravel et Next.js ([c63760f](https://github.com/victhille/devforge/commit/c63760f86e8d21641290e262d46a22cbc73b9463))
+- **terminal** : Terminal en blocs ([4a6272d](https://github.com/victhille/devforge/commit/4a6272d4b84d1ad3a4b1297992436431eb733dce))
+- **statut** : Page de statut et surveillance 24 h/24 depuis le VPS ([8ee12b8](https://github.com/victhille/devforge/commit/8ee12b802ec4edff219a001a07eaf2949840413b))
+- **lanceur** : Lanceur global sur Ctrl+Alt+Espace ([de7b9ed](https://github.com/victhille/devforge/commit/de7b9edcdcb026adbeec32967338e730963ac8e4))
+- **symfony** : Atelier Symfony dans la page projet ([d44472f](https://github.com/victhille/devforge/commit/d44472f051152ed005852f96ce55db15d7e054c0))
+- **projets** : Création enrichie (base, options, Git et GitHub) ([7e0f52c](https://github.com/victhille/devforge/commit/7e0f52c776f15603be76dfafbe5322a72279b92b))
+
+### Corrections
+
+- **statut** : Retours de la première installation sur le VPS ([029067f](https://github.com/victhille/devforge/commit/029067fac34d5091708d1dba55de42f836d64d14))
+
+_2 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [2.1.0](https://github.com/victhille/devforge/compare/v2.1.0-beta.4...v2.1.0) — 2026-10-24
 
 > DevForge 2.1 : ton VPS sous contrôle (services en un clic, santé, sauvegardes de nuit), un accueil à composer, une palette qui agit, le mode compact, les .env synchronisés, GitHub sur la page projet, Automations sur l'accueil, Forgy qui veille sur tout ça, des mises à jour qui arrivent toutes seules et un menu mieux rangé.
