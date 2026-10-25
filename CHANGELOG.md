@@ -2,6 +2,14 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [2.3.1](https://github.com/victhille/devforge/compare/v2.3.0...v2.3.1) — 2026-10-25
+
+> Le premier bloc d'un terminal cmd n'affiche plus la commande interne de DevForge.
+
+### Corrections
+
+- **terminal** : L'écho de la commande retiré même après la bannière de cmd ([3201e69](https://github.com/victhille/devforge/commit/3201e69580dc914ee5c53d97bb3665805eb4f51c))
+
 ## [2.3.0](https://github.com/victhille/devforge/compare/v2.2.0...v2.3.0) — 2026-10-25
 
 > Laravel Sail, Auth.js et retour en arrière Prisma dans les ateliers, Forgy dans les trois ateliers, une base Docker propre à chaque projet, codes de retour dans cmd.
