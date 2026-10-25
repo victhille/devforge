@@ -26,9 +26,10 @@ import VercelPanel from './VercelPanel'
 import EnvSyncPanel from './EnvSyncPanel'
 import GithubPanel from './GithubPanel'
 import SymfonyPanel from './symfony/SymfonyPanel'
+import TerminalTabs from '@renderer/features/terminal/TerminalTabs'
 
-type Tab = 'overview' | 'git' | 'github' | 'symfony' | 'docker' | 'env' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
-const TABS: Tab[] = ['overview', 'git', 'github', 'symfony', 'docker', 'env', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
+type Tab = 'overview' | 'git' | 'github' | 'symfony' | 'terminal' | 'docker' | 'env' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
+const TABS: Tab[] = ['overview', 'git', 'github', 'symfony', 'terminal', 'docker', 'env', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const fileName = (p: string) => p.split(/[\\/]/).pop() ?? p
@@ -437,6 +438,7 @@ export default function ProjectDetailPage() {
 
     github: hub.github ? <GithubPanel projectPath={p.path} repo={hub.github} /> : null,
     symfony: p.framework === 'symfony' ? <SymfonyPanel projectPath={p.path} /> : null,
+    terminal: <TerminalTabs cwd={p.path} withSsh={false} className="h-[600px] overflow-hidden rounded-[14px] border border-line" />,
 
     files: (
       <div className="flex flex-wrap gap-4">

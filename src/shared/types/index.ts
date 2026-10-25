@@ -260,6 +260,7 @@ export * from './setup'
 export * from './symfony'
 export * from './launcher'
 export * from './status'
+export * from './terminal'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
@@ -279,6 +280,7 @@ import type { ProjectSetup, SetupAPI } from './setup'
 import type { SymfonyAPI } from './symfony'
 import type { LauncherAPI } from './launcher'
 import type { StatusAPI } from './status'
+import type { TerminalAPI } from './terminal'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -403,6 +405,7 @@ export interface DevForgeAPI {
   symfony: SymfonyAPI
   launcher: LauncherAPI
   status: StatusAPI
+  terminal: TerminalAPI
   dictation: DictationAPI
 
   // Git

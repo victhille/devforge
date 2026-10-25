@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import TitleBar from './TitleBar'
 import BottomPanel from './BottomPanel'
+import TerminalDock from '@renderer/features/terminal/TerminalDock'
 import { setPendingDraft } from '@renderer/features/projects/symfony/draft'
 import CommandPalette from '@renderer/components/command-palette/CommandPalette'
 import { useAssistant } from '@renderer/features/assistant/AssistantContext'
@@ -51,6 +52,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <main id="main" tabIndex={-1} className="flex-1 overflow-y-auto outline-none">{children}</main>
             <ForgyWalker />
           </div>
+          <TerminalDock />
           <BottomPanel />
         </div>
         {open && <AssistantPanel />}

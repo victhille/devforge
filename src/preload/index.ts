@@ -358,6 +358,18 @@ const api: DevForgeAPI = {
     uninstall:     invoke('status:uninstall')
   },
 
+  terminal: {
+    shells:     invoke('term:shells'),
+    create:     invoke('term:create'),
+    write:      invoke('term:write'),
+    resize:     invoke('term:resize'),
+    kill:       invoke('term:kill'),
+    onData:     (cb: (id: string, data: string) => void) => { const h = (_e: unknown, id: string, data: string) => cb(id, data); ipcRenderer.on('term:data', h); return () => { ipcRenderer.removeListener('term:data', h) } },
+    onExit:     (cb: (id: string, code: number) => void) => { const h = (_e: unknown, id: string, code: number) => cb(id, code); ipcRenderer.on('term:exit', h); return () => { ipcRenderer.removeListener('term:exit', h) } },
+    history:    invoke('term:history'),
+    addHistory: invoke('term:history-add')
+  },
+
   dictation: {
     status:     invoke('dictation:status'),
     prepare:    invoke('dictation:prepare'),

@@ -15,6 +15,7 @@ import { guardNavigation } from './lib/windowGuards'
 import { present } from './lib/present'
 import { disposeWidget, initWidget } from './widget'
 import { disposeLauncher, initLauncher } from './launcher'
+import { killAll as killTerminals } from './services/terminal/terminalService'
 import { initLog, log } from './lib/log'
 import { migrateData } from './services/storage/migrations'
 import { initUpdater, stopUpdater } from './services/updates/updater'
@@ -187,7 +188,7 @@ app.whenReady().then(() => {
 })
 
 // Never leave dev servers running after DevForge quits
-app.on('before-quit', () => { disposeWidget(); disposeLauncher(); processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks(); stopUpdater(); stopWatch(); stopHistory(); stopBackupWatch(); closeAllForwards() })
+app.on('before-quit', () => { disposeWidget(); disposeLauncher(); killTerminals(); processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks(); stopUpdater(); stopWatch(); stopHistory(); stopBackupWatch(); closeAllForwards() })
 
 app.on('window-all-closed', () => {
   sshService.disconnectAll()

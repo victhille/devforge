@@ -1,10 +1,11 @@
 import { useState, useEffect, type ReactNode } from 'react'
-import { Minus, Square, X, Maximize2, Search } from 'lucide-react'
+import { Minus, Square, X, Maximize2, Search, SquareTerminal } from 'lucide-react'
 import logo from '@renderer/assets/icon-64.png'
 import { cn } from '@renderer/lib/cn'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useAssistant } from '@renderer/features/assistant/AssistantContext'
 import Mascot from '@renderer/features/assistant/Mascot'
+import { TOGGLE_TERMINAL } from '@renderer/features/terminal/TerminalDock'
 import UpdateButton from './UpdateButton'
 
 function WindowButton({ title, onClick, danger, children }: {
@@ -53,6 +54,12 @@ export default function TitleBar() {
         <Search size={13} />
         <span className="flex-1 text-left">{t.palette.search}…</span>
         <kbd className="rounded border border-line bg-elevated px-1.5 font-mono text-2xs">Ctrl K</kbd>
+      </button>
+
+      {/* Terminal in blocks, docked at the bottom (Ctrl+`) */}
+      <button onClick={() => window.dispatchEvent(new Event(TOGGLE_TERMINAL))} title={t.terminal.dockLabel + ' (Ctrl+`)'} aria-label={t.terminal.dockLabel}
+        className="app-no-drag flex h-[30px] items-center gap-1.5 rounded-lg border border-line px-2.5 text-sm text-fg-secondary transition-colors hover:border-fg-disabled hover:text-fg">
+        <SquareTerminal size={14} />
       </button>
 
       {/* A new version on its way: progress, then restart to update */}
