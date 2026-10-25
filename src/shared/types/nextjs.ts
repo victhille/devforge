@@ -37,6 +37,14 @@ export interface NextRoute {
   file: string
 }
 
+/** A migration that undoes the last one, written, not run (v2.3 lot 3) */
+export interface NextRevertResult extends SfWriteResult {
+  /** The migration it undoes */
+  migration: string
+  /** schema.prisma went back to its Git version from before; otherwise it is to be fixed by hand */
+  schemaRestored: boolean
+}
+
 export type NextCommand =
   | 'db:start' | 'prisma:migrate' | 'prisma:deploy' | 'prisma:generate' | 'prisma:studio'
   | 'install:prisma' | 'install:client' | 'install:seed' | 'seed' | 'dev'
@@ -53,4 +61,6 @@ export interface NextjsAPI {
   applyApi: (projectPath: string, config: SfApiConfig) => Promise<SfWriteResult>
   /** Writes prisma/seed.ts for these counts, then runs it: one console task */
   writeSeed: (projectPath: string, counts: Record<string, number>) => Promise<string>
+  /** Writes the migration that undoes the last applied one; "Apply" runs it */
+  prepareRevert: (projectPath: string) => Promise<NextRevertResult>
 }

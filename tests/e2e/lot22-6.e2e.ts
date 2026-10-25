@@ -45,7 +45,8 @@ async function openNext(): Promise<string> {
       writeFileSync(join(data, 'projects.json'), JSON.stringify([project('nx', 'site', dir, 'nextjs')]))
       writeFileSync(join(data, 'nextjs.json'), JSON.stringify({
         database: { reachable: true, error: null },
-        migrations: [{ version: '20261025180000_catalogue', description: 'catalogue', executed: false, executedAt: null, file: 'prisma/migrations/20261025180000_catalogue/migration.sql', sql: ['CREATE TABLE "Produit" ("id" SERIAL NOT NULL)'], dangerous: false }]
+        migrations: [{ version: '20261025180000_catalogue', description: 'catalogue', executed: false, executedAt: null, file: 'prisma/migrations/20261025180000_catalogue/migration.sql', sql: ['CREATE TABLE "Produit" ("id" SERIAL NOT NULL)'], dangerous: false },
+          { version: '20261025150000_init', description: 'init', executed: true, executedAt: null, file: 'prisma/migrations/20261025150000_init/migration.sql', sql: ['CREATE TABLE "User" ("id" SERIAL NOT NULL)'], dangerous: false }]
       }))
     }
   })
@@ -79,7 +80,9 @@ test('Next.js: a model written in schema.prisma, a migration prepared before it 
   await page.getByLabel('Nom de la migration (minuscules, chiffres, _)').fill('Ajout Produit')
   await expect(page.getByText('npx prisma migrate dev --create-only --name ajout_produit')).toBeVisible()
   await expect(page.getByText('npx prisma migrate deploy && npx prisma generate')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Revenir en arrière' })).toHaveCount(0)
+  // v2.3 lot 3: Prisma's undoing is prepared as a migration, then applied
+  await expect(page.getByRole('button', { name: 'Préparer le retour en arrière' })).toBeEnabled()
+  await expect(page.getByText('npx prisma migrate diff --from-config-datasource --to-migrations <toutes sauf la dernière> --script')).toBeVisible()
   await expect(page.getByLabel('SQL de la migration')).toContainText('CREATE TABLE "Produit"')
   expect(await settledAxe(page)).toEqual([])
 

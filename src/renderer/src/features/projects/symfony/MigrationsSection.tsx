@@ -17,6 +17,8 @@ export interface MigrationAction {
   named?: boolean
   /** In place of the usual label */
   label?: string
+  /** false: nothing changes in the database yet, no confirmation (Prisma's undoing is prepared, then applied) */
+  confirm?: boolean
 }
 
 interface Props {
@@ -44,7 +46,8 @@ export default function MigrationsSection({ migrations, databaseOk, prepare, app
   const nameOk = !prepare.named || /^[a-z0-9_]{1,60}$/.test(name)
 
   function doRollback() {
-    if (!rollback || !window.confirm(s.rollbackConfirm.replace('{name}', lastApplied ? (lastApplied.description || shortVersion(lastApplied.version)) : ''))) return
+    if (!rollback) return
+    if (rollback.confirm !== false && !window.confirm(s.rollbackConfirm.replace('{name}', lastApplied ? (lastApplied.description || shortVersion(lastApplied.version)) : ''))) return
     rollback.run('')
   }
   function doApply() {
@@ -86,7 +89,7 @@ export default function MigrationsSection({ migrations, databaseOk, prepare, app
 
       <Section title={current ? s.whatChanges.replace('{name}', current.description || shortVersion(current.version)) : s.sqlTitle}
         actions={<>
-          {rollback && <RunButton label={s.rollback} line={rollback.line('')} variant="ghost" onRun={doRollback} disabled={!databaseOk || !lastApplied} />}
+          {rollback && <RunButton label={rollback.label ?? s.rollback} line={rollback.line('')} variant="ghost" onRun={doRollback} disabled={!databaseOk || !lastApplied} />}
           {apply && <RunButton label={s.apply} line={apply.line('')} variant="primary" onRun={doApply} disabled={!databaseOk || !pending.length} />}
         </>}>
         {current ? (
