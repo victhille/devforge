@@ -468,7 +468,8 @@ const fr = {
       recapTitle:     'Récapitulatif · ce qui va être lancé',
       recapBase:      'Création du projet {name}',
       recapLibs:      '+ {n} paquet(s) choisi(s)',
-      recapNote:      'Tout s\'affiche en direct dans la console. Rien n\'est publié sur GitHub sans la case cochée.'
+      recapNote:      'Tout s\'affiche en direct dans la console. Rien n\'est publié sur GitHub sans la case cochée.',
+      oldVolumes:     'Une base d\'un ancien projet du même nom est encore dans Docker ({list}). Ce projet aura la sienne, neuve. Si l\'ancienne ne sert plus, supprime-la depuis Docker Desktop.'
     }
   },
 
@@ -655,6 +656,7 @@ const fr = {
     dbTarget: "Adresse",
     dbState: "État",
     dbReachable: "répond",
+    dbAuthHint: "La base refuse l'identifiant ou le mot de passe. Cause fréquente : la base Docker vient d'un ancien projet du même nom et garde son ancien mot de passe. Remets ce mot de passe dans {file}, ou, si ses données ne servent plus, recrée la base avec docker compose down -v puis « Démarrer la base ».",
     dbUnreachable: "ne répond pas",
     dbStart: "Démarrer la base (Docker)",
     dbCreate: "Créer la base",

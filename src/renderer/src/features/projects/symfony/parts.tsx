@@ -5,6 +5,8 @@ import { useConsole } from '@renderer/app/ConsoleContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
+import { isDbAuthError } from '@shared/lib/projectSetup'
+import { useI18n } from '@renderer/i18n/I18nContext'
 
 export const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 
@@ -21,6 +23,17 @@ export function Section({ title, help, actions, children, className }: { title: 
       </div>
       {children}
     </Card>
+  )
+}
+
+/** Why a database refuses its password, most often: an old Docker volume of the same name */
+export function DbAuthHint({ error, envFile }: { error: string | null | undefined; envFile: string }) {
+  const { t } = useI18n()
+  if (!isDbAuthError(error)) return null
+  return (
+    <p role="note" className="rounded-xl bg-warning/10 p-3 text-sm text-fg">
+      {t.symfony.dbAuthHint.replace('{file}', envFile)}
+    </p>
   )
 }
 

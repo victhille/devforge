@@ -14,7 +14,7 @@ const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
 const opts = (framework: 'symfony' | 'nextjs', s: Partial<ProjectSetup> = {}) => ({
   name: 'boutique', framework, packageManager: 'npm' as const, typescript: true, eslint: true, setup: setup(s)
 })
-const ctx = { password: 'pw', secret: 'sec', lang: 'fr' as const }
+const ctx = { password: 'pw', secret: 'sec', lang: 'fr' as const, composeName: 'boutique-a1b2c3' }
 const runs = (steps: SetupStep[]) => steps.filter(s => s.kind === 'run').map(s => stepCommand(s))
 
 describe('v2.2 lot 1: project setup plan', () => {

@@ -42,4 +42,6 @@ export interface SetupAPI {
   freePort: (start: number) => Promise<number>
   /** Login of the GitHub account DevForge can use, null when none */
   githubLogin: () => Promise<string | null>
+  /** Database volumes an earlier project of this name left in Docker */
+  previousVolumes: (name: string) => Promise<string[]>
 }

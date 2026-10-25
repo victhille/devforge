@@ -225,7 +225,7 @@ describe('v2.2 lot 6: Laravel', () => {
     const steps = planSetup({
       name: 'atelier', framework: 'laravel', packageManager: 'npm', typescript: false, eslint: false,
       setup: { database: 'postgres', dbName: 'atelier', dbPort: 5461, features: ['api', 'docker', 'ci'], git: false, github: null, openVSCode: false }
-    }, { password: 'pw', secret: 's', lang: 'fr' })
+    }, { password: 'pw', secret: 's', lang: 'fr', composeName: 'atelier-a1b2c3' })
     const env = steps.find(s => s.kind === 'env' && s.file === '.env')
     expect(env?.kind === 'env' && env.vars).toEqual({ DB_CONNECTION: 'pgsql', DB_HOST: '127.0.0.1', DB_PORT: '5461', DB_DATABASE: 'atelier', DB_USERNAME: 'app', DB_PASSWORD: 'pw' })
     const lines = steps.map(stepCommand).join('\n')

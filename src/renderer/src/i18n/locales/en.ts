@@ -472,7 +472,8 @@ const en = {
       recapTitle:     'Summary · what will run',
       recapBase:      'Creating the {name} project',
       recapLibs:      '+ {n} chosen package(s)',
-      recapNote:      'Everything shows live in the console. Nothing goes to GitHub unless the box is ticked.'
+      recapNote:      'Everything shows live in the console. Nothing goes to GitHub unless the box is ticked.',
+      oldVolumes:     'A database of an earlier project with this name is still in Docker ({list}). This project gets its own, new one. If the old one is no longer needed, remove it from Docker Desktop.'
     }
   },
 
@@ -662,6 +663,7 @@ const en = {
     dbTarget: "Address",
     dbState: "State",
     dbReachable: "answers",
+    dbAuthHint: "The database refuses the user or the password. A common cause: the Docker database comes from an earlier project with the same name and keeps its old password. Put that password back in {file}, or, if its data is no longer needed, recreate the database with docker compose down -v then \"Start the database\".",
     dbUnreachable: "does not answer",
     dbStart: "Start the database (Docker)",
     dbCreate: "Create the database",

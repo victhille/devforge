@@ -8,7 +8,7 @@ import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Input, Select } from '@renderer/components/ui/Input'
-import { CommandButton, Section, errorText } from './parts'
+import { CommandButton, DbAuthHint, Section, errorText } from './parts'
 
 type Exec = (command: SfCommand, arg?: string) => void
 
@@ -45,6 +45,7 @@ export function DatabaseSection({ projectPath, status, exec, onChanged }: { proj
             <span className={db?.reachable ? 'text-success' : 'text-warning'}>{db?.reachable ? s.dbReachable : s.dbUnreachable}</span>
           </div>
           {db?.error && <p className="font-mono text-xs break-words text-fg-muted">{db.error}</p>}
+          <DbAuthHint error={db?.error} envFile=".env.local" />
           <div className="flex flex-wrap gap-4">
             {status.composeDatabase && <CommandButton command="database:start" label={s.dbStart} onRun={exec} />}
             <CommandButton command="database:create" label={s.dbCreate} onRun={exec} />

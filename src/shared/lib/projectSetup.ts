@@ -20,6 +20,8 @@ export interface PlanContext {
   password: string
   /** Auth.js secret; same */
   secret: string
+  /** compose.yaml's project name (its own Docker volumes); the summary passes a placeholder */
+  composeName: string
   lang: 'fr' | 'en'
 }
 
@@ -71,9 +73,32 @@ export function databaseUrl(fw: Framework, s: ProjectSetup, password: string, in
 
 const serverDb = (s: ProjectSetup) => s.database === 'postgres' || s.database === 'mysql'
 
+/** Docker's name for a project: lowercase, digits, - and _ (MonSite 2 → monsite-2) */
+export function composeSlug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^[^a-z0-9]+|-+$/g, '') || 'projet'
+}
+
+/**
+ * compose.yaml's name: the project's name and a short id, so a project
+ * created again under the same name gets new volumes, not the old database
+ * (which keeps its old password)
+ */
+export const composeName = (name: string, id: string) => `${composeSlug(name)}-${id}`
+
+/** Database volumes an earlier project of this name left: "boutique_database_data", "boutique-a1b2c3_database_data" */
+export function oldVolumes(name: string, volumes: string[]): string[] {
+  const slug = composeSlug(name).replace(/[-_]/g, '[-_]')
+  const re = new RegExp(`^${slug}(-[0-9a-f]{6})?_database_data$`)
+  return volumes.filter(v => re.test(v))
+}
+
+/** The database refuses the user or password (Postgres, MySQL), in any workshop */
+export const isDbAuthError = (error: string | null | undefined) =>
+  !!error && /password authentication failed|Access denied for user|P1000|Authentication failed against database/i.test(error)
+
 /** compose.yaml: the database (Postgres or MySQL) and, with the Docker option, the app */
-export function composeFile(fw: Framework, s: ProjectSetup): string {
-  const lines = ['services:']
+export function composeFile(fw: Framework, s: ProjectSetup, name?: string): string {
+  const lines = [...(name ? [`name: ${name}`, ''] : []), 'services:']
   const envFile = ['    env_file:', '      - path: .env.docker', '        required: false']
   if (s.database === 'postgres') {
     lines.push(
@@ -307,7 +332,7 @@ export function planSetup(o: Opts, ctx: PlanContext): SetupStep[] {
     if (serverDb(s) || docker) {
       steps.push({ kind: 'ignore', label: l.ignore, lines: ['/.env.docker'] })
       steps.push({ kind: 'env', label: '.env.docker', file: '.env.docker', vars: dockerEnv(o.framework, s, ctx.password) })
-      steps.push({ kind: 'write', label: l.compose, files: [{ path: 'compose.yaml', content: composeFile(o.framework, s) }] })
+      steps.push({ kind: 'write', label: l.compose, files: [{ path: 'compose.yaml', content: composeFile(o.framework, s, ctx.composeName || undefined) }] })
     }
     if (docker) steps.push({ kind: 'write', label: l.docker, files: dockerFiles(o) })
     if (s.features.includes('ci')) steps.push({ kind: 'write', label: l.ci, files: [{ path: '.github/workflows/ci.yml', content: ciWorkflow(o) }] })

@@ -3,7 +3,7 @@ import { dirname, join } from 'path'
 import { createServer } from 'net'
 import { randomBytes, randomUUID } from 'crypto'
 import type { CommandResult, LogLine, ProjectCreationOptions, SetupStep } from '@shared/types'
-import { planSetup, stepCommand } from '@shared/lib/projectSetup'
+import { composeName, oldVolumes, planSetup, stepCommand } from '@shared/lib/projectSetup'
 import { commandRunner } from '../system/commandRunner'
 import { saveDbConnection } from '../database/dbStorage'
 import { runFile } from '../../lib/exec'
@@ -27,6 +27,12 @@ export async function freePort(start: number): Promise<number> {
   const first = Number.isInteger(start) && start > 0 && start < 65536 ? start : 5432
   for (let p = first; p < Math.min(first + 50, 65536); p++) if (await portFree(p)) return p
   return first
+}
+
+/** Docker volumes of an earlier database of this project's name (empty when Docker is off) */
+export async function previousVolumes(name: string): Promise<string[]> {
+  const r = await runFile('docker', ['volume', 'ls', '--format', '{{.Name}}'], { timeout: 15_000 })
+  return r.ok ? oldVolumes(name, r.stdout.split(/\r?\n/).map(l => l.trim()).filter(Boolean)) : []
 }
 
 /** GitHub CLI's account (the one `gh repo create` uses), null when gh is missing or logged out */
@@ -109,7 +115,7 @@ export function runSetup(options: ProjectCreationOptions, projPath: string, task
   if (!options.setup) { onResult({ taskId, exitCode: 0, status: 'success' }); return }
   const password = randomBytes(12).toString('hex')
   const secret = randomBytes(32).toString('base64')
-  const steps = planSetup({ ...options, setup: options.setup }, { password, secret, lang: 'fr' })
+  const steps = planSetup({ ...options, setup: options.setup }, { password, secret, lang: 'fr', composeName: composeName(options.name, randomBytes(3).toString('hex')) })
   const log = (type: LogLine['type'], text: string) => onLog({ taskId, type, text, timestamp: new Date().toISOString() })
 
   const next = (i: number): void => {
