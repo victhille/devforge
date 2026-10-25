@@ -86,7 +86,9 @@ export default defineConfig({
         input: {
           index: resolve(__dirname, 'src/renderer/index.html'),
           // Forgy's always-on-top desktop bubble (src/main/widget.ts)
-          widget: resolve(__dirname, 'src/renderer/widget.html')
+          widget: resolve(__dirname, 'src/renderer/widget.html'),
+          // Global launcher, Ctrl+Alt+Space (src/main/launcher.ts)
+          launcher: resolve(__dirname, 'src/renderer/launcher.html')
         }
       }
     },

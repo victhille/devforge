@@ -20,13 +20,19 @@ export interface Launched {
  */
 export async function launch(opts: { settings?: Record<string, unknown>; seed?: (userData: string) => void; env?: Record<string, string> } = {}): Promise<Launched> {
   const userData = mkdtempSync(join(tmpdir(), 'devforge-e2e-'))
-  writeFileSync(join(userData, 'settings.json'), JSON.stringify({ language: 'fr', defaultProjectsDir: userData, ...opts.settings }))
+  writeFileSync(join(userData, 'settings.json'), JSON.stringify({ language: 'fr', defaultProjectsDir: userData, launcherEnabled: false, ...opts.settings }))
   opts.seed?.(userData)
   // "{userData}" in a value stands for the profile folder
-  const env = Object.fromEntries(Object.entries(opts.env ?? {}).map(([k, v]) => [k, v.replace('{userData}', userData)]))
+  const env = { DEVFORGE_TEST_OFFSCREEN: '1', ...Object.fromEntries(Object.entries(opts.env ?? {}).map(([k, v]) => [k, v.replace('{userData}', userData)])) }
 
   const app = await electron.launch({ args: ['.', `--user-data-dir=${userData}`], cwd: ROOT, env: { ...process.env as Record<string, string>, ...env } })
-  const page = await app.firstWindow()
+  // The main window: the launcher and the desktop widget are windows too
+  const isMain = (p: Page) => /index\.html/.test(p.url())
+  let page = app.windows().find(isMain)
+  while (!page) {
+    await Promise.race([app.waitForEvent('window'), new Promise(r => setTimeout(r, 200))])
+    page = app.windows().find(isMain)
+  }
   const errors: string[] = []
   page.on('pageerror', e => errors.push(e.message))
   await page.waitForSelector('main')

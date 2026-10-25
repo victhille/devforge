@@ -46,7 +46,7 @@ export default function AssistantPanel() {
   const a = t.assistant
   const l = lang === 'fr' ? 'fr' : 'en'
   const navigate = useNavigate()
-  const { setOpen, pageContext, projectPath, setProjectPath, mood, markSending, setTyping, pendingConversation, clearPendingConversation } = useAssistant()
+  const { setOpen, pageContext, projectPath, setProjectPath, mood, markSending, setTyping, pendingConversation, clearPendingConversation, pendingQuestion, clearPendingQuestion } = useAssistant()
   const typingTimer = useRef<ReturnType<typeof setTimeout>>()
   const [config, setConfig] = useState<AssistantConfig | null>(null)
   const [usage, setUsage] = useState<AssistantUsage | null>(null)
@@ -93,6 +93,15 @@ export default function AssistantPanel() {
     clearPendingConversation()
     load(pendingConversation)
   }, [pendingConversation, clearPendingConversation, load])
+
+  // A question typed in the global launcher: a new conversation, sent at once
+  const sendRef = useRef<(text: string) => void>(() => {})
+  useEffect(() => {
+    if (!pendingQuestion) return
+    clearPendingQuestion()
+    newConversation()
+    sendRef.current(pendingQuestion)
+  }, [pendingQuestion, clearPendingQuestion])
 
   // Streamed events of the shown conversation
   useEffect(() => window.devforge.assistant.onEvent(e => {
@@ -142,6 +151,8 @@ export default function AssistantPanel() {
       setItems(list => [...list, { kind: 'notice', tone: 'error', text: String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') }])
     }
   }
+
+  sendRef.current = (text: string) => { send(text, 'chat') }
 
   function pickSkill(s: AssistantSkill) {
     setSkillId(s.id)

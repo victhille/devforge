@@ -15,11 +15,12 @@ import ServerSettings from './ServerSettings'
 import DataSettings from './DataSettings'
 import UpdatesSettings from './UpdatesRow'
 import ReleaseNotes from './ReleaseNotes'
+import LauncherSettings from './LauncherSettings'
 import { Segmented, SettingRow, SettingsCard } from './parts'
 
 type Section = 'general' | 'appearance' | 'forgy' | 'servers' | 'data' | 'updates' | 'about'
 const SECTIONS: { id: Section; icon: LucideIcon; words: string }[] = [
-  { id: 'general', icon: SlidersHorizontal, words: 'dossier folder projets projects paquets package npm pnpm yarn éditeur editor ide vs code windows démarrer start barre tray' },
+  { id: 'general', icon: SlidersHorizontal, words: 'dossier folder projets projects paquets package npm pnpm yarn éditeur editor ide vs code windows démarrer start barre tray lanceur launcher raccourci shortcut raycast' },
   { id: 'appearance', icon: Palette, words: 'thème theme sombre dark clair light langue language anglais english français animations motion densité density compact compacte' },
   { id: 'forgy', icon: Bot, words: 'assistant clé key api modèle model effort budget actions widget raccourci shortcut promène walk boulon' },
   { id: 'servers', icon: Server, words: 'surveillance watch vps ssh alertes alerts disque disk conteneur container notifications site' },
@@ -68,6 +69,15 @@ export default function SettingsPage() {
     await window.devforge.saveSettings(next)
     if (key === 'language') setLang(value as AppLanguage)
     if (key === 'theme' || key === 'motion' || key === 'density') applyAppearance(next)
+    onSaved()
+  }
+
+  /** Several keys at once (one save, from the latest values) */
+  async function update(patch: Partial<AppSettings>) {
+    if (!settings) return
+    const next = { ...settings, ...patch }
+    setSettings(next)
+    await window.devforge.saveSettings(next)
     onSaved()
   }
 
@@ -149,6 +159,7 @@ export default function SettingsPage() {
               </SettingRow>
             </SettingsCard>
           )}
+          {section === 'general' && <LauncherSettings settings={settings} update={update} />}
 
           {section === 'appearance' && (
             <SettingsCard title={s.nav.appearance} hint={s.appearanceHint}>

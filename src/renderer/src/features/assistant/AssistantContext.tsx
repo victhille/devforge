@@ -29,6 +29,10 @@ interface AssistantState {
   /** A conversation the desktop widget asked to show, until the panel loads it */
   pendingConversation: string | null
   clearPendingConversation: () => void
+  /** Opens the panel and sends this question in a new conversation (global launcher) */
+  ask: (text: string) => void
+  pendingQuestion: string | null
+  clearPendingQuestion: () => void
 }
 
 /** After this long without activity, the mascot falls asleep */
@@ -110,6 +114,9 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   // "Open in DevForge" from the desktop widget
   useEffect(() => window.devforge.assistant.onOpenConversation(id => { setPendingConversation(id); setOpen(true) }), [setOpen])
   const clearPendingConversation = useCallback(() => setPendingConversation(null), [])
+  const [pendingQuestion, setPendingQuestion] = useState<string | null>(null)
+  const ask = useCallback((text: string) => { setPendingQuestion(text); setOpen(true) }, [setOpen])
+  const clearPendingQuestion = useCallback(() => setPendingQuestion(null), [])
 
   // Ctrl+J toggles the panel from anywhere
   useEffect(() => {
@@ -122,8 +129,8 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({
     open, setOpen, pageContext: page?.ctx ?? null, setPageContext, projectPath, setProjectPath, mood, markSending, setTyping,
-    walker, setWalker, walkerDog, setWalkerDog, pendingConversation, clearPendingConversation
-  }), [open, setOpen, page, setPageContext, projectPath, setProjectPath, mood, markSending, setTyping, walker, setWalker, walkerDog, setWalkerDog,
+    walker, setWalker, walkerDog, setWalkerDog, pendingConversation, clearPendingConversation, ask, pendingQuestion, clearPendingQuestion
+  }), [ask, pendingQuestion, clearPendingQuestion, open, setOpen, page, setPageContext, projectPath, setProjectPath, mood, markSending, setTyping, walker, setWalker, walkerDog, setWalkerDog,
     pendingConversation, clearPendingConversation])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

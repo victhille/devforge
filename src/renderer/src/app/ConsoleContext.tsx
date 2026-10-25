@@ -14,7 +14,7 @@ interface ConsoleState {
   projectId: string | null
 }
 
-interface ConsoleContextValue extends ConsoleState {
+export interface ConsoleContextValue extends ConsoleState {
   startCreation: (options: ProjectCreationOptions) => Promise<void>
   runScript: (projectPath: string, script: string, pm: PackageManager, projectName: string) => Promise<void>
   /** Any command of the main process that streams task-log: shows it here, resolves with its task id */
@@ -26,7 +26,8 @@ interface ConsoleContextValue extends ConsoleState {
   openVSCode: () => void
 }
 
-const ConsoleContext = createContext<ConsoleContextValue | null>(null)
+/** Exported for the launcher window, which gives its own (it forwards to the main window) */
+export const ConsoleContext = createContext<ConsoleContextValue | null>(null)
 
 export function ConsoleProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<ConsoleState>({

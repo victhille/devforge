@@ -9,9 +9,11 @@ import { useAssistant } from '@renderer/features/assistant/AssistantContext'
 import AssistantPanel from '@renderer/features/assistant/AssistantPanel'
 import ForgyWalker from '@renderer/features/assistant/ForgyWalker'
 import { useI18n } from '@renderer/i18n/I18nContext'
+import { useConsole } from '@renderer/app/ConsoleContext'
 
 export default function Layout({ children }: { children: ReactNode }) {
-  const { open } = useAssistant()
+  const { open, ask } = useAssistant()
+  const { runScript } = useConsole()
   const { t } = useI18n()
   const navigate = useNavigate()
   // Forgy created a VPN client: the VPN page opens on its QR code
@@ -28,6 +30,12 @@ export default function Layout({ children }: { children: ReactNode }) {
     setPendingDraft(e.projectPath, e.draft)
     navigate(`/project/${e.projectId}?tab=symfony`)
   }), [navigate])
+  // The global launcher hands over: a page, a script in the console, a question for Forgy
+  useEffect(() => window.devforge.launcher.onToMain(m => {
+    if (m.kind === 'navigate') navigate(m.path)
+    else if (m.kind === 'script') runScript(m.projectPath, m.script, m.pm, m.name)
+    else ask(m.text)
+  }), [navigate, runScript, ask])
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-canvas">
       {/* First Tab stop: jumps over the title bar and the menu (a button: links are routes here) */}
