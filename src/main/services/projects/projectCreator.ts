@@ -185,6 +185,22 @@ function createSymfonyProject(
   })
 }
 
+// ─── Laravel ──────────────────────────────────────────────────────────────────
+
+function createLaravelProject(
+  options: ProjectCreationOptions,
+  onLog: LogCb,
+  onResult: ResultCb
+): string {
+  return commandRunner.run({
+    executable: 'composer',
+    args: ['create-project', 'laravel/laravel', options.name, '--no-interaction', '--prefer-dist'],
+    cwd: options.destination,
+    onLog,
+    onResult
+  })
+}
+
 // ─── Empty project ────────────────────────────────────────────────────────────
 
 function createEmptyProject(
@@ -291,6 +307,8 @@ export function createProject(
       return createNodejsProject(options, onLog, wrappedResult)
     case 'symfony':
       return createSymfonyProject(options, onLog, wrappedResult)
+    case 'laravel':
+      return createLaravelProject(options, onLog, wrappedResult)
     case 'empty':
       return createEmptyProject(options, onLog, wrappedResult)
     default:

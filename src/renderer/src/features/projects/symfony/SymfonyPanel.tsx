@@ -7,11 +7,13 @@ import { cn } from '@renderer/lib/cn'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import EntitiesSection from './EntitiesSection'
+import { symfonyKit } from './EntityForm'
 import MigrationsSection from './MigrationsSection'
 import ApiSection from './ApiSection'
 import { DatabaseSection, FixturesSection, PagesSection, RoutesSection, ServerSection } from './ToolSections'
 import { CommandButton, errorText, useSfTasks } from './parts'
 import { SF_DRAFT_EVENT, takePendingDraft } from './draft'
+import { sfCommandLine } from '@shared/lib/symfonyCommands'
 
 type Part = 'database' | 'entities' | 'migrations' | 'api' | 'pages' | 'fixtures' | 'routes' | 'server'
 const PARTS: Part[] = ['database', 'entities', 'migrations', 'api', 'pages', 'fixtures', 'routes', 'server']
@@ -104,14 +106,31 @@ export default function SymfonyPanel({ projectPath }: { projectPath: string }) {
         <div className="min-w-0 flex-[1_1_640px]">
           {part === 'database' && <DatabaseSection projectPath={projectPath} status={st} exec={exec} onChanged={load} />}
           {part === 'entities' && (
-            <EntitiesSection key={draft ? JSON.stringify(draft) : 'list'} projectPath={projectPath} entities={data.entities}
+            <EntitiesSection key={draft ? JSON.stringify(draft) : 'list'} kit={symfonyKit(projectPath, data.entities, s)} entities={data.entities}
               draft={draft} onDraftUsed={() => setDraft(null)} onWritten={written} />
           )}
-          {part === 'migrations' && <MigrationsSection migrations={data.migrations} databaseOk={!!st.database?.reachable} exec={exec} />}
-          {part === 'api' && <ApiSection projectPath={projectPath} entities={data.entities} status={st} exec={exec} onWritten={written} serverUrl={serverUrl} />}
+          {part === 'migrations' && (
+            <MigrationsSection migrations={data.migrations} databaseOk={!!st.database?.reachable}
+              prepare={{ line: () => sfCommandLine('migrations:diff'), run: () => exec('migrations:diff') }}
+              apply={{ line: () => sfCommandLine('migrations:migrate'), run: () => exec('migrations:migrate') }}
+              rollback={{ line: () => sfCommandLine('migrations:prev'), run: () => exec('migrations:prev') }} />
+          )}
+          {part === 'api' && (
+            <ApiSection entities={data.entities} onWritten={written} serverUrl={serverUrl} defaultUrl="http://127.0.0.1:8000"
+              load={() => window.devforge.symfony.apiConfig(projectPath)} save={config => window.devforge.symfony.applyApi(projectPath, config)}
+              platform={{ installed: st.packages.apiPlatform }} filesNote={s.jsonFiles}
+              needs={mode => mode === 'platform'
+                ? (st.packages.apiPlatform ? null : { text: s.needsPlatform, button: <CommandButton command="install:api-platform" label={s.install} variant="primary" onRun={exec} /> })
+                : (st.packages.serializer && st.packages.validator ? null : { text: s.needsSerializer, button: <CommandButton command="install:serializer" label={s.install} variant="primary" onRun={exec} /> })} />
+          )}
           {part === 'pages' && <PagesSection entities={data.entities} status={st} exec={exec} />}
-          {part === 'fixtures' && <FixturesSection projectPath={projectPath} entities={data.entities} status={st} exec={exec} track={track} />}
-          {part === 'routes' && <RoutesSection projectPath={projectPath} serverUrl={serverUrl} />}
+          {part === 'fixtures' && (
+            <FixturesSection entities={data.entities} ready={st.packages.fixtures && st.packages.foundry}
+              install={<CommandButton command="install:fixtures" label={s.install} variant="primary" onRun={exec} />}
+              line="php bin/console doctrine:fixtures:load --no-interaction" canRun={st.packages.maker && !!st.database?.reachable}
+              onRun={counts => track(s.fixturesTask, () => window.devforge.symfony.writeFixtures(projectPath, counts))} />
+          )}
+          {part === 'routes' && <RoutesSection load={() => window.devforge.symfony.routes(projectPath)} serverUrl={serverUrl} defaultUrl="http://127.0.0.1:8000" help={s.routesHelp} />}
           {part === 'server' && <ServerSection status={st} serverUrl={serverUrl} exec={exec} />}
         </div>
       </div>

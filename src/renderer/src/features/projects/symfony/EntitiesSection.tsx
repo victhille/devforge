@@ -6,11 +6,11 @@ import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Tabs from '@renderer/components/ui/Tabs'
 import EmptyState from '@renderer/components/ui/EmptyState'
-import EntityForm, { relationSentence } from './EntityForm'
+import EntityForm, { relationSentence, type EntityKit } from './EntityForm'
 import { Section } from './parts'
 
 interface Props {
-  projectPath: string
+  kit: EntityKit
   entities: SfEntity[]
   /** A draft prepared by Forgy, opened in the form */
   draft: SfEntityDraft | null
@@ -19,7 +19,7 @@ interface Props {
 }
 
 /** Entities as cards; a relation's target lights up on hover */
-export default function EntitiesSection({ projectPath, entities, draft, onDraftUsed, onWritten }: Props) {
+export default function EntitiesSection({ kit, entities, draft, onDraftUsed, onWritten }: Props) {
   const { t } = useI18n()
   const s = t.symfony
   const [view, setView] = useState<'schema' | 'list'>('schema')
@@ -29,7 +29,7 @@ export default function EntitiesSection({ projectPath, entities, draft, onDraftU
   if (editing) {
     return (
       <EntityForm
-        projectPath={projectPath}
+        kit={kit}
         entities={entities}
         existing={editing === 'new' ? null : editing}
         initial={draft}
@@ -42,7 +42,7 @@ export default function EntitiesSection({ projectPath, entities, draft, onDraftU
   return (
     <Section
       title={s.entitiesTitle.replace('{n}', String(entities.length))}
-      help={s.entitiesHelp}
+      help={kit.listHelp}
       actions={<>
         <Tabs<'schema' | 'list'> value={view} onChange={setView} items={[{ value: 'schema', label: s.schema }, { value: 'list', label: s.list }]} />
         <Button size="sm" onClick={() => setEditing('new')}><Plus size={13} /> {s.newEntity}</Button>

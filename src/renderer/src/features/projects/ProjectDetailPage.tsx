@@ -26,10 +26,12 @@ import VercelPanel from './VercelPanel'
 import EnvSyncPanel from './EnvSyncPanel'
 import GithubPanel from './GithubPanel'
 import SymfonyPanel from './symfony/SymfonyPanel'
+import NextPanel from './nextjs/NextPanel'
+import LaravelPanel from './laravel/LaravelPanel'
 import TerminalTabs from '@renderer/features/terminal/TerminalTabs'
 
-type Tab = 'overview' | 'git' | 'github' | 'symfony' | 'terminal' | 'docker' | 'env' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
-const TABS: Tab[] = ['overview', 'git', 'github', 'symfony', 'terminal', 'docker', 'env', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
+type Tab = 'overview' | 'git' | 'github' | 'symfony' | 'nextjs' | 'laravel' | 'terminal' | 'docker' | 'env' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
+const TABS: Tab[] = ['overview', 'git', 'github', 'symfony', 'nextjs', 'laravel', 'terminal', 'docker', 'env', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const fileName = (p: string) => p.split(/[\\/]/).pop() ?? p
@@ -438,6 +440,8 @@ export default function ProjectDetailPage() {
 
     github: hub.github ? <GithubPanel projectPath={p.path} repo={hub.github} /> : null,
     symfony: p.framework === 'symfony' ? <SymfonyPanel projectPath={p.path} /> : null,
+    nextjs: p.framework === 'nextjs' ? <NextPanel projectPath={p.path} /> : null,
+    laravel: p.framework === 'laravel' ? <LaravelPanel projectPath={p.path} /> : null,
     terminal: <TerminalTabs cwd={p.path} withSsh={false} className="h-[600px] overflow-hidden rounded-[14px] border border-line" />,
 
     files: (
@@ -485,7 +489,7 @@ export default function ProjectDetailPage() {
 
       {/* Tabs, underlined */}
       <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-line">
-        {TABS.filter(x => (x !== 'vercel' || hub.vercel) && (x !== 'github' || hub.github) && (x !== 'symfony' || p.framework === 'symfony')).map(x => (
+        {TABS.filter(x => (x !== 'vercel' || hub.vercel) && (x !== 'github' || hub.github) && (x !== 'symfony' && x !== 'nextjs' && x !== 'laravel' || p.framework === x)).map(x => (
           <button key={x} role="tab" aria-selected={tab === x} onClick={() => setTab(x)}
             className={cn('flex h-9 shrink-0 items-center gap-1.5 border-b-2 px-3 text-base font-medium transition-colors',
               tab === x ? 'border-accent text-fg' : 'border-transparent text-fg-secondary hover:text-fg')}>

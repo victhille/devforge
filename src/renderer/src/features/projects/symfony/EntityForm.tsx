@@ -24,8 +24,29 @@ const suggestName = (target: string, kind: SfRelationKind) => kind === 'OneToMan
 
 const newField = (): SfField => ({ name: '', type: 'string', nullable: false, unique: false })
 
+/** What differs from one stack to another: how an entity is written, which files it touches */
+export interface EntityKit {
+  write: (draft: SfEntityDraft) => Promise<SfWriteResult>
+  /** Files touched, shown before saving ("+ new", "~ changed") */
+  files: (owner: string, existing: SfEntity | null, linked: string[]) => string[]
+  /** Above the form, and above the list */
+  help: string
+  listHelp: string
+}
+
+/** Symfony: one PHP class and its repository per entity, both sides of each link */
+export const symfonyKit = (projectPath: string, entities: SfEntity[], s: { entityHelp: string; entitiesHelp: string }): EntityKit => ({
+  write: draft => window.devforge.symfony.writeEntity(projectPath, draft),
+  files: (owner, existing, linked) => [
+    ...(existing ? [`~ ${existing.file}`] : owner ? [`+ src/Entity/${owner}.php`, `+ src/Repository/${owner}Repository.php`] : []),
+    ...linked.map(tg => `~ ${entities.find(e => e.name === tg)?.file ?? `src/Entity/${tg}.php`}`)
+  ],
+  help: s.entityHelp,
+  listHelp: s.entitiesHelp
+})
+
 interface Props {
-  projectPath: string
+  kit: EntityKit
   entities: SfEntity[]
   /** Fields and relations added to this entity; null for a new one */
   existing: SfEntity | null
@@ -34,7 +55,7 @@ interface Props {
   onCancel: () => void
 }
 
-export default function EntityForm({ projectPath, entities, existing, initial, onDone, onCancel }: Props) {
+export default function EntityForm({ kit, entities, existing, initial, onDone, onCancel }: Props) {
   const { t } = useI18n()
   const s = t.symfony
   const [name, setName] = useState(existing?.name ?? initial?.name ?? '')
@@ -60,11 +81,7 @@ export default function EntityForm({ projectPath, entities, existing, initial, o
     setRelations(list => [...list, { name: suggestName(target, 'ManyToOne'), kind: 'ManyToOne', target, inverse: suggestInverse(owner, 'ManyToOne'), nullable: false }])
   }
 
-  const files = [
-    ...(existing ? [`~ ${existing.file}`] : name ? [`+ src/Entity/${name}.php`, `+ src/Repository/${name}Repository.php`] : []),
-    ...[...new Set(relations.filter(r => r.inverse && r.target && r.target !== owner).map(r => r.target))]
-      .map(tg => `~ ${entities.find(e => e.name === tg)?.file ?? `src/Entity/${tg}.php`}`)
-  ]
+  const files = kit.files(owner, existing, [...new Set(relations.filter(r => r.inverse && r.target && r.target !== owner).map(r => r.target))])
 
   async function save() {
     setError('')
@@ -74,14 +91,14 @@ export default function EntityForm({ projectPath, entities, existing, initial, o
       relations: relations.map(r => ({ ...r, name: r.name.trim(), inverse: r.inverse?.trim() || null }))
     }
     setBusy(true)
-    try { onDone(await window.devforge.symfony.writeEntity(projectPath, draft)) } catch (err) {
+    try { onDone(await kit.write(draft)) } catch (err) {
       const code = errorText(err)
       setError((s.errors as Record<string, string>)[code.split(':')[0]]?.replace('{name}', code.split(':')[1] ?? '') ?? code)
     } finally { setBusy(false) }
   }
 
   return (
-    <Section title={existing ? s.addToTitle.replace('{name}', existing.name) : s.newEntityTitle} help={s.entityHelp}>
+    <Section title={existing ? s.addToTitle.replace('{name}', existing.name) : s.newEntityTitle} help={kit.help}>
       {!existing && (
         <label className="flex max-w-xs flex-col gap-1.5 text-sm text-fg-secondary">{s.entityName}
           <Input value={name} onChange={e => setName(e.target.value.replace(/\s/g, ''))} placeholder="Facture" spellCheck={false} autoFocus />

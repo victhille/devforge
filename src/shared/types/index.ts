@@ -261,6 +261,8 @@ export * from './symfony'
 export * from './launcher'
 export * from './status'
 export * from './terminal'
+export * from './nextjs'
+export * from './laravel'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
@@ -281,6 +283,8 @@ import type { SymfonyAPI } from './symfony'
 import type { LauncherAPI } from './launcher'
 import type { StatusAPI } from './status'
 import type { TerminalAPI } from './terminal'
+import type { NextjsAPI } from './nextjs'
+import type { LaravelAPI } from './laravel'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -406,6 +410,8 @@ export interface DevForgeAPI {
   launcher: LauncherAPI
   status: StatusAPI
   terminal: TerminalAPI
+  nextjs: NextjsAPI
+  laravel: LaravelAPI
   dictation: DictationAPI
 
   // Git

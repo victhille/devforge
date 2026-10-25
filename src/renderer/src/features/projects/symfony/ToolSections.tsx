@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ExternalLink, Search, Send } from 'lucide-react'
 import type { DbConnection, SfCommand, SfEntity, SfRoute, SfStatus } from '@shared/types'
@@ -116,18 +116,22 @@ export function PagesSection({ entities, status, exec }: { entities: SfEntity[];
 
 // ─── Fake data ────────────────────────────────────────────────────────────────
 
-export function FixturesSection({ projectPath, entities, status, exec, track }: {
-  projectPath: string; entities: SfEntity[]; status: SfStatus; exec: Exec; track: (title: string, start: () => Promise<string>) => void
+/** How many rows of each entity, then one console task (Symfony, Next.js, Laravel) */
+export function FixturesSection({ entities, ready, install, line, canRun, onRun }: {
+  entities: SfEntity[]
+  /** The tools are installed; otherwise `install` shows what to do */
+  ready: boolean; install: ReactNode
+  line: string; canRun: boolean
+  onRun: (counts: Record<string, number>) => void
 }) {
   const { t } = useI18n()
   const s = t.symfony
   const [counts, setCounts] = useState<Record<string, number>>(() => Object.fromEntries(entities.map(e => [e.name, e.relations.some(r => r.kind === 'ManyToOne') ? 20 : 5])))
-  const ready = status.packages.fixtures && status.packages.foundry
   const total = Object.values(counts).reduce((a, b) => a + (b || 0), 0)
 
   function generate() {
     if (!window.confirm(s.fixturesConfirm)) return
-    track(s.fixturesTask, () => window.devforge.symfony.writeFixtures(projectPath, counts))
+    onRun(counts)
   }
 
   return (
@@ -135,7 +139,7 @@ export function FixturesSection({ projectPath, entities, status, exec, track }: 
       {!ready && (
         <div className="flex flex-wrap items-center gap-3 rounded-xl bg-warning/10 p-3">
           <span className="flex-1 text-sm text-fg">{s.needsFixtures}</span>
-          <CommandButton command="install:fixtures" label={s.install} variant="primary" onRun={exec} />
+          {install}
         </div>
       )}
       <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-2">
@@ -149,8 +153,8 @@ export function FixturesSection({ projectPath, entities, status, exec, track }: 
       </div>
       <p className="text-sm text-warning">{s.fixturesWarning}</p>
       <div className="flex flex-wrap items-center justify-end gap-3">
-        <code className="mr-auto font-mono text-[11px] text-fg-muted">php bin/console doctrine:fixtures:load --no-interaction</code>
-        <Button disabled={!ready || !status.packages.maker || total === 0 || !status.database?.reachable} onClick={generate}>{s.fixturesGo.replace('{n}', String(total))}</Button>
+        <code className="mr-auto font-mono text-[11px] text-fg-muted">{line}</code>
+        <Button disabled={!ready || !canRun || total === 0} onClick={generate}>{s.fixturesGo.replace('{n}', String(total))}</Button>
       </div>
     </Section>
   )
@@ -158,7 +162,8 @@ export function FixturesSection({ projectPath, entities, status, exec, track }: 
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
-export function RoutesSection({ projectPath, serverUrl }: { projectPath: string; serverUrl: string | null }) {
+/** Every address of the app, with a shortcut to the API tester */
+export function RoutesSection({ load, serverUrl, defaultUrl, help }: { load: () => Promise<SfRoute[]>; serverUrl: string | null; defaultUrl: string; help: string }) {
   const { t } = useI18n()
   const s = t.symfony
   const navigate = useNavigate()
@@ -168,15 +173,16 @@ export function RoutesSection({ projectPath, serverUrl }: { projectPath: string;
 
   useEffect(() => {
     let alive = true
-    window.devforge.symfony.routes(projectPath).then(r => { if (alive) setRoutes(r) }).catch(err => { if (alive) setError(errorText(err)) })
+    load().then(r => { if (alive) setRoutes(r) }).catch(err => { if (alive) setError(errorText(err)) })
     return () => { alive = false }
-  }, [projectPath])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- read once per panel
+  }, [])
 
   const shown = useMemo(() => (routes ?? []).filter(r => !q || `${r.path} ${r.name} ${r.controller}`.toLowerCase().includes(q.toLowerCase())), [routes, q])
-  const base = (serverUrl ?? 'http://127.0.0.1:8000').replace(/\/$/, '')
+  const base = (serverUrl ?? defaultUrl).replace(/\/$/, '')
 
   return (
-    <Section title={s.routesTitle.replace('{n}', String(routes?.length ?? 0))} help={s.routesHelp}
+    <Section title={s.routesTitle.replace('{n}', String(routes?.length ?? 0))} help={help}
       actions={<div className="relative">
         <Search size={13} className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-fg-muted" />
         <Input aria-label={s.routesSearch} placeholder={s.routesSearch} value={q} onChange={e => setQ(e.target.value)} className="w-64 pl-8" />
@@ -185,12 +191,12 @@ export function RoutesSection({ projectPath, serverUrl }: { projectPath: string;
         <ul aria-label={s.routesTitle.replace('{n}', String(routes.length))} className="flex flex-col overflow-hidden rounded-xl border border-line-subtle">
           {shown.map(r => {
             const method = r.methods[0] ?? 'GET'
-            const plain = !r.path.includes('{')
+            const plain = !/[{[]/.test(r.path)
             return (
-              <li key={r.name} className="grid grid-cols-[90px_1.4fr_1.4fr_auto] items-center gap-3 border-t border-line-subtle px-4 py-2 first:border-t-0">
+              <li key={`${r.name} ${r.path}`} className="grid grid-cols-[90px_1.4fr_1.4fr_auto] items-center gap-3 border-t border-line-subtle px-4 py-2 first:border-t-0">
                 <span className="font-mono text-xs text-accent">{r.methods.join('|') || s.anyMethod}</span>
                 <code className="truncate font-mono text-sm text-fg" title={r.name}>{r.path}</code>
-                <code className="truncate font-mono text-xs text-fg-muted" title={r.controller}>{r.controller.replace(/^App\\Controller\\/, '')}</code>
+                <code className="truncate font-mono text-xs text-fg-muted" title={r.controller}>{r.controller.replace(/^App\\(Http\\)?Controllers?\\/, '')}</code>
                 <span className="flex gap-1">
                   <IconButton size="sm" title={s.openInTester} onClick={() => navigate(`/api-tester?${new URLSearchParams({ method, url: base + r.path })}`)}><Send size={13} /></IconButton>
                   {plain && method === 'GET' && <IconButton size="sm" title={s.openInBrowser} disabled={!serverUrl} onClick={() => window.devforge.openExternal(base + r.path)}><ExternalLink size={13} /></IconButton>}

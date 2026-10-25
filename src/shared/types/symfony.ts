@@ -26,6 +26,8 @@ export interface SfRelation {
   inverse: string | null
   /** ManyToOne / OneToOne: the link may be empty */
   nullable: boolean
+  /** Prisma and Laravel: the foreign key column, on the side that holds it (categorieId) */
+  fk?: string
 }
 
 export interface SfEntity {

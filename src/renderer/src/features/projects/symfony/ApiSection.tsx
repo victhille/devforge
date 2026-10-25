@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { SfApiConfig, SfApiMode, SfCommand, SfEntity, SfOperation, SfStatus, SfWriteResult } from '@shared/types'
+import type { SfApiConfig, SfApiMode, SfEntity, SfOperation, SfWriteResult } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Checkbox from '@renderer/components/ui/Checkbox'
 import EmptyState from '@renderer/components/ui/EmptyState'
-import { CommandButton, Section, errorText } from './parts'
+import { Section, errorText } from './parts'
 
 const OPERATIONS: SfOperation[] = ['list', 'show', 'create', 'update', 'delete']
 const SECRET = ['password', 'plainPassword', 'token', 'resetToken', 'apiToken']
@@ -25,15 +25,23 @@ export function apiPath(entity: string): string {
 }
 
 interface Props {
-  projectPath: string
   entities: SfEntity[]
-  status: SfStatus
-  exec: (command: SfCommand) => void
   onWritten: (result: SfWriteResult) => void
   serverUrl: string | null
+  /** Where the dev server usually listens, for "Test" before it runs */
+  defaultUrl: string
+  load: () => Promise<SfApiConfig | null>
+  save: (config: SfApiConfig) => Promise<SfWriteResult>
+  /** Symfony only: API Platform is offered next to the JSON controllers */
+  platform?: { installed: boolean }
+  /** What the chosen mode still lacks, with the button that installs it */
+  needs: (mode: SfApiMode) => { text: string; button: ReactNode } | null
+  /** Where the JSON routes are written */
+  filesNote: string
 }
 
-export default function ApiSection({ projectPath, entities, status, exec, onWritten, serverUrl }: Props) {
+/** Which entities the API exposes, and how (Symfony, Next.js, Laravel) */
+export default function ApiSection({ entities, onWritten, serverUrl, defaultUrl, load, save, platform, needs: needsFor, filesNote }: Props) {
   const { t } = useI18n()
   const s = t.symfony
   const navigate = useNavigate()
@@ -43,11 +51,11 @@ export default function ApiSection({ projectPath, entities, status, exec, onWrit
 
   useEffect(() => {
     let alive = true
-    window.devforge.symfony.apiConfig(projectPath).then(c => {
+    load().then(c => {
       if (!alive) return
       // Without a saved choice: what API Platform already exposes, the rest off
-      setConfig(c ?? {
-        mode: status.packages.apiPlatform ? 'platform' : 'json',
+      setConfig(c ? { ...c, mode: platform ? c.mode : 'json' } : {
+        mode: platform?.installed ? 'platform' : 'json',
         entities: Object.fromEntries(entities.map(e => [e.name, {
           operations: e.apiResource ? [...OPERATIONS] : [],
           hidden: e.fields.map(f => f.name).filter(f => SECRET.includes(f))
@@ -55,7 +63,8 @@ export default function ApiSection({ projectPath, entities, status, exec, onWrit
       })
     }).catch(() => {})
     return () => { alive = false }
-  }, [projectPath, entities, status.packages.apiPlatform])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- read again when the entities change
+  }, [entities, platform?.installed])
 
   if (!config) return null
   const entry = (name: string) => config.entities[name] ?? { operations: [], hidden: SECRET }
@@ -63,22 +72,20 @@ export default function ApiSection({ projectPath, entities, status, exec, onWrit
     setConfig(c => c && { ...c, entities: { ...c.entities, [name]: { ...entry(name), ...patch } } })
   const setMode = (mode: SfApiMode) => setConfig(c => c && { ...c, mode })
 
-  const needs: SfCommand | null = config.mode === 'platform'
-    ? (status.packages.apiPlatform ? null : 'install:api-platform')
-    : (status.packages.serializer && status.packages.validator ? null : 'install:serializer')
+  const needs = needsFor(config.mode)
 
   async function apply() {
     if (!config) return
     setError('')
     setBusy(true)
-    try { onWritten(await window.devforge.symfony.applyApi(projectPath, config)) } catch (err) {
+    try { onWritten(await save(config)) } catch (err) {
       const code = errorText(err)
       setError((s.errors as Record<string, string>)[code.split(':')[0]]?.replace('{name}', code.split(':').slice(1).join(':')) ?? code)
     } finally { setBusy(false) }
   }
 
   function test(e: SfEntity) {
-    const base = (serverUrl ?? 'http://127.0.0.1:8000').replace(/\/$/, '')
+    const base = (serverUrl ?? defaultUrl).replace(/\/$/, '')
     const q = new URLSearchParams({ method: 'GET', url: base + apiPath(e.name) })
     navigate(`/api-tester?${q}`)
   }
@@ -90,7 +97,7 @@ export default function ApiSection({ projectPath, entities, status, exec, onWrit
 
   return (
     <Section title="API" help={s.apiHelp}>
-      <div role="radiogroup" aria-label={s.apiMode} className="grid gap-3 md:grid-cols-2">
+      {platform && <div role="radiogroup" aria-label={s.apiMode} className="grid gap-3 md:grid-cols-2">
         {modes.map(m => (
           <button key={m.id} role="radio" aria-checked={config.mode === m.id} onClick={() => setMode(m.id)}
             className={cn('flex flex-col items-start gap-1.5 rounded-xl border-2 p-4 text-left transition-colors',
@@ -100,12 +107,12 @@ export default function ApiSection({ projectPath, entities, status, exec, onWrit
             <span className="text-xs text-fg-muted">{m.hint}</span>
           </button>
         ))}
-      </div>
+      </div>}
 
       {needs && (
         <div className="flex flex-wrap items-center gap-3 rounded-xl bg-warning/10 p-3">
-          <span className="flex-1 text-sm text-fg">{config.mode === 'platform' ? s.needsPlatform : s.needsSerializer}</span>
-          <CommandButton command={needs} label={s.install} variant="primary" onRun={exec} />
+          <span className="flex-1 text-sm text-fg">{needs.text}</span>
+          {needs.button}
         </div>
       )}
 
@@ -160,7 +167,7 @@ export default function ApiSection({ projectPath, entities, status, exec, onWrit
 
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
       <div className="flex flex-wrap items-center justify-end gap-3">
-        <span className="mr-auto text-xs text-fg-muted">{config.mode === 'platform' ? `${s.platformDocs} · ${s.platformLinks}` : s.jsonFiles}</span>
+        <span className="mr-auto text-xs text-fg-muted">{config.mode === 'platform' ? `${s.platformDocs} · ${s.platformLinks}` : filesNote}</span>
         <Button loading={busy} disabled={!!needs || !entities.length} onClick={apply}>{s.applyApi}</Button>
       </div>
     </Section>
