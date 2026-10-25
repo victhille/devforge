@@ -16,13 +16,17 @@ jobs:
           node-version: 22
       # npm ci takes 2 to 3 minutes on Windows (583 packages, Electron's download):
       # the installed packages are kept as long as package-lock.json does not change
+      # The packages, without the app's version (a release changes it, not the packages)
+      - id: lock
+        shell: bash
+        run: echo "key=$(node scripts/deps-key.mjs)" >> "$GITHUB_OUTPUT"
       - uses: actions/cache/restore@v4
         id: deps
         with:
           path: |
             node_modules
             ~\AppData\Local\electron\Cache
-          key: deps-${{ runner.os }}-node22-${{ hashFiles('package-lock.json') }}
+          key: deps-${{ runner.os }}-node22-${{ steps.lock.outputs.key }}
       - if: steps.deps.outputs.cache-hit != 'true'
         run: npm ci
       # Saved right away: a failing test later must not lose it
