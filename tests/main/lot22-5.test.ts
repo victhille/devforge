@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MarkerParser, encodePowerShell, type ShellEvent } from '../../src/shared/lib/shellBlocks'
+import { MarkerParser, cmdLine, encodePowerShell, type ShellEvent } from '../../src/shared/lib/shellBlocks'
 
 const A = '\x1b]633;A\x07', B = '\x1b]633;B\x07'
 const D = (c: number) => `\x1b]633;D;${c}\x07`
@@ -45,6 +45,13 @@ describe('v2.2 lot 5: shell markers', () => {
     expect(parse(`${A}${D(127)}`)).toEqual([{ type: 'prompt-start' }, { type: 'exit-code', code: 127 }])
   })
 
+  // v2.3 lot 2: cmd's code carries the block it belongs to
+  it('cmd: a tagged exit code, and the line that asks for it', () => {
+    expect(new MarkerParser().feed('\x1b]633;D;3;7\x1b\\')).toEqual([{ type: 'exit-code', code: 3, tag: '7' }])
+    expect(new MarkerParser().feed('\x1b]633;D;;7\x1b\\')).toEqual([])
+    expect(cmdLine('dir', '7')).toBe('dir & call prompt $E]633;A$E\\$E]633;D;%^errorlevel%;7$E\\$E]633;P;Cwd=$P$E\\$G $E]633;B$E\\')
+  })
+
   it('PowerShell -EncodedCommand is UTF-16LE base64', () => {
     expect(Buffer.from(encodePowerShell('é$a'), 'base64').toString('utf16le')).toBe('é$a')
   })
@@ -66,7 +73,7 @@ describe.runIf(process.platform === 'win32')('v2.2 lot 5: real shells mark their
     const id = term.create(kind, dir, 120, 30, (_id, data) => {
       for (const e of parser.feed(data)) {
         if (e.type === 'prompt-start') inPrompt = true
-        else if (e.type === 'exit-code' && current) current.code = e.code
+        else if (e.type === 'exit-code' && current && (!e.tag || e.tag === String(results.length))) current.code = e.code
         else if (e.type === 'cwd' && current) current.cwd = e.path
         else if (e.type === 'data' && current && !inPrompt) current.out += e.text
         else if (e.type === 'prompt-end') { inPrompt = false; promptCount++; ready() }
@@ -81,7 +88,7 @@ describe.runIf(process.platform === 'win32')('v2.2 lot 5: real shells mark their
       await waitPrompt(1)
       for (const [i, cmd] of cmds.entries()) {
         current = { code: null, out: '', cwd: '' }
-        term.write(id, `${cmd}\r`)
+        term.write(id, `${kind === 'cmd' ? cmdLine(cmd, String(i)) : cmd}\r`)
         await waitPrompt(i + 2)
         results.push(current)
       }
@@ -109,9 +116,11 @@ describe.runIf(process.platform === 'win32')('v2.2 lot 5: real shells mark their
     expect(r[3].cwd).toBe('/')
   }, 60_000)
 
-  it('cmd: blocks without exit code', async () => {
-    const r = await runAll('cmd', ['echo bonjour', 'cd ..'])
+  // v2.3 lot 2: the code comes with the line DevForge types; a line that never reaches it (rem) says nothing
+  it('cmd: exit codes of each line, the folder', async () => {
+    const r = await runAll('cmd', ['echo bonjour', 'cmd /c exit 3', 'dir C:\\nope-devforge', 'rem rien', 'cd ..'])
     expect(plain(r[0].out)).toContain('bonjour')
-    expect(r.map(x => x.code)).toEqual([null, null])
+    expect(r.map(x => x.code)).toEqual([0, 3, 1, null, 0])
+    expect(r[4].cwd.toLowerCase()).not.toContain('term-')
   }, 60_000)
 })

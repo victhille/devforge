@@ -117,6 +117,9 @@ export default function ProjectDetailPage() {
   const [busy, setBusy] = useState<string | null>(null)
   const [committing, setCommitting] = useState(false)
   const [newLog, setNewLog] = useState('')
+  // The terminal stays once opened: its shells survive a trip to another tab
+  const [termOpened, setTermOpened] = useState(tab === 'terminal')
+  useEffect(() => { if (tab === 'terminal') setTermOpened(true) }, [tab])
 
   const loadHub = useCallback(() => {
     if (!id) return
@@ -442,7 +445,8 @@ export default function ProjectDetailPage() {
     symfony: p.framework === 'symfony' ? <SymfonyPanel projectPath={p.path} /> : null,
     nextjs: p.framework === 'nextjs' ? <NextPanel projectPath={p.path} /> : null,
     laravel: p.framework === 'laravel' ? <LaravelPanel projectPath={p.path} /> : null,
-    terminal: <TerminalTabs cwd={p.path} withSsh={false} className="h-[600px] overflow-hidden rounded-[14px] border border-line" />,
+    // Drawn below, kept mounted
+    terminal: null,
 
     files: (
       <div className="flex flex-wrap gap-4">
@@ -499,7 +503,12 @@ export default function ProjectDetailPage() {
         ))}
       </div>
 
-      <div key={tab} className="df-rise">{content[tab]}</div>
+      {tab !== 'terminal' && <div key={tab} className="df-rise">{content[tab]}</div>}
+      {termOpened && (
+        <div key={p.path} className={cn(tab !== 'terminal' && 'hidden')}>
+          <TerminalTabs cwd={p.path} withSsh={false} className="h-[600px] overflow-hidden rounded-[14px] border border-line" />
+        </div>
+      )}
 
       {committing && git && (
         <CommitModal project={p} canPush={git.hasUpstream} onClose={() => setCommitting(false)} onDone={() => { setCommitting(false); loadGit(true) }} />

@@ -66,7 +66,8 @@ export function useBlockShell(backend: ShellBackend) {
       for (const e of parser.current.feed(data)) {
         // A: the output ends here; the exit code (D) and folder (P) follow, the block closes at B
         if (e.type === 'prompt-start') inPrompt.current = true
-        else if (e.type === 'exit-code') code.current = e.code
+        // A tagged code belongs to one block only (cmd): an older one says nothing about this block
+        else if (e.type === 'exit-code') { if (!e.tag || e.tag === String(running.current?.block.id)) code.current = e.code }
         else if (e.type === 'cwd') { cwdRef.current = e.path; setCwd(e.path) }
         else if (e.type === 'prompt-end') {
           inPrompt.current = false
@@ -102,7 +103,7 @@ export function useBlockShell(backend: ShellBackend) {
     setLive(term)
     setBlocks(list => [...list.slice(-(MAX_BLOCKS - 1)), block])
     setPhase('running')
-    backend.write(`${cmd}\r`)
+    backend.write(`${backend.line ? backend.line(cmd, String(block.id)) : cmd}\r`)
   }, [backend])
 
   /** Ctrl+C to the running program */
