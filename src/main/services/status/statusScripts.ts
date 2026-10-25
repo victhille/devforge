@@ -61,11 +61,12 @@ export function composeFile(exposure: StatusExposure): string {
   return ['services:', ...status, ...caddy, ...tail].join('\n') + '\n'
 }
 
-export const caddyFile = (domain: string, email: string) => `{
+/** The email is optional: Let's Encrypt only uses it to warn before a certificate expires */
+export const caddyFile = (domain: string, email: string) => `${email ? `{
 	email ${email}
 }
 
-${domain} {
+` : ''}${domain} {
 	encode gzip
 	reverse_proxy 127.0.0.1:${STATUS_PORT}
 }
@@ -110,6 +111,8 @@ export function installScript(exposure: StatusExposure, domain: string, email: s
       : ['rm -f site.caddy']),
     'docker compose pull -q',
     'docker compose up -d --remove-orphans',
+    // The program is a mounted file: a restart loads a new version of it
+    'docker compose restart status',
     // n8n's Caddy reads its Caddyfile again (our block added, or an older one removed)
     `[ -f ${N8N_DIR}/Caddyfile ] && ${reloadN8nCaddy} || true`,
     waitHealth(),
@@ -135,8 +138,26 @@ export const PRECHECK_SCRIPT = [
   'docker compose version >/dev/null 2>&1 && echo yes || true',
   "(ss -ltnH 2>/dev/null || netstat -ltn 2>/dev/null) | awk '{print $4}'",
   `[ -f ${N8N_DIR}/Caddyfile ] && (cd ${N8N_DIR} && docker compose ps --format '{{.Service}}' 2>/dev/null | grep -qx caddy) && echo yes || true`,
-  `[ -f ${STATUS_DIR}/compose.yaml ] && echo yes || true`
+  `[ -f ${STATUS_DIR}/compose.yaml ] && echo yes || true`,
+  // The firewall: an active ufw closes 80/443 unless they were opened (read only, sudo without a password)
+  'sudo -n ufw status 2>/dev/null || true'
 ].join(`; echo '${SEP}'; `)
+
+/** Ports among 80 and 443 that an active ufw keeps closed */
+export function firewallBlocks(ufw: string): number[] {
+  if (!/^Status:\s*active/m.test(ufw)) return []
+  const allowed = (port: number) => ufw.split('\n').some(l => {
+    const m = /^(\S+)\s+ALLOW/.exec(l.trim())
+    if (!m) return false
+    const rule = m[1]
+    return rule === String(port) || rule === `${port}/tcp` || /^(Nginx|Apache|Caddy|WWW)\b/i.test(rule) ||
+      rule.replace(/\/tcp$/, '').split(',').some(p => p === String(port) || (p.includes(':') && Number(p.split(':')[0]) <= port && port <= Number(p.split(':')[1])))
+  })
+  return [80, 443].filter(p => !allowed(p))
+}
+
+/** Opens 80 and 443 in ufw: only from a click of the user */
+export const OPEN_FIREWALL_SCRIPT = "sudo -n ufw allow 80/tcp comment 'DevForge status page' && sudo -n ufw allow 443/tcp comment 'DevForge status page' && sudo -n ufw status"
 
 /** A file written whole on the server, renamed at the end (the service never reads half of it) */
 export const writeDataScript = (name: 'config.json' | 'manual-incidents.json', content: unknown) =>

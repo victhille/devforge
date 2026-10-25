@@ -25,7 +25,7 @@ function seed(outputs: Record<string, string>) {
 test('not installed: what holds 80/443 picks the way online, the address needs no DNS', async () => {
   run = await launch({
     env: { DEVFORGE_TEST_VPS: '{userData}/vps.json' },
-    seed: seed({ statusPrecheck: ['yes', 'yes', '0.0.0.0:22\n0.0.0.0:80\n0.0.0.0:443', 'yes', ''].join(SEP), statusOverview: ['', '', '', '', '', '', ''].join(SEP) })
+    seed: seed({ statusPrecheck: ['yes', 'yes', '0.0.0.0:22\n0.0.0.0:80\n0.0.0.0:443', 'yes', '', 'Status: active\n\nTo Action From\n22/tcp ALLOW IN Anywhere'].join(SEP), statusOverview: ['', '', '', '', '', '', ''].join(SEP) })
   })
   const { page } = run
   await goTo(page, '/status')
@@ -34,6 +34,8 @@ test('not installed: what holds 80/443 picks the way online, the address needs n
   await expect(page.getByRole('radio', { name: /Avec le Caddy de n8n/ })).toHaveAttribute('aria-checked', 'true')
   await expect(page.getByText('status.203-0-113-10.sslip.io')).toBeVisible()
   await expect(page.getByText('Ports déjà pris sur le serveur : 80, 443.')).toBeVisible()
+  await expect(page.getByText('Le pare-feu du serveur (ufw) ferme les ports 80, 443')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Ouvrir 80 et 443' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Installer' })).toBeEnabled()
   expect(await settledAxeIssues(page)).toEqual([])
 })
