@@ -95,9 +95,10 @@ async function alert(title, message, down) {
   const jobs = []
   if (a.ntfy?.topic) {
     const server = (a.ntfy.server || 'https://ntfy.sh').replace(/\/$/, '')
-    jobs.push(fetch(`${server}/${encodeURIComponent(a.ntfy.topic)}`, {
-      method: 'POST', body: message,
-      headers: { Title: encodeURIComponent(title), Priority: down ? 'high' : 'default', Tags: down ? 'red_circle' : 'green_circle' },
+    // JSON publishing: accents in the title survive (an HTTP header would not carry them)
+    jobs.push(fetch(`${server}/`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ topic: a.ntfy.topic, title, message, priority: down ? 4 : 3, tags: [down ? 'red_circle' : 'green_circle'] }),
       signal: AbortSignal.timeout(10_000)
     }))
   }

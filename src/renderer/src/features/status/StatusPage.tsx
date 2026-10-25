@@ -56,12 +56,18 @@ function Status({ conn }: { conn: SSHConnection }) {
   const [error, setError] = useState('')
   const [log, setLog] = useState('')
   const [busy, setBusy] = useState<'install' | 'uninstall' | null>(null)
+  const [blocked, setBlocked] = useState<number[]>([])
 
   const load = useCallback(() => {
     setError('')
     window.devforge.status.overview(conn.id).then(setData).catch(err => setError(errorText(err)))
   }, [conn.id])
   useEffect(load, [load])
+  // Installed behind its own Caddy: is the firewall still closing it?
+  useEffect(() => {
+    if (!data?.installed || data.exposure === 'port') return
+    window.devforge.status.precheck(conn.id).then(p => setBlocked(p.firewallBlocks)).catch(() => {})
+  }, [conn.id, data?.installed, data?.exposure])
   useEffect(() => window.devforge.status.onLog(e => { if (e.connectionId === conn.id) setLog(l => l + e.text) }), [conn.id])
 
   async function uninstall() {
@@ -87,6 +93,7 @@ function Status({ conn }: { conn: SSHConnection }) {
         <IconButton title={s.refresh} onClick={load}><RefreshCw size={14} /></IconButton>
         {data.url && <Button variant="secondary" onClick={() => window.devforge.openExternal(data.url!)}><ExternalLink size={14} /> {s.openPage}</Button>}
       </Card>
+      <FirewallWarning conn={conn} blocked={blocked} onOpened={() => setBlocked([])} />
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
       {data.config && <Settings conn={conn} data={data} onSaved={load} />}
       <Incidents conn={conn} data={data} onSaved={load} />
@@ -156,7 +163,7 @@ function Install({ conn, log, setLog, busy, setBusy, onDone }: {
     } finally { setBusy(false) }
   }
 
-  const ready = !!pre.docker && pre.compose && (exposure === 'port' || (address && (exposure !== 'caddy' || /\S+@\S+\.\S+/.test(email))))
+  const ready = !!pre.docker && pre.compose && (exposure === 'port' || (!!address && (exposure !== 'caddy' || !email || /\S+@\S+\.\S+/.test(email))))
 
   return (
     <div className="flex flex-col gap-5">
@@ -177,6 +184,7 @@ function Install({ conn, log, setLog, busy, setBusy, onDone }: {
           ))}
         </div>
         {pre.busyPorts.length > 0 && <p className="text-xs text-fg-secondary">{s.portsBusy.replace('{ports}', pre.busyPorts.join(', '))}</p>}
+        {exposure !== 'port' && <FirewallWarning conn={conn} blocked={pre.firewallBlocks} onOpened={() => setPre({ ...pre, firewallBlocks: [] })} />}
 
         {exposure !== 'port' && (
           <div className="flex flex-col gap-3">
@@ -210,6 +218,31 @@ function Install({ conn, log, setLog, busy, setBusy, onDone }: {
         </div>
       </Card>
       {(busy || log) && <LogBox text={log} title={busy ? s.installing : done ? s.installed : s.installFailed} running={busy} />}
+    </div>
+  )
+}
+
+/** An active ufw keeps 80/443 closed: no certificate, no visitor. Opened only on a click. */
+function FirewallWarning({ conn, blocked, onOpened }: { conn: SSHConnection; blocked: number[]; onOpened: () => void }) {
+  const { t } = useI18n()
+  const s = t.statusPage
+  const toast = useToast()
+  const [busy, setBusy] = useState(false)
+  if (!blocked.length) return null
+  async function open() {
+    if (!window.confirm(s.firewallConfirm.replace('{name}', conn.name))) return
+    setBusy(true)
+    try {
+      const r = await window.devforge.status.openFirewall(conn.id)
+      if (r.ok) { toast.show({ tone: 'success', title: s.firewallOpened }); onOpened() }
+      else toast.show({ tone: 'error', title: s.firewallFailed, description: r.output.slice(-300) })
+    } finally { setBusy(false) }
+  }
+  return (
+    <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-warning/40 bg-warning/10 p-3">
+      <AlertTriangle size={16} className="shrink-0 text-warning" />
+      <p className="min-w-[220px] flex-1 text-sm text-fg">{s.firewallBlocked.replace('{ports}', blocked.join(', '))}</p>
+      <Button size="sm" variant="secondary" loading={busy} onClick={open}>{s.firewallOpen}</Button>
     </div>
   )
 }

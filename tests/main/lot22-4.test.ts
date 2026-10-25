@@ -40,7 +40,12 @@ describe('v2.2 lot 4: the status service (Node, no dependency)', () => {
     const ntfy = await serve((q, r) => {
       let body = ''
       q.on('data', c => { body += c })
-      q.on('end', () => { alerts.push({ title: decodeURIComponent(String(q.headers.title)), body, priority: String(q.headers.priority) }); r.end('{}') })
+      q.on('end', () => {
+        const m = JSON.parse(body) as { topic: string; title: string; message: string; priority: number }
+        expect(m.topic).toBe('devforge-test')
+        alerts.push({ title: m.title, body: m.message, priority: m.priority === 4 ? 'high' : 'default' })
+        r.end('{}')
+      })
     })
     writeFileSync(join(dir, 'config.json'), JSON.stringify({
       title: 'Services de test', intervalSec: 1, failuresBeforeDown: 2,
@@ -132,5 +137,19 @@ describe('v2.2 lot 4: scripts of the status page', async () => {
     expect(() => cleanConfig({ ...base, alerts: { ntfy: { server: 'https://ntfy.sh', topic: 'a b' }, webhook: null } })).toThrow('BAD_NTFY')
     expect(cleanIncidents([{ id: 'm1', title: 'Maintenance', startedAt: '2026-10-25T08:00:00Z', resolvedAt: null, auto: false }, { id: 'a', title: 'Auto', startedAt: '2026-10-25T08:00:00Z', resolvedAt: null, auto: true }]))
       .toEqual([{ id: 'm1', title: 'Maintenance', body: '', startedAt: '2026-10-25T08:00:00.000Z', resolvedAt: null, auto: false }])
+  })
+})
+
+describe('v2.2 lot 4: the firewall in front of the page', async () => {
+  const { firewallBlocks } = await import('../../src/main/services/status/statusScripts')
+  // The real output of the VPS before opening
+  const vps = 'Status: active\nLogging: on (low)\nDefault: deny (incoming), allow (outgoing), deny (routed)\n\nTo                         Action      From\n--                         ------      ----\n22/tcp                     ALLOW IN    Anywhere                   # SSH\n51820/udp                  ALLOW IN    Anywhere\n22/tcp (v6)                ALLOW IN    Anywhere (v6)              # SSH\n'
+
+  it('reads what ufw keeps closed', () => {
+    expect(firewallBlocks(vps)).toEqual([80, 443])
+    expect(firewallBlocks(vps + '80/tcp                     ALLOW IN    Anywhere\n443/tcp                    ALLOW IN    Anywhere\n')).toEqual([])
+    expect(firewallBlocks(vps + '80,443/tcp                 ALLOW IN    Anywhere\n')).toEqual([])
+    expect(firewallBlocks('Status: inactive\n')).toEqual([])
+    expect(firewallBlocks('')).toEqual([])
   })
 })

@@ -76,6 +76,8 @@ export interface StatusPrecheck {
   /** DevForge's n8n runs with its Caddy */
   n8nCaddy: boolean
   installed: boolean
+  /** Among 80 and 443: closed by an active ufw (Let's Encrypt and visitors cannot come in) */
+  firewallBlocks: number[]
   /** status.<ip>.sslip.io, null when the server's address is not an IPv4 */
   sslip: string | null
   /** What DevForge proposes from the above */
@@ -101,5 +103,7 @@ export interface StatusAPI {
   saveIncidents: (connectionId: string, incidents: StatusIncident[]) => Promise<void>
   /** Sent from this PC, to check the topic or the webhook */
   testAlert: (alerts: StatusAlerts) => Promise<void>
+  /** Opens 80 and 443 in ufw on the server */
+  openFirewall: (connectionId: string) => Promise<{ ok: boolean; output: string }>
   uninstall: (connectionId: string) => Promise<{ ok: boolean }>
 }

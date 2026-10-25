@@ -14,7 +14,7 @@ import { checkDomain } from '../n8n/n8nService'
 import { testOutput } from '../vps/testOutputs'
 import {
   DOMAIN_RE, EMAIL_RE, OVERVIEW_SCRIPT, PRECHECK_SCRIPT, SEP, STATUS_PORT,
-  cleanConfig, cleanIncidents, defaultConfig, installScript, sslipFor, uninstallScript, writeDataScript
+  OPEN_FIREWALL_SCRIPT, cleanConfig, cleanIncidents, defaultConfig, firewallBlocks, installScript, sslipFor, uninstallScript, writeDataScript
 } from './statusScripts'
 
 /**
@@ -40,7 +40,7 @@ function server(connectionId: string) {
 export async function precheck(connectionId: string): Promise<StatusPrecheck> {
   const conn = server(connectionId)
   const out = testOutput('statusPrecheck') ?? await runOn(connectionId, PRECHECK_SCRIPT, 30_000)
-  const [docker = '', compose = '', ports = '', n8n = '', installed = ''] = out.split(SEP).map(s => s.trim())
+  const [docker = '', compose = '', ports = '', n8n = '', installed = '', ufw = ''] = out.split(SEP).map(s => s.trim())
   const busy = new Set<number>()
   for (const line of ports.split('\n')) {
     const m = /:(\d+)$/.exec(line.trim())
@@ -49,6 +49,7 @@ export async function precheck(connectionId: string): Promise<StatusPrecheck> {
   const n8nCaddy = n8n === 'yes'
   return {
     docker: docker === 'yes', compose: compose === 'yes', busyPorts: [...busy].sort((a, b) => a - b), n8nCaddy, installed: installed === 'yes',
+    firewallBlocks: firewallBlocks(ufw),
     sslip: sslipFor(conn.host),
     suggested: n8nCaddy ? 'n8n' : busy.size ? 'port' : 'caddy'
   }
@@ -75,7 +76,7 @@ export async function install(connectionId: string, opts: StatusInstallOptions, 
   const domain = (opts.domain ?? '').trim().toLowerCase()
   const email = (opts.email ?? '').trim()
   if (exposure !== 'port' && !DOMAIN_RE.test(domain)) throw new Error('BAD_DOMAIN')
-  if (exposure === 'caddy' && !EMAIL_RE.test(email)) throw new Error('BAD_EMAIL')
+  if (exposure === 'caddy' && email && !EMAIL_RE.test(email)) throw new Error('BAD_EMAIL')
   // Without the name pointing here, Let's Encrypt refuses the certificate (sslip.io always points right)
   if (exposure !== 'port' && !domain.endsWith('.sslip.io')) {
     const check = await checkDomain(connectionId, domain)
@@ -125,8 +126,9 @@ export async function testAlert(alerts: StatusAlerts): Promise<void> {
   const title = 'DevForge · alerte de test'
   const message = 'Si tu lis ceci, les alertes de la page de statut arrivent bien.'
   if (clean.ntfy) {
-    const res = await fetch(`${clean.ntfy.server}/${encodeURIComponent(clean.ntfy.topic)}`, {
-      method: 'POST', body: message, headers: { Title: encodeURIComponent(title), Tags: 'white_check_mark' }, signal: AbortSignal.timeout(15_000)
+    const res = await fetch(`${clean.ntfy.server}/`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, signal: AbortSignal.timeout(15_000),
+      body: JSON.stringify({ topic: clean.ntfy.topic, title, message, tags: ['white_check_mark'] })
     })
     if (!res.ok) throw new Error(`ntfy ${res.status}`)
   }
@@ -138,6 +140,16 @@ export async function testAlert(alerts: StatusAlerts): Promise<void> {
     if (!res.ok) throw new Error(`webhook ${res.status}`)
   }
   if (!clean.ntfy && !clean.webhook) throw new Error('NO_ALERTS')
+}
+
+/** ufw lets 80 and 443 in (asked by a click on the status page) */
+export async function openFirewall(connectionId: string): Promise<{ ok: boolean; output: string }> {
+  const conn = server(connectionId)
+  log('info', 'status', `Opening 80/443 in ufw on ${conn.name}`)
+  try {
+    const output = await runOn(connectionId, OPEN_FIREWALL_SCRIPT, 30_000)
+    return { ok: firewallBlocks(output).length === 0, output }
+  } catch (err) { return { ok: false, output: err instanceof Error ? err.message : String(err) } }
 }
 
 export async function uninstall(connectionId: string, onLog: (text: string) => void): Promise<{ ok: boolean }> {

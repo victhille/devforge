@@ -354,6 +354,7 @@ const api: DevForgeAPI = {
     saveConfig:    invoke('status:save-config'),
     saveIncidents: invoke('status:save-incidents'),
     testAlert:     invoke('status:test-alert'),
+    openFirewall:  invoke('status:open-firewall'),
     uninstall:     invoke('status:uninstall')
   },
 
