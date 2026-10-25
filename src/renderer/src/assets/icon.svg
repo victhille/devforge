@@ -1,35 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#3B82F6"/>
-      <stop offset="100%" stop-color="#4F46E5"/>
-    </linearGradient>
-  </defs>
-
-  <!-- Background square with rounded corners -->
-  <rect width="256" height="256" rx="52" fill="url(#bg)"/>
-
-  <!-- Anvil body -->
-  <rect x="60" y="148" width="136" height="32" rx="6" fill="white" opacity="0.95"/>
-  <!-- Anvil top platform -->
-  <rect x="72" y="124" width="112" height="28" rx="4" fill="white" opacity="0.95"/>
-  <!-- Anvil left horn -->
-  <ellipse cx="72" cy="138" rx="18" ry="10" fill="white" opacity="0.95"/>
-  <!-- Anvil base -->
-  <rect x="80" y="178" width="96" height="18" rx="5" fill="white" opacity="0.85"/>
-  <!-- Anvil foot left -->
-  <rect x="72" y="192" width="36" height="14" rx="4" fill="white" opacity="0.8"/>
-  <!-- Anvil foot right -->
-  <rect x="148" y="192" width="36" height="14" rx="4" fill="white" opacity="0.8"/>
-
-  <!-- Hammer handle -->
-  <rect x="148" y="68" width="14" height="70" rx="5" fill="white" opacity="0.9" transform="rotate(-35 155 103)"/>
-  <!-- Hammer head -->
-  <rect x="118" y="56" width="52" height="34" rx="7" fill="white" opacity="0.95" transform="rotate(-35 144 73)"/>
-
-  <!-- Sparks / impact -->
-  <circle cx="128" cy="126" r="7" fill="#F97316" opacity="0.95"/>
-  <line x1="128" y1="119" x2="122" y2="104" stroke="#F97316" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
-  <line x1="128" y1="119" x2="108" y2="110" stroke="#F97316" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
-  <line x1="128" y1="119" x2="146" y2="106" stroke="#F97316" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <rect width="256" height="256" rx="56.32" fill="#0f1117"/>
+  <g fill="#f97316">
+    <polygon points="40.96,87.04 199.68,87.04 199.68,117.76 76.8,117.76"/>
+    <rect x="107.52" y="117.76" width="61.44" height="30.72"/>
+    <rect x="81.92" y="148.48" width="112.64" height="25.6"/>
+  </g>
 </svg>

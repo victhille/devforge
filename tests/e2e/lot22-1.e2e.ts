@@ -44,7 +44,7 @@ test('Symfony: database, options, Git and the summary of commands', async () => 
   expect(await axeIssues(page)).toEqual([])
 
   // Back keeps the choices
-  await page.getByRole('button', { name: '← Retour' }).first().click()
+  await page.getByRole('button', { name: 'Retour', exact: true }).first().click()
   await expect(page.getByRole('checkbox', { name: /Utilisateurs et connexion/ })).toBeChecked()
 })
 
