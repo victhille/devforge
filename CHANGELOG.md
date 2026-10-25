@@ -2,6 +2,16 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [2.4.0](https://github.com/victhille/devforge/compare/v2.3.1...v2.4.0) — 2026-10-25
+
+> Nouveau logo : l'enclume orange de DevForge mobile.
+
+### Nouveautés
+
+- **design** : Le logo de DevForge mobile (enclume orange), une seule flèche sur « Retour » ([9503e19](https://github.com/victhille/devforge/commit/9503e198a04a7d9692f766dd1dcc8ea90a4b8ebe))
+
+_2 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [2.3.1](https://github.com/victhille/devforge/compare/v2.3.0...v2.3.1) — 2026-10-25
 
 > Le premier bloc d'un terminal cmd n'affiche plus la commande interne de DevForge.
