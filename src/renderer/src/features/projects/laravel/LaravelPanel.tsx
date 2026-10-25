@@ -12,7 +12,7 @@ import EntitiesSection from '../symfony/EntitiesSection'
 import MigrationsSection from '../symfony/MigrationsSection'
 import ApiSection from '../symfony/ApiSection'
 import { FixturesSection, RoutesSection } from '../symfony/ToolSections'
-import { RunButton, Section, errorText, useSfTasks } from '../symfony/parts'
+import { DbAuthHint, RunButton, Section, errorText, useSfTasks } from '../symfony/parts'
 
 type Part = 'database' | 'entities' | 'migrations' | 'api' | 'fixtures' | 'routes' | 'server'
 const PARTS: Part[] = ['database', 'entities', 'migrations', 'api', 'fixtures', 'routes', 'server']
@@ -105,6 +105,7 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
                 <dd className="flex flex-col items-start gap-2">
                   <span className={dbOk ? 'text-success' : 'text-warning'}>{dbOk ? s.dbReachable : s.dbUnreachable}</span>
                   {st.database.error && <code className="font-mono text-xs break-words text-fg-muted">{st.database.error}</code>}
+                  <DbAuthHint error={st.database.error} envFile=".env" />
                   {!dbOk && st.composeDatabase && run('db:start', s.dbStart)}
                 </dd>
               </dl>

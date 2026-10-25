@@ -320,6 +320,7 @@ const api: DevForgeAPI = {
   setup: {
     freePort:    invoke('setup:free-port'),
     githubLogin: invoke('setup:github-login'),
+    previousVolumes: invoke('setup:previous-volumes'),
     phpStatus:   invoke('setup:php-status'),
     phpEnable:   invoke('setup:php-enable')
   },

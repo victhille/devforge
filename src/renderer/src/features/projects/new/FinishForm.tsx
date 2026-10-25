@@ -30,6 +30,16 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
   const [openVSCode, setOpenVSCode] = useState(true)
   const [login, setLogin] = useState<string | null | undefined>(undefined)
   const [busy, setBusy] = useState(false)
+  const [volumes, setVolumes] = useState<string[]>([])
+  const serverDb = stack?.database === 'postgres' || stack?.database === 'mysql'
+
+  // A project of the same name created before: its database stays, apart from the new one
+  useEffect(() => {
+    if (!serverDb) return
+    let alive = true
+    window.devforge.setup.previousVolumes(options.name).then(v => { if (alive) setVolumes(v) }).catch(() => {})
+    return () => { alive = false }
+  }, [serverDb, options.name])
 
   useEffect(() => {
     let alive = true
@@ -42,7 +52,7 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
     database: stack?.database ?? 'none', dbName: stack?.dbName ?? '', dbPort: stack?.dbPort ?? 0, features: stack?.features ?? [],
     git: git || github, github: github ? { repo, private: isPrivate } : null, openVSCode
   }
-  const steps = planSetup({ ...options, setup }, { password: '••••', secret: '••••', lang: lang === 'en' ? 'en' : 'fr' })
+  const steps = planSetup({ ...options, setup }, { password: '••••', secret: '••••', composeName: '', lang: lang === 'en' ? 'en' : 'fr' })
   const template = PROJECT_TEMPLATES.find(tpl => tpl.id === options.framework)
 
   return (
@@ -89,6 +99,11 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
             ))}
           </ol>
           <p className="text-sm text-fg-muted">{s.recapNote}</p>
+          {volumes.length > 0 && (
+            <p role="status" className="rounded-xl bg-warning/10 p-3 text-sm text-fg">
+              {s.oldVolumes.replace('{list}', volumes.join(', '))}
+            </p>
+          )}
         </Card>
       </div>
 
