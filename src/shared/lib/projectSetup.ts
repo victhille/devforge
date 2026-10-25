@@ -8,7 +8,7 @@ import type { Framework, PackageManager, ProjectCreationOptions, ProjectSetup, S
  */
 
 /** Frameworks that get the database and options steps (the others: Git and GitHub only) */
-export const SETUP_FRAMEWORKS: Framework[] = ['symfony', 'nextjs']
+export const SETUP_FRAMEWORKS: Framework[] = ['symfony', 'nextjs', 'laravel']
 export const SETUP_FEATURES: SetupFeature[] = ['api', 'auth', 'docker', 'tests', 'ci']
 export const DEFAULT_DB_PORT = { postgres: 5432, mysql: 3306 } as const
 
@@ -31,6 +31,7 @@ const LABELS = {
     connection: 'Ajout à la page Base de données', api: 'Première route d\'API', authDeps: 'Sécurité', maker: 'MakerBundle',
     user: 'Entité User', authJs: 'Auth.js', authFiles: 'Configuration Auth.js', docker: 'Docker pour l\'app', testDeps: 'Outils de test',
     firstTest: 'Premier test', ci: 'CI GitHub Actions', prisma: 'Prisma', prismaInit: 'Schéma Prisma', scripts: 'Script de test',
+    sanctum: 'API (Sanctum)', fortify: 'Laravel Fortify', fortifyInstall: 'Connexion et inscription',
     gitInit: 'Dépôt Git', gitAdd: 'Fichiers suivis', gitCommit: 'Premier commit', github: 'Dépôt GitHub', vscode: 'Ouverture dans VS Code'
   },
   en: {
@@ -38,6 +39,7 @@ const LABELS = {
     connection: 'Adding it to the Database page', api: 'First API route', authDeps: 'Security', maker: 'MakerBundle',
     user: 'User entity', authJs: 'Auth.js', authFiles: 'Auth.js setup', docker: 'Docker for the app', testDeps: 'Test tools',
     firstTest: 'First test', ci: 'GitHub Actions CI', prisma: 'Prisma', prismaInit: 'Prisma schema', scripts: 'Test script',
+    sanctum: 'API (Sanctum)', fortify: 'Laravel Fortify', fortifyInstall: 'Login and registration',
     gitInit: 'Git repository', gitAdd: 'Tracked files', gitCommit: 'First commit', github: 'GitHub repository', vscode: 'Opening in VS Code'
   }
 }
@@ -49,8 +51,14 @@ export function pmAdd(pm: PackageManager, pkgs: string[], dev = false): string[]
 
 /** Database URL as the app sees it: from this PC, or from the app container */
 export function databaseUrl(fw: Framework, s: ProjectSetup, password: string, inDocker = false): string {
-  const host = inDocker ? 'database' : fw === 'symfony' ? '127.0.0.1' : 'localhost'
+  const host = inDocker ? 'database' : fw === 'nextjs' ? 'localhost' : '127.0.0.1'
   const port = inDocker ? DEFAULT_DB_PORT[s.database as 'postgres' | 'mysql'] : s.dbPort
+  if (fw === 'laravel') {
+    // DB_URL: Laravel reads it over the DB_* lines (used in the app container)
+    if (s.database === 'sqlite') return 'sqlite:///database/database.sqlite'
+    if (s.database === 'mysql') return `mysql://root:${password}@${host}:${port}/${s.dbName}`
+    return `pgsql://app:${password}@${host}:${port}/${s.dbName}`
+  }
   if (fw === 'symfony') {
     if (s.database === 'sqlite') return 'sqlite:///%kernel.project_dir%/var/data.db'
     if (s.database === 'mysql') return `mysql://root:${password}@${host}:${port}/${s.dbName}?serverVersion=8.4&charset=utf8mb4`
@@ -81,7 +89,7 @@ export function composeFile(fw: Framework, s: ProjectSetup): string {
     )
   }
   if (s.features.includes('docker')) {
-    lines.push('  app:', '    build: .', ...envFile, '    ports:', fw === 'symfony' ? '      - "8080:80"' : '      - "3000:3000"')
+    lines.push('  app:', '    build: .', ...envFile, '    ports:', fw === 'nextjs' ? '      - "3000:3000"' : '      - "8080:80"')
     if (serverDb(s)) lines.push('    depends_on:', '      database:', '        condition: service_healthy')
   }
   if (serverDb(s)) lines.push('', 'volumes:', '  database_data:')
@@ -94,7 +102,7 @@ export function dockerEnv(fw: Framework, s: ProjectSetup, password: string): Rec
   if (s.database === 'postgres') vars.POSTGRES_PASSWORD = password
   if (s.database === 'mysql') vars.MYSQL_ROOT_PASSWORD = password
   if (s.features.includes('docker') && s.database !== 'none') {
-    vars.DATABASE_URL = s.database === 'sqlite' ? databaseUrl(fw, s, password) : databaseUrl(fw, s, password, true)
+    vars[fw === 'laravel' ? 'DB_URL' : 'DATABASE_URL'] = s.database === 'sqlite' ? databaseUrl(fw, s, password) : databaseUrl(fw, s, password, true)
   }
   return vars
 }
@@ -108,6 +116,14 @@ function ciWorkflow(o: Opts): string {
       '      - run: composer install --no-interaction --prefer-dist',
       '      - run: php bin/console lint:container',
       ...(tests ? ['      - run: vendor/bin/phpunit'] : [])
+    ].join('\n') + '\n'
+  }
+  if (o.framework === 'laravel') {
+    return [...head,
+      '      - uses: shivammathur/setup-php@v2', '        with:', "          php-version: '8.4'",
+      '      - run: composer install --no-interaction --prefer-dist',
+      '      - run: cp .env.example .env && php artisan key:generate',
+      ...(tests ? ['      - run: php artisan test'] : [])
     ].join('\n') + '\n'
   }
   const pm = o.packageManager
@@ -124,6 +140,22 @@ function ciWorkflow(o: Opts): string {
 }
 
 function dockerFiles(o: Opts): { path: string; content: string }[] {
+  if (o.framework === 'laravel') {
+    return [
+      { path: 'Dockerfile', content: [
+        '# FrankenPHP: Caddy and PHP in one image, serves public/',
+        'FROM dunglas/frankenphp:1-php8.4',
+        'RUN install-php-extensions pdo_pgsql pdo_mysql intl zip opcache bcmath',
+        'COPY --from=composer:2 /usr/bin/composer /usr/bin/composer',
+        'ENV SERVER_NAME=:80 APP_ENV=production',
+        'WORKDIR /app',
+        'COPY . /app',
+        'RUN composer install --no-dev --optimize-autoloader',
+        ''
+      ].join('\n') },
+      { path: '.dockerignore', content: ['.git', 'vendor', 'node_modules', '.env', '.env.docker', 'storage/logs/*', ''].join('\n') }
+    ]
+  }
   if (o.framework === 'symfony') {
     return [
       { path: 'Dockerfile', content: [
@@ -212,6 +244,30 @@ function symfonySteps(o: Opts, ctx: PlanContext): SetupStep[] {
   return steps
 }
 
+/** Laravel reads DB_* from .env (never committed): the skeleton starts on SQLite */
+export function laravelEnv(s: ProjectSetup, password: string): Record<string, string> {
+  if (s.database === 'sqlite') return { DB_CONNECTION: 'sqlite' }
+  const mysql = s.database === 'mysql'
+  return {
+    DB_CONNECTION: mysql ? 'mysql' : 'pgsql', DB_HOST: '127.0.0.1', DB_PORT: String(s.dbPort),
+    DB_DATABASE: s.dbName, DB_USERNAME: mysql ? 'root' : 'app', DB_PASSWORD: password
+  }
+}
+
+function laravelSteps(o: Opts, ctx: PlanContext): SetupStep[] {
+  const s = o.setup, l = LABELS[ctx.lang], steps: SetupStep[] = []
+  const has = (f: SetupFeature) => s.features.includes(f)
+  if (s.database !== 'none') steps.push({ kind: 'env', label: l.envDb, file: '.env', vars: laravelEnv(s, ctx.password) })
+  // routes/api.php and Sanctum; the tables come with the first migration in the workshop
+  if (has('api')) steps.push({ kind: 'run', label: l.sanctum, exe: 'php', args: ['artisan', 'install:api', '--without-migration-prompt', '--no-interaction'], skipIf: 'routes/api.php' })
+  if (has('auth')) {
+    steps.push({ kind: 'run', label: l.fortify, exe: 'composer', args: ['require', 'laravel/fortify'], skipIf: 'vendor/laravel/fortify' })
+    steps.push({ kind: 'run', label: l.fortifyInstall, exe: 'php', args: ['artisan', 'fortify:install', '--no-interaction'], skipIf: 'config/fortify.php' })
+  }
+  // tests: the skeleton already has PHPUnit and two tests
+  return steps
+}
+
 function nextSteps(o: Opts, ctx: PlanContext): SetupStep[] {
   const s = o.setup, l = LABELS[ctx.lang], pm = o.packageManager, steps: SetupStep[] = []
   const has = (f: SetupFeature) => s.features.includes(f)
@@ -246,7 +302,7 @@ function nextSteps(o: Opts, ctx: PlanContext): SetupStep[] {
 export function planSetup(o: Opts, ctx: PlanContext): SetupStep[] {
   const s = o.setup, l = LABELS[ctx.lang], steps: SetupStep[] = []
   if (SETUP_FRAMEWORKS.includes(o.framework)) {
-    steps.push(...(o.framework === 'symfony' ? symfonySteps(o, ctx) : nextSteps(o, ctx)))
+    steps.push(...(o.framework === 'symfony' ? symfonySteps(o, ctx) : o.framework === 'laravel' ? laravelSteps(o, ctx) : nextSteps(o, ctx)))
     const docker = s.features.includes('docker')
     if (serverDb(s) || docker) {
       steps.push({ kind: 'ignore', label: l.ignore, lines: ['/.env.docker'] })
@@ -259,7 +315,7 @@ export function planSetup(o: Opts, ctx: PlanContext): SetupStep[] {
       steps.push({ kind: 'run', label: l.start, exe: 'docker', args: ['compose', 'up', '-d', '--wait', 'database'], optional: true })
     }
     if (s.database !== 'none') {
-      const sqliteFile = o.framework === 'symfony' ? 'var/data.db' : 'prisma/dev.db'
+      const sqliteFile = { symfony: 'var/data.db', laravel: 'database/database.sqlite' }[o.framework as string] ?? 'prisma/dev.db'
       steps.push({
         kind: 'connection', label: l.connection, type: s.database as 'postgres' | 'mysql' | 'sqlite',
         port: s.dbPort, user: s.database === 'mysql' ? 'root' : 'app', database: s.dbName,

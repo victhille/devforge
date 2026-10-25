@@ -1,39 +1,66 @@
 import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
-import type { SfCommand, SfMigration } from '@shared/types'
+import type { SfMigration } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import { formatDate } from '@renderer/lib/format'
 import EmptyState from '@renderer/components/ui/EmptyState'
-import { CommandButton, Section } from './parts'
+import { Input } from '@renderer/components/ui/Input'
+import { RunButton, Section } from './parts'
+
+/** A migration button: the exact command line it runs, and what it does */
+export interface MigrationAction {
+  /** Command line shown under the button; with `named`, for the name typed */
+  line: (name: string) => string
+  run: (name: string) => void
+  /** Prisma, Laravel: the migration gets a name, typed before */
+  named?: boolean
+  /** In place of the usual label */
+  label?: string
+}
 
 interface Props {
   migrations: SfMigration[]
   databaseOk: boolean
-  exec: (command: SfCommand) => void
+  prepare: MigrationAction
+  apply: MigrationAction | null
+  rollback: MigrationAction | null
+  /** Where the files are, how they are kept */
+  note?: string
+  help?: string
 }
 
 const shortVersion = (v: string) => v.replace(/^DoctrineMigrations\\/, '')
 
-/** Prepared, applied or rolled back: the SQL is always shown before it runs */
-export default function MigrationsSection({ migrations, databaseOk, exec }: Props) {
+/** Prepared, applied or rolled back: the SQL is always shown before it runs (Symfony, Prisma, Laravel) */
+export default function MigrationsSection({ migrations, databaseOk, prepare, apply, rollback, note, help }: Props) {
   const { t } = useI18n()
   const s = t.symfony
   const pending = migrations.filter(m => !m.executed)
   const [selected, setSelected] = useState<string | null>(pending[pending.length - 1]?.version ?? migrations[0]?.version ?? null)
+  const [name, setName] = useState('modification')
   const current = migrations.find(m => m.version === selected) ?? null
   const lastApplied = migrations.find(m => m.executed)
+  const nameOk = !prepare.named || /^[a-z0-9_]{1,60}$/.test(name)
 
-  function confirmed(command: SfCommand) {
-    if (command === 'migrations:prev' && !window.confirm(s.rollbackConfirm.replace('{name}', lastApplied ? (lastApplied.description || shortVersion(lastApplied.version)) : ''))) return
-    if (command === 'migrations:migrate' && pending.some(m => m.dangerous) && !window.confirm(s.dangerConfirm)) return
-    exec(command)
+  function doRollback() {
+    if (!rollback || !window.confirm(s.rollbackConfirm.replace('{name}', lastApplied ? (lastApplied.description || shortVersion(lastApplied.version)) : ''))) return
+    rollback.run('')
+  }
+  function doApply() {
+    if (!apply || (pending.some(m => m.dangerous) && !window.confirm(s.dangerConfirm))) return
+    apply.run('')
   }
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(280px,2fr)_3fr]">
-      <Section title={s.migrationsTitle} help={s.migrationsHelp}
-        actions={<CommandButton command="migrations:diff" label={s.prepare} onRun={exec} disabled={!databaseOk} />}>
+      <Section title={s.migrationsTitle} help={help ?? s.migrationsHelp}
+        actions={<div className="flex flex-wrap items-start gap-2">
+          {prepare.named && (
+            <Input aria-label={s.migrationName} value={name} onChange={e => setName(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))} className="h-8 w-40 font-mono text-xs" spellCheck={false} />
+          )}
+          <RunButton label={prepare.label ?? s.prepare} line={prepare.line(name)} onRun={() => prepare.run(name)} disabled={!databaseOk || !nameOk} />
+        </div>}>
         {!databaseOk && <p className="text-sm text-warning">{s.needsDatabase}</p>}
         {migrations.length === 0 ? <EmptyState title={s.noMigrations} description={s.noMigrationsHelp} /> : (
           <ul aria-label={s.migrationsTitle} className="flex flex-col gap-2">
@@ -59,8 +86,8 @@ export default function MigrationsSection({ migrations, databaseOk, exec }: Prop
 
       <Section title={current ? s.whatChanges.replace('{name}', current.description || shortVersion(current.version)) : s.sqlTitle}
         actions={<>
-          <CommandButton command="migrations:prev" label={s.rollback} variant="ghost" onRun={confirmed} disabled={!databaseOk || !lastApplied} />
-          <CommandButton command="migrations:migrate" label={s.apply} variant="primary" onRun={confirmed} disabled={!databaseOk || !pending.length} />
+          {rollback && <RunButton label={s.rollback} line={rollback.line('')} variant="ghost" onRun={doRollback} disabled={!databaseOk || !lastApplied} />}
+          {apply && <RunButton label={s.apply} line={apply.line('')} variant="primary" onRun={doApply} disabled={!databaseOk || !pending.length} />}
         </>}>
         {current ? (
           <>
@@ -74,7 +101,7 @@ export default function MigrationsSection({ migrations, databaseOk, exec }: Prop
             </pre>
           </>
         ) : <p className="text-sm text-fg-muted">{s.pickMigration}</p>}
-        <p className="text-xs text-fg-muted">{s.migrationsNote}</p>
+        <p className="text-xs text-fg-muted">{note ?? s.migrationsNote}</p>
       </Section>
     </div>
   )

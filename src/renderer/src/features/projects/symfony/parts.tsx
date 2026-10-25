@@ -24,18 +24,26 @@ export function Section({ title, help, actions, children, className }: { title: 
   )
 }
 
-/** A button that runs a command, with the exact command line under it */
-export function CommandButton({ command, arg, label, onRun, variant = 'secondary', disabled, title }: {
-  command: SfCommand; arg?: string; label: string; onRun: (command: SfCommand, arg?: string) => void
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger'; disabled?: boolean; title?: string
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
+
+/** A button with the exact command line it runs under it (any workshop) */
+export function RunButton({ label, line, onRun, variant = 'secondary', disabled, title }: {
+  label: string; line: string; onRun: () => void; variant?: Variant; disabled?: boolean; title?: string
 }) {
-  const line = sfCommandLine(command, arg)
   return (
     <span className="inline-flex flex-col items-start gap-1">
-      <Button size="sm" variant={variant} disabled={disabled} title={title} onClick={() => onRun(command, arg)}>{label}</Button>
+      <Button size="sm" variant={variant} disabled={disabled} title={title} onClick={onRun}>{label}</Button>
       {line && <code className="max-w-[360px] truncate font-mono text-[11px] text-fg-muted" title={line}>{line}</code>}
     </span>
   )
+}
+
+/** A Symfony command button */
+export function CommandButton({ command, arg, label, onRun, variant = 'secondary', disabled, title }: {
+  command: SfCommand; arg?: string; label: string; onRun: (command: SfCommand, arg?: string) => void
+  variant?: Variant; disabled?: boolean; title?: string
+}) {
+  return <RunButton label={label} line={sfCommandLine(command, arg)} onRun={() => onRun(command, arg)} variant={variant} disabled={disabled} title={title} />
 }
 
 /**

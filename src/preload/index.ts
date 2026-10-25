@@ -370,6 +370,27 @@ const api: DevForgeAPI = {
     addHistory: invoke('term:history-add')
   },
 
+  nextjs: {
+    inspect:     invoke('nextjs:inspect'),
+    routes:      invoke('nextjs:routes'),
+    run:         invoke('nextjs:run'),
+    writeModel:  invoke('nextjs:write-model'),
+    writePrismaClient: invoke('nextjs:write-client'),
+    apiConfig:   invoke('nextjs:api-config'),
+    applyApi:    invoke('nextjs:apply-api'),
+    writeSeed:   invoke('nextjs:write-seed')
+  },
+
+  laravel: {
+    inspect:    invoke('laravel:inspect'),
+    routes:     invoke('laravel:routes'),
+    run:        invoke('laravel:run'),
+    writeModel: invoke('laravel:write-model'),
+    apiConfig:  invoke('laravel:api-config'),
+    applyApi:   invoke('laravel:apply-api'),
+    writeSeed:  invoke('laravel:write-seed')
+  },
+
   dictation: {
     status:     invoke('dictation:status'),
     prepare:    invoke('dictation:prepare'),

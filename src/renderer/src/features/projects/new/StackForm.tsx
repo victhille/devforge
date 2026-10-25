@@ -49,7 +49,7 @@ export default function StackForm({ framework, projectName, initial, onBack, onS
   const [phpBusy, setPhpBusy] = useState(false)
   const [phpNote, setPhpNote] = useState('')
   useEffect(() => {
-    if (framework !== 'symfony') return
+    if (framework !== 'symfony' && framework !== 'laravel') return
     let alive = true
     window.devforge.setup.phpStatus(database).then(p => { if (alive) setPhp(p) }).catch(() => {})
     return () => { alive = false }
@@ -65,11 +65,11 @@ export default function StackForm({ framework, projectName, initial, onBack, onS
       setPhpNote(s.phpError.replace('{error}', err instanceof Error ? err.message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') : String(err)))
     } finally { setPhpBusy(false) }
   }
-  const phpProblem = framework === 'symfony' && php !== null && (!php.found || php.missing.length > 0)
+  const phpProblem = (framework === 'symfony' || framework === 'laravel') && php !== null && (!php.found || php.missing.length > 0)
 
   const server = database === 'postgres' || database === 'mysql'
   const toggle = (f: SetupFeature, on: boolean) => setFeatures(list => on ? [...list, f] : list.filter(x => x !== f))
-  const desc = (f: SetupFeature) => framework === 'symfony' ? s.featSymfony[f] : s.featNext[f]
+  const desc = (f: SetupFeature) => framework === 'symfony' ? s.featSymfony[f] : framework === 'laravel' ? s.featLaravel[f] : s.featNext[f]
 
   function submit() {
     if (server && !DB_NAME_RE.test(dbName)) { setError(s.dbNameError); return }

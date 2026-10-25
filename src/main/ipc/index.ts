@@ -22,6 +22,8 @@ import { registerSymfonyHandlers } from './symfony'
 import { registerLauncherHandlers } from './launcher'
 import { registerStatusHandlers } from './status'
 import { registerTerminalHandlers } from './terminal'
+import { registerNextjsHandlers } from './nextjs'
+import { registerLaravelHandlers } from './laravel'
 import { registerVercelHandlers } from './vercel'
 import { registerDictationHandlers } from './dictation'
 import { registerDomainHandlers } from './domains'
@@ -57,6 +59,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerLauncherHandlers()
   registerStatusHandlers(mainWindow)
   registerTerminalHandlers(mainWindow)
+  registerNextjsHandlers(mainWindow)
+  registerLaravelHandlers(mainWindow)
   registerVercelHandlers()
   registerDictationHandlers()
   registerDomainHandlers()

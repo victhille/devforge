@@ -108,6 +108,21 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
     ]
   },
   {
+    id: 'laravel',
+    name: 'Laravel',
+    description: 'PHP framework with Eloquent and Artisan',
+    category: 'backend',
+    iconName: 'Code2',
+    color: '#F87171',
+    requirements: ['php', 'composer'],
+    optionalRequirements: [],
+    defaultPackageManager: 'npm',
+    options: [
+      { id: 'initGit', label: 'Initialize Git', default: false },
+      { id: 'openAfter', label: 'Open after creation', default: false }
+    ]
+  },
+  {
     id: 'empty',
     name: 'Empty Project',
     description: 'Start from scratch',
