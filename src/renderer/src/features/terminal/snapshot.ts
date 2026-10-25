@@ -74,7 +74,9 @@ export function snapshot(term: Terminal, cmd: string): Line[] {
   }
   const textOf = (l: Line) => l.map(s => s.text).join('')
   const head = cmd.trim().slice(0, 40)
-  if (lines.length && head && textOf(lines[0]).includes(head)) lines.shift()
+  // The echo of the command, and what a shell printed before it (cmd's banner on its first line)
+  const echo = head ? lines.slice(0, 8).findIndex(l => textOf(l).includes(head)) : -1
+  if (echo >= 0) lines.splice(0, echo + 1)
   while (lines.length && !textOf(lines[lines.length - 1]).trim()) lines.pop()
   return lines
 }
