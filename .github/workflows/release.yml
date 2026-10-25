@@ -18,15 +18,26 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
+      # Same packages as the CI's (same key): restored instead of installed again
+      - uses: actions/cache@v4
+        id: deps
+        with:
+          path: |
+            node_modules
+            ~\AppData\Local\electron\Cache
+            ~\AppData\Local\electron-builder\Cache
+          key: deps-${{ runner.os }}-node22-${{ hashFiles('package-lock.json') }}
+      - if: steps.deps.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Tag matches package.json
         run: |
           v=$(node -p "require('./package.json').version")
           [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME but package.json says $v"; exit 1; }
 
-      - run: npm run check
+      # No `npm run check` here: `npm run release` ran it on this very commit before
+      # tagging, and the CI checks it too (with the e2e). The installer is built below.
+      - run: npm run build
 
       - name: Build installer
         run: npx electron-builder --win --x64 --publish never
