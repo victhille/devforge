@@ -1,5 +1,5 @@
 import type { TerminalShell } from '@shared/types'
-import { sshInitLine } from '@shared/lib/shellBlocks'
+import { cmdLine, sshInitLine } from '@shared/lib/shellBlocks'
 
 /** What the block view drives: a local shell or a server's, same shape */
 export interface ShellBackend {
@@ -10,6 +10,8 @@ export interface ShellBackend {
   stop: () => void
   /** Where its commands' history is kept */
   historyKey: string
+  /** The line typed for a command, when the shell needs more than the command (cmd and its exit code) */
+  line?: (cmd: string, tag: string) => string
 }
 
 export function localBackend(kind: TerminalShell['kind'], cwd: string): ShellBackend {
@@ -17,6 +19,7 @@ export function localBackend(kind: TerminalShell['kind'], cwd: string): ShellBac
   const unsubs: (() => void)[] = []
   return {
     historyKey: cwd,
+    ...(kind === 'cmd' ? { line: cmdLine } : {}),
     async start(onData, onExit, cols, rows) {
       // Subscribed first: the first prompt may come before create() resolves
       const early: string[] = []

@@ -12,7 +12,8 @@
 export type ShellEvent =
   | { type: 'data'; text: string }
   | { type: 'prompt-start' }
-  | { type: 'exit-code'; code: number }
+  /** tag: the block it belongs to, when the shell can say (cmd) */
+  | { type: 'exit-code'; code: number; tag?: string }
   | { type: 'cwd'; path: string }
   | { type: 'prompt-end' }
 
@@ -66,8 +67,10 @@ function toEvent(body: string): ShellEvent | null {
   if (body === 'A') return { type: 'prompt-start' }
   if (body === 'B') return { type: 'prompt-end' }
   if (body.startsWith('D;')) {
-    const code = Number(body.slice(2))
-    return Number.isFinite(code) ? { type: 'exit-code', code } : null
+    const [raw, tag] = body.slice(2).split(';')
+    const code = Number(raw)
+    if (!raw || !Number.isFinite(code)) return null
+    return tag ? { type: 'exit-code', code, tag } : { type: 'exit-code', code }
   }
   if (body.startsWith('P;Cwd=')) return { type: 'cwd', path: body.slice(6) }
   return null
@@ -103,8 +106,17 @@ export const BASH_INIT = [
   "PS1='$ \\[\\033]633;B\\007\\]'"
 ].join('\n')
 
-/** cmd cannot give an exit code in its prompt: blocks without one */
-export const CMD_PROMPT = '$E]633;A$E\\$E]633;P;Cwd=$P$E\\$G $E]633;B$E\\'
+/** cmd's prompt; `exit`: the D marker's body (cmd's prompt cannot read %errorlevel% itself) */
+const cmdPrompt = (exit?: string) => `$E]633;A$E\\${exit ? `$E]633;D;${exit}$E\\` : ''}$E]633;P;Cwd=$P$E\\$G $E]633;B$E\\`
+export const CMD_PROMPT = cmdPrompt()
+
+/**
+ * The line DevForge types in cmd: the command, then a prompt that carries its
+ * exit code. %^errorlevel% is read only when `call` runs, after the command
+ * (the caret keeps it from the first reading); the block's tag tells a fresh
+ * code from the one of a line that never reached the call (rem, a syntax error).
+ */
+export const cmdLine = (cmd: string, tag: string) => `${cmd} & call prompt ${cmdPrompt(`%^errorlevel%;${tag}`)}`
 
 /** Over SSH, typed as one line (a leading space keeps it out of the history) */
 export const sshInitLine = () => ` ${BASH_INIT.split('\n').join('; ')}; clear\n`
