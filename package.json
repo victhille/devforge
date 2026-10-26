@@ -69,7 +69,7 @@
         "provider": "github",
         "owner": "victhille",
         "repo": "devforge",
-        "private": true
+        "private": false
       }
     ],
     "asarUnpack": [
