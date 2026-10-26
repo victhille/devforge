@@ -7,11 +7,11 @@ import { cn } from '@renderer/lib/cn'
 import { formatRelative, formatSize } from '@renderer/lib/format'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
-import EmptyState from '@renderer/components/ui/EmptyState'
 import Modal from '@renderer/components/ui/Modal'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { ServerSelect, useServerPicker } from './ServerPicker'
+import NeedsSetup from '@renderer/components/NeedsSetup'
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const ORDER: Record<HealthLevel, number> = { bad: 0, warn: 1, unknown: 2, ok: 3 }
@@ -59,7 +59,7 @@ export default function HealthPage() {
   return (
     <Page>
       <PageHeader title={t.nav.health} subtitle={t.vpsOps.healthSubtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
-      {!connections ? <Spinner /> : !conn ? <EmptyState title={t.vpsOps.noServers} /> : <Health key={conn.id} conn={conn} />}
+      {!connections ? <Spinner /> : !conn ? <NeedsSetup service="server" /> : <Health key={conn.id} conn={conn} />}
     </Page>
   )
 }

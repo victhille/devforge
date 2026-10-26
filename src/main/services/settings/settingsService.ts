@@ -35,9 +35,10 @@ function getSettingsPath(): string {
 export function loadSettings(): AppSettings {
   const path = getSettingsPath()
   if (!existsSync(path)) {
-    // Default dir: user's home / Development
+    // Default dir: user's home / Development; the language of Windows (French, else English)
     return {
       ...DEFAULT_SETTINGS,
+      language: /^fr\b/i.test(app.getLocale()) ? 'fr' : 'en',
       defaultProjectsDir: join(app.getPath('home'), 'Development')
     }
   }

@@ -1471,6 +1471,16 @@ const en = {
     download: "Download now",
     removeModel: "Remove model"
   },
+  needsSetup: {
+    title: { server: "No server set up", github: "GitHub is not connected", vercel: "Vercel is not connected", forgy: "Forgy has no key" },
+    why: {
+      server: "This page acts on a server (VPS) over SSH. Add yours if you have one; otherwise it simply stays aside.",
+      github: "Connect GitHub (GitHub CLI or a token) to see the Actions, pull requests and releases.",
+      vercel: "Add a Vercel token to follow the deployments of your linked projects.",
+      forgy: "Add an Anthropic API key to talk to Forgy."
+    },
+    button: { server: "Add a server", github: "Connect GitHub", vercel: "Connect Vercel", forgy: "Add a key" }
+  },
   onboarding: {
     progress: "Step {n} of {t}",
     skip: "Skip",
@@ -1478,6 +1488,11 @@ const en = {
     next: "Next",
     start: "Get started",
     later: "Later",
+    language: "Language",
+    accountsTitle: "Your accounts",
+    accountsText: "Nothing is plugged in advance: DevForge only knows what you give it. Everything is optional.",
+    githubTokenPlaceholder: "GitHub token (optional)",
+    moreLater: "A server (VPS), Vercel, databases? Plug them in whenever you like in Settings › Connections.",
     go: "Let's go",
     welcomeTitle: "Welcome to DevForge",
     welcomeText: "Your dev workshop on Windows. Three minutes to set it up, and Forgy handles the rest.",

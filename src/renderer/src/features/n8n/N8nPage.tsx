@@ -7,11 +7,11 @@ import { cn } from '@renderer/lib/cn'
 import { formatRelative } from '@renderer/lib/format'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
-import EmptyState from '@renderer/components/ui/EmptyState'
 import Switch from '@renderer/components/ui/Switch'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Input, Select } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
+import NeedsSetup from '@renderer/components/NeedsSetup'
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const KEY = 'devforge:n8n-server'
@@ -57,7 +57,7 @@ export default function N8nPage() {
             </Select>
           </label>
         )} />
-      {!connections ? <Spinner /> : !conn ? <EmptyState title={n.noServers} /> : instance
+      {!connections ? <Spinner /> : !conn ? <NeedsSetup service="server" /> : instance
         ? <Installed key={conn.id} conn={conn} instance={instance} onChange={refreshInstances} />
         : <Install key={conn.id} conn={conn} onDone={refreshInstances} />}
     </Page>

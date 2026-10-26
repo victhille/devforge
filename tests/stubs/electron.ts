@@ -3,7 +3,8 @@ export const app = {
   getPath: () => process.env.DEVFORGE_TEST_USERDATA!,
   getVersion: () => '0.0.0-test',
   isPackaged: false,
-  getLocaleCountryCode: () => 'FR'
+  getLocaleCountryCode: () => 'FR',
+  getLocale: () => 'fr-FR'
 }
 
 /** Reversible fake: lets tests check that secrets are not stored in clear */

@@ -6,6 +6,7 @@ import { useToast } from '@renderer/app/ToastContext'
 import { formatRelative, formatSize } from '@renderer/lib/format'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Dot, Pill, SmallButton, Tile } from './parts'
+import NeedsSetup from '@renderer/components/NeedsSetup'
 
 /**
  * Home widgets about the VPS: they read the server the VPS pages show
@@ -29,12 +30,9 @@ export function useVpsServer(): SSHConnection | null | undefined {
 const pick = (id: string) => { try { localStorage.setItem(KEY, id) } catch { /* not kept */ } }
 
 function NoServer({ i, title }: { i: number; title: string }) {
-  const { t } = useI18n()
-  const navigate = useNavigate()
   return (
     <Tile i={i} title={title}>
-      <p className="text-sm text-fg-muted">{t.home.noServer}</p>
-      <SmallButton className="mt-auto" onClick={() => navigate('/ssh')}>{t.home.addServer}</SmallButton>
+      <NeedsSetup service="server" compact />
     </Tile>
   )
 }

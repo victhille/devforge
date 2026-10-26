@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react'
-import { Check, Container, Database, FolderSearch, KeyRound, Server } from 'lucide-react'
-import type { AppSettings, DetectedProject, Project } from '@shared/types'
+import { Check, Container, Database, FolderSearch, KeyRound, Plug, Server } from 'lucide-react'
+import type { AppLanguage, AppSettings, ConnectionsOverview, DetectedProject, Project } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import { Input } from '@renderer/components/ui/Input'
 import Spinner from '@renderer/components/ui/Spinner'
 import Mascot from '@renderer/features/assistant/Mascot'
+import { Segmented } from '@renderer/features/settings/parts'
 
-const STEPS = 4
+const STEPS = 5
 
 /**
- * First launch: projects folder and scan, optional API key, a word about
- * Forgy. Shown once (settings.onboarded), skippable at any step.
+ * First launch: language, projects folder and scan, accounts (Git identity,
+ * GitHub), optional API key, a word about Forgy. Shown once
+ * (settings.onboarded), skippable at any step; nothing is set up in advance.
  */
 export default function Onboarding() {
-  const { t } = useI18n()
+  const { t, lang, setLang } = useI18n()
   const o = t.onboarding
   const [settings, setSettings] = useState<AppSettings | null>(null)
   const [step, setStep] = useState(0)
@@ -27,8 +29,21 @@ export default function Onboarding() {
   const [key, setKey] = useState('')
   const [keySaved, setKeySaved] = useState(false)
   const [keyError, setKeyError] = useState('')
+  const [accounts, setAccounts] = useState<ConnectionsOverview | null>(null)
+  const [identity, setIdentity] = useState({ name: '', email: '' })
+  const [ghToken, setGhToken] = useState('')
+  const [accountsError, setAccountsError] = useState('')
 
   useEffect(() => { window.devforge.getSettings().then(s => { setSettings(s); setDir(s.defaultProjectsDir) }).catch(() => {}) }, [])
+  // What is already there on this PC (GitHub CLI, Git's identity): shown, not asked again
+  useEffect(() => {
+    if (settings?.onboarded !== false) return
+    // It can come after the user typed: what was typed stays
+    window.devforge.connections.overview().then(a => {
+      setAccounts(a)
+      setIdentity(i => (i.name || i.email ? i : { name: a.git.name ?? '', email: a.git.email ?? '' }))
+    }).catch(() => {})
+  }, [settings?.onboarded])
   if (!settings || settings.onboarded !== false) return null
 
   async function finish() {
@@ -62,9 +77,32 @@ export default function Onboarding() {
     setStep(2)
   }
 
+  async function chooseLanguage(l: AppLanguage) {
+    setLang(l)
+    const next = { ...settings!, language: l }
+    setSettings(next)
+    await window.devforge.saveSettings(next)
+  }
+
+  /** Git identity and GitHub token, when typed; both can wait for Settings › Connections */
+  async function saveAccounts() {
+    setAccountsError('')
+    const errors = t.settings.connections.errors as Record<string, string>
+    try {
+      if (identity.name.trim() && identity.email.trim() && (identity.name !== accounts?.git.name || identity.email !== accounts?.git.email)) {
+        await window.devforge.connections.setGitIdentity(identity.name, identity.email)
+      }
+      if (ghToken.trim()) { await window.devforge.github.saveToken(ghToken.trim()); setGhToken('') }
+      setStep(3)
+    } catch (err) {
+      const code = String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+      setAccountsError(errors[code] ?? code)
+    }
+  }
+
   async function saveKey() {
     setKeyError('')
-    try { await window.devforge.assistant.saveConfig({ apiKey: key }); setKeySaved(true); setKey(''); setStep(3) }
+    try { await window.devforge.assistant.saveConfig({ apiKey: key }); setKeySaved(true); setKey(''); setStep(4) }
     catch (err) { setKeyError(String(err instanceof Error ? err.message : err)) }
   }
 
@@ -95,6 +133,10 @@ export default function Onboarding() {
                   <h2 id="onboarding-title" className="text-2xl font-semibold tracking-tight text-fg">{o.welcomeTitle}</h2>
                   <p className="mt-1 text-sm text-fg-secondary">{o.welcomeText}</p>
                 </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-[13px] text-fg-secondary">{o.language}</span>
+                <Segmented<AppLanguage> label={o.language} value={lang} onChange={chooseLanguage} items={[{ value: 'fr', label: 'Français' }, { value: 'en', label: 'English' }]} />
               </div>
               <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {features.map(f => (
@@ -146,6 +188,35 @@ export default function Onboarding() {
 
           {step === 2 && (
             <>
+              <div>
+                <h2 id="onboarding-title" className="text-xl font-semibold text-fg">{o.accountsTitle}</h2>
+                <p className="mt-1 text-sm text-fg-secondary">{o.accountsText}</p>
+              </div>
+              {added > 0 && <p className="flex items-center gap-2 text-sm text-success"><Check size={15} /> {o.added.replace('{n}', String(added))}</p>}
+              <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-surface p-4">
+                <span className="text-[13.5px] font-medium text-fg">{t.settings.connections.gitIdentity}</span>
+                <div className="flex flex-wrap gap-2">
+                  <Input aria-label={t.settings.connections.gitName} placeholder={t.settings.connections.gitName} value={identity.name} onChange={e => setIdentity(i => ({ ...i, name: e.target.value }))} className="flex-[1_1_160px]" />
+                  <Input aria-label={t.settings.connections.gitEmail} placeholder={t.settings.connections.gitEmail} type="email" value={identity.email} onChange={e => setIdentity(i => ({ ...i, email: e.target.value }))} className="flex-[1_1_200px]" />
+                </div>
+                <p className="text-xs text-fg-muted">{t.settings.connections.gitIdentityHint}</p>
+              </div>
+              <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-surface p-4">
+                <span className="text-[13.5px] font-medium text-fg">GitHub</span>
+                {accounts?.github.cli
+                  ? <p className="flex items-center gap-2 text-sm text-success"><Check size={15} /> {t.settings.connections.githubCli.replace('{login}', accounts.github.cli)}</p>
+                  : accounts?.github.token
+                    ? <p className="flex items-center gap-2 text-sm text-success"><Check size={15} /> {t.settings.connections.tokenSaved}</p>
+                    : <Input type="password" aria-label={t.settings.connections.githubToken} placeholder={o.githubTokenPlaceholder} value={ghToken} onChange={e => setGhToken(e.target.value)} className="font-mono" autoComplete="off" />}
+                <p className="text-xs text-fg-muted">{t.settings.connections.githubHint}</p>
+              </div>
+              <p className="flex items-start gap-2 text-xs text-fg-muted"><Plug size={14} className="mt-px shrink-0" /> {o.moreLater}</p>
+              {accountsError && <p role="alert" className="text-xs text-danger">{accountsError}</p>}
+            </>
+          )}
+
+          {step === 3 && (
+            <>
               <div className="flex items-center gap-4">
                 <Mascot mood="listening" size={60} followCursor={false} />
                 <div>
@@ -153,7 +224,6 @@ export default function Onboarding() {
                   <p className="mt-1 text-sm text-fg-secondary">{o.forgyText}</p>
                 </div>
               </div>
-              {added > 0 && <p className="flex items-center gap-2 text-sm text-success"><Check size={15} /> {o.added.replace('{n}', String(added))}</p>}
               <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-surface p-4">
                 <label htmlFor="onboarding-key" className="text-[13.5px] font-medium text-fg">{t.assistant.apiKey}</label>
                 <div className="flex gap-2">
@@ -166,7 +236,7 @@ export default function Onboarding() {
             </>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <>
               <div className="flex items-center gap-4">
                 <Mascot mood="happy" size={64} followCursor={false} />
@@ -194,8 +264,9 @@ export default function Onboarding() {
           {step === 1 && (picked.size > 0 && found?.length
             ? <Button onClick={addProjects}>{o.addProjects.replace('{n}', String(picked.size))}</Button>
             : <Button onClick={async () => { await window.devforge.saveSettings({ ...settings, defaultProjectsDir: dir }); setStep(2) }}>{o.next}</Button>)}
-          {step === 2 && <Button variant="secondary" onClick={() => setStep(3)}>{o.later}</Button>}
-          {step === 3 && <Button onClick={finish}>{o.go}</Button>}
+          {step === 2 && <Button onClick={saveAccounts}>{o.next}</Button>}
+          {step === 3 && <Button variant="secondary" onClick={() => setStep(4)}>{o.later}</Button>}
+          {step === 4 && <Button onClick={finish}>{o.go}</Button>}
         </div>
       </div>
     </div>

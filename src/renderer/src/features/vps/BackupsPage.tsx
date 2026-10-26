@@ -8,12 +8,12 @@ import { formatRelative, formatSize } from '@renderer/lib/format'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import Checkbox from '@renderer/components/ui/Checkbox'
-import EmptyState from '@renderer/components/ui/EmptyState'
 import Modal from '@renderer/components/ui/Modal'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Input } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { ServerSelect, useServerPicker } from './ServerPicker'
+import NeedsSetup from '@renderer/components/NeedsSetup'
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 /** Same threshold as the main process' warning */
@@ -25,7 +25,7 @@ export default function BackupsPage() {
   return (
     <Page>
       <PageHeader title={t.nav.backups} subtitle={t.backups.subtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
-      {!connections ? <Spinner /> : !conn ? <EmptyState title={t.vpsOps.noServers} /> : <Backups key={conn.id} conn={conn} />}
+      {!connections ? <Spinner /> : !conn ? <NeedsSetup service="server" /> : <Backups key={conn.id} conn={conn} />}
     </Page>
   )
 }
