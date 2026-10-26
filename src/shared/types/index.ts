@@ -158,6 +158,12 @@ export interface DataAPI {
   openLog: () => Promise<void>
   /** Monitoring charts start over */
   clearHistory: () => Promise<void>
+  /** Erases connections, keys, history, log and settings, then restarts on the first-launch tour */
+  wipe: () => Promise<void>
+  /** Saves the setup without any secret; resolves with the file, null when cancelled */
+  exportConfig: () => Promise<string | null>
+  /** Replaces the setup with an export (after a backup) and restarts; null when cancelled */
+  importConfig: () => Promise<string[] | null>
 }
 
 export type UpdateStatus =

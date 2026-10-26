@@ -438,7 +438,10 @@ const api: DevForgeAPI = {
     restore:      invoke('data:restore'),
     openDir:      invoke('data:open-dir'),
     openLog:      invoke('data:open-log'),
-    clearHistory: invoke('data:clear-history')
+    clearHistory: invoke('data:clear-history'),
+    wipe:         invoke('data:wipe'),
+    exportConfig: invoke('data:export'),
+    importConfig: invoke('data:import')
   },
 
   // Git

@@ -91,6 +91,12 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 
 **Fini quand** « Tout effacer » ramène à l'écran de premier lancement, et qu'un import retrouve la configuration (secrets à ressaisir).
 
+**Fait** (Paramètres › Données) :
+- « Tout effacer », confirmé en tapant « effacer » : connexions, clés, projets, historiques, journal, sauvegardes de DevForge, réglages et mémoire de la page ; les modèles de dictée téléchargés et les dossiers de projets restent ; DevForge redémarre sur l'écran de bienvenue ;
+- « Exporter » : un fichier JSON (projets, serveurs, bases, déploiements, surveillance, n8n, page de statut, VPN, réglages, réglages de Forgy) d'où tout champ secret est retiré (`…Enc`, mots de passe, jetons, clés) ;
+- « Importer » : vérifie le fichier, fait une sauvegarde, écrit seulement les fichiers connus, marque le premier lancement comme fait, redémarre ; les secrets sont à ressaisir dans Connexions ;
+- la liste des données sauvegardées (`DATA_ENTRIES`) comprend maintenant GitHub, sauvegardes VPS, page de statut, VPN, historique du terminal, hosts et pont mobile.
+
 ## Lot 5 — Dépôt public
 
 - Recherche de secrets sur tout l'historique (gitleaks) avant et après.
