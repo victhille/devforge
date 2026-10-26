@@ -23,6 +23,8 @@ export interface NavPage {
   load: () => PageModule
   /** Extra words matched by the command palette */
   keywords?: string[]
+  /** Only listed (menu, palette) once a server is set up; the page itself stays reachable */
+  needs?: 'server'
 }
 
 /**
@@ -41,12 +43,12 @@ export const PAGES: NavPage[] = [
   { path: '/docker',      labelKey: 'docker',      icon: Container,  section: 'sectionServers', load: () => import('@renderer/features/docker/DockerPage'), keywords: ['container', 'conteneur', 'compose', 'image'] },
   { path: '/deploy',      labelKey: 'deploy',      icon: UploadCloud, section: 'sectionServers', load: () => import('@renderer/features/deploy/DeployPage'), keywords: ['deploy', 'déployer', 'production', 'pm2', 'release', 'mise en prod'] },
   { path: '/monitor',     labelKey: 'monitor',     icon: Activity,   section: 'sectionServers', load: () => import('@renderer/features/monitor/MonitorPage'), keywords: ['uptime', 'ping', 'status', 'down', 'surveillance'] },
-  { path: '/n8n',         labelKey: 'n8n',         icon: Workflow,   section: 'sectionServers', load: () => import('@renderer/features/n8n/N8nPage'), keywords: ['n8n', 'workflow', 'automation', 'automatisation', 'zapier'] },
-  { path: '/services',    labelKey: 'services',    icon: AppWindow,  section: 'sectionServers', load: () => import('@renderer/features/vps/ServicesPage'), keywords: ['portainer', 'phpmyadmin', 'adminer', 'tunnel', 'interface', 'web', 'conteneur'] },
-  { path: '/health',      labelKey: 'health',      icon: HeartPulse, section: 'sectionServers', load: () => import('@renderer/features/vps/HealthPage'), keywords: ['santé', 'sécurité', 'security', 'updates', 'mises à jour', 'fail2ban', 'disque', 'disk', 'ports'] },
-  { path: '/backups',     labelKey: 'backups',     icon: HardDriveDownload, section: 'sectionServers', load: () => import('@renderer/features/vps/BackupsPage'), keywords: ['sauvegarde', 'backup', 'restaurer', 'restore', 'dump', 'cron'] },
-  { path: '/status',      labelKey: 'statusPage',  icon: RadioTower, section: 'sectionServers', load: () => import('@renderer/features/status/StatusPage'), keywords: ['statut', 'status', 'uptime', 'incident', 'surveillance', 'alerte', 'ntfy', 'disponibilité'] },
-  { path: '/vpn',         labelKey: 'vpn',         icon: ShieldCheck, section: 'sectionServers', load: () => import('@renderer/features/vpn/VpnPage'), keywords: ['vpn', 'wireguard', 'wg-easy', 'qr', 'client', 'tunnel'] },
+  { path: '/n8n',         labelKey: 'n8n',         icon: Workflow,   section: 'sectionServers', load: () => import('@renderer/features/n8n/N8nPage'), keywords: ['n8n', 'workflow', 'automation', 'automatisation', 'zapier'], needs: 'server' },
+  { path: '/services',    labelKey: 'services',    icon: AppWindow,  section: 'sectionServers', load: () => import('@renderer/features/vps/ServicesPage'), keywords: ['portainer', 'phpmyadmin', 'adminer', 'tunnel', 'interface', 'web', 'conteneur'], needs: 'server' },
+  { path: '/health',      labelKey: 'health',      icon: HeartPulse, section: 'sectionServers', load: () => import('@renderer/features/vps/HealthPage'), keywords: ['santé', 'sécurité', 'security', 'updates', 'mises à jour', 'fail2ban', 'disque', 'disk', 'ports'], needs: 'server' },
+  { path: '/backups',     labelKey: 'backups',     icon: HardDriveDownload, section: 'sectionServers', load: () => import('@renderer/features/vps/BackupsPage'), keywords: ['sauvegarde', 'backup', 'restaurer', 'restore', 'dump', 'cron'], needs: 'server' },
+  { path: '/status',      labelKey: 'statusPage',  icon: RadioTower, section: 'sectionServers', load: () => import('@renderer/features/status/StatusPage'), keywords: ['statut', 'status', 'uptime', 'incident', 'surveillance', 'alerte', 'ntfy', 'disponibilité'], needs: 'server' },
+  { path: '/vpn',         labelKey: 'vpn',         icon: ShieldCheck, section: 'sectionServers', load: () => import('@renderer/features/vpn/VpnPage'), keywords: ['vpn', 'wireguard', 'wg-easy', 'qr', 'client', 'tunnel'], needs: 'server' },
 
   // System
   { path: '/environment', labelKey: 'environment', icon: Monitor,    section: 'sectionSystem', load: () => import('@renderer/features/system/EnvironmentPage'), keywords: ['node', 'npm', 'php', 'git', 'docker'] },
@@ -81,6 +83,9 @@ export const SECTIONS: SectionKey[] = ['sectionMain', 'sectionServers', 'section
 
 /** Pages shown in the sidebar and the palette. */
 export const LISTED_PAGES = PAGES.filter(p => !p.route)
+
+/** Listed now: a page that needs a server waits for one */
+export const isListed = (path: string, hasServer: boolean) => hasServer || PAGES.find(p => p.path === path)?.needs !== 'server'
 
 /**
  * Sidebar layout: a few favorites always visible, every other page in a

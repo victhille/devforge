@@ -45,6 +45,7 @@ const en = {
     favoritesFull: '{max} favorites at most',
     favoritesReset: 'Back to the default favorites',
     favoritesEmpty: 'Hover a page and click ☆ to pin it here.',
+    moreWithServer: '{n} more with a server',
     favoritesMove: 'Drag to reorder (or Alt + ↑ ↓)',
     groupDev: 'Development',
     groupServers: 'Servers',

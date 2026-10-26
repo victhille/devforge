@@ -4,7 +4,7 @@ import { Code2, FolderOpen, Info, Server, Terminal, Play, Rocket, type LucideIco
 import type { Project, SSHConnection, Stack } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useConsole } from '@renderer/app/ConsoleContext'
-import { HOME, LISTED_PAGES, type NavPage } from '@renderer/app/navigation'
+import { HOME, LISTED_PAGES, isListed, type NavPage } from '@renderer/app/navigation'
 import { useActions } from './useActions'
 
 export interface Command {
@@ -51,7 +51,7 @@ export function useCommands(open: boolean): Command[] {
     const list: Command[] = []
 
     // Pages
-    const pages: Pick<NavPage, 'path' | 'labelKey' | 'icon' | 'keywords'>[] = [HOME, ...LISTED_PAGES]
+    const pages: Pick<NavPage, 'path' | 'labelKey' | 'icon' | 'keywords'>[] = [HOME, ...LISTED_PAGES.filter(p => isListed(p.path, connections.length > 0))]
     for (const p of pages) {
       list.push({
         id: `page:${p.path}`,
