@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Archive, ClipboardCopy } from 'lucide-react'
+import { Archive, ClipboardCopy, Download, Trash2, Upload } from 'lucide-react'
 import type { DataInfo } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { formatSize } from '@renderer/lib/format'
 import Button from '@renderer/components/ui/Button'
+import { Input } from '@renderer/components/ui/Input'
 import { SettingRow, SettingsCard } from './parts'
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
@@ -16,6 +17,7 @@ export default function DataSettings({ onCopyReport }: { onCopyReport: () => voi
   const toast = useToast()
   const [info, setInfo] = useState<DataInfo | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
+  const [wipeWord, setWipeWord] = useState('')
   useEffect(() => { window.devforge.data.info().then(setInfo).catch(() => {}) }, [])
 
   const when = (iso: string) => new Intl.DateTimeFormat(lang, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso))
@@ -63,11 +65,36 @@ export default function DataSettings({ onCopyReport }: { onCopyReport: () => voi
           <Button size="sm" variant="secondary" onClick={onCopyReport}><ClipboardCopy size={13} /> {s.copyReport}</Button>
         </div>
       </SettingRow>
+      <SettingRow label={s.exportTitle} hint={s.exportHint}>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="secondary" loading={busy === 'export'}
+            onClick={() => run('export', async () => { const file = await window.devforge.data.exportConfig(); if (file) toast.show({ tone: 'success', title: s.exported, description: file }) })}>
+            <Download size={13} /> {s.exportButton}
+          </Button>
+          <Button size="sm" variant="secondary" loading={busy === 'import'}
+            onClick={() => { if (window.confirm(s.importConfirm)) run('import', async () => { await window.devforge.data.importConfig() }) }}>
+            <Upload size={13} /> {s.importButton}
+          </Button>
+        </div>
+      </SettingRow>
       <SettingRow danger label={s.clearHistory} hint={s.clearHistoryHint}>
         <Button size="sm" variant="danger" loading={busy === 'history'}
           onClick={() => { if (window.confirm(s.clearHistoryConfirm)) run('history', async () => { await window.devforge.data.clearHistory(); toast.show({ tone: 'success', title: s.historyCleared }) }) }}>
           {s.clearHistoryButton}
         </Button>
+      </SettingRow>
+      <SettingRow danger label={s.wipeTitle} hint={s.wipeHint}>
+        {/* Typed on purpose: everything goes, and there is no way back */}
+        <form className="flex flex-wrap items-center gap-2" onSubmit={e => {
+          e.preventDefault()
+          if (wipeWord.trim().toLowerCase() === s.wipeWord) run('wipe', () => window.devforge.data.wipe())
+        }}>
+          <Input aria-label={s.wipeType.replace('{word}', s.wipeWord)} placeholder={s.wipeType.replace('{word}', s.wipeWord)} value={wipeWord}
+            onChange={e => setWipeWord(e.target.value)} className="w-56" autoComplete="off" spellCheck={false} />
+          <Button type="submit" size="sm" variant="danger" loading={busy === 'wipe'} disabled={wipeWord.trim().toLowerCase() !== s.wipeWord}>
+            <Trash2 size={13} /> {s.wipeButton}
+          </Button>
+        </form>
       </SettingRow>
     </SettingsCard>
   )

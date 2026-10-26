@@ -1,5 +1,5 @@
-import { app, ipcMain, shell } from 'electron'
-import { existsSync, readdirSync, statSync } from 'fs'
+import { BrowserWindow, app, dialog, ipcMain, session, shell } from 'electron'
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { loadSettings, saveSettings, setFavorites, setHomeWidgets } from '../services/settings/settingsService'
 import { applyLoginItem } from '../lib/loginItem'
@@ -7,6 +7,20 @@ import { applyLauncher } from '../launcher'
 import { log } from '../lib/log'
 import { checkForUpdates, getUpdateStatus, installUpdate, setUpdateChannel } from '../services/updates/updater'
 import { DATA_ENTRIES, backupData, parseBackupName, readSchemaVersion, restoreData } from '../services/storage/migrations'
+import { exportConfig, importConfig, wipeData } from '../services/storage/profile'
+
+/** End-to-end tests: a file path in place of the dialog (never in the installed app) */
+const testPath = (name: string) => (!app.isPackaged && process.env[name]) || undefined
+
+/** After the data changed under the app: start again from the files (skips before-quit, which could write over them) */
+function restartApp(): void {
+  if (!app.isPackaged && process.env.DEVFORGE_TEST_NO_RELAUNCH) {
+    for (const w of BrowserWindow.getAllWindows()) if (!w.isDestroyed()) w.webContents.reload()
+    return
+  }
+  app.relaunch()
+  app.exit(0)
+}
 import { clearHistory } from '../services/monitor/history'
 import type { AppSettings, DataInfo } from '@shared/types'
 
@@ -74,6 +88,32 @@ export function registerSettingsHandlers(): void {
     // Skips before-quit: nothing in memory may write over the restored files
     app.relaunch()
     app.exit(0)
+  })
+  // v3.0 lot 4: start over, or take one's setup elsewhere
+  ipcMain.handle('data:wipe', async () => {
+    const gone = wipeData(app.getPath('userData'))
+    // The page's own memory too: snippets, panels, last version seen
+    await session.defaultSession.clearStorageData({ storages: ['localstorage', 'indexdb', 'cookies'] })
+    log('info', 'data', `Wiped ${gone.length} entries`)
+    restartApp()
+  })
+  ipcMain.handle('data:export', async () => {
+    const bundle = exportConfig(app.getPath('userData'), app.getVersion())
+    const name = `devforge-config-${new Date().toISOString().slice(0, 10)}.json`
+    const target = testPath('DEVFORGE_TEST_EXPORT_PATH')
+      ?? (await dialog.showSaveDialog({ defaultPath: join(app.getPath('documents'), name), filters: [{ name: 'DevForge', extensions: ['json'] }] })).filePath
+    if (!target) return null
+    writeFileSync(target, JSON.stringify(bundle, null, 2))
+    return target
+  })
+  ipcMain.handle('data:import', async () => {
+    const source = testPath('DEVFORGE_TEST_IMPORT_PATH')
+      ?? (await dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'DevForge', extensions: ['json'] }] })).filePaths[0]
+    if (!source) return null
+    const names = importConfig(app.getPath('userData'), readFileSync(source, 'utf-8'))
+    log('info', 'data', `Imported ${names.length} files`)
+    restartApp()
+    return names
   })
   ipcMain.handle('data:open-dir', () => shell.openPath(app.getPath('userData')))
   ipcMain.handle('data:open-log', () => shell.openPath(join(app.getPath('userData'), 'logs')))
