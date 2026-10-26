@@ -16,7 +16,8 @@ test('an empty profile: nothing set; a key, a Git identity, a server added, test
   const { page } = run
   page.on('dialog', d => d.accept())
   await goTo(page, '/settings?section=connections')
-  await expect(page.getByRole('heading', { name: 'Comptes et clés' })).toBeVisible()
+  // The first look at GitHub CLI and Docker can be slow on a busy machine (the app starts it at launch)
+  await expect(page.getByRole('heading', { name: 'Comptes et clés' })).toBeVisible({ timeout: 20_000 })
   await expect(page.getByText('aucune clé')).toBeVisible()
   await expect(page.getByText('Aucun serveur', { exact: true })).toBeVisible()
   await expect(page.getByText('Aucune base enregistrée')).toBeVisible()

@@ -33,6 +33,11 @@ function slowProbes(): Promise<[string | null, string | null]> {
   return probes.value
 }
 
+/** Started with the app: Connections then opens without waiting */
+export function warmProbes(): void {
+  slowProbes().catch(() => {})
+}
+
 const where = (d: { type: string; host?: string; port?: number; database?: string; file?: string }) =>
   d.type === 'sqlite' ? d.file ?? '' : `${d.host ?? ''}${d.port ? `:${d.port}` : ''}${d.database ? `/${d.database}` : ''}`
 

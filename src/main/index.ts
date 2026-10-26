@@ -21,6 +21,7 @@ import { migrateData } from './services/storage/migrations'
 import { initUpdater, stopUpdater } from './services/updates/updater'
 import { stopWatch } from './services/monitor/vpsWatch'
 import { startBackupWatch, stopBackupWatch } from './services/backups/backupsService'
+import { warmProbes } from './services/connections/connectionsService'
 import { stopHistory } from './services/monitor/history'
 import { closeAllForwards } from './services/ssh/localForward'
 
@@ -169,8 +170,9 @@ app.whenReady().then(() => {
   // Copies the night's VPS backup to this PC, warns about a missed one
   startBackupWatch()
 
-  // Warm the cache so the Environment page opens instantly
+  // Warm the caches so the Environment page and Settings › Connections open instantly
   detectEnvironment().catch(() => {})
+  warmProbes()
 
   app.on('second-instance', () => {
     // The main window, never the desktop widget
