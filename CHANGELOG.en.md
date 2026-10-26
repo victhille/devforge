@@ -8,20 +8,20 @@ Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en
 
 ### New features
 
-- **données**: Tout effacer, exporter et importer sa configuration ([3e17d3a](https://github.com/victhille/devforge/commit/3e17d3a25adff7c41138332d743ab70b79ff63d6))
-- **public**: Rien de personnel dans le logiciel ([7b0b5cb](https://github.com/victhille/devforge/commit/7b0b5cb35d358d3831797e562926a34a920b1a3b))
-- **premier-lancement**: Langue, comptes, pages « à configurer » ([ceb4280](https://github.com/victhille/devforge/commit/ceb42805fd3e3ead56972a32b2bf3a5e000a7dcb))
-- **paramètres**: Section Connexions (comptes, clés, serveurs, bases) ([fb2c0b0](https://github.com/victhille/devforge/commit/fb2c0b03148ce6c27730afd251f882cc8ab18f9e))
-- **accueil**: Les cartes en Masonry ([93b951f](https://github.com/victhille/devforge/commit/93b951f58e6a91dfbe1e87b342f4f8ab11894056))
+- **données**: Tout effacer, exporter et importer sa configuration ([1bdf1b9](https://github.com/victhille/devforge/commit/1bdf1b90fc3dd52cef0834bfdd5b8ea3b5830989))
+- **public**: Rien de personnel dans le logiciel ([4359fc9](https://github.com/victhille/devforge/commit/4359fc9c65e886801916a3c68fb7caddb59b249f))
+- **premier-lancement**: Langue, comptes, pages « à configurer » ([03e838b](https://github.com/victhille/devforge/commit/03e838b74612b0fcb20d40d216538b58b8867933))
+- **paramètres**: Section Connexions (comptes, clés, serveurs, bases) ([b5067ea](https://github.com/victhille/devforge/commit/b5067ea49e2b43c46f96045ac74ac9276476f4b6))
+- **accueil**: Les cartes en Masonry ([3f4ab35](https://github.com/victhille/devforge/commit/3f4ab3518ea34359b7dc06c5525de7b055b99cec))
 
 ### Fixes
 
-- **données**: La page vide sa mémoire elle-même avant de tout effacer ([1746306](https://github.com/victhille/devforge/commit/17463069a1f2dc75289a08afb0162f4aa8110ba6))
-- **connexions**: Sondes lentes gardées une minute, effacement qui n'attend plus Chromium ([89da203](https://github.com/victhille/devforge/commit/89da203a037fb0a45130edda5fd1fcf6d7e368ee))
+- **données**: La page vide sa mémoire elle-même avant de tout effacer ([cf439b6](https://github.com/victhille/devforge/commit/cf439b676b7bcbec36e1491753b10d6bad7e54b5))
+- **connexions**: Sondes lentes gardées une minute, effacement qui n'attend plus Chromium ([672f4c0](https://github.com/victhille/devforge/commit/672f4c0b520724486b9d806414586f2c6fc46bfe))
 
 ### Dependencies and build
 
-- **public**: Mises à jour sans jeton (dépôt public) ([f5f990a](https://github.com/victhille/devforge/commit/f5f990aa972da2728775ff362162f13402cc28a2))
+- **public**: Mises à jour sans jeton (dépôt public) ([5517213](https://github.com/victhille/devforge/commit/551721327f67c9dcb72932b3c0a405d9bc232107))
 
 _4 technical change(s) (tests, CI, repository docs) not listed._
 
@@ -31,7 +31,7 @@ _4 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- **design**: Le logo de DevForge mobile (enclume orange), une seule flèche sur « Retour » ([998e489](https://github.com/victhille/devforge/commit/998e4891da13ca95c56b7bb9c75b67162787b3c9))
+- **design**: Le logo de DevForge mobile (enclume orange), une seule flèche sur « Retour » ([99b557f](https://github.com/victhille/devforge/commit/99b557f2855e3067c122acd78254a156dfb90ae4))
 
 _2 technical change(s) (tests, CI, repository docs) not listed._
 
@@ -41,7 +41,7 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### Fixes
 
-- **terminal**: L'écho de la commande retiré même après la bannière de cmd ([9ba95ad](https://github.com/victhille/devforge/commit/9ba95ad2b7575a6eec167965384a56857c750406))
+- **terminal**: L'écho de la commande retiré même après la bannière de cmd ([8b64691](https://github.com/victhille/devforge/commit/8b6469143217ad5471baa555d825dcf3f1286dfd))
 
 ## [2.3.0](https://github.com/victhille/devforge/compare/v2.2.0...v2.3.0) — 2026-10-25
 
@@ -49,12 +49,12 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- **forgy**: Forgy dans les ateliers Laravel et Next.js ([be31e09](https://github.com/victhille/devforge/commit/be31e09dd6e4250381814bbc4e6c41b69b10e6f9))
-- **laravel**: Sail à la création et dans l'atelier ([7af9319](https://github.com/victhille/devforge/commit/7af931997818e34ff8dca03c38be9dcb35edd339))
-- **nextjs**: Auth.js dans l'atelier (GitHub, Google, e-mail) ([e6424fb](https://github.com/victhille/devforge/commit/e6424fbfaec6bab13d1b10e5f21e9c48d7e1112a))
-- **nextjs**: Revenir en arrière sur une migration Prisma ([70d397a](https://github.com/victhille/devforge/commit/70d397afa2f254f3ed4e561a34741038cada824f))
-- **terminal**: Code de retour dans cmd, shells gardés sur la page projet ([f39d4f0](https://github.com/victhille/devforge/commit/f39d4f06422b50ef92f08fd9f0e9072d052208d5))
-- **projets**: Une base Docker propre à chaque projet ([fe2dfc2](https://github.com/victhille/devforge/commit/fe2dfc262d791c1e83af28278aadb17934571680))
+- **forgy**: Forgy dans les ateliers Laravel et Next.js ([da54d26](https://github.com/victhille/devforge/commit/da54d26781151d6ee04bb7caa3897cecd5b62c14))
+- **laravel**: Sail à la création et dans l'atelier ([3f052d9](https://github.com/victhille/devforge/commit/3f052d9d5e5a1d4508d00e4b326487e2eae1a5e1))
+- **nextjs**: Auth.js dans l'atelier (GitHub, Google, e-mail) ([f9fc632](https://github.com/victhille/devforge/commit/f9fc632a60536ad43d2d83138534882f0aa0f066))
+- **nextjs**: Revenir en arrière sur une migration Prisma ([59bd03d](https://github.com/victhille/devforge/commit/59bd03d9c78f4de882f5070ed15df77b0a2b7fb5))
+- **terminal**: Code de retour dans cmd, shells gardés sur la page projet ([98d2976](https://github.com/victhille/devforge/commit/98d2976dc08ea58e4f9065092b72ef7b8d6a9a2c))
+- **projets**: Une base Docker propre à chaque projet ([b447a6b](https://github.com/victhille/devforge/commit/b447a6b6fa8acaf58ba762a63a425c9fd5ee56ff))
 
 _1 technical change(s) (tests, CI, repository docs) not listed._
 
@@ -64,16 +64,16 @@ _1 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- **ateliers**: Ateliers Laravel et Next.js ([d03fa05](https://github.com/victhille/devforge/commit/d03fa050c7c5aa8b6ad6be18abe4efa60d208fc8))
-- **terminal**: Terminal en blocs ([02bf360](https://github.com/victhille/devforge/commit/02bf360fe6acbfe37df19f5be810c4954697631d))
-- **statut**: Page de statut et surveillance 24 h/24 depuis le VPS ([5c1e944](https://github.com/victhille/devforge/commit/5c1e9443b8e29e77a8f0e03d4bbb964accce6bcc))
-- **lanceur**: Lanceur global sur Ctrl+Alt+Espace ([ab2eace](https://github.com/victhille/devforge/commit/ab2eace99cc3c7539c0cfcc117993ee46f551338))
-- **symfony**: Atelier Symfony dans la page projet ([8eaf177](https://github.com/victhille/devforge/commit/8eaf177aec3c854687ce9ba3fb1a2b3a89955358))
-- **projets**: Création enrichie (base, options, Git et GitHub) ([00f79cd](https://github.com/victhille/devforge/commit/00f79cdaa052ad2d119f16b8fecf4b503f731c78))
+- **ateliers**: Ateliers Laravel et Next.js ([1ce2c5f](https://github.com/victhille/devforge/commit/1ce2c5f8cef904b17709189ac63472e5f97e9862))
+- **terminal**: Terminal en blocs ([3880478](https://github.com/victhille/devforge/commit/38804783dc36c7f847d058e3ef6805822cfcb465))
+- **statut**: Page de statut et surveillance 24 h/24 depuis le VPS ([9870658](https://github.com/victhille/devforge/commit/9870658ede57a0cd63de5db0eb7a859e5018ac63))
+- **lanceur**: Lanceur global sur Ctrl+Alt+Espace ([928b6d2](https://github.com/victhille/devforge/commit/928b6d200eb0e86afa25563bb8ae1de10a23696d))
+- **symfony**: Atelier Symfony dans la page projet ([5149fea](https://github.com/victhille/devforge/commit/5149fea56d18da6d649aeda01eb1f0bac0ccd441))
+- **projets**: Création enrichie (base, options, Git et GitHub) ([a30dec7](https://github.com/victhille/devforge/commit/a30dec712e695c4750eae4bbfb545b3cbfd2c6c2))
 
 ### Fixes
 
-- **statut**: Retours de la première installation sur le VPS ([b34cf94](https://github.com/victhille/devforge/commit/b34cf944a22ab70d9c72074679f767b688f6cb8f))
+- **statut**: Retours de la première installation sur le VPS ([935d407](https://github.com/victhille/devforge/commit/935d40726ac9586804cd117f04b238f255762321))
 
 _2 technical change(s) (tests, CI, repository docs) not listed._
 
@@ -83,7 +83,7 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- **menu**: 6 groupes de 5 pages au plus ([cb44c1b](https://github.com/victhille/devforge/commit/cb44c1b1194ee86e05037ba3501124e60c04e012))
+- **menu**: 6 groupes de 5 pages au plus ([dbc525c](https://github.com/victhille/devforge/commit/dbc525c9f2648a01582f5edc921981726f500bb2))
 
 ## [2.1.0-beta.4](https://github.com/victhille/devforge/compare/v2.1.0-beta.3...v2.1.0-beta.4) — 2026-10-23
 
@@ -91,7 +91,7 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- **automations**: Widget Automatisations et lecture du flux par Forgy ([568dbc1](https://github.com/victhille/devforge/commit/568dbc1583e5207cfd7fefa2fb6fbdd79b017e66))
+- **automations**: Widget Automatisations et lecture du flux par Forgy ([390197b](https://github.com/victhille/devforge/commit/390197b95e84b73c7df52c83a36d00978ff9b619))
 
 ## [2.1.0-beta.3](https://github.com/victhille/devforge/compare/v2.1.0-beta.2...v2.1.0-beta.3) — 2026-10-23
 
@@ -99,7 +99,7 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### Fixes
 
-- **updates**: Lire les versions du dépôt privé avec le jeton de GitHub CLI ([782dfc4](https://github.com/victhille/devforge/commit/782dfc4b3b86e3d4b739f31fbf93a871f2a67edb))
+- **updates**: Lire les versions du dépôt privé avec le jeton de GitHub CLI ([6acd991](https://github.com/victhille/devforge/commit/6acd991259630b75e3537d089ca73da6eb043643))
 
 ## [2.1.0-beta.2](https://github.com/victhille/devforge/compare/v2.1.0-beta.1...v2.1.0-beta.2) — 2026-10-23
 
@@ -107,9 +107,9 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- Synchronisation des .env, GitHub sur la page projet, Forgy plus complet ([623a1cf](https://github.com/victhille/devforge/commit/623a1cf4966781d93db7244f448e031f285b1817))
-- **home**: Accueil personnalisable, palette avec actions, mode compact ([618c688](https://github.com/victhille/devforge/commit/618c688ddb8a9edcf9e29a39dae050855d863927))
-- **backups**: Sauvegardes automatiques du VPS ([3089b02](https://github.com/victhille/devforge/commit/3089b02478a8a3973aabeefd806a220691b39577))
+- Synchronisation des .env, GitHub sur la page projet, Forgy plus complet ([60e8d8f](https://github.com/victhille/devforge/commit/60e8d8f89fbc4147dbb93e66d4f1295be032f118))
+- **home**: Accueil personnalisable, palette avec actions, mode compact ([8571469](https://github.com/victhille/devforge/commit/857146922120f81d634061a91f99029aee846f5e))
+- **backups**: Sauvegardes automatiques du VPS ([e88a02f](https://github.com/victhille/devforge/commit/e88a02fc07f112731a74af9da96150e847da60c7))
 
 ## [2.1.0-beta.1](https://github.com/victhille/devforge/compare/v2.0.0...v2.1.0-beta.1) — 2026-10-22
 
@@ -117,11 +117,11 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- **vps**: Bouton Mise à jour, services et santé du VPS ([2aedd4f](https://github.com/victhille/devforge/commit/2aedd4fcb3242962dd4cdf66700c0d53b3c6803e))
+- **vps**: Bouton Mise à jour, services et santé du VPS ([683dc98](https://github.com/victhille/devforge/commit/683dc9865731806b27fa97f5feb82511adcceac2))
 
 ### Fixes
 
-- **i18n**: Pas de texte vide pour les niveaux de santé impossibles ([f96000b](https://github.com/victhille/devforge/commit/f96000bf59429c689776750dba092b8d02fa3d66))
+- **i18n**: Pas de texte vide pour les niveaux de santé impossibles ([340d276](https://github.com/victhille/devforge/commit/340d2769069eeda3eb450c03e046ae0798ed931c))
 
 _1 technical change(s) (tests, CI, repository docs) not listed._
 
@@ -131,11 +131,11 @@ _1 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- **menu**: Favoris du menu au choix ([b37d195](https://github.com/victhille/devforge/commit/b37d1957116f8c34583721059980b33f75f0e503))
+- **menu**: Favoris du menu au choix ([d7c8c5b](https://github.com/victhille/devforge/commit/d7c8c5b7641a375fa96b2101b260a743a25a691f))
 
 ### Fixes
 
-- **ssh**: Requêtes HTTP par la session SSH (wg-easy 408, clé d'API n8n) ([ec39d02](https://github.com/victhille/devforge/commit/ec39d027ed9a322e6e701fcff667a897f88c13b1))
+- **ssh**: Requêtes HTTP par la session SSH (wg-easy 408, clé d'API n8n) ([e3b715e](https://github.com/victhille/devforge/commit/e3b715eed9488c509a7195c0a625a67e9d314ae7))
 
 ## [2.0.0-beta.5](https://github.com/victhille/devforge/compare/v2.0.0-beta.4...v2.0.0-beta.5) — 2026-10-22
 
@@ -143,11 +143,11 @@ _1 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- **vpn**: Page VPN pour le WireGuard du VPS (wg-easy) ([0ae1618](https://github.com/victhille/devforge/commit/0ae1618de44f87eb3d1c65b434067a2e87e1b2c6))
+- **vpn**: Page VPN pour le WireGuard du VPS (wg-easy) ([3c29da6](https://github.com/victhille/devforge/commit/3c29da697c834abbbd85006a0ff3d76573b70399))
 
 ### Fixes
 
-- **ui**: Sélecteurs alignés avec les boutons, version au-dessus de « Réduire le menu » ([8185018](https://github.com/victhille/devforge/commit/8185018ebc10eb2a301eada82c0f35d9cc4c2019))
+- **ui**: Sélecteurs alignés avec les boutons, version au-dessus de « Réduire le menu » ([c91b062](https://github.com/victhille/devforge/commit/c91b062c04374ccf6ccd104f32f7c99821fbf3a6))
 
 _2 technical change(s) (tests, CI, repository docs) not listed._
 
@@ -157,7 +157,7 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### Fixes
 
-- **n8n**: Attendre l'éditeur avant d'annoncer que n8n est prêt ([0822470](https://github.com/victhille/devforge/commit/08224701d9cf338f71741791e97116c8149b0f00))
+- **n8n**: Attendre l'éditeur avant d'annoncer que n8n est prêt ([f8ca814](https://github.com/victhille/devforge/commit/f8ca814c14960f1b659fa26389ee7831e2e4d671))
 
 ## [2.0.0-beta.3](https://github.com/victhille/devforge/compare/v2.0.0-beta.2...v2.0.0-beta.3) — 2026-10-20
 
@@ -165,7 +165,7 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- **n8n**: Interface de n8n en français ([2926721](https://github.com/victhille/devforge/commit/2926721ed9f0e09e00b41dcb4659b640fde0e713))
+- **n8n**: Interface de n8n en français ([88de1d7](https://github.com/victhille/devforge/commit/88de1d709db84827f150840981ee18ab28709056))
 
 ## [2.0.0-beta.2](https://github.com/victhille/devforge/compare/v2.0.0-beta.1...v2.0.0-beta.2) — 2026-10-20
 
@@ -173,7 +173,7 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### Fixes
 
-- **n8n**: N8n opens from DevForge with no command, the sub-domain is checked before an HTTPS install, and the old Caddy is removed ([5e4b955](https://github.com/victhille/devforge/commit/5e4b955ab8ced60d9df1562fbeac1fd355357306))
+- **n8n**: N8n opens from DevForge with no command, the sub-domain is checked before an HTTPS install, and the old Caddy is removed ([54b4266](https://github.com/victhille/devforge/commit/54b426690b49b60dc0b4b4a449de44a23bbb5f6e))
 
 ## [2.0.0-beta.1](https://github.com/victhille/devforge/compare/v1.5.0...v2.0.0-beta.1) — 2026-10-20
 
@@ -181,12 +181,12 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- Whisper voice typing on your PC, a guided first launch, better accessibility (keyboard, contrast) and CPU of Docker services ([9a0ba75](https://github.com/victhille/devforge/commit/9a0ba75b029196549b896233abb8cdf4a6bfc9a8))
-- Redesigned settings and release notes, a "What's new" window, n8n installed and followed on the VPS, Vercel deployments on the project page ([d3de411](https://github.com/victhille/devforge/commit/d3de411d050201b56e5641157208b0ebd429d949))
-- **monitor**: Background VPS watch with 7 days of history, 24 h charts, alerts, and Docker on the VPS ([fea30ad](https://github.com/victhille/devforge/commit/fea30ad55ce14e9cc8578d5e291f6727273eb7c0))
-- **projects**: Project page gathering Git, Docker, variables, databases, logs, ports and deploy, with an active project followed by Forgy and the home page ([a513cfe](https://github.com/victhille/devforge/commit/a513cfee40928a5349413e5184b3323088874133))
-- **assistant**: Forgy can act: commit, Compose, SQL, ports, scripts, .env variables, always after your approval, with a journal and undo ([79068de](https://github.com/victhille/devforge/commit/79068de6d3df5a8add7205e9b277dc872b145f95))
-- V2 groundwork: versioned and backed-up data, local log with a diagnostic report, beta channel, reviewed light theme ([16817cb](https://github.com/victhille/devforge/commit/16817cba0f7c1e1ef8efef1d39781a7ce27ce5e5))
+- Whisper voice typing on your PC, a guided first launch, better accessibility (keyboard, contrast) and CPU of Docker services ([7e27bce](https://github.com/victhille/devforge/commit/7e27bce849d3ea1ecfc706fdfb29f1ac1c5726c8))
+- Redesigned settings and release notes, a "What's new" window, n8n installed and followed on the VPS, Vercel deployments on the project page ([11ca027](https://github.com/victhille/devforge/commit/11ca027a7ef4906386caa707d187989503206aa7))
+- **monitor**: Background VPS watch with 7 days of history, 24 h charts, alerts, and Docker on the VPS ([4a99ccf](https://github.com/victhille/devforge/commit/4a99ccf291ba06ae0d039cf8452bd96b6c1d89a6))
+- **projects**: Project page gathering Git, Docker, variables, databases, logs, ports and deploy, with an active project followed by Forgy and the home page ([16d1df4](https://github.com/victhille/devforge/commit/16d1df41c951df9b94c4af1d22c442ffb0be65e7))
+- **assistant**: Forgy can act: commit, Compose, SQL, ports, scripts, .env variables, always after your approval, with a journal and undo ([514e07b](https://github.com/victhille/devforge/commit/514e07bfb3251ec199cb0a3505030cd59dda6ff7))
+- V2 groundwork: versioned and backed-up data, local log with a diagnostic report, beta channel, reviewed light theme ([3d02955](https://github.com/victhille/devforge/commit/3d029554b07e9ebd258cfe21447e26071afe99ca))
 
 ## [1.5.0](https://github.com/victhille/devforge/compare/v1.4.1...v1.5.0) — 2026-10-19
 
@@ -194,7 +194,7 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- New design: reworked menu, live home page, Forgy panel, redone pages, Forgy strolls with Boulon and a desktop widget ([914eb38](https://github.com/victhille/devforge/commit/914eb3880bfb890b7583c6ae47a5e9dbf5edf1a4))
+- New design: reworked menu, live home page, Forgy panel, redone pages, Forgy strolls with Boulon and a desktop widget ([aaa9095](https://github.com/victhille/devforge/commit/aaa909513fd2a3afd8829534915705f7f90daefa))
 
 ## [1.4.1](https://github.com/victhille/devforge/compare/v1.4.0...v1.4.1) — 2026-10-18
 
@@ -202,7 +202,7 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### Performance
 
-- Smoother app: the mascot costs nothing at rest, faster Git and Docker pages ([4dd05f4](https://github.com/victhille/devforge/commit/4dd05f475d13173b26e4378b8a606352a5a9db80))
+- Smoother app: the mascot costs nothing at rest, faster Git and Docker pages ([3e70743](https://github.com/victhille/devforge/commit/3e70743fd41ae7b187b584646d1775afc181d024))
 
 ## [1.4.0](https://github.com/victhille/devforge/compare/v1.3.0...v1.4.0) — 2026-10-18
 
@@ -210,14 +210,14 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- **assistant**: Web search in the assistant (with sources) and shortcuts to Claude Code, Codex, Antigravity, Gemini and the web apps ([6631364](https://github.com/victhille/devforge/commit/663136452eac6c665fb2df546ae4709536bb3ea5))
-- **assistant**: Forgy, the assistant's little robot, shows what it is doing (thinking, searching, writing, done…) ([5b58dee](https://github.com/victhille/devforge/commit/5b58dee6432813356c083acfefe3be0d63c906e4))
-- **assistant**: Ready-made tasks and cost control for the assistant (right model per task, monthly budget) ([e79709d](https://github.com/victhille/devforge/commit/e79709d825f8b79849e4543da20a369fbe6a3723))
-- **assistant**: Built-in AI assistant (Ctrl+J) that knows the project and the current page, read-only ([6b3d8f1](https://github.com/victhille/devforge/commit/6b3d8f165bb03ef88a70521b3c47b61af4cad089))
+- **assistant**: Web search in the assistant (with sources) and shortcuts to Claude Code, Codex, Antigravity, Gemini and the web apps ([1ec40c3](https://github.com/victhille/devforge/commit/1ec40c3dae6ff5c2c5f50cb4af44d5a47bc659e4))
+- **assistant**: Forgy, the assistant's little robot, shows what it is doing (thinking, searching, writing, done…) ([e5713a7](https://github.com/victhille/devforge/commit/e5713a7dd1e1231dccebb326f527745f5930e6f8))
+- **assistant**: Ready-made tasks and cost control for the assistant (right model per task, monthly budget) ([7ff3773](https://github.com/victhille/devforge/commit/7ff3773c4a3bf4e52ffcb21b09bb597f41909a98))
+- **assistant**: Built-in AI assistant (Ctrl+J) that knows the project and the current page, read-only ([700a03e](https://github.com/victhille/devforge/commit/700a03e47f357844179a3d250c8134917da61ee2))
 
 ### Fixes
 
-- **settings**: "See what's new" also opens the notes when already on the Settings page ([4cd1a0b](https://github.com/victhille/devforge/commit/4cd1a0b930efe8db01c13b2686c53f4521babd80))
+- **settings**: "See what's new" also opens the notes when already on the Settings page ([a304117](https://github.com/victhille/devforge/commit/a3041176cbd940fb871f72dca43600e3a3f53557))
 
 _1 technical change(s) (tests, CI, repository docs) not listed._
 
@@ -227,19 +227,19 @@ _1 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- **api-tester**: HTML response preview and response headers tab in the API tester ([2a79cd1](https://github.com/victhille/devforge/commit/2a79cd1f4d0ec0dd9869c25e7c77ace8df756c35))
+- **api-tester**: HTML response preview and response headers tab in the API tester ([f9b5e0e](https://github.com/victhille/devforge/commit/f9b5e0eed7a1f658a4a1235645bef73750284571))
 
 ## [1.2.2](https://github.com/victhille/devforge/compare/v1.2.1...v1.2.2) — 2026-10-18
 
 ### Fixes
 
-- **i18n**: The update message and app startup follow the selected language ([fb4ecf8](https://github.com/victhille/devforge/commit/fb4ecf8bf8afdedabc0bf6b12061383400571294))
+- **i18n**: The update message and app startup follow the selected language ([4c21e30](https://github.com/victhille/devforge/commit/4c21e30e4e440e40f5a17b94120b63206843352d))
 
 ## [1.2.1](https://github.com/victhille/devforge/compare/v1.2.0...v1.2.1) — 2026-10-18
 
 ### Fixes
 
-- **release**: Release notes in the app language (French or English) ([d5fecde](https://github.com/victhille/devforge/commit/d5fecdea02e09a04373f2dbd8494eec59d1677c1))
+- **release**: Release notes in the app language (French or English) ([1fed93c](https://github.com/victhille/devforge/commit/1fed93c651af7a415e54f135f3488cebb14e4a9a))
 
 _2 technical change(s) (tests, CI, repository docs) not listed._
 
@@ -247,67 +247,67 @@ _2 technical change(s) (tests, CI, repository docs) not listed._
 
 ### New features
 
-- **releases**: Versioning with conventional commits, changelog and GitHub releases ([7ba03bc](https://github.com/victhille/devforge/commit/7ba03bca81d27ed52179ad6e772fcc408a2594bf))
-- Database explorer like phpMyAdmin, collapsible connections panel ([6060b69](https://github.com/victhille/devforge/commit/6060b69ff1d79b89cd99be309e06ab57b1bf2cff))
-- **database**: Handle connections dropped by the server ([78a4663](https://github.com/victhille/devforge/commit/78a46637c98f7e0d13ee4008a7de6fd735b1d20d))
-- **docker**: Show compose services as tags, linked DevForge project as a caption ([3efff57](https://github.com/victhille/devforge/commit/3efff574a541be16dde3ccb996020c18541a859a))
-- **docker**: Start compose projects from DevForge, safer clean-up, compose-aware DB detection ([45c932d](https://github.com/victhille/devforge/commit/45c932deb7a3301ebdaa54b80947cbe68c2c8bab))
-- **database over SSH**: Also try the server's public address from the server ([df391cc](https://github.com/victhille/devforge/commit/df391cc28e1f2c84e264385d6cefe37b18d922d6))
-- **database over SSH**: Find the database on the server when its address fails ([ce1cacf](https://github.com/victhille/devforge/commit/ce1cacfe706ee2cfb1d0310b5e893ed9faeccf14))
-- **database**: Reach DBs hosted on a saved SSH server through an SSH tunnel ([272bc52](https://github.com/victhille/devforge/commit/272bc520a599b42e35154dd386cb28b97ff0af26))
-- Sandbox renderer, add CSP, route API tester through main process ([9ba8b1c](https://github.com/victhille/devforge/commit/9ba8b1c255e5ac375cbd419807f2066185eeb805))
+- **releases**: Versioning with conventional commits, changelog and GitHub releases ([20f2137](https://github.com/victhille/devforge/commit/20f2137342509a07a9dca14610b3884a63079ec9))
+- Database explorer like phpMyAdmin, collapsible connections panel ([366a147](https://github.com/victhille/devforge/commit/366a147c24a6c8b3f88829af9276e8ddb25f9a9c))
+- **database**: Handle connections dropped by the server ([77e7c64](https://github.com/victhille/devforge/commit/77e7c6418eedcf777b2e741fdc08c4547b89cf40))
+- **docker**: Show compose services as tags, linked DevForge project as a caption ([08b73ee](https://github.com/victhille/devforge/commit/08b73ee05b82bf1a6e117207018c955d28c408dc))
+- **docker**: Start compose projects from DevForge, safer clean-up, compose-aware DB detection ([19ef439](https://github.com/victhille/devforge/commit/19ef439ec668eb219553079f14711d943ed1f29c))
+- **database over SSH**: Also try the server's public address from the server ([5a6c7e8](https://github.com/victhille/devforge/commit/5a6c7e82a50afedaf9130c59f7cc63ddc41cd864))
+- **database over SSH**: Find the database on the server when its address fails ([35c20b3](https://github.com/victhille/devforge/commit/35c20b3862ccadeca03074ad497825a489b2fd91))
+- **database**: Reach DBs hosted on a saved SSH server through an SSH tunnel ([9fbbb46](https://github.com/victhille/devforge/commit/9fbbb46c765ffa138322f46efce3479f12c27523))
+- Sandbox renderer, add CSP, route API tester through main process ([62db7bd](https://github.com/victhille/devforge/commit/62db7bdad5be4354d02d2f41e83e28d7715ecc6a))
 
 ### Security
 
-- Verify SSH server keys (trust on first use) ([36f721a](https://github.com/victhille/devforge/commit/36f721a313221ac51da4ff66b85436b5acea2d8c))
-- No shell injection through paths, URLs or script names ([800f86d](https://github.com/victhille/devforge/commit/800f86ddb0845f724c274b4232f1d404e14fb42b))
+- Verify SSH server keys (trust on first use) ([24bfc8e](https://github.com/victhille/devforge/commit/24bfc8e9fa5c7c44e35bb40bbde479218b4b1e15))
+- No shell injection through paths, URLs or script names ([5129c57](https://github.com/victhille/devforge/commit/5129c5747cf25b02ea198e1217f67ef5f9a3e061))
 
 ### Fixes
 
-- Tests, lint and CI; fix bugs they found ([045a062](https://github.com/victhille/devforge/commit/045a0626a293e2909f5b29f34c5afad4e7b37e46))
-- Fix remote detection scripts: quote them for the remote shell ([17cd22b](https://github.com/victhille/devforge/commit/17cd22bbbc2208fd193aa1fd33e8f1fe2b9baeee))
+- Tests, lint and CI; fix bugs they found ([e363c5f](https://github.com/victhille/devforge/commit/e363c5f5553d0473ccc99cbcec739ac66d5067f9))
+- Fix remote detection scripts: quote them for the remote shell ([9076848](https://github.com/victhille/devforge/commit/9076848068937ffac62f110a58f8c351003b99b2))
 
 ### Dependencies and build
 
-- Upgrade Electron 29 -> 44.5.1 and electron-builder 26 ([6bbac95](https://github.com/victhille/devforge/commit/6bbac95742050db03ee842c4f8dd393cdd7f8188))
+- Upgrade Electron 29 -> 44.5.1 and electron-builder 26 ([ad0e114](https://github.com/victhille/devforge/commit/ad0e114ee7cf6c939598138de10767c61b7a1b1f))
 
 ## 1.1.0 — 2026-10-17
 
 ### New features
 
-- One domain suggestion per project even with several dev servers ([0b8a534](https://github.com/victhille/devforge/commit/0b8a534dc5503c8c4c5900f18870cd038f2fcc75))
-- Detect deployed projects on a server and create deploy targets ([6aee98f](https://github.com/victhille/devforge/commit/6aee98f28426387e02c5b36f634120c2fe4b1ae2))
-- Suggest log files, monitor URLs and local domains from projects ([700e5eb](https://github.com/victhille/devforge/commit/700e5ebfdfaf8783d6ddcd32cc6c2b0b17a3d99a))
-- **database**: SSH tunnels, server detection and .env import ([8a93298](https://github.com/victhille/devforge/commit/8a9329809eebce3b2feced1e6640167ce219e4d2))
-- Collapsible sidebar (icons only, Ctrl+B) and SSH servers panel ([7370ed0](https://github.com/victhille/devforge/commit/7370ed06d0fe12f495330ec21969f00ffa760d2d))
-- Remove duplicated '+' from labels that already have an icon ([303124e](https://github.com/victhille/devforge/commit/303124ec19cf405cf6966cc4250e194ee58e089c))
-- Add cron, timestamp and URL tools to the toolbox ([6978692](https://github.com/victhille/devforge/commit/6978692e601e96f4bdc7ff520004b7aa04ca32e8))
-- Add webhook tester ([de85a08](https://github.com/victhille/devforge/commit/de85a0816fa6e2a737efba6275975263fb17fcae))
-- Add live log file viewer ([62d24f7](https://github.com/victhille/devforge/commit/62d24f7e85ecb26125a5da6a6403ada0a267672b))
-- Add database client (PostgreSQL, MySQL/MariaDB, SQLite) ([66d974f](https://github.com/victhille/devforge/commit/66d974f69eff732deab4de76115495d3d6da64da))
-- Add local domains (.test) with a built-in reverse proxy ([b1c45c9](https://github.com/victhille/devforge/commit/b1c45c934fdf9f29e1d88d53940e4e560057a865))
-- Add background URL monitoring ([fac5aec](https://github.com/victhille/devforge/commit/fac5aecb11d9a279ce52d842a204c6e7854978fc))
-- Add one-click deploy over SSH ([287c95f](https://github.com/victhille/devforge/commit/287c95f5e3c3f49ac7d697807954595b6996f2e8))
-- Add local Docker panel ([780abb5](https://github.com/victhille/devforge/commit/780abb5c0e94c0e3eaa418b06912f4168b12cf22))
-- Add commit assistant and a page error boundary ([c50ee47](https://github.com/victhille/devforge/commit/c50ee47bcdd4439a67dcedb2de01e72363b6e093))
-- Add stack launcher ([1ac624f](https://github.com/victhille/devforge/commit/1ac624f88be3b514e7d0e8ecdac2a50fc3349bd1))
-- Add .env manager and project runtime version checks ([d359051](https://github.com/victhille/devforge/commit/d3590518f8f10109316a7191c0d75dac20a54a59))
-- Add disk cleaner and regroup the sidebar ([8f8b2b0](https://github.com/victhille/devforge/commit/8f8b2b0c531f1260682dadad808a69efa0a32de5))
-- Add multi-project Git dashboard and toast notifications ([15a2d28](https://github.com/victhille/devforge/commit/15a2d289913c1bae71e3e52aea0500c80a538ff7))
-- Add command palette (Ctrl+K) and a single navigation registry ([06b53f9](https://github.com/victhille/devforge/commit/06b53f929e4410c668059ec1e5018c74e8568a99))
-- Make main process non-blocking, lazy-load pages, roomier UI ([afde98a](https://github.com/victhille/devforge/commit/afde98ab31ff1ab0715df430211af9cec3b2fa46))
-- Encrypt SSH passwords with safeStorage, remove unused CreationConsole ([71233fd](https://github.com/victhille/devforge/commit/71233fdaf759ba6442b5603d9f33d82260f7a097))
-- Initial DevForge state ([dfc6918](https://github.com/victhille/devforge/commit/dfc691855d0723ebc891ca5ea76b26ab4938cb86))
+- One domain suggestion per project even with several dev servers ([a6ff66d](https://github.com/victhille/devforge/commit/a6ff66d56390880107ad65ab187fd0cba735ac72))
+- Detect deployed projects on a server and create deploy targets ([872866a](https://github.com/victhille/devforge/commit/872866a17fc0f2c76ea43a3733c784959341e01c))
+- Suggest log files, monitor URLs and local domains from projects ([7fead84](https://github.com/victhille/devforge/commit/7fead8445c6719a71c7cd3aa5afd9d3b552ecc03))
+- **database**: SSH tunnels, server detection and .env import ([20d9247](https://github.com/victhille/devforge/commit/20d9247ee2b4e3eb2afe8c6e69176c2fb31e61a4))
+- Collapsible sidebar (icons only, Ctrl+B) and SSH servers panel ([5fa8e5e](https://github.com/victhille/devforge/commit/5fa8e5e30f217ac388dd0f9bcbd9793ad3ae565d))
+- Remove duplicated '+' from labels that already have an icon ([65d5fa0](https://github.com/victhille/devforge/commit/65d5fa08a5a785e55721fc5de78ff8a5603eac27))
+- Add cron, timestamp and URL tools to the toolbox ([4596521](https://github.com/victhille/devforge/commit/4596521ef667fed2b8572c6b93c5fac2dce35275))
+- Add webhook tester ([a6ad7c2](https://github.com/victhille/devforge/commit/a6ad7c24b3f11bbcb8c9bbdc822cca7f1e70144a))
+- Add live log file viewer ([9c4dc6a](https://github.com/victhille/devforge/commit/9c4dc6aa9f707b72ad844262818f36eedda5aeac))
+- Add database client (PostgreSQL, MySQL/MariaDB, SQLite) ([c4d2f2a](https://github.com/victhille/devforge/commit/c4d2f2a34336893fc1171e43ae0506b060251b5a))
+- Add local domains (.test) with a built-in reverse proxy ([4e22a33](https://github.com/victhille/devforge/commit/4e22a336e1613f81d9aff8578c8af95e456febd8))
+- Add background URL monitoring ([3879966](https://github.com/victhille/devforge/commit/38799668e8fc396a609d4f5b98d45732f6f308b0))
+- Add one-click deploy over SSH ([982e9d3](https://github.com/victhille/devforge/commit/982e9d39d5dcdc4eb2080b8f06bfed563beb4017))
+- Add local Docker panel ([3fc43a6](https://github.com/victhille/devforge/commit/3fc43a629384d6ada0c3d268485692257559c509))
+- Add commit assistant and a page error boundary ([f681b22](https://github.com/victhille/devforge/commit/f681b22a8f40ead8fdf0c0b3c5aca27afb9d3367))
+- Add stack launcher ([10d1e72](https://github.com/victhille/devforge/commit/10d1e72943b43438e72f2816a373a1a5e5574b84))
+- Add .env manager and project runtime version checks ([f3fcd19](https://github.com/victhille/devforge/commit/f3fcd19948fe569d7cbcb34aa48f4fa04eacbbe5))
+- Add disk cleaner and regroup the sidebar ([b99cc85](https://github.com/victhille/devforge/commit/b99cc8587b0a63316b8a976cb687b340866f1277))
+- Add multi-project Git dashboard and toast notifications ([b4ec602](https://github.com/victhille/devforge/commit/b4ec60296538d18c5e0dabb9f2d4b6ce61cb6ea2))
+- Add command palette (Ctrl+K) and a single navigation registry ([dbaf952](https://github.com/victhille/devforge/commit/dbaf9525b12338664357b1b40b38254ff0570ab1))
+- Make main process non-blocking, lazy-load pages, roomier UI ([fe61b89](https://github.com/victhille/devforge/commit/fe61b8958c328d28bbb1960626a8d3a0eafa4749))
+- Encrypt SSH passwords with safeStorage, remove unused CreationConsole ([97db1de](https://github.com/victhille/devforge/commit/97db1de791f3fb4ca376a07182bf2aa88aba8c53))
+- Initial DevForge state ([71ed165](https://github.com/victhille/devforge/commit/71ed16524431040ae8cee493854c988c7f27c0fc))
 
 ### Fixes
 
-- Fix log suggestion path display on Windows ([fb82f1b](https://github.com/victhille/devforge/commit/fb82f1bbf2d71f3657daf77edbdca5fd015273c7))
-- Fix text-base color clash, redesign nav, tabs and buttons ([9155922](https://github.com/victhille/devforge/commit/915592285e44f93785f541de6a656718a0febb7c))
+- Fix log suggestion path display on Windows ([838ed1e](https://github.com/victhille/devforge/commit/838ed1e1a1fae51b308d521169b76aef3c2c54a2))
+- Fix text-base color clash, redesign nav, tabs and buttons ([e07462f](https://github.com/victhille/devforge/commit/e07462f6b6fe7ea96dca2a858fcf19067163fed4))
 
 ### Internal improvements
 
-- Convert remaining CRLF files to LF ([6e6aa37](https://github.com/victhille/devforge/commit/6e6aa37ae271b1b7d5ca3ff2377b3e1b3d85cb52))
-- Normalize line endings to LF (.gitattributes) ([763c286](https://github.com/victhille/devforge/commit/763c286526f28504a6ece779a6a7e63a9ee752c1))
-- Silence expected git stderr in getGitStatus ([a02ab11](https://github.com/victhille/devforge/commit/a02ab117627cf878d8b8d48afb3b981f0a198086))
-- Move UI to Tailwind v4 and split large files ([0411517](https://github.com/victhille/devforge/commit/0411517399116cbd4bb3c3ea12108cbbf33d8d94))
-- Restructure project into feature-based architecture ([e37c3a1](https://github.com/victhille/devforge/commit/e37c3a1f53f7c9e59076a0d1c80dc83a2bed30de))
+- Convert remaining CRLF files to LF ([fa11155](https://github.com/victhille/devforge/commit/fa11155b8c3bf82c5f191079446294a1a4708a5b))
+- Normalize line endings to LF (.gitattributes) ([2ac70ce](https://github.com/victhille/devforge/commit/2ac70ce194686322b7b7b7d2a48aba72e702ed1b))
+- Silence expected git stderr in getGitStatus ([2f8ee4d](https://github.com/victhille/devforge/commit/2f8ee4d95d003b7f7be7e3e5b313a66009862b1a))
+- Move UI to Tailwind v4 and split large files ([bff973b](https://github.com/victhille/devforge/commit/bff973bfd88c482bbc894c42021049e72b708d95))
+- Restructure project into feature-based architecture ([7a8ef9c](https://github.com/victhille/devforge/commit/7a8ef9cc301a3d2bd5ff389d4e52689ada280937))
