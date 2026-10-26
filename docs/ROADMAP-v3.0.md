@@ -64,7 +64,7 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 - premier lancement en 5 étapes : bienvenue avec choix de la langue (celle de Windows par défaut à la première installation, changée sur-le-champ), dossier des projets, **tes comptes** (identité Git, GitHub CLI détecté ou jeton facultatif, renvoi vers Connexions pour serveur, Vercel et bases), clé Forgy, fin ; tout reste passable ;
 - composant commun « à configurer » : les pages qui agissent sur un serveur (n8n, page de statut, VPN, santé, services, sauvegardes, Docker distant, surveillance) et les widgets serveur de l'accueil montrent « Aucun serveur configuré » et un bouton vers Paramètres › Connexions, au lieu d'un message sans issue.
 
-**Reste** : le menu montre encore toutes les pages, même celles dont le service n'est pas configuré (elles mènent à « à configurer ») ; à décider s'il faut les masquer.
+**Ensuite** : le menu et la palette masquent les pages qui demandent un serveur (santé, services, sauvegardes, n8n, page de statut, VPN) tant qu'aucun n'est configuré ; le groupe concerné dit « N de plus avec un serveur » et mène à Connexions ; elles apparaissent dès qu'un serveur est ajouté, sans redémarrer. La page reste joignable par son adresse (widgets de l'accueil), et un favori qui en attend une est gardé.
 
 ## Lot 3 — Rien de personnel dans le logiciel
 
@@ -145,5 +145,5 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 
 ## Questions encore ouvertes
 
-- Signature du code (un certificat évite l'alerte SmartScreen de Windows, mais il est payant) : à décider avant le lot 5.
+- Signature du code (un certificat évite l'alerte SmartScreen de Windows, mais il est payant) : pas pour le moment (décidé le 26/10/2026) ; le README explique comment passer l'alerte.
 - Langue par défaut : celle du système, l'anglais sinon. À confirmer.

@@ -44,6 +44,7 @@ const fr = {
     favoritesFull: '{max} favoris au maximum',
     favoritesReset: 'Remettre les favoris par défaut',
     favoritesEmpty: "Survole une page et clique sur ☆ pour l'épingler ici.",
+    moreWithServer: '{n} de plus avec un serveur',
     favoritesMove: 'Glisser pour réordonner (ou Alt + ↑ ↓)',
     groupDev: 'Développement',
     groupServers: 'Serveurs',

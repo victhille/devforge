@@ -4,7 +4,8 @@ import { ChevronRight, PanelLeftClose, PanelLeftOpen, RotateCcw, Star, type Luci
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
-import { DEFAULT_FAVORITES, HOME, LISTED_PAGES, MENU_GROUPS, groupOf, type GroupKey, type NavKey } from '@renderer/app/navigation'
+import { DEFAULT_FAVORITES, HOME, LISTED_PAGES, MENU_GROUPS, groupOf, isListed, type GroupKey, type NavKey } from '@renderer/app/navigation'
+import { useHasServer } from '@renderer/hooks/useHasServer'
 import { MAX_FAVORITES } from '@shared/lib/favorites'
 
 const ENTRIES = [HOME, ...LISTED_PAGES]
@@ -71,16 +72,19 @@ function NavEntry({ to, label, Icon, collapsed }: { to: string; label: string; I
 }
 
 /** A folding group: header, then its pages without icons */
-function NavGroup({ group, open, collapsed, onToggle, favorites, onPin }: {
+function NavGroup({ group, open, collapsed, onToggle, favorites, onPin, hasServer }: {
   group: (typeof MENU_GROUPS)[number]
   open: boolean
   collapsed: boolean
   onToggle: () => void
   favorites: string[]
   onPin: (path: string) => void
+  hasServer: boolean
 }) {
   const { t } = useI18n()
   const { pathname } = useLocation()
+  const paths = group.paths.filter(p => isListed(p, hasServer))
+  const waiting = group.paths.length - paths.length
   const holdsActive = groupOf(pathname) === group.key
   const label = t.nav[group.key]
   const Icon = group.icon
@@ -105,7 +109,7 @@ function NavGroup({ group, open, collapsed, onToggle, favorites, onPin }: {
         {!collapsed && (
           <>
             <span className="flex-1 truncate text-left">{label}</span>
-            <span className="font-mono text-2xs text-fg-muted">{group.paths.length}</span>
+            <span className="font-mono text-2xs text-fg-muted">{paths.length}</span>
             <ChevronRight size={13} strokeWidth={2.2} className={cn('shrink-0 text-fg-muted transition-transform duration-200', open && 'rotate-90')} />
           </>
         )}
@@ -113,7 +117,7 @@ function NavGroup({ group, open, collapsed, onToggle, favorites, onPin }: {
 
       {!collapsed && open && (
         <div className="df-pop mb-1.5 ml-[18px] flex flex-col gap-px border-l border-line pl-2.5">
-          {group.paths.map(path => {
+          {paths.map(path => {
             const page = entry(path)
             const pinned = favorites.includes(path)
             return (
@@ -131,6 +135,13 @@ function NavGroup({ group, open, collapsed, onToggle, favorites, onPin }: {
               </div>
             )
           })}
+          {/* The server pages exist: say where they come from */}
+          {waiting > 0 && (
+            <NavLink to="/settings?section=connections"
+              className="flex h-[26px] items-center truncate rounded-lg px-2.5 text-xs text-fg-muted transition-colors hover:bg-hover hover:text-fg">
+              {t.nav.moreWithServer.replace('{n}', String(waiting))}
+            </NavLink>
+          )}
         </div>
       )}
     </div>
@@ -145,7 +156,8 @@ export default function Sidebar() {
   const settings = entry('/settings')
   const [favorites, saveFavorites] = useFavorites()
   const [dragged, setDragged] = useState<number | null>(null)
-  const shown = favorites.filter(known)
+  const hasServer = useHasServer()
+  const shown = favorites.filter(p => known(p) && isListed(p, hasServer))
   const isDefault = favorites.join() === DEFAULT_FAVORITES.join()
 
   const togglePin = (path: string) => saveFavorites(favorites.includes(path) ? favorites.filter(p => p !== path) : [...favorites, path])
@@ -153,7 +165,8 @@ export default function Sidebar() {
     if (to < 0 || to >= shown.length || from === to) return
     const next = [...shown]
     next.splice(to, 0, ...next.splice(from, 1))
-    saveFavorites(next)
+    // Favorites waiting for a server are kept
+    saveFavorites([...next, ...favorites.filter(p => !next.includes(p))])
   }
   const onFavKey = (i: number) => (e: ReactKeyboardEvent) => {
     if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return
@@ -230,7 +243,7 @@ export default function Sidebar() {
         <span className="mx-1 my-3 shrink-0 border-t border-line-subtle" />
 
         {MENU_GROUPS.map(group => (
-          <NavGroup key={group.key} group={group} open={openGroup === group.key} collapsed={collapsed} onToggle={() => toggleGroup(group.key)} favorites={favorites} onPin={togglePin} />
+          <NavGroup key={group.key} group={group} open={openGroup === group.key} collapsed={collapsed} onToggle={() => toggleGroup(group.key)} favorites={favorites} onPin={togglePin} hasServer={hasServer} />
         ))}
       </nav>
 

@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events'
 import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { app, safeStorage } from 'electron'
@@ -77,6 +78,9 @@ export function getSshConnectionWithSecret(id: string): SSHConnection | undefine
   return { ...rest, password: passwordEnc ? decrypt(passwordEnc) : password }
 }
 
+/** 'changed' after a server is added, edited or removed (the menu lists the server pages) */
+export const sshConnectionsEvents = new EventEmitter()
+
 /** An empty password keeps the one already stored. */
 export function saveSshConnection(conn: SSHConnection): void {
   const conns = readStored()
@@ -92,8 +96,10 @@ export function saveSshConnection(conn: SSHConnection): void {
   if (idx >= 0) conns[idx] = stored
   else conns.push(stored)
   persist(conns)
+  sshConnectionsEvents.emit('changed')
 }
 
 export function removeSshConnection(id: string): void {
   persist(readStored().filter(c => c.id !== id))
+  sshConnectionsEvents.emit('changed')
 }

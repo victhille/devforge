@@ -1,5 +1,5 @@
 import { ipcMain, BrowserWindow } from 'electron'
-import { loadSshConnections, getSshConnectionWithSecret, saveSshConnection, removeSshConnection } from '../services/ssh/sshStorage'
+import { loadSshConnections, getSshConnectionWithSecret, saveSshConnection, removeSshConnection, sshConnectionsEvents } from '../services/ssh/sshStorage'
 import { sshService } from '../services/ssh/sshService'
 import { forgetHost } from '../services/ssh/knownHosts'
 import type { SSHConnection } from '@shared/types'
@@ -9,6 +9,10 @@ export function registerSshHandlers(mainWindow: BrowserWindow): void {
     (sessionId, data) => mainWindow.webContents.send('ssh:data', sessionId, data),
     (status)          => mainWindow.webContents.send('ssh:status', status)
   )
+
+  sshConnectionsEvents.on('changed', () => {
+    for (const w of BrowserWindow.getAllWindows()) if (!w.isDestroyed()) w.webContents.send('ssh:connections-changed')
+  })
 
   ipcMain.handle('ssh:get-connections',    async () => loadSshConnections())
   ipcMain.handle('ssh:save-connection',    async (_e, conn: SSHConnection) => saveSshConnection(conn))

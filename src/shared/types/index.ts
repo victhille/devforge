@@ -357,6 +357,8 @@ export interface DevForgeAPI {
   sshDisconnect: (sessionId: string) => Promise<void>
   onSshData: (callback: (sessionId: string, data: string) => void) => () => void
   onSshStatus: (callback: (status: SSHSessionStatus) => void) => () => void
+  /** A server was added, edited or removed */
+  onSshConnectionsChanged: (callback: () => void) => () => void
 
   // Environment
   /** Cached after the first call, pass true to re-detect */
