@@ -107,6 +107,18 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 
 **Fini quand** gitleaks ne trouve rien sur tout l'historique et que le dépôt est public, avec une release qui s'installe et se met à jour.
 
+**Fait** :
+- `scripts/scan-history.mjs` remplace gitleaks : cherche jetons (GitHub, Anthropic, OpenAI, AWS, Google, Slack, npm, Vercel), clés privées, mots de passe dans les URL, fichiers `.env` ou de clés, et les mots personnels, dans chaque version de chaque fichier, chaque message et chaque auteur ; n'affiche que l'endroit. Résultat : aucun secret dans tout l'historique (deux faux positifs : des modèles `${password}` et un exemple de test) ; les mots personnels sont dans d'anciens fichiers, un message de commit et l'auteur ;
+- `LICENSE` (MIT, « DevForge contributors »), `README.md` et `README.en.md` (installation, configuration, compilation, fork), `CONTRIBUTING.md`, `"license": "MIT"` ;
+- réécriture répétée sur une copie miroir (git filter-repo) : anciennes feuilles de route v1 à v2.3 retirées, mots personnels remplacés par des exemples neutres dans les fichiers et les messages, module personnel renommé « automations » (contenu et noms de fichiers, pour que les anciens commits restent cohérents), e-mail des commits remplacé par l'adresse GitHub privée (le nom reste) ; 130 commits, 23 tags ; le code final est identique à l'actuel ; les liens du CHANGELOG sont repointés vers les nouveaux commits (90 vérifiés un par un) ;
+- les installeurs déjà publiés (v1.5.0 à v2.4.0) contiennent l'ancien code : décision de les supprimer après la 3.0.0.
+
+**Reste**, dans l'ordre :
+1. réécrire pour de bon (même script), corriger les liens du CHANGELOG, retirer les exclusions de `check-personal.mjs` ;
+2. pousser en force `main` et les tags (irréversible) ; réécrire la branche `feat/mobile-bridge` de la même façon ; mettre à jour les notes des releases v2.1.0 et v2.1.0-beta.4 ;
+3. passer le dépôt en public, `private: false` dans `build.publish`, publier la 3.0.0 ;
+4. une fois les installations à jour : supprimer à la main les releases v1.5.0 à v2.4.0.
+
 ## Lot 6 — Vérification sur une installation vierge
 
 - Installer depuis la release publique sur un profil Windows vierge (ou une VM) : rien de l'auteur, premier lancement, configuration complète d'un serveur, d'un compte GitHub, d'une clé Forgy.

@@ -2,6 +2,7 @@
   "name": "devforge",
   "version": "2.4.0",
   "description": "Developer Project Launcher",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/victhille/devforge"
