@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-// DevForge's logo, the same as the mobile app's (devforge-mobile/app/scripts/icons.mjs):
-// an orange anvil on a dark rounded square. Writes the PNGs the app uses, with no
+// DevForge's logo: an orange anvil on a dark rounded square. Writes the PNGs the app uses, with no
 // dependency (supersampled for smooth edges), and the SVG kept as the reference.
 //
 //   node scripts/icons.mjs

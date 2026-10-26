@@ -920,7 +920,7 @@ const en = {
     ntfyOn: "Notification on the phone (ntfy)",
     ntfyTopic: "ntfy topic",
     ntfyServer: "ntfy server",
-    ntfyHint: "Install the ntfy app and subscribe to this topic. Keep it secret: whoever knows it gets the alerts. The DevForge mobile app will subscribe too.",
+    ntfyHint: "Install the ntfy app and subscribe to this topic. Keep it secret: whoever knows it gets the alerts.",
     webhook: "Webhook (n8n, Discord…)",
     webhookHint: "A JSON POST on each outage and recovery, for instance to an n8n webhook.",
     sendTest: "Send a test alert",

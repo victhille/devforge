@@ -39,7 +39,7 @@ Une section unique qui liste tout ce que DevForge peut joindre, avec pour chacun
 - **Docker** : moteur local détecté, ou Docker d'un serveur par SSH.
 - **Vercel** : jeton.
 - **Bases de données** : connexions enregistrées.
-- **n8n**, **alertes ntfy** (page de statut), **DevForge mobile** (pont d'approbation).
+- **n8n**, **alertes ntfy** (page de statut).
 
 Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaque service non configuré reste simplement à configurer, sans erreur ailleurs.
 
@@ -50,7 +50,7 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 - serveurs SSH et bases de données : liste, tester, retirer, et ajout depuis cette section (les formulaires des pages SSH et Base de données s'ouvrent ici) ;
 - aucun secret ne revient à l'écran : seulement « renseigné » ou « aucun ».
 
-**Reste** : n8n et les alertes ntfy se règlent encore depuis leur page (ils dépendent d'un serveur) ; le pont DevForge mobile est sur la branche `feat/mobile-bridge`, pas encore fusionnée.
+**Reste** : n8n et les alertes ntfy se règlent encore depuis leur page (ils dépendent d'un serveur).
 
 ## Lot 2 — Premier lancement et pages « à configurer »
 
@@ -95,7 +95,7 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 - « Tout effacer », confirmé en tapant « effacer » : connexions, clés, projets, historiques, journal, sauvegardes de DevForge, réglages et mémoire de la page ; les modèles de dictée téléchargés et les dossiers de projets restent ; DevForge redémarre sur l'écran de bienvenue ;
 - « Exporter » : un fichier JSON (projets, serveurs, bases, déploiements, surveillance, n8n, page de statut, VPN, réglages, réglages de Forgy) d'où tout champ secret est retiré (`…Enc`, mots de passe, jetons, clés) ;
 - « Importer » : vérifie le fichier, fait une sauvegarde, écrit seulement les fichiers connus, marque le premier lancement comme fait, redémarre ; les secrets sont à ressaisir dans Connexions ;
-- la liste des données sauvegardées (`DATA_ENTRIES`) comprend maintenant GitHub, sauvegardes VPS, page de statut, VPN, historique du terminal, hosts et pont mobile.
+- la liste des données sauvegardées (`DATA_ENTRIES`) comprend maintenant GitHub, sauvegardes VPS, page de statut, VPN, historique du terminal, hosts.
 
 ## Lot 5 — Dépôt public
 
@@ -114,7 +114,7 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 - les installeurs déjà publiés (v1.5.0 à v2.4.0) contiennent l'ancien code : décision de les supprimer après la 3.0.0.
 
 - historique réécrit pour de bon et poussé en force (`main` et les 23 tags), liens du CHANGELOG corrigés, plus aucune exclusion dans `check-personal.mjs` ;
-- branche `feat/mobile-bridge` reprise sur le nouvel historique ; notes des 22 releases corrigées (liens vers les nouveaux commits, mêmes remplacements que l'historique) ;
+- projet DevForge mobile abandonné (26/10/2026) : branche, application et services du serveur supprimés ; notes des 22 releases corrigées (liens vers les nouveaux commits, mêmes remplacements que l'historique) ;
 - `private: false` dans `build.publish` : un dépôt public se met à jour sans jeton ;
 - CI : la section Connexions garde une minute les réponses de GitHub CLI et Docker, et « Tout effacer » vide la mémoire de la page sans `clearStorageData` (qui pouvait ne jamais rendre la main).
 
