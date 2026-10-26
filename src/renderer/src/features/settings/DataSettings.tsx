@@ -87,7 +87,11 @@ export default function DataSettings({ onCopyReport }: { onCopyReport: () => voi
         {/* Typed on purpose: everything goes, and there is no way back */}
         <form className="flex flex-wrap items-center gap-2" onSubmit={e => {
           e.preventDefault()
-          if (wipeWord.trim().toLowerCase() === s.wipeWord) run('wipe', () => window.devforge.data.wipe())
+          if (wipeWord.trim().toLowerCase() !== s.wipeWord) return
+          // The page's own memory too: snippets, panels, last version seen
+          localStorage.clear()
+          sessionStorage.clear()
+          run('wipe', () => window.devforge.data.wipe())
         }}>
           <Input aria-label={s.wipeType.replace('{word}', s.wipeWord)} placeholder={s.wipeType.replace('{word}', s.wipeWord)} value={wipeWord}
             onChange={e => setWipeWord(e.target.value)} className="w-56" autoComplete="off" spellCheck={false} />

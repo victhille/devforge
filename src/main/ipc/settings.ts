@@ -1,4 +1,4 @@
-import { BrowserWindow, app, dialog, ipcMain, session, shell } from 'electron'
+import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron'
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { loadSettings, saveSettings, setFavorites, setHomeWidgets } from '../services/settings/settingsService'
@@ -92,11 +92,7 @@ export function registerSettingsHandlers(): void {
   // v3.0 lot 4: start over, or take one's setup elsewhere
   ipcMain.handle('data:wipe', async () => {
     const gone = wipeData(app.getPath('userData'))
-    // The page's own memory too: snippets, panels, last version seen (Chromium can take its time: never wait more than 3 s)
-    await Promise.race([
-      session.defaultSession.clearStorageData({ storages: ['localstorage', 'indexdb', 'cookies'] }),
-      new Promise(resolve => setTimeout(resolve, 3_000))
-    ])
+    // The page empties its own storage before asking (clearStorageData can hang for good, then the reload never ends)
     log('info', 'data', `Wiped ${gone.length} entries`)
     restartApp()
   })
