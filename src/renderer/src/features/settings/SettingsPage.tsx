@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Check, Database, Info, Palette, RefreshCw, Search, Server, SlidersHorizontal, Bot, type LucideIcon } from 'lucide-react'
+import { Check, Database, Info, Palette, Plug, RefreshCw, Search, Server, SlidersHorizontal, Bot, type LucideIcon } from 'lucide-react'
 import type { AppSettings, DefaultIDE, PackageManager, Theme, AppLanguage, MotionSetting, Density } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -12,15 +12,17 @@ import { Input } from '@renderer/components/ui/Input'
 import { Page } from '@renderer/components/ui/Page'
 import AssistantSettings from './AssistantSettings'
 import ServerSettings from './ServerSettings'
+import ConnectionsSettings from './ConnectionsSettings'
 import DataSettings from './DataSettings'
 import UpdatesSettings from './UpdatesRow'
 import ReleaseNotes from './ReleaseNotes'
 import LauncherSettings from './LauncherSettings'
 import { Segmented, SettingRow, SettingsCard } from './parts'
 
-type Section = 'general' | 'appearance' | 'forgy' | 'servers' | 'data' | 'updates' | 'about'
+type Section = 'general' | 'connections' | 'appearance' | 'forgy' | 'servers' | 'data' | 'updates' | 'about'
 const SECTIONS: { id: Section; icon: LucideIcon; words: string }[] = [
   { id: 'general', icon: SlidersHorizontal, words: 'dossier folder projets projects paquets package npm pnpm yarn éditeur editor ide vs code windows démarrer start barre tray lanceur launcher raccourci shortcut raycast' },
+  { id: 'connections', icon: Plug, words: 'connexions connections comptes accounts github gh jeton token git identité identity nom e-mail clé key anthropic vercel docker serveur server vps ssh base database' },
   { id: 'appearance', icon: Palette, words: 'thème theme sombre dark clair light langue language anglais english français animations motion densité density compact compacte' },
   { id: 'forgy', icon: Bot, words: 'assistant clé key api modèle model effort budget actions widget raccourci shortcut promène walk boulon' },
   { id: 'servers', icon: Server, words: 'surveillance watch vps ssh alertes alerts disque disk conteneur container notifications site' },
@@ -207,6 +209,7 @@ export default function SettingsPage() {
           )}
 
           {section === 'forgy' && <AssistantSettings onSaved={onSaved} settings={settings} set={set} />}
+          {section === 'connections' && <ConnectionsSettings />}
           {section === 'servers' && <ServerSettings onSaved={onSaved} />}
           {section === 'data' && <DataSettings onCopyReport={copyReport} />}
           {section === 'updates' && <UpdatesSettings settings={settings} set={set} onNotes={() => setParams({ notes: 'all' }, { replace: true })} />}
