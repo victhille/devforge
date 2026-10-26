@@ -20,16 +20,24 @@ const gitConfig = async (key: string) => {
   return r.ok ? r.stdout.trim() || null : null
 }
 
-async function dockerVersion(): Promise<string | null> {
-  const r = await runFile('docker', ['version', '--format', '{{.Server.Version}}'], { timeout: 15_000 })
+async function dockerVersion(timeout = 15_000): Promise<string | null> {
+  const r = await runFile('docker', ['version', '--format', '{{.Server.Version}}'], { timeout })
   return r.ok && /^\d/.test(r.stdout.trim()) ? r.stdout.trim() : null
+}
+
+/** GitHub CLI and Docker answer slowly (a stopped engine waits): the page reloads the overview after each change, so they are kept a minute */
+const PROBE_TTL = 60_000
+let probes: { at: number; value: Promise<[string | null, string | null]> } | null = null
+function slowProbes(): Promise<[string | null, string | null]> {
+  if (!probes || Date.now() - probes.at > PROBE_TTL) probes = { at: Date.now(), value: Promise.all([githubLogin(), dockerVersion(5_000)]) }
+  return probes.value
 }
 
 const where = (d: { type: string; host?: string; port?: number; database?: string; file?: string }) =>
   d.type === 'sqlite' ? d.file ?? '' : `${d.host ?? ''}${d.port ? `:${d.port}` : ''}${d.database ? `/${d.database}` : ''}`
 
 export async function overview(): Promise<ConnectionsOverview> {
-  const [cli, name, email, docker] = await Promise.all([githubLogin(), gitConfig('user.name'), gitConfig('user.email'), dockerVersion()])
+  const [[cli, docker], name, email] = await Promise.all([slowProbes(), gitConfig('user.name'), gitConfig('user.email')])
   return {
     github: { cli, token: hasToken() },
     git: { name, email },

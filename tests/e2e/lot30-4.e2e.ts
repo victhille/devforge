@@ -48,7 +48,7 @@ test('export without secrets, erase everything, import the setup back', async ()
   expect(existsSync(shop)).toBe(true)
 
   // Import: the projects and the server come back, the password does not
-  await page.getByRole('button', { name: /Passer|Skip/ }).click()
+  await page.getByRole('button', { name: /^(Passer|Skip)$/ }).click()
   await goTo(page, '/settings?section=data')
   await page.getByRole('button', { name: /Importer|Import/ }).click()
   await expect.poll(() => existsSync(join(userData, 'projects.json'))).toBe(true)
