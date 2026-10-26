@@ -2,6 +2,29 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [3.0.0](https://github.com/victhille/devforge/compare/v2.4.0...v3.0.0) — 2026-10-26
+
+> DevForge goes public: nothing of the author inside, everything set up in Settings › Connections, a guided first launch, export, import and “Erase everything”.
+
+### New features
+
+- **données**: Tout effacer, exporter et importer sa configuration ([3e17d3a](https://github.com/victhille/devforge/commit/3e17d3a25adff7c41138332d743ab70b79ff63d6))
+- **public**: Rien de personnel dans le logiciel ([7b0b5cb](https://github.com/victhille/devforge/commit/7b0b5cb35d358d3831797e562926a34a920b1a3b))
+- **premier-lancement**: Langue, comptes, pages « à configurer » ([ceb4280](https://github.com/victhille/devforge/commit/ceb42805fd3e3ead56972a32b2bf3a5e000a7dcb))
+- **paramètres**: Section Connexions (comptes, clés, serveurs, bases) ([fb2c0b0](https://github.com/victhille/devforge/commit/fb2c0b03148ce6c27730afd251f882cc8ab18f9e))
+- **accueil**: Les cartes en Masonry ([93b951f](https://github.com/victhille/devforge/commit/93b951f58e6a91dfbe1e87b342f4f8ab11894056))
+
+### Fixes
+
+- **données**: La page vide sa mémoire elle-même avant de tout effacer ([1746306](https://github.com/victhille/devforge/commit/17463069a1f2dc75289a08afb0162f4aa8110ba6))
+- **connexions**: Sondes lentes gardées une minute, effacement qui n'attend plus Chromium ([89da203](https://github.com/victhille/devforge/commit/89da203a037fb0a45130edda5fd1fcf6d7e368ee))
+
+### Dependencies and build
+
+- **public**: Mises à jour sans jeton (dépôt public) ([f5f990a](https://github.com/victhille/devforge/commit/f5f990aa972da2728775ff362162f13402cc28a2))
+
+_4 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [2.4.0](https://github.com/victhille/devforge/compare/v2.3.1...v2.4.0) — 2026-10-25
 
 > New logo: DevForge mobile's orange anvil.
