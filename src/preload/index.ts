@@ -386,6 +386,13 @@ const api: DevForgeAPI = {
     setAuthKeys: invoke('nextjs:set-auth-keys')
   },
 
+  connections: {
+    overview:       invoke('connections:overview'),
+    test:           invoke('connections:test'),
+    disconnect:     invoke('connections:disconnect'),
+    setGitIdentity: invoke('connections:set-git-identity')
+  },
+
   laravel: {
     inspect:    invoke('laravel:inspect'),
     routes:     invoke('laravel:routes'),

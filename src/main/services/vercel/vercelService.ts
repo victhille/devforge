@@ -52,6 +52,11 @@ async function call<T>(path: string, init: { method?: string; body?: unknown; te
   return (text ? JSON.parse(text) : {}) as T
 }
 
+/** The saved token still works: the account's username */
+export async function checkAccount(): Promise<string> {
+  return (await call<{ user: { username: string } }>('/v2/user')).user.username
+}
+
 export async function saveToken(raw: string | null): Promise<VercelAccount> {
   if (!raw?.trim()) { writeJsonFile(storePath(), {}); return account() }
   if (!safeStorage.isEncryptionAvailable()) throw new Error('OS encryption is not available')

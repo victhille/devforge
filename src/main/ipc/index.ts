@@ -24,6 +24,7 @@ import { registerStatusHandlers } from './status'
 import { registerTerminalHandlers } from './terminal'
 import { registerNextjsHandlers } from './nextjs'
 import { registerLaravelHandlers } from './laravel'
+import { registerConnectionsHandlers } from './connections'
 import { registerVercelHandlers } from './vercel'
 import { registerDictationHandlers } from './dictation'
 import { registerDomainHandlers } from './domains'
@@ -61,6 +62,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerTerminalHandlers(mainWindow)
   registerNextjsHandlers(mainWindow)
   registerLaravelHandlers(mainWindow)
+  registerConnectionsHandlers()
   registerVercelHandlers()
   registerDictationHandlers()
   registerDomainHandlers()

@@ -45,6 +45,13 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 
 **Fini quand** chaque service se configure, se teste et se retire depuis cette seule section.
 
+**Fait** (Paramètres › Connexions, en tête du menu) :
+- GitHub (état de GitHub CLI, jeton à saisir, tester, retirer), identité Git (`git config --global`), clé Forgy (le test liste les modèles : rien n'est facturé), Vercel, Docker (version du moteur, lien d'installation) ;
+- serveurs SSH et bases de données : liste, tester, retirer, et ajout depuis cette section (les formulaires des pages SSH et Base de données s'ouvrent ici) ;
+- aucun secret ne revient à l'écran : seulement « renseigné » ou « aucun ».
+
+**Reste** : n8n et les alertes ntfy se règlent encore depuis leur page (ils dépendent d'un serveur) ; le pont DevForge mobile est sur la branche `feat/mobile-bridge`, pas encore fusionnée.
+
 ## Lot 2 — Premier lancement et pages « à configurer »
 
 - Assistant de premier lancement : langue (celle du système par défaut), dossier des projets, puis les connexions utiles, toutes facultatives et passables.
