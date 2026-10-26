@@ -16,7 +16,6 @@ import { registerVpnHandlers } from './vpn'
 import { registerVpsOpsHandlers } from './vpsOps'
 import { registerBackupsHandlers } from './backups'
 import { registerGithubHandlers } from './github'
-import { registerAutomationsHandlers } from './automations'
 import { registerSetupHandlers } from './setup'
 import { registerSymfonyHandlers } from './symfony'
 import { registerLauncherHandlers } from './launcher'
@@ -54,7 +53,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerVpsOpsHandlers(mainWindow)
   registerBackupsHandlers(mainWindow)
   registerGithubHandlers()
-  registerAutomationsHandlers()
   registerSetupHandlers()
   registerSymfonyHandlers(mainWindow)
   registerLauncherHandlers()

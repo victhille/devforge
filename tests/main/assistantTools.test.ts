@@ -75,7 +75,7 @@ describe('assistant tools', () => {
   })
 
   it('declares a fixed, cache-friendly tool list with eager input streaming', () => {
-    expect(TOOLS.map(t => t.name)).toEqual(['list_projects', 'list_files', 'read_file', 'search_code', 'git_status', 'git_diff', 'docker_status', 'container_logs', 'db_connections', 'db_schema', 'n8n_workflows', 'n8n_executions', 'vercel_deployments', 'vps_health', 'vps_services', 'backups_status', 'github_status', 'automations_feed', 'workshop_models', 'workshop_model_draft'])
+    expect(TOOLS.map(t => t.name)).toEqual(['list_projects', 'list_files', 'read_file', 'search_code', 'git_status', 'git_diff', 'docker_status', 'container_logs', 'db_connections', 'db_schema', 'n8n_workflows', 'n8n_executions', 'vercel_deployments', 'vps_health', 'vps_services', 'backups_status', 'github_status', 'workshop_models', 'workshop_model_draft'])
     expect(TOOLS.every(t => (t as { eager_input_streaming?: boolean }).eager_input_streaming)).toBe(true)
   })
 })

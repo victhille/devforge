@@ -39,6 +39,10 @@ jobs:
           key: ${{ steps.deps.outputs.cache-primary-key }}
       - run: npm run typecheck
       - run: npm run lint
+      # Personal words (IP, names, private projects) must not come back; the list is a secret, never in the code
+      - run: node scripts/check-personal.mjs
+        env:
+          PERSONAL_PATTERNS: ${{ secrets.PERSONAL_PATTERNS }}
       - run: npm test
       - run: npm run build
       # End-to-end: the built app, each test on a fresh profile

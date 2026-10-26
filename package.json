@@ -2,6 +2,10 @@
   "name": "devforge",
   "version": "2.4.0",
   "description": "Developer Project Launcher",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/victhille/devforge"
+  },
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",

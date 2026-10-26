@@ -121,11 +121,6 @@ const en = {
       n8nNone: "n8n is not installed from DevForge on this server.",
       vpnNoLogin: "Sign in to wg-easy on the VPN page.",
       vpnOnline: "{n} connected",
-      automationsUnread: "{n} unread",
-      automationsAllRead: "all read",
-      automationsNoData: "Automations has received nothing from n8n on this PC yet.",
-      automationsMissing: "Automations is not installed on this PC.",
-      automationsOpen: "Open Automations",
       automations: {
         briefing: "Morning briefing",
         mail: "Mail",
@@ -147,8 +142,7 @@ const en = {
         services: "VPS services",
         backups: "Backups",
         n8n: "n8n",
-        vpn: "VPN",
-        automations: "Automations (Automations)"
+        vpn: "VPN"
       }
     },
     greetingMorning: 'Good morning',
@@ -928,7 +922,7 @@ const en = {
     ntfyServer: "ntfy server",
     ntfyHint: "Install the ntfy app and subscribe to this topic. Keep it secret: whoever knows it gets the alerts. The DevForge mobile app will subscribe too.",
     webhook: "Webhook (n8n, Discord…)",
-    webhookHint: "A JSON POST on each outage and recovery. With an n8n webhook, the alert can land in Automations.",
+    webhookHint: "A JSON POST on each outage and recovery, for instance to an n8n webhook.",
     sendTest: "Send a test alert",
     testSent: "Test alert sent",
     pageTitle: "The page",
@@ -1335,7 +1329,7 @@ const en = {
     qrHint: "Scan it with the WireGuard app on the phone. It holds the device's private key: do not share it.",
     createTitle: "New client",
     name: "Name",
-    namePlaceholder: "alice's phone",
+    namePlaceholder: "My phone",
     expiresAt: "Expiry",
     expiresHint: "Leave empty for permanent access.",
     create: "Create",

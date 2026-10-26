@@ -226,8 +226,8 @@ export default function SettingsPage() {
                 ))}
               </dl>
               <div className="flex flex-wrap gap-2 border-t border-line-subtle px-5 py-4">
-                <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal('https://github.com/victhille/devforge')}>{s.githubPage}</Button>
-                <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal('https://github.com/victhille/devforge/issues/new')}>{s.reportIssue}</Button>
+                <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(__REPO_URL__)}>{s.githubPage}</Button>
+                <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(`${__REPO_URL__}/issues/new`)}>{s.reportIssue}</Button>
                 <Button size="sm" variant="secondary" onClick={() => setParams({ notes: 'all' }, { replace: true })}>{s.releaseNotes}</Button>
                 <Button size="sm" variant="secondary" onClick={copyReport}>{s.copyReport}</Button>
               </div>

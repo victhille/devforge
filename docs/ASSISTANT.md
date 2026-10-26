@@ -83,7 +83,7 @@ Outil non installé : bouton en pointillés, il ouvre la page d'installation. De
 
 ## Outils de lecture
 
-`list_projects` · `list_files` · `read_file` · `search_code` · `git_status` · `git_diff` · `docker_status` · `container_logs` · `db_connections` · `db_schema` · `n8n_workflows` · `n8n_executions` · `vercel_deployments` · `vps_health` · `vps_services` · `backups_status` · `github_status` · `automations_feed` · `symfony_entities` · `symfony_entity_draft` (remplit le formulaire de l'atelier, sans rien écrire)
+`list_projects` · `list_files` · `read_file` · `search_code` · `git_status` · `git_diff` · `docker_status` · `container_logs` · `db_connections` · `db_schema` · `n8n_workflows` · `n8n_executions` · `vercel_deployments` · `vps_health` · `vps_services` · `backups_status` · `github_status` · `workshop_models` · `workshop_model_draft` (remplit le formulaire de l'atelier, sans rien écrire)
 
 La compétence **Point du matin sur le VPS** enchaîne `vps_health`, `backups_status`, `vps_services` (et `n8n_executions`) et répond en trois parties : état global, à faire, le reste.
 

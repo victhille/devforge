@@ -1,20 +1,20 @@
 # Feuille de route v3.0 — DevForge public
 
-**Cap** : DevForge devient un logiciel public. Celui qui le récupère n'y trouve rien de alice (ni serveur, ni compte, ni projet) et le configure entièrement pour en faire son propre outil de gestion de dev.
+**Cap** : DevForge devient un logiciel public. Celui qui le récupère n'y trouve rien de l'auteur (ni serveur, ni compte, ni projet) et le configure entièrement pour en faire son propre outil de gestion de dev.
 **Base** : v2.4.0.
 
 ## Ce que l'audit a trouvé (26/10/2026)
 
-Bonne nouvelle de départ : les serveurs, clés et comptes ne sont pas dans le code. Ils se saisissent dans l'appli et restent sur le PC (`%APPDATA%\DevForge`, secrets chiffrés par Windows). Restent liés à alice :
+Bonne nouvelle de départ : les serveurs, clés et comptes ne sont pas dans le code. Ils se saisissent dans l'appli et restent sur le PC (`%APPDATA%\DevForge`, secrets chiffrés par Windows). Restent liés à l'auteur :
 - la source des mises à jour (`victhille/devforge` dans `updater.ts`) et les liens GitHub et « Signaler un problème » des Paramètres ;
-- le module Automations (appli personnelle) : page, widget de l'accueil, outil de Forgy ;
-- des exemples écrits en dur (« Téléphone de alice ») ;
-- surtout l'historique Git et `docs/` : IP du VPS, hosting, noms de projets de test, adresses sslip.io.
+- le module d'automatisations personnelles (appli de l'auteur) : page, widget de l'accueil, outil de Forgy ;
+- des exemples écrits en dur (« Téléphone de l'auteur ») ;
+- surtout l'historique Git et `docs/` : IP du VPS, hébergeur, noms de projets de test, adresses sslip.io.
 
 ## Décisions prises
 
 - **Historique** : réécrit (git filter-repo) pour effacer les infos sensibles de tous les commits, puis ce dépôt devient public.
-- **Automations** : retiré du logiciel.
+- **Module d'automatisations personnelles** : retiré du logiciel.
 - **Licence** : MIT.
 
 ## Vue d'ensemble
@@ -23,7 +23,7 @@ Bonne nouvelle de départ : les serveurs, clés et comptes ne sont pas dans le c
 |---|---|---|
 | 1 | Paramètres › Connexions : chaque service, son état, le configurer, le tester, le retirer | L |
 | 2 | Premier lancement et pages « à configurer » | M |
-| 3 | Rien de personnel dans le logiciel (Automations retiré, exemples, mises à jour) | M |
+| 3 | Rien de personnel dans le logiciel (module personnel retiré, exemples, mises à jour) | M |
 | 4 | Effacer, exporter, importer sa configuration | S |
 | 5 | Dépôt public : historique réécrit, recherche de secrets, MIT, README | M |
 | 6 | Vérification sur une installation vierge | S |
@@ -68,13 +68,21 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 
 ## Lot 3 — Rien de personnel dans le logiciel
 
-- Automations retiré : page, widget, outil `automations_feed`, réglages, types, tests.
+- Module personnel retiré : page, widget, outil de Forgy, réglages, types, tests.
 - Les exemples deviennent neutres (« Mon téléphone », « mon-serveur »).
 - Mises à jour et liens « À propos » lus dans `package.json` (`repository`) : un fork pointe vers son propre dépôt.
 - L'image n8n en français (`ghcr.io/victhille/n8n-fr`) reste une option publique, présentée comme traduction communautaire.
 - Recherche automatique en CI : l'IP, les noms de projets privés et l'adresse e-mail font échouer le build s'ils réapparaissent.
 
 **Fini quand** une recherche des mots personnels dans `src/`, `scripts/`, `docs/` et les tests ne trouve rien.
+
+**Fait** :
+- module personnel d'automatisations retiré (service, page, widget de l'accueil, outil de Forgy, types, tests) ; un réglage d'accueil qui le contenait l'oublie tout seul ;
+- exemples neutres : « Mon téléphone », adresse de documentation `203.0.113.10` (RFC 5737), prénoms et projets d'exemple ;
+- mises à jour et liens « À propos » lus dans `package.json` (`build.publish`, `repository`), injectés au build : un fork change ces deux champs ; un dépôt public se met à jour sans jeton, un privé en demande un ;
+- `scripts/check-personal.mjs` : échoue si un mot personnel revient ; la liste n'est jamais dans le dépôt (`.personal-patterns` ignoré par Git en local, secret `PERSONAL_PATTERNS` en CI, étape sautée tant qu'il manque) ; les feuilles de route v1 à v2.3 et le CHANGELOG sont exclus jusqu'au nettoyage du lot 5.
+
+**Reste** : créer le secret `PERSONAL_PATTERNS` dans GitHub ; l'image n8n en français reste sous `ghcr.io/victhille/n8n-fr` (projet public).
 
 ## Lot 4 — Effacer, exporter, importer
 
@@ -95,7 +103,7 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 
 ## Lot 6 — Vérification sur une installation vierge
 
-- Installer depuis la release publique sur un profil Windows vierge (ou une VM) : rien de alice, premier lancement, configuration complète d'un serveur, d'un compte GitHub, d'une clé Forgy.
+- Installer depuis la release publique sur un profil Windows vierge (ou une VM) : rien de l'auteur, premier lancement, configuration complète d'un serveur, d'un compte GitHub, d'une clé Forgy.
 - Ta propre installation reprend ses données sans rien perdre.
 
 **Fini quand** les deux parcours marchent : celui d'un inconnu, et le tien.

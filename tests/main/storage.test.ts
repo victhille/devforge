@@ -57,7 +57,7 @@ describe('compose projects', () => {
   it('finds the compose file in the project or its parent and reads its name', () => {
     const root = tempDir('stack')
     mkdirSync(join(root, 'backend'))
-    writeFileSync(join(root, 'compose.yaml'), 'name: shop-online\nservices: {}\n')
+    writeFileSync(join(root, 'compose.yaml'), 'name: Shop-Online\nservices: {}\n')
     expect(composeDirFor(join(root, 'backend'))).toBe(root)
     expect(composeName(root)).toBe('shop-online')
 

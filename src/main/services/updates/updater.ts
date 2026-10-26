@@ -12,9 +12,8 @@ import { githubToken, newestIsPrerelease } from '../github/githubService'
  * repository, offline) leaves the status "unavailable" without bothering the user.
  */
 const EVERY = 6 * 60 * 60 * 1000
-/** Where the releases are published (package.json › build.publish); the repository is private */
-const OWNER = 'victhille'
-const REPO = 'devforge'
+/** Where the releases are published: package.json › build.publish (a fork changes it there) */
+const { owner: OWNER, repo: REPO, private: PRIVATE } = __PUBLISH__
 let beta = false
 
 let status: UpdateStatus = { state: 'idle' }
@@ -39,10 +38,11 @@ export async function checkForUpdates(): Promise<UpdateStatus> {
   if (!app.isPackaged) { set({ state: 'unavailable', reason: 'dev' }); return status }
   if (status.state === 'downloading' || status.state === 'ready') return status
   set({ state: 'checking' })
-  // A private repository: the releases are read with GitHub CLI's token (or the one saved in DevForge)
+  if (!OWNER || !REPO) { set({ state: 'unavailable', reason: 'feed' }); return status }
+  // A private repository needs a token (GitHub CLI's, or the one saved in DevForge); a public one does not
   const tok = await githubToken()
-  if (!tok) { set({ state: 'unavailable', reason: 'auth' }); return status }
-  autoUpdater.setFeedURL({ provider: 'github', owner: OWNER, repo: REPO, private: true, token: tok })
+  if (PRIVATE && !tok) { set({ state: 'unavailable', reason: 'auth' }); return status }
+  autoUpdater.setFeedURL({ provider: 'github', owner: OWNER, repo: REPO, private: PRIVATE, ...(PRIVATE && tok ? { token: tok } : {}) })
   try {
     // electron-updater's beta channel takes the first pre-release of the list, even when a newer final
     // version exists: pre-releases are allowed only while the newest release is one
