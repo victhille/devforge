@@ -22,7 +22,7 @@ export interface ConnectionsOverview {
 
 export type ConnectionKind = 'github' | 'forgy' | 'vercel' | 'docker' | 'server' | 'database'
 
-/** A test's answer: what was reached ("victhille", "Ubuntu 24.04", "PostgreSQL 16.4") or why not */
+/** A test's answer: what was reached ("octocat", "Ubuntu 24.04", "PostgreSQL 16.4") or why not */
 export interface ConnectionTest { ok: boolean; detail: string }
 
 export interface ConnectionsAPI {

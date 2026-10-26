@@ -42,7 +42,7 @@ test('not installed: what holds 80/443 picks the way online, the address needs n
 
 test('installed: services with their 90 days, alerts, incidents; changes wait for "Save"', async () => {
   const config = {
-    title: 'Services de alice', intervalSec: 60, failuresBeforeDown: 3,
+    title: 'Services de Alice', intervalSec: 60, failuresBeforeDown: 3,
     monitors: [
       { id: 'boutique', name: 'Boutique', type: 'http', target: 'https://boutique.example.fr', public: true },
       { id: 'base', name: 'Base PostgreSQL', type: 'tcp', target: '127.0.0.1:5432', public: false }

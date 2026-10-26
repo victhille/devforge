@@ -312,11 +312,6 @@ const api: DevForgeAPI = {
     hasToken:  invoke('github:has-token')
   },
 
-  automations: {
-    feed: invoke('automations:feed'),
-    open: invoke('automations:open')
-  },
-
   setup: {
     freePort:    invoke('setup:free-port'),
     githubLogin: invoke('setup:github-login'),

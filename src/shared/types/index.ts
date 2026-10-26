@@ -253,7 +253,6 @@ export * from './vpn'
 export * from './vpsops'
 export * from './backups'
 export * from './github'
-export * from './automations'
 export * from './vercel'
 export * from './dictation'
 export * from './setup'
@@ -276,7 +275,6 @@ import type { VpnAPI } from './vpn'
 import type { VpsOpsAPI } from './vpsops'
 import type { BackupsAPI } from './backups'
 import type { GithubAPI } from './github'
-import type { AutomationsAPI } from './automations'
 import type { VercelAPI } from './vercel'
 import type { DictationAPI } from './dictation'
 import type { ProjectSetup, SetupAPI } from './setup'
@@ -405,7 +403,6 @@ export interface DevForgeAPI {
   vpsOps: VpsOpsAPI
   backups: BackupsAPI
   github: GithubAPI
-  automations: AutomationsAPI
   vercel: VercelAPI
   setup: SetupAPI
   symfony: SymfonyAPI

@@ -8,3 +8,6 @@ Thumbs.db
 *.tsbuildinfo
 test-results/
 playwright-report/
+
+# Personal words checked by scripts/check-personal.mjs (never committed)
+.personal-patterns

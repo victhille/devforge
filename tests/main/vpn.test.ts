@@ -30,7 +30,7 @@ describe('vpn (wg-easy)', () => {
   let server: Server
   const calls: { method: string; url: string; auth: string; body: string }[] = []
   let clients: { id: number; name: string; enabled: boolean; ipv4Address: string; ipv6Address: string | null; createdAt: string | null; expiresAt: string | null; latestHandshakeAt: string | null; transferRx: number | null; transferTx: number | null }[] = [
-    { id: 2, name: 'alice', enabled: true, ipv4Address: '10.8.0.2', ipv6Address: 'fdcc::2', createdAt: '2026-10-01T00:00:00Z', expiresAt: null, latestHandshakeAt: '2026-10-22T08:00:00Z', transferRx: 4_770_000, transferTx: 38_650_000 },
+    { id: 2, name: 'Valentin', enabled: true, ipv4Address: '10.8.0.2', ipv6Address: 'fdcc::2', createdAt: '2026-10-01T00:00:00Z', expiresAt: null, latestHandshakeAt: '2026-10-22T08:00:00Z', transferRx: 4_770_000, transferTx: 38_650_000 },
     { id: 4, name: 'Tommas', enabled: true, ipv4Address: '10.8.0.4', ipv6Address: null, createdAt: '2026-10-01T00:00:00Z', expiresAt: null, latestHandshakeAt: null, transferRx: null, transferTx: null }
   ]
   const good = 'Basic ' + Buffer.from('admin:s3cret:with:colons').toString('base64')
@@ -51,7 +51,7 @@ describe('vpn (wg-easy)', () => {
       if (m && req.method === 'DELETE' && !m[2]) { clients = clients.filter(c => c.id !== Number(m[1])); res.end('{"success":true}'); return }
       if (m && (m[2] === '/enable' || m[2] === '/disable')) { clients.find(c => c.id === Number(m[1]))!.enabled = m[2] === '/enable'; res.end('{"success":true}'); return }
       if (m && m[2] === '/qrcode.svg') { res.setHeader('content-type', 'image/svg+xml'); res.end('<svg xmlns="http://www.w3.org/2000/svg"/>'); return }
-      if (m && m[2] === '/configuration') { res.setHeader('content-disposition', 'attachment; filename="alice.conf"'); res.end('[Interface]\nPrivateKey = abc\n'); return }
+      if (m && m[2] === '/configuration') { res.setHeader('content-disposition', 'attachment; filename="Valentin.conf"'); res.end('[Interface]\nPrivateKey = abc\n'); return }
       res.statusCode = 404; res.end('{"statusMessage":"Not found"}')
     })
     await new Promise<void>(r => server.listen(0, '127.0.0.1', r))
@@ -81,7 +81,7 @@ describe('vpn (wg-easy)', () => {
 
   it('lists, creates, toggles and deletes clients', async () => {
     const list = await vpn.clients('v1')
-    expect(list.map(c => c.name)).toEqual(['Tommas', 'alice'])
+    expect(list.map(c => c.name)).toEqual(['Tommas', 'Valentin'])
     expect(list[1]).toMatchObject({ id: 2, ipv4: '10.8.0.2', ipv6: 'fdcc::2', transferTx: 38_650_000, latestHandshakeAt: '2026-10-22T08:00:00Z' })
     expect(calls.at(-1)!.auth).toBe(good)
 
@@ -99,7 +99,7 @@ describe('vpn (wg-easy)', () => {
 
   it('gives the QR code as an image and saves the .conf where asked', async () => {
     expect(await vpn.qrcode('v1', 2)).toBe(`data:image/svg+xml;base64,${Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>').toString('base64')}`)
-    const file = join(tempDir('vpn'), 'alice.conf')
+    const file = join(tempDir('vpn'), 'Valentin.conf')
     ;(dialog as unknown as { next: string }).next = file
     expect(await vpn.saveConfig('v1', 2, null)).toBe(file)
     expect(readFileSync(file, 'utf-8')).toContain('[Interface]')

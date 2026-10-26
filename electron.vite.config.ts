@@ -5,6 +5,10 @@ import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import type { Plugin } from 'vite'
+import { publishConfig } from './scripts/publish-config.mjs'
+
+/** Where releases and the repository are (package.json): the updater and the "About" links */
+const PUBLISH = publishConfig(__dirname)
 
 /**
  * Content-Security-Policy for the packaged renderer. Production only: the dev
@@ -48,6 +52,7 @@ function csp(): Plugin {
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()],
+    define: { __PUBLISH__: JSON.stringify(PUBLISH) },
     resolve: {
       alias: {
         '@shared': resolve(__dirname, 'src/shared')
@@ -96,6 +101,7 @@ export default defineConfig({
     define: {
       __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')).version),
       __APP_COMMIT__: JSON.stringify(gitCommit()),
+      __REPO_URL__: JSON.stringify(PUBLISH.url),
       __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
       __CHANGELOGS__: JSON.stringify(changelogs())
     },
