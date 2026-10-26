@@ -7,7 +7,9 @@ import { defineConfig } from '@playwright/test'
 export default defineConfig({
   testDir: 'tests/e2e',
   testMatch: '*.e2e.ts',
-  timeout: 60_000,
+  // GitHub's runner is slower, more so at the end of the suite
+  timeout: process.env.CI ? 90_000 : 60_000,
+  globalSetup: './tests/e2e/warmup.ts',
   expect: { timeout: 10_000 },
   // Several Electrons at once: each test has its own profile, and the
   // single-instance lock is per profile. On GitHub's runner, 3 at once made

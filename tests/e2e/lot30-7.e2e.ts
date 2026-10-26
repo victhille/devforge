@@ -49,7 +49,8 @@ test('server pages are listed only once a server is set up', async () => {
   await expect(page.getByRole('button', { name: 'VPN' })).toBeVisible()
   await page.keyboard.press('Escape')
 
-  // Removed: they wait again
+  // Removed: they wait again (the list of Connections reloads first)
+  await expect(page.getByText('test@127.0.0.1')).toBeVisible({ timeout: 20_000 })
   await page.getByRole('button', { name: 'Retirer Banc' }).click()
   await expect(menu.getByRole('link', { name: 'n8n' })).toHaveCount(0)
   await expect(menu.getByRole('link', { name: '3 de plus avec un serveur' })).toBeVisible()
