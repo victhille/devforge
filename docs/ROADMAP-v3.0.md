@@ -80,7 +80,7 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 - module personnel d'automatisations retiré (service, page, widget de l'accueil, outil de Forgy, types, tests) ; un réglage d'accueil qui le contenait l'oublie tout seul ;
 - exemples neutres : « Mon téléphone », adresse de documentation `203.0.113.10` (RFC 5737), prénoms et projets d'exemple ;
 - mises à jour et liens « À propos » lus dans `package.json` (`build.publish`, `repository`), injectés au build : un fork change ces deux champs ; un dépôt public se met à jour sans jeton, un privé en demande un ;
-- `scripts/check-personal.mjs` : échoue si un mot personnel revient ; la liste n'est jamais dans le dépôt (`.personal-patterns` ignoré par Git en local, secret `PERSONAL_PATTERNS` en CI, étape sautée tant qu'il manque) ; les feuilles de route v1 à v2.3 et le CHANGELOG sont exclus jusqu'au nettoyage du lot 5.
+- `scripts/check-personal.mjs` : échoue si un mot personnel revient ; la liste n'est jamais dans le dépôt (`.personal-patterns` ignoré par Git en local, secret `PERSONAL_PATTERNS` en CI, étape sautée tant qu'il manque) ; plus aucun fichier n'est exclu depuis le lot 5.
 
 **Reste** : créer le secret `PERSONAL_PATTERNS` dans GitHub ; l'image n8n en français reste sous `ghcr.io/victhille/n8n-fr` (projet public).
 
@@ -113,11 +113,12 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 - réécriture répétée sur une copie miroir (git filter-repo) : anciennes feuilles de route v1 à v2.3 retirées, mots personnels remplacés par des exemples neutres dans les fichiers et les messages, module personnel renommé « automations » (contenu et noms de fichiers, pour que les anciens commits restent cohérents), e-mail des commits remplacé par l'adresse GitHub privée (le nom reste) ; 130 commits, 23 tags ; le code final est identique à l'actuel ; les liens du CHANGELOG sont repointés vers les nouveaux commits (90 vérifiés un par un) ;
 - les installeurs déjà publiés (v1.5.0 à v2.4.0) contiennent l'ancien code : décision de les supprimer après la 3.0.0.
 
+- historique réécrit pour de bon et poussé en force (`main` et les 23 tags), liens du CHANGELOG corrigés, plus aucune exclusion dans `check-personal.mjs`.
+
 **Reste**, dans l'ordre :
-1. réécrire pour de bon (même script), corriger les liens du CHANGELOG, retirer les exclusions de `check-personal.mjs` ;
-2. pousser en force `main` et les tags (irréversible) ; réécrire la branche `feat/mobile-bridge` de la même façon ; mettre à jour les notes des releases v2.1.0 et v2.1.0-beta.4 ;
-3. passer le dépôt en public, `private: false` dans `build.publish`, publier la 3.0.0 ;
-4. une fois les installations à jour : supprimer à la main les releases v1.5.0 à v2.4.0.
+1. reprendre la branche `feat/mobile-bridge` sur le nouvel historique ; mettre à jour les notes des releases v2.1.0 et v2.1.0-beta.4 ;
+2. passer le dépôt en public, `private: false` dans `build.publish`, publier la 3.0.0 ;
+3. une fois les installations à jour : supprimer à la main les releases v1.5.0 à v2.4.0.
 
 ## Lot 6 — Vérification sur une installation vierge
 

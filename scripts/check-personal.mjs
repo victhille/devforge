@@ -15,9 +15,7 @@ if (!words.length) {
   process.exit(0)
 }
 
-// Files kept as they are: the history of what was done (cleaned in the public release, v3.0 lot 5)
-const ALLOWED = [/^docs\/ROADMAP-v[12]\./, /^docs\/ROADMAP-v2\.[0-3]\.md$/, /^CHANGELOG/]
-const files = execFileSync('git', ['ls-files'], { encoding: 'utf-8' }).split('\n').filter(f => f && !ALLOWED.some(re => re.test(f)))
+const files = execFileSync('git', ['ls-files'], { encoding: 'utf-8' }).split('\n').filter(Boolean)
 const lower = words.map(w => w.toLowerCase())
 const hits = []
 for (const file of files) {
