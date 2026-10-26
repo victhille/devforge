@@ -20,6 +20,7 @@ import ProjectIcon from '@renderer/features/projects/components/ProjectIcon'
 import { Dot, Gauge, Pill, SmallButton, Tile, plural } from './parts'
 import { BackupsWidget, HealthWidget, N8nWidget, ServicesWidget, VpnWidget } from './vpsWidgets'
 import AutomationsWidget from './AutomationsWidget'
+import NeedsSetup from '@renderer/components/NeedsSetup'
 
 // ─── Docker ───────────────────────────────────────────────────────────────────
 
@@ -109,8 +110,7 @@ function VpsTile({ conn, onState, i }: { conn: SSHConnection | null | undefined;
   if (conn === null) {
     return (
       <Tile i={i} title="VPS">
-        <p className="text-sm text-fg-muted">{t.home.noServer}</p>
-        <SmallButton className="mt-auto" onClick={() => navigate('/ssh')}>{t.home.addServer}</SmallButton>
+        <NeedsSetup service="server" compact />
       </Tile>
     )
   }

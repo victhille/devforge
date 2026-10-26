@@ -10,6 +10,7 @@ import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
+import NeedsSetup from '@renderer/components/NeedsSetup'
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 
@@ -70,7 +71,7 @@ export default function RemoteDocker({ connections }: { connections: SSHConnecti
     return [...map].sort(([a], [b]) => (a === '' ? 1 : b === '' ? -1 : a.localeCompare(b)))
   }, [data])
 
-  if (!connections.length) return <EmptyState title={w.noServers} />
+  if (!connections.length) return <NeedsSetup service="server" />
 
   return (
     <div className="flex flex-col gap-4">

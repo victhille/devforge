@@ -10,13 +10,13 @@ import { formatRelative } from '@renderer/lib/format'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import Checkbox from '@renderer/components/ui/Checkbox'
-import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import Modal from '@renderer/components/ui/Modal'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Input, Select, Textarea } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { ServerSelect, useServerPicker } from '@renderer/features/vps/ServerPicker'
+import NeedsSetup from '@renderer/components/NeedsSetup'
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const DAYS = 90
@@ -33,7 +33,7 @@ export default function StatusPage() {
   return (
     <Page>
       <PageHeader title={t.nav.statusPage} subtitle={t.statusPage.subtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
-      {!connections ? <Spinner /> : !conn ? <EmptyState title={t.vpsOps.noServers} /> : <Status key={conn.id} conn={conn} />}
+      {!connections ? <Spinner /> : !conn ? <NeedsSetup service="server" /> : <Status key={conn.id} conn={conn} />}
     </Page>
   )
 }

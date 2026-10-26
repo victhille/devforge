@@ -1462,6 +1462,16 @@ const fr = {
     download: "Télécharger maintenant",
     removeModel: "Supprimer le modèle"
   },
+  needsSetup: {
+    title: { server: "Aucun serveur configuré", github: "GitHub n'est pas connecté", vercel: "Vercel n'est pas connecté", forgy: "Forgy n'a pas de clé" },
+    why: {
+      server: "Cette page agit sur un serveur (VPS) en SSH. Ajoute le tien si tu en as un ; sinon, elle reste simplement de côté.",
+      github: "Connecte GitHub (GitHub CLI ou un jeton) pour voir les Actions, les pull requests et les releases.",
+      vercel: "Ajoute un jeton Vercel pour suivre les déploiements de tes projets liés.",
+      forgy: "Ajoute une clé API Anthropic pour parler à Forgy."
+    },
+    button: { server: "Ajouter un serveur", github: "Connecter GitHub", vercel: "Connecter Vercel", forgy: "Ajouter une clé" }
+  },
   onboarding: {
     progress: "Étape {n} sur {t}",
     skip: "Passer",
@@ -1469,6 +1479,11 @@ const fr = {
     next: "Suivant",
     start: "Commencer",
     later: "Plus tard",
+    language: "Langue",
+    accountsTitle: "Tes comptes",
+    accountsText: "Rien n'est branché d'avance : DevForge ne connaît que ce que tu lui donnes. Tout est facultatif.",
+    githubTokenPlaceholder: "Jeton GitHub (facultatif)",
+    moreLater: "Un serveur (VPS), Vercel, des bases de données ? Tu les brancheras quand tu veux dans Paramètres › Connexions.",
     go: "C'est parti",
     welcomeTitle: "Bienvenue dans DevForge",
     welcomeText: "Ton atelier de dev sur Windows. Trois minutes pour le régler, et Forgy s'occupe du reste.",

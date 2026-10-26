@@ -8,6 +8,7 @@ import Switch from '@renderer/components/ui/Switch'
 import { SectionTitle } from '@renderer/components/ui/Page'
 import { TimeChart, UptimeStrip } from '@renderer/components/charts/TimeChart'
 import { useHistory, useWatch } from '@renderer/hooks/useWatch'
+import NeedsSetup from '@renderer/components/NeedsSetup'
 
 const pct = (v: number) => `${Math.round(v)} %`
 
@@ -71,7 +72,7 @@ export default function ServersSection() {
           </select>
         </label>
       </div>
-      {connections.length === 0 && <p className="text-sm text-fg-muted">{w.noServers}</p>}
+      {connections.length === 0 && <NeedsSetup service="server" compact />}
       {connections.map(c => (
         <ServerCard key={c.id} conn={c} status={statuses.find(s => s.connectionId === c.id)} watched={config.watched.includes(c.id)} threshold={config.diskAlert}
           onToggle={on => saveConfig({ watched: on ? [...config.watched, c.id] : config.watched.filter(x => x !== c.id) })} />

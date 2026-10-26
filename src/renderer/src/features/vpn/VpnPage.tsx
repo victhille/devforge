@@ -7,13 +7,13 @@ import { cn } from '@renderer/lib/cn'
 import { formatDate, formatRelative, formatSize } from '@renderer/lib/format'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
-import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import Modal from '@renderer/components/ui/Modal'
 import Switch from '@renderer/components/ui/Switch'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Input, Select } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
+import NeedsSetup from '@renderer/components/NeedsSetup'
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 /** Shared with the other VPS pages (Services, Health, Backups) */
@@ -52,7 +52,7 @@ export default function VpnPage() {
             </Select>
           </label>
         )} />
-      {!connections ? <Spinner /> : !conn ? <EmptyState title={v.noServers} /> : <Server key={conn.id} conn={conn} saved={saved} onChange={refreshServers} />}
+      {!connections ? <Spinner /> : !conn ? <NeedsSetup service="server" /> : <Server key={conn.id} conn={conn} saved={saved} onChange={refreshServers} />}
     </Page>
   )
 }

@@ -10,6 +10,7 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { ServerSelect, useServerPicker } from './ServerPicker'
+import NeedsSetup from '@renderer/components/NeedsSetup'
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 
@@ -19,7 +20,7 @@ export default function ServicesPage() {
   return (
     <Page>
       <PageHeader title={t.nav.services} subtitle={t.vpsOps.servicesSubtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
-      {!connections ? <Spinner /> : !conn ? <EmptyState title={t.vpsOps.noServers} /> : <Services key={conn.id} conn={conn} />}
+      {!connections ? <Spinner /> : !conn ? <NeedsSetup service="server" /> : <Services key={conn.id} conn={conn} />}
     </Page>
   )
 }

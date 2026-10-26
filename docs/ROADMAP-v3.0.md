@@ -60,6 +60,12 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 
 **Fini quand** un profil vide se configure de bout en bout sans jamais voir d'erreur de service manquant.
 
+**Fait** :
+- premier lancement en 5 étapes : bienvenue avec choix de la langue (celle de Windows par défaut à la première installation, changée sur-le-champ), dossier des projets, **tes comptes** (identité Git, GitHub CLI détecté ou jeton facultatif, renvoi vers Connexions pour serveur, Vercel et bases), clé Forgy, fin ; tout reste passable ;
+- composant commun « à configurer » : les pages qui agissent sur un serveur (n8n, page de statut, VPN, santé, services, sauvegardes, Docker distant, surveillance) et les widgets serveur de l'accueil montrent « Aucun serveur configuré » et un bouton vers Paramètres › Connexions, au lieu d'un message sans issue.
+
+**Reste** : le menu montre encore toutes les pages, même celles dont le service n'est pas configuré (elles mènent à « à configurer ») ; à décider s'il faut les masquer.
+
 ## Lot 3 — Rien de personnel dans le logiciel
 
 - Automations retiré : page, widget, outil `automations_feed`, réglages, types, tests.
