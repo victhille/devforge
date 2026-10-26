@@ -113,12 +113,14 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 - réécriture répétée sur une copie miroir (git filter-repo) : anciennes feuilles de route v1 à v2.3 retirées, mots personnels remplacés par des exemples neutres dans les fichiers et les messages, module personnel renommé « automations » (contenu et noms de fichiers, pour que les anciens commits restent cohérents), e-mail des commits remplacé par l'adresse GitHub privée (le nom reste) ; 130 commits, 23 tags ; le code final est identique à l'actuel ; les liens du CHANGELOG sont repointés vers les nouveaux commits (90 vérifiés un par un) ;
 - les installeurs déjà publiés (v1.5.0 à v2.4.0) contiennent l'ancien code : décision de les supprimer après la 3.0.0.
 
-- historique réécrit pour de bon et poussé en force (`main` et les 23 tags), liens du CHANGELOG corrigés, plus aucune exclusion dans `check-personal.mjs`.
+- historique réécrit pour de bon et poussé en force (`main` et les 23 tags), liens du CHANGELOG corrigés, plus aucune exclusion dans `check-personal.mjs` ;
+- branche `feat/mobile-bridge` reprise sur le nouvel historique ; notes des 22 releases corrigées (liens vers les nouveaux commits, mêmes remplacements que l'historique) ;
+- `private: false` dans `build.publish` : un dépôt public se met à jour sans jeton ;
+- CI : la section Connexions garde une minute les réponses de GitHub CLI et Docker, et « Tout effacer » vide la mémoire de la page sans `clearStorageData` (qui pouvait ne jamais rendre la main).
 
 **Reste**, dans l'ordre :
-1. reprendre la branche `feat/mobile-bridge` sur le nouvel historique ; mettre à jour les notes des releases v2.1.0 et v2.1.0-beta.4 ;
-2. passer le dépôt en public, `private: false` dans `build.publish`, publier la 3.0.0 ;
-3. une fois les installations à jour : supprimer à la main les releases v1.5.0 à v2.4.0.
+1. faire purger par le support GitHub les anciens commits encore consultables par leur identifiant ; passer le dépôt en public ; publier la 3.0.0 ;
+2. une fois les installations à jour : supprimer à la main les releases v1.5.0 à v2.4.0.
 
 ## Lot 6 — Vérification sur une installation vierge
 
