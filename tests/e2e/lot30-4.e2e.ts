@@ -37,7 +37,8 @@ test('export without secrets, erase everything, import the setup back', async ()
   expect(bundle).not.toContain('chiffre')
   expect(bundle).not.toContain('passwordEnc')
 
-  // Erasing needs the word typed
+  // Erasing needs the word typed; the page's memory goes too
+  await page.evaluate(() => localStorage.setItem('devforge:test', '1'))
   const wipe = page.getByRole('button', { name: 'Tout effacer' })
   await expect(wipe).toBeDisabled()
   await page.getByLabel('Tape « effacer » pour confirmer').fill('effacer')
@@ -46,6 +47,7 @@ test('export without secrets, erase everything, import the setup back', async ()
   expect(existsSync(join(userData, 'projects.json'))).toBe(false)
   expect(existsSync(join(userData, 'ssh-connections.json'))).toBe(false)
   expect(existsSync(shop)).toBe(true)
+  expect(await page.evaluate(() => localStorage.getItem('devforge:test'))).toBeNull()
 
   // Import: the projects and the server come back, the password does not
   await page.getByRole('button', { name: /^(Passer|Skip)$/ }).click()
