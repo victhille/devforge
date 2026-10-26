@@ -92,8 +92,11 @@ export function registerSettingsHandlers(): void {
   // v3.0 lot 4: start over, or take one's setup elsewhere
   ipcMain.handle('data:wipe', async () => {
     const gone = wipeData(app.getPath('userData'))
-    // The page's own memory too: snippets, panels, last version seen
-    await session.defaultSession.clearStorageData({ storages: ['localstorage', 'indexdb', 'cookies'] })
+    // The page's own memory too: snippets, panels, last version seen (Chromium can take its time: never wait more than 3 s)
+    await Promise.race([
+      session.defaultSession.clearStorageData({ storages: ['localstorage', 'indexdb', 'cookies'] }),
+      new Promise(resolve => setTimeout(resolve, 3_000))
+    ])
     log('info', 'data', `Wiped ${gone.length} entries`)
     restartApp()
   })
