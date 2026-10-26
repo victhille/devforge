@@ -129,6 +129,20 @@ Règles : un secret ne se réaffiche jamais (seulement « renseigné ») ; chaqu
 
 **Fini quand** les deux parcours marchent : celui d'un inconnu, et le tien.
 
+**Fait** (26/10/2026) :
+- installeur public téléchargé sans connexion : empreinte identique à `latest.yml` ; ouvert sans l'installer (9 737 fichiers de l'app, 474 d'Electron) : aucun mot personnel, aucune adresse e-mail de l'auteur, aucun jeton ; seule « clé privée » trouvée : la clé de test publique de la bibliothèque `ssh2` ;
+- l'app ne contient que le code compilé et ses dépendances (ni sources, ni tests, ni scripts) ; `app-update.yml` : `victhille/devforge`, `private: false` ; le flux de mises à jour se lit sans jeton ;
+- **ton parcours** : la 2.4.0 s'est mise à jour toute seule en 3.0.0 ; projets, serveur, bases, clé Forgy et réglages intacts ; aucune erreur au journal. Le téléchargement différentiel a échoué une fois (l'ancienne blockmap est restée dans le dépôt archivé) : installeur complet téléchargé à la place, sans conséquence.
+
+**Reste : le parcours d'un inconnu**, sur un profil Windows vierge (nouvel utilisateur Windows ou machine virtuelle) :
+1. télécharger `DevForge-Setup-v3.0.0.exe` depuis la page des releases ; SmartScreen : « Informations complémentaires » puis « Exécuter quand même » ;
+2. premier lancement : l'écran de bienvenue est dans la langue de Windows ; aucun projet, serveur, compte ni widget rempli ; « À propos » pointe vers `victhille/devforge` ;
+3. suivre les 5 étapes : langue, dossier de projets, comptes (identité Git, GitHub CLI ou jeton), clé Forgy, fin ; tout passer une fois, puis tout refaire depuis Paramètres › Connexions ;
+4. Connexions : ajouter un serveur SSH et le tester, enregistrer un jeton GitHub et le tester, une clé Forgy et la tester, puis tout retirer ;
+5. ouvrir les pages qui dépendent d'un serveur (n8n, page de statut, VPN, santé…) : elles disent « Aucun serveur configuré » et mènent à Connexions, sans erreur ;
+6. Données : exporter, « Tout effacer » (retour à l'écran de bienvenue), importer : la configuration revient, les secrets sont à ressaisir ;
+7. créer un projet de bout en bout (Node ou Next.js), l'ouvrir dans le terminal.
+
 ## Questions encore ouvertes
 
 - Signature du code (un certificat évite l'alerte SmartScreen de Windows, mais il est payant) : à décider avant le lot 5.
