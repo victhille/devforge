@@ -1,0 +1,75 @@
+---
+title: Vie privée et sécurité
+description: Ce qui reste sur ton PC, ce qui en sort et quand, comment DevForge protège tes mots de passe et tes clés, et ce que Forgy envoie.
+---
+
+DevForge travaille sur ton PC. Voici ce qui y reste, ce qui en sort et quand, et comment tes mots de passe et tes clés sont protégés.
+
+<div class="df-ways not-content">
+  <div class="df-way">
+    <strong>Ni compte ni statistiques</strong>
+    <span>Pas d'inscription. DevForge n'envoie aucune mesure d'usage.</span>
+  </div>
+  <div class="df-way">
+    <strong>Secrets chiffrés</strong>
+    <span>Par Windows, liés à ton compte. Jamais affichés.</span>
+  </div>
+  <div class="df-way">
+    <strong>Forgy demande</strong>
+    <span>Il lit, puis propose : tu valides ses actions.</span>
+  </div>
+</div>
+
+## Ce qui reste sur ton PC
+
+Tout ce que DevForge sait est dans son dossier, `%APPDATA%\DevForge`, en fichiers JSON : projets, serveurs, bases, réglages, historique de Forgy. Rien n'est gardé ailleurs.
+
+- Une sauvegarde est faite avant chaque changement du format de données ; les 5 dernières sont gardées.
+- Le journal local note erreurs et évènements, secrets masqués.
+- **Paramètres › Données › Tout effacer** remet DevForge à zéro.
+
+Voir [Données, export et remise à zéro](/devforge/settings/data/).
+
+## Tes mots de passe et tes clés
+
+- **Chiffrés par Windows** (DPAPI), liés à ton compte Windows : copiés sur un autre PC ou un autre compte, ils sont illisibles.
+- **Jamais renvoyés à l'écran** : l'interface reçoit seulement « renseigné » ou « aucun ». Même la page n'y a pas accès, seul le processus principal les déchiffre au moment de s'en servir.
+- **Absents de l'export** de la configuration : ils seront à ressaisir sur l'autre PC.
+- **Masqués** dans le journal et le rapport de diagnostic.
+- La synchronisation du `.env` avec un serveur compare l'état de chaque clé (identique, différente, seulement ici), jamais les valeurs.
+
+## Ce qui sort de ton PC, et quand
+
+| Vers | Quand | Quoi |
+|---|---|---|
+| GitHub | au démarrage, puis toutes les 6 heures | la recherche d'une mise à jour, et son téléchargement |
+| Anthropic | quand tu écris à Forgy | ta question et son contexte (voir plus bas) |
+| Hugging Face | à la première dictée | le téléchargement du modèle de reconnaissance vocale ; ta voix, elle, ne quitte jamais le PC |
+| Tes serveurs, GitHub, Vercel, n8n, ntfy… | quand tu te sers de la fonction | ce que la fonction demande, avec les identifiants que tu as donnés |
+
+Le récepteur de [webhooks](/devforge/data/webhooks/) n'écoute que sur ce PC (`127.0.0.1`) : il n'est pas joignable depuis le réseau.
+
+## Ce que Forgy envoie
+
+Forgy fonctionne avec l'API d'Anthropic, avec ta clé. Chaque question envoie :
+
+- ta question et la conversation en cours ;
+- au premier message sur un projet : son nom, son chemin, son framework, l'état Git, les fichiers à la racine, les scripts, les dépendances et le début du README ;
+- le contexte de la page ouverte, si la pastille 📎 est active : la **structure** d'une base, jamais ses données ; une requête de l'API Tester, en-têtes sensibles masqués ; les dernières lignes de logs affichées ;
+- ce que Forgy a lu pour répondre : fichiers du projet, diff Git, état Docker…
+
+Pour **agir** (commit, `.env`, conteneur, SQL…), Forgy propose une carte : rien ne s'exécute avant ton clic. Le réglage **Auto pour les actions sûres** laisse partir seules les actions annulables ou en lecture ; push, pull, écriture SQL et ports demandent toujours ton accord. Un budget mensuel arrête Forgy une fois atteint.
+
+Voir [Forgy](/devforge/forgy/assistant/) et [ses actions](/devforge/forgy/actions/).
+
+## Le rapport de diagnostic
+
+**Paramètres › À propos › Copier le rapport** copie la version, le système et les dernières lignes du journal, secrets masqués. **Rien n'est envoyé** : tu le colles où tu veux. Relis-le avant : il peut contenir des noms de serveurs ou de projets.
+
+## Signaler une faille
+
+Pas dans une issue publique : utilise le signalement privé de GitHub (onglet **Security**, **Report a vulnerability**). Seuls les mainteneurs le voient. Voir [Contribuer](/devforge/contribute/).
+
+## Ce site
+
+Ni cookie ni mesure d'audience. Seul le bouton de téléchargement interroge l'API publique de GitHub pour connaître la dernière version.
