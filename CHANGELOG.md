@@ -2,6 +2,21 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [3.2.0](https://github.com/victhille/devforge/compare/v3.1.0...v3.2.0) — 2026-10-27
+
+> Chaque page ouvre sa documentation (bouton « ? » ou F1), n8n et les alertes ntfy se règlent dans Connexions, plus de mélange français / anglais, et Forgy reconnaît ANTHROPIC_API_KEY.
+
+### Nouveautés
+
+- **connexions** : N8n et les alertes ntfy se règlent, se testent et se retirent dans Connexions ([e2b7513](https://github.com/victhille/devforge/commit/e2b7513c150fc1dd88ce1275443969cb22bc8d54))
+- **aide** : L'aide de chaque page sur le site, d'un clic ou avec F1 ([7eec232](https://github.com/victhille/devforge/commit/7eec23205114f98950adb48b983ff1c159eb1803))
+
+### Corrections
+
+- **langue** : Plus de mélange français / anglais, Forgy reconnaît ANTHROPIC_API_KEY ([cc6297f](https://github.com/victhille/devforge/commit/cc6297fd41f0663ff9777c07b93701b7f4f0aa14))
+
+_12 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [3.1.0](https://github.com/victhille/devforge/compare/v3.0.0...v3.1.0) — 2026-10-27
 
 > Le menu ne montre les pages qui demandent un serveur (santé, services, sauvegardes, n8n, page de statut, VPN) qu'une fois un serveur configuré ; Paramètres › Connexions s'ouvre sans attendre.
