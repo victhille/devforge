@@ -1,11 +1,13 @@
 /*
- * The docs take the app's look: Geist, its dark canvas, its blue accent and
- * Forgy's orange (values from src/renderer/src/styles/index.css).
+ * The docs in the « Atelier » look of the home page: a warm paper ground,
+ * dark ink, Geist, the app's screens on its dark canvas, Forgy's orange for
+ * what is current. The dark theme keeps the app's own colours.
  */
 :root {
-  --sl-font: 'Geist Variable', system-ui, sans-serif;
+  --sl-font: 'Geist Variable', 'Segoe UI', system-ui, sans-serif;
   --sl-font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 
+  /* Dark theme: the app (src/renderer/src/styles/index.css) */
   --sl-color-accent-low: #15233D;
   --sl-color-accent: #5B9BFF;
   --sl-color-accent-high: #CFE0FF;
@@ -17,76 +19,139 @@
   --sl-color-gray-5: #262C36;
   --sl-color-gray-6: #161A21;
   --sl-color-black: #0D0F13;
-  --sl-color-bg-nav: #0A0C10;
-  --sl-color-bg-sidebar: #111419;
+  --sl-color-bg-nav: #0D0F13;
+  --sl-color-bg-sidebar: #0D0F13;
   --sl-color-hairline: #1F242D;
   --sl-color-hairline-light: #262C36;
 
-  --df-forgy: #FF9A3C;
-  --df-forgy-dim: rgba(255, 154, 60, 0.12);
-  --df-surface: #161A21;
+  --df-orange: #FF9A3C;
+  --df-card: #161A21;
+  --df-current: #1C2638;
+  --df-code: #1D222B;
+  --df-ink: #E8ECF2;
+  --df-ink-hover: #FFFFFF;
+  --df-on-ink: #0D0F13;
+  --df-stage: #0A0C10;
 }
+
+/* Light theme, the default: the home page */
 :root[data-theme='light'] {
-  --sl-color-accent-low: #DCE6FB;
+  --sl-color-accent-low: #E3EAFB;
   --sl-color-accent: #1D4ED8;
   --sl-color-accent-high: #1E3A8A;
-  --sl-color-white: #111827;
-  --sl-color-gray-1: #1F2937;
-  --sl-color-gray-2: #374151;
-  --sl-color-gray-3: #4B5563;
-  --sl-color-gray-4: #5D6675;
-  --sl-color-gray-5: #D1D5DB;
-  --sl-color-gray-6: #EEF0F4;
-  --sl-color-gray-7: #F7F8FB;
-  --sl-color-black: #FFFFFF;
-  --sl-color-bg-nav: #FFFFFF;
-  --sl-color-bg-sidebar: #F7F8FB;
-  --df-forgy: #B03B0A;
-  --df-forgy-dim: rgba(176, 59, 10, 0.08);
-  --df-surface: #F7F8FB;
+  --sl-color-white: #17191E;
+  --sl-color-gray-1: #23262D;
+  --sl-color-gray-2: #4A505C;
+  --sl-color-gray-3: #5F6571;
+  --sl-color-gray-4: #8A877F;
+  --sl-color-gray-5: #E2DED6;
+  --sl-color-gray-6: #EEEAE3;
+  --sl-color-gray-7: #F1EDE6;
+  --sl-color-black: #F6F4EF;
+  --sl-color-bg-nav: #F6F4EF;
+  --sl-color-bg-sidebar: #F6F4EF;
+  --sl-color-hairline: #E2DED6;
+  --sl-color-hairline-light: #E2DED6;
+  --sl-color-hairline-shade: #D6D1C8;
+
+  --df-orange: #C2530A;
+  --df-card: #FFFFFF;
+  --df-current: #EAE5DC;
+  --df-code: #F1EDE6;
+  --df-ink: #17191E;
+  --df-ink-hover: #2B2F37;
+  --df-on-ink: #FFFFFF;
+  --df-stage: #0D0F13;
 }
 
-/* Header: the app's title bar */
-header.header { border-bottom: 1px solid var(--sl-color-hairline); backdrop-filter: blur(12px); }
-.site-title { font-weight: 700; letter-spacing: -0.02em; }
+/* Header */
+header.header { border-bottom: 1px solid var(--sl-color-hairline); }
+.site-title { font-weight: 700; letter-spacing: -0.02em; color: var(--sl-color-white); }
+site-search button[data-open-modal] { border-radius: 9px; background: var(--df-card); border-color: var(--sl-color-gray-5); }
 
-/* Sidebar: like the app's menu, the current page on a soft accent */
-.sidebar-content a[aria-current='page'] {
-  background: var(--sl-color-accent-low);
+/* Sidebar: plain group labels, the current page on a soft pill */
+.sidebar-content .group-label .large {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sl-color-gray-3);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.sidebar-content a { border-radius: 7px; }
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover,
+.sidebar-content a[aria-current='page']:focus {
+  background: var(--df-current);
   color: var(--sl-color-white);
-  border-radius: 8px;
   font-weight: 600;
 }
-.sidebar-content a:not([aria-current='page']):hover { border-radius: 8px; background: var(--sl-color-gray-6); }
-.sidebar-content summary .group-label .large { font-family: var(--sl-font-mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sl-color-gray-3); }
 
-/* Content */
-.sl-markdown-content h1, h1#_top { letter-spacing: -0.03em; }
-.sl-markdown-content h2 { letter-spacing: -0.02em; }
+/* Right column: the section being read in orange */
+starlight-toc a[aria-current='true'],
+mobile-starlight-toc a[aria-current='true'] { color: var(--df-orange); font-weight: 600; }
+
+/* Text */
+.sl-markdown-content h1, h1#_top { letter-spacing: -0.035em; font-weight: 750; }
+.sl-markdown-content h2 { letter-spacing: -0.025em; }
 .sl-markdown-content :is(h2, h3) { scroll-margin-top: 5rem; }
-.sl-markdown-content table { border-radius: 12px; overflow: hidden; border: 1px solid var(--sl-color-gray-5); border-collapse: separate; border-spacing: 0; }
-.sl-markdown-content :is(th, td) { border-color: var(--sl-color-hairline); }
-.sl-markdown-content th { background: var(--df-surface); font-family: var(--sl-font-mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--sl-color-gray-3); }
+
+/* Tables: a white card with fine rules */
+.sl-markdown-content table {
+  display: table;
+  width: 100%;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 12px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  background: var(--df-card);
+}
+.sl-markdown-content :is(th, td) { border: 0; border-bottom: 1px solid var(--sl-color-gray-6); padding: 0.65rem 1rem; }
+.sl-markdown-content tr:last-child td { border-bottom: 0; }
+.sl-markdown-content th { background: var(--sl-color-black); color: var(--sl-color-gray-2); font-weight: 600; border-bottom-color: var(--sl-color-gray-5); }
+.sl-markdown-content td:first-child { font-weight: 600; color: var(--sl-color-white); }
+
+/* Keys and code, as in the app */
 .sl-markdown-content kbd {
   font: 600 0.8em var(--sl-font-mono);
   padding: 0.1em 0.45em;
-  border: 1px solid var(--sl-color-gray-5);
+  border: 1px solid var(--sl-color-hairline-shade, var(--sl-color-gray-5));
   border-bottom-width: 2px;
-  border-radius: 6px;
-  background: var(--df-surface);
+  border-radius: 5px;
+  background: var(--df-card);
   color: var(--sl-color-white);
 }
-.sl-markdown-content :not(pre) > code { border-radius: 6px; padding: 0.1em 0.35em; }
+.sl-markdown-content :not(pre) > code { background: var(--df-code); border-radius: 5px; padding: 0.1em 0.35em; }
 
-/* Screenshots: framed like the app's window */
+/* Screenshots: on the app's dark canvas */
 .sl-markdown-content p > img {
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 12px;
-  box-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.6);
+  background: var(--df-stage);
+  padding: clamp(10px, 2vw, 22px);
+  border-radius: 14px;
 }
 
+/* Asides: a quiet card, the icon carries the colour (no coloured edge) */
+.starlight-aside {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 12px;
+  background: var(--df-card);
+  color: var(--sl-color-gray-2);
+}
+.starlight-aside__title { color: var(--sl-color-white); }
+.starlight-aside__icon { color: var(--df-orange); }
+.starlight-aside--caution .starlight-aside__icon,
+.starlight-aside--danger .starlight-aside__icon { color: #B45309; }
 
-/* Download button of the docs (Download.astro), like the app's primary button */
+/* Previous / next */
+.pagination-links a {
+  border-radius: 12px;
+  border-color: var(--sl-color-gray-5);
+  background: var(--df-card);
+  box-shadow: none;
+}
+.pagination-links a:hover { border-color: var(--sl-color-gray-4); }
+
+/* Download block of the docs (Download.astro), like the home page's */
 .df-download {
   display: flex;
   flex-wrap: wrap;
@@ -96,19 +161,18 @@ header.header { border-bottom: 1px solid var(--sl-color-hairline); backdrop-filt
   padding: 1.25rem;
   border: 1px solid var(--sl-color-gray-5);
   border-radius: 14px;
-  background: var(--df-surface);
+  background: var(--df-card);
 }
 .df-download a.df-button {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.7rem 1.2rem;
+  padding: 0.75rem 1.2rem;
   border-radius: 10px;
-  background: var(--sl-color-accent);
-  color: #08111F;
+  background: var(--df-ink);
+  color: var(--df-on-ink);
   font-weight: 600;
   text-decoration: none;
 }
-:root[data-theme='light'] .df-download a.df-button { color: #FFFFFF; }
-.df-download a.df-button:hover { filter: brightness(1.1); }
+.df-download a.df-button:hover { background: var(--df-ink-hover); color: var(--df-on-ink); }
 .df-download .df-meta { color: var(--sl-color-gray-3); font: 0.85rem var(--sl-font-mono); }

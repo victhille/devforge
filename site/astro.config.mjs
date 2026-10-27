@@ -23,6 +23,10 @@ export default defineConfig({
       editLink: { baseUrl: 'https://github.com/victhille/devforge/edit/main/site/' },
       customCss: ['@fontsource-variable/geist', '@fontsource-variable/geist-mono', './src/styles/custom.css'],
       lastUpdated: true,
+      // Light by default and the home page's download button in the header
+      components: { ThemeProvider: './src/components/ThemeProvider.astro', SocialIcons: './src/components/SocialIcons.astro' },
+      // Code on the app's dark canvas in both themes
+      expressiveCode: { themes: ['github-dark-default'] },
       sidebar: [
         'download',
         group('Prise en main', 'Getting started', [
