@@ -1,0 +1,30 @@
+---
+title: Download
+description: Download the latest version of DevForge for Windows.
+---
+
+import Download from '../../../components/Download.astro'
+import { Steps } from '@astrojs/starlight/components'
+
+<Download lang="en" />
+
+The button always takes the installer of the latest version published on GitHub (`DevForge-Setup-vX.Y.Z.exe`). Every version, with its notes, is on the [releases page](https://github.com/victhille/devforge/releases).
+
+## Requirements
+
+- Windows 10 or 11, 64-bit (x64).
+- Optional, depending on what you use: [Git](https://git-scm.com), [Docker Desktop](https://www.docker.com/products/docker-desktop/), Node.js, PHP… The [Environment](/devforge/en/system/environment/) page shows what is installed and helps install the rest.
+
+## Install
+
+<Steps>
+
+1. Run `DevForge-Setup-vX.Y.Z.exe`.
+2. Windows may show **"Windows protected your PC"**: the installer is not signed (a code-signing certificate costs money). Click **More info**, then **Run anyway**.
+3. Pick the install folder and finish. DevForge opens on the [welcome screen](/devforge/en/getting-started/first-launch/).
+
+</Steps>
+
+## Updates
+
+DevForge looks for a new version 15 seconds after it starts, then every 6 hours. It downloads in the background and installs on the next restart. Details: [Installation](/devforge/en/getting-started/installation/#automatic-updates).

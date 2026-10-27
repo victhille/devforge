@@ -1,0 +1,39 @@
+/* DevForge's accent: the orange of the logo */
+:root {
+  --sl-color-accent-low: #3b1d08;
+  --sl-color-accent: #ea580c;
+  --sl-color-accent-high: #fed7aa;
+}
+:root[data-theme='light'] {
+  --sl-color-accent-low: #ffedd5;
+  --sl-color-accent: #c2410c;
+  --sl-color-accent-high: #7c2d12;
+}
+
+.df-download {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-block: 1.5rem;
+}
+.df-download a.df-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 999px;
+  background: var(--sl-color-accent);
+  color: var(--sl-color-black);
+  font-weight: 600;
+  text-decoration: none;
+}
+:root[data-theme='light'] .df-download a.df-button { color: var(--sl-color-white); }
+.df-download a.df-button:hover { filter: brightness(1.08); }
+.df-download .df-meta { color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); }
+
+.df-shot {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.75rem;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.25);
+}
