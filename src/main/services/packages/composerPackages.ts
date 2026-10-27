@@ -4,7 +4,7 @@ import type { AuditSeverity, AuditSummary, PackageInfo, PackageManifest, Package
 import { isPackageName } from '@shared/lib/packages'
 import { SAIL_SERVICE, isSailCompose } from '@shared/lib/laravelCommands'
 import { runCapture } from '../../lib/exec'
-import { backup, findManifestDirs, readJson, runLogged, testData } from './npmPackages'
+import { backup, findManifestDirs, readJson, restoreBackup, runLogged, testData, type PackagesBackup } from './npmPackages'
 
 /**
  * A project's Composer packages (v3.3 lot 3): the same tab as npm, read from
@@ -88,7 +88,7 @@ export async function composerLatest(names: string[]): Promise<Record<string, st
 
 const read = (path: string) => { try { return readFileSync(path, 'utf-8') } catch { return '' } }
 export const isSail = (dir: string) => isSailCompose(read(join(dir, 'compose.yaml')) || read(join(dir, 'docker-compose.yml')))
-const composer = (dir: string, args: string) => isSail(dir) ? `docker compose exec -T -u sail ${SAIL_SERVICE} composer ${args}` : `composer ${args}`
+export const composer = (dir: string, args: string) => isSail(dir) ? `docker compose exec -T -u sail ${SAIL_SERVICE} composer ${args}` : `composer ${args}`
 
 /** Composer on this PC (a Sail project brings its own) */
 export async function composerAvailable(dir: string): Promise<boolean> {
@@ -151,19 +151,19 @@ export function composerCommands(updates: PackageUpdate[], latest: Record<string
   return cmds
 }
 
-export async function composerUpdate(dir: string, updates: PackageUpdate[], onLog: (line: string) => void): Promise<{ ok: boolean; restored: boolean }> {
+export async function composerUpdate(dir: string, updates: PackageUpdate[], onLog: (line: string) => void): Promise<{ ok: boolean; restored: boolean; backup?: PackagesBackup }> {
   const fake = testData()?.update as string | undefined
   if (!fake && !(await composerAvailable(dir))) throw new Error('COMPOSER_MISSING')
   const latest = updates.some(u => u.target === 'latest') ? await composerLatest(updates.map(u => u.name)) : {}
   const cmds = fake ? [fake] : composerCommands(updates, latest, isSail(dir))
   if (!cmds.length) return { ok: true, restored: false }
-  const restore = backup(dir, ['composer.json', 'composer.lock'])
+  const saved = backup(dir, ['composer.json', 'composer.lock'])
   for (const cmd of cmds) {
     if (!(await runLogged(cmd, dir, onLog))) {
-      restore()
+      restoreBackup(dir, saved)
       onLog('↺ composer.json and composer.lock put back as they were')
       return { ok: false, restored: true }
     }
   }
-  return { ok: true, restored: false }
+  return { ok: true, restored: false, backup: saved }
 }

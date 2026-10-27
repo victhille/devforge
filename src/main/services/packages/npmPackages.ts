@@ -186,7 +186,7 @@ export function parseYarnAudit(ndjson: string): AuditSummary | null {
   return seen ? s : null
 }
 
-const isYarnBerry = (dir: string, root: string) => {
+export const isYarnBerry = (dir: string, root: string) => {
   for (let d = dir; ; d = dirname(d)) {
     if (existsSync(join(d, '.yarnrc.yml'))) return true
     if (/^yarn@[2-9]/.test(String(readJson(join(d, 'package.json'))?.packageManager ?? ''))) return true
@@ -210,6 +210,10 @@ export async function audit(root: string, dir: string, manager: PackageManagerKi
 // ─── Update ───────────────────────────────────────────────────────────────────
 
 /** The commands of an update, per manager; names checked, nothing else from outside */
+/** Reinstalls from the manifest and lockfile (after putting saved ones back) */
+export const installCommand = (manager: PackageManagerKind): string =>
+  manager === 'pnpm' ? 'pnpm install' : manager === 'yarn' ? 'yarn install' : 'npm install'
+
 export function updateCommands(manager: PackageManagerKind, updates: PackageUpdate[], berry = false): string[] {
   const ok = updates.filter(u => isPackageName(u.name))
   const names = (list: PackageUpdate[]) => list.map(u => u.name).join(' ')
@@ -231,13 +235,24 @@ export function updateCommands(manager: PackageManagerKind, updates: PackageUpda
   return cmds
 }
 
-/** Copies the manifest and the lockfiles beside it; returns how to put them back */
-export function backup(dir: string, names = ['package.json', ...LOCKFILES]): () => void {
+/** What an update saved before running: where, and which files */
+export interface PackagesBackup { store: string; files: string[] }
+
+/** Copies the manifest and the lockfiles beside it */
+export function backup(dir: string, names = ['package.json', ...LOCKFILES]): PackagesBackup {
   const store = join(app.getPath('userData'), 'backups', 'packages', new Date().toISOString().replace(/[:.]/g, '-'))
   mkdirSync(store, { recursive: true })
   const files = names.filter(f => existsSync(join(dir, f)))
   for (const f of files) copyFileSync(join(dir, f), join(store, f))
-  return () => { for (const f of files) copyFileSync(join(store, f), join(dir, f)) }
+  return { store, files }
+}
+
+/** Puts the saved files back in the manifest's folder */
+export function restoreBackup(dir: string, saved: PackagesBackup): void {
+  for (const f of saved.files) {
+    if (!/^[\w.-]+$/.test(f)) continue
+    copyFileSync(join(saved.store, f), join(dir, f))
+  }
 }
 
 export function runLogged(command: string, cwd: string, onLog: (line: string) => void): Promise<boolean> {
@@ -251,17 +266,17 @@ export function runLogged(command: string, cwd: string, onLog: (line: string) =>
   })
 }
 
-export async function update(root: string, dir: string, manager: PackageManagerKind, updates: PackageUpdate[], onLog: (line: string) => void): Promise<{ ok: boolean; restored: boolean }> {
+export async function update(root: string, dir: string, manager: PackageManagerKind, updates: PackageUpdate[], onLog: (line: string) => void): Promise<{ ok: boolean; restored: boolean; backup?: PackagesBackup }> {
   const fake = testData()?.update as string | undefined
   const cmds = fake ? [fake] : updateCommands(manager, updates, manager === 'yarn' && isYarnBerry(dir, root))
   if (!cmds.length) return { ok: true, restored: false }
-  const restore = backup(dir)
+  const saved = backup(dir)
   for (const cmd of cmds) {
     if (!(await runLogged(cmd, dir, onLog))) {
-      restore()
+      restoreBackup(dir, saved)
       onLog('↺ package.json and lockfile put back as they were')
       return { ok: false, restored: true }
     }
   }
-  return { ok: true, restored: false }
+  return { ok: true, restored: false, backup: saved }
 }
