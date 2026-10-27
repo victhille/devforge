@@ -25,13 +25,14 @@ Forgy can also **act**. Each action shows as a **card** in the panel: what will 
 | VPN client | creates a WireGuard client; the VPN page opens on its QR code | no | no |
 | Backup | runs the server's nightly backup right now | no | no |
 | GitHub Actions | re-runs the failed jobs of a run | no | no |
+| Packages | updates npm, pnpm, yarn or Composer [packages](/devforge/en/dev/packages/), within their range or to the latest version (a major is flagged on the card) | yes: manifest and lockfile put back, then reinstall | no |
 
 ## Always ask, or Auto
 
 **Settings › Forgy › Forgy's actions**:
 
 - **Always ask** (default): every action waits for your click.
-- **Auto for safe actions**: only the actions of the "Auto possible" column (undoable or read-only) go without a click. Push, pull, SQL writes and ports always ask for your approval.
+- **Auto for safe actions**: only the actions of the "Auto possible" column (undoable or read-only) go without a click. Push, pull, SQL writes, ports and package updates always ask for your approval.
 
 ## Guardrails
 
@@ -41,6 +42,7 @@ Forgy can also **act**. Each action shows as a **card** in the panel: what will 
 | Git | never a force push; a first push (no upstream) is done from the Git page |
 | `.env` | never changes an existing key |
 | Ports | never a Windows service nor DevForge |
+| Packages | only packages declared in the manifest; Composer missing or an ambiguous manifest: refused before any card |
 | Refusal | Forgy is told and does not run the action again |
 | Stop | stopping the answer refuses the pending actions |
 

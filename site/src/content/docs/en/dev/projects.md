@@ -1,6 +1,6 @@
 ---
 title: Projects
-description: The list of your projects and each project's page, with Git, GitHub, Docker, variables, database, logs, ports, deploy, Vercel, terminal and framework workshops.
+description: The list of your projects and each project's page, with Git, GitHub, Docker, variables, packages, database, logs, ports, deploy, Vercel, terminal and framework workshops.
 ---
 
 ## The project list
@@ -31,7 +31,8 @@ Tabs only show when they make sense for the project:
 | Terminal | a built-in terminal opened in the project folder |
 | Docker | the Compose project of the folder (or its parent): services, state, start / stop |
 | Variables | the `.env` files and their keys, see [Env variables](/devforge/en/system/env-files/) |
-| Database | the connections linked to the project; **Link a connection…** |
+| Packages | when the project has a `package.json` or a `composer.json`: versions, vulnerabilities, updates; see [Packages](/devforge/en/dev/packages/) |
+| Database | the linked database, explored in place (see below); **Link a connection…** |
 | Logs | the log files found (`storage/logs`, `var/log`, `logs`…), followed live; you can add one by its path |
 | Ports & domains | the ports found in the config (`.env`, scripts, Compose), listening or free, **Free**; the linked local domains |
 | Deploy | the project's deploy targets and **Sync the .env** with the server |
@@ -39,6 +40,13 @@ Tabs only show when they make sense for the project:
 | Files | the project tree and the list of its scripts, with **Run** |
 
 What DevForge **found** by itself (a database, a domain, a port) is marked *found*; what you linked by hand, *added*. **Remove from the project** hides an item; **Show again** brings it back.
+
+### The project's database
+
+The **Database** tab shows the linked database right there: the tables in a collapsible column, then the same tabs as the [Database](/devforge/en/data/database/#explore) page (**Database** and **SQL**, and for a table **Browse**, **Structure**, **Relations**, **Info**). The connection only opens when the tab shows.
+
+- Several linked databases: the first one shows, **Show** on another row switches.
+- **Open full size** opens the Database page; its **← Back to** *project name* button brings you back to this tab.
 
 ### Sync the .env with the server
 

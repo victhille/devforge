@@ -12,6 +12,7 @@ Ce que DevForge regroupe, ce qu'il ne remplace pas, et ses limites. Pour décide
 |---|---|---|
 | Lancer un projet et ses services | un terminal par projet, les commandes de mémoire | [Lanceur de stack](/devforge/dev/stacks/) |
 | Voir l'état Git de tous ses projets | un `git status` dans chaque dossier | [Git](/devforge/dev/git/) |
+| Mettre à jour les dépendances | `npm outdated`, `npm audit`, `composer outdated`… dossier par dossier | [Paquets](/devforge/dev/packages/) |
 | Lire et interroger une base | un client SQL | [Base de données](/devforge/data/database/) |
 | Tester une API | un client HTTP | [API Tester](/devforge/data/api-tester/) |
 | Recevoir un webhook en local | un service en ligne qui les capte | [Webhooks](/devforge/data/webhooks/) |
