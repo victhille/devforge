@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties, type Rea
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft, Bot, Code2, Container, Database, ExternalLink, FileKey2, FolderOpen, GitBranch, Globe, Play, Rocket, ScrollText,
-  Star, Terminal, Trash2, Wifi, X, XCircle
+  Star, Terminal, Trash2, Wifi, X, XCircle, Maximize2
 } from 'lucide-react'
 import type { DbConnection, DefaultIDE, DockerOverview, GitRepoDetails, LinkKind, ListeningPort, LocalDomain, ProjectHub } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -29,6 +29,7 @@ import SymfonyPanel from './symfony/SymfonyPanel'
 import NextPanel from './nextjs/NextPanel'
 import LaravelPanel from './laravel/LaravelPanel'
 import TerminalTabs from '@renderer/features/terminal/TerminalTabs'
+import DbExplorer from '@renderer/features/database/DbExplorer'
 
 type Tab = 'overview' | 'git' | 'github' | 'symfony' | 'nextjs' | 'laravel' | 'terminal' | 'docker' | 'env' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
 const TABS: Tab[] = ['overview', 'git', 'github', 'symfony', 'nextjs', 'laravel', 'terminal', 'docker', 'env', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
@@ -116,6 +117,8 @@ export default function ProjectDetailPage() {
   const [ide, setIde] = useState<DefaultIDE>('vscode')
   const [busy, setBusy] = useState<string | null>(null)
   const [committing, setCommitting] = useState(false)
+  /** The linked database shown in the Database tab */
+  const [shownDb, setShownDb] = useState<string | null>(null)
   const [newLog, setNewLog] = useState('')
   // The terminal stays once opened: its shells survive a trip to another tab
   const [termOpened, setTermOpened] = useState(tab === 'terminal')
@@ -225,12 +228,17 @@ export default function ProjectDetailPage() {
     </div>
   )
 
+  // The database open in the tab, and the way to the full page (which leads back here)
+  const dbId = hub.databases.some(d => d.id === shownDb) ? shownDb : hub.databases[0]?.id ?? null
+  const dbConn = connections.find(c => c.id === dbId)
+  const openDbPage = (id: string) => navigate(`/database?conn=${encodeURIComponent(id)}&from=${encodeURIComponent(p.id)}`)
+
   const databaseList = (
     <Card className="overflow-hidden">
       {hub.databases.length === 0 && <div className="p-[18px]"><Muted>{h.dbNone}</Muted></div>}
       {hub.databases.map(d => (
         <LinkRow key={d.id} origin={d.origin} onUntie={() => link('databases', d.id, false)}
-          actions={<Button size="sm" variant="secondary" onClick={() => navigate(`/database?conn=${encodeURIComponent(d.id)}`)}>{h.open}</Button>}>
+          actions={<Button size="sm" variant={d.id === dbId ? 'primary' : 'secondary'} aria-pressed={d.id === dbId} onClick={() => setShownDb(d.id)}>{h.dbShow}</Button>}>
           <div className="truncate font-medium text-fg">{d.name}</div>
           <div className="font-mono text-xs text-fg-muted">{d.type}</div>
         </LinkRow>
@@ -265,7 +273,7 @@ export default function ProjectDetailPage() {
         </Tile>
         <Tile i={4} title={h.tabs.database} icon={<Database size={16} />} onSee={() => setTab('database')}>
           {hub.databases.length === 0 ? <Muted>{h.none}</Muted> : hub.databases.map(d => (
-            <button key={d.id} onClick={() => navigate(`/database?conn=${encodeURIComponent(d.id)}`)} className="flex items-center gap-2 text-left text-sm text-fg hover:text-accent">
+            <button key={d.id} onClick={() => { setShownDb(d.id); setTab('database') }} className="flex items-center gap-2 text-left text-sm text-fg hover:text-accent">
               <span className="flex-1 truncate">{d.name}</span><span className="font-mono text-xs text-fg-muted">{d.type}</span>
             </button>
           ))}
@@ -354,6 +362,13 @@ export default function ProjectDetailPage() {
           </label>
         )}
         <HiddenList items={hub.hidden.databases.map(ref => ({ ref, label: connections.find(c => c.id === ref)?.name ?? ref }))} onShow={ref => link('databases', ref, true)} />
+        {/* The database itself, right here: tables, rows, structure, SQL */}
+        {dbConn && (
+          <div className="h-[640px] overflow-hidden rounded-[14px] border border-line">
+            <DbExplorer key={dbConn.id} conn={dbConn}
+              actions={<Button size="sm" variant="ghost" onClick={() => openDbPage(dbConn.id)}><Maximize2 size={13} /> {t.database.openFull}</Button>} />
+          </div>
+        )}
       </div>
     ),
 

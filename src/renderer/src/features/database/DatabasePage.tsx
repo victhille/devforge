@@ -1,55 +1,28 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import {
-  ChevronDown, ChevronRight, Code2, Database, Eye, Info, KeyRound, LayoutGrid, Link2, ListTree,
-  PanelLeftClose, PanelLeftOpen, Pencil, Plus, RefreshCw, Rows3, Search, Table2, Trash2
-} from 'lucide-react'
-import type { DbConnection, DbOverview, DbTable, DbTableDetails, DbTableRef } from '@shared/types'
-import { quoteIdent } from '@shared/lib/sqlQuote'
-import { useAssistantPageContext } from '@renderer/features/assistant/AssistantContext'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Database, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import type { DbConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
-import Spinner from '@renderer/components/ui/Spinner'
-import { formatSize } from '@renderer/lib/format'
 import { useActiveHub } from '@renderer/hooks/useActiveHub'
 import { SectionTitle } from '@renderer/components/ui/Page'
 import DbConnectionForm from './DbConnectionForm'
 import DetectDialog from './DetectDialog'
-import OverviewView from './OverviewView'
-import SqlPanel from './SqlPanel'
-import { BrowseTab, InfoTab, RelationsTab, StructureTab } from './TableTabs'
-
-type Tab = 'overview' | 'browse' | 'structure' | 'relations' | 'info' | 'sql'
-
-const errorText = (err: unknown) =>
-  String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
-
-const sameTable = (a: DbTableRef | null, b: DbTableRef | null) => !!a && !!b && a.name === b.name && a.schema === b.schema
+import DbExplorer from './DbExplorer'
 
 export default function DatabasePage() {
   const { t } = useI18n()
   const d = t.database
   const [connections, setConnections] = useState<DbConnection[]>([])
   const [active, setActive] = useState<string | null>(null)
-  const [tables, setTables] = useState<DbTable[] | null>(null)
-  const [schemaError, setSchemaError] = useState('')
-  const [open, setOpen] = useState<Set<string>>(new Set())
-  const [filter, setFilter] = useState('')
-  const [table, setTable] = useState<DbTableRef | null>(null)
-  const [tab, setTab] = useState<Tab>('overview')
-  const [overview, setOverview] = useState<DbOverview | null>(null)
-  const [details, setDetails] = useState<DbTableDetails | null>(null)
-  const [detailsFor, setDetailsFor] = useState<DbTableRef | null>(null)
-  /** Bumped by "refresh": reloads the open view */
-  const [rev, setRev] = useState(0)
-  const [viewError, setViewError] = useState('')
-  const [sql, setSql] = useState('')
   const [collapsed, setCollapsed] = usePersistentState('devforge:db-panel-collapsed', false)
   const [form, setForm] = useState<{ conn?: DbConnection } | null>(null)
+  /** Bumped when the open connection is edited: its explorer starts again */
+  const [rev, setRev] = useState(0)
   const [params, setParams] = useSearchParams()
   const [detect, setDetect] = useState<{ server?: string } | null>(() => (params.get('detect') ? { server: params.get('detect')! } : null))
 
@@ -60,98 +33,23 @@ export default function DatabasePage() {
   useEffect(() => {
     const id = wantedConn.current
     if (id && connections.some(c => c.id === id)) { wantedConn.current = null; select(id) }
-  // select is stable enough here: it only runs once per link
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connections])
 
   const conn = connections.find(c => c.id === active)
 
-  const loadSchema = useCallback(async (id: string) => {
-    setTables(null)
-    setSchemaError('')
-    try { setTables(await window.devforge.db.schema(id)) }
-    catch (err) { setSchemaError(errorText(err)); setTables([]) }
-  }, [])
-
-  const loadOverview = useCallback(async (id: string) => {
-    setOverview(null)
-    setViewError('')
-    try { setOverview(await window.devforge.db.overview(id)) }
-    catch (err) { setViewError(errorText(err)) }
-  }, [])
-
   function select(id: string) {
     setActive(id)
-    setTable(null)
-    setTab('overview')
-    setSql('')
-    setFilter('')
-    loadSchema(id)
-    loadOverview(id)
   }
 
-  function openTable(ref: DbTableRef, nextTab: Tab = 'browse') {
-    setTable({ name: ref.name, schema: ref.schema })
-    setTab(nextTab)
-  }
-
-  /** From a foreign key: "table", "schema.table" or quoted names */
-  function openTableByName(raw: string) {
-    const parts = raw.split('.').map(p => p.replace(/^"|"$/g, ''))
-    const name = parts.pop()!
-    const schema = parts.pop()
-    const found = tables?.find(tb => tb.name === name && (!schema || tb.schema === schema)) ?? tables?.find(tb => tb.name === name)
-    if (found) openTable(found, 'structure')
-  }
-
-  // Details feed the structure, relations and info tabs
+  // ?from=<project id>: "← Back to the project", on its Database tab
+  const navigate = useNavigate()
+  const [from, setFrom] = useState<{ id: string; name: string } | null>(null)
   useEffect(() => {
-    if (!active || !table || !['structure', 'relations', 'info'].includes(tab)) return
-    if (details && sameTable(table, detailsFor)) return
-    let alive = true
-    setDetails(null)
-    setViewError('')
-    window.devforge.db.details(active, table)
-      .then(r => { if (alive) { setDetails(r); setDetailsFor(table) } })
-      .catch(err => { if (alive) setViewError(errorText(err)) })
-    return () => { alive = false }
+    const id = params.get('from')
+    if (!id) return
+    window.devforge.getProjects().then(list => { const p = list.find(x => x.id === id); if (p) setFrom({ id: p.id, name: p.name }) }).catch(() => {})
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, table, tab, rev])
-
-  function changeTab(next: Tab) {
-    // SQL on a table starts from a SELECT on it
-    if (next === 'sql' && table && conn && !sql.trim()) setSql(`SELECT * FROM ${quoteIdent(conn.type, table)} LIMIT 100;`)
-    setTab(next)
-  }
-
-  function refresh() {
-    if (!active) return
-    loadSchema(active)
-    loadOverview(active)
-    setDetailsFor(null)
-    setDetails(null)
-    setRev(r => r + 1)
-  }
-
-  // Structure only (no row data): what the user is looking at
-  useAssistantPageContext(conn ? {
-    label: `${conn.name}${table ? ` › ${table.name}` : ''}`,
-    content: [
-      `Connection: ${conn.name} (${conn.type}${conn.type === 'sqlite' ? '' : `, database ${overview?.database ?? conn.database ?? ''}`}${overview ? `, ${overview.version}` : ''})`,
-      table && details && sameTable(table, detailsFor)
-        ? [
-            `Table ${table.schema ? `${table.schema}.` : ''}${table.name}`,
-            ...details.columns.map(c => `  ${c.name} ${c.type}${c.nullable ? '' : ' NOT NULL'}${c.key ? ` ${c.key}` : ''}${c.default !== null ? ` DEFAULT ${c.default}` : ''}${c.extra ? ` ${c.extra}` : ''}`),
-            'Indexes:', ...details.indexes.map(i => `  ${i.name} (${i.columns.join(', ')})${i.primary ? ' PRIMARY' : i.unique ? ' UNIQUE' : ''}`),
-            'Foreign keys:', ...details.foreignKeys.map(f => `  (${f.columns.join(', ')}) → ${f.table}(${f.refColumns.join(', ')}) ON DELETE ${f.onDelete}`),
-            'Referenced by:', ...details.referencedBy.map(f => `  ${f.table}(${f.columns.join(', ')})`)
-          ].join('\n')
-        : overview ? ['Tables:', ...overview.tables.map(t => `  ${t.schema && t.schema !== 'public' ? `${t.schema}.` : ''}${t.name} (${t.type}, ~${t.rows ?? '?'} rows)`)].join('\n') : '',
-      tab === 'sql' && sql.trim() ? `Current SQL:\n${sql.slice(0, 4000)}` : ''
-    ].filter(Boolean).join('\n')
-  } : null)
-
-  const toggle = (key: string) => setOpen(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else n.add(key); return n })
+  }, [])
 
   // Active project only (its linked databases)
   const activeHub = useActiveHub()
@@ -159,29 +57,9 @@ export default function DatabasePage() {
   const filterOn = onlyActive && !!activeHub?.databases.length
   const shownConnections = filterOn ? connections.filter(c => activeHub!.databases.some(d => d.id === c.id)) : connections
 
-  const shownTables = useMemo(() => {
-    const f = filter.trim().toLowerCase()
-    return f ? tables?.filter(tb => `${tb.schema}.${tb.name}`.toLowerCase().includes(f)) : tables
-  }, [tables, filter])
-
-  const dbName = overview?.database || conn?.database || conn?.name || ''
-
-  const tabItems = table
-    ? [
-        { value: 'browse' as Tab,    label: d.tabBrowse,    icon: <Rows3 size={13} /> },
-        { value: 'structure' as Tab, label: d.tabStructure, icon: <ListTree size={13} /> },
-        { value: 'relations' as Tab, label: d.tabRelations, icon: <Link2 size={13} /> },
-        { value: 'info' as Tab,      label: d.tabInfo,      icon: <Info size={13} /> },
-        { value: 'sql' as Tab,       label: d.tabSql,       icon: <Code2 size={13} /> }
-      ]
-    : [
-        { value: 'overview' as Tab, label: d.tabOverview, icon: <LayoutGrid size={13} /> },
-        { value: 'sql' as Tab,      label: d.tabSql,      icon: <Code2 size={13} /> }
-      ]
-
   return (
     <div className="flex h-full">
-      {/* Connections + tables (collapsible: more room for the data) */}
+      {/* Connections (collapsible: more room for the data) */}
       <aside className={cn('flex shrink-0 flex-col border-r border-line-subtle bg-sidebar transition-[width] duration-200', collapsed ? 'w-14' : 'w-[260px]')}>
         <div className={cn('flex h-11 shrink-0 items-center border-b border-line-subtle', collapsed ? 'justify-center' : 'justify-between px-3')}>
           {!collapsed && (activeHub?.databases.length
@@ -228,132 +106,29 @@ export default function DatabasePage() {
                   </span>
                 </div>
 
-                {active === c.id && (
-                  <div className="mb-2 ml-3 border-l border-line-subtle pl-2">
-                    <div className="flex items-center justify-between py-1 pr-1">
-                      <span className="text-2xs uppercase tracking-wider text-fg-muted">{tables ? `${tables.length} ${d.tables}` : d.loading}</span>
-                      <IconButton size="sm" title={t.common.refresh} onClick={refresh}><RefreshCw size={11} /></IconButton>
-                    </div>
-                    {tables && tables.length > 8 && (
-                      <input value={filter} onChange={e => setFilter(e.target.value)} placeholder={d.filterTables}
-                        className="mb-1 h-7 w-full rounded-md border border-line-subtle bg-canvas px-2 text-xs text-fg outline-none placeholder:text-fg-muted focus:border-accent" />
-                    )}
-                    {!tables && <Spinner className="m-2" />}
-                    {schemaError && <p className="py-1 pr-2 text-xs text-danger">{schemaError}</p>}
-                    {shownTables?.map(tb => {
-                      const key = `${tb.schema}.${tb.name}`
-                      const selected = sameTable(table, tb)
-                      return (
-                        <div key={key}>
-                          <div className={cn('group/t flex items-center gap-1 rounded px-1 py-0.5', selected ? 'bg-accent-soft' : 'hover:bg-hover')}>
-                            <button onClick={() => toggle(key)} className="text-fg-muted" aria-label={tb.name}>{open.has(key) ? <ChevronDown size={11} /> : <ChevronRight size={11} />}</button>
-                            {tb.type === 'view' ? <Eye size={12} className="text-fg-muted" /> : <Table2 size={12} className={selected ? 'text-accent' : 'text-fg-muted'} />}
-                            <button onClick={() => openTable(tb)}
-                              className={cn('flex-1 truncate text-left font-mono text-xs', selected ? 'text-accent' : 'text-fg-secondary hover:text-fg')}>
-                              {tb.schema && tb.schema !== 'public' ? `${tb.schema}.` : ''}{tb.name}
-                            </button>
-                          </div>
-                          {open.has(key) && tb.columns.map(col => (
-                            <div key={col.name} className="flex items-center gap-1.5 py-0.5 pl-7 font-mono text-2xs">
-                              {col.key ? <KeyRound size={9} className="text-warning" /> : <span className="w-[9px]" />}
-                              <span className="text-fg-secondary">{col.name}</span>
-                              <span className="truncate text-fg-muted">{col.type}{col.nullable ? '' : ' !'}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
               </div>
             ))}
           </div>
         )}
       </aside>
 
-      {/* Explorer */}
-      <section className="flex min-w-0 flex-1 flex-col">
-        {!conn ? (
-          <div className="flex flex-1 p-8">
-            <EmptyState className="flex-1" icon={<Database size={32} />} title={d.emptyTitle} description={d.emptyHint}
-              action={
-                <div className="flex gap-2">
-                  <Button onClick={() => setDetect({})}><Search size={14} /> {d.detectTitle}</Button>
-                  <Button variant="secondary" onClick={() => setForm({})}><Plus size={14} /> {d.newTitle}</Button>
-                </div>
-              } />
-          </div>
-        ) : (
-          <>
-            <div className="df-rise flex shrink-0 flex-col gap-4 px-7 pt-6">
-              {/* Breadcrumb, table name and actions */}
-              <div className="flex flex-wrap items-center gap-2.5">
-                <div className="min-w-[200px] flex-1">
-                  <nav className="flex min-w-0 items-center gap-1.5 font-mono text-[11.5px] text-fg-muted">
-                    <span>{conn.type}</span>
-                    <ChevronRight size={11} />
-                    <button onClick={() => { setTable(null); setTab('overview') }} className="truncate hover:text-fg">{dbName}</button>
-                    {table?.schema && <><ChevronRight size={11} /><span>{table.schema}</span></>}
-                  </nav>
-                  <h1 className="mt-0.5 flex items-center gap-2 truncate text-2xl font-semibold tracking-[-.02em] text-fg">
-                    {table ? table.name : dbName}
-                  </h1>
-                </div>
-                <Button variant="secondary" size="sm" onClick={refresh}><RefreshCw size={13} /> {t.common.refresh}</Button>
-                <Button size="sm" onClick={() => changeTab('sql')}><Code2 size={13} /> {d.newQuery}</Button>
+      {/* Explorer of the chosen connection */}
+      {!conn ? (
+        <section className="flex min-w-0 flex-1 p-8">
+          <EmptyState className="flex-1" icon={<Database size={32} />} title={d.emptyTitle} description={d.emptyHint}
+            action={
+              <div className="flex gap-2">
+                <Button onClick={() => setDetect({})}><Search size={14} /> {d.detectTitle}</Button>
+                <Button variant="secondary" onClick={() => setForm({})}><Plus size={14} /> {d.newTitle}</Button>
               </div>
-
-              {/* Tabs, underlined */}
-              <div role="tablist" className="flex gap-1 border-b border-line">
-                {tabItems.map(item => (
-                  <button key={item.value} role="tab" aria-selected={tab === item.value} onClick={() => changeTab(item.value)}
-                    className={cn('flex h-9 items-center gap-1.5 border-b-2 px-3.5 text-base font-medium transition-colors',
-                      tab === item.value ? 'border-accent text-fg' : 'border-transparent text-fg-secondary hover:text-fg')}>
-                    {item.icon} {item.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Key figures of the open table */}
-              {table && details && sameTable(table, detailsFor) && (
-                <div className="flex flex-wrap gap-3">
-                  {[
-                    [d.rowsEstimate, details.stats?.rows != null ? details.stats.rows.toLocaleString() : '—'],
-                    [d.size, details.stats?.dataBytes != null ? formatSize((details.stats.dataBytes ?? 0) + (details.stats.indexBytes ?? 0)) : '—'],
-                    [d.statIndexes, String(details.indexes.length)],
-                    [d.statForeignKeys, details.foreignKeys.length ? `${details.foreignKeys.length} → ${details.foreignKeys[0].table}` : '0']
-                  ].map(([label, value]) => (
-                    <div key={label} className="min-w-[140px] flex-1 rounded-xl border border-line-subtle bg-surface px-3.5 py-3">
-                      <div className="font-mono text-[11px] text-fg-muted uppercase">{label}</div>
-                      <div className="mt-0.5 truncate text-xl font-semibold text-fg">{value}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div key={`${active}:${table?.schema}.${table?.name}:${rev}`} className={cn('flex min-h-0 flex-1 flex-col', tab !== 'browse' && tab !== 'sql' && 'overflow-y-auto')}>
-              {viewError && tab !== 'browse' && tab !== 'sql' ? (
-                <div className="m-5 rounded-lg bg-danger-soft p-3 text-sm text-danger">{d.loadFailed} : {viewError}</div>
-              ) : tab === 'overview' ? (
-                overview ? <OverviewView overview={overview} onOpenTable={tb => openTable(tb)} /> : <Spinner className="m-6" />
-              ) : tab === 'sql' ? (
-                <SqlPanel connId={conn.id} sql={sql} onSql={setSql} onSchemaChange={() => { loadSchema(conn.id); loadOverview(conn.id) }} />
-              ) : table && tab === 'browse' ? (
-                <BrowseTab connId={conn.id} table={table} />
-              ) : !details || !sameTable(table, detailsFor) ? (
-                <Spinner className="m-6" />
-              ) : tab === 'structure' ? (
-                <StructureTab details={details} />
-              ) : tab === 'relations' && table ? (
-                <RelationsTab details={details} table={table} onOpenTable={openTableByName} />
-              ) : (
-                <InfoTab details={details} />
-              )}
-            </div>
-          </>
-        )}
-      </section>
+            } />
+        </section>
+      ) : (
+        <div className="min-w-0 flex-1">
+          <DbExplorer key={`${conn.id}:${rev}`} conn={conn}
+            back={from ? { label: d.backToProject.replace('{name}', from.name), onClick: () => navigate(`/project/${from.id}?tab=database`) } : undefined} />
+        </div>
+      )}
 
       {detect && (
         <DetectDialog
@@ -371,7 +146,7 @@ export default function DatabasePage() {
             await window.devforge.db.save(c)
             await reloadConnections()
             setForm(null)
-            if (active === c.id) select(c.id)
+            if (active === c.id) setRev(r => r + 1)
           }}
         />
       )}
