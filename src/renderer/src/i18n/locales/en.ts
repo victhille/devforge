@@ -45,6 +45,7 @@ const en = {
     favoritesFull: '{max} favorites at most',
     favoritesReset: 'Back to the default favorites',
     favoritesEmpty: 'Hover a page and click ☆ to pin it here.',
+    help: 'Help for this page',
     moreWithServer: '{n} more with a server',
     favoritesMove: 'Drag to reorder (or Alt + ↑ ↓)',
     groupDev: 'Development',
@@ -1504,6 +1505,7 @@ const en = {
     removeModel: "Remove model"
   },
   needsSetup: {
+    guide: 'How to',
     title: { server: "No server set up", github: "GitHub is not connected", vercel: "Vercel is not connected", forgy: "Forgy has no key" },
     why: {
       server: "This page acts on a server (VPS) over SSH. Add yours if you have one; otherwise it simply stays aside.",
@@ -1514,6 +1516,7 @@ const en = {
     button: { server: "Add a server", github: "Connect GitHub", vercel: "Connect Vercel", forgy: "Add a key" }
   },
   onboarding: {
+    guide: 'Read the getting started guide on the site',
     progress: "Step {n} of {t}",
     skip: "Skip",
     back: "Back",
