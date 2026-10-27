@@ -233,7 +233,7 @@ function Clients({ conn, found, onForget }: { conn: SSHConnection; found: VpnDet
                   <div className="text-xs text-fg-muted">
                     {c.latestHandshakeAt ? v.lastSeen.replace('{when}', formatRelative(c.latestHandshakeAt, lang)) : v.never}
                     {' · '}
-                    {c.expiresAt ? <span className={cn(expired && 'text-danger')}>{expired ? v.expired : v.expires.replace('{date}', formatDate(c.expiresAt))}</span> : v.permanent}
+                    {c.expiresAt ? <span className={cn(expired && 'text-danger')}>{expired ? v.expired : v.expires.replace('{date}', formatDate(c.expiresAt, lang))}</span> : v.permanent}
                   </div>
                 </div>
                 {(c.transferRx != null || c.transferTx != null) && (

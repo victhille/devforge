@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { TOOLS, ToolError, isSecretFile, runTool } from '../../src/main/services/assistant/assistantTools'
 import { getApiKey, getConfig, saveConfig } from '../../src/main/services/assistant/assistantStorage'
 import { saveProjects, tempDir, userData } from '../helpers'
@@ -82,15 +82,29 @@ describe('assistant tools', () => {
 
 describe('assistant config', () => {
   it('stores the API key encrypted and never returns it', () => {
-    expect(getConfig()).toEqual({ hasKey: false, model: 'auto', effort: 'auto', monthlyBudget: 5, desktopWidget: false, actionMode: 'ask' })
+    vi.stubEnv('ANTHROPIC_API_KEY', '')
+    expect(getConfig()).toEqual({ hasKey: false, keySource: null, model: 'auto', effort: 'auto', monthlyBudget: 5, desktopWidget: false, actionMode: 'ask' })
     const c = saveConfig({ apiKey: ' sk-ant-secret ', model: 'claude-sonnet-5-5', effort: 'high', monthlyBudget: 12.345 })
-    expect(c).toEqual({ hasKey: true, model: 'claude-sonnet-5-5', effort: 'high', monthlyBudget: 12.35, desktopWidget: false, actionMode: 'ask' })
+    expect(c).toEqual({ hasKey: true, keySource: 'saved', model: 'claude-sonnet-5-5', effort: 'high', monthlyBudget: 12.35, desktopWidget: false, actionMode: 'ask' })
     expect(saveConfig({ monthlyBudget: -3 }).monthlyBudget).toBe(12.35)
     expect(readFileSync(join(userData(), 'assistant', 'config.json'), 'utf-8')).not.toContain('sk-ant-secret')
     expect(getApiKey()).toBe('sk-ant-secret')
     expect(saveConfig({ model: 'gpt-4' as never }).model).toBe('claude-sonnet-5-5')
     expect(saveConfig({ clearKey: true }).hasKey).toBe(false)
     expect(getApiKey()).toBeNull()
+    vi.unstubAllEnvs()
+  })
+
+  it('counts ANTHROPIC_API_KEY when no key is saved; a saved key wins', () => {
+    vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-env')
+    try {
+      expect(getConfig()).toMatchObject({ hasKey: true, keySource: 'env' })
+      expect(getApiKey()).toBeNull()
+      saveConfig({ apiKey: 'sk-ant-saved' })
+      expect(getConfig().keySource).toBe('saved')
+      saveConfig({ clearKey: true })
+      expect(getConfig()).toMatchObject({ hasKey: true, keySource: 'env' })
+    } finally { vi.unstubAllEnvs() }
   })
 
   it('keeps the desktop widget off unless turned on', () => {

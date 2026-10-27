@@ -102,6 +102,7 @@ export default defineConfig({
       __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')).version),
       __APP_COMMIT__: JSON.stringify(gitCommit()),
       __REPO_URL__: JSON.stringify(PUBLISH.url),
+      __DOCS_URL__: JSON.stringify(PUBLISH.docs),
       __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
       __CHANGELOGS__: JSON.stringify(changelogs())
     },

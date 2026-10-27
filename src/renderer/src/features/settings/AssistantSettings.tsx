@@ -68,13 +68,14 @@ export default function AssistantSettings({ onSaved, settings, set }: { onSaved:
     <SettingsCard title="Forgy" hint={s.forgyHint}
       icon={<div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-forgy-soft"><Mascot mood="idle" size={32} followCursor={false} /></div>}>
       <SettingRow label={a.apiKey} hint={a.apiKeyHint}>
-        {config.hasKey ? (
+        {config.keySource === 'saved' ? (
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1.5 rounded-lg bg-success-soft px-2.5 py-1.5 font-mono text-xs text-success"><Check size={13} /> {a.apiKeySaved}</span>
             <Button size="sm" variant="danger" onClick={() => save({ clearKey: true })}>{a.removeKey}</Button>
           </div>
         ) : (
-          <div className="flex flex-[1_1_320px] gap-2">
+          <div className="flex flex-[1_1_320px] flex-wrap gap-2">
+            {config.keySource === 'env' && <span className="flex w-full items-center gap-1.5 text-xs text-success"><Check size={13} /> {a.apiKeyFromEnv}</span>}
             <Input type="password" value={key} onChange={e => setKey(e.target.value)} placeholder={a.apiKeyPlaceholder} className="font-mono" autoComplete="off" aria-label={a.apiKey} />
             <Button disabled={!key.trim()} onClick={async () => { await save({ apiKey: key }); setKey('') }}><KeyRound size={14} /> {a.saveKey}</Button>
           </div>

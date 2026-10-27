@@ -3,6 +3,7 @@ import { ArrowLeft, Check, Search } from 'lucide-react'
 import type { Framework } from '@shared/types'
 import { PROJECT_LIBRARIES, type LibraryCategory } from '@shared/data/projectLibraries'
 import { useI18n } from '@renderer/i18n/I18nContext'
+import { libraryDescription } from '@shared/data/projectLibraries.fr'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import { Input } from '@renderer/components/ui/Input'
@@ -35,7 +36,7 @@ interface Props {
 
 /** Step 3 (JS only): pick extra libraries to install. */
 export default function LibrarySelector({ framework, onBack, onSubmit }: Props) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [search,   setSearch]   = useState('')
   const [category, setCategory] = useState<LibraryCategory | 'all'>('all')
@@ -47,7 +48,7 @@ export default function LibrarySelector({ framework, onBack, onSubmit }: Props) 
   const q = search.toLowerCase()
   const filtered = available.filter(lib =>
     (category === 'all' || lib.category === category) &&
-    (!q || lib.name.toLowerCase().includes(q) || lib.description.toLowerCase().includes(q))
+    (!q || lib.name.toLowerCase().includes(q) || libraryDescription(lib, lang).toLowerCase().includes(q))
   )
 
   function toggle(id: string) {
@@ -120,7 +121,7 @@ export default function LibrarySelector({ framework, onBack, onSubmit }: Props) 
                 )}
               </div>
               <span className="font-semibold text-fg">{lib.name}</span>
-              <span className="text-sm leading-snug text-fg-secondary">{lib.description}</span>
+              <span className="text-sm leading-snug text-fg-secondary">{libraryDescription(lib, lang)}</span>
               <span className="mt-1 font-mono text-2xs text-fg-muted">{lib.packages[0] ?? lib.devPackages?.[0] ?? ''}</span>
             </button>
           )

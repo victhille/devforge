@@ -54,6 +54,19 @@ export function loadSettings(): AppSettings {
   }
 }
 
+/**
+ * The language saved by the user, read before Chromium starts (no `getLocale`
+ * there): null on a first install, which keeps the language of Windows.
+ */
+export function savedLanguage(): 'fr' | 'en' | null {
+  try {
+    const { language } = JSON.parse(readFileSync(getSettingsPath(), 'utf-8')) as Partial<AppSettings>
+    return language === 'fr' || language === 'en' ? language : null
+  } catch {
+    return null
+  }
+}
+
 /** Favorites and Home widgets keep the value on disk: a page holding an older copy of the settings cannot undo them */
 export function saveSettings(settings: AppSettings): void {
   const path = getSettingsPath()

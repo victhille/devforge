@@ -7,8 +7,10 @@ export type AssistantModel = 'claude-opus-5-5' | 'claude-sonnet-5-5' | 'claude-h
 export type AssistantEffort = 'low' | 'medium' | 'high'
 
 export interface AssistantConfig {
-  /** An API key is saved (it never leaves the main process) */
+  /** Forgy has an API key: saved in DevForge, or ANTHROPIC_API_KEY (it never leaves the main process) */
   hasKey: boolean
+  /** Where it comes from: the saved key wins over the environment */
+  keySource: 'saved' | 'env' | null
   /** 'auto': each skill uses its own cheapest suitable model */
   model: AssistantModel | 'auto'
   /** 'auto': each skill uses its own effort */

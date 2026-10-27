@@ -7,6 +7,7 @@
     "type": "git",
     "url": "https://github.com/victhille/devforge"
   },
+  "homepage": "https://victhille.github.io/devforge/",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",

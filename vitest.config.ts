@@ -12,7 +12,8 @@ export default defineConfig({
   },
   define: {
     __PUBLISH__: JSON.stringify({ owner: 'example', repo: 'devforge', private: false, url: 'https://github.com/example/devforge' }),
-    __REPO_URL__: JSON.stringify('https://github.com/example/devforge')
+    __REPO_URL__: JSON.stringify('https://github.com/example/devforge'),
+    __DOCS_URL__: JSON.stringify('https://example.github.io/devforge/')
   },
   test: {
     environment: 'node',

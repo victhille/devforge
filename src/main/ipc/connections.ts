@@ -1,8 +1,8 @@
 import { ipcMain } from 'electron'
 import type { ConnectionKind } from '@shared/types'
-import { disconnect, overview, setGitIdentity, test } from '../services/connections/connectionsService'
+import { alerts, disconnect, overview, setGitIdentity, setNtfy, test } from '../services/connections/connectionsService'
 
-const KINDS: ConnectionKind[] = ['github', 'forgy', 'vercel', 'docker', 'server', 'database']
+const KINDS: ConnectionKind[] = ['github', 'forgy', 'vercel', 'docker', 'server', 'database', 'n8n', 'alerts']
 const kindOf = (v: unknown): ConnectionKind => {
   if (!KINDS.includes(v as ConnectionKind)) throw new Error('UNKNOWN_KIND')
   return v as ConnectionKind
@@ -17,5 +17,7 @@ export function registerConnectionsHandlers(): void {
     if (k === 'docker') throw new Error('UNKNOWN_KIND')
     return disconnect(k, str(id))
   })
+  ipcMain.handle('connections:alerts', (_e, id: unknown) => alerts(String(id ?? '')))
+  ipcMain.handle('connections:set-ntfy', (_e, id: unknown, server: unknown, topic: unknown) => setNtfy(String(id ?? ''), String(server ?? ''), String(topic ?? '')))
   ipcMain.handle('connections:set-git-identity', (_e, name: unknown, email: unknown) => setGitIdentity(String(name ?? ''), String(email ?? '')))
 }
