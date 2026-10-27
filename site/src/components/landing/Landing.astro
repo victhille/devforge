@@ -1,14 +1,13 @@
 ---
 /**
- * The home page of the site: a plain product page in the spirit of
- * independent Windows/Mac software sites (a light page, the app's real
- * screens on its own dark canvas, written paragraphs, a FAQ).
+ * The home page of the site, from the « Atelier » mock-up: a warm light page
+ * with the app's real screens, a day with DevForge, the projects tour, the
+ * server band on the app's own dark canvas, Forgy, a FAQ and the download.
  */
 import '@fontsource-variable/geist'
 import '@fontsource-variable/geist-mono'
 import { Image } from 'astro:assets'
 import Forgy from './Forgy.astro'
-import Logo from '../../assets/logo.svg'
 import { TEXT, type Lang } from './text'
 
 interface Props { lang: Lang }
@@ -22,6 +21,7 @@ const otherHome = `${base}/${lang === 'en' ? '' : 'en/'}`
 const images = import.meta.glob<{ default: ImageMetadata }>('../../assets/screens/*.png', { eager: true })
 const shot = (id: string) => images[`../../assets/screens/${id}-${lang}.png`].default
 const releases = 'https://github.com/victhille/devforge/releases/latest'
+const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21.5v-8.6h-9.8v7.2Zm0-16.2v7.3H21V2.5l-9.8 1.4Z'
 ---
 
 <!doctype html>
@@ -33,7 +33,7 @@ const releases = 'https://github.com/victhille/devforge/releases/latest'
   <meta name="description" content={t.description} />
   <meta property="og:title" content={t.title} />
   <meta property="og:description" content={t.description} />
-  <meta name="theme-color" content="#FAF9F7" />
+  <meta name="theme-color" content="#F6F4EF" />
   <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
   <link rel="alternate" hreflang={lang === 'en' ? 'fr' : 'en'} href={otherHome} />
 </head>
@@ -42,305 +42,389 @@ const releases = 'https://github.com/victhille/devforge/releases/latest'
 
   <header class="top">
     <div class="wrap top-inner">
-      <a class="brand" href={home}><img src={Logo.src} alt="" width="26" height="26" /> DevForge</a>
+      <a class="brand" href={home}>
+        <span class="brand-mark"><svg width="18" height="18" viewBox="0 0 256 256" aria-hidden="true"><g fill="#f97316"><polygon points="40.96,87.04 199.68,87.04 199.68,117.76 76.8,117.76"></polygon><rect x="107.52" y="117.76" width="61.44" height="30.72"></rect><rect x="81.92" y="148.48" width="112.64" height="25.6"></rect></g></svg></span>
+        DevForge
+      </a>
       <nav class="links" aria-label="Menu">
-        <a href="#tour">{t.nav.tour}</a>
+        <a href="#features">{t.nav.features}</a>
         <a href="#servers">{t.nav.servers}</a>
         <a href="#forgy">{t.nav.forgy}</a>
-        <a href="#faq">{t.nav.faq}</a>
         <a href={docs('getting-started/installation/')}>{t.nav.docs}</a>
+        <a href="https://github.com/victhille/devforge/releases">{t.nav.releases}</a>
       </nav>
       <div class="top-end">
         <a class="lang" href={otherHome} hreflang={lang === 'en' ? 'fr' : 'en'} title={t.nav.other}>{t.nav.otherShort}</a>
-        <a class="button small" href={docs('download/')}>{t.nav.download}</a>
+        <a class="btn btn-dark btn-sm" href={docs('download/')}>{t.nav.download}</a>
       </div>
     </div>
   </header>
 
   <main id="main">
+    <!-- Hero -->
     <section class="wrap hero">
-      <h1>{t.hero.title}</h1>
-      <p class="lead">{t.hero.lead}</p>
-      <div class="get" data-download data-lang={lang}>
-        <a class="button" href={releases} data-link>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21.5v-8.6h-9.8v7.2Zm0-16.2v7.3H21V2.5l-9.8 1.4Z"/></svg>
-          {t.hero.download}
-        </a>
-        <p class="get-info"><span>{t.hero.requirements}</span> <span class="ver" data-meta></span></p>
+      <div class="hero-text">
+        <p class="eyebrow">{t.hero.eyebrow}</p>
+        <h1>{t.hero.title[0]}<span class="orange">{t.hero.title[1]}</span>{t.hero.title[2]}</h1>
+        <p class="lead">{t.hero.lead}</p>
+        <div class="actions" data-download data-lang={lang}>
+          <a class="btn btn-dark btn-lg" href={releases} data-link><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={winLogo}></path></svg>{t.hero.download}</a>
+          <a class="btn btn-light btn-lg" href="#day">{t.hero.tour}</a>
+          <p class="meta" data-meta></p>
+        </div>
       </div>
-      <a class="text-link" href={docs('getting-started/installation/')}>{t.hero.secondary} →</a>
+      <div class="hero-art">
+        <Image class="art-main" src={shot('home')} alt={t.hero.homeAlt} widths={[720, 1100]} sizes="(max-width: 1000px) 100vw, 640px" loading="eager" />
+        <Image class="art-second" src={shot('project')} alt={t.hero.projectAlt} widths={[480, 720]} sizes="(max-width: 1000px) 60vw, 380px" loading="eager" />
+        <div class="art-card" aria-hidden="true">
+          <strong>{t.hero.card.title}</strong>
+          <code>{t.hero.card.message}</code>
+          <span class="card-buttons"><span class="ok">{t.hero.card.approve}</span><span>{t.hero.card.refuse}</span></span>
+        </div>
+      </div>
     </section>
 
-    <figure class="stage">
-      <div class="wrap">
-        <Image class="screen" src={shot('home')} alt={t.heroCaption} widths={[800, 1280]} sizes="(max-width: 1240px) 100vw, 1200px" loading="eager" />
-        <figcaption>{t.heroCaption}</figcaption>
-      </div>
-    </figure>
-
-    <section class="wrap why">
-      <h2>{t.why.title}</h2>
-      <div>{t.why.paragraphs.map(p => <p>{p}</p>)}</div>
+    <!-- What it replaces -->
+    <section class="wrap replaces">
+      <p>
+        <strong>{t.replaces.before}</strong>
+        {t.replaces.items.map(i => <s>{i}</s>)}
+        <strong>{t.replaces.after}</strong>
+      </p>
     </section>
 
-    <section id="tour" class="wrap tour">
-      {t.tour.map((f, i) => (
-        <article class={`step ${i % 2 ? 'flip' : ''}`}>
-          <div class="step-text">
-            <h2>{f.title}</h2>
-            <p>{f.text}</p>
-            <a class="text-link" href={docs(f.link)}>{t.nav.docs} →</a>
+    <!-- A day -->
+    <section id="day" class="band-white">
+      <div class="wrap section">
+        <h2>{t.day.title}</h2>
+        <p class="section-lead">{t.day.lead}</p>
+        <ol class="day">
+          {t.day.steps.map(s => (
+            <li>
+              <span class="time">{s.time}</span>
+              <Image class="day-shot" src={shot(s.shot)} alt={s.alt} widths={[400, 640]} sizes="(max-width: 900px) 100vw, 280px" loading="lazy" style={`object-position: ${s.pos}`} />
+              <h3>{s.title}</h3>
+              <p>{s.text}</p>
+            </li>
+          ))}
+          <li>
+            <span class="time">{t.day.deploy.time}</span>
+            <div class="day-shot term" aria-hidden="true">
+              <span class="dim">{t.day.deploy.path}</span>
+              <span>$ git pull --ff-only</span>
+              <span>$ npm ci &amp;&amp; npm run build</span>
+              <span>$ pm2 restart boutique</span>
+              <span class="green">{t.day.deploy.done}</span>
+            </div>
+            <h3>{t.day.deploy.title}</h3>
+            <p>{t.day.deploy.text}</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Projects tour -->
+    <section id="features" class="wrap section projects" data-tour>
+      <div class="projects-text">
+        <h2>{t.projects.title}</h2>
+        <p class="section-lead">{t.projects.lead}</p>
+        <div class="tour-tabs" role="tablist" aria-label={t.projects.title}>
+          {t.projects.tabs.map((tab, i) => (
+            <button type="button" role="tab" id={`tab-${tab.id}`} aria-controls={`panel-${tab.id}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-tab>
+              <span class="tab-title">{tab.title}</span>
+              <span class="tab-text">{tab.text}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div class="projects-stage">
+        {t.projects.tabs.map((tab, i) => (
+          <div role="tabpanel" id={`panel-${tab.id}`} aria-labelledby={`tab-${tab.id}`} hidden={i !== 0} data-panel>
+            <Image src={shot(tab.id)} alt={tab.title} widths={[720, 1100]} sizes="(max-width: 1000px) 100vw, 760px" loading="lazy" />
           </div>
-          <Image class="screen" src={shot(f.shot)} alt={f.title} widths={[640, 960]} sizes="(max-width: 900px) 100vw, 720px" loading="lazy" />
-        </article>
-      ))}
-      <div class="trio">
-        {t.small.map(s => (
-          <a class="mini" href={docs(s.link)}>
-            <Image class="screen" src={shot(s.shot)} alt="" widths={[480]} sizes="380px" loading="lazy" />
-            <h3>{s.title}</h3>
-            <p>{s.text}</p>
-          </a>
         ))}
       </div>
     </section>
 
-    <section id="servers" class="dark">
-      <div class="wrap">
-        <h2>{t.servers.title}</h2>
-        <p class="dark-lead">{t.servers.lead}</p>
-        <dl class="specs">
-          {t.servers.items.map(([title, text, link]) => (
-            <div>
-              <dt><a href={docs(link)}>{title}</a></dt>
-              <dd>{text}</dd>
-            </div>
-          ))}
-        </dl>
+    <!-- Servers -->
+    <section id="servers" class="band-dark">
+      <div class="wrap section servers">
+        <div class="servers-text">
+          <h2>{t.servers.title}</h2>
+          <p class="section-lead">{t.servers.lead}</p>
+          <dl class="specs">
+            {t.servers.items.map(([title, text, link]) => (
+              <div><dt><a href={docs(link)}>{title}</a></dt><dd>{text}</dd></div>
+            ))}
+          </dl>
+        </div>
+        <div class="health" aria-label={t.servers.health.note}>
+          <div class="health-head"><span>{t.servers.health.title}</span><span class="badge">{t.servers.health.badge}</span></div>
+          {t.servers.health.rows.map(([k, v]) => <div class="health-row"><span>{k}</span><span>{v}</span></div>)}
+          <p class="health-note">{t.servers.health.note}</p>
+        </div>
       </div>
     </section>
 
-    <section id="forgy" class="wrap forgy">
+    <!-- Forgy -->
+    <section id="forgy" class="wrap section forgy">
       <div class="forgy-text">
-        <Forgy size={64} />
+        <Forgy size={72} />
         <h2>{t.forgy.title}</h2>
-        {t.forgy.paragraphs.map(p => <p>{p}</p>)}
-        <a class="text-link" href={docs('forgy/assistant/')}>{t.forgy.link} →</a>
+        <p>{t.forgy.text}</p>
+        <a class="more" href={docs('forgy/assistant/')}>{t.forgy.link} →</a>
       </div>
       <div class="panel" aria-hidden="true">
-        <div class="panel-head"><Forgy size={34} /><div><strong>Forgy</strong><span>{t.forgy.mock.status}</span></div></div>
+        <div class="panel-head"><strong>Forgy</strong> <span>· {t.forgy.mock.status}</span></div>
         <div class="panel-body">
           <p class="q">{t.forgy.mock.question}</p>
           <p>{t.forgy.mock.answer}</p>
-          <div class="card">
+          <div class="action">
             <strong>{t.forgy.mock.cardTitle}</strong>
-            <code>{t.forgy.mock.cardMessage}</code>
-            <small>{t.forgy.mock.cardNote}</small>
-            <div class="card-buttons"><span class="ok">{t.forgy.mock.approve}</span><span>{t.forgy.mock.refuse}</span></div>
+            <code>{t.forgy.mock.cardCode}</code>
+            <span class="card-buttons"><span class="ok">{t.forgy.mock.approve}</span><span>{t.forgy.mock.refuse}</span></span>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="wrap keys">
-      <h2>{t.keys.title}</h2>
-      <table>
-        <tbody>
-          {t.keys.items.map(([combo, what]) => (
-            <tr><td>{combo.split(' ').map(k => <kbd>{k}</kbd>)}</td><td>{what}</td></tr>
+    <!-- FAQ and download -->
+    <section class="band-white">
+      <div class="wrap section faq-get">
+        <div class="faq">
+          <h2>{t.faq.title}</h2>
+          {t.faq.items.map(([q, a]) => (
+            <details><summary>{q}</summary><p>{a}</p></details>
           ))}
-        </tbody>
-      </table>
-    </section>
-
-    <section id="faq" class="wrap faq">
-      <h2>{t.faq.title}</h2>
-      <div>
-        {t.faq.items.map(([q, a]) => (
-          <details>
-            <summary>{q}</summary>
-            <p>{a}</p>
-          </details>
-        ))}
-      </div>
-    </section>
-
-    <section class="wrap end">
-      <h2>{t.end.title}</h2>
-      <p>{t.end.text}</p>
-      <div class="get" data-download data-lang={lang}>
-        <a class="button" href={releases} data-link>{t.hero.download}</a>
-        <p class="get-info"><span>{t.hero.requirements}</span> <span class="ver" data-meta></span></p>
+        </div>
+        <div class="get" data-download data-lang={lang} id="download">
+          <h2>{t.get.title}</h2>
+          <p>{t.get.text}</p>
+          <a class="btn btn-dark btn-lg btn-block" href={releases} data-link><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={winLogo}></path></svg><span data-label>{t.get.button}</span></a>
+          <p class="file" data-file>DevForge-Setup.exe</p>
+          <a class="more center" href="https://github.com/victhille/devforge/releases" data-notes>{t.get.notes} →</a>
+        </div>
       </div>
     </section>
   </main>
 
   <footer class="foot">
     <div class="wrap foot-inner">
-      <p><img src={Logo.src} alt="" width="18" height="18" /> DevForge · {t.footer.made}</p>
-      <nav>
-        <a href={docs('getting-started/installation/')}>{t.footer.docs}</a>
-        <a href={docs('developers/')}>{t.footer.developers}</a>
-        <a href="https://github.com/victhille/devforge/releases">{t.footer.releases}</a>
-        <a href="https://github.com/victhille/devforge">GitHub</a>
-        <a href="https://github.com/victhille/devforge/blob/main/LICENSE">{t.footer.license}</a>
-        <a href={otherHome} hreflang={lang === 'en' ? 'fr' : 'en'}>{t.nav.other}</a>
-      </nav>
-      <p class="quiet">{t.footer.privacy}</p>
+      <span>{t.footer.made}</span>
+      <a href={docs('getting-started/installation/')}>{t.footer.docs}</a>
+      <a href={docs('developers/')}>{t.footer.developers}</a>
+      <a href="https://github.com/victhille/devforge">GitHub</a>
+      <a href="https://github.com/victhille/devforge/blob/main/LICENSE">{t.footer.license}</a>
+      <a href={otherHome} hreflang={lang === 'en' ? 'fr' : 'en'}>{t.nav.other}</a>
+      <p>{t.footer.privacy}</p>
     </div>
   </footer>
 
   <script>
-    // The latest release: its installer, version and size (no version is written in the page)
+    // The latest release fills the download buttons: no version is written in the page
     const API = 'https://api.github.com/repos/victhille/devforge/releases/latest'
     const INSTALLER = /^DevForge-Setup-v.+\.exe$/
-    interface Release { tag_name: string; published_at: string; assets: { name: string; size: number; browser_download_url: string }[] }
+    interface Release { tag_name: string; html_url: string; published_at: string; assets: { name: string; size: number; browser_download_url: string }[] }
     fetch(API, { headers: { Accept: 'application/vnd.github+json' } })
       .then(r => (r.ok ? (r.json() as Promise<Release>) : null))
       .catch(() => null)
       .then(r => {
         const exe = r?.assets.find(a => INSTALLER.test(a.name))
         if (!r || !exe) return
+        const size = (fr: boolean) => `${Math.round(exe.size / 1048576)} ${fr ? 'Mo' : 'MB'}`
         for (const box of document.querySelectorAll<HTMLElement>('[data-download]')) {
           const fr = box.dataset.lang !== 'en'
           box.querySelector<HTMLAnchorElement>('[data-link]')!.href = exe.browser_download_url
           const date = new Date(r.published_at).toLocaleDateString(fr ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-          box.querySelector('[data-meta]')!.textContent = `· ${r.tag_name}, ${fr ? 'publiée le' : 'released'} ${date} · ${Math.round(exe.size / 1048576)} ${fr ? 'Mo' : 'MB'}`
+          const meta = box.querySelector('[data-meta]')
+          if (meta) meta.textContent = `${r.tag_name} · ${size(fr)} · ${fr ? 'publiée le' : 'released'} ${date}`
+          const label = box.querySelector('[data-label]')
+          if (label) label.textContent = `${label.textContent} ${r.tag_name}`
+          const file = box.querySelector('[data-file]')
+          if (file) file.textContent = `${exe.name} · ${size(fr)}`
+          const notes = box.querySelector<HTMLAnchorElement>('[data-notes]')
+          if (notes) notes.href = r.html_url
         }
       })
+
+    // Projects tour: click or arrow keys
+    const tour = document.querySelector<HTMLElement>('[data-tour]')
+    if (tour) {
+      const tabs = [...tour.querySelectorAll<HTMLButtonElement>('[data-tab]')]
+      const panels = [...tour.querySelectorAll<HTMLElement>('[data-panel]')]
+      const select = (i: number, focus = false) => {
+        const k = (i + tabs.length) % tabs.length
+        tabs.forEach((tab, j) => { tab.setAttribute('aria-selected', String(j === k)); tab.tabIndex = j === k ? 0 : -1 })
+        panels.forEach((p, j) => { p.hidden = j !== k })
+        if (focus) tabs[k].focus()
+      }
+      tabs.forEach((tab, i) => {
+        tab.addEventListener('click', () => select(i))
+        tab.addEventListener('keydown', e => {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); select(i + 1, true) }
+          if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); select(i - 1, true) }
+        })
+      })
+    }
   </script>
 
   <style is:global>
     :root {
-      --paper: #FAF9F7; --white: #FFFFFF; --ink: #17191E; --ink-2: #4A505C; --ink-3: #6E7480;
-      --rule: #E4E1DB; --link: #1D4ED8;
-      --brand: #E8630A;
-      --app: #0D0F13; --app-2: #161A21; --app-line: #262C36; --app-fg: #E8ECF2; --app-fg-2: #9AA4B2; --app-blue: #5B9BFF; --forgy: #FF9A3C;
+      --paper: #F6F4EF; --white: #FFFFFF; --ink: #17191E; --ink-2: #4A505C; --ink-3: #6E7480; --rule: #E2DED6; --rule-2: #D6D1C8;
+      --link: #1D4ED8; --orange: #E8630A;
+      --app: #0D0F13; --app-panel: #111419; --app-2: #161A21; --app-line: #262C36; --app-line-2: #1F242D; --app-fg: #E8ECF2; --app-fg-2: #9AA4B2; --app-fg-3: #8792A2;
+      --forgy: #FF9A3C; --green: #3FCF8E;
       --font: 'Geist Variable', 'Segoe UI', system-ui, sans-serif; --mono: 'Geist Mono Variable', ui-monospace, monospace;
       color-scheme: light;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.65 var(--font); -webkit-font-smoothing: antialiased; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.6 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
     img { max-width: 100%; height: auto; display: block; }
-    h1, h2, h3 { margin: 0; line-height: 1.15; letter-spacing: -0.02em; font-weight: 650; }
+    h1, h2, h3 { margin: 0; letter-spacing: -0.03em; line-height: 1.1; }
     p { margin: 0; }
     a { color: var(--link); }
-    .wrap { width: min(1120px, 100% - 40px); margin-inline: auto; }
+    a:hover { color: #1E40AF; }
+    .wrap { width: min(1200px, 100% - 48px); margin-inline: auto; }
     .skip { position: absolute; left: -9999px; }
     .skip:focus { left: 12px; top: 12px; z-index: 10; background: var(--ink); color: #fff; padding: 8px 12px; }
     :focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
 
-    .button { display: inline-flex; align-items: center; gap: 10px; background: var(--ink); color: #fff; text-decoration: none; font-weight: 600; font-size: 16px; padding: 12px 20px; border-radius: 8px; }
-    .button:hover { background: #2B2F37; }
-    .button.small { padding: 7px 14px; font-size: 14.5px; }
-    .text-link { display: inline-block; font-weight: 550; text-decoration: none; }
-    .text-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; font-weight: 600; border-radius: 10px; border: 1px solid transparent; }
+    .btn-sm { padding: 9px 16px; font-size: 15px; border-radius: 8px; }
+    .btn-lg { padding: 13px 22px; min-height: 48px; font-size: 16px; }
+    .btn-block { display: flex; width: 100%; margin-top: 24px; }
+    .btn-dark { background: var(--ink); color: #fff; }
+    .btn-dark:hover { background: #2B2F37; color: #fff; }
+    .btn-light { background: var(--white); color: var(--ink); border-color: var(--rule-2); }
+    .btn-light:hover { border-color: #BDB6AA; color: var(--ink); }
+    .more { display: inline-block; font-weight: 600; text-decoration: none; margin-top: 20px; }
+    .more.center { display: block; text-align: center; font-size: 14.5px; margin-top: 16px; }
 
-    .top { background: var(--paper); border-bottom: 1px solid var(--rule); }
-    .top-inner { display: flex; align-items: center; gap: 28px; height: 60px; }
-    .brand { display: inline-flex; align-items: center; gap: 9px; font-weight: 700; font-size: 17px; color: var(--ink); text-decoration: none; }
-    .links { display: flex; gap: 22px; }
-    .links a { color: var(--ink-2); text-decoration: none; font-size: 15px; }
+    .top { border-bottom: 1px solid var(--rule); background: var(--paper); }
+    .top-inner { display: flex; align-items: center; gap: 32px; height: 68px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 18px; }
+    .brand:hover { color: var(--ink); }
+    .brand-mark { width: 30px; height: 30px; border-radius: 8px; background: #0F1117; display: inline-flex; align-items: center; justify-content: center; }
+    .links { display: flex; gap: 24px; font-size: 15px; }
+    .links a { color: var(--ink-2); text-decoration: none; }
     .links a:hover { color: var(--ink); }
-    .top-end { margin-left: auto; display: flex; align-items: center; gap: 14px; }
-    .lang { color: var(--ink-3); font: 600 13px var(--mono); text-decoration: none; }
-    .lang:hover { color: var(--ink); }
+    .top-end { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+    .lang { color: var(--ink-3); text-decoration: none; font: 600 13px var(--mono); }
 
-    .hero { padding: 84px 0 56px; }
-    .hero h1 { font-size: clamp(36px, 5.2vw, 60px); max-width: 16ch; letter-spacing: -0.035em; }
-    .lead { margin-top: 24px; max-width: 62ch; font-size: 19px; color: var(--ink-2); }
-    .get { margin-top: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
-    .get-info { color: var(--ink-3); font-size: 14px; }
-    .hero .text-link { margin-top: 18px; }
+    .hero { display: flex; flex-wrap: wrap; gap: 56px; align-items: center; padding: 88px 0 40px; }
+    .hero-text { flex: 1 1 420px; min-width: 0; }
+    .eyebrow { font-size: 14px; color: var(--ink-3); margin-bottom: 20px; }
+    .hero h1 { font-size: clamp(42px, 5.4vw, 64px); line-height: 1.04; letter-spacing: -0.04em; font-weight: 750; }
+    .orange { color: var(--orange); }
+    .lead { margin-top: 24px; font-size: 19px; color: var(--ink-2); max-width: 34em; }
+    .actions { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .meta { width: 100%; margin-top: 2px; font: 13.5px var(--mono); color: var(--ink-3); min-height: 1.5em; }
+    .hero-art { flex: 1 1 560px; min-width: 0; position: relative; padding-bottom: 80px; }
+    .art-main { width: 100%; border-radius: 12px; border: 1px solid var(--app-line-2); box-shadow: 0 30px 60px -24px rgba(23,25,30,.55); }
+    .art-second { position: absolute; width: 58%; right: -28px; bottom: 0; border-radius: 10px; border: 1px solid var(--app-line-2); box-shadow: 0 24px 50px -18px rgba(23,25,30,.6); }
+    .art-card { position: absolute; left: -24px; bottom: 28px; width: 260px; background: var(--app-panel); color: var(--app-fg); border: 1px solid rgba(255,154,60,.45); border-radius: 12px; padding: 14px; box-shadow: 0 20px 40px -16px rgba(23,25,30,.6); font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
+    .art-card strong, .action strong { color: var(--forgy); }
+    .art-card code, .action code { font: 13px var(--mono); background: #0A0C10; border: 1px solid var(--app-line-2); border-radius: 6px; padding: 6px 8px; }
+    .card-buttons { display: flex; gap: 6px; }
+    .card-buttons span { border: 1px solid var(--app-line); padding: 4px 10px; border-radius: 6px; font-size: 13px; }
+    .card-buttons .ok { background: var(--forgy); color: #1A0E04; font-weight: 600; border-color: var(--forgy); }
 
-    .stage { margin: 0; background: var(--app); padding: 56px 0 28px; }
-    .stage .screen { border-radius: 10px; box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 30px 70px -20px #000; border: 1px solid var(--app-line); }
-    .stage figcaption { margin-top: 18px; color: var(--app-fg-2); font-size: 14px; }
+    .replaces { padding: 24px 0 80px; }
+    .replaces p { border-top: 1px solid var(--rule); padding-top: 32px; display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; font-size: 15px; color: var(--ink-3); }
+    .replaces strong { color: var(--ink); font-weight: 600; }
+    .replaces s { text-decoration-color: var(--orange); }
 
-    .why { display: grid; grid-template-columns: 1fr 2fr; gap: 48px; padding: 96px 0; border-bottom: 1px solid var(--rule); }
-    .why h2 { font-size: 30px; }
-    .why p + p { margin-top: 18px; }
-    .why p { color: var(--ink-2); font-size: 18px; }
+    .band-white { background: var(--white); border-block: 1px solid var(--rule); }
+    .band-dark { background: var(--app); color: var(--app-fg); }
+    .section { padding-block: 104px; }
+    .section h2 { font-size: clamp(30px, 3.6vw, 40px); }
+    .section-lead { margin-top: 14px; font-size: 18px; color: var(--ink-2); max-width: 40em; }
+    .band-dark .section-lead { color: var(--app-fg-2); }
 
-    .tour { padding: 40px 0 96px; }
-    .step { display: grid; grid-template-columns: 5fr 7fr; gap: 56px; align-items: center; padding: 72px 0; border-bottom: 1px solid var(--rule); }
-    .step.flip .step-text { order: 2; }
-    .step h2 { font-size: 30px; }
-    .step p { margin: 16px 0 18px; color: var(--ink-2); }
-    .tour .screen { border-radius: 8px; border: 1px solid #D9D5CE; box-shadow: 0 18px 40px -22px rgba(23, 25, 30, .45); }
+    .day { list-style: none; padding: 0; margin: 56px 0 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+    .day li { display: flex; flex-direction: column; gap: 12px; }
+    .time { font: 600 13px var(--mono); color: var(--orange); }
+    .day-shot { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; border: 1px solid var(--rule-2); }
+    .day h3 { font-size: 18px; letter-spacing: -0.01em; }
+    .day p { font-size: 15px; color: var(--ink-2); }
+    .term { background: #0A0C10; border-color: var(--app-line-2); color: var(--app-fg); font: 12.5px var(--mono); padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+    .term .dim { color: var(--app-fg-2); }
+    .term .green { margin-top: auto; color: var(--green); }
 
-    .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; padding-top: 72px; }
-    .mini { text-decoration: none; color: var(--ink); }
-    .mini h3 { margin-top: 18px; font-size: 19px; }
-    .mini p { margin-top: 6px; color: var(--ink-2); font-size: 15.5px; }
-    .mini:hover h3 { color: var(--link); }
+    .projects { display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start; }
+    .projects-text { flex: 1 1 300px; min-width: 0; }
+    .tour-tabs { margin-top: 28px; display: flex; flex-direction: column; border-top: 1px solid var(--rule); }
+    .tour-tabs button { all: unset; cursor: pointer; padding: 16px 0; border-bottom: 1px solid var(--rule); display: flex; flex-direction: column; gap: 4px; }
+    .tour-tabs button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+    .tab-title { font-weight: 650; font-size: 17px; color: var(--ink-3); }
+    .tab-text { display: none; font-size: 15px; color: var(--ink-2); }
+    .tour-tabs button[aria-selected='true'] .tab-title { color: var(--ink); }
+    .tour-tabs button[aria-selected='true'] .tab-text { display: block; }
+    .tour-tabs button:hover .tab-title { color: var(--ink); }
+    .projects-stage { flex: 2 1 620px; min-width: 0; background: var(--app); border-radius: 16px; padding: 28px; }
+    .projects-stage img { border-radius: 8px; border: 1px solid var(--app-line); }
 
-    .dark { background: var(--app); color: var(--app-fg); padding: 96px 0; }
-    .dark h2 { font-size: 34px; }
-    .dark-lead { margin-top: 14px; max-width: 60ch; color: var(--app-fg-2); font-size: 18px; }
-    .specs { margin: 48px 0 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 56px; }
-    .specs div { padding: 18px 0; border-top: 1px solid var(--app-line); }
+    .servers { display: flex; flex-wrap: wrap; gap: 56px; }
+    .servers-text { flex: 1 1 460px; min-width: 0; }
+    .specs { margin: 36px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
+    .specs div { padding: 16px 0; border-top: 1px solid var(--app-line); }
     .specs dt a { color: var(--app-fg); font-weight: 600; text-decoration: none; }
-    .specs dt a:hover { color: var(--app-blue); }
-    .specs dd { margin: 4px 0 0; color: var(--app-fg-2); font-size: 15.5px; }
+    .specs dt a:hover { color: #7EB0FF; }
+    .specs dd { margin: 4px 0 0; color: var(--app-fg-2); font-size: 15px; }
+    .health { flex: 1 1 380px; min-width: 0; align-self: center; background: var(--app-2); border: 1px solid var(--app-line); border-radius: 14px; padding: 24px; font-size: 14.5px; }
+    .health-head { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 16px; margin-bottom: 18px; }
+    .badge { font-size: 13px; font-weight: 500; color: var(--green); background: rgba(63,207,142,.12); padding: 3px 10px; border-radius: 999px; }
+    .health-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--app-line-2); }
+    .health-row span:last-child { color: var(--app-fg-2); text-align: right; }
+    .health-note { margin-top: 14px; font-size: 12px; color: var(--app-fg-3); }
 
-    .forgy { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; padding: 104px 0; border-bottom: 1px solid var(--rule); }
-    .forgy h2 { margin-top: 18px; font-size: 34px; }
-    .forgy-text p { margin-top: 16px; color: var(--ink-2); }
-    .forgy-text .text-link { margin-top: 20px; }
-    .panel { background: #111419; color: var(--app-fg); border-radius: 12px; border: 1px solid var(--app-line); box-shadow: 0 24px 50px -24px rgba(23, 25, 30, .6); font-size: 14.5px; overflow: hidden; }
-    .panel-head { display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #1F242D; }
-    .panel-head div { display: flex; flex-direction: column; line-height: 1.3; }
-    .panel-head span { color: var(--app-fg-2); font-size: 12.5px; }
-    .panel-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .q { align-self: flex-end; background: rgba(91, 155, 255, .13); padding: 8px 12px; border-radius: 10px; }
-    .card { border: 1px solid rgba(255, 154, 60, .35); background: rgba(255, 154, 60, .08); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-    .card strong { color: var(--forgy); font-size: 13.5px; }
-    .card code { font: 13px var(--mono); background: #0A0C10; border: 1px solid #1F242D; border-radius: 6px; padding: 7px 9px; }
-    .card small { color: var(--app-fg-2); font-size: 12.5px; }
-    .card-buttons { display: flex; gap: 8px; }
-    .card-buttons span { font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 7px; border: 1px solid var(--app-line); }
-    .card-buttons .ok { background: var(--forgy); color: #1A0E04; border-color: var(--forgy); }
+    .forgy { display: flex; flex-wrap: wrap; gap: 56px; align-items: center; }
+    .forgy-text { flex: 1 1 440px; min-width: 0; }
+    .forgy-text h2 { margin-top: 16px; }
+    .forgy-text p { margin-top: 16px; font-size: 17px; color: var(--ink-2); }
+    .panel { flex: 1 1 440px; min-width: 0; background: var(--app-panel); color: var(--app-fg); border: 1px solid var(--app-line); border-radius: 14px; overflow: hidden; font-size: 14.5px; box-shadow: 0 24px 50px -24px rgba(23,25,30,.6); }
+    .panel-head { padding: 14px 18px; border-bottom: 1px solid var(--app-line-2); }
+    .panel-head span { color: var(--app-fg-2); font-size: 13px; }
+    .panel-body { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+    .q { align-self: flex-end; background: rgba(91,155,255,.13); padding: 8px 12px; border-radius: 10px; }
+    .action { border: 1px solid rgba(255,154,60,.4); background: rgba(255,154,60,.08); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 
-    .keys, .faq { display: grid; grid-template-columns: 1fr 2fr; gap: 48px; padding: 88px 0; border-bottom: 1px solid var(--rule); }
-    .keys h2, .faq h2 { font-size: 30px; }
-    .keys table { border-collapse: collapse; width: 100%; }
-    .keys td { padding: 12px 0; border-top: 1px solid var(--rule); color: var(--ink-2); }
-    .keys td:first-child { width: 40%; white-space: nowrap; }
-    kbd { font: 600 13px var(--mono); color: var(--ink); background: var(--white); border: 1px solid #CFCAC1; border-bottom-width: 2px; border-radius: 5px; padding: 2px 7px; margin-right: 4px; }
+    .faq-get { display: flex; flex-wrap: wrap; gap: 56px; }
+    .faq { flex: 2 1 520px; min-width: 0; }
+    .faq h2 { font-size: 32px; margin-bottom: 24px; }
     details { border-top: 1px solid var(--rule); padding: 16px 0; }
     details:last-child { border-bottom: 1px solid var(--rule); }
     summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
     summary::-webkit-details-marker { display: none; }
     summary::after { content: '+'; color: var(--ink-3); font-weight: 400; }
     details[open] summary::after { content: '−'; }
-    details p { margin-top: 10px; color: var(--ink-2); max-width: 64ch; }
+    details p { margin-top: 8px; color: var(--ink-2); }
+    .get { flex: 1 1 320px; min-width: 0; align-self: flex-start; background: var(--paper); border: 1px solid var(--rule); border-radius: 16px; padding: 32px; }
+    .get h2 { font-size: 26px; }
+    .get > p { margin-top: 10px; color: var(--ink-2); font-size: 15px; }
+    .file { margin-top: 12px; text-align: center; font: 13px var(--mono); color: var(--ink-3); }
 
-    .end { padding: 96px 0 104px; }
-    .end h2 { font-size: 36px; }
-    .end > p { margin-top: 12px; color: var(--ink-2); max-width: 56ch; }
+    .foot { border-top: 1px solid var(--rule); }
+    .foot-inner { padding: 28px 0 40px; display: flex; flex-wrap: wrap; gap: 12px 28px; font-size: 14px; color: var(--ink-2); }
+    .foot-inner a { color: var(--ink-2); }
+    .foot-inner p { width: 100%; color: var(--ink-3); font-size: 13px; }
 
-    .foot { border-top: 1px solid var(--rule); padding: 28px 0 40px; font-size: 14.5px; color: var(--ink-2); }
-    .foot-inner { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: center; }
-    .foot-inner p:first-child { display: inline-flex; align-items: center; gap: 8px; }
-    .foot nav { display: flex; flex-wrap: wrap; gap: 6px 18px; }
-    .foot nav a { color: var(--ink-2); text-decoration: none; }
-    .foot nav a:hover { color: var(--ink); text-decoration: underline; }
-    .quiet { width: 100%; color: var(--ink-3); font-size: 13.5px; }
-
-    @media (max-width: 900px) {
+    @media (max-width: 1000px) {
       .links { display: none; }
-      .why, .step, .forgy, .keys, .faq { grid-template-columns: 1fr; gap: 28px; }
-      .step.flip .step-text { order: 0; }
-      .specs, .trio { grid-template-columns: 1fr; }
-      .hero { padding-top: 56px; }
-      .why, .keys, .faq, .dark, .forgy, .end { padding-block: 64px; }
-      .step { padding: 48px 0; }
+      .day { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .art-second { right: 0; }
+      .art-card { left: 0; }
     }
-    @media (max-width: 520px) {
+    @media (max-width: 600px) {
       body { font-size: 16px; }
-      .top-end .button { display: none; }
-      .keys td:first-child { white-space: normal; }
+      .hero { padding-top: 48px; }
+      .section { padding-block: 72px; }
+      .day, .specs { grid-template-columns: 1fr; }
+      .top-end .btn { display: none; }
+      .art-card { width: 220px; bottom: 12px; }
+      .projects-stage { padding: 14px; }
     }
   </style>
 </body>
