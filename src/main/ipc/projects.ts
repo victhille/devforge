@@ -73,11 +73,35 @@ export function registerProjectHandlers(mainWindow: BrowserWindow): void {
     })
   })
 
+  // A script started before the dependencies are installed fails ('vite' is not recognized…)
+  ipcMain.handle('scripts:needs-install', async (_event, projectPath: string): Promise<boolean> => {
+    assertSafeDir(projectPath)
+    const file = join(projectPath, 'package.json')
+    if (!existsSync(file) || existsSync(join(projectPath, 'node_modules'))) return false
+    try {
+      const pkg = JSON.parse(readFileSync(file, 'utf-8')) as { dependencies?: object; devDependencies?: object }
+      return Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }).length > 0
+    } catch {
+      return false
+    }
+  })
+
+  ipcMain.handle('scripts:install', async (_event, projectPath: string, pm: PackageManager): Promise<string> => {
+    assertSafeDir(projectPath)
+    return commandRunner.run({
+      executable: pm === 'pnpm' ? 'pnpm' : pm === 'yarn' ? 'yarn' : 'npm',
+      args: ['install'],
+      cwd: projectPath,
+      onLog:    (log)    => mainWindow.webContents.send('task-log', log),
+      onResult: (result) => mainWindow.webContents.send('task-result', result)
+    })
+  })
+
   // ─── Project Scanner ──────────────────────────────────────────────────────────
   ipcMain.handle('scan-directory', async (_event, directory: string) => scanDirectory(directory))
 
   // ─── Project Storage ──────────────────────────────────────────────────────────
-  ipcMain.handle('get-projects', async () => loadProjects())
+  ipcMain.handle('get-projects', async () => loadProjects().map(p => ({ ...p, missing: !existsSync(p.path) })))
 
   ipcMain.handle('save-project', async (_event, project: Project) => {
     saveProject(project)

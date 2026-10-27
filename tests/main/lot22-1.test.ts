@@ -20,7 +20,7 @@ const runs = (steps: SetupStep[]) => steps.filter(s => s.kind === 'run').map(s =
 describe('v2.2 lot 1: project setup plan', () => {
   it('Symfony + Postgres: Doctrine, .env.local, compose, start, connection', () => {
     const steps = planSetup(opts('symfony'), ctx)
-    expect(runs(steps)).toEqual(['composer require symfony/orm-pack', 'docker compose up -d --wait database'])
+    expect(runs(steps)).toEqual(['npm install', 'composer require symfony/orm-pack', 'docker compose up -d --wait database'])
     const env = steps.find(s => s.kind === 'env' && s.file === '.env.local')
     expect(env).toMatchObject({ vars: { DATABASE_URL: 'postgresql://app:pw@127.0.0.1:5433/boutique?serverVersion=16&charset=utf8' } })
     expect(steps.find(s => s.kind === 'connection')).toMatchObject({ type: 'postgres', port: 5433, user: 'app', database: 'boutique' })
@@ -33,7 +33,7 @@ describe('v2.2 lot 1: project setup plan', () => {
 
   it('Next.js + MySQL: Prisma with the chosen package manager, root user', () => {
     const steps = planSetup({ ...opts('nextjs', { database: 'mysql', dbPort: 3307 }), packageManager: 'pnpm' }, ctx)
-    expect(runs(steps).slice(0, 3)).toEqual(['pnpm add -D prisma dotenv', 'pnpm add @prisma/client', 'npx prisma init --datasource-provider mysql'])
+    expect(runs(steps).slice(1, 5)).toEqual(['pnpm add -D prisma@7 dotenv', 'pnpm add @prisma/client@7', 'pnpm add @prisma/adapter-mariadb@7', 'npx prisma init --datasource-provider mysql --output ../{src}generated/prisma --no-skills'])
     expect(steps.find(s => s.kind === 'env' && s.file === '.env')).toMatchObject({ vars: { DATABASE_URL: 'mysql://root:pw@localhost:3307/boutique' } })
   })
 
@@ -69,7 +69,7 @@ describe('v2.2 lot 1: project setup plan', () => {
   it('Git and GitHub come last, for every framework', () => {
     const steps = planSetup({ ...opts('symfony', { database: 'none', git: true, github: { repo: 'victhille/boutique', private: true }, openVSCode: true }), framework: 'react' }, ctx)
     expect(runs(steps)).toEqual([
-      'git init', 'git add -A', 'git commit -m "chore: initial commit (DevForge)"',
+      'npm install', 'git init -b main', 'git add -A', 'git commit -m "chore: initial commit (DevForge)"',
       'gh repo create victhille/boutique --private --source . --push', 'code .'
     ])
   })

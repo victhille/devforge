@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
 import type { LogLine, CommandResult, ProjectCreationOptions, PackageManager } from '@shared/types'
+import { useI18n } from '@renderer/i18n/I18nContext'
 
 interface ConsoleState {
   visible: boolean
@@ -42,6 +43,7 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
     projectId:   null
   })
   const saveProjUnsubRef = useRef<(() => void) | null>(null)
+  const { t } = useI18n()
 
   // Always-on listeners — capture logs and results for active task
   useEffect(() => {
@@ -119,20 +121,27 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
     pm: PackageManager,
     projectName: string
   ) => {
-    setState({
-      visible:     true,
-      minimized:   false,
-      label:       `${pm} run ${script} (${projectName})`,
-      taskId:      null,
-      logs:        [],
-      result:      null,
-      projectPath,
-      isCreation:  false,
-      projectId:   null
-    })
+    const base = { visible: true, minimized: false, taskId: null, result: null, projectPath, isCreation: false, projectId: null }
+    // No node_modules: offer to install first, then the script follows in the same console
+    let installed = false
+    if (await window.devforge.scriptNeedsInstall(projectPath) && window.confirm(t.hub.installFirst)) {
+      setState({ ...base, label: `${pm} install (${projectName})`, logs: [] })
+      const installId = await window.devforge.installProjectDeps(projectPath, pm)
+      setState(prev => ({ ...prev, taskId: installId }))
+      const ok = await new Promise<boolean>(resolve => {
+        const unsub = window.devforge.onTaskResult(r => {
+          if (r.taskId !== installId) return
+          unsub()
+          resolve(r.status === 'success')
+        })
+      })
+      if (!ok) return
+      installed = true
+    }
+    setState(prev => ({ ...base, label: `${pm} run ${script} (${projectName})`, logs: installed ? prev.logs : [] }))
     const taskId = await window.devforge.runProjectScript(projectPath, script, pm)
     setState(prev => ({ ...prev, taskId }))
-  }, [])
+  }, [t])
 
   const runTask = useCallback(async (label: string, projectPath: string, start: () => Promise<string>) => {
     setState({ visible: true, minimized: false, label, taskId: null, logs: [], result: null, projectPath, isCreation: false, projectId: null })

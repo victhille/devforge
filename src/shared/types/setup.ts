@@ -20,7 +20,8 @@ export interface ProjectSetup {
 
 /** One step of the plan: shown as is in the summary, then run in order */
 export type SetupStep =
-  | { kind: 'run'; label: string; exe: string; args: string[]; optional?: boolean; skipIf?: string }
+  /** skipIf: not run when this path exists; onlyIf: run only when it exists */
+  | { kind: 'run'; label: string; exe: string; args: string[]; optional?: boolean; skipIf?: string; onlyIf?: string }
   | { kind: 'write'; label: string; files: { path: string; content: string }[] }
   | { kind: 'env'; label: string; file: string; vars: Record<string, string> }
   | { kind: 'ignore'; label: string; lines: string[] }
@@ -28,6 +29,8 @@ export type SetupStep =
   /** Lines containing `match` taken out of a file (Sail's mounts Docker Desktop cannot read outside WSL) */
   | { kind: 'drop-lines'; label: string; file: string; match: string }
   | { kind: 'connection'; label: string; type: 'postgres' | 'mysql' | 'sqlite'; port: number; user: string; database: string; file?: string }
+  /** Tailwind 4 wired in: its Vite plugin (vite.config, Vite projects) or its PostCSS plugin (postcss.config.mjs), and @import "tailwindcss" in the main stylesheet */
+  | { kind: 'tailwind'; label: string; via: 'vite' | 'postcss' }
 
 /** PHP on this PC, for a Symfony project */
 export interface PhpStatus {

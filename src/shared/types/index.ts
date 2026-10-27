@@ -39,6 +39,8 @@ export interface Project {
   createdAt: string
   lastOpenedAt: string | null
   favorite: boolean
+  /** v3.3.1: its folder no longer exists (worked out on load, never saved) */
+  missing?: boolean
 }
 
 // ─── Project Creation ─────────────────────────────────────────────────────────
@@ -57,6 +59,8 @@ export interface ProjectCreationOptions {
   devLibraries?: string[]
   /** v2.2: database, options, Git and GitHub after the creation */
   setup?: ProjectSetup
+  /** v3.3.1: the interface's language, for the creation's messages (French when absent) */
+  lang?: 'fr' | 'en'
 }
 
 // ─── Environment ─────────────────────────────────────────────────────────────
@@ -442,6 +446,9 @@ export interface DevForgeAPI {
   // Scripts
   getProjectScripts: (path: string) => Promise<Record<string, string>>
   runProjectScript: (path: string, script: string, pm: PackageManager) => Promise<string>
+  /** v3.3.1: package.json declares packages and node_modules is missing */
+  scriptNeedsInstall: (path: string) => Promise<boolean>
+  installProjectDeps: (path: string, pm: PackageManager) => Promise<string>
 
   // Events (renderer subscribes)
   onTaskLog: (callback: (log: LogLine) => void) => () => void

@@ -477,6 +477,8 @@ const api: DevForgeAPI = {
   // Scripts
   getProjectScripts:  (path)               => ipcRenderer.invoke('scripts:get', path),
   runProjectScript:   (path, script, pm)   => ipcRenderer.invoke('scripts:run', path, script, pm),
+  scriptNeedsInstall: (path)               => ipcRenderer.invoke('scripts:needs-install', path),
+  installProjectDeps: (path, pm)           => ipcRenderer.invoke('scripts:install', path, pm),
 
   // Events (renderer subscribes)
   onTaskLog: (callback: (log: LogLine) => void) => {

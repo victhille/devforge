@@ -1,12 +1,26 @@
-import { existsSync, mkdirSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync } from 'fs'
 import { join } from 'path'
 import type { ProjectCreationOptions, LogLine, CommandResult } from '@shared/types'
 import { commandRunner } from '../system/commandRunner'
 import { detectTool } from '../system/environmentDetector'
 import { runSetup } from './projectSetup'
+import { packageName } from '@shared/data/projectLibraries'
 
 type LogCb = (log: LogLine) => void
 type ResultCb = (result: CommandResult) => void
+
+/** The creator's own messages, in the interface's language */
+const TEXT = {
+  fr: {
+    install: 'Installation des dépendances…', mkdir: (p: string) => `Création du dossier : ${p}`, made: (p: string) => `Dossier créé : ${p}`,
+    libs: (n: number) => `Installation de ${n} paquet(s)…`, devLibs: (n: number) => `Installation de ${n} paquet(s) de développement…`
+  },
+  en: {
+    install: 'Installing dependencies…', mkdir: (p: string) => `Creating directory: ${p}`, made: (p: string) => `Created directory: ${p}`,
+    libs: (n: number) => `Installing ${n} package(s)…`, devLibs: (n: number) => `Installing ${n} dev package(s)…`
+  }
+}
+const text = (o: ProjectCreationOptions) => TEXT[o.lang ?? 'fr']
 
 function info(onLog: LogCb, taskId: string, text: string): void {
   onLog({ taskId, type: 'info', text, timestamp: new Date().toISOString() })
@@ -48,7 +62,7 @@ function createReactProject(
   let args: string[]
 
   if (pm === 'npm') {
-    args = ['create', 'vite@latest', name, '--', '--template', template]
+    args = ['create', '--yes', 'vite@latest', name, '--', '--template', template]
   } else if (pm === 'pnpm') {
     args = ['create', 'vite@latest', name, '--', '--template', template]
   } else {
@@ -65,7 +79,7 @@ function createReactProject(
         // Chain: install dependencies
         const installArgs = pm === 'npm' ? ['install'] : pm === 'pnpm' ? ['install'] : []
         if (installArgs.length > 0) {
-          info(onLog, taskId, 'Installing dependencies...')
+          info(onLog, taskId, text(options).install)
           commandRunner.run({
             executable: pmExe,
             args: installArgs,
@@ -100,7 +114,7 @@ function createNextjsProject(
   const flags = ['--yes', typescript ? '--ts' : '--js', `--use-${pm}`]
   const args =
     pm === 'npm'
-      ? ['create', 'next-app@latest', name, '--', ...flags]
+      ? ['create', '--yes', 'next-app@latest', name, '--', ...flags]
       : ['create', 'next-app', name, ...flags]
 
   return commandRunner.run({ executable: pmExe, args, cwd: destination, onLog, onResult })
@@ -120,7 +134,7 @@ function createVueProject(
 
   const args =
     pm === 'npm'
-      ? ['create', 'vite@latest', name, '--', '--template', template]
+      ? ['create', '--yes', 'vite@latest', name, '--', '--template', template]
       : ['create', 'vite@latest', name, '--', '--template', template]
 
   return commandRunner.run({ executable: pmExe, args, cwd: destination, onLog, onResult })
@@ -142,7 +156,7 @@ function createNodejsProject(
     throw new Error(`Could not create directory: ${String(err)}`, { cause: err })
   }
 
-  info(onLog, 'init', `Creating directory: ${projectPath}`)
+  info(onLog, 'init', text(options).mkdir(projectPath))
 
   return commandRunner.run({
     executable: 'npm',
@@ -213,7 +227,7 @@ function createEmptyProject(
 
   try {
     mkdirSync(projectPath, { recursive: true })
-    info(onLog, 'init', `Created directory: ${projectPath}`)
+    info(onLog, 'init', text(options).made(projectPath))
     onResult({ taskId: 'init', exitCode: 0, status: 'success' })
   } catch (err) {
     onLog({ taskId: 'init', type: 'error', text: `Could not create directory: ${String(err)}`, timestamp: new Date().toISOString() })
@@ -237,6 +251,16 @@ export function initGit(projectPath: string, onLog: LogCb, onResult: ResultCb): 
 
 // ─── Library installer (chained after project creation) ───────────────────────
 
+/** Packages the new project's package.json already declares (create-next-app brings Tailwind) */
+function declaredPackages(projPath: string): Set<string> {
+  try {
+    const pkg = JSON.parse(readFileSync(join(projPath, 'package.json'), 'utf-8')) as { dependencies?: object; devDependencies?: object }
+    return new Set(Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }))
+  } catch {
+    return new Set()
+  }
+}
+
 function withLibraryInstall(
   options: ProjectCreationOptions,
   taskId: string,
@@ -244,30 +268,32 @@ function withLibraryInstall(
   onResult: ResultCb,
   innerOnResult: ResultCb
 ): ResultCb {
-  const { libraries = [], devLibraries = [], packageManager: pm, name, destination } = options
+  const { packageManager: pm, name, destination } = options
   const projPath = join(destination, name)
   const pmExe    = pm === 'pnpm' ? 'pnpm' : pm === 'yarn' ? 'yarn' : 'npm'
 
-  const hasLibs    = libraries.length > 0
-  const hasDevLibs = devLibraries.length > 0
-
-  if (!hasLibs && !hasDevLibs) return innerOnResult
+  if (!options.libraries?.length && !options.devLibraries?.length) return innerOnResult
 
   return (result) => {
     if (result.status !== 'success') {
       innerOnResult(result)
       return
     }
+    const declared     = declaredPackages(projPath)
+    const libraries    = (options.libraries ?? []).filter(p => !declared.has(packageName(p)))
+    const devLibraries = (options.devLibraries ?? []).filter(p => !declared.has(packageName(p)))
+    const hasLibs      = libraries.length > 0
+    const hasDevLibs   = devLibraries.length > 0
 
     const installDev = () => {
       if (!hasDevLibs) { innerOnResult(result); return }
-      info(onLog, taskId, `Installing ${devLibraries.length} dev package(s)...`)
+      info(onLog, taskId, text(options).devLibs(devLibraries.length))
       const devArgs = pm === 'yarn' ? ['add', '--dev', ...devLibraries] : ['install', '--save-dev', ...devLibraries]
       commandRunner.run({ executable: pmExe, args: devArgs, cwd: projPath, onLog, onResult: innerOnResult })
     }
 
     if (hasLibs) {
-      info(onLog, taskId, `Installing ${libraries.length} package(s)...`)
+      info(onLog, taskId, text(options).libs(libraries.length))
       const args = pm === 'yarn' ? ['add', ...libraries] : ['install', '--save', ...libraries]
       commandRunner.run({ executable: pmExe, args, cwd: projPath, onLog, onResult: () => installDev() })
     } else {

@@ -1,12 +1,68 @@
 import { spawn, ChildProcess } from 'child_process'
 import { randomUUID } from 'crypto'
+import { isUtf8 } from 'buffer'
 import type { CommandTask, CommandResult, LogLine } from '@shared/types'
 import { killTree } from '../../lib/killTree'
 
-// Strip ANSI escape codes (colors, bold, cursor moves, etc.)
+// Strip ANSI escape codes (colors, bold, cursor moves, etc.), and OSC sequences such as
+// OSC 8 links (]8;;file://…), ended by BEL or by ESC \
 // eslint-disable-next-line no-control-regex -- ESC and BEL are what we strip
-const ANSI_RE = /\x1b\[[0-9;]*[A-Za-z]|\x1b\][^\x07]*\x07|\x1b[()][A-Z0-9]/g
-function stripAnsi(str: string): string { return str.replace(ANSI_RE, '') }
+const ANSI_RE = /\x1b\[[0-9;?]*[A-Za-z]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[()][A-Z0-9]/g
+export function stripAnsi(str: string): string { return str.replace(ANSI_RE, '') }
+
+/** Lines that come by the hundred and say the same thing: one is shown, then the count */
+const SAME_KIND: [RegExp, string][] = [
+  [/LF will be replaced by CRLF|CRLF will be replaced by LF/, 'crlf'],
+  [/^\s*Deprecation Notice:/, 'deprecation']
+]
+
+/**
+ * Collapses a run of lines of one kind (or the same line again) into its first
+ * line and a "… (+N)" line, so a log of thousands of warnings stays readable
+ */
+export function lineCollapser(emit: (text: string, type: 'stdout' | 'stderr') => void) {
+  let key: string | null = null, extra = 0, lastType: 'stdout' | 'stderr' = 'stdout'
+  const flush = () => {
+    if (extra > 0) emit(`… (+${extra})`, lastType)
+    key = null; extra = 0
+  }
+  return {
+    push(text: string, type: 'stdout' | 'stderr') {
+      const k = SAME_KIND.find(([re]) => re.test(text))?.[1] ?? text
+      if (k === key) { extra++; lastType = type; return }
+      flush()
+      key = k; lastType = type
+      emit(text, type)
+    },
+    flush
+  }
+}
+
+/** Code page 850, bytes 0x80 to 0xFF: cmd's own messages ('x' n'est pas reconnu…) on a French or Western Windows */
+const CP850 = 'ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»░▒▓│┤ÁÂÀ©╣║╗╝¢¥┐└┴┬├─┼ãÃ╚╔╩╦╠═╬¤ðÐÊËÈıÍÎÏ┘┌█▄¦Ì▀ÓßÔÒõÕµþÞÚÛÙýÝ¯´\u00ad±‗¾¶§÷¸°¨·¹³²■\u00a0'
+
+/** A line's bytes as text: UTF-8 when they are valid UTF-8 (most tools), code page 850 otherwise */
+export function decodeLine(bytes: Buffer): string {
+  if (process.platform !== 'win32' || isUtf8(bytes)) return bytes.toString('utf8')
+  return Array.from(bytes, b => b < 0x80 ? String.fromCharCode(b) : CP850[b - 0x80]).join('')
+}
+
+/** Splits a stream into lines at the bytes, so a line is decoded whole (a character cut between two chunks survives) */
+export function lineReader(onLine: (line: string) => void) {
+  let rest = Buffer.alloc(0)
+  const emit = (bytes: Buffer) => {
+    const clean = stripAnsi(decodeLine(bytes)).replace(/\r/g, '').trimEnd()
+    if (clean.trim()) onLine(clean)
+  }
+  return {
+    write(data: Buffer) {
+      let buf = Buffer.concat([rest, data]), at: number
+      while ((at = buf.indexOf(0x0a)) >= 0) { emit(buf.subarray(0, at)); buf = buf.subarray(at + 1) }
+      rest = buf
+    },
+    end() { if (rest.length) emit(rest); rest = Buffer.alloc(0) }
+  }
+}
 
 type LogCallback = (log: LogLine) => void
 type ResultCallback = (result: CommandResult) => void
@@ -60,23 +116,15 @@ export class CommandRunner {
 
     this.tasks.set(taskId, { task, process: child })
 
-    child.stdout?.on('data', (data: Buffer) => {
-      const lines = data.toString().split('\n')
-      for (const line of lines) {
-        const clean = stripAnsi(line).trimEnd()
-        if (clean.trim()) this._emit(options.onLog, taskId, 'stdout', clean)
-      }
-    })
-
-    child.stderr?.on('data', (data: Buffer) => {
-      const lines = data.toString().split('\n')
-      for (const line of lines) {
-        const clean = stripAnsi(line).trimEnd()
-        if (clean.trim()) this._emit(options.onLog, taskId, 'stderr', clean)
-      }
-    })
+    const lines = lineCollapser((text, type) => this._emit(options.onLog, taskId, type, text))
+    const out = lineReader(text => lines.push(text, 'stdout'))
+    const err = lineReader(text => lines.push(text, 'stderr'))
+    child.stdout?.on('data', (data: Buffer) => out.write(data))
+    child.stderr?.on('data', (data: Buffer) => err.write(data))
 
     child.on('close', (code: number | null) => {
+      out.end(); err.end()
+      lines.flush()
       const stored = this.tasks.get(taskId)
       if (!stored) return
 

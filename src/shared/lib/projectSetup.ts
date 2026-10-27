@@ -1,3 +1,4 @@
+import { packageName } from '../data/projectLibraries'
 import type { Framework, PackageManager, ProjectCreationOptions, ProjectSetup, SetupFeature, SetupStep } from '../types'
 
 /**
@@ -25,7 +26,7 @@ export interface PlanContext {
   lang: 'fr' | 'en'
 }
 
-type Opts = Pick<ProjectCreationOptions, 'name' | 'framework' | 'packageManager' | 'typescript' | 'eslint'> & { setup: ProjectSetup }
+type Opts = Pick<ProjectCreationOptions, 'name' | 'framework' | 'packageManager' | 'typescript' | 'eslint' | 'libraries' | 'devLibraries'> & { setup: ProjectSetup }
 
 const LABELS = {
   fr: {
@@ -35,7 +36,9 @@ const LABELS = {
     firstTest: 'Premier test', ci: 'CI GitHub Actions', prisma: 'Prisma', prismaInit: 'Schéma Prisma', scripts: 'Script de test',
     sanctum: 'API (Sanctum)', fortify: 'Laravel Fortify', fortifyInstall: 'Connexion et inscription',
     sail: 'Laravel Sail', sailInstall: 'Conteneurs Sail', sailInitScript: 'Base « testing » de Sail retirée (illisible hors WSL)', sailStart: 'Démarrage de Sail (construction de l\'image)',
-    gitInit: 'Dépôt Git', gitAdd: 'Fichiers suivis', gitCommit: 'Premier commit', github: 'Dépôt GitHub', vscode: 'Ouverture dans VS Code'
+    gitInit: 'Dépôt Git', gitAdd: 'Fichiers suivis', gitCommit: 'Premier commit', github: 'Dépôt GitHub', vscode: 'Ouverture dans VS Code',
+    install: 'Installation des dépendances', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Configuration de Tailwind CSS',
+    prismaAdapter: 'Pilote de base pour Prisma', prismaClient: 'Client Prisma (lib/prisma)', entry: 'Point d\'entrée', startScripts: 'Scripts dev et start'
   },
   en: {
     orm: 'Doctrine (ORM)', compose: 'compose.yaml', envDb: 'DATABASE_URL', ignore: '.gitignore', start: 'Starting the database',
@@ -44,7 +47,9 @@ const LABELS = {
     firstTest: 'First test', ci: 'GitHub Actions CI', prisma: 'Prisma', prismaInit: 'Prisma schema', scripts: 'Test script',
     sanctum: 'API (Sanctum)', fortify: 'Laravel Fortify', fortifyInstall: 'Login and registration',
     sail: 'Laravel Sail', sailInstall: 'Sail containers', sailInitScript: 'Sail\'s "testing" database removed (unreadable outside WSL)', sailStart: 'Starting Sail (building the image)',
-    gitInit: 'Git repository', gitAdd: 'Tracked files', gitCommit: 'First commit', github: 'GitHub repository', vscode: 'Opening in VS Code'
+    gitInit: 'Git repository', gitAdd: 'Tracked files', gitCommit: 'First commit', github: 'GitHub repository', vscode: 'Opening in VS Code',
+    install: 'Installing dependencies', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Tailwind CSS setup',
+    prismaAdapter: 'Database driver for Prisma', prismaClient: 'Prisma client (lib/prisma)', entry: 'Entry point', startScripts: 'dev and start scripts'
   }
 }
 
@@ -306,16 +311,49 @@ function laravelSteps(o: Opts, ctx: PlanContext): SetupStep[] {
   return steps
 }
 
+/**
+ * Prisma 7 talks to the database through a driver adapter; versions pinned to 7
+ * (the "latest" tag is Prisma 8's release candidate, with another init)
+ */
+const PRISMA_ADAPTERS = {
+  postgres: { packages: ['@prisma/adapter-pg@7', 'pg'], name: 'PrismaPg', from: '@prisma/adapter-pg', arg: 'process.env.DATABASE_URL', wrap: (a: string) => `{ connectionString: ${a} }` },
+  mysql:    { packages: ['@prisma/adapter-mariadb@7'], name: 'PrismaMariaDb', from: '@prisma/adapter-mariadb', arg: "process.env.DATABASE_URL!.replace(/^mysql:/, 'mariadb:')", wrap: (a: string) => a },
+  sqlite:   { packages: ['@prisma/adapter-better-sqlite3@7'], name: 'PrismaBetterSqlite3', from: '@prisma/adapter-better-sqlite3', arg: 'process.env.DATABASE_URL!', wrap: (a: string) => `{ url: ${a} }` }
+}
+
+/** lib/prisma: one client for the app (Next.js reloads its modules in development), generated in {src}generated/prisma */
+export function prismaClientFile(db: keyof typeof PRISMA_ADAPTERS, typescript: boolean): string {
+  const a = PRISMA_ADAPTERS[db]
+  const arg = typescript ? a.arg : a.arg.replace('!', '')
+  return [
+    "import { PrismaClient } from '../generated/prisma/client'",
+    `import { ${a.name} } from '${a.from}'`,
+    '',
+    `const globalForPrisma = globalThis${typescript ? ' as unknown as { prisma?: PrismaClient }' : ''}`,
+    '',
+    `export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter: new ${a.name}(${a.wrap(arg)}) })`,
+    '',
+    "if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma",
+    ''
+  ].join('\n')
+}
+
 function nextSteps(o: Opts, ctx: PlanContext): SetupStep[] {
   const s = o.setup, l = LABELS[ctx.lang], pm = o.packageManager, steps: SetupStep[] = []
   const has = (f: SetupFeature) => s.features.includes(f)
   const ext = o.typescript ? 'ts' : 'js'
   if (s.database !== 'none') {
     const provider = s.database === 'postgres' ? 'postgresql' : s.database
-    steps.push({ kind: 'run', label: l.prisma, exe: pm, args: pmAdd(pm, ['prisma', 'dotenv'], true) })
-    steps.push({ kind: 'run', label: l.prisma, exe: pm, args: pmAdd(pm, ['@prisma/client']) })
-    steps.push({ kind: 'run', label: l.prismaInit, exe: 'npx', args: ['prisma', 'init', '--datasource-provider', provider], skipIf: 'prisma/schema.prisma' })
+    const db = s.database as keyof typeof PRISMA_ADAPTERS
+    steps.push({ kind: 'run', label: l.prisma, exe: pm, args: pmAdd(pm, ['prisma@7', 'dotenv'], true) })
+    steps.push({ kind: 'run', label: l.prisma, exe: pm, args: pmAdd(pm, ['@prisma/client@7']) })
+    steps.push({ kind: 'run', label: l.prismaAdapter, exe: pm, args: pmAdd(pm, PRISMA_ADAPTERS[db].packages) })
+    // --no-skills: otherwise about 200 AI-agent files (.claude, .windsurf…) land in the first commit
+    steps.push({ kind: 'run', label: l.prismaInit, exe: 'npx', args: ['prisma', 'init', '--datasource-provider', provider, '--output', '../{src}generated/prisma', '--no-skills'], skipIf: 'prisma/schema.prisma' })
     steps.push({ kind: 'env', label: l.envDb, file: '.env', vars: { DATABASE_URL: databaseUrl('nextjs', s, ctx.password) } })
+    steps.push({ kind: 'ignore', label: l.ignore, lines: ['/{src}generated/prisma'] })
+    steps.push({ kind: 'run', label: l.prismaClient, exe: 'npx', args: ['prisma', 'generate'], optional: true })
+    steps.push({ kind: 'write', label: l.prismaClient, files: [{ path: `{src}lib/prisma.${ext}`, content: prismaClientFile(db, o.typescript) }] })
   }
   if (has('api')) {
     steps.push({ kind: 'write', label: l.api, files: [{ path: `{app}/api/health/route.${ext}`, content: "export function GET() {\n  return Response.json({ status: 'ok' })\n}\n" }] })
@@ -336,9 +374,52 @@ function nextSteps(o: Opts, ctx: PlanContext): SetupStep[] {
   return steps
 }
 
+const NODE_ENTRY = "// Entry point: npm run dev restarts it on every change\nconsole.log('Hello from Node.js ' + process.version)\n"
+
+/** Tailwind 4: through Vite's plugin, or PostCSS (Next.js); the others are not created by DevForge */
+const TAILWIND_VIA: Partial<Record<Framework, 'vite' | 'postcss'>> = { react: 'vite', vue: 'vite', nextjs: 'postcss' }
+
+/** What .gitignore must have before the first commit (the templates' own files may lack it: npm init writes none) */
+export function ignoreLines(fw: Framework): string[] {
+  if (fw === 'empty') return []
+  if (fw === 'symfony' || fw === 'laravel' || fw === 'php') return ['/vendor', '/node_modules']
+  if (fw === 'nextjs') return ['/node_modules']
+  return ['/node_modules', '/dist', '.env', '*.log']
+}
+
+/** Steps for any framework, right after its creation: dependencies, a starting point, the libraries' setup */
+function commonSteps(o: Opts, ctx: PlanContext): SetupStep[] {
+  const l = LABELS[ctx.lang], pm = o.packageManager, steps: SetupStep[] = []
+  const has = (list: string[] | undefined, pkg: string) => !!list?.some(p => packageName(p) === pkg)
+  // Laravel and Vite templates come without node_modules ('vite' is not recognized…)
+  if (o.framework !== 'nodejs' && o.framework !== 'empty') {
+    steps.push({ kind: 'run', label: l.install, exe: pm, args: ['install'], skipIf: 'node_modules', onlyIf: 'package.json' })
+  }
+  if (o.framework === 'nodejs') {
+    steps.push({ kind: 'write', label: l.entry, files: [{ path: 'index.js', content: NODE_ENTRY }] })
+    steps.push({ kind: 'scripts', label: l.startScripts, scripts: { start: 'node index.js', dev: 'node --watch index.js', test: 'node --test' } })
+    if (has(o.libraries, '@prisma/client')) {
+      steps.push({ kind: 'run', label: l.prismaInit, exe: 'npx', args: ['prisma', 'init', '--datasource-provider', 'postgresql', '--output', '../generated/prisma', '--no-skills'], skipIf: 'prisma/schema.prisma' })
+      steps.push({ kind: 'ignore', label: l.ignore, lines: ['/generated/prisma'] })
+    }
+  }
+  // Supabase: the keys it reads, empty, in a committed .env.example
+  if (has(o.libraries, '@supabase/supabase-js')) {
+    const prefix = o.framework === 'nextjs' ? 'NEXT_PUBLIC_' : o.framework === 'react' || o.framework === 'vue' ? 'VITE_' : ''
+    steps.push({ kind: 'env', label: '.env.example', file: '.env.example', vars: { [`${prefix}SUPABASE_URL`]: '', [`${prefix}SUPABASE_ANON_KEY`]: '' } })
+  }
+  const via = TAILWIND_VIA[o.framework]
+  if (via && has(o.devLibraries, 'tailwindcss')) {
+    const deps = via === 'vite' ? ['@tailwindcss/vite'] : ['@tailwindcss/postcss', 'postcss']
+    steps.push({ kind: 'run', label: l.tailwindDeps, exe: pm, args: pmAdd(pm, deps, true), skipIf: `node_modules/${deps[0]}` })
+    steps.push({ kind: 'tailwind', label: l.tailwind, via })
+  }
+  return steps
+}
+
 /** Every step after the framework's creation, in order */
 export function planSetup(o: Opts, ctx: PlanContext): SetupStep[] {
-  const s = o.setup, l = LABELS[ctx.lang], steps: SetupStep[] = []
+  const s = o.setup, l = LABELS[ctx.lang], steps: SetupStep[] = commonSteps(o, ctx)
   if (SETUP_FRAMEWORKS.includes(o.framework)) {
     steps.push(...(o.framework === 'symfony' ? symfonySteps(o, ctx) : o.framework === 'laravel' ? laravelSteps(o, ctx) : nextSteps(o, ctx)))
     const docker = s.features.includes('docker')
@@ -365,7 +446,9 @@ export function planSetup(o: Opts, ctx: PlanContext): SetupStep[] {
     }
   }
   if (s.git || s.github) {
-    steps.push({ kind: 'run', label: l.gitInit, exe: 'git', args: ['init'], skipIf: '.git' })
+    const lines = ignoreLines(o.framework)
+    if (lines.length) steps.push({ kind: 'ignore', label: l.ignore, lines })
+    steps.push({ kind: 'run', label: l.gitInit, exe: 'git', args: ['init', '-b', 'main'], skipIf: '.git' })
     steps.push({ kind: 'run', label: l.gitAdd, exe: 'git', args: ['add', '-A'] })
     steps.push({ kind: 'run', label: l.gitCommit, exe: 'git', args: ['commit', '-m', '"chore: initial commit (DevForge)"'], optional: true })
   }
@@ -386,5 +469,6 @@ export function stepCommand(step: SetupStep): string {
     case 'scripts':    return Object.entries(step.scripts).map(([k, v]) => `"${k}": "${v}" → package.json`).join('\n')
     case 'drop-lines': return `− ${step.match} → ${step.file}`
     case 'connection': return step.label
+    case 'tailwind':   return `${step.via === 'vite' ? 'vite.config' : 'postcss.config.mjs'} + @import "tailwindcss"`
   }
 }

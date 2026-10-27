@@ -70,6 +70,7 @@ export function ProjectCard(props: SavedProps) {
             <span key={tag} className="rounded-md border border-line bg-elevated px-2 py-0.5 font-mono text-[11px] text-fg-secondary">{tag}</span>
           ))}
         </div>
+        {project.missing && <div className="text-xs font-medium text-warning">{t.hub.missing}</div>}
         {git && (
           <div className="flex items-center gap-2 font-mono text-xs text-fg-secondary">
             <GitBranch size={14} /> {gitStatus!.branch} <span className={git.color}>{git.text}</span>
@@ -97,6 +98,7 @@ export function ProjectCard(props: SavedProps) {
           <GitBadge status={gitStatus} />
         </span>
       </button>
+      {project.missing && <span className="shrink-0 text-xs font-medium text-warning">{t.hub.missing}</span>}
       <Badge>{label}</Badge>
       <div className="flex shrink-0 items-center gap-2">
         <IconButton title={t.projects.terminal} onClick={onTerminal}><Terminal size={13} /></IconButton>

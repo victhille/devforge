@@ -17,6 +17,9 @@ export interface LibraryDef {
   color: string
 }
 
+/** "@scope/pkg@7" → "@scope/pkg" */
+export const packageName = (spec: string) => spec.replace(/^(@?[^@]+)@.*$/, '$1')
+
 // JS-capable frameworks — only these get the library step
 export const JS_FRAMEWORKS: Framework[] = [
   'react', 'nextjs', 'vue', 'angular', 'svelte', 'nodejs', 'express', 'typescript'
@@ -27,7 +30,8 @@ export const PROJECT_LIBRARIES: LibraryDef[] = [
   {
     id: 'tailwindcss', name: 'Tailwind CSS',
     description: 'Utility-first CSS framework',
-    packages: [], devPackages: ['tailwindcss', 'postcss', 'autoprefixer'],
+    // Tailwind 4: its Vite or PostCSS plugin comes with DevForge's setup
+    packages: [], devPackages: ['tailwindcss'],
     category: 'styling', frameworks: ['react', 'nextjs', 'vue', 'svelte', 'angular'], color: '#06B6D4'
   },
   {
@@ -588,7 +592,7 @@ export const PROJECT_LIBRARIES: LibraryDef[] = [
   {
     id: 'prisma', name: 'Prisma',
     description: 'Next-generation ORM for Node.js',
-    packages: ['@prisma/client'], devPackages: ['prisma'],
+    packages: ['@prisma/client@7'], devPackages: ['prisma@7'],
     category: 'database', frameworks: ['nextjs', 'nodejs', 'express'], color: '#2D3748'
   },
   {

@@ -4,6 +4,7 @@ import type { Framework, ProjectCreationOptions, AppSettings, ProjectSetup } fro
 import { JS_FRAMEWORKS } from '@shared/data/projectLibraries'
 import { SETUP_FRAMEWORKS } from '@shared/lib/projectSetup'
 import { useConsole } from '@renderer/app/ConsoleContext'
+import { useI18n } from '@renderer/i18n/I18nContext'
 import TechSelector from './TechSelector'
 import ConfigForm from './ConfigForm'
 import StackForm from './StackForm'
@@ -17,6 +18,7 @@ type Stack = Pick<ProjectSetup, 'database' | 'dbName' | 'dbPort' | 'appPort' | '
 export default function NewProjectPage() {
   const navigate = useNavigate()
   const { startCreation } = useConsole()
+  const { lang } = useI18n()
   const [step,      setStep]      = useState<Step>('select')
   const [framework, setFramework] = useState<Framework | null>(null)
   const [pending,   setPending]   = useState<ProjectCreationOptions | null>(null)
@@ -32,7 +34,7 @@ export default function NewProjectPage() {
 
   async function launch(setup: ProjectSetup) {
     if (!pending) return
-    await startCreation({ ...pending, initGit: false, openAfter: false, setup })
+    await startCreation({ ...pending, initGit: false, openAfter: false, setup, lang: lang === 'en' ? 'en' : 'fr' })
     navigate('/')
   }
 

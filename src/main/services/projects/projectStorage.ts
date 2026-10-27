@@ -27,7 +27,7 @@ export function getProjectPaths(): Set<string> {
 function persist(projects: Project[]): void {
   const path = getStoragePath()
   mkdirSync(dirname(path), { recursive: true })
-  writeJsonFile(path, projects)
+  writeJsonFile(path, projects.map(({ missing: _missing, ...p }) => p))
 }
 
 export function saveProject(project: Project): void {

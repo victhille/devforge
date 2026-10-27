@@ -1,9 +1,8 @@
 import { spawn, type ChildProcess } from 'child_process'
 import type { ProcessInfo, ProcessLog } from '@shared/types'
 import { killTree } from '../../lib/killTree'
+import { lineReader } from '../system/commandRunner'
 
-// eslint-disable-next-line no-control-regex -- ESC and BEL are what we strip
-const ANSI_RE = /\x1b\[[0-9;?]*[A-Za-z]|\x1b\][^\x07]*\x07|\x1b[()][A-Z0-9]/g
 const MAX_LINES = 1000
 
 interface Managed {
@@ -60,20 +59,17 @@ class ProcessManager {
     managed.info.pid = child.pid ?? null
     this.onStatus({ ...managed.info })
 
-    const pipe = (stream: 'stdout' | 'stderr') => (data: Buffer) => {
-      for (const line of data.toString().split(/\r?\n/)) {
-        const clean = line.replace(ANSI_RE, '').trimEnd()
-        if (clean) this.push(managed, stream, clean)
-      }
-    }
-    child.stdout?.on('data', pipe('stdout'))
-    child.stderr?.on('data', pipe('stderr'))
+    const stdout = lineReader(text => this.push(managed, 'stdout', text))
+    const stderr = lineReader(text => this.push(managed, 'stderr', text))
+    child.stdout?.on('data', (data: Buffer) => stdout.write(data))
+    child.stderr?.on('data', (data: Buffer) => stderr.write(data))
 
     child.on('error', err => {
       this.push(managed, 'system', err.message)
       this.setStatus(managed, 'failed', null)
     })
     child.on('close', code => {
+      stdout.end(); stderr.end()
       if (managed.info.status === 'stopped') return
       this.push(managed, 'system', `Process exited with code ${code}`)
       this.setStatus(managed, code === 0 ? 'exited' : 'failed', code)

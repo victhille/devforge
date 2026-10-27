@@ -59,6 +59,16 @@ export default function ProjectsPage() {
     finally { setScanning(false) }
   }
 
+  /** Rescan also offers to remove the projects whose folder is gone */
+  async function rescan() {
+    await runScan(scanDir)
+    const gone = (await window.devforge.getProjects()).filter(p => p.missing)
+    if (!gone.length) return
+    const text = t.hub.missingConfirm.replace('{count}', String(gone.length)).replace('{names}', gone.map(p => p.name).join(', '))
+    if (!window.confirm(text)) return
+    for (const p of gone) await remove(p.id)
+  }
+
   useEffect(() => {
     window.devforge.getSettings().then(s => {
       if (s.defaultProjectsDir) {
@@ -107,7 +117,7 @@ export default function ProjectsPage() {
           />
         </label>
         {scanDir && (
-          <Button variant="secondary" loading={scanning} onClick={() => runScan(scanDir)}>
+          <Button variant="secondary" loading={scanning} onClick={rescan}>
             {!scanning && <FolderSearch size={14} />} {t.projects.rescan}
           </Button>
         )}
