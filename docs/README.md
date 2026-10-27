@@ -1,6 +1,6 @@
 # Documentation de DevForge
 
-La présentation, l'installation et la compilation sont dans le [README](../README.md) ; pour contribuer, voir [CONTRIBUTING](../CONTRIBUTING.md).
+La présentation, l'installation et la compilation sont dans le [README](../README.md) ; pour contribuer, voir [CONTRIBUTING](../CONTRIBUTING.md). La documentation pour les utilisateurs est sur le [site](https://victhille.github.io/devforge/), dont les sources sont dans [`site/`](../site/).
 
 ## Utiliser DevForge
 
