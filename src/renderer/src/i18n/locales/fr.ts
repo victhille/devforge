@@ -442,21 +442,21 @@ const fr = {
       feat: { api: 'API', auth: 'Utilisateurs et connexion', docker: 'Docker pour l\'app', tests: 'Tests', ci: 'CI GitHub Actions' },
       featSymfony: {
         api:    'Une première route /api/health. Le mode (API Platform ou contrôleurs JSON) se choisit dans l\'atelier.',
-        auth:   'Entité User avec mots de passe hachés (MakerBundle).',
+        auth:   'Connexion, inscription et tableau de bord, plus l\'API du contrat DevForge (/api/auth, jeton signé).',
         docker: 'FrankenPHP (Caddy et PHP) dans le même compose.yaml.',
         tests:  'PHPUnit et un premier test qui passe.',
         ci:     'Vérifications et tests à chaque push.'
       },
       featNext: {
         api:    'Une première route /api/health.',
-        auth:   'Auth.js installé, prêt pour tes fournisseurs de connexion.',
+        auth:   'Connexion, inscription et tableau de bord, plus l\'API du contrat DevForge (/api/auth, Prisma).',
         docker: 'Un Dockerfile Node et le service app dans compose.yaml.',
         tests:  'Vitest et un premier test qui passe.',
         ci:     'Lint, tests et build à chaque push.'
       },
       featLaravel: {
         api:    'routes/api.php et Sanctum (install:api). Les routes de chaque modèle se règlent dans l\'atelier.',
-        auth:   'Laravel Fortify : connexion, inscription et mot de passe oublié, côté serveur.',
+        auth:   'Fortify : connexion, inscription et tableau de bord, plus l\'API du contrat DevForge (/api/auth, Sanctum).',
         docker: 'Laravel Sail : PHP, Composer et la base dans des conteneurs, pilotés par DevForge avec docker compose.',
         tests:  'PHPUnit est déjà là, avec deux tests qui passent.',
         ci:     'Installation et tests à chaque push.'

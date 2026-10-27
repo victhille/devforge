@@ -446,21 +446,21 @@ const en = {
       feat: { api: 'API', auth: 'Users and login', docker: 'Docker for the app', tests: 'Tests', ci: 'GitHub Actions CI' },
       featSymfony: {
         api:    'A first /api/health route. The mode (API Platform or JSON controllers) is picked in the workshop.',
-        auth:   'User entity with hashed passwords (MakerBundle).',
+        auth:   'Sign-in, sign-up and a dashboard, plus the DevForge contract\'s API (/api/auth, signed token).',
         docker: 'FrankenPHP (Caddy and PHP) in the same compose.yaml.',
         tests:  'PHPUnit and a first passing test.',
         ci:     'Checks and tests on every push.'
       },
       featNext: {
         api:    'A first /api/health route.',
-        auth:   'Auth.js installed, ready for your login providers.',
+        auth:   'Sign-in, sign-up and a dashboard, plus the DevForge contract\'s API (/api/auth, Prisma).',
         docker: 'A Node Dockerfile and the app service in compose.yaml.',
         tests:  'Vitest and a first passing test.',
         ci:     'Lint, tests and build on every push.'
       },
       featLaravel: {
         api:    'routes/api.php and Sanctum (install:api). Each model\'s routes are set in the workshop.',
-        auth:   'Laravel Fortify: login, registration and password reset, server side.',
+        auth:   'Fortify: sign-in, sign-up and a dashboard, plus the DevForge contract\'s API (/api/auth, Sanctum).',
         docker: 'Laravel Sail: PHP, Composer and the database in containers, driven by DevForge with docker compose.',
         tests:  'PHPUnit is already there, with two passing tests.',
         ci:     'Install and tests on every push.'

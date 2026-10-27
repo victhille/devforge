@@ -48,8 +48,9 @@ describe('v2.2 lot 1: project setup plan', () => {
     const sf = planSetup(opts('symfony', { database: 'none', features: ['api', 'auth', 'docker', 'tests', 'ci'] }), ctx)
     const files = sf.flatMap(s => s.kind === 'write' ? s.files.map(f => f.path) : [])
     expect(files).toEqual(expect.arrayContaining(['src/Controller/HealthController.php', 'tests/SmokeTest.php', 'Dockerfile', '.github/workflows/ci.yml', 'compose.yaml']))
-    // v3.4: with authentication, SQLite stands in for "no database", so User is a Doctrine entity
-    expect(runs(sf)).toContain('php bin/console make:user User --is-entity --identity-property-name=email --with-password --no-interaction')
+    // v3.4: the contract's User entity is written (it has a name, make:user has none), then migrated
+    expect(files).toEqual(expect.arrayContaining(['src/Entity/User.php', 'config/packages/security.yaml']))
+    expect(runs(sf)).toContain('php bin/console doctrine:migrations:migrate --no-interaction')
 
     const next = planSetup(opts('nextjs', { database: 'none', features: ['api', 'auth', 'tests'] }), ctx)
     // v3.4: authentication without a database takes SQLite (so Prisma), and follows the DevForge contract

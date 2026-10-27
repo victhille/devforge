@@ -2,6 +2,7 @@ import { packageName } from '../data/projectLibraries'
 import { WELCOME_FRAMEWORKS, welcomeFiles } from './welcomePage'
 import { NEXT_AUTH_PACKAGES, USER_MODEL, nextAuthFiles } from './nextAuthTemplate'
 import { laravelAuthFiles, laravelAuthPatches } from './laravelAuthTemplate'
+import { SYMFONY_AUTH_PACKAGES, symfonyAuthFiles } from './symfonyAuthTemplate'
 import type { Framework, PackageManager, ProjectCreationOptions, ProjectSetup, SetupFeature, SetupStep } from '../types'
 
 /**
@@ -41,6 +42,7 @@ const LABELS = {
     sail: 'Laravel Sail', sailInstall: 'Conteneurs Sail', sailInitScript: 'Base « testing » de Sail retirée (illisible hors WSL)', sailStart: 'Démarrage de Sail (construction de l\'image)',
     gitInit: 'Dépôt Git', gitAdd: 'Fichiers suivis', gitCommit: 'Premier commit', github: 'Dépôt GitHub', vscode: 'Ouverture dans VS Code',
     install: 'Installation des dépendances', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Configuration de Tailwind CSS',
+    sfAuthDeps: 'Twig et CSRF', sfAuthFiles: 'Entité User, sécurité, pages et API du contrat', sfMigration: 'Migration de la table user',
     authViews: 'Pages de connexion (Blade)', fortifyViews: 'Vues de Fortify', fortifyHome: 'Après connexion : /dashboard', authRoutes: 'Routes du tableau de bord et de l\'API',
     userModel: 'Modèle User (Prisma)', authPages: 'Connexion, inscription et API du contrat', authNext: 'Authentification (bcryptjs, jose)',
     welcome: 'Page d\'accueil DevForge', migrate: 'Tables de la base (migrations)', apiTokens: 'Jetons d\'API sur User (HasApiTokens)',
@@ -55,6 +57,7 @@ const LABELS = {
     sail: 'Laravel Sail', sailInstall: 'Sail containers', sailInitScript: 'Sail\'s "testing" database removed (unreadable outside WSL)', sailStart: 'Starting Sail (building the image)',
     gitInit: 'Git repository', gitAdd: 'Tracked files', gitCommit: 'First commit', github: 'GitHub repository', vscode: 'Opening in VS Code',
     install: 'Installing dependencies', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Tailwind CSS setup',
+    sfAuthDeps: 'Twig and CSRF', sfAuthFiles: 'User entity, security, pages and the contract\'s API', sfMigration: 'Migration of the user table',
     authViews: 'Sign-in pages (Blade)', fortifyViews: 'Fortify\'s views', fortifyHome: 'After sign-in: /dashboard', authRoutes: 'Dashboard and API routes',
     userModel: 'User model (Prisma)', authPages: 'Sign-in, sign-up and the contract\'s API', authNext: 'Authentication (bcryptjs, jose)',
     welcome: 'DevForge welcome page', migrate: 'Database tables (migrations)', apiTokens: 'API tokens on User (HasApiTokens)',
@@ -260,7 +263,9 @@ function symfonySteps(o: Opts, ctx: PlanContext): SetupStep[] {
   if (has('auth')) {
     steps.push({ kind: 'run', label: l.authDeps, exe: 'composer', args: ['require', 'symfony/security-bundle'], skipIf: 'vendor/symfony/security-bundle' })
     steps.push({ kind: 'run', label: l.maker, exe: 'composer', args: ['require', '--dev', 'symfony/maker-bundle'], skipIf: 'vendor/symfony/maker-bundle' })
-    steps.push({ kind: 'run', label: l.user, exe: 'php', args: ['bin/console', 'make:user', 'User', ...(s.database !== 'none' ? ['--is-entity'] : []), '--identity-property-name=email', '--with-password', '--no-interaction'], optional: true })
+    // v3.4: the contract's User (with a name, which make:user lacks), its pages and its API, written as a whole
+    for (const [pkg, dir] of SYMFONY_AUTH_PACKAGES) steps.push({ kind: 'run', label: l.sfAuthDeps, exe: 'composer', args: ['require', pkg], skipIf: dir })
+    steps.push({ kind: 'write', label: l.sfAuthFiles, files: symfonyAuthFiles(o.name, ctx.lang) })
   }
   if (has('tests')) {
     steps.push({ kind: 'run', label: l.testDeps, exe: 'composer', args: ['require', '--dev', 'symfony/test-pack'], skipIf: 'vendor/phpunit/phpunit' })
@@ -464,6 +469,11 @@ export function planSetup(input: Opts, ctx: PlanContext): SetupStep[] {
     if (sail) steps.push({ kind: 'run', label: l.sailStart, exe: 'docker', args: ['compose', 'up', '-d', '--wait'], optional: true })
     else if (serverDb(s)) {
       steps.push({ kind: 'run', label: l.start, exe: 'docker', args: ['compose', 'up', '-d', '--wait', 'database'], optional: true })
+    }
+    // Symfony with authentication: the user table, once the database runs
+    if (o.framework === 'symfony' && s.features.includes('auth') && s.database !== 'none') {
+      steps.push({ kind: 'run', label: l.sfMigration, exe: 'php', args: ['bin/console', 'make:migration', '--no-interaction'], optional: true })
+      steps.push({ kind: 'run', label: l.migrate, exe: 'php', args: ['bin/console', 'doctrine:migrations:migrate', '--no-interaction'], optional: true })
     }
     // Next.js with authentication: the User table, once the database runs
     if (o.framework === 'nextjs' && s.features.includes('auth') && o.typescript && s.database !== 'none') {
