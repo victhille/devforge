@@ -1,6 +1,6 @@
 ---
 title: Projets
-description: La liste de tes projets et la fiche de chaque projet, avec Git, GitHub, Docker, variables, base, logs, ports, déploiement, Vercel, terminal et ateliers par framework.
+description: La liste de tes projets et la fiche de chaque projet, avec Git, GitHub, Docker, variables, paquets, base, logs, ports, déploiement, Vercel, terminal et ateliers par framework.
 ---
 
 ## La liste des projets
@@ -31,7 +31,8 @@ Les onglets n'apparaissent que s'ils ont un sens pour ce projet :
 | Terminal | un terminal intégré ouvert dans le dossier du projet |
 | Docker | le projet Compose du dossier (ou du dossier parent) : services, état, démarrer / arrêter |
 | Variables | les fichiers `.env` et leurs clés, voir [Variables .env](/devforge/system/env-files/) |
-| Base de données | les connexions liées au projet ; **Lier une connexion…** |
+| Paquets | si le projet a un `package.json` ou un `composer.json` : versions, vulnérabilités, mises à jour ; voir [Paquets](/devforge/dev/packages/) |
+| Base de données | la base liée, explorée sur place (voir plus bas) ; **Lier une connexion…** |
 | Logs | les fichiers de log trouvés (`storage/logs`, `var/log`, `logs`…), suivis en direct ; on peut en ajouter un par son chemin |
 | Ports & domaines | les ports trouvés dans la config (`.env`, scripts, Compose), en écoute ou libres, **Libérer** ; les domaines locaux liés |
 | Déploiement | les cibles de déploiement du projet et **Synchroniser le .env** avec le serveur |
@@ -39,6 +40,13 @@ Les onglets n'apparaissent que s'ils ont un sens pour ce projet :
 | Fichiers | l'arborescence du projet et la liste de ses scripts, avec **Lancer** |
 
 Ce que DevForge a **trouvé** seul (une base, un domaine, un port) est marqué *trouvé* ; ce que tu as lié à la main, *ajouté*. **Retirer du projet** masque un élément ; **Réafficher** le remet.
+
+### La base de données du projet
+
+L'onglet **Base de données** affiche directement la base liée : les tables dans une colonne repliable, puis les mêmes onglets que la page [Base de données](/devforge/data/database/#explorer) (**Base** et **SQL**, et pour une table **Parcourir**, **Structure**, **Relations**, **Infos**). La connexion ne s'ouvre qu'à l'affichage de l'onglet.
+
+- Plusieurs bases liées : la première est affichée, **Afficher** sur une autre ligne en change.
+- **Ouvrir en grand** ouvre la page Base de données ; son bouton **← Retour à** *nom du projet* ramène sur cet onglet.
 
 ### Synchroniser le .env avec le serveur
 

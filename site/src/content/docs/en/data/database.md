@@ -50,6 +50,6 @@ For a table:
 
 ## Elsewhere
 
-- A database can be linked to a project (the **Database** tab of its [page](/devforge/en/dev/projects/)).
+- A database can be linked to a project: the **Database** tab of its [page](/devforge/en/dev/projects/#the-projects-database) explores it in place. **Open full size** leads here, and **← Back to** *project name* takes you back.
 - [New Project](/devforge/en/dev/new-project/) adds the database it creates here.
 - Forgy reads the structure of the tables (never the data) when this page is open, writes SQL and can run a query after your approval, with guardrails (see [Actions](/devforge/en/forgy/actions/#guardrails)).

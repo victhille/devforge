@@ -50,6 +50,6 @@ Pour une table :
 
 ## Ailleurs
 
-- Une base peut être liée à un projet (onglet **Base de données** de sa [fiche](/devforge/dev/projects/)).
+- Une base peut être liée à un projet : l'onglet **Base de données** de sa [fiche](/devforge/dev/projects/#la-base-de-données-du-projet) l'explore sur place. **Ouvrir en grand** mène ici, et **← Retour à** *nom du projet* y ramène.
 - [Nouveau projet](/devforge/dev/new-project/) ajoute ici la base qu'il crée.
 - Forgy lit la structure des tables (jamais les données) quand cette page est ouverte, écrit du SQL et peut exécuter une requête après ton accord, avec des garde-fous (voir [Actions](/devforge/forgy/actions/#garde-fous)).
