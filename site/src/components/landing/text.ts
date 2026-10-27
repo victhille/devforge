@@ -10,10 +10,15 @@ const fr = {
     title: ["L'atelier où tes projets ", 'tournent', '.'],
     lead: 'Git, Docker, un terminal, un client SQL, le SSH vers ton serveur et tes .env, regroupés autour de tes projets dans une seule application de bureau.',
     download: 'Télécharger pour Windows',
-    tour: 'Faire la visite',
+    tour: 'Voir la vidéo (1 min)',
     homeAlt: "L'accueil de DevForge",
     projectAlt: "La fiche d'un projet",
     card: { title: 'Forgy propose · Commit', message: 'feat(panier): total arrondi', approve: 'Valider', refuse: 'Refuser' }
+  },
+  video: {
+    title: 'DevForge en une minute',
+    lead: "L'app telle quelle, sur des projets d'exemple : l'accueil, la palette, une fiche projet, Git, la base, Forgy et les connexions. Sans son, sous-titrée.",
+    label: 'Vidéo de présentation de DevForge, sous-titrée en français, sans son'
   },
   replaces: { before: "Au lieu d'ouvrir", items: ['un terminal par projet', 'Docker Desktop', 'un client SQL', "un testeur d'API", 'PuTTY', 'le bloc-notes des commandes'], after: '→ une fenêtre.' },
   day: {
@@ -89,10 +94,15 @@ const en: Text = {
     title: ['The workshop where your projects ', 'run', '.'],
     lead: 'Git, Docker, a terminal, an SQL client, SSH to your server and your .env files, gathered around your projects in one desktop app.',
     download: 'Download for Windows',
-    tour: 'Take the tour',
+    tour: 'Watch the video (1 min)',
     homeAlt: "DevForge's home screen",
     projectAlt: "A project's page",
     card: { title: 'Forgy proposes · Commit', message: 'fix(cart): rounded total', approve: 'Approve', refuse: 'Refuse' }
+  },
+  video: {
+    title: 'DevForge in one minute',
+    lead: 'The app as it is, on sample projects: home, the palette, a project page, Git, the database, Forgy and connections. No sound, with captions.',
+    label: 'DevForge presentation video, with English captions, no sound'
   },
   replaces: { before: 'Instead of opening', items: ['a terminal per project', 'Docker Desktop', 'an SQL client', 'an API tester', 'PuTTY', 'the notepad of commands'], after: '→ one window.' },
   day: {
