@@ -2,6 +2,8 @@
 
 English · [Français](README.md)
 
+**Website and documentation: [victhille.github.io/devforge/en](https://victhille.github.io/devforge/en/)**
+
 A Windows desktop app (Electron + React) that brings everyday dev tools together in one place: projects, Git, Docker / Compose, SSH and servers, databases, deployments, monitoring, `.env`, local domains, a toolbox, and Forgy, an AI assistant.
 
 DevForge ships with nothing personal: on first launch you pick your language and projects folder, then connect your own accounts (GitHub, servers, Vercel, databases, Anthropic key). Everything stays on your PC, with secrets encrypted by Windows.
@@ -18,7 +20,7 @@ DevForge ships with nothing personal: on first launch you pick your language and
 
 ## Install
 
-Download the `DevForge-Setup-vx.y.z.exe` installer from the [releases](https://github.com/victhille/devforge/releases). DevForge then updates itself.
+Download the `DevForge-Setup-vx.y.z.exe` installer from the [Download page](https://victhille.github.io/devforge/en/download/) or the [releases](https://github.com/victhille/devforge/releases). DevForge then updates itself. [Getting started](https://victhille.github.io/devforge/en/getting-started/installation/) covers the install and every page of the app.
 
 The installer is not signed: Windows SmartScreen may say "Windows protected your PC". Click "More info", then "Run anyway".
 

@@ -1,0 +1,57 @@
+---
+/**
+ * Download button for the latest release. No version is written here: the
+ * page asks GitHub's public API for the latest release and its installer
+ * (DevForge-Setup-vX.Y.Z.exe); until then, or if the API does not answer,
+ * the button goes to the releases page.
+ */
+interface Props { lang?: 'fr' | 'en' }
+const { lang = 'fr' } = Astro.props
+
+const text = {
+  fr: { button: 'Télécharger pour Windows', loading: 'Recherche de la dernière version…', fallback: 'Voir la dernière version sur GitHub', released: 'publiée le', notes: 'Notes de version' },
+  en: { button: 'Download for Windows', loading: 'Looking for the latest version…', fallback: 'See the latest version on GitHub', released: 'released on', notes: 'Release notes' }
+}[lang]
+---
+
+<div class="df-download not-content" data-download data-lang={lang} data-released={text.released} data-notes={text.notes} data-fallback={text.fallback}>
+  <a class="df-button" href="https://github.com/victhille/devforge/releases/latest" data-link>
+    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14" /></svg>
+    <span data-label>{text.button}</span>
+  </a>
+  <span class="df-meta" data-meta aria-live="polite">{text.loading}</span>
+</div>
+
+<script>
+  const API = 'https://api.github.com/repos/victhille/devforge/releases/latest'
+  const INSTALLER = /^DevForge-Setup-v.+\.exe$/
+
+  interface Release { tag_name: string; html_url: string; published_at: string; assets: { name: string; size: number; browser_download_url: string }[] }
+
+  // One request for every button of the page
+  let release: Promise<Release | null> | null = null
+  const latest = () => (release ??= fetch(API, { headers: { Accept: 'application/vnd.github+json' } })
+    .then(r => (r.ok ? (r.json() as Promise<Release>) : null))
+    .catch(() => null))
+
+  for (const box of document.querySelectorAll<HTMLElement>('[data-download]')) {
+    const link = box.querySelector<HTMLAnchorElement>('[data-link]')!
+    const meta = box.querySelector<HTMLElement>('[data-meta]')!
+    const lang = box.dataset.lang === 'en' ? 'en' : 'fr'
+    latest().then(r => {
+      const exe = r?.assets.find(a => INSTALLER.test(a.name))
+      if (!r || !exe) {
+        meta.textContent = box.dataset.fallback ?? ''
+        return
+      }
+      link.href = exe.browser_download_url
+      const size = `${Math.round(exe.size / 1024 / 1024)} ${lang === 'fr' ? 'Mo' : 'MB'}`
+      const date = new Date(r.published_at).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+      meta.textContent = `${r.tag_name} · ${size} · ${box.dataset.released} ${date} · `
+      const notes = document.createElement('a')
+      notes.href = r.html_url
+      notes.textContent = box.dataset.notes ?? ''
+      meta.append(notes)
+    })
+  }
+</script>
