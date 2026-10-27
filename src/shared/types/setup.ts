@@ -16,6 +16,8 @@ export interface ProjectSetup {
   /** Repository created with GitHub CLI: "name" or "owner/name" */
   github: { repo: string; private: boolean } | null
   openVSCode: boolean
+  /** v3.4: DevForge's welcome page in place of the framework's */
+  welcome?: boolean
 }
 
 /** One step of the plan: shown as is in the summary, then run in order */

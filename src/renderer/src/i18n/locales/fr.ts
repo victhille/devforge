@@ -481,6 +481,8 @@ const fr = {
       ghRepo:         'Nom du dépôt',
       ghRepoError:    'Format attendu : nom ou compte/nom',
       openVSCode:     'Ouvrir dans VS Code à la fin',
+      welcome:        'Page d\'accueil DevForge',
+      welcomeHint:    ' — remplace la page du framework par une page qui montre ce qui est installé',
       recapTitle:     'Récapitulatif · ce qui va être lancé',
       recapBase:      'Création du projet {name}',
       recapLibs:      '+ {n} paquet(s) choisi(s)',

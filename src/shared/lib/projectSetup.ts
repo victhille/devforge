@@ -1,4 +1,5 @@
 import { packageName } from '../data/projectLibraries'
+import { WELCOME_FRAMEWORKS, welcomeFiles } from './welcomePage'
 import type { Framework, PackageManager, ProjectCreationOptions, ProjectSetup, SetupFeature, SetupStep } from '../types'
 
 /**
@@ -38,7 +39,7 @@ const LABELS = {
     sail: 'Laravel Sail', sailInstall: 'Conteneurs Sail', sailInitScript: 'Base « testing » de Sail retirée (illisible hors WSL)', sailStart: 'Démarrage de Sail (construction de l\'image)',
     gitInit: 'Dépôt Git', gitAdd: 'Fichiers suivis', gitCommit: 'Premier commit', github: 'Dépôt GitHub', vscode: 'Ouverture dans VS Code',
     install: 'Installation des dépendances', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Configuration de Tailwind CSS',
-    migrate: 'Tables de la base (migrations)', apiTokens: 'Jetons d\'API sur User (HasApiTokens)',
+    welcome: 'Page d\'accueil DevForge', migrate: 'Tables de la base (migrations)', apiTokens: 'Jetons d\'API sur User (HasApiTokens)',
     prismaAdapter: 'Pilote de base pour Prisma', prismaClient: 'Client Prisma (lib/prisma)', entry: 'Point d\'entrée', startScripts: 'Scripts dev et start'
   },
   en: {
@@ -50,7 +51,7 @@ const LABELS = {
     sail: 'Laravel Sail', sailInstall: 'Sail containers', sailInitScript: 'Sail\'s "testing" database removed (unreadable outside WSL)', sailStart: 'Starting Sail (building the image)',
     gitInit: 'Git repository', gitAdd: 'Tracked files', gitCommit: 'First commit', github: 'GitHub repository', vscode: 'Opening in VS Code',
     install: 'Installing dependencies', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Tailwind CSS setup',
-    migrate: 'Database tables (migrations)', apiTokens: 'API tokens on User (HasApiTokens)',
+    welcome: 'DevForge welcome page', migrate: 'Database tables (migrations)', apiTokens: 'API tokens on User (HasApiTokens)',
     prismaAdapter: 'Database driver for Prisma', prismaClient: 'Prisma client (lib/prisma)', entry: 'Entry point', startScripts: 'dev and start scripts'
   }
 }
@@ -402,7 +403,8 @@ function commonSteps(o: Opts, ctx: PlanContext): SetupStep[] {
     steps.push({ kind: 'run', label: l.install, exe: pm, args: ['install'], skipIf: 'node_modules', onlyIf: 'package.json' })
   }
   if (o.framework === 'nodejs') {
-    steps.push({ kind: 'write', label: l.entry, files: [{ path: 'index.js', content: NODE_ENTRY }] })
+    // With the welcome page, index.js is its server (written with the page)
+    if (!o.setup.welcome) steps.push({ kind: 'write', label: l.entry, files: [{ path: 'index.js', content: NODE_ENTRY }] })
     steps.push({ kind: 'scripts', label: l.startScripts, scripts: { start: 'node index.js', dev: 'node --watch index.js', test: 'node --test' } })
     if (has(o.libraries, '@prisma/client')) {
       steps.push({ kind: 'run', label: l.prismaInit, exe: 'npx', args: ['prisma', 'init', '--datasource-provider', 'postgresql', '--output', '../generated/prisma', '--no-skills'], skipIf: 'prisma/schema.prisma' })
@@ -454,6 +456,10 @@ export function planSetup(o: Opts, ctx: PlanContext): SetupStep[] {
         ...(s.database === 'sqlite' ? { file: sqliteFile } : {})
       })
     }
+  }
+  if (s.welcome && WELCOME_FRAMEWORKS.includes(o.framework)) {
+    const tailwind = o.framework === 'nextjs' || !!o.devLibraries?.some(p => packageName(p) === 'tailwindcss')
+    steps.push({ kind: 'write', label: l.welcome, files: welcomeFiles({ name: o.name, framework: o.framework, setup: s, tailwind, lang: ctx.lang }, o.typescript) })
   }
   if (s.git || s.github) {
     const lines = ignoreLines(o.framework)

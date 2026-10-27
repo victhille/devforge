@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import type { ProjectCreationOptions, ProjectSetup } from '@shared/types'
 import { planSetup, REPO_RE, stepCommand } from '@shared/lib/projectSetup'
+import { WELCOME_FRAMEWORKS } from '@shared/lib/welcomePage'
 import { PROJECT_TEMPLATES } from '@shared/data/projectTemplates'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
@@ -28,6 +29,7 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
   const [isPrivate, setPrivate] = useState(true)
   const [repo, setRepo] = useState(options.name)
   const [openVSCode, setOpenVSCode] = useState(true)
+  const [welcome, setWelcome] = useState(true)
   const [login, setLogin] = useState<string | null | undefined>(undefined)
   const [busy, setBusy] = useState(false)
   const [volumes, setVolumes] = useState<string[]>([])
@@ -50,7 +52,8 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
   const repoOk = REPO_RE.test(repo)
   const setup: ProjectSetup = {
     database: stack?.database ?? 'none', dbName: stack?.dbName ?? '', dbPort: stack?.dbPort ?? 0, appPort: stack?.appPort, features: stack?.features ?? [],
-    git: git || github, github: github ? { repo, private: isPrivate } : null, openVSCode
+    git: git || github, github: github ? { repo, private: isPrivate } : null, openVSCode,
+    welcome: WELCOME_FRAMEWORKS.includes(options.framework) && welcome
   }
   const steps = planSetup({ ...options, setup }, { password: '••••', secret: '••••', composeName: '', lang: lang === 'en' ? 'en' : 'fr' })
   const template = PROJECT_TEMPLATES.find(tpl => tpl.id === options.framework)
@@ -80,6 +83,12 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
                 <Input value={repo} onChange={e => setRepo(e.target.value.trim())} className="font-mono" spellCheck={false} invalid={!repoOk} />
               </Field>
             </div>
+          )}
+          {WELCOME_FRAMEWORKS.includes(options.framework) && (
+            <Checkbox checked={welcome} onChange={setWelcome}>
+              {s.welcome}
+              <span className="text-fg-muted">{s.welcomeHint}</span>
+            </Checkbox>
           )}
           <Checkbox checked={openVSCode} onChange={setOpenVSCode}>{s.openVSCode}</Checkbox>
         </Card>
