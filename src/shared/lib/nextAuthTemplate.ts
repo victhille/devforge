@@ -44,7 +44,7 @@ const TEXT = {
 }
 
 /** The pages' look: DevForge's dark surfaces and its anvil's orange, as the welcome page */
-const CSS = `.df-auth{min-height:100vh;display:flex;flex-direction:column;background:#0D0F13;color:#E8ECF2;font:14px/1.6 "Geist Variable","Geist","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+export const AUTH_CSS = `.df-auth{min-height:100vh;display:flex;flex-direction:column;background:#0D0F13;color:#E8ECF2;font:14px/1.6 "Geist Variable","Geist","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 .df-auth *{box-sizing:border-box}
 .df-auth a{color:#F97316;text-decoration:none}.df-auth a:hover{text-decoration:underline}
 .df-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 28px;border-bottom:1px solid #1F242D;background:#111419}
@@ -67,7 +67,7 @@ const CSS = `.df-auth{min-height:100vh;display:flex;flex-direction:column;backgr
 .df-routes li{display:flex;gap:10px;padding:8px 10px;border-radius:8px;background:#1D222B}
 .df-routes b{min-width:44px;color:#F97316;font-weight:500}`
 
-const ANVIL = '<svg width="26" height="26" viewBox="0 0 256 256" aria-hidden="true"><rect width="256" height="256" rx="56" fill="#0F1117"></rect><g fill="#F97316"><polygon points="41,87 200,87 200,118 77,118"></polygon><rect x="108" y="118" width="61" height="31"></rect><rect x="82" y="148" width="113" height="26"></rect></g></svg>'
+export const AUTH_ANVIL = '<svg width="26" height="26" viewBox="0 0 256 256" aria-hidden="true"><rect width="256" height="256" rx="56" fill="#0F1117"></rect><g fill="#F97316"><polygon points="41,87 200,87 200,118 77,118"></polygon><rect x="108" y="118" width="61" height="31"></rect><rect x="82" y="148" width="113" height="26"></rect></g></svg>'
 
 const libAuth = (t: typeof TEXT.fr) => `import bcrypt from 'bcryptjs'
 import { SignJWT, jwtVerify } from 'jose'
@@ -194,9 +194,9 @@ export async function GET(request: Request) {
 `
 
 const authStyle = (name: string) => `/** Look of the sign-in pages: DevForge's colors, as the welcome page */
-export const authCss = ${JSON.stringify(CSS)}
+export const authCss = ${JSON.stringify(AUTH_CSS)}
 
-export const anvil = ${JSON.stringify(ANVIL)}
+export const anvil = ${JSON.stringify(AUTH_ANVIL)}
 
 export const projectName = ${JSON.stringify(name)}
 `

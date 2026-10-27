@@ -37,6 +37,8 @@ export type SetupStep =
   | { kind: 'add-trait'; label: string; file: string; trait: string }
   /** Text added at the end of a file, unless the file already contains `unless` (Prisma's User model) */
   | { kind: 'append'; label: string; file: string; text: string; unless: string }
+  /** `text` put after (mode after) or in place of (mode replace) the first match of the `find` pattern, unless the file contains `unless`; a file without the pattern is left as is */
+  | { kind: 'patch'; label: string; file: string; find: string; mode: 'after' | 'replace'; text: string; unless: string }
 
 /** PHP on this PC, for a Symfony project */
 export interface PhpStatus {

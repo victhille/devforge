@@ -1,6 +1,7 @@
 import { packageName } from '../data/projectLibraries'
 import { WELCOME_FRAMEWORKS, welcomeFiles } from './welcomePage'
 import { NEXT_AUTH_PACKAGES, USER_MODEL, nextAuthFiles } from './nextAuthTemplate'
+import { laravelAuthFiles, laravelAuthPatches } from './laravelAuthTemplate'
 import type { Framework, PackageManager, ProjectCreationOptions, ProjectSetup, SetupFeature, SetupStep } from '../types'
 
 /**
@@ -40,6 +41,7 @@ const LABELS = {
     sail: 'Laravel Sail', sailInstall: 'Conteneurs Sail', sailInitScript: 'Base « testing » de Sail retirée (illisible hors WSL)', sailStart: 'Démarrage de Sail (construction de l\'image)',
     gitInit: 'Dépôt Git', gitAdd: 'Fichiers suivis', gitCommit: 'Premier commit', github: 'Dépôt GitHub', vscode: 'Ouverture dans VS Code',
     install: 'Installation des dépendances', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Configuration de Tailwind CSS',
+    authViews: 'Pages de connexion (Blade)', fortifyViews: 'Vues de Fortify', fortifyHome: 'Après connexion : /dashboard', authRoutes: 'Routes du tableau de bord et de l\'API',
     userModel: 'Modèle User (Prisma)', authPages: 'Connexion, inscription et API du contrat', authNext: 'Authentification (bcryptjs, jose)',
     welcome: 'Page d\'accueil DevForge', migrate: 'Tables de la base (migrations)', apiTokens: 'Jetons d\'API sur User (HasApiTokens)',
     prismaAdapter: 'Pilote de base pour Prisma', prismaClient: 'Client Prisma (lib/prisma)', entry: 'Point d\'entrée', startScripts: 'Scripts dev et start'
@@ -53,6 +55,7 @@ const LABELS = {
     sail: 'Laravel Sail', sailInstall: 'Sail containers', sailInitScript: 'Sail\'s "testing" database removed (unreadable outside WSL)', sailStart: 'Starting Sail (building the image)',
     gitInit: 'Git repository', gitAdd: 'Tracked files', gitCommit: 'First commit', github: 'GitHub repository', vscode: 'Opening in VS Code',
     install: 'Installing dependencies', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Tailwind CSS setup',
+    authViews: 'Sign-in pages (Blade)', fortifyViews: 'Fortify\'s views', fortifyHome: 'After sign-in: /dashboard', authRoutes: 'Dashboard and API routes',
     userModel: 'User model (Prisma)', authPages: 'Sign-in, sign-up and the contract\'s API', authNext: 'Authentication (bcryptjs, jose)',
     welcome: 'DevForge welcome page', migrate: 'Database tables (migrations)', apiTokens: 'API tokens on User (HasApiTokens)',
     prismaAdapter: 'Database driver for Prisma', prismaClient: 'Prisma client (lib/prisma)', entry: 'Entry point', startScripts: 'dev and start scripts'
@@ -308,7 +311,8 @@ function laravelSteps(o: Opts, ctx: PlanContext): SetupStep[] {
     steps.push({ kind: 'env', label: 'DB_*', file: '.env', vars: sailEnv(s, ctx.password) })
   } else if (s.database !== 'none') steps.push({ kind: 'env', label: 'DB_*', file: '.env', vars: laravelEnv(s, ctx.password) })
   // routes/api.php and Sanctum; the tables come with the first migration in the workshop
-  if (has('api')) {
+  // The contract's API needs Sanctum: authentication brings it even without the API option
+  if (has('api') || has('auth')) {
     steps.push({ kind: 'run', label: l.sanctum, exe: 'php', args: ['artisan', 'install:api', '--without-migration-prompt', '--no-interaction'], skipIf: 'routes/api.php' })
     // What install:api asks to do by hand
     steps.push({ kind: 'add-trait', label: l.apiTokens, file: 'app/Models/User.php', trait: 'Laravel\\Sanctum\\HasApiTokens' })
@@ -316,6 +320,9 @@ function laravelSteps(o: Opts, ctx: PlanContext): SetupStep[] {
   if (has('auth')) {
     steps.push({ kind: 'run', label: l.fortify, exe: 'composer', args: ['require', 'laravel/fortify'], skipIf: 'vendor/laravel/fortify' })
     steps.push({ kind: 'run', label: l.fortifyInstall, exe: 'php', args: ['artisan', 'fortify:install', '--no-interaction'], skipIf: 'config/fortify.php' })
+    // v3.4: Fortify's pages in DevForge's look, and the contract's API on Sanctum
+    steps.push({ kind: 'write', label: l.authViews, files: laravelAuthFiles(o.name, ctx.lang) })
+    steps.push(...laravelAuthPatches({ views: l.fortifyViews, home: l.fortifyHome, routes: l.authRoutes }))
   }
   // tests: the skeleton already has PHPUnit and two tests
   return steps
@@ -463,7 +470,8 @@ export function planSetup(input: Opts, ctx: PlanContext): SetupStep[] {
       steps.push({ kind: 'run', label: l.migrate, exe: 'npx', args: ['prisma', 'migrate', 'dev', '--name', 'init'], optional: true })
     }
     // Laravel migrated its SQLite database at creation: the chosen one starts empty
-    if (o.framework === 'laravel' && serverDb(s)) {
+    // (SQLite too when Sanctum or Fortify brought new tables)
+    if (o.framework === 'laravel' && (serverDb(s) || (s.database === 'sqlite' && (s.features.includes('api') || s.features.includes('auth'))))) {
       steps.push(sail
         ? { kind: 'run', label: l.migrate, exe: 'docker', args: ['compose', 'exec', '-T', 'laravel.test', 'php', 'artisan', 'migrate', '--force'], optional: true }
         : { kind: 'run', label: l.migrate, exe: 'php', args: ['artisan', 'migrate', '--force'], optional: true })
@@ -505,6 +513,7 @@ export function stepCommand(step: SetupStep): string {
     case 'scripts':    return Object.entries(step.scripts).map(([k, v]) => `"${k}": "${v}" → package.json`).join('\n')
     case 'drop-lines': return `− ${step.match} → ${step.file}`
     case 'connection': return step.label
+    case 'patch':      return `~ ${step.file}`
     case 'append':     return `+ ${step.text.trim().split('\n')[0]} → ${step.file}`
     case 'add-trait':  return `use ${step.trait.split('\\').pop()} → ${step.file}`
     case 'tailwind':   return 'vite.config + @import "tailwindcss"'

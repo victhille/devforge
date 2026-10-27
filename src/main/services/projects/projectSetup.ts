@@ -107,6 +107,14 @@ export function withTrait(text: string, fqcn: string): string {
   return lines.join('\n')
 }
 
+/** A patch step on a file's text: once only (unless), and nothing when the pattern is not there */
+export function patchText(text: string, step: Extract<SetupStep, { kind: 'patch' }>): string {
+  const match = new RegExp(step.find).exec(text)
+  if (text.includes(step.unless) || !match) return text
+  const end = match.index + match[0].length
+  return step.mode === 'after' ? text.slice(0, end) + step.text + text.slice(end) : text.slice(0, match.index) + step.text + text.slice(end)
+}
+
 /** Stylesheets the Vite templates load first (React, Vue) */
 const MAIN_CSS = ['src/index.css', 'src/style.css']
 
@@ -172,6 +180,13 @@ function applyStep(step: Exclude<SetupStep, { kind: 'run' }>, projPath: string, 
     case 'tailwind':
       setUpTailwind(projPath)
       return
+    case 'patch': {
+      const file = join(projPath, step.file)
+      const text = readText(file)
+      const out = patchText(text, step)
+      if (out !== text) writeText(file, out)
+      return
+    }
     case 'append': {
       const file = join(projPath, step.file)
       const text = readText(file)
