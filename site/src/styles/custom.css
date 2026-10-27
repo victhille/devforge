@@ -176,3 +176,41 @@ mobile-starlight-toc a[aria-current='true'] { color: var(--df-orange); font-weig
 }
 .df-download a.df-button:hover { background: var(--df-ink-hover); color: var(--df-on-ink); }
 .df-download .df-meta { color: var(--sl-color-gray-3); font: 0.85rem var(--sl-font-mono); }
+
+/* Contribute: three ways in, as cards */
+.df-ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-block: 1.5rem; }
+.df-way {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  padding: 1.25rem; border: 1px solid var(--sl-color-gray-5); border-radius: 14px;
+  background: var(--df-card); color: var(--sl-color-white); text-decoration: none;
+}
+.df-way:hover { border-color: var(--sl-color-gray-4); }
+.df-way strong { font-size: 1.05rem; }
+.df-way span { color: var(--sl-color-gray-2); font-size: var(--sl-text-sm); }
+.df-way em { margin-top: auto; font-style: normal; font-weight: 600; font-size: var(--sl-text-sm); color: var(--sl-color-accent); }
+
+/* What's new: the release notes */
+.df-releases { margin-top: 2rem; }
+.df-release-latest { padding: 1.75rem; border: 1px solid var(--sl-color-gray-5); border-radius: 16px; background: var(--df-card); }
+.df-release-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 0.9rem; }
+.df-release-head h2 { margin: 0; font-size: 1.9rem; letter-spacing: -0.03em; color: var(--sl-color-white); }
+.df-badge { font-size: 0.8rem; font-weight: 600; color: var(--df-orange); background: color-mix(in srgb, var(--df-orange) 12%, transparent); padding: 0.1rem 0.65rem; border-radius: 999px; }
+.df-date { font: 0.85rem var(--sl-font-mono); color: var(--sl-color-gray-3); }
+.df-summary { margin-top: 1rem; font-size: 1.1rem; color: var(--sl-color-gray-1); }
+.df-release-body h4 { margin: 1.4rem 0 0.4rem; font-size: 0.85rem; font-weight: 600; color: var(--sl-color-gray-3); }
+.df-release-body ul { margin: 0; padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.35rem; color: var(--sl-color-gray-1); }
+.df-release-body p { margin-top: 1rem; color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); }
+.df-release-body a { color: var(--sl-color-gray-3); font-family: var(--sl-font-mono); font-size: 0.85em; }
+.df-release-actions { margin-top: 1.5rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.25rem; }
+.df-release-actions a { font-weight: 600; text-decoration: none; }
+.df-release-actions a.df-button { padding: 0.6rem 1rem; border-radius: 9px; background: var(--df-ink); color: var(--df-on-ink); }
+.df-release-actions a.df-button:hover { background: var(--df-ink-hover); }
+.df-earlier { margin: 3rem 0 1rem; font-size: 1.5rem; letter-spacing: -0.02em; color: var(--sl-color-white); }
+.df-release { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; padding: 1.4rem 0; border-top: 1px solid var(--sl-color-gray-5); }
+.df-release:last-of-type { border-bottom: 1px solid var(--sl-color-gray-5); }
+.df-release-side { flex: 0 0 160px; }
+.df-release-side h3 { margin: 0; font-size: 1.25rem; }
+.df-release-side h3 a { color: var(--sl-color-white); text-decoration: none; }
+.df-release-main { flex: 1 1 380px; min-width: 0; color: var(--sl-color-gray-1); }
+.df-release-main summary { cursor: pointer; margin-top: 0.5rem; font-weight: 600; font-size: var(--sl-text-sm); color: var(--sl-color-accent); }
+.df-older, .df-releases-error { margin-top: 1.25rem; color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); }

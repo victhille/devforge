@@ -1,0 +1,59 @@
+---
+title: Contribuer
+description: Signaler un problème, proposer une idée ou du code, signaler une faille, améliorer ce site.
+---
+
+DevForge est open source. Un bug, une idée ou du code : tout est bienvenu, en français ou en anglais.
+
+<div class="df-ways not-content">
+  <a class="df-way" href="https://github.com/victhille/devforge/issues/new?template=bug.yml">
+    <strong>Signaler un problème</strong>
+    <span>Un formulaire guidé : ce que tu faisais, ce qui s'est passé, ce que tu attendais, et le rapport de diagnostic.</span>
+    <em>Ouvrir le formulaire →</em>
+  </a>
+  <a class="df-way" href="https://github.com/victhille/devforge/issues/new?template=idea.yml">
+    <strong>Proposer une idée</strong>
+    <span>Regarde d'abord la feuille de route, plus bas : elle y est peut-être déjà.</span>
+    <em>Proposer →</em>
+  </a>
+  <a class="df-way" href="https://github.com/victhille/devforge/issues?q=is%3Aopen+label%3A%22good+first+issue%22">
+    <strong>Écrire du code</strong>
+    <span>Les « good first issue » sont petites, bien délimitées, avec les fichiers à regarder.</span>
+    <em>Voir les issues →</em>
+  </a>
+</div>
+
+:::caution[Une faille de sécurité ?]
+Jamais dans une issue publique : utilise le [signalement privé de GitHub](https://github.com/victhille/devforge/security/advisories/new) (onglet *Security*, **Report a vulnerability**). Seuls les mainteneurs le voient. Détails dans [SECURITY.md](https://github.com/victhille/devforge/blob/main/SECURITY.md).
+:::
+
+La [feuille de route](https://github.com/victhille/devforge/tree/main/docs/roadmap) dit ce qui est prévu pour les prochaines versions.
+
+## Le rapport de diagnostic
+
+**Paramètres › À propos › Copier le rapport** copie la version, le système et les dernières lignes du journal, clés et mots de passe masqués. Relis-le avant de le coller : il peut contenir des noms de serveurs ou de projets.
+
+## Proposer une modification
+
+1. Forke le dépôt et crée une branche depuis `main`.
+2. `npm install`, puis `npm run dev` pour lancer l'app (Node.js 22, Windows).
+3. Ajoute ou mets à jour les tests : Vitest dans `tests/main`, Playwright dans `tests/e2e`.
+4. `npm run check` doit passer : types, lint, tests, build. Puis `npm run build` et `npm run test:e2e` pour les tests de bout en bout.
+5. Ouvre une pull request : son modèle rappelle ce qu'il faut vérifier.
+
+La CI tourne sur ta pull request (Windows, environ 5 minutes ; pour une première contribution, un mainteneur la lance d'un clic). L'organisation du code est décrite dans [docs/dev/architecture.md](https://github.com/victhille/devforge/blob/main/docs/dev/architecture.md).
+
+## Les règles de la maison
+
+| Règle | Comment |
+|---|---|
+| Commits conventionnels | `feat(zone): …`, `fix(zone): …`, `docs: …` : le journal des versions en est tiré |
+| Textes de l'interface | toujours dans `fr.ts` et `en.ts`, jamais en dur |
+| Secrets | jamais envoyés à l'interface, jamais affichés ni écrits en clair |
+| Rien de personnel | pas d'IP, de serveur ni de compte réels ; exemples : `203.0.113.10`, `mon-serveur`, `example.com` |
+
+## Améliorer ce site
+
+Chaque page a un lien **Modifier la page** en bas : il ouvre sa source dans [`site/`](https://github.com/victhille/devforge/tree/main/site) sur GitHub. Une coquille, une explication pas claire : une petite pull request suffit.
+
+En contribuant, tu acceptes que ta contribution soit publiée sous la [licence MIT](https://github.com/victhille/devforge/blob/main/LICENSE) du projet.
