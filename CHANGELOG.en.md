@@ -2,6 +2,20 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [3.1.0](https://github.com/victhille/devforge/compare/v3.0.0...v3.1.0) — 2026-10-27
+
+> The menu shows the pages that need a server (health, services, backups, n8n, status page, VPN) only once a server is set up; Settings › Connections opens without waiting.
+
+### New features
+
+- **menu**: Les pages qui demandent un serveur attendent qu'il y en ait un ([164329e](https://github.com/victhille/devforge/commit/164329ed10c2e0bd4863a1b714b63438000b690f))
+
+### Dependencies and build
+
+- **lint**: Les worktrees de .claude/ hors du lint ([630ba4a](https://github.com/victhille/devforge/commit/630ba4a7d5d72d256c71b02a032737a3b3615f55))
+
+_7 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [3.0.0](https://github.com/victhille/devforge/compare/v2.4.0...v3.0.0) — 2026-10-26
 
 > DevForge goes public: nothing of the author inside, everything set up in Settings › Connections, a guided first launch, export, import and “Erase everything”.
