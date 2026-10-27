@@ -13,6 +13,7 @@ import { useVpsStats } from './useVpsStats'
 import StatCard, { CardLabel } from './components/StatCard'
 import { DisksPanel, DockerPanel, ProcessesPanel } from './components/Panels'
 import { HealthCard } from '@renderer/features/vps/HealthPage'
+import { useI18n } from '@renderer/i18n/I18nContext'
 
 function CenterState({ children }: { children: ReactNode }) {
   return <div className="flex flex-1 flex-col items-center justify-center gap-3 p-10 text-center text-fg-secondary">{children}</div>
@@ -21,6 +22,8 @@ function CenterState({ children }: { children: ReactNode }) {
 export default function VPSDashboardPage() {
   const { connectionId } = useParams<{ connectionId: string }>()
   const navigate = useNavigate()
+  const { t, lang } = useI18n()
+  const v = t.vpsDash
   const { sessions, getOrConnect, reconnect } = useVPS()
   const [connection, setConnection] = useState<SSHConnection | null>(null)
 
@@ -55,7 +58,7 @@ export default function VPSDashboardPage() {
     <div className="flex h-full flex-col">
       {/* Header */}
       <header className="flex shrink-0 items-center gap-3 border-b border-line-subtle bg-surface px-5 py-3">
-        <IconButton title="Back" onClick={() => navigate('/ssh')}><ArrowLeft size={14} /></IconButton>
+        <IconButton title={v.back} onClick={() => navigate('/ssh')}><ArrowLeft size={14} /></IconButton>
         <span className="shrink-0">
           {status === 'connecting' && <Spinner />}
           {status === 'connected' && <Wifi size={13} className="text-success" />}
@@ -68,9 +71,9 @@ export default function VPSDashboardPage() {
             {sysInfo && ` · ${sysInfo.os} · ${sysInfo.hostname}`}
           </span>
         </div>
-        {lastUpdated && <span className="text-xs text-fg-muted">{lastUpdated.toLocaleTimeString()}</span>}
-        {lost && <IconButton title="Reconnecter" onClick={handleReconnect}><RotateCcw size={13} /></IconButton>}
-        <IconButton title="Actualiser" onClick={refreshNow} disabled={refreshing || status !== 'connected'}>
+        {lastUpdated && <span className="text-xs text-fg-muted">{lastUpdated.toLocaleTimeString(lang)}</span>}
+        {lost && <IconButton title={v.reconnect} onClick={handleReconnect}><RotateCcw size={13} /></IconButton>}
+        <IconButton title={v.refresh} onClick={refreshNow} disabled={refreshing || status !== 'connected'}>
           <RefreshCw size={13} className={cn(refreshing && 'animate-spin')} />
         </IconButton>
       </header>
@@ -78,23 +81,23 @@ export default function VPSDashboardPage() {
       {lost && (
         <CenterState>
           <WifiOff size={32} className="text-danger" />
-          <p className="text-md font-medium text-fg">Connexion perdue</p>
+          <p className="text-md font-medium text-fg">{v.lost}</p>
           {session?.error && <span className="max-w-md text-sm text-fg-muted">{session.error}</span>}
-          <Button variant="secondary" onClick={handleReconnect}><RotateCcw size={13} /> Reconnecter</Button>
+          <Button variant="secondary" onClick={handleReconnect}><RotateCcw size={13} /> {v.reconnect}</Button>
         </CenterState>
       )}
 
       {status === 'connecting' && (
         <CenterState>
           <Spinner className="size-7" />
-          <p>Connexion à {connection?.host}…</p>
+          <p>{v.connecting.replace('{host}', connection?.host ?? '')}</p>
         </CenterState>
       )}
 
       {status === 'connected' && !stats && (
         <CenterState>
           <Spinner className="size-5" />
-          <p>Chargement des statistiques…</p>
+          <p>{v.loading}</p>
         </CenterState>
       )}
 
@@ -103,13 +106,13 @@ export default function VPSDashboardPage() {
           <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3">
             <StatCard
               icon={<Cpu size={14} />} label="CPU" pct={stats.cpu}
-              detail={`Load : ${stats.load.map(l => l.toFixed(2)).join(' · ')}`}
+              detail={v.load.replace('{v}', stats.load.map(l => l.toFixed(2)).join(' · '))}
               history={cpuHistory}
             />
             <StatCard
-              icon={<MemoryStick size={14} />} label="Mémoire" pct={memPct}
+              icon={<MemoryStick size={14} />} label={v.memory} pct={memPct}
               detail={`${fmtBytes(stats.memory.used)} / ${fmtBytes(stats.memory.total)}`}
-              extra={`Disponible : ${fmtBytes(stats.memory.available)}`}
+              extra={v.available.replace('{v}', fmtBytes(stats.memory.available))}
             />
             {stats.swap.total > 0 && (
               <StatCard
@@ -118,8 +121,8 @@ export default function VPSDashboardPage() {
               />
             )}
             <Card className="flex flex-col gap-2.5 p-4">
-              <CardLabel icon={<Clock size={14} />}>Uptime</CardLabel>
-              <span className="text-2xl font-semibold text-fg">{fmtUptime(stats.uptime)}</span>
+              <CardLabel icon={<Clock size={14} />}>{v.uptime}</CardLabel>
+              <span className="text-2xl font-semibold text-fg">{fmtUptime(stats.uptime, v.dayShort)}</span>
               {sysInfo && <span className="font-mono text-xs text-fg-muted">{sysInfo.kernel}</span>}
             </Card>
           </div>

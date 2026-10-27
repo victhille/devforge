@@ -38,7 +38,7 @@ const shortVersion = (v: string) => v.replace(/^DoctrineMigrations\\/, '')
 
 /** Prepared, applied or rolled back: the SQL is always shown before it runs (Symfony, Prisma, Laravel) */
 export default function MigrationsSection({ migrations, databaseOk, prepare, apply, rollback, note, help }: Props) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const { ask } = useAssistant()
   const s = t.symfony
   const pending = migrations.filter(m => !m.executed)
@@ -81,7 +81,7 @@ export default function MigrationsSection({ migrations, databaseOk, prepare, app
                     <span className={cn('text-xs', m.executed ? 'text-success' : 'text-warning')}>{m.executed ? s.applied : s.pending}</span>
                   </span>
                   <span className="font-mono text-[11px] text-fg-muted">
-                    {shortVersion(m.version)}{m.executedAt ? ` · ${formatDate(m.executedAt.replace(' ', 'T'))}` : ''}
+                    {shortVersion(m.version)}{m.executedAt ? ` · ${formatDate(m.executedAt.replace(' ', 'T'), lang)}` : ''}
                   </span>
                 </button>
               </li>

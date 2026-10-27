@@ -12,7 +12,7 @@ export interface ConnectionsOverview {
   }
   /** Git's global identity, used by the commits */
   git: { name: string | null; email: string | null }
-  forgy: { hasKey: boolean }
+  forgy: { hasKey: boolean; source: 'saved' | 'env' | null }
   vercel: VercelAccount
   /** Docker on this PC: the engine's version, null when it does not answer */
   docker: { version: string | null }

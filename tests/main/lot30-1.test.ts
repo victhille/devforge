@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { tempDir } from './../helpers'
 import * as conn from '../../src/main/services/connections/connectionsService'
 import { saveConfig } from '../../src/main/services/assistant/assistantStorage'
@@ -21,12 +21,17 @@ describe('v3.0 lot 1: connections', () => {
   })
 
   it('says whether a key is there, never the key; forgets it', async () => {
+    vi.stubEnv('ANTHROPIC_API_KEY', '')
     saveConfig({ apiKey: 'sk-ant-test' })
     const o = await conn.overview()
-    expect(o.forgy).toEqual({ hasKey: true })
+    expect(o.forgy).toEqual({ hasKey: true, source: 'saved' })
     expect(JSON.stringify(o)).not.toContain('sk-ant-test')
     await conn.disconnect('forgy')
-    expect((await conn.overview()).forgy).toEqual({ hasKey: false })
+    expect((await conn.overview()).forgy).toEqual({ hasKey: false, source: null })
     expect(await conn.test('forgy')).toEqual({ ok: false, detail: 'NO_KEY' })
+    // ANTHROPIC_API_KEY counts too, and says so
+    vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-env')
+    expect((await conn.overview()).forgy).toEqual({ hasKey: true, source: 'env' })
+    vi.unstubAllEnvs()
   })
 })

@@ -3,7 +3,7 @@ import { runFile } from '../../lib/exec'
 import { githubLogin } from '../projects/projectSetup'
 import { githubToken, hasToken, saveToken as saveGithubToken } from '../github/githubService'
 import { account as vercelAccount, checkAccount as vercelCheck, saveToken as saveVercelToken } from '../vercel/vercelService'
-import { getApiKey, saveConfig as saveAssistantConfig } from '../assistant/assistantStorage'
+import { envApiKey, getApiKey, saveConfig as saveAssistantConfig } from '../assistant/assistantStorage'
 import { loadSshConnections, removeSshConnection } from '../ssh/sshStorage'
 import { connectSsh, sshRun } from '../ssh/sshClient'
 import { getDbConnection, listDbConnections, removeDbConnection } from '../database/dbStorage'
@@ -46,7 +46,7 @@ export async function overview(): Promise<ConnectionsOverview> {
   return {
     github: { cli, token: hasToken() },
     git: { name, email },
-    forgy: { hasKey: !!getApiKey() },
+    forgy: { hasKey: !!getApiKey() || !!envApiKey(), source: getApiKey() ? 'saved' : envApiKey() ? 'env' : null },
     vercel: vercelAccount(),
     docker: { version: docker },
     servers: loadSshConnections().map(s => ({ id: s.id, name: s.name, host: s.host, username: s.username })),
@@ -67,7 +67,7 @@ export async function test(kind: ConnectionKind, id?: string): Promise<Connectio
         return { ok: true, detail: ((await res.json()) as { login: string }).login }
       }
       case 'forgy': {
-        const key = getApiKey()
+        const key = getApiKey() ?? envApiKey()
         if (!key) return { ok: false, detail: 'NO_KEY' }
         // Lists the models: no message sent, nothing billed
         const res = await fetch('https://api.anthropic.com/v1/models?limit=1', { headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' }, signal: AbortSignal.timeout(15_000) })
