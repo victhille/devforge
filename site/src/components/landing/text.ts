@@ -4,7 +4,7 @@ export type Lang = 'fr' | 'en'
 const fr = {
   title: "DevForge, l'atelier de dev pour Windows",
   description: 'Git, Docker, un terminal, un client SQL, le SSH vers ton serveur et tes .env, regroupés autour de tes projets dans une application de bureau gratuite et open source pour Windows.',
-  nav: { features: 'Fonctions', servers: 'Serveurs', forgy: 'Forgy', docs: 'Documentation', releases: 'Versions', download: 'Télécharger', other: 'English', otherShort: 'EN' },
+  nav: { features: 'Fonctions', servers: 'Serveurs', forgy: 'Forgy', docs: 'Documentation', releases: 'Versions', download: 'Télécharger', other: 'English', otherShort: 'EN', search: 'Rechercher dans la doc', searchLabel: 'Rechercher dans la documentation', searchClose: 'Fermer' },
   hero: {
     eyebrow: 'Pour Windows 10 et 11 · gratuit · open source',
     title: ["L'atelier où tes projets ", 'tournent', '.'],
@@ -88,7 +88,7 @@ type Text = typeof fr
 const en: Text = {
   title: 'DevForge, the dev workshop for Windows',
   description: 'Git, Docker, a terminal, an SQL client, SSH to your server and your .env files, gathered around your projects in one free and open-source desktop app for Windows.',
-  nav: { features: 'Features', servers: 'Servers', forgy: 'Forgy', docs: 'Docs', releases: 'Releases', download: 'Download', other: 'Français', otherShort: 'FR' },
+  nav: { features: 'Features', servers: 'Servers', forgy: 'Forgy', docs: 'Docs', releases: 'Releases', download: 'Download', other: 'Français', otherShort: 'FR', search: 'Search the docs', searchLabel: 'Search the documentation', searchClose: 'Close' },
   hero: {
     eyebrow: 'For Windows 10 and 11 · free · open source',
     title: ['The workshop where your projects ', 'run', '.'],
