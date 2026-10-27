@@ -1,4 +1,5 @@
 ---
+template: splash
 title: Without or with DevForge
 description: What DevForge brings into one window, what it does not replace, and its limits, so you can decide knowingly.
 ---

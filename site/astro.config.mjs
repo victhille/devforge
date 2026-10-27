@@ -24,17 +24,13 @@ export default defineConfig({
       customCss: ['@fontsource-variable/geist', '@fontsource-variable/geist-mono', './src/styles/custom.css'],
       lastUpdated: true,
       // Light by default, the home page's download button in the header
-      components: { ThemeProvider: './src/components/ThemeProvider.astro', SocialIcons: './src/components/SocialIcons.astro', Head: './src/components/Head.astro' },
+      components: { ThemeProvider: './src/components/ThemeProvider.astro', SocialIcons: './src/components/SocialIcons.astro', Head: './src/components/Head.astro', Header: './src/components/Header.astro', Footer: './src/components/Footer.astro' },
       // src/pages/404.astro, in the look of the home page
       disable404Route: true,
       // Code on the app's dark canvas in both themes
       expressiveCode: { themes: ['github-dark-default'] },
+      // The documentation only: the other pages are tabs under the header (src/components/sections.ts)
       sidebar: [
-        'download',
-        'news',
-        'compare',
-        'privacy',
-        'contribute',
         group('Prise en main', 'Getting started', [
           'getting-started/installation',
           'getting-started/first-launch',
