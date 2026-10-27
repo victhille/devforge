@@ -21,6 +21,8 @@ const otherHome = `${base}/${lang === 'en' ? '' : 'en/'}`
 const images = import.meta.glob<{ default: ImageMetadata }>('../../assets/screens/*.png', { eager: true })
 const shot = (id: string) => images[`../../assets/screens/${id}-${lang}.png`].default
 const releases = 'https://github.com/victhille/devforge/releases/latest'
+// The French video is the narrated 1080p edit, the English one still the 16:10 captioned screencast
+const videoSize = lang === 'fr' ? { width: 1920, height: 1080 } : { width: 1280, height: 800 }
 const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21.5v-8.6h-9.8v7.2Zm0-16.2v7.3H21V2.5l-9.8 1.4Z'
 ---
 
@@ -101,14 +103,14 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
       </p>
     </section>
 
-    <!-- The video: filmed on the built app with sample data (no sound, captions in the picture) -->
+    <!-- The video: the built app with sample data, captions in the picture (the French one also has a voice-over) -->
     <section id="video" class="wrap video">
       <div class="video-text">
         <h2>{t.video.title}</h2>
         <p class="section-lead">{t.video.lead}</p>
       </div>
       <div class="video-frame">
-        <video controls preload="none" playsinline width="1280" height="800" poster={`${base}/video/devforge-poster-${lang}.webp`} aria-label={t.video.label}>
+        <video controls preload="none" playsinline width={videoSize.width} height={videoSize.height} poster={`${base}/video/devforge-poster-${lang}.webp`} aria-label={t.video.label}>
           <source src={`${base}/video/devforge-${lang}.webm`} type="video/webm" />
         </video>
       </div>
