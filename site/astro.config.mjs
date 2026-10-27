@@ -21,7 +21,7 @@ export default defineConfig({
       },
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/victhille/devforge' }],
       editLink: { baseUrl: 'https://github.com/victhille/devforge/edit/main/site/' },
-      customCss: ['./src/styles/custom.css'],
+      customCss: ['@fontsource-variable/geist', '@fontsource-variable/geist-mono', './src/styles/custom.css'],
       lastUpdated: true,
       sidebar: [
         'download',
