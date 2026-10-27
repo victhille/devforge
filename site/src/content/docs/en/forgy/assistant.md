@@ -25,7 +25,7 @@ Elsewhere: **Ask Forgy** on a project page, on Docker logs or a migration; **Exp
 
 | Setting | Effect | Default |
 |---|---|---|
-| Anthropic API key | encrypted by Windows, never sent back to the interface. Without a key: `ANTHROPIC_API_KEY` if it exists | — |
+| Anthropic API key | encrypted by Windows, never sent back to the interface. Without a saved key: `ANTHROPIC_API_KEY` if it exists (the screen says so); a saved key takes precedence | — |
 | Model | **Auto** = the chosen task's model; or Opus 5.5, Sonnet 5.5, Haiku 5.5 for everything | Auto |
 | Thinking depth | **Auto** = the task's; or Fast, Balanced, Thorough | Auto |
 | Monthly budget | Forgy stops at this amount (estimate). `0` = no limit | $5 |
@@ -114,7 +114,7 @@ The cost shows at the bottom of the panel: `conversation · month / budget`. It 
 
 | Message | Cause | Fix |
 |---|---|---|
-| Add your API key… | no key | Settings › Connections or Settings › Forgy |
+| Add your API key… | no saved key nor `ANTHROPIC_API_KEY` | Settings › Connections, or set `ANTHROPIC_API_KEY` |
 | API key refused | invalid or revoked key | save a new key |
 | Monthly budget reached | spending ≥ budget | raise the budget or wait for next month |
 | Too many steps | more than 8 tool calls | narrow or split the question |

@@ -30,7 +30,7 @@ An install already in `~/devforge/n8n` can be run again: its data is kept.
 
 ## Workflows and executions
 
-With an **n8n API key** (in n8n: *Settings › API › Create a key*), encrypted by Windows:
+With an **n8n API key** (in n8n: *Settings › API › Create a key*), encrypted by Windows, entered here or in [Settings › Connections](/devforge/en/getting-started/connections/#n8n-and-alerts):
 
 - **Workflows**: the list, with their last update and **Export to a project** (a JSON file in one of your projects);
 - **Executions**: success, failed, crashed, running…, with the **Failures only** filter.

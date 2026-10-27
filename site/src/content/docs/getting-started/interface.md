@@ -42,6 +42,10 @@ Le menu de gauche commence par l'**Accueil** et tes **favoris**, puis range tout
 
 Tant qu'aucun serveur n'est configuré, les pages qui en demandent un (Santé, Services, Sauvegardes, n8n, VPN, Page de statut) sont masquées ; le groupe indique « N de plus avec un serveur ».
 
+### L'aide de chaque page
+
+Le bouton **?** de la barre de titre (ou <kbd>F1</kbd>) ouvre, sur ce site, la documentation de la page affichée, dans la langue de l'interface. Les pages qui attendent un compte ou un serveur proposent aussi **Comment faire**, qui mène à [Connexions](/devforge/getting-started/connections/).
+
 ### Favoris
 
 Survole une page et clique sur ☆ pour l'épingler sous l'Accueil (10 favoris au plus). Glisse-les pour les réordonner (ou <kbd>Alt</kbd> + <kbd>↑</kbd> <kbd>↓</kbd>). Par défaut : Projets, Docker, Base de données et API Tester ; **Remettre les favoris par défaut** y revient.
@@ -88,6 +92,7 @@ Une action sensible demande <kbd>Entrée</kbd> une seconde fois. Le lanceur se r
 | <kbd>Ctrl</kbd> <kbd>K</kbd> | palette de commandes |
 | <kbd>Ctrl</kbd> <kbd>J</kbd> | ouvrir / fermer Forgy |
 | <kbd>Ctrl</kbd> <kbd>B</kbd> | réduire / agrandir le menu |
+| <kbd>F1</kbd> | la documentation de la page affichée |
 | <kbd>Ctrl</kbd> <kbd>`</kbd> | terminal intégré |
 | <kbd>Ctrl</kbd> <kbd>Entrée</kbd> | exécuter la requête SQL |
 | <kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>Espace</kbd> | lanceur global (de n'importe où) |
