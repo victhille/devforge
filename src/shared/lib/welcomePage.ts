@@ -1,4 +1,5 @@
 import type { Framework, ProjectSetup } from '../types'
+import { AUTH_PAGES } from '../data/authContract'
 
 /**
  * v3.4 lot 1: the page a project created by DevForge opens on, in place of
@@ -55,9 +56,10 @@ const TEXT = {
 }
 
 /** Where the sign-in and sign-up pages are (v3.4 lots 3 to 6); React and Vue route by the hash */
-const AUTH_PAGES: Partial<Record<Framework, [string, string]>> = {
-  nextjs: ['/login', '/register'], laravel: ['/login', '/register'], symfony: ['/login', '/register'],
-  react: ['#/login', '#/register'], vue: ['#/login', '#/register']
+const SERVER_PAGES: [string, string] = [AUTH_PAGES.login, AUTH_PAGES.register]
+const HASH_PAGES: [string, string] = [`#${AUTH_PAGES.login}`, `#${AUTH_PAGES.register}`]
+const AUTH_LINKS: Partial<Record<Framework, [string, string]>> = {
+  nextjs: SERVER_PAGES, laravel: SERVER_PAGES, symfony: SERVER_PAGES, react: HASH_PAGES, vue: HASH_PAGES
 }
 
 /** Where the app answers in development */
@@ -128,7 +130,7 @@ function markup(info: WelcomeInfo, jsx: boolean): string {
   const cls = jsx ? 'className' : 'class'
   const link = (kind: string, href: string, label: string) =>
     `<a ${cls}="df-btn${kind}" href="${href}"${href.startsWith('http') ? ' target="_blank" rel="noreferrer"' : ''}>${esc(label)}</a>`
-  const auth = s.features.includes('auth') ? AUTH_PAGES[info.framework] : undefined
+  const auth = s.features.includes('auth') ? AUTH_LINKS[info.framework] : undefined
   const sail = info.framework === 'laravel' && s.features.includes('docker')
   const address = sail ? `localhost:${s.appPort ?? 8000}` : APP_ADDRESS[info.framework] ?? ''
   const base = s.database === 'none' ? '' : s.database === 'sqlite' ? 'sqlite' : `${s.database} :${s.dbPort}`

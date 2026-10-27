@@ -423,8 +423,14 @@ function commonSteps(o: Opts, ctx: PlanContext): SetupStep[] {
   return steps
 }
 
+/** v3.4: accounts need somewhere to live: authentication without a database takes SQLite (no Docker) */
+export function withAuthDatabase(s: ProjectSetup): ProjectSetup {
+  return s.features.includes('auth') && s.database === 'none' ? { ...s, database: 'sqlite' } : s
+}
+
 /** Every step after the framework's creation, in order */
-export function planSetup(o: Opts, ctx: PlanContext): SetupStep[] {
+export function planSetup(input: Opts, ctx: PlanContext): SetupStep[] {
+  const o = { ...input, setup: withAuthDatabase(input.setup) }
   const s = o.setup, l = LABELS[ctx.lang], steps: SetupStep[] = commonSteps(o, ctx)
   if (SETUP_FRAMEWORKS.includes(o.framework)) {
     steps.push(...(o.framework === 'symfony' ? symfonySteps(o, ctx) : o.framework === 'laravel' ? laravelSteps(o, ctx) : nextSteps(o, ctx)))

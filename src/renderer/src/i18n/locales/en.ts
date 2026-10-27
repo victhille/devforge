@@ -442,6 +442,7 @@ const en = {
       doStart:      'start the database in Docker',
       doConnection: 'add it to the Database page',
       featTitle:    'Options',
+      authSqlite:   'Authentication needs a database for the accounts: SQLite will be used, without Docker.',
       feat: { api: 'API', auth: 'Users and login', docker: 'Docker for the app', tests: 'Tests', ci: 'GitHub Actions CI' },
       featSymfony: {
         api:    'A first /api/health route. The mode (API Platform or JSON controllers) is picked in the workshop.',

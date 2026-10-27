@@ -79,10 +79,13 @@ export default function StackForm({ framework, projectName, initial, onBack, onS
   const toggle = (f: SetupFeature, on: boolean) => setFeatures(list => on ? [...list, f] : list.filter(x => x !== f))
   const desc = (f: SetupFeature) => framework === 'symfony' ? s.featSymfony[f] : framework === 'laravel' ? s.featLaravel[f] : s.featNext[f]
 
+  const authSqlite = database === 'none' && features.includes('auth')
+
   function submit() {
     if (server && !DB_NAME_RE.test(dbName)) { setError(s.dbNameError); return }
     const port = server ? ports[database as 'postgres' | 'mysql'] : 0
-    onSubmit({ database, dbName, dbPort: port, ...(framework === 'laravel' ? { appPort } : {}), features: SETUP_FEATURES.filter(f => features.includes(f)) })
+    // Accounts need a database: none chosen with authentication means SQLite
+    onSubmit({ database: authSqlite ? 'sqlite' : database, dbName, dbPort: port, ...(framework === 'laravel' ? { appPort } : {}), features: SETUP_FEATURES.filter(f => features.includes(f)) })
   }
 
   const willDo = [
@@ -166,6 +169,7 @@ export default function StackForm({ framework, projectName, initial, onBack, onS
               </span>
             </Checkbox>
           ))}
+          {authSqlite && <p role="status" className="rounded-xl bg-accent-soft p-3 text-sm text-fg">{s.authSqlite}</p>}
         </Card>
       </div>
 

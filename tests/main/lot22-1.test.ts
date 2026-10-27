@@ -48,11 +48,13 @@ describe('v2.2 lot 1: project setup plan', () => {
     const sf = planSetup(opts('symfony', { database: 'none', features: ['api', 'auth', 'docker', 'tests', 'ci'] }), ctx)
     const files = sf.flatMap(s => s.kind === 'write' ? s.files.map(f => f.path) : [])
     expect(files).toEqual(expect.arrayContaining(['src/Controller/HealthController.php', 'tests/SmokeTest.php', 'Dockerfile', '.github/workflows/ci.yml', 'compose.yaml']))
-    expect(runs(sf)).toContain('php bin/console make:user User --identity-property-name=email --with-password --no-interaction')
+    // v3.4: with authentication, SQLite stands in for "no database", so User is a Doctrine entity
+    expect(runs(sf)).toContain('php bin/console make:user User --is-entity --identity-property-name=email --with-password --no-interaction')
 
     const next = planSetup(opts('nextjs', { database: 'none', features: ['api', 'auth', 'tests'] }), ctx)
+    // v3.4: authentication without a database takes SQLite, so Prisma comes with it
     expect(next.flatMap(s => s.kind === 'write' ? s.files.map(f => f.path) : [])).toEqual([
-      '{app}/api/health/route.ts', '{src}auth.ts', '{app}/api/auth/[...nextauth]/route.ts', 'tests/smoke.test.ts'
+      '{src}lib/prisma.ts', '{app}/api/health/route.ts', '{src}auth.ts', '{app}/api/auth/[...nextauth]/route.ts', 'tests/smoke.test.ts'
     ])
     expect(next.find(s => s.kind === 'scripts')).toMatchObject({ scripts: { test: 'vitest run' } })
     expect(next.find(s => s.kind === 'env' && s.file === '.env.local')).toMatchObject({ vars: { AUTH_SECRET: 'sec' } })

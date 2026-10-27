@@ -438,6 +438,7 @@ const fr = {
       doStart:      'démarrer la base dans Docker',
       doConnection: 'l\'ajouter à la page Base de données',
       featTitle:    'Options',
+      authSqlite:   'L\'authentification a besoin d\'une base pour les comptes : SQLite sera utilisé, sans Docker.',
       feat: { api: 'API', auth: 'Utilisateurs et connexion', docker: 'Docker pour l\'app', tests: 'Tests', ci: 'CI GitHub Actions' },
       featSymfony: {
         api:    'Une première route /api/health. Le mode (API Platform ou contrôleurs JSON) se choisit dans l\'atelier.',
