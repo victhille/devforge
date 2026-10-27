@@ -2,6 +2,21 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [3.3.1](https://github.com/victhille/devforge/compare/v3.3.0...v3.3.1) — 2026-10-27
+
+> Sturdier project creation: .gitignore before the first commit, Tailwind 4 and Prisma 7 set up, main branch, a readable log and a resizable console.
+
+### New features
+
+- **console**: Console de création réglable, journal lisible, Laravel prêt à l'emploi ([bd92845](https://github.com/victhille/devforge/commit/bd928451052a2f28cbcb6da8e836a5abf9eac200))
+
+### Fixes
+
+- **projets**: Next.js crée son dépôt sur main et garde son propre Tailwind ([785a35a](https://github.com/victhille/devforge/commit/785a35a8d2493d406e659a7d655da052c0b67eed))
+- **projets**: Création de projet et journal corrigés après les essais réels ([0834fa5](https://github.com/victhille/devforge/commit/0834fa5c0d39d769fd212798ee3520a970f4b7b6))
+
+_1 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [3.3.0](https://github.com/victhille/devforge/compare/v3.2.0...v3.3.0) — 2026-10-27
 
 > The project page shows its database and its packages (npm, pnpm, yarn, Composer): outdated ones, vulnerabilities and chosen updates with rollback; Forgy can read and propose them too.
