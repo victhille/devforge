@@ -41,7 +41,7 @@ Quand un service tombe puis revient, le serveur prévient lui-même :
 - **Notification sur le téléphone (ntfy)** : installe l'appli [ntfy](https://ntfy.sh) et abonne-toi au sujet. Garde-le secret : qui le connaît reçoit les alertes.
 - **Webhook** : un POST JSON à chaque panne et retour, par exemple vers un webhook n8n ou Discord.
 
-**Envoyer une alerte de test** vérifie le réglage.
+**Envoyer une alerte de test** vérifie le réglage. Les alertes ntfy se règlent, se testent et se retirent aussi dans [Paramètres › Connexions](/devforge/getting-started/connections/#n8n-et-alertes).
 
 ## La page
 

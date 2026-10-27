@@ -41,7 +41,7 @@ When a service goes down and comes back, the server warns you itself:
 - **Notification on the phone (ntfy)**: install the [ntfy](https://ntfy.sh) app and subscribe to the topic. Keep it secret: whoever knows it gets the alerts.
 - **Webhook**: a JSON POST on each outage and recovery, for instance to an n8n or Discord webhook.
 
-**Send a test alert** checks the setup.
+**Send a test alert** checks the setup. ntfy alerts can also be set, tested and removed in [Settings › Connections](/devforge/en/getting-started/connections/#n8n-and-alerts).
 
 ## The page
 

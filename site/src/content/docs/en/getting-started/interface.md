@@ -42,6 +42,10 @@ The left menu starts with **Home** and your **favorites**, then lists every page
 
 As long as no server is set up, the pages that need one (Health, Services, Backups, n8n, VPN, Status page) are hidden; the group says "N more with a server".
 
+### Help for each page
+
+The **?** button of the title bar (or <kbd>F1</kbd>) opens, on this site, the documentation of the page on screen, in the interface's language. Pages waiting for an account or a server also offer **How to**, which leads to [Connections](/devforge/en/getting-started/connections/).
+
 ### Favorites
 
 Hover a page and click ☆ to pin it under Home (10 favorites at most). Drag them to reorder (or <kbd>Alt</kbd> + <kbd>↑</kbd> <kbd>↓</kbd>). By default: Projects, Docker, Database and API Tester; **Back to the default favorites** returns to them.
@@ -88,6 +92,7 @@ A sensitive action needs <kbd>Enter</kbd> a second time. The launcher is set in 
 | <kbd>Ctrl</kbd> <kbd>K</kbd> | command palette |
 | <kbd>Ctrl</kbd> <kbd>J</kbd> | open / close Forgy |
 | <kbd>Ctrl</kbd> <kbd>B</kbd> | collapse / expand the menu |
+| <kbd>F1</kbd> | the documentation of the page on screen |
 | <kbd>Ctrl</kbd> <kbd>`</kbd> | built-in terminal |
 | <kbd>Ctrl</kbd> <kbd>Enter</kbd> | run the SQL query |
 | <kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>Space</kbd> | global launcher (from anywhere) |
