@@ -22,7 +22,11 @@ export interface PackageManifest {
   name: string | null
   manager: PackageManagerKind
   packages: PackageInfo[]
+  /** Composer is not installed on this PC (and the project does not run on Sail) */
+  toolMissing?: boolean
 }
+
+export type ManifestFile = PackageManifest['file']
 
 export type AuditSeverity = 'info' | 'low' | 'moderate' | 'high' | 'critical'
 
@@ -40,11 +44,11 @@ export interface PackagesAPI {
   /** Every manifest of the project and what it declares (fast: no network) */
   list: (projectId: string) => Promise<PackageManifest[]>
   /** Latest published versions (registry), null when unknown */
-  latest: (projectId: string, dir: string, names: string[]) => Promise<Record<string, string | null>>
+  latest: (projectId: string, dir: string, file: ManifestFile, names: string[]) => Promise<Record<string, string | null>>
   /** Known vulnerabilities; null when the manager cannot tell (no lockfile, not installed) */
-  audit: (projectId: string, dir: string) => Promise<AuditSummary | null>
+  audit: (projectId: string, dir: string, file: ManifestFile) => Promise<AuditSummary | null>
   /** Updates after saving the manifest and lockfile; put back as they were if the command fails */
-  update: (projectId: string, dir: string, updates: PackageUpdate[]) => Promise<{ ok: boolean; restored: boolean }>
+  update: (projectId: string, dir: string, file: ManifestFile, updates: PackageUpdate[]) => Promise<{ ok: boolean; restored: boolean }>
   /** The update's output, line by line */
   onLog: (cb: (line: string) => void) => () => void
 }

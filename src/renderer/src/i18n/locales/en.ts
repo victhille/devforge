@@ -1040,7 +1040,8 @@ const en = {
   packages: {
     filter: 'Package filter',
     filters: { outdated: 'Outdated', major: 'Major', all: 'All' } as Record<string, string>,
-    none: 'No package.json in this project',
+    none: 'No package.json nor composer.json in this project',
+    composerMissing: 'Composer is not installed on this PC: the list can be read, but nothing can be updated.',
     count: '{n} package(s)',
     checking: 'Looking up the latest versions…',
     empty: 'No package declared.',
