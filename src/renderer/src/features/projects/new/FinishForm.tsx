@@ -85,9 +85,11 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
             </div>
           )}
           {WELCOME_FRAMEWORKS.includes(options.framework) && (
-            <Checkbox checked={welcome} onChange={setWelcome}>
-              {s.welcome}
-              <span className="text-fg-muted">{s.welcomeHint}</span>
+            <Checkbox checked={welcome} onChange={setWelcome} className="items-start">
+              <span className="flex flex-col">
+                <span>{s.welcome}</span>
+                <span className="text-sm text-fg-muted">{s.welcomeHint}</span>
+              </span>
             </Checkbox>
           )}
           <Checkbox checked={openVSCode} onChange={setOpenVSCode}>{s.openVSCode}</Checkbox>

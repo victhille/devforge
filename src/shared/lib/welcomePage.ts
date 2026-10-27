@@ -91,10 +91,10 @@ background:#0D0F13;color:#E8ECF2;font:14px/1.6 "Geist Variable","Geist","Segoe U
 .df-info div{display:flex;justify-content:space-between;gap:12px}.df-info b{font-weight:500;color:#C9D1DC}
 .df-tags{display:flex;flex-wrap:wrap;gap:6px}
 .df-tags span{font:500 11px ${MONO};color:#9AA4B2;background:#1D222B;border:1px solid #262C36;padding:2px 8px;border-radius:6px}
-.df-main{flex:999 1 560px;min-width:0;padding:28px;display:flex;flex-direction:column;gap:16px}
+.df-main{flex:999 1 560px;min-width:0;max-width:1040px;padding:28px;display:flex;flex-direction:column;gap:16px}
 .df-card{padding:20px;border-radius:14px;background:#161A21;border:1px solid #222833;display:flex;flex-direction:column;gap:12px}
 .df-welcome h2{margin:0;font:500 11px ${MONO};letter-spacing:.1em;text-transform:uppercase;color:#9AA4B2}
-.df-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;font-size:13px}
+.df-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;font-size:13px}
 .df-tiles div{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;background:#1D222B}
 .df-tiles div::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:#3FCF8E}
 .df-row{display:flex;flex-wrap:wrap;gap:8px}

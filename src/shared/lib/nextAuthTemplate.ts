@@ -281,7 +281,8 @@ ${register ? `          <label className="df-field">{t.name}
 `
 }
 
-const dashboardPage = (t: typeof TEXT.fr) => `import { redirect } from 'next/navigation'
+const dashboardPage = (t: typeof TEXT.fr) => `import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
 import { currentUser } from '@/lib/auth'
 import { anvil, authCss, projectName } from '@/lib/auth-style'
 import LogoutButton from './logout-button'
@@ -295,21 +296,30 @@ const routes = [
   ['GET', '/api/auth/me']
 ]
 
-/** Only for a signed-in user: the others go to /login */
-export default async function DashboardPage() {
+/** The signed-in account; the others go to /login. Reads the session cookie,
+ * so it streams inside <Suspense> (Next.js 16's Cache Components refuse it outside) */
+async function Account() {
   const user = await currentUser()
   if (!user) redirect('/login')
+  return (
+    <section className="df-box" style={{ maxWidth: 'none' }}>
+      <h1>{t.hello} {user.name}</h1>
+      <p className="df-lead">{t.signedIn} {user.email}</p>
+      <div><LogoutButton /></div>
+    </section>
+  )
+}
+
+export default function DashboardPage() {
   return (
     <div className="df-auth">
       <style>{authCss}</style>
 ${BAR}
       <main className="df-center">
         <div className="df-wide">
-          <section className="df-box" style={{ maxWidth: 'none' }}>
-            <h1>{t.hello} {user.name}</h1>
-            <p className="df-lead">{t.signedIn} {user.email}</p>
-            <div><LogoutButton /></div>
-          </section>
+          <Suspense fallback={<section className="df-box" style={{ maxWidth: 'none', minHeight: 150 }} aria-busy="true" />}>
+            <Account />
+          </Suspense>
           <section className="df-box" style={{ maxWidth: 'none' }}>
             <h1 style={{ fontSize: 16 }}>{t.apiTitle}</h1>
             <p className="df-lead" style={{ margin: 0 }}>{t.apiLead}</p>

@@ -38,7 +38,10 @@ describe('v3.4: Next.js authentication', () => {
 
   it('adds the contract\'s pages, the dashboard redirecting to /login', () => {
     for (const page of Object.values(AUTH_PAGES)) expect(files.some(f => f.path === `{app}${page}/page.tsx`), page).toBe(true)
-    expect(files.find(f => f.path === '{app}/dashboard/page.tsx')!.content).toContain("redirect('/login')")
+    const dashboard = files.find(f => f.path === '{app}/dashboard/page.tsx')!.content
+    expect(dashboard).toContain("redirect('/login')")
+    // Next.js 16 (Cache Components): the cookie is read inside <Suspense>
+    expect(dashboard).toContain('<Suspense fallback=')
   })
 
   it('never returns the password hash, and reads Bearer before the cookie', () => {
