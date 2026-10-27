@@ -14,7 +14,7 @@ DevForge ne contient rien de personnel : au premier lancement, tu choisis ta lan
 - **Serveurs** : connexions SSH, santé, services, sauvegardes, VPN, n8n, page de statut.
 - **Bases de données** : connexions, requêtes, sauvegardes.
 - **Déploiements** : Vercel et serveurs.
-- **Forgy** (Ctrl+J) : assistant avec ta propre clé Anthropic, outils en lecture seule, coût maîtrisé. Voir [docs/ASSISTANT.md](docs/ASSISTANT.md).
+- **Forgy** (Ctrl+J) : assistant avec ta propre clé Anthropic, outils en lecture seule, coût maîtrisé. Voir [docs/guide/forgy.md](docs/guide/forgy.md).
 
 ## Installer
 
@@ -41,7 +41,7 @@ npm run dist       # installeur Windows dans dist/
 
 Pour un fork : change `repository` et `build.publish` dans `package.json`, les mises à jour et les liens « À propos » suivent.
 
-Versions SemVer, commits conventionnels, `npm run release` pour publier : voir [docs/VERSIONS.md](docs/VERSIONS.md). Pour contribuer : [CONTRIBUTING.md](CONTRIBUTING.md).
+Versions SemVer, commits conventionnels, `npm run release` pour publier : voir [docs/dev/versions.md](docs/dev/versions.md). Pour contribuer : [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Licence
 

@@ -73,8 +73,8 @@ Une release sans `--pre` après une préversion la finalise : `1.3.0-beta.2` →
 
 | Workflow | Déclencheur | Rôle |
 |---|---|---|
-| CI | push sur `main`, pull request | types, lint, tests unitaires, build, tests de bout en bout |
-| Release | tag `v*` | vérifie tag = `package.json`, tests, installeur, release avec notes |
+| CI | push sur `main`, pull request | types, lint, mots personnels (`scripts/check-personal.mjs`, liste dans le secret `PERSONAL_PATTERNS`), tests unitaires, build, tests de bout en bout |
+| Release | tag `v*` | vérifie tag = `package.json`, build, installeur, release avec notes (les tests ont déjà tourné avant le tag : `npm run check` et la CI) |
 
 Fichiers publiés : `DevForge-Setup-vX.Y.Z.exe`, `.blockmap`, `latest.yml` (lu par la mise à jour automatique).
 Une préversion est publiée comme *pre-release*.
@@ -82,12 +82,13 @@ Une préversion est publiée comme *pre-release*.
 ## Mise à jour automatique
 
 - `electron-updater` lit les releases GitHub : au démarrage (après 15 s), puis toutes les 6 h. Téléchargement en arrière-plan, installation au redémarrage.
-- **Canal** dans Paramètres → À propos : *Stable* (versions finales) ou *Bêta* (aussi les préversions `2.0.0-beta…`).
-- **Limite actuelle** : le dépôt est privé, donc l'app installée ne peut pas lire les releases. Le statut affiché est alors « Impossible de lire les versions publiées ». Il faut publier les installeurs dans un dépôt public, ou rendre ce dépôt public.
+- **Canal** dans Paramètres → Mises à jour : *Stable* (versions finales) ou *Bêta* (aussi les préversions `2.0.0-beta…`).
+- **Source** : `build.publish` et `repository` de `package.json` (un fork change ces deux champs). Le dépôt est public : aucune connexion n'est nécessaire. Avec `private: true`, l'app utilise le jeton de GitHub CLI ou celui enregistré dans Connexions.
 
 ## Dans l'application
 
-- **Paramètres → À propos** : version, canal, commit, date de build, notes de version dans la langue de l'application, mises à jour, rapport de diagnostic.
+- **Paramètres → Mises à jour** : canal, vérification, notes de version dans la langue de l'application.
+- **Paramètres → À propos** : version, commit, date de build, rapport de diagnostic.
 - Après une mise à jour : notification avec lien vers les nouveautés.
 
 ## Données et diagnostic
@@ -98,7 +99,7 @@ Une préversion est publiée comme *pre-release*.
 
 ## Tests de bout en bout
 
-`npm run build` puis `npm run test:e2e` (Playwright). Chaque test lance l'app compilée sur un profil vide : `tests/e2e/`.
+`npm run build` puis `npm run test:e2e` (Playwright). Chaque test lance l'app compilée sur un profil vide (`tests/e2e/launch.ts`), hors écran. Avant la suite, `tests/e2e/warmup.ts` démarre l'app une fois (sur un runner neuf, les premiers démarrages sont lents). En CI : 2 tests à la fois, 90 s par test, un second essai.
 
 ## Fichiers
 

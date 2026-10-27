@@ -1,6 +1,6 @@
 # Assistant IA (Forgy)
 
-Panneau latéral qui répond aux questions sur tes projets, ton code, Docker et tes bases, avec le contexte de la page ouverte. Il **lit** sans jamais rien modifier.
+Panneau latéral qui répond aux questions sur tes projets, ton code, Docker et tes bases, avec le contexte de la page ouverte. Il lit librement ; pour agir (commit, `.env`, conteneur…), il propose une carte que tu valides ou refuses (voir [Actions](#actions)).
 
 ## Ouvrir
 
@@ -14,7 +14,7 @@ Panneau latéral qui répond aux questions sur tes projets, ton code, Docker et 
 
 ## Configuration
 
-**Paramètres → Assistant IA**
+**Paramètres → Forgy** (la clé se règle aussi dans **Paramètres → Connexions**)
 
 | Réglage | Effet | Défaut |
 |---|---|---|
@@ -127,7 +127,7 @@ Forgy peut aussi agir. Chaque action s'affiche en **carte** dans le panneau : ce
 | Refus | Forgy est prévenu et ne relance pas l'action |
 | Arrêt | arrêter la réponse vaut refus des actions en attente |
 
-**Réglage** (Paramètres → Assistant IA → Actions de Forgy) :
+**Réglage** (Paramètres → Forgy → Actions de Forgy) :
 - *Toujours demander* (par défaut) ;
 - *Auto pour les actions sûres* : seules les actions de la colonne « Auto possible » partent sans clic.
 
@@ -169,11 +169,11 @@ Panneau fermé, Forgy marche en bas de l'app avec **Boulon**, son chien robot : 
 - Les clics passent à travers.
 - Assis et immobile quand la fenêtre n'a pas le focus.
 - Coût : environ 3 % du fil principal en marchant, rien au repos.
-- Réglages → Assistant IA : désactiver Forgy ou seulement Boulon.
+- Paramètres → Forgy : désactiver Forgy ou seulement Boulon.
 
 ## Sur le bureau (widget)
 
-Paramètres → Assistant IA → **Forgy sur le bureau** (désactivé par défaut). Une bulle reste au premier plan en bas à droite de l'écran principal, au-dessus de l'horloge, même quand DevForge est dans la barre des tâches.
+Paramètres → Forgy → **Forgy sur le bureau** (désactivé par défaut). Une bulle reste au premier plan en bas à droite de l'écran principal, au-dessus de l'horloge, même quand DevForge est dans la barre des tâches.
 
 - **Ouvrir** : clic sur la bulle ou **Ctrl+Alt+Espace** depuis n'importe quelle appli. Si une autre appli a déjà ce raccourci, c'est **Ctrl+Alt+J** ; le raccourci actif est affiché sous l'interrupteur.
 - **Demander** : une ligne, Entrée. La réponse s'affiche au-dessus, avec **Copier** et **Ouvrir dans DevForge** (la conversation continue dans le panneau).
@@ -197,7 +197,7 @@ Whisper tourne sur ce PC (transformers.js + ONNX Runtime, dans le processus prin
 
 | Message | Cause | Solution |
 |---|---|---|
-| Ajoute ta clé API… | aucune clé | Paramètres → Assistant IA |
+| Ajoute ta clé API… | aucune clé | Paramètres → Connexions ou Paramètres → Forgy |
 | Clé API refusée | clé invalide ou révoquée | enregistrer une nouvelle clé |
 | Budget mensuel atteint | dépense ≥ budget | augmenter le budget ou attendre le mois suivant |
 | Trop d'étapes | plus de 8 appels d'outils | préciser ou découper la question |
@@ -218,4 +218,4 @@ Whisper tourne sur ce PC (transformers.js + ONNX Runtime, dans le processus prin
 | `src/renderer/src/features/assistant/` | panneau, Markdown, contexte de page, Forgy |
 | `tests/main/assistant*.test.ts` | tests (outils, boucle, coût, budget) |
 
-Données locales : `%APPDATA%\devforge\assistant\` (`config.json`, `usage.json`, `conversations/`).
+Données locales : `%APPDATA%\DevForge\assistant\` (`config.json`, `usage.json`, `conversations/`).
