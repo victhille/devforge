@@ -60,7 +60,7 @@ describe('v3.3 lot 2: npm packages', () => {
       vulnerabilities: { lodash: { severity: 'high' }, minimist: { severity: 'low' } },
       metadata: { vulnerabilities: { info: 0, low: 1, moderate: 0, high: 1, critical: 0, total: 2 } }
     }))
-    expect(npm).toEqual({ total: 2, bySeverity: { info: 0, low: 1, moderate: 0, high: 1, critical: 0 }, packages: { lodash: 'high', minimist: 'low' } })
+    expect(npm).toEqual({ total: 2, bySeverity: { unknown: 0, info: 0, low: 1, moderate: 0, high: 1, critical: 0 }, packages: { lodash: 'high', minimist: 'low' } })
     const pnpm = parseAudit(JSON.stringify({
       advisories: { 1: { module_name: 'axios', severity: 'moderate' }, 2: { module_name: 'axios', severity: 'critical' } },
       metadata: { vulnerabilities: { info: 0, low: 0, moderate: 1, high: 0, critical: 1 } }

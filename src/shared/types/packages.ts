@@ -28,7 +28,8 @@ export interface PackageManifest {
 
 export type ManifestFile = PackageManifest['file']
 
-export type AuditSeverity = 'info' | 'low' | 'moderate' | 'high' | 'critical'
+/** 'unknown': the advisory gives no severity (older Composer versions) */
+export type AuditSeverity = 'unknown' | 'info' | 'low' | 'moderate' | 'high' | 'critical'
 
 export interface AuditSummary {
   total: number

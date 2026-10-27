@@ -1060,7 +1060,7 @@ const en = {
     colName: 'Package', colWanted: 'Wanted', colInstalled: 'Installed', colLatest: 'Latest', colState: 'State', colAction: 'Action',
     notInstalled: 'not installed',
     levels: { current: 'up to date', patch: 'patch', minor: 'minor', major: 'major', unknown: 'unknown' } as Record<string, string>,
-    severities: { info: 'info', low: 'low', moderate: 'moderate', high: 'high', critical: 'critical' } as Record<string, string>,
+    severities: { unknown: 'unrated', info: 'info', low: 'low', moderate: 'moderate', high: 'high', critical: 'critical' } as Record<string, string>,
     majorConfirm: 'Major version: breaking changes are possible. Read the release notes first.\n\n{list}\n\nUpdate anyway?',
     updated: '{n} package(s) updated',
     failed: 'The update failed: see the log.',

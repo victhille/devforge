@@ -144,7 +144,7 @@ export async function latestVersions(dir: string, names: string[]): Promise<Reco
 
 const SEVERITIES: AuditSeverity[] = ['info', 'low', 'moderate', 'high', 'critical']
 const worse = (a: AuditSeverity | undefined, b: AuditSeverity) => !a || SEVERITIES.indexOf(b) > SEVERITIES.indexOf(a) ? b : a
-const emptySummary = (): AuditSummary => ({ total: 0, bySeverity: { info: 0, low: 0, moderate: 0, high: 0, critical: 0 }, packages: {} })
+const emptySummary = (): AuditSummary => ({ total: 0, bySeverity: { unknown: 0, info: 0, low: 0, moderate: 0, high: 0, critical: 0 }, packages: {} })
 const isSeverity = (s: unknown): s is AuditSeverity => SEVERITIES.includes(s as AuditSeverity)
 
 /** npm 7+ (`vulnerabilities`) and pnpm (`advisories`) JSON reports */

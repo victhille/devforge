@@ -19,7 +19,7 @@ const errorText = (err: unknown) => String(err instanceof Error ? err.message : 
 type Filter = 'all' | 'outdated' | 'major'
 
 const LEVEL_COLOR: Record<UpdateLevel, BadgeColor> = { current: 'success', patch: 'accent', minor: 'warning', major: 'danger', unknown: 'default' }
-const SEVERITY_COLOR = { info: 'default', low: 'default', moderate: 'warning', high: 'danger', critical: 'danger' } as const
+const SEVERITY_COLOR = { unknown: 'default', info: 'default', low: 'default', moderate: 'warning', high: 'danger', critical: 'danger' } as const
 
 /** What updating one package means: within its range, or to the latest version */
 function planOf(p: PackageInfo, latest: string | null): { level: UpdateLevel; update: PackageUpdate | null } {
