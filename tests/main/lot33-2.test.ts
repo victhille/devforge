@@ -90,6 +90,20 @@ describe('v3.3 lot 2: npm packages', () => {
     expect(updateCommands('npm', [])).toEqual([])
   })
 
+  it('tells Forgy what is behind, and how (v3.3 lot 4)', async () => {
+    const root = monorepo()
+    const data = join(tempDir('t'), 'packages.json')
+    json(data, { latest: { react: '18.3.1', vitest: '2.0.0', '@types/node': '22.0.0' }, audit: { total: 1, bySeverity: { info: 0, low: 0, moderate: 0, high: 1, critical: 0 }, packages: { react: 'high' } } })
+    process.env.DEVFORGE_TEST_PACKAGES = data
+    const { packagesReport } = await import('../../src/main/services/assistant/packageTools')
+    const report = await packagesReport({ id: 'p', name: 'Shop', path: root } as never, true)
+    expect(report).toContain('package.json (pnpm): 2 packages, 2 to look at')
+    expect(report).toContain('- react 18.2.0 → 18.3.1 (minor, within its range)')
+    expect(report).toContain('- vitest: not installed (wants ^1.0.0, latest 2.0.0)')
+    expect(report).toContain('apps/web/package.json (pnpm)')
+    expect(report).toContain('Vulnerabilities: 1 (high 1) — react: high')
+  })
+
   it('gives the latest versions; puts the manifest back when the update fails', async () => {
     const root = monorepo()
     const data = join(tempDir('t'), 'packages.json')
@@ -108,6 +122,7 @@ describe('v3.3 lot 2: npm packages', () => {
     expect(lines.join('\n')).toContain('put back')
 
     write({ update: 'node -e "process.exit(0)"' })
-    expect(await update(root, root, 'pnpm', [{ name: 'react', dev: false, target: 'latest' }], () => {})).toEqual({ ok: true, restored: false })
+    // Success says where the files were saved: Forgy's undo uses it
+    expect(await update(root, root, 'pnpm', [{ name: 'react', dev: false, target: 'latest' }], () => {})).toMatchObject({ ok: true, restored: false, backup: { files: ['package.json', 'pnpm-lock.yaml'] } })
   })
 })

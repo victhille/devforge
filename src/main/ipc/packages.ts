@@ -1,8 +1,7 @@
 import { ipcMain, type BrowserWindow } from 'electron'
 import type { ManifestFile, PackageUpdate } from '@shared/types'
 import { loadProjects } from '../services/projects/projectStorage'
-import { audit, latestVersions, listManifests, manifestDir, managerOf, update } from '../services/packages/npmPackages'
-import { composerAudit, composerAvailable, composerLatest, composerUpdate, listComposerManifests } from '../services/packages/composerPackages'
+import { auditFor, latestFor, projectManifests, updateFor } from '../services/packages/projectPackages'
 
 /** The project's folder, from its id: the window never names a path outside a project */
 function rootOf(projectId: unknown): string {
@@ -19,27 +18,14 @@ const updatesOf = (v: unknown): PackageUpdate[] => (Array.isArray(v) ? v : []).f
 export function registerPackagesHandlers(mainWindow: BrowserWindow): void {
   const log = (line: string) => { if (!mainWindow.isDestroyed()) mainWindow.webContents.send('packages:log', line) }
 
-  ipcMain.handle('packages:list', async (_e, projectId: unknown) => {
-    const root = rootOf(projectId)
-    const composer = await Promise.all(listComposerManifests(root).map(async m => ({ ...m, toolMissing: !(await composerAvailable(manifestDir(root, m.dir, 'composer.json'))) })))
-    return [...listManifests(root), ...composer]
-  })
-  ipcMain.handle('packages:latest', (_e, projectId: unknown, dir: unknown, file: unknown, names: unknown) => {
-    const list = Array.isArray(names) ? names.map(String) : []
-    const f = fileOf(file)
-    const full = manifestDir(rootOf(projectId), String(dir ?? ''), f)
-    return f === 'composer.json' ? composerLatest(list) : latestVersions(full, list)
-  })
-  ipcMain.handle('packages:audit', (_e, projectId: unknown, dir: unknown, file: unknown) => {
-    const root = rootOf(projectId)
-    const f = fileOf(file)
-    const full = manifestDir(root, String(dir ?? ''), f)
-    return f === 'composer.json' ? composerAudit(full) : audit(root, full, managerOf(full, root))
-  })
-  ipcMain.handle('packages:update', (_e, projectId: unknown, dir: unknown, file: unknown, updates: unknown) => {
-    const root = rootOf(projectId)
-    const f = fileOf(file)
-    const full = manifestDir(root, String(dir ?? ''), f)
-    return f === 'composer.json' ? composerUpdate(full, updatesOf(updates), log) : update(root, full, managerOf(full, root), updatesOf(updates), log)
+  ipcMain.handle('packages:list', (_e, projectId: unknown) => projectManifests(rootOf(projectId)))
+  ipcMain.handle('packages:latest', (_e, projectId: unknown, dir: unknown, file: unknown, names: unknown) =>
+    latestFor(rootOf(projectId), String(dir ?? ''), fileOf(file), Array.isArray(names) ? names.map(String) : []))
+  ipcMain.handle('packages:audit', (_e, projectId: unknown, dir: unknown, file: unknown) =>
+    auditFor(rootOf(projectId), String(dir ?? ''), fileOf(file)))
+  ipcMain.handle('packages:update', async (_e, projectId: unknown, dir: unknown, file: unknown, updates: unknown) => {
+    // The backup's place stays in the main process
+    const { ok, restored } = await updateFor(rootOf(projectId), String(dir ?? ''), fileOf(file), updatesOf(updates), log)
+    return { ok, restored }
   })
 }

@@ -12,6 +12,7 @@ import { loadSshConnections } from '../ssh/sshStorage'
 import { executions as n8nExecutions, listInstances as n8nInstances, workflows as n8nWorkflows } from '../n8n/n8nService'
 import { deployments as vercelDeployments } from '../vercel/vercelService'
 import { backupsText, githubText, vpsHealthText, vpsServicesText } from './vpsTools'
+import { packagesReport } from './packageTools'
 import { workshopDraft, workshopModelsText } from './workshopTools'
 
 /**
@@ -268,6 +269,7 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   { name: 'github_status', description: 'GitHub Actions runs (with ids), open pull requests and releases of a project whose origin is on GitHub.', input_schema: { type: 'object', properties: { project }, required: ['project'] } },
   { name: 'workshop_models', description: 'Models of a project with a DevForge workshop: Symfony (Doctrine entities), Laravel (Eloquent models) or Next.js (Prisma models). Fields with types, relations with their other side, database state, and the SQL of each pending migration (explain it before it is applied).', input_schema: { type: 'object', properties: { project }, required: ['project'] } },
   { name: 'workshop_model_draft', description: 'Fill the New model form of the workshop of the project (Symfony, Laravel or Next.js): a new model, or fields and relations added to an existing one. Writes nothing: the user checks the form and clicks. Field types: string, text, integer, float, decimal, boolean, date, datetime, json. Relation kinds, seen from this entity: ManyToOne (belongs to one), OneToMany (has many; needs inverse), ManyToMany, OneToOne.', input_schema: { type: 'object', properties: { project, entity: { type: 'string', description: 'PascalCase, e.g. Facture' }, fields: { type: 'array', items: { type: 'object', properties: { name: { type: 'string', description: 'camelCase' }, type: { type: 'string' }, required: { type: 'boolean' }, unique: { type: 'boolean' }, length: { type: 'integer' } }, required: ['name', 'type'] } }, relations: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, kind: { type: 'string' }, target: { type: 'string', description: 'Existing entity' }, inverse: { type: 'string', description: 'Property on the other side, e.g. factures' }, required: { type: 'boolean' } }, required: ['name', 'kind', 'target'] } } }, required: ['project', 'entity'] } },
+  { name: 'project_packages', description: 'Packages of a project (package.json: npm, pnpm, yarn; composer.json: Composer): what is behind the latest version or not installed, and whether the update stays within the declared range. audit: true also lists known vulnerabilities (slower).', input_schema: { type: 'object', properties: { project, audit: { type: 'boolean', description: 'Also run the audit (npm/pnpm/yarn audit, composer audit)' } }, required: ['project'] } }
 ].map(t => ({ ...t, eager_input_streaming: true }) as Anthropic.Beta.BetaTool)
 
 /** Short label shown in the conversation while the tool runs */
@@ -284,6 +286,7 @@ export function describeTool(name: string, input: Record<string, unknown>): stri
     case 'n8n_workflows': case 'n8n_executions': return str(input.server) ?? 'n8n'
     case 'vercel_deployments': case 'github_status': case 'workshop_models': return p
     case 'workshop_model_draft': return `${str(input.entity) ?? ''} — ${p}`
+    case 'project_packages': return p
     case 'vps_health': case 'vps_services': case 'backups_status': return str(input.server) ?? 'VPS'
     default: return ''
   }
@@ -313,6 +316,7 @@ export async function runTool(name: string, input: unknown): Promise<string> {
     case 'github_status': return githubText(findProject(i.project))
     case 'workshop_models': return workshopModelsText(findProject(i.project))
     case 'workshop_model_draft': return workshopDraft(findProject(i.project), i)
+    case 'project_packages': return packagesReport(findProject(i.project), i.audit)
     default: throw new ToolError(`Unknown tool ${name}`)
   }
 }

@@ -133,6 +133,45 @@ describe('assistant actions', () => {
     await expect(undoAction('a1')).rejects.toThrow()
   })
 
+  it('updates packages after the click, and the undo puts package.json back (v3.3 lot 4)', async () => {
+    const pkg = JSON.stringify({ dependencies: { react: '^18.2.0' } })
+    writeFileSync(join(dir, 'package.json'), pkg)
+    writeFileSync(join(dir, 'package-lock.json'), '{}')
+    const data = join(tempDir('pkgs'), 'packages.json')
+    writeFileSync(data, JSON.stringify({
+      latest: { react: '19.0.0' },
+      // The "update" rewrites package.json, as npm install react@latest would
+      update: `node -e "require('fs').writeFileSync('package.json', JSON.stringify({ dependencies: { react: '^19.0.0' } }))"`,
+      install: 'node -e "process.exit(0)"'
+    }))
+    process.env.DEVFORGE_TEST_PACKAGES = data
+    try {
+      h.script.push(
+        { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'p1', name: 'update_packages', input: { project: 'Shop', packages: ['react'], to: 'latest' } }] },
+        { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Ok.' }] }
+      )
+      const { events } = await ask('mets react à jour', e => decideAction(e.id, true))
+      const card = events.find(e => e.type === 'action') as AssistantEvent & { type: 'action' }
+      expect(card).toMatchObject({ title: 'Update react · Shop', reversible: true, auto: false })
+      expect(card.preview).toContain('react: not installed → 19.0.0 (MAJOR')
+      expect(events.find(e => e.type === 'action-done')).toMatchObject({ status: 'done' })
+      expect(readFileSync(join(dir, 'package.json'), 'utf-8')).toContain('^19.0.0')
+
+      expect(listActions().find(a => a.id === 'p1')).toMatchObject({ status: 'done', canUndo: true, kind: 'update_packages' })
+      expect(await undoAction('p1')).toMatchObject({ status: 'undone' })
+      expect(readFileSync(join(dir, 'package.json'), 'utf-8')).toBe(pkg)
+
+      // A package the project does not declare: refused before any card
+      h.script.push(
+        { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'p2', name: 'update_packages', input: { project: 'Shop', packages: ['lodash'] } }] },
+        { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Ok.' }] }
+      )
+      const refused = await ask('mets lodash à jour', e => decideAction(e.id, true))
+      expect(refused.events.some(e => e.type === 'action')).toBe(false)
+      expect(resultOf(h.calls.length - 1, 'p2')).toMatchObject({ is_error: true })
+    } finally { delete process.env.DEVFORGE_TEST_PACKAGES }
+  })
+
   it('does nothing when the user refuses, and tells the model', async () => {
     proposeEnv('a2')
     const { events } = await ask('ajoute NEW_FLAG', e => decideAction(e.id, false))
