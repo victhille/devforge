@@ -6,9 +6,10 @@ export function formatSize(bytes: number | null | undefined): string {
   return `${(bytes / 1024 ** 3).toFixed(2)} GB`
 }
 
-export function formatDate(iso: string | null | undefined): string {
+/** A date in the UI language (without one, the language DevForge started in) */
+export function formatDate(iso: string | null | undefined, lang?: string): string {
   if (!iso) return '—'
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(iso))
+  return new Intl.DateTimeFormat(lang, { dateStyle: 'medium' }).format(new Date(iso))
 }
 
 /** "3 min ago" / "il y a 3 min", in the UI language. */

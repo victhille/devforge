@@ -133,7 +133,7 @@ export default function ConfigForm({ framework, settings, onBack, onSubmit }: Pr
             <span className="text-xs font-medium text-fg-secondary">{t.newProject.labelOptions}</span>
             <div className="grid grid-cols-2 gap-2.5">
               {options.map(o => (
-                <Checkbox key={o.id} checked={form[o.id]} onChange={v => set(o.id, v)}>{o.label}</Checkbox>
+                <Checkbox key={o.id} checked={form[o.id]} onChange={v => set(o.id, v)}>{t.newProject.option[o.id] ?? o.label}</Checkbox>
               ))}
             </div>
           </div>

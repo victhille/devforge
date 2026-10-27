@@ -26,10 +26,17 @@ function writeJson(path: string, data: unknown): void {
   writeJsonFile(path, data, false)
 }
 
+/** ANTHROPIC_API_KEY, which the SDK reads when no key is saved */
+export function envApiKey(): string | null {
+  return process.env.ANTHROPIC_API_KEY?.trim() || null
+}
+
 export function getConfig(): AssistantConfig {
   const c = readConfig()
+  const keySource = c.keyEnc ? 'saved' : envApiKey() ? 'env' : null
   return {
-    hasKey: !!c.keyEnc,
+    hasKey: keySource !== null,
+    keySource,
     model: c.model && MODELS.includes(c.model) ? c.model : 'auto',
     effort: c.effort && EFFORTS.includes(c.effort) ? c.effort : 'auto',
     monthlyBudget: typeof c.monthlyBudget === 'number' && c.monthlyBudget >= 0 ? c.monthlyBudget : DEFAULT_BUDGET,

@@ -10,9 +10,10 @@ export function fmtBytes(bytes: number): string {
   return (bytes / 1024 ** 3).toFixed(2) + ' GB'
 }
 
-export function fmtUptime(sec: number): string {
+/** `day` is the short day unit of the interface language (j / d) */
+export function fmtUptime(sec: number, day = 'd'): string {
   const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60)
-  if (d > 0) return `${d}j ${h}h ${m}m`
+  if (d > 0) return `${d}${day} ${h}h ${m}m`
   if (h > 0) return `${h}h ${m}m`
   return `${m}m`
 }

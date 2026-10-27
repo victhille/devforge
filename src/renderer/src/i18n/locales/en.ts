@@ -344,6 +344,22 @@ const en = {
 
   // ── New Project ───────────────────────────────────────────────────────────
   newProject: {
+    templateDesc: {
+      react:   'Build UIs with React + Vite',
+      nextjs:  'Full-stack React framework',
+      vue:     'Progressive JavaScript framework',
+      nodejs:  'JavaScript backend / API',
+      symfony: 'PHP web application framework',
+      laravel: 'PHP framework with Eloquent and Artisan',
+      empty:   'Start from scratch'
+    } as Record<string, string>,
+    option: {
+      typescript:  'TypeScript',
+      eslint:      'ESLint',
+      initGit:     'Initialize Git',
+      installDeps: 'Install dependencies',
+      openAfter:   'Open after creation'
+    } as Record<string, string>,
     title:          'New Project',
     subtitle:       'Choose a technology to get started',
     catFrontend:    'Frontend',
@@ -1019,6 +1035,26 @@ const en = {
   },
 
   // ── SSH ───────────────────────────────────────────────────────────────────
+  vpsDash: {
+    back:       'Back',
+    reconnect:  'Reconnect',
+    refresh:    'Refresh',
+    lost:       'Connection lost',
+    connecting: 'Connecting to {host}…',
+    loading:    'Loading statistics…',
+    load:       'Load: {v}',
+    memory:     'Memory',
+    available:  'Available: {v}',
+    uptime:     'Uptime',
+    dayShort:   'd',
+    disks:      'Disks',
+    noDisks:    'No disk found',
+    processes:  'Processes (top CPU)',
+    user:       'User',
+    command:    'Command',
+    dockerOne:  'Docker (1 container)',
+    dockerMany: 'Docker ({n} containers)'
+  },
   ssh: {
     hostKey:        'Server key',
     hostKeyUnknown: 'Remembered at the first connection',
@@ -1104,7 +1140,7 @@ const en = {
     noProject: "No project in context",
     attachPage: "Attach the page content",
     detachPage: "Stop attaching the page content",
-    noKey: "Add your Anthropic API key in Settings → AI assistant.",
+    noKey: "Add your Anthropic API key in Settings › Connections, or set ANTHROPIC_API_KEY.",
     openSettings: "Settings",
     empty: "Ask about your code, projects, Docker, databases… The assistant reads what it needs and changes nothing.",
     suggestPage: "Analyze what this page shows",
@@ -1120,6 +1156,7 @@ const en = {
     apiKey: "Anthropic API key",
     apiKeyPlaceholder: "sk-ant-…",
     apiKeySaved: "Key saved (encrypted)",
+    apiKeyFromEnv: "Key read from ANTHROPIC_API_KEY; a key saved here replaces it",
     apiKeyHint: "Encrypted by Windows, it only leaves DevForge to reach the Anthropic API. Without a key, DevForge uses ANTHROPIC_API_KEY when set.",
     saveKey: "Save key",
     removeKey: "Remove key",
@@ -1534,6 +1571,7 @@ const en = {
       forgyHint: "The API key that makes Forgy talk. The test lists the models: it costs nothing.",
       forgyKey: "Anthropic API key",
       keySaved: "key saved",
+      keyFromEnv: "key read from ANTHROPIC_API_KEY",
       noKey: "no key",
       vercelHint: "Deployments, domains and variables of the projects linked to Vercel.",
       vercelToken: "Vercel token",

@@ -340,6 +340,22 @@ const fr = {
   },
 
   newProject: {
+    templateDesc: {
+      react:   'Interfaces avec React et Vite',
+      nextjs:  'Framework React full-stack',
+      vue:     'Framework JavaScript progressif',
+      nodejs:  'Backend ou API en JavaScript',
+      symfony: "Framework PHP d'applications web",
+      laravel: 'Framework PHP avec Eloquent et Artisan',
+      empty:   'Partir de zéro'
+    } as Record<string, string>,
+    option: {
+      typescript:  'TypeScript',
+      eslint:      'ESLint',
+      initGit:     'Initialiser Git',
+      installDeps: 'Installer les dépendances',
+      openAfter:   'Ouvrir après la création'
+    } as Record<string, string>,
     title:          'Nouveau projet',
     subtitle:       'Choisissez une technologie pour commencer',
     catFrontend:    'Frontend',
@@ -1011,6 +1027,26 @@ const fr = {
     expand:     'Agrandir'
   },
 
+  vpsDash: {
+    back:       'Retour',
+    reconnect:  'Reconnecter',
+    refresh:    'Actualiser',
+    lost:       'Connexion perdue',
+    connecting: 'Connexion à {host}…',
+    loading:    'Chargement des statistiques…',
+    load:       'Charge : {v}',
+    memory:     'Mémoire',
+    available:  'Disponible : {v}',
+    uptime:     'Allumé depuis',
+    dayShort:   'j',
+    disks:      'Disques',
+    noDisks:    'Aucun disque détecté',
+    processes:  'Processus (top CPU)',
+    user:       'Utilisateur',
+    command:    'Commande',
+    dockerOne:  'Docker (1 conteneur)',
+    dockerMany: 'Docker ({n} conteneurs)'
+  },
   ssh: {
     hostKey:        'Clé du serveur',
     hostKeyUnknown: 'Mémorisée à la première connexion',
@@ -1095,7 +1131,7 @@ const fr = {
     noProject: "Aucun projet en contexte",
     attachPage: "Joindre le contenu de la page",
     detachPage: "Ne plus joindre le contenu de la page",
-    noKey: "Ajoute ta clé API Anthropic dans Paramètres → Assistant IA.",
+    noKey: "Ajoute ta clé API Anthropic dans Paramètres › Connexions, ou définis ANTHROPIC_API_KEY.",
     openSettings: "Paramètres",
     empty: "Pose une question sur ton code, tes projets, Docker, tes bases… L'assistant lit ce qu'il faut, sans rien modifier.",
     suggestPage: "Analyse ce que montre cette page",
@@ -1111,6 +1147,7 @@ const fr = {
     apiKey: "Clé API Anthropic",
     apiKeyPlaceholder: "sk-ant-…",
     apiKeySaved: "Clé enregistrée (chiffrée)",
+    apiKeyFromEnv: "Clé lue dans ANTHROPIC_API_KEY ; une clé enregistrée ici la remplace",
     apiKeyHint: "Chiffrée par Windows, elle ne sort de DevForge que vers l'API Anthropic. Sans clé, DevForge utilise ANTHROPIC_API_KEY si elle existe.",
     saveKey: "Enregistrer la clé",
     removeKey: "Supprimer la clé",
@@ -1525,6 +1562,7 @@ const fr = {
       forgyHint: "La clé API qui fait parler Forgy. Le test liste les modèles : il ne coûte rien.",
       forgyKey: "Clé API Anthropic",
       keySaved: "clé enregistrée",
+      keyFromEnv: "clé lue dans ANTHROPIC_API_KEY",
       noKey: "aucune clé",
       vercelHint: "Déploiements, domaines et variables des projets liés à Vercel.",
       vercelToken: "Jeton Vercel",

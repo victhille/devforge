@@ -2,7 +2,7 @@ import { app, BrowserWindow, dialog, nativeImage, Tray, Menu } from 'electron'
 import { join } from 'path'
 import { registerIpcHandlers } from './ipc'
 import { sshService } from './services/ssh/sshService'
-import { loadSettings } from './services/settings/settingsService'
+import { loadSettings, savedLanguage } from './services/settings/settingsService'
 import { detectEnvironment } from './services/system/environmentDetector'
 import { processManager } from './services/stacks/processManager'
 import { stopMonitors } from './services/monitor/urlMonitor'
@@ -29,6 +29,10 @@ const isDev = !app.isPackaged
 
 app.setName('DevForge')
 if (process.platform === 'win32') app.setAppUserModelId('DevForge')
+
+// Dates and numbers follow DevForge's language, not Windows' (a change applies at the next start)
+const language = savedLanguage()
+if (language) app.commandLine.appendSwitch('lang', language === 'fr' ? 'fr-FR' : 'en-US')
 
 // ─── Single instance lock ─────────────────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock()

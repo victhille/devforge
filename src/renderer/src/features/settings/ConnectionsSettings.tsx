@@ -128,12 +128,12 @@ export default function ConnectionsSettings() {
         <SettingRow label={c.forgy} hint={c.forgyHint}>
           <div className="flex flex-[1_1_320px] flex-col gap-2">
             <div className="flex flex-wrap items-center gap-2">
-              <State on={data.forgy.hasKey}>{data.forgy.hasKey ? c.keySaved : c.noKey}</State>
+              <State on={data.forgy.hasKey}>{data.forgy.source === 'env' ? c.keyFromEnv : data.forgy.hasKey ? c.keySaved : c.noKey}</State>
               {data.forgy.hasKey && testButton('forgy', c.forgy)}
-              {data.forgy.hasKey && <Button size="sm" variant="ghost" onClick={() => disconnect('forgy', c.forgyKey)}><Trash2 size={13} /> {c.remove}</Button>}
+              {data.forgy.source === 'saved' && <Button size="sm" variant="ghost" onClick={() => disconnect('forgy', c.forgyKey)}><Trash2 size={13} /> {c.remove}</Button>}
               {result('forgy')}
             </div>
-            {!data.forgy.hasKey && <SecretForm label={c.forgyKey} placeholder="sk-ant-…" onSave={async v => { await window.devforge.assistant.saveConfig({ apiKey: v }); load() }} />}
+            {data.forgy.source !== 'saved' && <SecretForm label={c.forgyKey} placeholder="sk-ant-…" onSave={async v => { await window.devforge.assistant.saveConfig({ apiKey: v }); load() }} />}
           </div>
         </SettingRow>
 

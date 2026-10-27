@@ -306,8 +306,8 @@ export default function ProjectDetailPage() {
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
             <dt className="text-fg-muted">{h.framework}</dt><dd className="truncate text-fg">{FRAMEWORK_LABEL[p.framework] ?? p.framework}</dd>
             <dt className="text-fg-muted">{h.packageManager}</dt><dd className="text-fg">{p.packageManager}</dd>
-            <dt className="text-fg-muted">{h.created}</dt><dd className="text-fg">{formatDate(p.createdAt)}</dd>
-            <dt className="text-fg-muted">{h.lastOpened}</dt><dd className="text-fg">{formatDate(p.lastOpenedAt)}</dd>
+            <dt className="text-fg-muted">{h.created}</dt><dd className="text-fg">{formatDate(p.createdAt, lang)}</dd>
+            <dt className="text-fg-muted">{h.lastOpened}</dt><dd className="text-fg">{formatDate(p.lastOpenedAt, lang)}</dd>
           </dl>
         </Tile>
       </div>
