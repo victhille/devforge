@@ -107,19 +107,15 @@ export function withTrait(text: string, fqcn: string): string {
   return lines.join('\n')
 }
 
-/** Stylesheets the templates load first (Vite React, Vite Vue, Next.js) */
-const MAIN_CSS = ['src/index.css', 'src/style.css', 'src/app/globals.css', 'app/globals.css']
+/** Stylesheets the Vite templates load first (React, Vue) */
+const MAIN_CSS = ['src/index.css', 'src/style.css']
 
 const firstFile = (projPath: string, names: string[]) => names.map(n => join(projPath, n)).find(existsSync)
 
-function setUpTailwind(projPath: string, via: 'vite' | 'postcss'): void {
-  if (via === 'vite') {
-    const config = firstFile(projPath, ['vite.config.ts', 'vite.config.js', 'vite.config.mts', 'vite.config.mjs'])
-    if (!config) throw new Error('vite.config introuvable')
-    writeText(config, withVitePlugin(readText(config)))
-  } else if (!firstFile(projPath, ['postcss.config.mjs', 'postcss.config.js', 'postcss.config.cjs'])) {
-    writeText(join(projPath, 'postcss.config.mjs'), "export default {\n  plugins: { '@tailwindcss/postcss': {} }\n}\n")
-  }
+function setUpTailwind(projPath: string): void {
+  const config = firstFile(projPath, ['vite.config.ts', 'vite.config.js', 'vite.config.mts', 'vite.config.mjs'])
+  if (!config) throw new Error('vite.config introuvable')
+  writeText(config, withVitePlugin(readText(config)))
   const css = firstFile(projPath, MAIN_CSS)
   if (!css) return
   const text = readText(css)
@@ -174,7 +170,7 @@ function applyStep(step: Exclude<SetupStep, { kind: 'run' }>, projPath: string, 
       return
     }
     case 'tailwind':
-      setUpTailwind(projPath, step.via)
+      setUpTailwind(projPath)
       return
     case 'add-trait': {
       const file = join(projPath, step.file)

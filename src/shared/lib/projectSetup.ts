@@ -382,8 +382,8 @@ function nextSteps(o: Opts, ctx: PlanContext): SetupStep[] {
 
 const NODE_ENTRY = "// Entry point: npm run dev restarts it on every change\nconsole.log('Hello from Node.js ' + process.version)\n"
 
-/** Tailwind 4: through Vite's plugin, or PostCSS (Next.js); the others are not created by DevForge */
-const TAILWIND_VIA: Partial<Record<Framework, 'vite' | 'postcss'>> = { react: 'vite', vue: 'vite', nextjs: 'postcss' }
+/** Tailwind 4 through Vite's plugin; create-next-app --yes brings Tailwind already set up (its own Turbopack plugin) */
+const TAILWIND_VITE: Framework[] = ['react', 'vue']
 
 /** What .gitignore must have before the first commit (the templates' own files may lack it: npm init writes none) */
 export function ignoreLines(fw: Framework): string[] {
@@ -414,11 +414,9 @@ function commonSteps(o: Opts, ctx: PlanContext): SetupStep[] {
     const prefix = o.framework === 'nextjs' ? 'NEXT_PUBLIC_' : o.framework === 'react' || o.framework === 'vue' ? 'VITE_' : ''
     steps.push({ kind: 'env', label: '.env.example', file: '.env.example', vars: { [`${prefix}SUPABASE_URL`]: '', [`${prefix}SUPABASE_ANON_KEY`]: '' } })
   }
-  const via = TAILWIND_VIA[o.framework]
-  if (via && has(o.devLibraries, 'tailwindcss')) {
-    const deps = via === 'vite' ? ['@tailwindcss/vite'] : ['@tailwindcss/postcss', 'postcss']
-    steps.push({ kind: 'run', label: l.tailwindDeps, exe: pm, args: pmAdd(pm, deps, true), skipIf: `node_modules/${deps[0]}` })
-    steps.push({ kind: 'tailwind', label: l.tailwind, via })
+  if (TAILWIND_VITE.includes(o.framework) && has(o.devLibraries, 'tailwindcss')) {
+    steps.push({ kind: 'run', label: l.tailwindDeps, exe: pm, args: pmAdd(pm, ['@tailwindcss/vite'], true), skipIf: 'node_modules/@tailwindcss/vite' })
+    steps.push({ kind: 'tailwind', label: l.tailwind })
   }
   return steps
 }
@@ -482,6 +480,6 @@ export function stepCommand(step: SetupStep): string {
     case 'drop-lines': return `− ${step.match} → ${step.file}`
     case 'connection': return step.label
     case 'add-trait':  return `use ${step.trait.split('\\').pop()} → ${step.file}`
-    case 'tailwind':   return `${step.via === 'vite' ? 'vite.config' : 'postcss.config.mjs'} + @import "tailwindcss"`
+    case 'tailwind':   return 'vite.config + @import "tailwindcss"'
   }
 }

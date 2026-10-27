@@ -112,6 +112,8 @@ function createNextjsProject(
 
   // npm keeps the flags before "--" for itself: create-next-app would then ask its questions
   const flags = ['--yes', typescript ? '--ts' : '--js', `--use-${pm}`]
+  // DevForge makes the repository itself (branch main, its .gitignore first): create-next-app's would be on master
+  if (options.setup?.git || options.setup?.github) flags.push('--disable-git')
   const args =
     pm === 'npm'
       ? ['create', '--yes', 'next-app@latest', name, '--', ...flags]

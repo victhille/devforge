@@ -29,8 +29,8 @@ export type SetupStep =
   /** Lines containing `match` taken out of a file (Sail's mounts Docker Desktop cannot read outside WSL) */
   | { kind: 'drop-lines'; label: string; file: string; match: string }
   | { kind: 'connection'; label: string; type: 'postgres' | 'mysql' | 'sqlite'; port: number; user: string; database: string; file?: string }
-  /** Tailwind 4 wired in: its Vite plugin (vite.config, Vite projects) or its PostCSS plugin (postcss.config.mjs), and @import "tailwindcss" in the main stylesheet */
-  | { kind: 'tailwind'; label: string; via: 'vite' | 'postcss' }
+  /** Tailwind 4 wired in a Vite project: its plugin in vite.config, and @import "tailwindcss" in the main stylesheet */
+  | { kind: 'tailwind'; label: string }
   /** A PHP trait added to a class: its import and its use line (Sanctum's HasApiTokens on User) */
   | { kind: 'add-trait'; label: string; file: string; trait: string }
 

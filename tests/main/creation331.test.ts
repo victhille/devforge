@@ -40,13 +40,12 @@ describe('v3.3.1: creation plan', () => {
     expect(ignoreLines('empty')).toEqual([])
   })
 
-  it('Tailwind 4: Vite plugin for React and Vue, PostCSS for Next.js', () => {
+  it('Tailwind 4: Vite plugin for React and Vue; Next.js already has it', () => {
     const react = planSetup(opts('react', {}, { devLibraries: ['tailwindcss'] }), ctx)
     expect(commands(react)).toContain('npm install --save-dev @tailwindcss/vite')
-    expect(react.find(s => s.kind === 'tailwind')).toMatchObject({ via: 'vite' })
+    expect(react.some(s => s.kind === 'tailwind')).toBe(true)
     const next = planSetup(opts('nextjs', {}, { devLibraries: ['tailwindcss'] }), ctx)
-    expect(next.find(s => s.kind === 'run' && s.label.includes('Tailwind'))).toMatchObject({ skipIf: 'node_modules/@tailwindcss/postcss' })
-    expect(next.find(s => s.kind === 'tailwind')).toMatchObject({ via: 'postcss' })
+    expect(next.some(s => s.kind === 'tailwind' || (s.kind === 'run' && s.label.includes('Tailwind')))).toBe(false)
     expect(planSetup(opts('react'), ctx).some(s => s.kind === 'tailwind')).toBe(false)
   })
 
@@ -95,17 +94,14 @@ describe('v3.3.1: Tailwind wired in', () => {
     expect(lines.some(l => l.includes('déjà en place'))).toBe(true)
   })
 
-  it('writes postcss.config.mjs when Next.js has none, and never twice', async () => {
+  it('leaves Next.js\'s own Tailwind alone, and resolves {app} in src/app', async () => {
     const dir = tempDir('next')
-    mkdirSync(join(dir, 'node_modules/@tailwindcss/postcss'), { recursive: true })
     mkdirSync(join(dir, 'src/app'), { recursive: true })
-    writeFileSync(join(dir, 'src/app/globals.css'), '@import "tailwindcss";\n')
     const options = { ...opts('nextjs', { git: false, features: ['api'] }, { devLibraries: ['tailwindcss'] }), destination: dir, installDeps: false, initGit: false, openAfter: false } as ProjectCreationOptions
     const lines: string[] = []
     const result = await new Promise<string>(resolve => runSetup(options, dir, 't2', l => lines.push(l.text), r => resolve(r.status)))
     expect(result).toBe('success')
-    expect(readFileSync(join(dir, 'postcss.config.mjs'), 'utf-8')).toContain('@tailwindcss/postcss')
-    expect(readFileSync(join(dir, 'src/app/globals.css'), 'utf-8')).toBe('@import "tailwindcss";\n')
+    expect(existsSync(join(dir, 'postcss.config.mjs'))).toBe(false)
     // {app} resolved: written in src/app, and the log says so
     expect(existsSync(join(dir, 'src/app/api/health/route.ts'))).toBe(true)
     expect(lines.some(l => l.includes('src/app/api/health/route.ts'))).toBe(true)
