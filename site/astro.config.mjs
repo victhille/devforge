@@ -23,8 +23,10 @@ export default defineConfig({
       editLink: { baseUrl: 'https://github.com/victhille/devforge/edit/main/site/' },
       customCss: ['@fontsource-variable/geist', '@fontsource-variable/geist-mono', './src/styles/custom.css'],
       lastUpdated: true,
-      // Light by default and the home page's download button in the header
-      components: { ThemeProvider: './src/components/ThemeProvider.astro', SocialIcons: './src/components/SocialIcons.astro' },
+      // Light by default, the home page's download button in the header
+      components: { ThemeProvider: './src/components/ThemeProvider.astro', SocialIcons: './src/components/SocialIcons.astro', Head: './src/components/Head.astro' },
+      // src/pages/404.astro, in the look of the home page
+      disable404Route: true,
       // Code on the app's dark canvas in both themes
       expressiveCode: { themes: ['github-dark-default'] },
       sidebar: [
