@@ -47,8 +47,10 @@ describe('v3.3 lot 3: Composer packages', () => {
 
   it('reads composer audit, an empty one included', () => {
     expect(parseComposerAudit(JSON.stringify({
-      advisories: { 'guzzlehttp/guzzle': [{ severity: 'high' }, { severity: null }], 'symfony/http-kernel': { 0: { severity: 'critical' } } }
-    }))).toEqual({ total: 3, bySeverity: { info: 0, low: 0, moderate: 1, high: 1, critical: 1 }, packages: { 'guzzlehttp/guzzle': 'high', 'symfony/http-kernel': 'critical' } })
+      advisories: { 'guzzlehttp/guzzle': [{ severity: 'high' }, { severity: 'medium' }], 'symfony/http-kernel': { 0: { severity: 'critical' } } }
+    }))).toEqual({ total: 3, bySeverity: { unknown: 0, info: 0, low: 0, moderate: 1, high: 1, critical: 1 }, packages: { 'guzzlehttp/guzzle': 'high', 'symfony/http-kernel': 'critical' } })
+    // Older Composer versions give no severity: said as such, never guessed
+    expect(parseComposerAudit(JSON.stringify({ advisories: { 'twig/twig': [{ title: 'x' }, { title: 'y' }] } }))).toMatchObject({ total: 2, bySeverity: { unknown: 2, moderate: 0 }, packages: { 'twig/twig': 'unknown' } })
     expect(parseComposerAudit(JSON.stringify({ advisories: [], abandoned: [] }))).toMatchObject({ total: 0, packages: {} })
     expect(parseComposerAudit('nope')).toBeNull()
   })

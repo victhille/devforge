@@ -99,19 +99,25 @@ export async function composerAvailable(dir: string): Promise<boolean> {
 
 // ─── Audit ────────────────────────────────────────────────────────────────────
 
-const SEVERITIES: AuditSeverity[] = ['info', 'low', 'moderate', 'high', 'critical']
+const SEVERITIES: AuditSeverity[] = ['unknown', 'info', 'low', 'moderate', 'high', 'critical']
 
-/** `composer audit --format=json`: advisories per package; a missing severity counts as moderate */
+/** Composer's words for a severity; none at all (older versions) stays "unknown", never guessed */
+const severityOf = (raw: unknown): AuditSeverity => {
+  const s = String(raw ?? '').toLowerCase()
+  return s === 'medium' ? 'moderate' : SEVERITIES.includes(s as AuditSeverity) ? s as AuditSeverity : 'unknown'
+}
+
+/** `composer audit --format=json`: advisories per package */
 export function parseComposerAudit(json: string): AuditSummary | null {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let r: any
   try { r = JSON.parse(json) } catch { return null }
   if (!r || typeof r !== 'object' || !('advisories' in r)) return null
-  const s: AuditSummary = { total: 0, bySeverity: { info: 0, low: 0, moderate: 0, high: 0, critical: 0 }, packages: {} }
+  const s: AuditSummary = { total: 0, bySeverity: { unknown: 0, info: 0, low: 0, moderate: 0, high: 0, critical: 0 }, packages: {} }
   // An empty result comes as [] instead of {}
   for (const [name, list] of Object.entries((Array.isArray(r.advisories) ? {} : r.advisories) as Record<string, { severity?: string | null }[]>)) {
     for (const a of Object.values(list ?? {})) {
-      const sev: AuditSeverity = SEVERITIES.includes(a?.severity as AuditSeverity) ? a.severity as AuditSeverity : 'moderate'
+      const sev = severityOf(a?.severity)
       s.bySeverity[sev]++
       s.total++
       const prev = s.packages[name]

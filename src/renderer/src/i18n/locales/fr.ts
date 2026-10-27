@@ -1052,7 +1052,7 @@ const fr = {
     colName: 'Paquet', colWanted: 'Demandée', colInstalled: 'Installée', colLatest: 'Dernière', colState: 'État', colAction: 'Action',
     notInstalled: 'non installé',
     levels: { current: 'à jour', patch: 'correctif', minor: 'mineure', major: 'majeure', unknown: 'inconnue' } as Record<string, string>,
-    severities: { info: 'info', low: 'faible', moderate: 'modérée', high: 'élevée', critical: 'critique' } as Record<string, string>,
+    severities: { unknown: 'gravité non précisée', info: 'info', low: 'faible', moderate: 'modérée', high: 'élevée', critical: 'critique' } as Record<string, string>,
     majorConfirm: "Version majeure : des changements incompatibles sont possibles. Lis les notes de version avant.\n\n{list}\n\nMettre à jour quand même ?",
     updated: '{n} paquet(s) mis à jour',
     failed: 'La mise à jour a échoué : regarde le journal.',
