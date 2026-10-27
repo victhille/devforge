@@ -52,12 +52,16 @@ const TYPES = new Set(['feat', 'fix', 'perf', 'refactor', 'docs', 'test', 'build
 export function parseCommit(hash, subject, body = '') {
   subject = subject.trim()
   if (/^chore\(release\): v?\d/.test(subject) || /^Release \d/.test(subject)) return null
+  // A merge brings changes that have their own commits
+  if (/^Merge (pull request|branch|remote-tracking branch)\b/.test(subject)) return null
   const breakingBody = /^BREAKING[ -]CHANGE:/m.test(body)
   const notes = notesOf(body)
   const m = subject.match(CONVENTIONAL)
   if (m && TYPES.has(m[1].toLowerCase())) {
     const breaking = !!m[3] || breakingBody
-    return { hash, kind: breaking ? 'breaking' : /** @type {Kind} */ (m[1].toLowerCase()), scope: m[2] ?? '', subject: m[4], breaking, notes }
+    // The website (site/) is not in the app: counted with the repository docs, not in the in-app notes
+    const kind = breaking ? 'breaking' : m[2] === 'site' ? 'docs' : /** @type {Kind} */ (m[1].toLowerCase())
+    return { hash, kind, scope: m[2] ?? '', subject: m[4], breaking, notes }
   }
   // Free-form history: "Area: what changed" or a plain sentence
   // "Area: …" unless the "area" is already a sentence ("Fix remote scripts: …")

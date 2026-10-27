@@ -11,6 +11,14 @@ describe('parseCommit', () => {
     expect(parseCommit('a4', 'refactor(ssh): x', 'BREAKING CHANGE: config moved')).toMatchObject({ kind: 'breaking' })
   })
 
+  it('leaves merges out, and counts the website with the repository docs', () => {
+    expect(parseCommit('m1', 'Merge pull request #4 from someone/branch')).toBeNull()
+    expect(parseCommit('m2', "Merge remote-tracking branch 'origin/main' into feature")).toBeNull()
+    expect(parseCommit('m3', "Merge branch 'main'")).toBeNull()
+    expect(parseCommit('s1', 'feat(site): page 404 (#6)')).toMatchObject({ kind: 'docs', scope: 'site' })
+    expect(parseCommit('s2', 'feat(sites): not the website')).toMatchObject({ kind: 'feat' })
+  })
+
   it('classifies older free-form messages', () => {
     expect(parseCommit('b1', 'Database: reach DBs through SSH')).toMatchObject({ kind: 'feat', scope: 'database' })
     expect(parseCommit('b2', 'Fix remote detection scripts')).toMatchObject({ kind: 'fix' })
