@@ -41,12 +41,20 @@ test('a project page gathers its resources and becomes the active project', asyn
   await expect(page.getByText('.env · 2 clé(s)')).toBeVisible()
   await expect(page.locator('main')).not.toContainText('secret')
 
-  // Database tab: the SQLite file inside the project is linked, and opens in Database
+  // Database tab: the SQLite file inside the project is linked, and shown right here (v3.3 lot 1)
   await page.getByRole('tab', { name: /Base de données/ }).click()
   await expect(page.getByText('Shop SQLite')).toBeVisible()
-  await page.getByRole('button', { name: 'Ouvrir', exact: true }).click()
-  await expect(page).toHaveURL(/#\/database\?conn=lite/)
+  await page.getByRole('table').getByRole('button', { name: 'orders' }).click()
+  await expect(page.getByRole('tab', { name: 'Parcourir', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByText('42.5')).toBeVisible()
+
+  // Full size: the Database page, which leads back to the project's tab
+  await page.getByRole('button', { name: 'Ouvrir en grand' }).click()
+  await expect(page).toHaveURL(/#\/database\?conn=lite&from=p1/)
   await expect(page.getByRole('table').getByRole('button', { name: 'orders' })).toBeVisible()
+  await page.getByRole('button', { name: 'Retour à Shop' }).click()
+  await expect(page).toHaveURL(/#\/project\/p1\?tab=database/)
+  await expect(page.getByRole('tab', { name: /Base de données/ })).toHaveAttribute('aria-selected', 'true')
 
   // The home page shows the active project
   await goTo(page, '/')
