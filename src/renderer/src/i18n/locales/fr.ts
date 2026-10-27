@@ -44,6 +44,7 @@ const fr = {
     favoritesFull: '{max} favoris au maximum',
     favoritesReset: 'Remettre les favoris par défaut',
     favoritesEmpty: "Survole une page et clique sur ☆ pour l'épingler ici.",
+    help: 'Aide sur cette page',
     moreWithServer: '{n} de plus avec un serveur',
     favoritesMove: 'Glisser pour réordonner (ou Alt + ↑ ↓)',
     groupDev: 'Développement',
@@ -1495,6 +1496,7 @@ const fr = {
     removeModel: "Supprimer le modèle"
   },
   needsSetup: {
+    guide: 'Comment faire',
     title: { server: "Aucun serveur configuré", github: "GitHub n'est pas connecté", vercel: "Vercel n'est pas connecté", forgy: "Forgy n'a pas de clé" },
     why: {
       server: "Cette page agit sur un serveur (VPS) en SSH. Ajoute le tien si tu en as un ; sinon, elle reste simplement de côté.",
@@ -1505,6 +1507,7 @@ const fr = {
     button: { server: "Ajouter un serveur", github: "Connecter GitHub", vercel: "Connecter Vercel", forgy: "Ajouter une clé" }
   },
   onboarding: {
+    guide: 'Lire la prise en main sur le site',
     progress: "Étape {n} sur {t}",
     skip: "Passer",
     back: "Retour",

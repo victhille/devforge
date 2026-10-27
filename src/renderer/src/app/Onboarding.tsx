@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Check, Container, Database, FolderSearch, KeyRound, Plug, Server } from 'lucide-react'
 import type { AppLanguage, AppSettings, ConnectionsOverview, DetectedProject, Project } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
+import { docsUrl, openDocs } from '@renderer/lib/docs'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import { Input } from '@renderer/components/ui/Input'
@@ -145,6 +146,9 @@ export default function Onboarding() {
                   </li>
                 ))}
               </ul>
+              {docsUrl('getting-started/first-launch', lang) && (
+                <button type="button" onClick={() => openDocs('getting-started/first-launch', lang)} className="self-start text-[13px] text-accent hover:underline">{o.guide}</button>
+              )}
             </>
           )}
 

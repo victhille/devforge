@@ -1,5 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react'
-import { Minus, Square, X, Maximize2, Search, SquareTerminal } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
+import { Minus, Square, X, Maximize2, Search, SquareTerminal, CircleHelp } from 'lucide-react'
 import logo from '@renderer/assets/icon-64.png'
 import { cn } from '@renderer/lib/cn'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -7,6 +8,8 @@ import { useAssistant } from '@renderer/features/assistant/AssistantContext'
 import Mascot from '@renderer/features/assistant/Mascot'
 import { TOGGLE_TERMINAL } from '@renderer/features/terminal/TerminalDock'
 import UpdateButton from './UpdateButton'
+import { docsOf } from '@renderer/app/navigation'
+import { docsUrl, openDocs } from '@renderer/lib/docs'
 
 function WindowButton({ title, onClick, danger, children }: {
   title: string
@@ -30,9 +33,18 @@ function WindowButton({ title, onClick, danger, children }: {
 }
 
 export default function TitleBar() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const { open, setOpen, mood } = useAssistant()
   const [maximized, setMaximized] = useState(false)
+  const { pathname } = useLocation()
+  const help = () => openDocs(docsOf(pathname), lang)
+
+  // F1: the documentation of the page on screen, like in most apps
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'F1') { e.preventDefault(); openDocs(docsOf(pathname), lang) } }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [pathname, lang])
 
   useEffect(() => {
     window.devforge.windowIsMaximized().then(setMaximized)
@@ -55,6 +67,14 @@ export default function TitleBar() {
         <span className="flex-1 text-left">{t.palette.search}…</span>
         <kbd className="rounded border border-line bg-elevated px-1.5 font-mono text-2xs">Ctrl K</kbd>
       </button>
+
+      {/* The documentation of this page, on the site (F1) */}
+      {docsUrl(docsOf(pathname), lang) && (
+        <button onClick={help} title={t.nav.help + ' (F1)'} aria-label={t.nav.help}
+          className="app-no-drag flex h-[30px] items-center rounded-lg border border-line px-2.5 text-fg-secondary transition-colors hover:border-fg-disabled hover:text-fg">
+          <CircleHelp size={14} />
+        </button>
+      )}
 
       {/* Terminal in blocks, docked at the bottom (Ctrl+`) */}
       <button onClick={() => window.dispatchEvent(new Event(TOGGLE_TERMINAL))} title={t.terminal.dockLabel + ' (Ctrl+`)'} aria-label={t.terminal.dockLabel}
