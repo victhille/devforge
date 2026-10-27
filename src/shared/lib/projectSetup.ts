@@ -38,6 +38,7 @@ const LABELS = {
     sail: 'Laravel Sail', sailInstall: 'Conteneurs Sail', sailInitScript: 'Base « testing » de Sail retirée (illisible hors WSL)', sailStart: 'Démarrage de Sail (construction de l\'image)',
     gitInit: 'Dépôt Git', gitAdd: 'Fichiers suivis', gitCommit: 'Premier commit', github: 'Dépôt GitHub', vscode: 'Ouverture dans VS Code',
     install: 'Installation des dépendances', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Configuration de Tailwind CSS',
+    migrate: 'Tables de la base (migrations)', apiTokens: 'Jetons d\'API sur User (HasApiTokens)',
     prismaAdapter: 'Pilote de base pour Prisma', prismaClient: 'Client Prisma (lib/prisma)', entry: 'Point d\'entrée', startScripts: 'Scripts dev et start'
   },
   en: {
@@ -49,6 +50,7 @@ const LABELS = {
     sail: 'Laravel Sail', sailInstall: 'Sail containers', sailInitScript: 'Sail\'s "testing" database removed (unreadable outside WSL)', sailStart: 'Starting Sail (building the image)',
     gitInit: 'Git repository', gitAdd: 'Tracked files', gitCommit: 'First commit', github: 'GitHub repository', vscode: 'Opening in VS Code',
     install: 'Installing dependencies', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Tailwind CSS setup',
+    migrate: 'Database tables (migrations)', apiTokens: 'API tokens on User (HasApiTokens)',
     prismaAdapter: 'Database driver for Prisma', prismaClient: 'Prisma client (lib/prisma)', entry: 'Entry point', startScripts: 'dev and start scripts'
   }
 }
@@ -302,7 +304,11 @@ function laravelSteps(o: Opts, ctx: PlanContext): SetupStep[] {
     steps.push({ kind: 'env', label: 'DB_*', file: '.env', vars: sailEnv(s, ctx.password) })
   } else if (s.database !== 'none') steps.push({ kind: 'env', label: 'DB_*', file: '.env', vars: laravelEnv(s, ctx.password) })
   // routes/api.php and Sanctum; the tables come with the first migration in the workshop
-  if (has('api')) steps.push({ kind: 'run', label: l.sanctum, exe: 'php', args: ['artisan', 'install:api', '--without-migration-prompt', '--no-interaction'], skipIf: 'routes/api.php' })
+  if (has('api')) {
+    steps.push({ kind: 'run', label: l.sanctum, exe: 'php', args: ['artisan', 'install:api', '--without-migration-prompt', '--no-interaction'], skipIf: 'routes/api.php' })
+    // What install:api asks to do by hand
+    steps.push({ kind: 'add-trait', label: l.apiTokens, file: 'app/Models/User.php', trait: 'Laravel\\Sanctum\\HasApiTokens' })
+  }
   if (has('auth')) {
     steps.push({ kind: 'run', label: l.fortify, exe: 'composer', args: ['require', 'laravel/fortify'], skipIf: 'vendor/laravel/fortify' })
     steps.push({ kind: 'run', label: l.fortifyInstall, exe: 'php', args: ['artisan', 'fortify:install', '--no-interaction'], skipIf: 'config/fortify.php' })
@@ -436,6 +442,12 @@ export function planSetup(o: Opts, ctx: PlanContext): SetupStep[] {
     else if (serverDb(s)) {
       steps.push({ kind: 'run', label: l.start, exe: 'docker', args: ['compose', 'up', '-d', '--wait', 'database'], optional: true })
     }
+    // Laravel migrated its SQLite database at creation: the chosen one starts empty
+    if (o.framework === 'laravel' && serverDb(s)) {
+      steps.push(sail
+        ? { kind: 'run', label: l.migrate, exe: 'docker', args: ['compose', 'exec', '-T', 'laravel.test', 'php', 'artisan', 'migrate', '--force'], optional: true }
+        : { kind: 'run', label: l.migrate, exe: 'php', args: ['artisan', 'migrate', '--force'], optional: true })
+    }
     if (s.database !== 'none') {
       const sqliteFile = { symfony: 'var/data.db', laravel: 'database/database.sqlite' }[o.framework as string] ?? 'prisma/dev.db'
       steps.push({
@@ -469,6 +481,7 @@ export function stepCommand(step: SetupStep): string {
     case 'scripts':    return Object.entries(step.scripts).map(([k, v]) => `"${k}": "${v}" → package.json`).join('\n')
     case 'drop-lines': return `− ${step.match} → ${step.file}`
     case 'connection': return step.label
+    case 'add-trait':  return `use ${step.trait.split('\\').pop()} → ${step.file}`
     case 'tailwind':   return `${step.via === 'vite' ? 'vite.config' : 'postcss.config.mjs'} + @import "tailwindcss"`
   }
 }

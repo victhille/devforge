@@ -1036,7 +1036,15 @@ const en = {
     openProject: 'Open the project',
     close:      'Close',
     minimize:   'Minimize',
-    expand:     'Expand'
+    expand:     'Expand',
+    maximize:   'Full screen',
+    restore:    'Normal size',
+    resize:     'Drag to resize, double-click for full screen',
+    copy:       'Copy the log',
+    copied:     'Copied',
+    step:       'Step {i}/{n}',
+    lines:      '{n} lines',
+    creating:   'Creating {name}'
   },
 
   // ── SSH ───────────────────────────────────────────────────────────────────

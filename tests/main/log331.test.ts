@@ -33,16 +33,47 @@ describe('v3.3.1: log lines', () => {
     const out: string[] = []
     const c = lineCollapser(text => out.push(text))
     for (let i = 0; i < 300; i++) c.push(`warning: in the working copy of 'f${i}.js', LF will be replaced by CRLF the next time Git touches it`, 'stderr')
-    c.push('Deprecation Notice: a', 'stderr')
-    c.push('Deprecation Notice: b', 'stderr')
     c.push('done', 'stdout')
     c.push('done', 'stdout')
-    c.flush()
+    c.end()
     expect(out).toEqual([
       "warning: in the working copy of 'f0.js', LF will be replaced by CRLF the next time Git touches it", '… (+299)',
-      'Deprecation Notice: a', '… (+1)',
       'done', '… (+1)'
     ])
+  })
+
+  it('shows the first deprecation notice, counts the scattered others, and drops progress bars', () => {
+    const out: string[] = []
+    const c = lineCollapser(text => out.push(text))
+    const notice = 'Deprecation Notice: Constant E_STRICT is deprecated in phar://C:/composer/composer.phar/src/Composer/Util/Silencer.php:36'
+    c.push(notice, 'stderr')
+    c.push('Updating dependencies', 'stdout')
+    c.push(notice, 'stderr')
+    c.push('    0 [>---------------------------]    0 [->--------------------------]', 'stdout')
+    c.push(`  10/100 [==>-------------------------]  10%${notice}`, 'stderr')
+    c.push(' 100/100 [============================] 100%', 'stdout')
+    c.push('Writing lock file', 'stdout')
+    c.end()
+    expect(out).toEqual([notice, 'Updating dependencies', 'Writing lock file', '… (+2) Deprecation Notice — composer self-update'])
+  })
+
+  it('keeps a Docker build step\'s title and end, counts what runs inside', () => {
+    const out: string[] = []
+    const c = lineCollapser(text => out.push(text))
+    for (const l of [
+      '#11 [ 5/15] RUN apt-get update', '#11 0.370 Get:1 http://archive.ubuntu.com noble InRelease', '#11 0.500 Get:2 http://security.ubuntu.com',
+      '(Reading database ... 5%', '(Reading database ... 100%', '#11 33.33 Unpacking libexpat1', '#11 DONE 177.9s'
+    ]) c.push(l, 'stdout')
+    c.end()
+    expect(out).toEqual(['#11 [ 5/15] RUN apt-get update', '#11 0.370 Get:1 http://archive.ubuntu.com noble InRelease', '… (+2)', '#11 DONE 177.9s'])
+  })
+
+  it('ends a line on a lone carriage return (a bar redrawn in place)', () => {
+    const lines: string[] = []
+    const reader = lineReader(l => lines.push(l))
+    reader.write(Buffer.from('  0/10 [>---]   0%\r 10/10 [====] 100%\r\nDone\n'))
+    reader.end()
+    expect(lines).toEqual(['  0/10 [>---]   0%', ' 10/10 [====] 100%', 'Done'])
   })
 })
 

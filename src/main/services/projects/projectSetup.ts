@@ -88,6 +88,25 @@ export function withVitePlugin(text: string): string {
   return lines.join('\n').replace(/plugins:\s*\[/, m => `${m}tailwindcss(), `)
 }
 
+/** Adds a trait to the first class of a PHP file: its import with the others, then first on the class's use line */
+export function withTrait(text: string, fqcn: string): string {
+  const name = fqcn.split('\\').pop()!
+  if (new RegExp(`\\b${name}\\b`).test(text)) return text
+  const lines = text.split('\n')
+  const lastImport = lines.reduce((at, l, i) => /^use\s+[\w\\]+.*;/.test(l) ? i : at, -1)
+  const ns = lines.findIndex(l => /^namespace\s/.test(l))
+  lines.splice((lastImport >= 0 ? lastImport : ns) + 1, 0, `use ${fqcn};`)
+  const classAt = lines.findIndex(l => /^(final\s+|abstract\s+)?class\s/.test(l))
+  if (classAt < 0) throw new Error(`pas de classe où ajouter ${name}`)
+  const useAt = lines.findIndex((l, i) => i > classAt && /^\s+use\s+[\w\\, <>]+;/.test(l))
+  if (useAt >= 0) lines[useAt] = lines[useAt].replace(/^(\s+use\s+)/, `$1${name}, `)
+  else {
+    const brace = lines.findIndex((l, i) => i >= classAt && l.includes('{'))
+    lines.splice(brace + 1, 0, `    use ${name};`, '')
+  }
+  return lines.join('\n')
+}
+
 /** Stylesheets the templates load first (Vite React, Vite Vue, Next.js) */
 const MAIN_CSS = ['src/index.css', 'src/style.css', 'src/app/globals.css', 'app/globals.css']
 
@@ -157,6 +176,11 @@ function applyStep(step: Exclude<SetupStep, { kind: 'run' }>, projPath: string, 
     case 'tailwind':
       setUpTailwind(projPath, step.via)
       return
+    case 'add-trait': {
+      const file = join(projPath, step.file)
+      if (existsSync(file)) writeText(file, withTrait(readText(file), step.trait))
+      return
+    }
     case 'connection':
       saveDbConnection({
         id: randomUUID(), name, type: step.type, color: DB_COLOR,

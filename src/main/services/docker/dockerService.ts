@@ -1,3 +1,4 @@
+import { existsSync } from 'fs'
 import { dirname } from 'path'
 import type { ComposeAction, ComposeProject, ComposeTarget, ContainerAction, ContainerStats, DockerContainer, DockerImage, DockerOverview } from '@shared/types'
 import { runFile } from '../../lib/exec'
@@ -105,7 +106,9 @@ function composeCall(target: ComposeTarget): { args: string[]; cwd?: string } {
     if (!local) throw new Error('Unknown compose project')
     return { args: ['compose'], cwd: local.dir }
   }
-  const files = target.configFiles.split(',').map(f => f.trim()).filter(Boolean)
+  // Files deleted with their folder (a project removed with its containers still up): by its name
+  // alone, compose still stops, removes and shows the logs of what runs (cwd in a missing folder: ENOENT)
+  const files = target.configFiles.split(',').map(f => f.trim()).filter(f => f && existsSync(f))
   return { args: ['compose', '-p', target.name, ...files.flatMap(f => ['-f', f])], cwd: files[0] ? dirname(files[0]) : undefined }
 }
 

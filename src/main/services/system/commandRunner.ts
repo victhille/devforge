@@ -13,28 +13,51 @@ export function stripAnsi(str: string): string { return str.replace(ANSI_RE, '')
 /** Lines that come by the hundred and say the same thing: one is shown, then the count */
 const SAME_KIND: [RegExp, string][] = [
   [/LF will be replaced by CRLF|CRLF will be replaced by LF/, 'crlf'],
-  [/^\s*Deprecation Notice:/, 'deprecation']
+  // What a Docker build step prints (apt, npm… inside the image): its "#7 [ 5/15] RUN …" title and "#7 DONE" stay
+  [/^#\d+ (\d+\.\d+ |sha256:|extracting |resolve |\.\.\.$)/, 'build']
 ]
+
+/** PHP's deprecation notices (an older Composer on a newer PHP): scattered through the whole output, so counted over all of it */
+const NOTICE = /^\s*(PHP )?Deprecation Notice:/
+
+/** A progress bar redrawn in place (Composer: "  10/100 [==>---]  10%"): nothing to read once the line is final */
+const PROGRESS = /^[\s\d/%]*(\[[=>\-\s]*\][\s\d/%]*)+$|^\(Reading database \.\.\.( \d+%)?$/
+const PROGRESS_PREFIX = /^[\s\d/%]*(\[[=>\-\s]*\][\s\d/%]*)+(?=\S)/
 
 /**
  * Collapses a run of lines of one kind (or the same line again) into its first
- * line and a "… (+N)" line, so a log of thousands of warnings stays readable
+ * line and a "… (+N)" line, shows the first deprecation notice only and counts
+ * the others, so a log of thousands of warnings stays readable
  */
 export function lineCollapser(emit: (text: string, type: 'stdout' | 'stderr') => void) {
   let key: string | null = null, extra = 0, lastType: 'stdout' | 'stderr' = 'stdout'
+  let notices = 0, composer = false
   const flush = () => {
     if (extra > 0) emit(`… (+${extra})`, lastType)
     key = null; extra = 0
   }
   return {
-    push(text: string, type: 'stdout' | 'stderr') {
+    push(line: string, type: 'stdout' | 'stderr') {
+      if (PROGRESS.test(line)) return
+      // A message written right after a bar, on its line
+      const text = line.replace(PROGRESS_PREFIX, '')
+      if (NOTICE.test(text)) {
+        composer ||= /composer\.phar|[\\/]composer[\\/]/i.test(text)
+        if (notices++ > 0) return
+      }
       const k = SAME_KIND.find(([re]) => re.test(text))?.[1] ?? text
       if (k === key) { extra++; lastType = type; return }
       flush()
       key = k; lastType = type
       emit(text, type)
     },
-    flush
+    flush,
+    /** At the end of the command: the count of the hidden notices, and what to do when Composer is behind PHP */
+    end() {
+      flush()
+      if (notices > 1) emit(`… (+${notices - 1}) Deprecation Notice${composer ? ' — composer self-update' : ''}`, 'stderr')
+      notices = 0
+    }
   }
 }
 
@@ -57,7 +80,11 @@ export function lineReader(onLine: (line: string) => void) {
   return {
     write(data: Buffer) {
       let buf = Buffer.concat([rest, data]), at: number
-      while ((at = buf.indexOf(0x0a)) >= 0) { emit(buf.subarray(0, at)); buf = buf.subarray(at + 1) }
+      // \n ends a line, and so does a lone \r (a progress bar redrawn in place)
+      while ((at = buf.findIndex((b, i) => b === 0x0a || (b === 0x0d && i + 1 < buf.length && buf[i + 1] !== 0x0a))) >= 0) {
+        emit(buf.subarray(0, at))
+        buf = buf.subarray(at + 1)
+      }
       rest = buf
     },
     end() { if (rest.length) emit(rest); rest = Buffer.alloc(0) }
@@ -124,7 +151,7 @@ export class CommandRunner {
 
     child.on('close', (code: number | null) => {
       out.end(); err.end()
-      lines.flush()
+      lines.end()
       const stored = this.tasks.get(taskId)
       if (!stored) return
 

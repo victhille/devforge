@@ -1029,7 +1029,15 @@ const fr = {
     openProject: 'Ouvrir le projet',
     close:      'Fermer',
     minimize:   'Réduire',
-    expand:     'Agrandir'
+    expand:     'Agrandir',
+    maximize:   'Plein écran',
+    restore:    'Taille normale',
+    resize:     'Glisser pour redimensionner, double-clic pour le plein écran',
+    copy:       'Copier le journal',
+    copied:     'Copié',
+    step:       'Étape {i}/{n}',
+    lines:      '{n} lignes',
+    creating:   'Création de {name}'
   },
 
   packages: {

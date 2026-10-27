@@ -78,7 +78,7 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
     setState({
       visible:     true,
       minimized:   false,
-      label:       `Creating ${options.name}`,
+      label:       t.console.creating.replace('{name}', options.name),
       taskId:      null,
       logs:        [],
       result:      null,
@@ -94,11 +94,10 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
     saveProjUnsubRef.current?.()
 
     // One-shot listener to save the project when creation succeeds
-    const unsub = window.devforge.onTaskResult(result => {
+    const unsub = window.devforge.onTaskResult(async result => {
       if (result.status === 'success') {
         const id = crypto.randomUUID()
-        setState(prev => ({ ...prev, projectId: id }))
-        window.devforge.saveProject({
+        await window.devforge.saveProject({
           id,
           name:          options.name,
           path:          projPath,
@@ -108,12 +107,14 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
           lastOpenedAt:  null,
           favorite:      false
         })
+        // The console opens the project's page once it is saved
+        setState(prev => ({ ...prev, projectId: id }))
       }
       saveProjUnsubRef.current = null
       unsub()
     })
     saveProjUnsubRef.current = unsub
-  }, [])
+  }, [t])
 
   const runScript = useCallback(async (
     projectPath: string,

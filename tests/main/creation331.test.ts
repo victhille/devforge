@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import type { Framework, ProjectCreationOptions, ProjectSetup, SetupStep } from '../../src/shared/types'
 import { ignoreLines, planSetup, prismaClientFile, stepCommand } from '../../src/shared/lib/projectSetup'
 import { packageName } from '../../src/shared/data/projectLibraries'
-import { runSetup, withVitePlugin } from '../../src/main/services/projects/projectSetup'
+import { runSetup, withTrait, withVitePlugin } from '../../src/main/services/projects/projectSetup'
 import { tempDir } from '../helpers'
 
 /** v3.3.1: what the creation tests on real projects turned up (Node, React, Next.js, Laravel) */
@@ -110,5 +110,31 @@ describe('v3.3.1: Tailwind wired in', () => {
     expect(existsSync(join(dir, 'src/app/api/health/route.ts'))).toBe(true)
     expect(lines.some(l => l.includes('src/app/api/health/route.ts'))).toBe(true)
     expect(lines.some(l => l.includes('{app}'))).toBe(false)
+  })
+})
+
+describe('v3.3.1: Laravel after its creation', () => {
+  it('migrates the chosen database (on this PC, or in the Sail container) and gives User its API tokens', () => {
+    const local = planSetup(opts('laravel', { database: 'postgres', features: ['api'] }), ctx)
+    expect(commands(local)).toContain('php artisan migrate --force')
+    expect(local.find(s => s.kind === 'add-trait')).toMatchObject({ file: 'app/Models/User.php', trait: 'Laravel\\Sanctum\\HasApiTokens' })
+    const cmds = commands(local)
+    expect(cmds.indexOf('php artisan migrate --force')).toBeGreaterThan(cmds.indexOf('docker compose up -d --wait database'))
+    const sail = commands(planSetup(opts('laravel', { database: 'mysql', features: ['docker'] }), ctx))
+    expect(sail).toContain('docker compose exec -T laravel.test php artisan migrate --force')
+    expect(commands(planSetup(opts('laravel', { database: 'sqlite' }), ctx))).not.toContain('php artisan migrate --force')
+  })
+
+  it('adds the trait to the model once, next to its imports and on its use line', () => {
+    const user = [
+      '<?php', '', 'namespace App\\Models;', '', '// use Illuminate\\Contracts\\Auth\\MustVerifyEmail;',
+      'use Database\\Factories\\UserFactory;', 'use Illuminate\\Foundation\\Auth\\User as Authenticatable;', 'use Illuminate\\Notifications\\Notifiable;', '',
+      'class User extends Authenticatable', '{', '    /** @use HasFactory<UserFactory> */', '    use HasFactory, Notifiable;', '}', ''
+    ].join('\n')
+    const out = withTrait(user, 'Laravel\\Sanctum\\HasApiTokens')
+    expect(out).toContain('use Illuminate\\Notifications\\Notifiable;\nuse Laravel\\Sanctum\\HasApiTokens;\n')
+    expect(out).toContain('    use HasApiTokens, HasFactory, Notifiable;')
+    expect(withTrait(out, 'Laravel\\Sanctum\\HasApiTokens')).toBe(out)
+    expect(withTrait('<?php\nnamespace A;\n\nclass B\n{\n}\n', 'X\\T')).toContain('class B\n{\n    use T;\n')
   })
 })

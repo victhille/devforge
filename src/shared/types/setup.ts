@@ -31,6 +31,8 @@ export type SetupStep =
   | { kind: 'connection'; label: string; type: 'postgres' | 'mysql' | 'sqlite'; port: number; user: string; database: string; file?: string }
   /** Tailwind 4 wired in: its Vite plugin (vite.config, Vite projects) or its PostCSS plugin (postcss.config.mjs), and @import "tailwindcss" in the main stylesheet */
   | { kind: 'tailwind'; label: string; via: 'vite' | 'postcss' }
+  /** A PHP trait added to a class: its import and its use line (Sanctum's HasApiTokens on User) */
+  | { kind: 'add-trait'; label: string; file: string; trait: string }
 
 /** PHP on this PC, for a Symfony project */
 export interface PhpStatus {
