@@ -57,9 +57,9 @@ Rien d'autre n'est propre à Windows au point de devoir disparaître.
 
 | Étape | Contenu | Taille | Version |
 |---|---|---|---|
-| 1 | Linux : Bash et Zsh dans le terminal, ouvrir un terminal, secrets (`basic_text` signalé), démarrage avec la session, textes selon le système | M | v3.3 |
-| 2 | Linux : AppImage dans la release, mises à jour, CI Ubuntu avec e2e, page Installation du site | M | v3.3 |
+| 1 | Linux : Bash et Zsh dans le terminal, ouvrir un terminal, secrets (`basic_text` signalé), démarrage avec la session, textes selon le système | M | à venir |
+| 2 | Linux : AppImage dans la release, mises à jour, CI Ubuntu avec e2e, page Installation du site | M | à venir |
 | 3 | macOS : décider la signature (compte développeur ou non) | — | — |
-| 4 | macOS : `dmg`, Terminal.app, Dock, CI `macos-latest`, signature et notarisation si décidées | M | v3.4 |
+| 4 | macOS : `dmg`, Terminal.app, Dock, CI `macos-latest`, signature et notarisation si décidées | M | plus tard |
 
 **Fini quand** (portage) : une AppImage installée sous Linux passe les 7 étapes du parcours d'un inconnu (lot 6 de la [v3.0](../roadmap/v3.0.md)) et se met à jour toute seule.
