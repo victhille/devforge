@@ -2,6 +2,24 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [3.3.0](https://github.com/victhille/devforge/compare/v3.2.0...v3.3.0) — 2026-10-27
+
+> The project page shows its database and its packages (npm, pnpm, yarn, Composer): outdated ones, vulnerabilities and chosen updates with rollback; Forgy can read and propose them too.
+
+### New features
+
+- **aide**: F1 sur l'onglet Paquets ouvre sa propre page de doc ([adbaea8](https://github.com/victhille/devforge/commit/adbaea87e7dc07d3e5098d44affae28e24ba38f9))
+- **forgy**: Forgy tells what is outdated or vulnerable in a project, and proposes an update that can be undone ([f56c142](https://github.com/victhille/devforge/commit/f56c1422b148921d86210fc30ef7713c9fe47399))
+- **paquets**: The Packages tab reads composer.json too: Packagist, composer audit, updates (in Sail when needed) ([5db213f](https://github.com/victhille/devforge/commit/5db213f4236c1c25ceb858a0d2201feb3752188b))
+- **paquets**: Packages tab: outdated packages, vulnerabilities, chosen updates with rollback ([a8438d2](https://github.com/victhille/devforge/commit/a8438d259c7a7def7c3d11d78f516024996f277b))
+- **projet**: The database shows in the project page, and the Database page leads back to the project ([3768ec3](https://github.com/victhille/devforge/commit/3768ec3c1024ad7aa4ffdccb89b34837eaa45235))
+
+### Fixes
+
+- **paquets**: A Composer advisory without a severity shows as "unrated" ([b3cd880](https://github.com/victhille/devforge/commit/b3cd8800c4d441f5c0b6eca38a2f066ee2e2115b))
+
+_11 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [3.2.0](https://github.com/victhille/devforge/compare/v3.1.0...v3.2.0) — 2026-10-27
 
 > Each page opens its documentation ("?" button or F1), n8n and the ntfy alerts are set in Connections, no more French / English mix, and Forgy picks up ANTHROPIC_API_KEY.

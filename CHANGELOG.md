@@ -2,6 +2,24 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [3.3.0](https://github.com/victhille/devforge/compare/v3.2.0...v3.3.0) — 2026-10-27
+
+> La fiche projet affiche sa base de données et ses paquets (npm, pnpm, yarn, Composer) : retards, vulnérabilités et mises à jour au choix, avec retour en arrière ; Forgy sait aussi les lire et les proposer.
+
+### Nouveautés
+
+- **aide** : F1 sur l'onglet Paquets ouvre sa propre page de doc ([adbaea8](https://github.com/victhille/devforge/commit/adbaea87e7dc07d3e5098d44affae28e24ba38f9))
+- **forgy** : Forgy dit ce qui est en retard ou vulnérable dans un projet, et propose une mise à jour annulable ([f56c142](https://github.com/victhille/devforge/commit/f56c1422b148921d86210fc30ef7713c9fe47399))
+- **paquets** : L'onglet Paquets lit aussi composer.json : Packagist, composer audit, mises à jour (dans Sail si besoin) ([5db213f](https://github.com/victhille/devforge/commit/5db213f4236c1c25ceb858a0d2201feb3752188b))
+- **paquets** : Onglet Paquets : paquets en retard, vulnérabilités, mise à jour au choix avec retour en arrière ([a8438d2](https://github.com/victhille/devforge/commit/a8438d259c7a7def7c3d11d78f516024996f277b))
+- **projet** : La base de données s'affiche dans la fiche projet, et la page Base de données ramène au projet ([3768ec3](https://github.com/victhille/devforge/commit/3768ec3c1024ad7aa4ffdccb89b34837eaa45235))
+
+### Corrections
+
+- **paquets** : Une vulnérabilité Composer sans gravité indiquée s'affiche « gravité non précisée » ([b3cd880](https://github.com/victhille/devforge/commit/b3cd8800c4d441f5c0b6eca38a2f066ee2e2115b))
+
+_11 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [3.2.0](https://github.com/victhille/devforge/compare/v3.1.0...v3.2.0) — 2026-10-27
 
 > Chaque page ouvre sa documentation (bouton « ? » ou F1), n8n et les alertes ntfy se règlent dans Connexions, plus de mélange français / anglais, et Forgy reconnaît ANTHROPIC_API_KEY.
