@@ -1,4 +1,5 @@
 ---
+template: splash
 title: Sans ou avec DevForge
 description: Ce que DevForge regroupe dans une fenêtre, ce qu'il ne remplace pas, et ses limites, pour décider en connaissance de cause.
 ---

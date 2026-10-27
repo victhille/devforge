@@ -214,3 +214,49 @@ mobile-starlight-toc a[aria-current='true'] { color: var(--df-orange); font-weig
 .df-release-main { flex: 1 1 380px; min-width: 0; color: var(--sl-color-gray-1); }
 .df-release-main summary { cursor: pointer; margin-top: 0.5rem; font-weight: 600; font-size: var(--sl-text-sm); color: var(--sl-color-accent); }
 .df-older, .df-releases-error { margin-top: 1.25rem; color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); }
+
+/* Header: Starlight's row, then the site's sections as tabs (src/components/Header.astro) */
+:root {
+  --df-tabs-height: 2.625rem;
+  --sl-nav-height: calc(3.5rem + var(--df-tabs-height));
+  --sl-sidebar-width: 16rem;
+}
+@media (min-width: 50em) {
+  :root { --sl-nav-height: calc(4rem + var(--df-tabs-height)); }
+}
+header.header { padding-bottom: 0; }
+.df-head { display: flex; flex-direction: column; height: 100%; }
+.df-head-main { flex: 1; min-height: 0; padding-bottom: var(--sl-nav-pad-y); }
+.df-tabs {
+  height: var(--df-tabs-height);
+  display: flex; gap: 1.75rem;
+  overflow-x: auto; scrollbar-width: none;
+}
+.df-tabs a {
+  display: flex; align-items: center; flex: none;
+  color: var(--sl-color-gray-3); text-decoration: none; font-size: var(--sl-text-sm);
+  border-bottom: 2px solid transparent;
+}
+.df-tabs a:hover { color: var(--sl-color-white); }
+.df-tabs a[aria-current='page'] { color: var(--sl-color-white); font-weight: 600; border-bottom-color: var(--df-orange); }
+/* The phone's menu button stays centred on the first row */
+.sl-menu-button { top: calc((var(--sl-nav-height) - var(--df-tabs-height) - var(--sl-menu-button-size)) / 2); }
+
+/* More room for the text: a wider column, a narrow « On this page » */
+@media (min-width: 72rem) {
+  :root { --sl-content-width: 52rem; }
+  .right-sidebar-container { width: 15rem; }
+  [data-has-sidebar][data-has-toc] .main-pane { width: calc(100% - 15rem); --sl-content-margin-inline: auto; }
+  .right-sidebar-panel { font-size: var(--sl-text-sm); }
+}
+
+/* Footer: the site's sections again, always at hand on a phone */
+.df-foot {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-top: 2rem; padding-top: 1.25rem;
+  border-top: 1px solid var(--sl-color-hairline); font-size: var(--sl-text-sm); color: var(--sl-color-gray-3);
+}
+.df-foot a { color: var(--sl-color-gray-2); }
+.df-foot span { margin-inline-start: auto; }
+
+/* The pages that are not documentation (What's new, privacy…): one centred column, easy to read */
+html:not([data-has-sidebar]) .sl-container { max-width: 54rem; }
