@@ -31,6 +31,10 @@ function readStore(): Stored[] {
 }
 const writeStore = (pages: Stored[]) => writeJsonFile(storePath(), { pages })
 
+/** The status pages installed from DevForge (this PC's list, no SSH) */
+export const listPages = (): Pick<Stored, 'connectionId' | 'exposure' | 'domain'>[] =>
+  readStore().map(({ connectionId, exposure, domain }) => ({ connectionId, exposure, domain }))
+
 function server(connectionId: string) {
   const conn = loadSshConnections().find(c => c.id === connectionId)
   if (!conn) throw new Error('Unknown server')

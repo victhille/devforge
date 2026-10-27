@@ -8,6 +8,9 @@ import { loadSshConnections, removeSshConnection } from '../ssh/sshStorage'
 import { connectSsh, sshRun } from '../ssh/sshClient'
 import { getDbConnection, listDbConnections, removeDbConnection } from '../database/dbStorage'
 import { testDb } from '../database/dbClient'
+import { listInstances as n8nInstances, saveApiKey as saveN8nKey, workflows as n8nWorkflows } from '../n8n/n8nService'
+import { listPages as statusPages, overview as statusOverview, saveConfig as saveStatusConfig, testAlert } from '../status/statusService'
+import type { StatusAlertsState } from '@shared/types'
 
 /**
  * Settings › Connections (v3.0 lot 1): every service DevForge can reach, in
@@ -41,6 +44,8 @@ export function warmProbes(): void {
 const where = (d: { type: string; host?: string; port?: number; database?: string; file?: string }) =>
   d.type === 'sqlite' ? d.file ?? '' : `${d.host ?? ''}${d.port ? `:${d.port}` : ''}${d.database ? `/${d.database}` : ''}`
 
+const serverName = (id: string) => loadSshConnections().find(s => s.id === id)?.name ?? id
+
 export async function overview(): Promise<ConnectionsOverview> {
   const [[cli, docker], name, email] = await Promise.all([slowProbes(), gitConfig('user.name'), gitConfig('user.email')])
   return {
@@ -50,6 +55,8 @@ export async function overview(): Promise<ConnectionsOverview> {
     vercel: vercelAccount(),
     docker: { version: docker },
     servers: loadSshConnections().map(s => ({ id: s.id, name: s.name, host: s.host, username: s.username })),
+    n8n: n8nInstances().map(i => ({ connectionId: i.connectionId, server: serverName(i.connectionId), where: i.domain || 'local', hasKey: i.hasKey })),
+    statusPages: statusPages().map(p => ({ connectionId: p.connectionId, server: serverName(p.connectionId), where: p.exposure === 'port' ? 'port 3901' : p.domain })),
     databases: listDbConnections().map(d => ({ id: d.id, name: d.name, type: d.type, target: where(d) }))
   }
 }
@@ -74,6 +81,17 @@ export async function test(kind: ConnectionKind, id?: string): Promise<Connectio
         return res.ok ? { ok: true, detail: 'Anthropic' } : { ok: false, detail: res.status === 401 ? 'BAD_KEY' : `Anthropic ${res.status}` }
       }
       case 'vercel': return { ok: true, detail: await vercelCheck() }
+      case 'n8n': {
+        if (!n8nInstances().find(i => i.connectionId === id)?.hasKey) return { ok: false, detail: 'NO_KEY' }
+        return { ok: true, detail: `${(await n8nWorkflows(String(id))).length} workflow(s)` }
+      }
+      case 'alerts': {
+        const a = (await statusOverview(String(id ?? ''))).config?.alerts
+        if (!a?.ntfy && !a?.webhook) return { ok: false, detail: 'NO_ALERTS' }
+        // The same request the service sends on an outage
+        await testAlert(a)
+        return { ok: true, detail: [a.ntfy && 'ntfy', a.webhook && 'webhook'].filter(Boolean).join(' + ') }
+      }
       case 'docker': {
         const v = await dockerVersion()
         return v ? { ok: true, detail: `Docker ${v}` } : { ok: false, detail: 'DOCKER_DOWN' }
@@ -99,9 +117,28 @@ export async function disconnect(kind: Exclude<ConnectionKind, 'docker'>, id?: s
     case 'github': await saveGithubToken(null); return
     case 'forgy': saveAssistantConfig({ clearKey: true }); return
     case 'vercel': await saveVercelToken(null); return
+    case 'n8n': saveN8nKey(String(id ?? ''), null); return
+    case 'alerts': {
+      const { config } = await statusOverview(String(id ?? ''))
+      if (config) await saveStatusConfig(String(id), { ...config, alerts: { ...config.alerts, ntfy: null } })
+      return
+    }
     case 'server': removeSshConnection(String(id ?? '')); return
     case 'database': removeDbConnection(String(id ?? '')); return
   }
+}
+
+/** A status page's alerts, read on its server (never the topic) */
+export async function alerts(connectionId: string): Promise<StatusAlertsState> {
+  const a = (await statusOverview(connectionId)).config?.alerts
+  return { ntfy: !!a?.ntfy, webhook: !!a?.webhook }
+}
+
+/** Sets a status page's ntfy alerts; the rest of its settings stays (BAD_NTFY: topic or server refused) */
+export async function setNtfy(connectionId: string, server: string, topic: string): Promise<void> {
+  const { config } = await statusOverview(connectionId)
+  if (!config) throw new Error('NO_STATUS_PAGE')
+  await saveStatusConfig(connectionId, { ...config, alerts: { ...config.alerts, ntfy: { server: server.trim() || 'https://ntfy.sh', topic: topic.trim() } } })
 }
 
 /** Git's global name and e-mail (one line each, as git takes them) */

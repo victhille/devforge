@@ -1592,6 +1592,21 @@ const fr = {
       removeOf: "Retirer {name}",
       removeConfirm: "Retirer {name} de DevForge ? Il faudra le reconfigurer pour s'en servir.",
       removed: "{name} retiré.",
+      automationTitle: "n8n et alertes",
+      automationHint: "Ils tournent sur tes serveurs : DevForge garde la clé de n8n et lit les réglages de la page de statut par SSH.",
+      n8nOf: "n8n · {server}",
+      n8nKey: "Clé API n8n",
+      noN8n: "Aucun n8n",
+      noN8nHint: "Il s'installe depuis la page n8n, sur un de tes serveurs.",
+      statusOf: "Page de statut · {server}",
+      noStatus: "Aucune page de statut",
+      noStatusHint: "Elle s'installe depuis la page Page de statut, sur un de tes serveurs ; ses alertes ntfy se règlent ensuite ici ou sur sa page.",
+      readAlerts: "Lire les alertes",
+      ntfyOn: "alertes ntfy actives",
+      ntfyOff: "pas d'alerte ntfy",
+      webhookToo: "et un webhook",
+      ntfyServer: "Serveur ntfy",
+      ntfyTopic: "Sujet ntfy (garde-le secret : qui le connaît reçoit les alertes)",
       storedNote: "Tout reste sur ce PC, dans le dossier de DevForge ; clés, jetons et mots de passe sont chiffrés par Windows et ne se réaffichent jamais.",
       errors: {
         NO_TOKEN: "aucun jeton ni GitHub CLI",
@@ -1601,7 +1616,10 @@ const fr = {
         DOCKER_DOWN: "Docker ne répond pas (Docker Desktop est-il lancé ?)",
         NOT_FOUND: "introuvable",
         BAD_NAME: "Un nom sur une ligne, 100 caractères au plus.",
-        BAD_EMAIL: "Un e-mail valide."
+        BAD_EMAIL: "Un e-mail valide.",
+        NO_ALERTS: "aucune alerte réglée",
+        NO_STATUS_PAGE: "page de statut introuvable sur le serveur",
+        BAD_NTFY: "sujet ou serveur refusé : sujet en lettres, chiffres, - et _, serveur en http(s)://"
       }
     },
     launcherTitle: "Lanceur global",
