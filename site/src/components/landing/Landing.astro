@@ -71,11 +71,22 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
         <a href="https://github.com/victhille/devforge/releases">{t.nav.releases}</a>
       </nav>
       <div class="top-end">
+        <button type="button" class="search-btn" data-search-open aria-haspopup="dialog" aria-label={t.nav.searchLabel}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <span class="search-text">{t.nav.search}</span>
+          <kbd>Ctrl K</kbd>
+        </button>
         <a class="lang" href={otherHome} hreflang={lang === 'en' ? 'fr' : 'en'} title={t.nav.other}>{t.nav.otherShort}</a>
         <a class="btn btn-dark btn-sm" href={docs('download/')}>{t.nav.download}</a>
       </div>
     </div>
   </header>
+
+  <!-- The docs' own search (Pagefind, built with the site), opened from the home page -->
+  <dialog class="search-dialog" data-search data-base={base} aria-label={t.nav.searchLabel}>
+    <div class="search-box" data-search-box></div>
+    <form method="dialog" class="search-foot"><button class="search-close">{t.nav.searchClose}</button><span><kbd>{lang === 'fr' ? 'Échap' : 'Esc'}</kbd></span></form>
+  </dialog>
 
   <main id="main">
     <!-- Hero -->
@@ -251,6 +262,39 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
   </footer>
 
   <script>
+    // Search: Pagefind's interface, loaded the first time the dialog opens
+    const dialog = document.querySelector<HTMLDialogElement>('[data-search]')
+    let searchReady: Promise<void> | null = null
+    function loadSearch(): Promise<void> {
+      const base = dialog?.dataset.base ?? ''
+      searchReady ??= new Promise<void>((resolve, reject) => {
+        const css = document.createElement('link')
+        css.rel = 'stylesheet'; css.href = `${base}/pagefind/pagefind-ui.css`
+        document.head.append(css)
+        const js = document.createElement('script')
+        js.src = `${base}/pagefind/pagefind-ui.js`
+        js.onload = () => {
+          const w = window as unknown as { PagefindUI: new (o: object) => unknown }
+          new w.PagefindUI({ element: '[data-search-box]', showImages: false, showSubResults: true, resetStyles: false })
+          resolve()
+        }
+        js.onerror = reject
+        document.head.append(js)
+      })
+      return searchReady
+    }
+    function openSearch() {
+      if (!dialog || dialog.open) return
+      dialog.showModal()
+      loadSearch().then(() => dialog.querySelector<HTMLInputElement>('input')?.focus()).catch(() => {})
+    }
+    document.querySelector('[data-search-open]')?.addEventListener('click', openSearch)
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openSearch() }
+    })
+    // A click on the backdrop closes the dialog
+    dialog?.addEventListener('click', e => { if (e.target === dialog) dialog.close() })
+
     // The latest release fills the download buttons: no version is written in the page
     const API = 'https://api.github.com/repos/victhille/devforge/releases/latest'
     const INSTALLER = /^DevForge-Setup-v.+\.exe$/
@@ -342,6 +386,17 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
     .links a:hover { color: var(--ink); }
     .top-end { margin-left: auto; display: flex; align-items: center; gap: 16px; }
     .lang { color: var(--ink-3); text-decoration: none; font: 600 13px var(--mono); }
+    .search-btn { display: inline-flex; align-items: center; gap: 10px; height: 38px; padding: 0 8px 0 12px; border: 1px solid var(--rule-2); border-radius: 9px; background: var(--white); color: var(--ink-3); font: 14.5px var(--font); white-space: nowrap; cursor: pointer; }
+    .search-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+    .search-btn kbd, .search-foot kbd { font: 12px var(--mono); border: 1px solid var(--rule-2); border-radius: 5px; padding: 0 6px; background: var(--paper); color: var(--ink-3); }
+    .search-dialog { width: min(680px, calc(100% - 32px)); max-height: min(640px, calc(100vh - 120px)); margin: 96px auto auto; padding: 0; border: 0; border-radius: 16px; background: var(--white); color: var(--ink); box-shadow: 0 30px 70px -20px rgba(0,0,0,.45); overflow: hidden; }
+    .search-dialog[open] { display: flex; flex-direction: column; }
+    .search-dialog::backdrop { background: rgba(23,25,30,.42); }
+    .search-box { flex: 1; min-height: 0; overflow: hidden auto; padding: 16px 18px 4px; --pagefind-ui-font: var(--font); --pagefind-ui-primary: var(--ink); --pagefind-ui-text: var(--ink); --pagefind-ui-background: var(--white); --pagefind-ui-border: var(--rule-2); --pagefind-ui-tag: var(--paper); --pagefind-ui-border-width: 1px; --pagefind-ui-border-radius: 10px; --pagefind-ui-scale: .85; }
+    .search-box mark { background: #FDE6D3; color: inherit; border-radius: 3px; padding: 0 2px; }
+    .search-box a { color: var(--ink); }
+    .search-foot { display: flex; justify-content: space-between; align-items: center; padding: 10px 18px 14px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--ink-3); }
+    .search-close { border: 0; background: none; color: var(--link); font: 14px var(--font); cursor: pointer; padding: 6px 0; }
 
     .hero { display: flex; flex-wrap: wrap; gap: 56px; align-items: center; padding: 88px 0 40px; }
     .hero-text { flex: 1 1 420px; min-width: 0; }
@@ -446,6 +501,7 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
     .foot-inner a { color: var(--ink-2); }
     .foot-inner p { width: 100%; color: var(--ink-3); font-size: 13px; }
 
+    @media (max-width: 1180px) { .search-text { display: none; } }
     @media (max-width: 1000px) {
       .links { display: none; }
       .day { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -458,6 +514,8 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
       .section { padding-block: 72px; }
       .day, .specs { grid-template-columns: 1fr; }
       .top-end .btn { display: none; }
+      .search-text, .search-btn kbd { display: none; }
+      .search-btn { padding: 0 11px; }
       .art-card { width: 220px; bottom: 12px; }
       .projects-stage { padding: 14px; }
     }

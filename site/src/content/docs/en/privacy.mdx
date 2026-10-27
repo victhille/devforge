@@ -1,0 +1,75 @@
+---
+title: Privacy and security
+description: What stays on your PC, what leaves it and when, how DevForge protects your passwords and keys, and what Forgy sends.
+---
+
+DevForge works on your PC. Here is what stays there, what leaves it and when, and how your passwords and keys are protected.
+
+<div class="df-ways not-content">
+  <div class="df-way">
+    <strong>No account, no analytics</strong>
+    <span>No sign-up. DevForge sends no usage data.</span>
+  </div>
+  <div class="df-way">
+    <strong>Encrypted secrets</strong>
+    <span>By Windows, tied to your account. Never shown.</span>
+  </div>
+  <div class="df-way">
+    <strong>Forgy asks</strong>
+    <span>It reads, then suggests: you approve its actions.</span>
+  </div>
+</div>
+
+## What stays on your PC
+
+Everything DevForge knows is in its folder, `%APPDATA%\DevForge`, as JSON files: projects, servers, databases, settings, Forgy's history. Nothing is kept anywhere else.
+
+- A backup is made before each change of the data format; the last 5 are kept.
+- The local log records errors and events, secrets masked.
+- **Settings › Data › Erase everything** resets DevForge.
+
+See [Data, export and reset](/devforge/en/settings/data/).
+
+## Your passwords and keys
+
+- **Encrypted by Windows** (DPAPI), tied to your Windows account: copied to another PC or another account, they cannot be read.
+- **Never sent back to the screen**: the interface only gets "set" or "none". Even the page has no access to them; only the main process decrypts them, when it uses them.
+- **Left out of the export** of your setup: you type them again on the other PC.
+- **Masked** in the log and the diagnostic report.
+- Syncing the `.env` with a server compares the state of each key (same, different, only here), never the values.
+
+## What leaves your PC, and when
+
+| To | When | What |
+|---|---|---|
+| GitHub | at startup, then every 6 hours | looking for an update, and downloading it |
+| Anthropic | when you write to Forgy | your question and its context (see below) |
+| Hugging Face | on the first dictation | downloading the speech recognition model; your voice never leaves the PC |
+| Your servers, GitHub, Vercel, n8n, ntfy… | when you use the feature | what the feature needs, with the credentials you gave |
+
+The [webhook](/devforge/en/data/webhooks/) receiver only listens on this PC (`127.0.0.1`): it cannot be reached from the network.
+
+## What Forgy sends
+
+Forgy runs on Anthropic's API, with your key. Each question sends:
+
+- your question and the current conversation;
+- on the first message about a project: its name, path, framework, Git status, root files, scripts, dependencies and the start of the README;
+- the context of the open page, when the 📎 chip is on: a database's **structure**, never its data; an API Tester request, sensitive headers masked; the last log lines shown;
+- what Forgy read to answer: project files, Git diff, Docker status…
+
+To **act** (commit, `.env`, container, SQL…), Forgy shows a card: nothing runs before your click. The **Auto for safe actions** setting lets undoable or read-only actions go on their own; push, pull, SQL writes and ports always ask for your approval. A monthly budget stops Forgy once reached.
+
+See [Forgy](/devforge/en/forgy/assistant/) and [its actions](/devforge/en/forgy/actions/).
+
+## The diagnostic report
+
+**Settings › About › Copy report** copies the version, the system and the last lines of the log, secrets masked. **Nothing is sent**: you paste it where you want. Read it first: it may hold server or project names.
+
+## Reporting a vulnerability
+
+Not in a public issue: use GitHub's private reporting (**Security** tab, **Report a vulnerability**). Only the maintainers see it. See [Contributing](/devforge/en/contribute/).
+
+## This site
+
+No cookies, no audience measurement. Only the download button asks GitHub's public API for the latest version.

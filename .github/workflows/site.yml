@@ -52,6 +52,8 @@ jobs:
         env:
           # Read the release notes without the anonymous rate limit
           GITHUB_TOKEN: ${{ github.token }}
+      # Every internal link and anchor must lead somewhere
+      - run: npm run check:links
       - if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:

@@ -32,6 +32,8 @@ export default defineConfig({
       sidebar: [
         'download',
         'news',
+        'compare',
+        'privacy',
         'contribute',
         group('Prise en main', 'Getting started', [
           'getting-started/installation',
@@ -39,6 +41,7 @@ export default defineConfig({
           'getting-started/connections',
           'getting-started/interface'
         ]),
+        group('Guides', 'Guides', ['guides/deploy-site', 'guides/sqlite', 'guides/forgy-commit']),
         group('Développement', 'Development', [
           'dev/projects', 'dev/new-project', 'dev/git', 'dev/stacks', 'dev/docker'
         ]),
