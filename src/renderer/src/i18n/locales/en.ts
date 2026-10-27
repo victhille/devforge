@@ -1601,6 +1601,21 @@ const en = {
       removeOf: "Remove {name}",
       removeConfirm: "Remove {name} from DevForge? It will have to be set up again to be used.",
       removed: "{name} removed.",
+      automationTitle: "n8n and alerts",
+      automationHint: "They run on your servers: DevForge keeps n8n's key and reads the status page's settings over SSH.",
+      n8nOf: "n8n · {server}",
+      n8nKey: "n8n API key",
+      noN8n: "No n8n",
+      noN8nHint: "It is installed from the n8n page, on one of your servers.",
+      statusOf: "Status page · {server}",
+      noStatus: "No status page",
+      noStatusHint: "It is installed from the Status page page, on one of your servers; its ntfy alerts are then set here or on its page.",
+      readAlerts: "Read the alerts",
+      ntfyOn: "ntfy alerts on",
+      ntfyOff: "no ntfy alert",
+      webhookToo: "and a webhook",
+      ntfyServer: "ntfy server",
+      ntfyTopic: "ntfy topic (keep it secret: whoever knows it gets the alerts)",
       storedNote: "Everything stays on this PC, in DevForge's folder; keys, tokens and passwords are encrypted by Windows and are never shown again.",
       errors: {
         NO_TOKEN: "no token nor GitHub CLI",
@@ -1610,7 +1625,10 @@ const en = {
         DOCKER_DOWN: "Docker is not answering (is Docker Desktop running?)",
         NOT_FOUND: "not found",
         BAD_NAME: "A name on one line, 100 characters at most.",
-        BAD_EMAIL: "A valid e-mail."
+        BAD_EMAIL: "A valid e-mail.",
+        NO_ALERTS: "no alert set",
+        NO_STATUS_PAGE: "status page not found on the server",
+        BAD_NTFY: "topic or server refused: topic in letters, digits, - and _, server in http(s)://"
       }
     },
     launcherTitle: "Global launcher",

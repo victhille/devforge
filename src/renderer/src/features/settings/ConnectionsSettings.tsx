@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check, Database, ExternalLink, KeyRound, Plug, Plus, Server, Trash2, X } from 'lucide-react'
-import type { ConnectionKind, ConnectionTest, ConnectionsOverview } from '@shared/types'
+import { Bell, Check, Database, ExternalLink, KeyRound, Plug, Plus, Server, Trash2, X } from 'lucide-react'
+import type { ConnectionKind, ConnectionTest, ConnectionsOverview, StatusAlertsState } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
@@ -46,6 +46,55 @@ function SecretForm({ label, placeholder, onSave }: { label: string; placeholder
   )
 }
 
+/** A status page's ntfy alerts: read on the server when asked (SSH), set, removed */
+function AlertsRow({ page, testButton, result, onRemove }: {
+  page: ConnectionsOverview['statusPages'][number]
+  testButton: ReactNode
+  result: ReactNode
+  onRemove: () => Promise<void>
+}) {
+  const { t } = useI18n()
+  const c = t.settings.connections
+  const [state, setState] = useState<StatusAlertsState | 'busy' | null>(null)
+  const [error, setError] = useState('')
+  const [server, setServer] = useState('https://ntfy.sh')
+  const [topic, setTopic] = useState('')
+  const [saving, setSaving] = useState(false)
+  const read = async () => {
+    setState('busy'); setError('')
+    try { setState(await window.devforge.connections.alerts(page.connectionId)) } catch (err) { setState(null); setError(errorText(err)) }
+  }
+  const known = state && state !== 'busy' ? state : null
+  return (
+    <SettingRow label={c.statusOf.replace('{server}', page.server)} hint={<span className="font-mono">{page.where}</span>}>
+      <div className="flex flex-[1_1_320px] flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {known ? <State on={known.ntfy}>{known.ntfy ? c.ntfyOn : c.ntfyOff}{known.webhook ? ` ${c.webhookToo}` : ''}</State>
+            : <Button size="sm" variant="ghost" loading={state === 'busy'} onClick={read}><Bell size={13} /> {c.readAlerts}</Button>}
+          {testButton}
+          {known?.ntfy && <Button size="sm" variant="ghost" onClick={async () => { await onRemove(); await read() }}><Trash2 size={13} /> {c.remove}</Button>}
+          {result}
+        </div>
+        {known && !known.ntfy && (
+          <form className="flex w-full flex-col gap-1.5" onSubmit={async e => {
+            e.preventDefault()
+            setSaving(true); setError('')
+            try { await window.devforge.connections.setNtfy(page.connectionId, server, topic); setTopic(''); await read() }
+            catch (err) { const code = errorText(err); setError((c.errors as Record<string, string>)[code] ?? code) } finally { setSaving(false) }
+          }}>
+            <div className="flex flex-wrap gap-2">
+              <Input aria-label={c.ntfyServer} value={server} onChange={e => setServer(e.target.value)} className="w-48 font-mono" />
+              <Input type="password" aria-label={c.ntfyTopic} placeholder={c.ntfyTopic} value={topic} onChange={e => setTopic(e.target.value)} className="min-w-48 flex-1 font-mono" autoComplete="off" />
+              <Button type="submit" variant="secondary" disabled={!topic.trim()} loading={saving}>{!saving && <KeyRound size={14} />} {c.save}</Button>
+            </div>
+          </form>
+        )}
+        {error && <p role="alert" className="text-xs text-danger">{error}</p>}
+      </div>
+    </SettingRow>
+  )
+}
+
 /** Every service DevForge can reach: whether it is set, set it, test it, remove it */
 export default function ConnectionsSettings() {
   const { t } = useI18n()
@@ -74,7 +123,7 @@ export default function ConnectionsSettings() {
   }
   async function disconnect(kind: Exclude<ConnectionKind, 'docker'>, name: string, id?: string) {
     if (!window.confirm(c.removeConfirm.replace('{name}', name))) return
-    await window.devforge.connections.disconnect(kind, id)
+    try { await window.devforge.connections.disconnect(kind, id) } catch (err) { toast.show({ tone: 'error', title: errorText(err) }); return }
     setTests(m => { const n = { ...m }; delete n[id ? `${kind}:${id}` : kind]; return n })
     toast.show({ tone: 'success', title: c.removed.replace('{name}', name) })
     load()
@@ -174,6 +223,35 @@ export default function ConnectionsSettings() {
         <div className="border-t border-line-subtle px-5 py-3">
           <Button size="sm" variant="secondary" onClick={() => setServerForm(true)}><Plus size={14} /> {c.addServer}</Button>
         </div>
+      </SettingsCard>
+
+      <SettingsCard title={c.automationTitle} hint={c.automationHint} icon={<Bell size={18} className="text-fg-muted" />}>
+        {data.n8n.length === 0 && (
+          <SettingRow label={c.noN8n} hint={c.noN8nHint}>
+            <Button size="sm" variant="ghost" onClick={() => navigate('/n8n')}>{c.open}</Button>
+          </SettingRow>
+        )}
+        {data.n8n.map(n => (
+          <SettingRow key={n.connectionId} label={c.n8nOf.replace('{server}', n.server)} hint={<span className="font-mono">{n.where}</span>}>
+            <div className="flex flex-[1_1_320px] flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <State on={n.hasKey}>{n.hasKey ? c.keySaved : c.noKey}</State>
+                {n.hasKey && testButton('n8n', c.n8nOf.replace('{server}', n.server), n.connectionId)}
+                {n.hasKey && <Button size="sm" variant="ghost" onClick={() => disconnect('n8n', c.n8nKey, n.connectionId)}><Trash2 size={13} /> {c.remove}</Button>}
+                <Button size="sm" variant="ghost" onClick={() => navigate('/n8n')}>{c.open}</Button>
+                {result(`n8n:${n.connectionId}`)}
+              </div>
+              {!n.hasKey && <SecretForm label={c.n8nKey} placeholder="n8n_api_…" onSave={async v => { await window.devforge.n8n.saveKey(n.connectionId, v); load() }} />}
+            </div>
+          </SettingRow>
+        ))}
+        {data.statusPages.length === 0 && <SettingRow label={c.noStatus} hint={c.noStatusHint} />}
+        {data.statusPages.map(p => (
+          <AlertsRow key={p.connectionId} page={p}
+            testButton={testButton('alerts', c.statusOf.replace('{server}', p.server), p.connectionId)}
+            result={result(`alerts:${p.connectionId}`)}
+            onRemove={() => disconnect('alerts', `ntfy · ${p.server}`, p.connectionId)} />
+        ))}
       </SettingsCard>
 
       <SettingsCard title={c.databasesTitle} hint={c.databasesHint} icon={<Database size={18} className="text-fg-muted" />}>

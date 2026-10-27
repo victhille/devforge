@@ -391,7 +391,9 @@ const api: DevForgeAPI = {
     overview:       invoke('connections:overview'),
     test:           invoke('connections:test'),
     disconnect:     invoke('connections:disconnect'),
-    setGitIdentity: invoke('connections:set-git-identity')
+    setGitIdentity: invoke('connections:set-git-identity'),
+    alerts:         invoke('connections:alerts'),
+    setNtfy:        invoke('connections:set-ntfy')
   },
 
   laravel: {
