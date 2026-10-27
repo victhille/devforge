@@ -31,6 +31,8 @@ export default defineConfig({
       expressiveCode: { themes: ['github-dark-default'] },
       sidebar: [
         'download',
+        'news',
+        'contribute',
         group('Prise en main', 'Getting started', [
           'getting-started/installation',
           'getting-started/first-launch',

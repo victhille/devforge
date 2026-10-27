@@ -8,6 +8,9 @@ on:
   pull_request:
     paths: ['site/**', '.github/workflows/site.yml']
   workflow_dispatch:
+  # A new version: the « What's new » page and the download button read the releases
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -17,7 +20,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # A release runs on its tag, which Pages does not deploy from: rebuild main instead
+  rebuild-on-release:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - run: gh workflow run site.yml --repo "$GITHUB_REPOSITORY" --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}
+
   build:
+    if: github.event_name != 'release'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -34,13 +49,16 @@ jobs:
           cache-dependency-path: site/package-lock.json
       - run: npm ci
       - run: npm run build
+        env:
+          # Read the release notes without the anonymous rate limit
+          GITHUB_TOKEN: ${{ github.token }}
       - if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: site/dist
 
   deploy:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.event_name != 'release'
     needs: build
     runs-on: ubuntu-latest
     permissions:
