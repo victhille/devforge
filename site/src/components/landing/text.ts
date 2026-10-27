@@ -17,8 +17,8 @@ const fr = {
   },
   video: {
     title: 'DevForge en une minute',
-    lead: "L'app telle quelle, sur des projets d'exemple : l'accueil, la palette, une fiche projet, Git, la base, Forgy et les connexions. Sans son, sous-titrée.",
-    label: 'Vidéo de présentation de DevForge, sous-titrée en français, sans son'
+    lead: "L'app telle quelle, sur des projets d'exemple : l'accueil, la palette, une fiche projet, Git, la base, Forgy et les connexions. Commentée et sous-titrée ; l'ouverture et la fin sont des plans générés par IA.",
+    label: 'Vidéo de présentation de DevForge, commentée et sous-titrée en français'
   },
   replaces: { before: "Au lieu d'ouvrir", items: ['un terminal par projet', 'Docker Desktop', 'un client SQL', "un testeur d'API", 'PuTTY', 'le bloc-notes des commandes'], after: '→ une fenêtre.' },
   day: {
