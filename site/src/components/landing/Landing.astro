@@ -4,6 +4,8 @@
  * with the app's real screens, a day with DevForge, the projects tour, the
  * server band on the app's own dark canvas, Forgy, a FAQ and the download.
  */
+import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import '@fontsource-variable/geist'
 import '@fontsource-variable/geist-mono'
 import { Image } from 'astro:assets'
@@ -23,6 +25,11 @@ const shot = (id: string) => images[`../../assets/screens/${id}-${lang}.png`].de
 const releases = 'https://github.com/victhille/devforge/releases/latest'
 // The French video is the narrated 1080p edit, the English one still the 16:10 captioned screencast
 const videoSize = lang === 'fr' ? { width: 1920, height: 1080 } : { width: 1280, height: 800 }
+// A new video keeps its name, so its address carries a fingerprint of the file: browsers that cached the old one fetch the new one
+const fingerprint = (file: string) => createHash('sha256').update(readFileSync(`public/video/${file}`)).digest('hex').slice(0, 10)
+const videoFile = `devforge-${lang}.webm`, posterFile = `devforge-poster-${lang}.webp`
+const videoSrc = `${base}/video/${videoFile}?v=${fingerprint(videoFile)}`
+const posterSrc = `${base}/video/${posterFile}?v=${fingerprint(posterFile)}`
 const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21.5v-8.6h-9.8v7.2Zm0-16.2v7.3H21V2.5l-9.8 1.4Z'
 ---
 
@@ -110,8 +117,8 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
         <p class="section-lead">{t.video.lead}</p>
       </div>
       <div class="video-frame">
-        <video controls preload="none" playsinline width={videoSize.width} height={videoSize.height} poster={`${base}/video/devforge-poster-${lang}.webp`} aria-label={t.video.label}>
-          <source src={`${base}/video/devforge-${lang}.webm`} type="video/webm" />
+        <video controls preload="none" playsinline width={videoSize.width} height={videoSize.height} poster={posterSrc} aria-label={t.video.label}>
+          <source src={videoSrc} type="video/webm" />
         </video>
       </div>
     </section>
