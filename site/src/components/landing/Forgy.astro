@@ -1,0 +1,37 @@
+---
+/** Forgy at rest, drawn like the app's mascot (src/renderer/src/features/assistant/Mascot.tsx) */
+interface Props { size?: number; label?: string }
+const { size = 120, label = 'Forgy' } = Astro.props
+const led = '#FF9A3C'
+---
+
+<svg viewBox="0 0 100 100" width={size} height={size} role="img" aria-label={label} class="forgy">
+  <defs>
+    <radialGradient id="forgy-shell" cx="0.35" cy="0.3" r="0.85">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="55%" stop-color="#E6E8EE" />
+      <stop offset="100%" stop-color="#B9BECB" />
+    </radialGradient>
+    <linearGradient id="forgy-visor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2A3042" />
+      <stop offset="100%" stop-color="#141824" />
+    </linearGradient>
+    <radialGradient id="forgy-glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color={led} stop-opacity="0.9" />
+      <stop offset="100%" stop-color={led} stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect x="48.5" y="14" width="3" height="16" rx="1.5" fill="#AEB3C0" />
+  <circle cx="50" cy="13" r="9" fill="url(#forgy-glow)" class="forgy-halo" />
+  <circle cx="50" cy="13" r="4.6" fill={led} />
+  <rect x="8" y="50" width="9" height="16" rx="4" fill="#C9CDD8" />
+  <rect x="83" y="50" width="9" height="16" rx="4" fill="#C9CDD8" />
+  <rect x="14" y="28" width="72" height="62" rx="26" fill="url(#forgy-shell)" />
+  <ellipse cx="34" cy="38" rx="12" ry="5" fill="#fff" opacity="0.8" transform="rotate(-18 34 38)" />
+  <rect x="24" y="42" width="52" height="30" rx="14" fill="url(#forgy-visor)" />
+  <g class="forgy-eyes" fill={led}>
+    <rect x="34" y="51" width="9" height="12" rx="4.5" />
+    <rect x="57" y="51" width="9" height="12" rx="4.5" />
+  </g>
+  <path d="M30 46 Q50 42 70 46" stroke="#fff" stroke-opacity="0.12" stroke-width="2" fill="none" stroke-linecap="round" />
+</svg>

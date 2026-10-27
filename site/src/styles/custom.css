@@ -1,39 +1,114 @@
-/* DevForge's accent: the orange of the logo */
+/*
+ * The docs take the app's look: Geist, its dark canvas, its blue accent and
+ * Forgy's orange (values from src/renderer/src/styles/index.css).
+ */
 :root {
-  --sl-color-accent-low: #3b1d08;
-  --sl-color-accent: #ea580c;
-  --sl-color-accent-high: #fed7aa;
+  --sl-font: 'Geist Variable', system-ui, sans-serif;
+  --sl-font-mono: 'Geist Mono Variable', ui-monospace, monospace;
+
+  --sl-color-accent-low: #15233D;
+  --sl-color-accent: #5B9BFF;
+  --sl-color-accent-high: #CFE0FF;
+  --sl-color-white: #FFFFFF;
+  --sl-color-gray-1: #E8ECF2;
+  --sl-color-gray-2: #C3CAD5;
+  --sl-color-gray-3: #9AA4B2;
+  --sl-color-gray-4: #6B7584;
+  --sl-color-gray-5: #262C36;
+  --sl-color-gray-6: #161A21;
+  --sl-color-black: #0D0F13;
+  --sl-color-bg-nav: #0A0C10;
+  --sl-color-bg-sidebar: #111419;
+  --sl-color-hairline: #1F242D;
+  --sl-color-hairline-light: #262C36;
+
+  --df-forgy: #FF9A3C;
+  --df-forgy-dim: rgba(255, 154, 60, 0.12);
+  --df-surface: #161A21;
 }
 :root[data-theme='light'] {
-  --sl-color-accent-low: #ffedd5;
-  --sl-color-accent: #c2410c;
-  --sl-color-accent-high: #7c2d12;
+  --sl-color-accent-low: #DCE6FB;
+  --sl-color-accent: #1D4ED8;
+  --sl-color-accent-high: #1E3A8A;
+  --sl-color-white: #111827;
+  --sl-color-gray-1: #1F2937;
+  --sl-color-gray-2: #374151;
+  --sl-color-gray-3: #4B5563;
+  --sl-color-gray-4: #5D6675;
+  --sl-color-gray-5: #D1D5DB;
+  --sl-color-gray-6: #EEF0F4;
+  --sl-color-gray-7: #F7F8FB;
+  --sl-color-black: #FFFFFF;
+  --sl-color-bg-nav: #FFFFFF;
+  --sl-color-bg-sidebar: #F7F8FB;
+  --df-forgy: #B03B0A;
+  --df-forgy-dim: rgba(176, 59, 10, 0.08);
+  --df-surface: #F7F8FB;
 }
 
+/* Header: the app's title bar */
+header.header { border-bottom: 1px solid var(--sl-color-hairline); backdrop-filter: blur(12px); }
+.site-title { font-weight: 700; letter-spacing: -0.02em; }
+
+/* Sidebar: like the app's menu, the current page on a soft accent */
+.sidebar-content a[aria-current='page'] {
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-white);
+  border-radius: 8px;
+  font-weight: 600;
+}
+.sidebar-content a:not([aria-current='page']):hover { border-radius: 8px; background: var(--sl-color-gray-6); }
+.sidebar-content summary .group-label .large { font-family: var(--sl-font-mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sl-color-gray-3); }
+
+/* Content */
+.sl-markdown-content h1, h1#_top { letter-spacing: -0.03em; }
+.sl-markdown-content h2 { letter-spacing: -0.02em; }
+.sl-markdown-content :is(h2, h3) { scroll-margin-top: 5rem; }
+.sl-markdown-content table { border-radius: 12px; overflow: hidden; border: 1px solid var(--sl-color-gray-5); border-collapse: separate; border-spacing: 0; }
+.sl-markdown-content :is(th, td) { border-color: var(--sl-color-hairline); }
+.sl-markdown-content th { background: var(--df-surface); font-family: var(--sl-font-mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--sl-color-gray-3); }
+.sl-markdown-content kbd {
+  font: 600 0.8em var(--sl-font-mono);
+  padding: 0.1em 0.45em;
+  border: 1px solid var(--sl-color-gray-5);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--df-surface);
+  color: var(--sl-color-white);
+}
+.sl-markdown-content :not(pre) > code { border-radius: 6px; padding: 0.1em 0.35em; }
+
+/* Screenshots: framed like the app's window */
+.sl-markdown-content p > img {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.6);
+}
+
+
+/* Download button of the docs (Download.astro), like the app's primary button */
 .df-download {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem 1rem;
   margin-block: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 14px;
+  background: var(--df-surface);
 }
 .df-download a.df-button {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  border-radius: 999px;
+  padding: 0.7rem 1.2rem;
+  border-radius: 10px;
   background: var(--sl-color-accent);
-  color: var(--sl-color-black);
+  color: #08111F;
   font-weight: 600;
   text-decoration: none;
 }
-:root[data-theme='light'] .df-download a.df-button { color: var(--sl-color-white); }
-.df-download a.df-button:hover { filter: brightness(1.08); }
-.df-download .df-meta { color: var(--sl-color-gray-3); font-size: var(--sl-text-sm); }
-
-.df-shot {
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0.75rem;
-  box-shadow: 0 12px 40px rgb(0 0 0 / 0.25);
-}
+:root[data-theme='light'] .df-download a.df-button { color: #FFFFFF; }
+.df-download a.df-button:hover { filter: brightness(1.1); }
+.df-download .df-meta { color: var(--sl-color-gray-3); font: 0.85rem var(--sl-font-mono); }
