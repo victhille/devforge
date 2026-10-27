@@ -35,6 +35,8 @@ export type SetupStep =
   | { kind: 'tailwind'; label: string }
   /** A PHP trait added to a class: its import and its use line (Sanctum's HasApiTokens on User) */
   | { kind: 'add-trait'; label: string; file: string; trait: string }
+  /** Text added at the end of a file, unless the file already contains `unless` (Prisma's User model) */
+  | { kind: 'append'; label: string; file: string; text: string; unless: string }
 
 /** PHP on this PC, for a Symfony project */
 export interface PhpStatus {

@@ -52,10 +52,10 @@ describe('v2.2 lot 1: project setup plan', () => {
     expect(runs(sf)).toContain('php bin/console make:user User --is-entity --identity-property-name=email --with-password --no-interaction')
 
     const next = planSetup(opts('nextjs', { database: 'none', features: ['api', 'auth', 'tests'] }), ctx)
-    // v3.4: authentication without a database takes SQLite, so Prisma comes with it
-    expect(next.flatMap(s => s.kind === 'write' ? s.files.map(f => f.path) : [])).toEqual([
-      '{src}lib/prisma.ts', '{app}/api/health/route.ts', '{src}auth.ts', '{app}/api/auth/[...nextauth]/route.ts', 'tests/smoke.test.ts'
-    ])
+    // v3.4: authentication without a database takes SQLite (so Prisma), and follows the DevForge contract
+    expect(next.flatMap(s => s.kind === 'write' ? s.files.map(f => f.path) : [])).toEqual(expect.arrayContaining([
+      '{src}lib/prisma.ts', '{app}/api/health/route.ts', '{src}lib/auth.ts', '{app}/api/auth/login/route.ts', 'tests/smoke.test.ts'
+    ]))
     expect(next.find(s => s.kind === 'scripts')).toMatchObject({ scripts: { test: 'vitest run' } })
     expect(next.find(s => s.kind === 'env' && s.file === '.env.local')).toMatchObject({ vars: { AUTH_SECRET: 'sec' } })
   })

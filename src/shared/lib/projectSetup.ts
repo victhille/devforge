@@ -1,5 +1,6 @@
 import { packageName } from '../data/projectLibraries'
 import { WELCOME_FRAMEWORKS, welcomeFiles } from './welcomePage'
+import { NEXT_AUTH_PACKAGES, USER_MODEL, nextAuthFiles } from './nextAuthTemplate'
 import type { Framework, PackageManager, ProjectCreationOptions, ProjectSetup, SetupFeature, SetupStep } from '../types'
 
 /**
@@ -39,6 +40,7 @@ const LABELS = {
     sail: 'Laravel Sail', sailInstall: 'Conteneurs Sail', sailInitScript: 'Base « testing » de Sail retirée (illisible hors WSL)', sailStart: 'Démarrage de Sail (construction de l\'image)',
     gitInit: 'Dépôt Git', gitAdd: 'Fichiers suivis', gitCommit: 'Premier commit', github: 'Dépôt GitHub', vscode: 'Ouverture dans VS Code',
     install: 'Installation des dépendances', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Configuration de Tailwind CSS',
+    userModel: 'Modèle User (Prisma)', authPages: 'Connexion, inscription et API du contrat', authNext: 'Authentification (bcryptjs, jose)',
     welcome: 'Page d\'accueil DevForge', migrate: 'Tables de la base (migrations)', apiTokens: 'Jetons d\'API sur User (HasApiTokens)',
     prismaAdapter: 'Pilote de base pour Prisma', prismaClient: 'Client Prisma (lib/prisma)', entry: 'Point d\'entrée', startScripts: 'Scripts dev et start'
   },
@@ -51,6 +53,7 @@ const LABELS = {
     sail: 'Laravel Sail', sailInstall: 'Sail containers', sailInitScript: 'Sail\'s "testing" database removed (unreadable outside WSL)', sailStart: 'Starting Sail (building the image)',
     gitInit: 'Git repository', gitAdd: 'Tracked files', gitCommit: 'First commit', github: 'GitHub repository', vscode: 'Opening in VS Code',
     install: 'Installing dependencies', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Tailwind CSS setup',
+    userModel: 'User model (Prisma)', authPages: 'Sign-in, sign-up and the contract\'s API', authNext: 'Authentication (bcryptjs, jose)',
     welcome: 'DevForge welcome page', migrate: 'Database tables (migrations)', apiTokens: 'API tokens on User (HasApiTokens)',
     prismaAdapter: 'Database driver for Prisma', prismaClient: 'Prisma client (lib/prisma)', entry: 'Entry point', startScripts: 'dev and start scripts'
   }
@@ -358,6 +361,8 @@ function nextSteps(o: Opts, ctx: PlanContext): SetupStep[] {
     // --no-skills: otherwise about 200 AI-agent files (.claude, .windsurf…) land in the first commit
     steps.push({ kind: 'run', label: l.prismaInit, exe: 'npx', args: ['prisma', 'init', '--datasource-provider', provider, '--output', '../{src}generated/prisma', '--no-skills'], skipIf: 'prisma/schema.prisma' })
     steps.push({ kind: 'env', label: l.envDb, file: '.env', vars: { DATABASE_URL: databaseUrl('nextjs', s, ctx.password) } })
+    // Before the client is generated, so it knows prisma.user
+    if (has('auth') && o.typescript) steps.push({ kind: 'append', label: l.userModel, file: 'prisma/schema.prisma', text: USER_MODEL, unless: 'model User ' })
     steps.push({ kind: 'ignore', label: l.ignore, lines: ['/{src}generated/prisma'] })
     steps.push({ kind: 'run', label: l.prismaClient, exe: 'npx', args: ['prisma', 'generate'], optional: true })
     steps.push({ kind: 'write', label: l.prismaClient, files: [{ path: `{src}lib/prisma.${ext}`, content: prismaClientFile(db, o.typescript) }] })
@@ -365,7 +370,12 @@ function nextSteps(o: Opts, ctx: PlanContext): SetupStep[] {
   if (has('api')) {
     steps.push({ kind: 'write', label: l.api, files: [{ path: `{app}/api/health/route.${ext}`, content: "export function GET() {\n  return Response.json({ status: 'ok' })\n}\n" }] })
   }
-  if (has('auth')) {
+  if (has('auth') && o.typescript) {
+    // v3.4: the DevForge contract (JWT in a cookie and in the login's JSON), accounts in Prisma
+    steps.push({ kind: 'run', label: l.authNext, exe: pm, args: pmAdd(pm, NEXT_AUTH_PACKAGES) })
+    steps.push({ kind: 'write', label: l.authPages, files: nextAuthFiles(o.name, ctx.lang) })
+    steps.push({ kind: 'env', label: 'AUTH_SECRET', file: '.env.local', vars: { AUTH_SECRET: ctx.secret } })
+  } else if (has('auth')) {
     steps.push({ kind: 'run', label: l.authJs, exe: pm, args: pmAdd(pm, ['next-auth@beta']) })
     steps.push({ kind: 'write', label: l.authFiles, files: [
       { path: `{src}auth.${ext}`, content: "import NextAuth from 'next-auth'\n\n// Add providers here (GitHub, Google, Credentials…)\nexport const { handlers, auth, signIn, signOut } = NextAuth({ providers: [] })\n" },
@@ -448,6 +458,10 @@ export function planSetup(input: Opts, ctx: PlanContext): SetupStep[] {
     else if (serverDb(s)) {
       steps.push({ kind: 'run', label: l.start, exe: 'docker', args: ['compose', 'up', '-d', '--wait', 'database'], optional: true })
     }
+    // Next.js with authentication: the User table, once the database runs
+    if (o.framework === 'nextjs' && s.features.includes('auth') && o.typescript && s.database !== 'none') {
+      steps.push({ kind: 'run', label: l.migrate, exe: 'npx', args: ['prisma', 'migrate', 'dev', '--name', 'init'], optional: true })
+    }
     // Laravel migrated its SQLite database at creation: the chosen one starts empty
     if (o.framework === 'laravel' && serverDb(s)) {
       steps.push(sail
@@ -491,6 +505,7 @@ export function stepCommand(step: SetupStep): string {
     case 'scripts':    return Object.entries(step.scripts).map(([k, v]) => `"${k}": "${v}" → package.json`).join('\n')
     case 'drop-lines': return `− ${step.match} → ${step.file}`
     case 'connection': return step.label
+    case 'append':     return `+ ${step.text.trim().split('\n')[0]} → ${step.file}`
     case 'add-trait':  return `use ${step.trait.split('\\').pop()} → ${step.file}`
     case 'tailwind':   return 'vite.config + @import "tailwindcss"'
   }

@@ -172,6 +172,12 @@ function applyStep(step: Exclude<SetupStep, { kind: 'run' }>, projPath: string, 
     case 'tailwind':
       setUpTailwind(projPath)
       return
+    case 'append': {
+      const file = join(projPath, step.file)
+      const text = readText(file)
+      if (!text.includes(step.unless)) writeText(file, `${text.replace(/\s*$/, '\n')}${step.text}`)
+      return
+    }
     case 'add-trait': {
       const file = join(projPath, step.file)
       if (existsSync(file)) writeText(file, withTrait(readText(file), step.trait))
