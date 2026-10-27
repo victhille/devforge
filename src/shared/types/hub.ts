@@ -26,6 +26,8 @@ export interface ProjectHub {
   vercel: VercelLink | null
   /** The GitHub repository of `origin`, null when it is elsewhere or missing */
   github: GithubRepo | null
+  /** Folders (relative, "" for the root) holding a package.json or a composer.json */
+  manifests: string[]
   /** Resources found but hidden by the user, so they can be shown again */
   hidden: Record<LinkKind, string[]>
 }

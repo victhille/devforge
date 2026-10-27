@@ -1,9 +1,10 @@
 import { existsSync, readFileSync } from 'fs'
-import { resolve, sep } from 'path'
+import { relative, resolve, sep } from 'path'
 import { app } from 'electron'
 import type { LinkKind, Project, ProjectHub } from '@shared/types'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { loadProjects } from './projectStorage'
+import { findManifestDirs } from '../packages/npmPackages'
 import { composeConfig, composeDirFor, composeName } from '../docker/composeProjects'
 import { readEnvProject } from '../envfiles/envFiles'
 import { listDbConnections } from '../database/dbStorage'
@@ -112,6 +113,7 @@ export async function getProjectHub(projectId: string): Promise<ProjectHub> {
     vercel: readLink(p.path),
     github: await repoOf(p.path).catch(() => null),
     deployTargets: listTargets().filter(t => t.projectPath && resolve(t.projectPath).toLowerCase() === resolve(p.path).toLowerCase()).map(t => ({ id: t.id, name: t.name })),
+    manifests: findManifestDirs(p.path).map(d => relative(p.path, d).split(sep).join('/')),
     hidden: { databases: links.hide.databases, logs: links.hide.logs, domains: links.hide.domains }
   }
 }

@@ -387,6 +387,18 @@ const api: DevForgeAPI = {
     setAuthKeys: invoke('nextjs:set-auth-keys')
   },
 
+  packages: {
+    list:   invoke('packages:list'),
+    latest: invoke('packages:latest'),
+    audit:  invoke('packages:audit'),
+    update: invoke('packages:update'),
+    onLog: (cb) => {
+      const listener = (_e: Electron.IpcRendererEvent, line: string) => cb(line)
+      ipcRenderer.on('packages:log', listener)
+      return () => ipcRenderer.removeListener('packages:log', listener)
+    }
+  },
+
   connections: {
     overview:       invoke('connections:overview'),
     test:           invoke('connections:test'),
