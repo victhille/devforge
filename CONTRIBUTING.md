@@ -18,7 +18,7 @@ Ouvre une [issue](https://github.com/victhille/devforge/issues) avec : ce que tu
 
 ## Conventions
 
-- **Commits conventionnels** : `feat(zone): …`, `fix(zone): …`, `docs: …`, `test: …`, `ci: …`. Le CHANGELOG en est tiré, voir [docs/VERSIONS.md](docs/VERSIONS.md).
+- **Commits conventionnels** : `feat(zone): …`, `fix(zone): …`, `docs: …`, `test: …`, `ci: …`. Le CHANGELOG en est tiré, voir [docs/dev/versions.md](docs/dev/versions.md).
 - **Textes de l'interface** : toujours dans `src/renderer/src/i18n/locales/fr.ts` et `en.ts`, jamais en dur.
 - **Secrets** : jamais envoyés au renderer, jamais affichés, jamais écrits en clair (chiffrés avec `safeStorage`).
 - **Rien de personnel** : pas d'IP, de nom de serveur ou de compte réels dans le code, les tests ou la doc. Pour les exemples : `203.0.113.10` (adresse de documentation), `mon-serveur`, `example.com`.
