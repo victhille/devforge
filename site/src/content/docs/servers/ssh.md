@@ -33,7 +33,7 @@ Chaque connexion ouverte est un onglet ; on peut en ouvrir plusieurs et les ferm
 
 Une fois connecté, le tableau de bord se met à jour en continu :
 
-- **CPU** (avec la charge et une courbe), **Mémoire** (utilisée, totale, disponible), **Swap** s'il y en a, **Uptime** et version du noyau ;
+- **CPU** (avec la charge et une courbe), **Mémoire** (utilisée, totale, disponible), **Swap** s'il y en a, **Allumé depuis** et version du noyau ;
 - la carte **Santé** du serveur (voir [Santé](/devforge/servers/health/)) ;
 - **Disques** : l'occupation de chaque partition ;
 - **Processus (top CPU)** ;

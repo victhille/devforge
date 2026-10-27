@@ -26,7 +26,7 @@ Le **nom** et l'**e-mail** de tes commits, écrits dans `git config --global`. U
 
 ### Forgy (Anthropic)
 
-La **clé API Anthropic** qui fait parler [Forgy](/devforge/forgy/assistant/). Le bouton **Tester** liste les modèles disponibles : il ne coûte rien. Sans clé enregistrée, DevForge utilise la variable d'environnement `ANTHROPIC_API_KEY` si elle existe.
+La **clé API Anthropic** qui fait parler [Forgy](/devforge/forgy/assistant/). Le bouton **Tester** liste les modèles disponibles : il ne coûte rien. Sans clé enregistrée, DevForge utilise la variable d'environnement `ANTHROPIC_API_KEY` si elle existe, et la ligne l'indique : « clé lue dans ANTHROPIC_API_KEY ». Une clé enregistrée ici passe avant la variable.
 
 ### Vercel
 
@@ -60,6 +60,13 @@ Sans serveur, les pages qui en ont besoin (Santé, Services, Sauvegardes, n8n, V
 ## Bases de données
 
 Les connexions de la page [Base de données](/devforge/data/database/) : PostgreSQL, MySQL / MariaDB et SQLite, en direct ou à travers un serveur SSH. **Ajouter une base** ouvre le même formulaire que sur cette page.
+
+## n8n et alertes
+
+Ces deux services tournent sur tes serveurs : DevForge garde la clé de n8n et lit les réglages de la page de statut par SSH.
+
+- **n8n · mon-serveur** : une ligne par n8n installé depuis la page [n8n](/devforge/online/n8n/), pour sa **clé API n8n** (dans n8n : *Paramètres › API › Créer une clé*). **Tester** compte les workflows, **Ouvrir** mène à la page n8n. Sans n8n, la ligne renvoie à cette page pour l'installer.
+- **Page de statut · mon-serveur** : une ligne par [page de statut](/devforge/online/status-page/) installée. **Lire les alertes** va voir sur le serveur si les alertes ntfy sont actives, et s'il y a aussi un webhook. Sans alerte ntfy, un formulaire règle le **serveur ntfy** (`https://ntfy.sh` par défaut) et le **sujet** : garde-le secret, qui le connaît reçoit les alertes. **Tester** envoie une vraie alerte de test ; **Retirer** coupe l'alerte ntfy sans toucher au reste de la page de statut.
 
 ## Tester et retirer
 

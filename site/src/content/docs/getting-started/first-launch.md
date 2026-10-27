@@ -9,7 +9,7 @@ Au tout premier lancement, DevForge ouvre un accueil en **cinq étapes**. Rien n
 
 Choisis la langue : **Français** ou **English**. Elle s'applique tout de suite à l'interface, aux notes de version et aux réponses de Forgy. Par défaut, c'est celle de Windows (français si Windows est en français, anglais sinon).
 
-L'écran rappelle ce que fait DevForge : tes projets au même endroit, Docker et Compose en local et sur ton serveur, bases de données, logs et API Tester, serveurs SSH surveillés, n8n et Vercel.
+L'écran rappelle ce que fait DevForge : tes projets au même endroit, Docker et Compose en local et sur ton serveur, bases de données, logs et API Tester, serveurs SSH surveillés, n8n et Vercel. **Lire la prise en main sur le site** ouvre cette page.
 
 ## 2. Où sont tes projets ?
 

@@ -25,7 +25,7 @@ Ailleurs : **Demander à Forgy** sur une fiche projet, sur les logs Docker ou un
 
 | Réglage | Effet | Défaut |
 |---|---|---|
-| Clé API Anthropic | chiffrée par Windows, jamais renvoyée à l'interface. Sans clé : `ANTHROPIC_API_KEY` si elle existe | — |
+| Clé API Anthropic | chiffrée par Windows, jamais renvoyée à l'interface. Sans clé enregistrée : `ANTHROPIC_API_KEY` si elle existe (l'écran l'indique) ; une clé enregistrée passe avant | — |
 | Modèle | **Auto** = le modèle de la tâche choisie ; ou Opus 5.5, Sonnet 5.5, Haiku 5.5 pour tout | Auto |
 | Profondeur de réflexion | **Auto** = celle de la tâche ; ou Rapide, Équilibrée, Approfondie | Auto |
 | Budget mensuel | Forgy s'arrête à ce montant (estimation). `0` = sans limite | 5 $ |
@@ -114,7 +114,7 @@ Le coût s'affiche en bas du panneau : `conversation · mois / budget`. C'est un
 
 | Message | Cause | Solution |
 |---|---|---|
-| Ajoute ta clé API… | aucune clé | Paramètres › Connexions ou Paramètres › Forgy |
+| Ajoute ta clé API… | aucune clé enregistrée ni `ANTHROPIC_API_KEY` | Paramètres › Connexions, ou définir `ANTHROPIC_API_KEY` |
 | Clé API refusée | clé invalide ou révoquée | enregistrer une nouvelle clé |
 | Budget mensuel atteint | dépense ≥ budget | augmenter le budget ou attendre le mois suivant |
 | Trop d'étapes | plus de 8 appels d'outils | préciser ou découper la question |

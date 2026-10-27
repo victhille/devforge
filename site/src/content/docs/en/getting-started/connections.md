@@ -26,7 +26,7 @@ The **name** and **e-mail** of your commits, written to `git config --global`. A
 
 ### Forgy (Anthropic)
 
-The **Anthropic API key** that makes [Forgy](/devforge/en/forgy/assistant/) talk. The **Test** button lists the available models: it costs nothing. Without a saved key, DevForge uses the `ANTHROPIC_API_KEY` environment variable if it exists.
+The **Anthropic API key** that makes [Forgy](/devforge/en/forgy/assistant/) talk. The **Test** button lists the available models: it costs nothing. Without a saved key, DevForge uses the `ANTHROPIC_API_KEY` environment variable if it exists, and the row says so: "key read from ANTHROPIC_API_KEY". A key saved here takes precedence over the variable.
 
 ### Vercel
 
@@ -60,6 +60,13 @@ Without a server, the pages that need one (Health, Services, Backups, n8n, VPN, 
 ## Databases
 
 The connections of the [Database](/devforge/en/data/database/) page: PostgreSQL, MySQL / MariaDB and SQLite, direct or through an SSH server. **Add a database** opens the same form as on that page.
+
+## n8n and alerts
+
+Both services run on your servers: DevForge keeps n8n's key and reads the status page's settings over SSH.
+
+- **n8n · my-server**: one row per n8n installed from the [n8n](/devforge/en/online/n8n/) page, for its **n8n API key** (in n8n: *Settings › API › Create a key*). **Test** counts the workflows, **Open** goes to the n8n page. Without n8n, the row points to that page to install it.
+- **Status page · my-server**: one row per installed [status page](/devforge/en/online/status-page/). **Read the alerts** checks on the server whether ntfy alerts are on, and whether there is a webhook too. Without an ntfy alert, a form sets the **ntfy server** (`https://ntfy.sh` by default) and the **topic**: keep it secret, whoever knows it gets the alerts. **Test** sends a real test alert; **Remove** turns the ntfy alert off without touching the rest of the status page.
 
 ## Test and remove
 
