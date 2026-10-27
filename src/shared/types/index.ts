@@ -269,6 +269,7 @@ export * from './terminal'
 export * from './nextjs'
 export * from './laravel'
 export * from './connections'
+export * from './packages'
 import type { GitAPI } from './git'
 import type { CleanerAPI } from './cleaner'
 import type { EnvAPI } from './envfiles'
@@ -291,6 +292,7 @@ import type { TerminalAPI } from './terminal'
 import type { NextjsAPI } from './nextjs'
 import type { LaravelAPI } from './laravel'
 import type { ConnectionsAPI } from './connections'
+import type { PackagesAPI } from './packages'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -420,6 +422,7 @@ export interface DevForgeAPI {
   nextjs: NextjsAPI
   laravel: LaravelAPI
   connections: ConnectionsAPI
+  packages: PackagesAPI
   dictation: DictationAPI
 
   // Git
