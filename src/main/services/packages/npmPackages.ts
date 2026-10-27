@@ -31,7 +31,7 @@ export function findManifestDirs(root: string, file = 'package.json', depth = 3)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function readJson(path: string): Record<string, any> | null {
+export function readJson(path: string): Record<string, any> | null {
   try { return JSON.parse(readFileSync(path, 'utf-8')) } catch { return null }
 }
 
@@ -74,12 +74,12 @@ export function listManifests(root: string): PackageManifest[] {
   return findManifestDirs(root).map(d => readManifest(root, d)).filter((m): m is PackageManifest => !!m)
 }
 
-/** A manifest folder given by the window: inside the project, and safe for a shell */
-export function manifestDir(root: string, dir: string): string {
+/** A manifest folder given by the window: inside the project, holding that manifest, and safe for a shell */
+export function manifestDir(root: string, dir: string, file: 'package.json' | 'composer.json' = 'package.json'): string {
   const full = resolve(root, dir || '.')
   const rel = relative(resolve(root), full)
   if (rel.startsWith('..') || resolve(rel) === rel) throw new Error('Invalid folder')
-  if (!existsSync(join(full, 'package.json'))) throw new Error('No package.json here')
+  if (!existsSync(join(full, file))) throw new Error(`No ${file} here`)
   return assertSafeDir(full)
 }
 
@@ -87,7 +87,7 @@ export function manifestDir(root: string, dir: string): string {
 
 /** End-to-end tests: DEVFORGE_TEST_PACKAGES names a JSON file of { latest, audit, update } */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function testData(): Record<string, any> | null {
+export function testData(): Record<string, any> | null {
   const file = process.env.DEVFORGE_TEST_PACKAGES
   if (!file || app.isPackaged) return null
   return readJson(file)
@@ -232,15 +232,15 @@ export function updateCommands(manager: PackageManagerKind, updates: PackageUpda
 }
 
 /** Copies the manifest and the lockfiles beside it; returns how to put them back */
-function backup(dir: string): () => void {
+export function backup(dir: string, names = ['package.json', ...LOCKFILES]): () => void {
   const store = join(app.getPath('userData'), 'backups', 'packages', new Date().toISOString().replace(/[:.]/g, '-'))
   mkdirSync(store, { recursive: true })
-  const files = ['package.json', ...LOCKFILES].filter(f => existsSync(join(dir, f)))
+  const files = names.filter(f => existsSync(join(dir, f)))
   for (const f of files) copyFileSync(join(dir, f), join(store, f))
   return () => { for (const f of files) copyFileSync(join(store, f), join(dir, f)) }
 }
 
-function runLogged(command: string, cwd: string, onLog: (line: string) => void): Promise<boolean> {
+export function runLogged(command: string, cwd: string, onLog: (line: string) => void): Promise<boolean> {
   return new Promise(res => {
     const [exe, ...args] = command.split(' ')
     commandRunner.run({

@@ -1032,7 +1032,8 @@ const fr = {
   packages: {
     filter: 'Filtre des paquets',
     filters: { outdated: 'En retard', major: 'Majeures', all: 'Tous' } as Record<string, string>,
-    none: 'Aucun package.json dans ce projet',
+    none: 'Aucun package.json ni composer.json dans ce projet',
+    composerMissing: "Composer n'est pas installé sur ce PC : la liste se lit, mais rien ne peut se mettre à jour.",
     count: '{n} paquet(s)',
     checking: 'Recherche des dernières versions…',
     empty: 'Aucun paquet déclaré.',

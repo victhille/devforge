@@ -29,4 +29,4 @@ export function updateLevel(current: string | null, latest: string | null): Upda
 
 /** Reachable without touching the manifest's range ("npm update"), or only by changing it */
 export const fitsRange = (version: string | null, range: string): boolean =>
-  !!version && satisfies(version, range) === true
+  !!version && satisfies(version, range.replace(/@\w+/g, '').replace(/(^|[^|])\|(?!\|)/g, '$1||')) === true

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ArrowUpCircle, ExternalLink, Package, RefreshCw, ShieldAlert, ShieldCheck } from 'lucide-react'
 import type { AuditSummary, PackageInfo, PackageManifest, PackageUpdate, UpdateLevel } from '@shared/types'
+
+/** A card's key: a folder can hold both a package.json and a composer.json */
+const keyOf = (m: PackageManifest) => `${m.dir}|${m.file}`
 import { fitsRange, rangeFloor, updateLevel } from '@shared/lib/packages'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -42,8 +45,8 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
   const [log, setLog] = useState<string[]>([])
 
   const loadLatest = useCallback(async (m: PackageManifest) => {
-    const versions = await window.devforge.packages.latest(projectId, m.dir, m.packages.map(p => p.name)).catch(() => ({}))
-    setLatest(prev => ({ ...prev, [m.dir]: versions }))
+    const versions = await window.devforge.packages.latest(projectId, m.dir, m.file, m.packages.map(p => p.name)).catch(() => ({}))
+    setLatest(prev => ({ ...prev, [keyOf(m)]: versions }))
   }, [projectId])
 
   const load = useCallback(async () => {
@@ -55,29 +58,30 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
 
   useEffect(() => window.devforge.packages.onLog(line => setLog(l => [...l.slice(-300), line])), [])
 
-  async function runAudit(dir: string) {
-    setAudits(a => ({ ...a, [dir]: 'busy' }))
-    const r = await window.devforge.packages.audit(projectId, dir).catch(() => null)
-    setAudits(a => ({ ...a, [dir]: r }))
+  async function runAudit(m: PackageManifest) {
+    const key = keyOf(m)
+    setAudits(a => ({ ...a, [key]: 'busy' }))
+    const r = await window.devforge.packages.audit(projectId, m.dir, m.file).catch(() => null)
+    setAudits(a => ({ ...a, [key]: r }))
   }
 
   async function apply(m: PackageManifest, updates: PackageUpdate[]) {
     if (!updates.length) return
     const majors = updates.filter(u => {
       const p = m.packages.find(x => x.name === u.name)
-      return p && planOf(p, latest[m.dir]?.[u.name] ?? null).level === 'major'
+      return p && planOf(p, latest[keyOf(m)]?.[u.name] ?? null).level === 'major'
     })
-    if (majors.length && !window.confirm(k.majorConfirm.replace('{list}', majors.map(u => `${u.name} → ${latest[m.dir]?.[u.name]}`).join('\n')))) return
-    setRunning(m.dir); setLog([])
+    if (majors.length && !window.confirm(k.majorConfirm.replace('{list}', majors.map(u => `${u.name} → ${latest[keyOf(m)]?.[u.name]}`).join('\n')))) return
+    setRunning(keyOf(m)); setLog([])
     try {
-      const r = await window.devforge.packages.update(projectId, m.dir, updates)
+      const r = await window.devforge.packages.update(projectId, m.dir, m.file, updates)
       toast.show(r.ok ? { tone: 'success', title: k.updated.replace('{n}', String(updates.length)) } : { tone: 'error', title: r.restored ? k.failedRestored : k.failed })
       setSelected(new Set())
       const fresh = await window.devforge.packages.list(projectId).catch(() => manifests ?? [])
       setManifests(fresh)
-      const again = fresh.find(x => x.dir === m.dir)
+      const again = fresh.find(x => keyOf(x) === keyOf(m))
       if (again) await loadLatest(again)
-      if (audits[m.dir] && audits[m.dir] !== 'busy') void runAudit(m.dir)
+      if (audits[keyOf(m)] && audits[keyOf(m)] !== 'busy') void runAudit(m)
     } catch (err) {
       toast.show({ tone: 'error', title: errorText(err) })
     } finally { setRunning(null) }
@@ -96,15 +100,16 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
       </div>
 
       {manifests.map(m => {
-        const versions = latest[m.dir]
+        const key = keyOf(m)
+        const versions = latest[key]
         const rows = m.packages.map(p => ({ p, latest: versions?.[p.name] ?? null, ...planOf(p, versions?.[p.name] ?? null) }))
         const shown = rows.filter(r => filter === 'all' || (filter === 'major' ? r.level === 'major' : !!r.update))
         const compatible = rows.flatMap(r => r.update?.target === 'compatible' ? [r.update] : [])
-        const picked = rows.flatMap(r => r.update && selected.has(`${m.dir}:${r.p.name}`) ? [r.update] : [])
-        const audit = audits[m.dir]
+        const picked = rows.flatMap(r => r.update && selected.has(`${key}:${r.p.name}`) ? [r.update] : [])
+        const audit = audits[key]
         const label = `${m.dir ? `${m.dir}/` : ''}${m.file}`
         return (
-          <Card key={m.dir} className="overflow-hidden">
+          <Card key={key} className="overflow-hidden">
             <header className="flex flex-wrap items-center gap-2.5 border-b border-line-subtle px-[18px] py-3.5">
               <Package size={16} className="text-fg-muted" />
               <div className="min-w-0 flex-1">
@@ -112,15 +117,21 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
                 <div className="text-xs text-fg-muted">{m.name ?? '—'} · {m.manager} · {k.count.replace('{n}', String(m.packages.length))}</div>
               </div>
               {audit === 'busy' ? <Spinner />
-                : audit === undefined ? <Button size="sm" variant="ghost" onClick={() => runAudit(m.dir)}><ShieldAlert size={13} /> {k.audit}</Button>
+                : audit === undefined ? <Button size="sm" variant="ghost" onClick={() => runAudit(m)}><ShieldAlert size={13} /> {k.audit}</Button>
                 : audit === null ? <span className="text-xs text-fg-muted">{k.auditUnavailable}</span>
                 : audit.total === 0 ? <Badge color="success"><ShieldCheck size={12} /> {k.auditClean}</Badge>
                 : <Badge color={audit.bySeverity.critical || audit.bySeverity.high ? 'danger' : 'warning'}><ShieldAlert size={12} /> {k.auditFound.replace('{n}', String(audit.total))}</Badge>}
               <Button size="sm" variant="ghost" onClick={() => loadLatest(m)} disabled={!!running}><RefreshCw size={13} /> {t.common.refresh}</Button>
-              <Button size="sm" variant="secondary" disabled={!compatible.length || !!running} loading={running === m.dir}
+              <Button size="sm" variant="secondary" disabled={!compatible.length || !!running || m.toolMissing} loading={running === key}
                 onClick={() => apply(m, compatible)}><ArrowUpCircle size={13} /> {k.updateCompatible.replace('{n}', String(compatible.length))}</Button>
             </header>
 
+            {m.toolMissing && (
+              <div role="status" className="flex flex-wrap items-center gap-2 border-b border-line-subtle bg-warning-soft px-[18px] py-2.5 text-sm text-warning">
+                {k.composerMissing}
+                <button onClick={() => window.devforge.openExternal('https://getcomposer.org/download/')} className="inline-flex items-center gap-1 underline">getcomposer.org <ExternalLink size={11} /></button>
+              </div>
+            )}
             {!versions && <div className="flex items-center gap-2 px-[18px] py-3 text-sm text-fg-muted"><Spinner /> {k.checking}</div>}
             {versions && shown.length === 0 && <p className="px-[18px] py-4 text-sm text-fg-muted">{filter === 'all' ? k.empty : k.allCurrent}</p>}
             {versions && shown.length > 0 && (
@@ -138,16 +149,16 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
                 </thead>
                 <tbody>
                   {shown.map(r => {
-                    const key = `${m.dir}:${r.p.name}`
+                    const rowKey = `${key}:${r.p.name}`
                     const vuln = audit && audit !== 'busy' ? audit.packages[r.p.name] : undefined
                     return (
-                      <tr key={key} className="border-b border-line-subtle last:border-0 hover:bg-elevated">
+                      <tr key={rowKey} className="border-b border-line-subtle last:border-0 hover:bg-elevated">
                         <td className="px-3 py-1.5">
-                          {r.update && <input type="checkbox" className="size-3.5 accent-accent" aria-label={k.selectOne.replace('{name}', r.p.name)} checked={selected.has(key)}
-                            onChange={e => setSelected(s => { const n = new Set(s); if (e.target.checked) n.add(key); else n.delete(key); return n })} />}
+                          {r.update && <input type="checkbox" className="size-3.5 accent-accent" aria-label={k.selectOne.replace('{name}', r.p.name)} checked={selected.has(rowKey)}
+                            onChange={e => setSelected(s => { const n = new Set(s); if (e.target.checked) n.add(rowKey); else n.delete(rowKey); return n })} />}
                         </td>
                         <td className="px-3 py-1.5">
-                          <button onClick={() => window.devforge.openExternal(`https://www.npmjs.com/package/${r.p.name}`)} className="inline-flex items-center gap-1 font-mono text-fg hover:text-accent">
+                          <button onClick={() => window.devforge.openExternal(m.file === 'composer.json' ? `https://packagist.org/packages/${r.p.name}` : `https://www.npmjs.com/package/${r.p.name}`)} className="inline-flex items-center gap-1 font-mono text-fg hover:text-accent">
                             {r.p.name} <ExternalLink size={11} className="text-fg-muted" />
                           </button>
                           {r.p.dev && <span className="ml-2 rounded bg-elevated px-1.5 font-mono text-[10.5px] text-fg-muted">dev</span>}
@@ -163,7 +174,7 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
                         </td>
                         <td className="px-3 py-1.5 text-right">
                           {r.update && (
-                            <Button size="sm" variant={r.level === 'major' ? 'ghost' : 'secondary'} disabled={!!running} onClick={() => apply(m, [r.update!])}>
+                            <Button size="sm" variant={r.level === 'major' ? 'ghost' : 'secondary'} disabled={!!running || m.toolMissing} onClick={() => apply(m, [r.update!])}>
                               {r.update.target === 'compatible' ? k.update : k.updateTo.replace('{v}', r.latest ?? '')}
                             </Button>
                           )}
@@ -178,11 +189,11 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
             {picked.length > 0 && (
               <div className="flex items-center gap-3 border-t border-line-subtle px-[18px] py-3">
                 <span className="text-sm text-fg-secondary">{k.selected.replace('{n}', String(picked.length))}</span>
-                <Button size="sm" disabled={!!running} onClick={() => apply(m, picked)}><ArrowUpCircle size={13} /> {k.updateSelected}</Button>
+                <Button size="sm" disabled={!!running || m.toolMissing} onClick={() => apply(m, picked)}><ArrowUpCircle size={13} /> {k.updateSelected}</Button>
               </div>
             )}
 
-            {running === m.dir && (
+            {running === key && (
               <pre aria-label={k.log} className="max-h-60 overflow-auto border-t border-line-subtle bg-canvas px-[18px] py-3 font-mono text-xs text-fg-secondary">{log.join('\n') || '…'}</pre>
             )}
           </Card>
