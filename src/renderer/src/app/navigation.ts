@@ -81,9 +81,14 @@ export const PAGES: NavPage[] = [
 /** Home is not lazy-loaded: it is the first screen. */
 export const HOME = { path: '/', labelKey: 'home' as NavKey, icon: Home, docs: 'getting-started/interface' }
 
-/** The documentation of the page at this address (detail pages count for their parent), the interface overview otherwise */
-export function docsOf(pathname: string): string {
+/** Project page tabs with a documentation page of their own (the others: the project page's) */
+export const PROJECT_TAB_DOCS: Record<string, string> = { packages: 'dev/packages' }
+
+/** The documentation of the page at this address (detail pages count for their parent, a project tab may have its own), the interface overview otherwise */
+export function docsOf(pathname: string, search = ''): string {
   if (pathname === '/') return HOME.docs
+  const tab = pathname.startsWith('/project/') ? new URLSearchParams(search).get('tab') : null
+  if (tab && PROJECT_TAB_DOCS[tab]) return PROJECT_TAB_DOCS[tab]
   const page = PAGES.find(p => pathname === p.path || pathname.startsWith(p.path + '/'))
   return page?.docs ?? HOME.docs
 }

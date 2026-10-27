@@ -36,15 +36,15 @@ export default function TitleBar() {
   const { t, lang } = useI18n()
   const { open, setOpen, mood } = useAssistant()
   const [maximized, setMaximized] = useState(false)
-  const { pathname } = useLocation()
-  const help = () => openDocs(docsOf(pathname), lang)
+  const { pathname, search } = useLocation()
+  const help = () => openDocs(docsOf(pathname, search), lang)
 
   // F1: the documentation of the page on screen, like in most apps
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'F1') { e.preventDefault(); openDocs(docsOf(pathname), lang) } }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'F1') { e.preventDefault(); openDocs(docsOf(pathname, search), lang) } }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [pathname, lang])
+  }, [pathname, search, lang])
 
   useEffect(() => {
     window.devforge.windowIsMaximized().then(setMaximized)
@@ -69,7 +69,7 @@ export default function TitleBar() {
       </button>
 
       {/* The documentation of this page, on the site (F1) */}
-      {docsUrl(docsOf(pathname), lang) && (
+      {docsUrl(docsOf(pathname, search), lang) && (
         <button onClick={help} title={t.nav.help + ' (F1)'} aria-label={t.nav.help}
           className="app-no-drag flex h-[30px] items-center rounded-lg border border-line px-2.5 text-fg-secondary transition-colors hover:border-fg-disabled hover:text-fg">
           <CircleHelp size={14} />

@@ -1,7 +1,7 @@
 import { existsSync } from 'fs'
 import { join } from 'path'
 import { describe, expect, it } from 'vitest'
-import { HOME, LISTED_PAGES, PAGES, docsOf } from '@renderer/app/navigation'
+import { HOME, LISTED_PAGES, PAGES, PROJECT_TAB_DOCS, docsOf } from '@renderer/app/navigation'
 import { docsUrl } from '@renderer/lib/docs'
 
 /** v3.2 lot 2: every page of the menu leads to a documentation page that exists on the site, in both languages */
@@ -15,6 +15,10 @@ describe('help links', () => {
       expect(exists(page.docs!, ''), `${page.path} → ${page.docs}`).toBe(true)
       expect(exists(page.docs!, 'en/'), `${page.path} → en/${page.docs}`).toBe(true)
     }
+    for (const slug of Object.values(PROJECT_TAB_DOCS)) {
+      expect(exists(slug, ''), slug).toBe(true)
+      expect(exists(slug, 'en/'), `en/${slug}`).toBe(true)
+    }
     expect(exists('getting-started/first-launch', '')).toBe(true)
     expect(exists('getting-started/connections', 'en/')).toBe(true)
   })
@@ -24,6 +28,10 @@ describe('help links', () => {
     expect(docsOf('/vpn')).toBe('online/vpn')
     expect(docsOf('/project/p1')).toBe('dev/projects')
     expect(docsOf('/vps/c1')).toBe('servers/ssh')
+    // A project tab with a page of its own (v3.3)
+    expect(docsOf('/project/p1', '?tab=packages')).toBe('dev/packages')
+    expect(docsOf('/project/p1', '?tab=database')).toBe('dev/projects')
+    expect(docsOf('/vpn', '?tab=packages')).toBe('online/vpn')
     expect(docsOf('/nowhere')).toBe('getting-started/interface')
   })
 
