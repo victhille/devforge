@@ -16,6 +16,19 @@ export function relPath(path: string, root: string): string {
   return p.toLowerCase().startsWith(`${r.toLowerCase()}/`) ? p.slice(r.length + 1) : p.replace(/^\.\//, '')
 }
 
+/**
+ * Paths a tool wrote with another spelling of the project's folder (Windows'
+ * short names, "RUNNER~1" for "runneradmin"), made relative to its other form
+ */
+export function rebase(files: TestFile[], otherRoot: string): TestFile[] {
+  const absolute = (p: string) => /^([A-Za-z]:)?[\\/]/.test(p)
+  const fix = (p: string) => (absolute(p) ? relPath(p, otherRoot) : p)
+  return files.map(f => ({
+    file: fix(f.file),
+    tests: f.tests.map(t => (t.location ? { ...t, location: { ...t.location, file: fix(t.location.file) } } : t))
+  }))
+}
+
 export function totalsOf(files: TestFile[]): TestTotals {
   const t: TestTotals = { passed: 0, failed: 0, skipped: 0 }
   for (const f of files) for (const c of f.tests) t[c.status]++
@@ -46,7 +59,8 @@ export function expectedActual(text: string): { expected?: string; actual?: stri
 /** The first "file:line" of a stack that points into the project (not node_modules) */
 export function locationIn(text: string, root: string, prefer?: string): { file: string; line: number } | undefined {
   const found: { file: string; line: number }[] = []
-  for (const m of stripAnsi(text).matchAll(/((?:[A-Za-z]:)?[\w./\\ -]*?\.[a-z]{1,4}):(\d+)(?::\d+)?/g)) {
+  // "~": Windows' short folder names (RUNNER~1)
+  for (const m of stripAnsi(text).matchAll(/((?:[A-Za-z]:)?[\w./\\ ~-]*?\.[a-z]{1,4}):(\d+)(?::\d+)?/g)) {
     const file = relPath(m[1].trim().replace(/^\(/, ''), root)
     if (/node_modules|^node:|^internal\//.test(file)) continue
     found.push({ file, line: Number(m[2]) })

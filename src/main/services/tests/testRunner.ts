@@ -1,10 +1,10 @@
 import { spawn, type ChildProcess } from 'child_process'
 import { createHash } from 'crypto'
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync } from 'fs'
 import { join } from 'path'
 import { app } from 'electron'
 import type { TestFile, TestRun, TestRunner, TestRunnerInfo } from '@shared/types'
-import { parseCargoTest, parseGoTest, parseJestJson, parseJunit, parsePlaywrightJson, stripAnsi, totalsOf } from '@shared/lib/testReports'
+import { parseCargoTest, parseGoTest, parseJestJson, parseJunit, parsePlaywrightJson, rebase, stripAnsi, totalsOf } from '@shared/lib/testReports'
 import { quote } from '../../lib/exec'
 import { killTree } from '../../lib/killTree'
 import { findExecutable, isInsideProject } from '../../lib/safe'
@@ -93,6 +93,14 @@ export function planFor(dir: string, runner: TestRunner, files: string[], report
 }
 
 function parseRun(runner: TestRunner, dir: string, report: string | undefined, output: string): TestFile[] | null {
+  const files = parseReport(runner, dir, report, output)
+  // The tool may spell the folder its own way (long or short names on Windows)
+  let real = dir
+  try { real = realpathSync.native(dir) } catch { /* as it is */ }
+  return files && real !== dir ? rebase(files, real) : files
+}
+
+function parseReport(runner: TestRunner, dir: string, report: string | undefined, output: string): TestFile[] | null {
   const text = report ? read(report) : null
   switch (runner) {
     case 'vitest': case 'jest': return text ? parseJestJson(text, dir) : null

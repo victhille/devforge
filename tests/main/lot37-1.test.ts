@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { describe, expect, it } from 'vitest'
-import { expectedActual, parseCargoTest, parseGoTest, parseJestJson, parseJunit, parsePlaywrightJson, totalsOf } from '../../src/shared/lib/testReports'
+import { expectedActual, locationIn, parseCargoTest, parseGoTest, parseJestJson, parseJunit, parsePlaywrightJson, rebase, totalsOf } from '../../src/shared/lib/testReports'
 
 /** v3.7 lot 1: each test tool's report, read (real Vitest and Cargo outputs, the others as documented) */
 const fixture = (name: string) => readFileSync(join(__dirname, '..', 'fixtures', 'tests', name), 'utf-8')
@@ -112,6 +112,16 @@ describe('v3.7: Go and Cargo', () => {
       ['tests/it.rs', ['integration:passed']]
     ])
     expect(files[0].tests[2]).toMatchObject({ expected: '5', actual: '4', location: { file: 'src/lib.rs', line: 9 } })
+  })
+})
+
+describe('v3.7: paths written with Windows\' short names', () => {
+  it('reads a place under a short folder name, and rebases a path spelled the other way', () => {
+    expect(locationIn('Error\n    at C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\shop\\src\\cart.test.ts:6:15', 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\shop'))
+      .toEqual({ file: 'src/cart.test.ts', line: 6 })
+    const files = rebase([{ file: 'C:/Users/runneradmin/Temp/shop/src/a.test.ts', tests: [{ name: 'x', status: 'failed', durationMs: 1, location: { file: 'C:/Users/runneradmin/Temp/shop/src/a.test.ts', line: 3 } }] }], 'C:\\Users\\runneradmin\\Temp\\shop')
+    expect(files[0].file).toBe('src/a.test.ts')
+    expect(files[0].tests[0].location).toEqual({ file: 'src/a.test.ts', line: 3 })
   })
 })
 
