@@ -38,7 +38,8 @@ test('a group: one-line buttons when folded, the rest of its folder, files previ
       const g = join(dir, 'code', 'agenda-app')
       file(join(g, 'backend', 'package.json'), JSON.stringify({ dependencies: { express: '^5' } }))
       file(join(g, 'frontend', 'package.json'), JSON.stringify({ dependencies: { react: '^19' } }))
-      file(join(g, 'README.md'), '# Agenda app\n\nUn **gestionnaire** de temps.\n\n- back\n- front\n')
+      // Windows line endings, as written on Windows (a list once crashed on them)
+      file(join(g, 'README.md'), '# Agenda app\r\n\r\nUn **gestionnaire** de temps.\r\n\r\n- back\r\n- front\r\n')
       file(join(g, 'docs', 'cahier.pdf'), tinyPdf())
       file(join(g, 'infra', 'Dockerfile'), 'FROM nginx:alpine\n')
       file(join(g, 'docs', 'logo.zip'), Buffer.from([0x50, 0x4b, 3, 4, 0, 0]))
@@ -69,6 +70,11 @@ test('a group: one-line buttons when folded, the rest of its folder, files previ
   }
   await expect(card.getByRole('button', { name: 'Ouvrir', exact: true })).toBeVisible()
 
+  // A click on the card opens its page, as for a project's card
+  await card.getByRole('heading', { name: 'agenda-app' }).click()
+  await expect(page).toHaveURL(/\/project\/tm/)
+  await goTo(page, '/projects')
+
   // The filters row leads to the projects folders
   await page.getByRole('button', { name: 'Ajouter un dossier' }).click()
   await expect(page).toHaveURL(/section=general/)
@@ -80,6 +86,7 @@ test('a group: one-line buttons when folded, the rest of its folder, files previ
   const preview = page.getByTestId('file-preview')
   await expect(preview.getByRole('heading', { name: 'Agenda app' })).toBeVisible()
   await expect(preview.locator('strong')).toHaveText('gestionnaire')
+  await expect(preview.getByRole('listitem')).toHaveText(['back', 'front'])
   await page.getByRole('button', { name: 'Voir le source' }).click()
   await expect(preview.locator('pre')).toContainText('# Agenda app')
   expect(await settledAxe(page)).toEqual([])

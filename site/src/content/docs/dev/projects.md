@@ -64,7 +64,7 @@ Les onglets n'apparaissent que s'ils ont un sens pour ce projet :
 | Ports & domaines | les ports trouvés dans la config (`.env`, scripts, Compose), en écoute ou libres, **Libérer** ; les domaines locaux liés |
 | Déploiement | les cibles de déploiement du projet et **Synchroniser le .env** avec le serveur |
 | Vercel | si le dossier est lié à Vercel : déploiements, variables, domaines |
-| Fichiers | l'arborescence du projet, avec l'aperçu du fichier cliqué, et la liste de ses scripts, avec **Lancer** |
+| Fichiers | l'arborescence du projet, avec l'aperçu du fichier cliqué (les scripts sont dans la vue d'ensemble) |
 
 Ce que DevForge a **trouvé** seul (une base, un domaine, un port) est marqué *trouvé* ; ce que tu as lié à la main, *ajouté*. **Retirer du projet** masque un élément ; **Réafficher** le remet.
 

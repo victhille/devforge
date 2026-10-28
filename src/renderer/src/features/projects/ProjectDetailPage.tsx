@@ -478,25 +478,8 @@ export default function ProjectDetailPage() {
     // Drawn below, kept mounted
     terminal: null,
 
-    files: (
-      <div className="flex flex-wrap gap-4">
-        <Card className="h-[600px] min-w-[280px] flex-[3_1_560px] overflow-hidden"><FileTree rootPath={p.path} /></Card>
-        {scriptList.length > 0 && (
-          <Card className="min-w-[280px] flex-[1_1_320px] self-start overflow-hidden">
-            <h2 className="px-[18px] pt-4 pb-2 text-md font-semibold text-fg">{h.scripts}</h2>
-            {scriptList.map(([name, cmd]) => (
-              <div key={name} className="flex items-center gap-3 border-t border-line-subtle px-[18px] py-2.5">
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-fg">{name}</div>
-                  <div className="truncate font-mono text-xs text-fg-muted">{cmd}</div>
-                </div>
-                <IconButton title={`${h.run} ${name}`} onClick={() => runScript(p.path, name, p.packageManager, p.name)} className="text-success hover:bg-success-soft hover:text-success"><Play size={12} /></IconButton>
-              </div>
-            ))}
-          </Card>
-        )}
-      </div>
-    )
+    // The scripts are on the overview: here, the whole width for the tree and the preview
+    files: <Card className="h-[640px] overflow-hidden"><FileTree rootPath={p.path} /></Card>
   }
 
   return (

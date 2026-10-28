@@ -32,7 +32,8 @@ const cells = (l: string) => l.trim().replace(/^\||\|$/g, '').split('|').map(c =
 
 /** `asDocument`: a project's .md file (v3.5.1), with real, larger headings */
 export default function Markdown({ text, asDocument = false }: { text: string; asDocument?: boolean }) {
-  const lines = text.split('\n')
+  // Windows files end their lines with \r\n: a trailing \r breaks the line patterns
+  const lines = text.split(/\r?\n/)
   const blocks: ReactNode[] = []
   let i = 0
   while (i < lines.length) {
@@ -97,8 +98,8 @@ export default function Markdown({ text, asDocument = false }: { text: string; a
       const ordered = /^\s*\d/.test(line)
       const items: { indent: number; text: string }[] = []
       while (i < lines.length && /^\s*([-*•]|\d+[.)])\s+/.test(lines[i])) {
-        const m = lines[i].match(/^(\s*)([-*•]|\d+[.)])\s+(.*)$/)!
-        items.push({ indent: m[1].length, text: m[3] })
+        const m = lines[i].match(/^(\s*)([-*•]|\d+[.)])\s+(.*)$/)
+        items.push({ indent: m?.[1].length ?? 0, text: m?.[3] ?? lines[i].trim() })
         i++
       }
       const Tag = ordered ? 'ol' : 'ul'

@@ -90,7 +90,9 @@ export default function GroupCard(props: Props) {
   const action = 'h-8 min-w-0 flex-1 truncate whitespace-nowrap rounded-lg border px-2 text-[12.5px] font-medium transition-colors'
 
   return (
-    <Card className={cn('df-rise flex flex-col gap-3 rounded-[14px] p-[18px]', !folded && 'border-accent/40 xl:col-span-2')} style={{ '--i': index } as CSSProperties}>
+    // Like a project's card: a click opens its page, except on its own buttons and menus
+    <Card interactive onClick={e => { if (!(e.target as Element).closest('button, a, input, select, [role="menu"]')) onDetail() }}
+      className={cn('df-rise flex flex-col gap-3 rounded-[14px] p-[18px]', !folded && 'border-accent/40 xl:col-span-2')} style={{ '--i': index } as CSSProperties}>
       <div className="flex items-center gap-3">
         <ProjectIcon framework="group" size="lg" />
         <div className="min-w-0 flex-1">

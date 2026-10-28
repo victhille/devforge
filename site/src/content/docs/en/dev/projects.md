@@ -64,7 +64,7 @@ Tabs only show when they make sense for the project:
 | Ports & domains | the ports found in the config (`.env`, scripts, Compose), listening or free, **Free**; the linked local domains |
 | Deploy | the project's deploy targets and **Sync the .env** with the server |
 | Vercel | if the folder is linked to Vercel: deployments, variables, domains |
-| Files | the project tree, with a preview of the file clicked, and the list of its scripts, with **Run** |
+| Files | the project tree, with a preview of the file clicked (the scripts are on the overview) |
 
 What DevForge **found** by itself (a database, a domain, a port) is marked *found*; what you linked by hand, *added*. **Remove from the project** hides an item; **Show again** brings it back.
 
