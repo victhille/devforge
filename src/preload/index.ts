@@ -19,6 +19,8 @@ const api: DevForgeAPI = {
     pull:    invoke('git:pull'),
     push:    invoke('git:push'),
     changes: invoke('git:changes'),
+    fileStates: invoke('git:file-states'),
+    fileDiff: invoke('git:file-diff'),
     commit:  invoke('git:commit')
   },
 

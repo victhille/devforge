@@ -1,5 +1,9 @@
 import type { FileChangeStatus, GitActionResult, GitFileChange, GitRepoDetails } from '@shared/types'
+import { readFileSync } from 'fs'
+import { isAbsolute, join } from 'path'
 import { runFile } from '../../lib/exec'
+import { isInsideProject } from '../../lib/safe'
+import { newFileDiff } from '@shared/lib/unifiedDiff'
 
 const SEP = '\u001f' // unit separator, never in commit messages
 
@@ -153,4 +157,33 @@ export async function gitCommit(path: string, message: string, files: string[]):
     if (!add.ok) return { ok: false, output: (add.stdout + add.stderr).trim() }
   }
   return action(path, ['commit', '-m', message, '--', ...files])
+}
+
+// ─── The Files tab (v3.7 lot 3) ───────────────────────────────────────────────
+
+/**
+ * The changed files of a project's folder, paths relative to it (a project
+ * in a sub-folder of a repository: its own part only). Not in a repository:
+ * inRepo false.
+ */
+export async function getFileStates(path: string): Promise<{ inRepo: boolean; files: Record<string, FileChangeStatus> }> {
+  if (!isInsideProject(path)) return { inRepo: false, files: {} }
+  const prefix = await git(path, ['rev-parse', '--show-prefix'])
+  if (!prefix.ok) return { inRepo: false, files: {} }
+  const p = prefix.stdout.trim()
+  const files: Record<string, FileChangeStatus> = {}
+  for (const c of await getChanges(path)) if (c.path.startsWith(p)) files[c.path.slice(p.length)] = c.status
+  return { inRepo: true, files }
+}
+
+/** A file's changes since the last commit (staged ones included); a new file: all of it, added */
+export async function getFileDiff(path: string, rel: string): Promise<{ diff: string; status: FileChangeStatus | null }> {
+  if (!isInsideProject(path) || typeof rel !== 'string' || !rel || rel.split(/[\\/]/).includes('..') || isAbsolute(rel)) throw new Error('Not a file of this project')
+  const states = await getFileStates(path)
+  const status = states.files[rel] ?? null
+  if (status === 'untracked' || (status === 'added' && !(await git(path, ['rev-parse', '--verify', 'HEAD'])).ok)) {
+    try { return { diff: newFileDiff(readFileSync(join(path, rel), 'utf-8')), status } } catch { return { diff: '', status } }
+  }
+  const r = await git(path, ['diff', 'HEAD', '--no-color', '--no-ext-diff', '--', rel], 10_000)
+  return { diff: r.ok ? r.stdout : '', status }
 }

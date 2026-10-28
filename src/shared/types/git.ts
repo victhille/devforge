@@ -46,6 +46,10 @@ export interface GitAPI {
   push:    (path: string) => Promise<GitActionResult>
   /** Working tree changes with line counts */
   changes: (path: string) => Promise<GitFileChange[]>
+  /** v3.7: the changed files of a project's folder, relative to it */
+  fileStates: (path: string) => Promise<{ inRepo: boolean; files: Record<string, FileChangeStatus> }>
+  /** v3.7: one file's changes since the last commit, as a unified diff */
+  fileDiff: (path: string, rel: string) => Promise<{ diff: string; status: FileChangeStatus | null }>
   /** Stage exactly `files` (relative paths) then commit them */
   commit:  (path: string, message: string, files: string[]) => Promise<GitActionResult>
 }

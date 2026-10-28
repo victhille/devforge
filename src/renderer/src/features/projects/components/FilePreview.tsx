@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Code2, Eye, SquareArrowOutUpRight, X } from 'lucide-react'
-import type { DefaultIDE, FileEntry, FilePreview as Preview } from '@shared/types'
+import type { DefaultIDE, FileChangeStatus, FileEntry, FilePreview as Preview } from '@shared/types'
 import { codeLanguage } from '@shared/lib/codeLanguage'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -10,6 +10,8 @@ import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import CopyButton from '@renderer/components/ui/CopyButton'
 import Markdown from '@renderer/features/assistant/Markdown'
+import { cn } from '@renderer/lib/cn'
+import { DiffView, TONE } from './GitMarks'
 
 // pdf.js is heavy: loaded with the first PDF only
 const PdfView = lazy(() => import('./PdfView'))
@@ -54,7 +56,11 @@ function CodeView({ text, name, line }: { text: string; name: string; line?: num
  * source one click away), images and PDFs as such, other text in a fixed
  * font, in colours (v3.5.3). The project's IDE opens it.
  */
-export default function FilePreview({ file, line, root, ide: own, onClose }: { file: FileEntry; line?: number; root?: string; ide?: DefaultIDE; onClose: () => void }) {
+export default function FilePreview({ file, line, root, ide: own, onClose, change, rel, startOnChanges }: {
+  file: FileEntry; line?: number; root?: string; ide?: DefaultIDE; onClose: () => void
+  /** v3.7: what Git says of this file, its path in the project; the changes shown first */
+  change?: FileChangeStatus; rel?: string; startOnChanges?: boolean
+}) {
   const { t } = useI18n()
   const f = t.files
   const toast = useToast()
@@ -62,6 +68,10 @@ export default function FilePreview({ file, line, root, ide: own, onClose }: { f
   const ideLabel = ide.labelFor(own)
   const [preview, setPreview] = useState<Preview | null>(null)
   const [source, setSource] = useState(false)
+  // A deleted file has nothing else to show
+  const [diffMode, setDiffMode] = useState(false)
+  useEffect(() => { setDiffMode(!!change && (change === 'deleted' || !!startOnChanges)) }, [file.path, change, startOnChanges])
+  const showDiff = !!change && !!root && !!rel && diffMode
 
   useEffect(() => {
     let alive = true
@@ -84,8 +94,17 @@ export default function FilePreview({ file, line, root, ide: own, onClose }: { f
       <header className="flex h-10 shrink-0 items-center gap-2 border-b border-line-subtle px-3">
         <span className="truncate font-mono text-[12.5px] font-medium text-fg" title={file.path}>{file.name}</span>
         {preview && preview.size > 0 && <span className="shrink-0 font-mono text-2xs text-fg-muted">{formatSize(preview.size)}</span>}
+        {change && <span className={cn('shrink-0 font-mono text-2xs', TONE[change].replace('line-through', ''))}>{f.gitStatus[change]}</span>}
         <span className="ml-auto flex items-center gap-1">
-          {preview?.kind === 'markdown' && (
+          {change && change !== 'deleted' && (
+            <span role="group" aria-label={f.viewLabel} className="mr-1 flex rounded-md border border-line p-px text-[11.5px]">
+              {[false, true].map(v => (
+                <button key={String(v)} aria-pressed={diffMode === v} onClick={() => setDiffMode(v)}
+                  className={cn('rounded px-2 py-0.5', diffMode === v ? 'bg-active text-fg' : 'text-fg-secondary hover:text-fg')}>{v ? f.viewChanges : f.viewFile}</button>
+              ))}
+            </span>
+          )}
+          {preview?.kind === 'markdown' && !showDiff && (
             <IconButton size="sm" title={source ? f.formatted : f.source} aria-pressed={source} onClick={() => setSource(s => !s)}>
               {source ? <Eye size={13} /> : <Code2 size={13} />}
             </IconButton>
@@ -97,7 +116,8 @@ export default function FilePreview({ file, line, root, ide: own, onClose }: { f
       </header>
       {/* Scrollable: reachable with the keyboard too */}
       <div className="min-h-0 flex-1 overflow-auto" data-testid="file-preview" tabIndex={0}>
-        {!preview ? <Spinner className="m-6" />
+        {showDiff ? <DiffView root={root!} rel={rel!} />
+          : !preview ? <Spinner className="m-6" />
           : preview.kind === 'markdown' && !source ? <div className="max-w-[860px] px-5 py-4 text-sm leading-relaxed text-fg-secondary"><Markdown text={preview.text} asDocument /></div>
           : text !== null ? <CodeView text={text} name={file.name} line={line} />
           : preview.kind === 'image' ? <div className="flex min-h-full items-center justify-center bg-[repeating-conic-gradient(var(--color-elevated)_0%_25%,transparent_0%_50%)] bg-[length:16px_16px] p-4"><img src={preview.dataUrl} alt={file.name} className="max-h-full max-w-full object-contain" /></div>
