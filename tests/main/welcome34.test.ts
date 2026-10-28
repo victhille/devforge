@@ -1,6 +1,6 @@
 import { execFileSync } from 'child_process'
-import { writeFileSync } from 'fs'
-import { join } from 'path'
+import { mkdirSync, writeFileSync } from 'fs'
+import { dirname, join } from 'path'
 import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
 import type { Framework, ProjectSetup } from '../../src/shared/types'
@@ -37,33 +37,53 @@ describe('v3.4: welcome page', () => {
     expect(next.content).toContain('href="/api/health"')
     expect(next.content).not.toMatch(/[^&]'[^']*<\/li>/) // apostrophes escaped (Next's lint refuses them in JSX)
     const [react] = welcomeFiles(info('react', { features: [] }), true)
-    expect(react.path).toBe('src/App.tsx')
+    expect(react.path).toBe('src/pages/Home.tsx')
+    expect(react.content).toContain("import '../styles/devforge.css'")
     expect(tsxErrors(react.content)).toEqual([])
     expect(react.content).not.toContain('/api/health')
   })
 
-  it('writes a Vue component, a Laravel view on /up, and a Node server that runs', () => {
-    expect(welcomeFiles(info('vue'), true)[0]).toMatchObject({ path: 'src/App.vue', content: expect.stringContaining('<template>') })
+  it('writes a Vue page, a Laravel view on /up, and no page for Node', () => {
+    expect(welcomeFiles(info('vue'), true).map(f => f.path)).toEqual(['src/pages/Home.vue', 'src/App.vue', 'src/styles/devforge.css'])
     expect(welcomeFiles(info('laravel'), true)[0]).toMatchObject({ path: 'resources/views/welcome.blade.php', content: expect.stringContaining('href="/up"') })
-    const [node] = welcomeFiles(info('nodejs', { database: 'none', features: [] }), true)
-    const file = join(tempDir('welcome'), 'index.js')
-    writeFileSync(file, node.content)
-    expect(() => execFileSync(process.execPath, ['--check', file])).not.toThrow()
+    expect(welcomeFiles(info('nodejs'), true)).toEqual([])
+  })
+
+  it('knows who is signed in: Twig app.user, Blade @auth, AccountNav for the TypeScript fronts', () => {
+    expect(welcomeFiles(info('symfony'), true)[1].content).toContain('{% if app.user %}')
+    expect(welcomeFiles(info('laravel'), true)[0].content).toContain('@auth')
+    for (const fw of ['nextjs', 'react'] as const) expect(welcomeFiles(info(fw), true)[0].content).toContain('<AccountNav />')
+    // Next.js in JavaScript keeps Auth.js: plain links
+    expect(welcomeFiles(info('nextjs'), false)[0].content).not.toContain('AccountNav')
+    // The views hold no style: the look is devforge.css
+    for (const fw of ['nextjs', 'react', 'vue', 'symfony', 'laravel'] as const) {
+      for (const file of welcomeFiles(info(fw), true).filter(f => !f.path.endsWith('.css'))) expect(file.content, file.path).not.toMatch(/<style|style=/)
+    }
   })
 
   it.runIf(hasPhp)('writes a Symfony controller PHP accepts', () => {
-    const [ctrl] = welcomeFiles(info('symfony'), true)
+    const [ctrl, view] = welcomeFiles(info('symfony'), true)
     expect(ctrl.path).toBe('src/Controller/HomeController.php')
+    expect(ctrl.content).toContain("$this->render('home/index.html.twig')")
+    expect(ctrl.content).not.toContain('<html')
+    expect(view.path).toBe('templates/home/index.html.twig')
     const file = join(tempDir('welcome'), 'HomeController.php')
     writeFileSync(file, ctrl.content)
     expect(execFileSync('php', ['-l', file]).toString()).toContain('No syntax errors')
   })
 
-  it('is a step of the plan only when chosen, and replaces Node\'s plain entry file', () => {
-    const withPage = planSetup(opts('nodejs', { welcome: true }), ctx)
-    const written = withPage.flatMap(s => s.kind === 'write' ? s.files.map(f => f.path) : [])
-    expect(written.filter(p => p === 'index.js')).toHaveLength(1)
-    expect(withPage.find(s => s.kind === 'write' && s.label === 'Page d\'accueil DevForge')).toBeTruthy()
+  it('Node: a plain index.js and an npm test checking it answers', () => {
+    const steps = planSetup(opts('nodejs', { welcome: true, database: 'none', features: [] }), ctx)
+    const dir = tempDir('welcome')
+    for (const file of steps.flatMap(s => s.kind === 'write' ? s.files : [])) {
+      mkdirSync(dirname(join(dir, file.path)), { recursive: true })
+      writeFileSync(join(dir, file.path), file.content)
+    }
+    expect(execFileSync(process.execPath, ['--test'], { cwd: dir }).toString()).toMatch(/pass 1/)
+  })
+
+  it('is a step of the plan only when chosen', () => {
+    expect(planSetup(opts('react', { welcome: true }), ctx).find(s => s.kind === 'write' && s.label === 'Page d\'accueil DevForge')).toBeTruthy()
     expect(planSetup(opts('nextjs', { welcome: false }), ctx).some(s => s.kind === 'write' && s.label === 'Page d\'accueil DevForge')).toBe(false)
   })
 })

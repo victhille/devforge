@@ -4,6 +4,7 @@ import { Code2, FolderOpen, Info, Server, Terminal, Play, Rocket, type LucideIco
 import type { Project, SSHConnection, Stack } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useConsole } from '@renderer/app/ConsoleContext'
+import { usePreferredIde } from '@renderer/lib/ide'
 import { HOME, LISTED_PAGES, isListed, type NavPage } from '@renderer/app/navigation'
 import { useActions } from './useActions'
 
@@ -27,6 +28,7 @@ export function useCommands(open: boolean): Command[] {
   const { t } = useI18n()
   const navigate = useNavigate()
   const { runScript } = useConsole()
+  const ide = usePreferredIde()
   const [projects, setProjects] = useState<Project[]>([])
   const [connections, setConnections] = useState<SSHConnection[]>([])
   const [scripts, setScripts] = useState<Record<string, Record<string, string>>>({})
@@ -79,7 +81,7 @@ export function useCommands(open: boolean): Command[] {
     // Projects
     for (const p of projects) {
       list.push(
-        { id: `proj:code:${p.id}`,   group: c.groupProjects, title: `${c.openInVSCode} — ${p.name}`, subtitle: p.path, icon: Code2,      keywords: p.framework, run: () => { window.devforge.updateProjectLastOpened(p.id); window.devforge.openInIDE(p.path, 'vscode') } },
+        { id: `proj:code:${p.id}`,   group: c.groupProjects, title: `${c.openInVSCode.replace('{ide}', ide.label ?? 'IDE')} — ${p.name}`, subtitle: p.path, icon: Code2,      keywords: p.framework, run: () => { window.devforge.updateProjectLastOpened(p.id); void ide.open(p.path) } },
         { id: `proj:detail:${p.id}`, group: c.groupProjects, title: `${c.details} — ${p.name}`,      subtitle: p.path, icon: Info,       run: () => navigate(`/project/${p.id}`) },
         { id: `proj:folder:${p.id}`, group: c.groupProjects, title: `${c.openFolder} — ${p.name}`,   subtitle: p.path, icon: FolderOpen, run: () => window.devforge.openDirectory(p.path) },
         { id: `proj:term:${p.id}`,   group: c.groupProjects, title: `${c.terminal} — ${p.name}`,     subtitle: p.path, icon: Terminal,   run: () => window.devforge.openTerminal(p.path) }
@@ -113,7 +115,7 @@ export function useCommands(open: boolean): Command[] {
 
     // Actions after the pages: they show first for a matching search
     return [...list.slice(0, pages.length), ...actions, ...list.slice(pages.length)]
-  }, [t, navigate, runScript, projects, scripts, connections, stacks, actions])
+  }, [t, navigate, runScript, projects, scripts, connections, stacks, actions, ide])
 }
 
 /** Lowercase, accent-free text for matching. */

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
 import type { LogLine, CommandResult, ProjectCreationOptions, PackageManager } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
+import { openInPreferredIde } from '@renderer/lib/ide'
 
 interface ConsoleState {
   visible: boolean
@@ -185,7 +186,7 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
 
   const openVSCode = useCallback(() => {
     setState(prev => {
-      if (prev.projectPath) window.devforge.openInIDE(prev.projectPath, 'vscode')
+      if (prev.projectPath) void openInPreferredIde(prev.projectPath)
       return prev
     })
   }, [])

@@ -1,5 +1,5 @@
 import { AUTH_RULES } from '../data/authContract'
-import { AUTH_ANVIL, AUTH_CSS } from './nextAuthTemplate'
+import { ANVIL, DEVFORGE_CSS } from './devforgeStyle'
 
 /**
  * v3.4 lot 5: authentication of a Symfony project, on the shared contract.
@@ -452,12 +452,12 @@ const layout = (name: string, lang: 'fr' | 'en', t: T) => `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}{% endblock %} · ${name}</title>
-<style>${AUTH_CSS}</style>
+<link rel="stylesheet" href="/devforge.css">
 </head>
-<body style="margin:0">
+<body>
 <div class="df-auth">
   <header class="df-bar">
-    <a href="/" class="df-brand">${AUTH_ANVIL}${name}</a>
+    <a href="/" class="df-brand">${ANVIL}${name}</a>
     <a href="/">${t.home}</a>
   </header>
   <main class="df-center">
@@ -520,14 +520,14 @@ const dashboardView = (t: T) => `{% extends 'security/layout.html.twig' %}
 {% block title %}${t.hello}{% endblock %}
 {% block body %}
 <div class="df-wide">
-  <section class="df-box" style="max-width:none">
+  <section class="df-box">
     <h1>${t.hello} {{ app.user.name }}</h1>
     <p class="df-lead">${t.signedIn} {{ app.user.email }}</p>
-    <div><a class="df-ghost" style="display:inline-flex;align-items:center;color:#E8ECF2;text-decoration:none" href="{{ path('app_logout') }}">${t.logout}</a></div>
+    <div><a class="df-ghost" href="{{ path('app_logout') }}">${t.logout}</a></div>
   </section>
-  <section class="df-box" style="max-width:none">
-    <h1 style="font-size:16px">${t.apiTitle}</h1>
-    <p class="df-lead" style="margin:0">${t.apiLead}</p>
+  <section class="df-box">
+    <h2>${t.apiTitle}</h2>
+    <p class="df-note">${t.apiLead}</p>
     <ul class="df-routes">
       <li><b>POST</b>/api/auth/register</li>
       <li><b>POST</b>/api/auth/login</li>
@@ -552,6 +552,7 @@ export function symfonyAuthFiles(name: string, lang: 'fr' | 'en'): { path: strin
     { path: 'src/Controller/Api/AuthController.php', content: API_CONTROLLER },
     { path: 'src/Controller/SecurityController.php', content: SECURITY_CONTROLLER },
     { path: 'templates/security/layout.html.twig', content: layout(name, lang, t) },
+    { path: 'public/devforge.css', content: DEVFORGE_CSS },
     { path: 'templates/security/login.html.twig', content: loginView(t) },
     { path: 'templates/security/register.html.twig', content: registerView(t) },
     { path: 'templates/security/dashboard.html.twig', content: dashboardView(t) }

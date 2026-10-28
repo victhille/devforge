@@ -131,7 +131,9 @@ export class CommandRunner {
         shell: true,
         windowsHide: true,
         // Nobody can answer a prompt here: it gets end-of-input instead of waiting forever
-        stdio: ['ignore', 'pipe', 'pipe']
+        stdio: ['ignore', 'pipe', 'pipe'],
+        // Prisma's "Update available → 8.0.0-rc" box: DevForge pins the version it installs
+        env: { ...process.env, PRISMA_HIDE_UPDATE_MESSAGE: '1' }
       })
     } catch (err) {
       task.status = 'failed'

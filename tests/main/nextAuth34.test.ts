@@ -23,7 +23,7 @@ describe('v3.4: Next.js authentication', () => {
   const files = nextAuthFiles('shop', 'fr')
 
   it('writes valid TypeScript for every file', () => {
-    expect(files.flatMap(f => syntaxErrors(f.path, f.content))).toEqual([])
+    expect(files.filter(f => !f.path.endsWith('.css')).flatMap(f => syntaxErrors(f.path, f.content))).toEqual([])
   })
 
   it('has one route file per route of the contract, with its method', () => {

@@ -378,7 +378,8 @@ function nextSteps(o: Opts, ctx: PlanContext): SetupStep[] {
     steps.push({ kind: 'env', label: l.envDb, file: '.env', vars: { DATABASE_URL: databaseUrl('nextjs', s, ctx.password) } })
     // Before the client is generated, so it knows prisma.user
     if (has('auth') && o.typescript) steps.push({ kind: 'append', label: l.userModel, file: 'prisma/schema.prisma', text: USER_MODEL, unless: 'model User ' })
-    steps.push({ kind: 'ignore', label: l.ignore, lines: ['/{src}generated/prisma'] })
+    // The SQLite file holds the accounts: never in Git
+    steps.push({ kind: 'ignore', label: l.ignore, lines: ['/{src}generated/prisma', ...(db === 'sqlite' ? ['*.db', '*.db-journal'] : [])] })
     steps.push({ kind: 'run', label: l.prismaClient, exe: 'npx', args: ['prisma', 'generate'], optional: true })
     steps.push({ kind: 'write', label: l.prismaClient, files: [{ path: `{src}lib/prisma.${ext}`, content: prismaClientFile(db, o.typescript) }] })
   }
@@ -408,6 +409,17 @@ function nextSteps(o: Opts, ctx: PlanContext): SetupStep[] {
 
 const NODE_ENTRY = "// Entry point: npm run dev restarts it on every change\nconsole.log('Hello from Node.js ' + process.version)\n"
 
+/** npm test: index.js runs and answers */
+const NODE_TEST = `const { test } = require('node:test')
+const assert = require('node:assert/strict')
+const { execFileSync } = require('node:child_process')
+
+test('index.js answers', () => {
+  const out = execFileSync(process.execPath, ['index.js'], { encoding: 'utf8' })
+  assert.match(out, /Hello from Node\\.js/)
+})
+`
+
 /** Tailwind 4 through Vite's plugin; create-next-app --yes brings Tailwind already set up (its own Turbopack plugin) */
 const TAILWIND_VITE: Framework[] = ['react', 'vue']
 
@@ -428,8 +440,7 @@ function commonSteps(o: Opts, ctx: PlanContext): SetupStep[] {
     steps.push({ kind: 'run', label: l.install, exe: pm, args: ['install'], skipIf: 'node_modules', onlyIf: 'package.json' })
   }
   if (o.framework === 'nodejs') {
-    // With the welcome page, index.js is its server (written with the page)
-    if (!o.setup.welcome) steps.push({ kind: 'write', label: l.entry, files: [{ path: 'index.js', content: NODE_ENTRY }] })
+    steps.push({ kind: 'write', label: l.entry, files: [{ path: 'index.js', content: NODE_ENTRY }, { path: 'test/index.test.js', content: NODE_TEST }] })
     steps.push({ kind: 'scripts', label: l.startScripts, scripts: { start: 'node index.js', dev: 'node --watch index.js', test: 'node --test' } })
     if (has(o.libraries, '@prisma/client')) {
       steps.push({ kind: 'run', label: l.prismaInit, exe: 'npx', args: ['prisma', 'init', '--datasource-provider', 'postgresql', '--output', '../generated/prisma', '--no-skills'], skipIf: 'prisma/schema.prisma' })

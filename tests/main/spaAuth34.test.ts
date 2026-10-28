@@ -15,7 +15,7 @@ const line = (step: SetupStep) => step.kind === 'run' ? stepCommand(step) : `${s
 
 describe('v3.4: React and Vue authentication', () => {
   it('calls every route of the contract with the token as Bearer', () => {
-    const client = spaAuthFiles('react', 'shop', 'fr', 'http://localhost:8000').find(f => f.path === 'src/lib/auth.ts')!.content
+    const client = spaAuthFiles('react', 'shop', 'fr', 'http://localhost:8000').find(f => f.path === 'src/api/auth.ts')!.content
     for (const route of Object.values(AUTH_ROUTES)) expect(client, route.path).toContain(`'${route.method}', '${route.path}'`)
     expect(client).toContain('headers.Authorization = `Bearer ${token}`')
     expect(client).toContain("Accept: 'application/json'")
@@ -24,13 +24,22 @@ describe('v3.4: React and Vue authentication', () => {
 
   it('writes the pages, mounts them in place of App and proxies /api to the server', () => {
     const steps = plan('react').map(line)
-    expect(steps.some(s => s.includes('src/auth/Root.tsx'))).toBe(true)
+    expect(steps.some(s => s.includes('src/Router.tsx') && s.includes('src/pages/Login.tsx') && s.includes('src/styles/devforge.css'))).toBe(true)
     const react = plan('react').filter(s => s.kind === 'patch') as Extract<SetupStep, { kind: 'patch' }>[]
     expect(react.map(p => p.file)).toEqual(['src/main.tsx', 'vite.config.ts'])
+    expect(react[0].text).toBe("import App from './Router'")
     // The address the wizard gave, without its trailing slash
     expect(react[1].text).toContain("'/api': { target: 'http://localhost:3000', changeOrigin: true }")
     const vue = plan('vue').filter(s => s.kind === 'write').flatMap(s => s.kind === 'write' ? s.files.map(f => f.path) : [])
-    expect(vue).toEqual(expect.arrayContaining(['src/auth/Root.vue', 'src/auth/AuthForm.vue', 'src/auth/Dashboard.vue']))
+    expect(vue).toEqual(expect.arrayContaining(['src/Router.vue', 'src/components/AuthForm.vue', 'src/components/AccountNav.vue', 'src/pages/Dashboard.vue', 'src/api/auth.ts']))
+  })
+
+  it('keeps the look in devforge.css: no style in the views', () => {
+    for (const fw of ['react', 'vue'] as const) {
+      for (const file of spaAuthFiles(fw, 'shop', 'fr', 'http://localhost:8000').filter(f => !f.path.endsWith('.css'))) {
+        expect(file.content, file.path).not.toMatch(/<style|style=/)
+      }
+    }
   })
 
   it('keeps no database for a front, and nothing for JavaScript or without the option', () => {

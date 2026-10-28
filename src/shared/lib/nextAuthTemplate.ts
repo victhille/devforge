@@ -1,4 +1,5 @@
 import { AUTH_RULES } from '../data/authContract'
+import { ANVIL, DEVFORGE_CSS } from './devforgeStyle'
 
 /**
  * v3.4 lot 3: sign-up, sign-in and a protected page for a Next.js project,
@@ -27,7 +28,7 @@ const TEXT = {
     name: 'Nom', email: 'E-mail', password: 'Mot de passe', home: 'Accueil',
     loginTitle: 'Se connecter', loginLead: 'Content de vous revoir.', loginSubmit: 'Se connecter', noAccount: 'Pas encore de compte ?', toRegister: 'Créer un compte',
     registerTitle: 'Créer un compte', registerLead: 'Quelques secondes, et vous y êtes.', registerSubmit: 'Créer mon compte', hasAccount: 'Déjà un compte ?', toLogin: 'Se connecter',
-    hello: 'Bonjour', signedIn: 'Vous êtes connecté.', logout: 'Se déconnecter', apiTitle: 'Votre API',
+    hello: 'Bonjour', signedIn: 'Vous êtes connecté.', logout: 'Se déconnecter', apiTitle: 'Votre API', dashboard: 'Tableau de bord',
     apiLead: 'Ces routes suivent le contrat DevForge : un front React ou Vue créé par DevForge s\'y branche tel quel.',
     errName: 'Indiquez un nom.', errEmail: 'Indiquez une adresse e-mail valide.', errPassword: `Au moins ${AUTH_RULES.passwordMin} caractères.`,
     errTaken: 'Cette adresse a déjà un compte.', errInvalid: 'E-mail ou mot de passe incorrect.', errAuth: 'Connectez-vous d\'abord.', errNetwork: 'Le serveur ne répond pas.'
@@ -36,38 +37,12 @@ const TEXT = {
     name: 'Name', email: 'Email', password: 'Password', home: 'Home',
     loginTitle: 'Sign in', loginLead: 'Good to see you again.', loginSubmit: 'Sign in', noAccount: 'No account yet?', toRegister: 'Create an account',
     registerTitle: 'Create an account', registerLead: 'A few seconds, and you are in.', registerSubmit: 'Create my account', hasAccount: 'Already have an account?', toLogin: 'Sign in',
-    hello: 'Hello', signedIn: 'You are signed in.', logout: 'Sign out', apiTitle: 'Your API',
+    hello: 'Hello', signedIn: 'You are signed in.', logout: 'Sign out', apiTitle: 'Your API', dashboard: 'Dashboard',
     apiLead: 'These routes follow the DevForge contract: a React or Vue front made by DevForge plugs in as is.',
     errName: 'Enter a name.', errEmail: 'Enter a valid email address.', errPassword: `At least ${AUTH_RULES.passwordMin} characters.`,
     errTaken: 'This address already has an account.', errInvalid: 'Wrong email or password.', errAuth: 'Sign in first.', errNetwork: 'The server is not answering.'
   }
 }
-
-/** The pages' look: DevForge's dark surfaces and its anvil's orange, as the welcome page */
-export const AUTH_CSS = `.df-auth{min-height:100vh;display:flex;flex-direction:column;background:#0D0F13;color:#E8ECF2;font:14px/1.6 "Geist Variable","Geist","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-.df-auth *{box-sizing:border-box}
-.df-auth a{color:#F97316;text-decoration:none}.df-auth a:hover{text-decoration:underline}
-.df-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 28px;border-bottom:1px solid #1F242D;background:#111419}
-.df-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;color:#E8ECF2}
-.df-center{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 16px}
-.df-box{width:100%;max-width:400px;padding:28px;border-radius:14px;background:#161A21;border:1px solid #222833;display:flex;flex-direction:column;gap:16px}
-.df-box h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.01em}
-.df-lead{margin:-10px 0 0;color:#9AA4B2}
-.df-field{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:#9AA4B2}
-.df-field input{height:38px;padding:0 12px;border-radius:9px;border:1px solid #2B323D;background:#0D0F13;color:#E8ECF2;font-family:inherit;font-size:14px;outline:0}
-.df-field input:focus{border-color:#F97316}
-.df-err{color:#FF8A8A;font-size:12.5px}
-.df-alert{padding:10px 12px;border-radius:9px;background:#2A1517;border:1px solid #4A2326;color:#FF8A8A;font-size:13px}
-.df-submit{height:40px;border:0;border-radius:9px;background:#F97316;color:#1A0E04;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}
-.df-submit:disabled{opacity:.6;cursor:default}
-.df-ghost{height:36px;padding:0 14px;border-radius:9px;border:1px solid #262C36;background:#1D222B;color:#E8ECF2;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer}
-.df-small{margin:0;text-align:center;font-size:13px;color:#9AA4B2}
-.df-wide{width:100%;max-width:640px;display:flex;flex-direction:column;gap:16px}
-.df-routes{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font:500 12.5px "Geist Mono Variable","Geist Mono",Consolas,monospace}
-.df-routes li{display:flex;gap:10px;padding:8px 10px;border-radius:8px;background:#1D222B}
-.df-routes b{min-width:44px;color:#F97316;font-weight:500}`
-
-export const AUTH_ANVIL = '<svg width="26" height="26" viewBox="0 0 256 256" aria-hidden="true"><rect width="256" height="256" rx="56" fill="#0F1117"></rect><g fill="#F97316"><polygon points="41,87 200,87 200,118 77,118"></polygon><rect x="108" y="118" width="61" height="31"></rect><rect x="82" y="148" width="113" height="26"></rect></g></svg>'
 
 const libAuth = (t: typeof TEXT.fr) => `import bcrypt from 'bcryptjs'
 import { SignJWT, jwtVerify } from 'jose'
@@ -193,10 +168,9 @@ export async function GET(request: Request) {
 }
 `
 
-const authStyle = (name: string) => `/** Look of the sign-in pages: DevForge's colors, as the welcome page */
-export const authCss = ${JSON.stringify(AUTH_CSS)}
-
-export const anvil = ${JSON.stringify(AUTH_ANVIL)}
+/** The brand the pages share; their look is app/devforge.css */
+const brand = (name: string) => `/** The project's name and DevForge's anvil, in the account pages' top bar (their look: app/devforge.css) */
+export const anvil = ${JSON.stringify(ANVIL)}
 
 export const projectName = ${JSON.stringify(name)}
 `
@@ -217,7 +191,8 @@ const formPage = (kind: 'login' | 'register', t: typeof TEXT.fr) => {
 
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { anvil, authCss, projectName } from '@/lib/auth-style'
+import '../devforge.css'
+import { anvil, projectName } from '@/lib/brand'
 
 type Errors = Partial<Record<'name' | 'email' | 'password', string[]>>
 
@@ -252,7 +227,6 @@ export default function ${register ? 'RegisterPage' : 'LoginPage'}() {
 
   return (
     <div className="df-auth">
-      <style>{authCss}</style>
 ${BAR}
       <main className="df-center">
         <form className="df-box" onSubmit={submit} noValidate>
@@ -284,7 +258,8 @@ ${register ? `          <label className="df-field">{t.name}
 const dashboardPage = (t: typeof TEXT.fr) => `import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { currentUser } from '@/lib/auth'
-import { anvil, authCss, projectName } from '@/lib/auth-style'
+import '../devforge.css'
+import { anvil, projectName } from '@/lib/brand'
 import LogoutButton from './logout-button'
 
 const t = ${JSON.stringify({ home: t.home, hello: t.hello, signedIn: t.signedIn, apiTitle: t.apiTitle, apiLead: t.apiLead }, null, 2)}
@@ -302,7 +277,7 @@ async function Account() {
   const user = await currentUser()
   if (!user) redirect('/login')
   return (
-    <section className="df-box" style={{ maxWidth: 'none' }}>
+    <section className="df-box">
       <h1>{t.hello} {user.name}</h1>
       <p className="df-lead">{t.signedIn} {user.email}</p>
       <div><LogoutButton /></div>
@@ -313,16 +288,15 @@ async function Account() {
 export default function DashboardPage() {
   return (
     <div className="df-auth">
-      <style>{authCss}</style>
 ${BAR}
       <main className="df-center">
         <div className="df-wide">
-          <Suspense fallback={<section className="df-box" style={{ maxWidth: 'none', minHeight: 150 }} aria-busy="true" />}>
+          <Suspense fallback={<section className="df-box" aria-busy="true" />}>
             <Account />
           </Suspense>
-          <section className="df-box" style={{ maxWidth: 'none' }}>
-            <h1 style={{ fontSize: 16 }}>{t.apiTitle}</h1>
-            <p className="df-lead" style={{ margin: 0 }}>{t.apiLead}</p>
+          <section className="df-box">
+            <h2>{t.apiTitle}</h2>
+            <p className="df-note">{t.apiLead}</p>
             <ul className="df-routes">
               {routes.map(([method, path]) => <li key={path}><b>{method}</b>{path}</li>)}
             </ul>
@@ -349,12 +323,53 @@ export default function LogoutButton() {
 }
 `
 
+/** The welcome page's account links: who is signed in, from /api/auth/me (the session cookie) */
+const accountNav = (t: typeof TEXT.fr) => `'use client'
+
+import { useEffect, useState } from 'react'
+
+const t = ${JSON.stringify({ login: t.loginTitle, register: t.registerTitle, dashboard: t.dashboard, logout: t.logout }, null, 2)}
+
+export default function AccountNav() {
+  const [name, setName] = useState<string | null>(null)
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => (res.ok ? res.json() : null))
+      .then((json: { user?: { name: string } } | null) => setName(json?.user?.name ?? null))
+      .catch(() => setName(null))
+  }, [])
+
+  async function logout() {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    setName(null)
+  }
+
+  return (
+    <nav className="df-nav">
+      {name ? (
+        <>
+          <a className="df-btn" href="/dashboard">{t.dashboard}</a>
+          <button type="button" className="df-btn" onClick={logout}>{t.logout}</button>
+        </>
+      ) : (
+        <>
+          <a className="df-btn" href="/login">{t.login}</a>
+          <a className="df-btn df-primary" href="/register">{t.register}</a>
+        </>
+      )}
+    </nav>
+  )
+}
+`
+
 /** Every file of the Next.js authentication, paths with {app} and {src} */
 export function nextAuthFiles(name: string, lang: 'fr' | 'en'): { path: string; content: string }[] {
   const t = TEXT[lang]
   return [
     { path: '{src}lib/auth.ts', content: libAuth(t) },
-    { path: '{src}lib/auth-style.ts', content: authStyle(name) },
+    { path: '{src}lib/brand.ts', content: brand(name) },
+    { path: '{app}/devforge.css', content: DEVFORGE_CSS },
+    { path: '{app}/account-nav.tsx', content: accountNav(t) },
     { path: '{app}/api/auth/register/route.ts', content: ROUTE_REGISTER },
     { path: '{app}/api/auth/login/route.ts', content: ROUTE_LOGIN },
     { path: '{app}/api/auth/logout/route.ts', content: ROUTE_LOGOUT },

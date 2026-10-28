@@ -20,7 +20,7 @@ const commands = (steps: SetupStep[]) => steps.map(s => s.kind === 'run' ? stepC
 describe('v3.3.1: creation plan', () => {
   it('Node: an entry file, dev and start scripts, node_modules ignored before the first commit', () => {
     const steps = planSetup(opts('nodejs'), ctx)
-    expect(steps.find(s => s.kind === 'write')).toMatchObject({ files: [{ path: 'index.js' }] })
+    expect(steps.find(s => s.kind === 'write')).toMatchObject({ files: [{ path: 'index.js' }, { path: 'test/index.test.js' }] })
     expect(steps.find(s => s.kind === 'scripts')).toMatchObject({ scripts: { start: 'node index.js', dev: 'node --watch index.js' } })
     const cmds = commands(steps)
     expect(cmds.indexOf('ignore')).toBeLessThan(cmds.indexOf('git add -A'))

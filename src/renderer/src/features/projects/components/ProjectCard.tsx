@@ -35,6 +35,8 @@ interface SavedProps {
   scripts?: Record<string, string>
   onOpen: () => void
   onOpenVSCode: () => void
+  /** The chosen IDE's name; null: no IDE, no button */
+  ideLabel: string | null
   onTerminal: () => void
   onToggleFavorite: () => void
   onDetail: () => void
@@ -45,7 +47,7 @@ interface SavedProps {
 }
 
 export function ProjectCard(props: SavedProps) {
-  const { project, layout, gitStatus, scripts = {}, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript, index = 0 } = props
+  const { project, layout, gitStatus, scripts = {}, ideLabel, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript, index = 0 } = props
   const { t } = useI18n()
   const label = FRAMEWORK_LABEL[project.framework] ?? project.framework
 
@@ -77,7 +79,7 @@ export function ProjectCard(props: SavedProps) {
           </div>
         )}
         <div className="mt-auto flex items-center gap-1.5 opacity-60 transition-opacity group-hover:opacity-100" onClick={e => e.stopPropagation()}>
-          <button onClick={onOpenVSCode} className={cn(action, 'flex-1 border-line bg-elevated text-fg hover:bg-hover')}>{t.projects.vsCode}</button>
+          {ideLabel && <button onClick={onOpenVSCode} className={cn(action, 'flex-1 border-line bg-elevated text-fg hover:bg-hover')}>{ideLabel}</button>}
           <button onClick={onTerminal} className={cn(action, 'flex-1 border-line bg-elevated text-fg hover:bg-hover')}>{t.projects.terminal}</button>
           <button onClick={onOpen} className={cn(action, 'flex-1 border-transparent bg-accent-soft font-semibold text-accent hover:bg-accent hover:text-accent-fg')}>{t.projects.open}</button>
           {onRunScript && <ScriptsMenu scripts={scripts} onRun={onRunScript} />}
@@ -103,7 +105,7 @@ export function ProjectCard(props: SavedProps) {
       <div className="flex shrink-0 items-center gap-2">
         <IconButton title={t.projects.terminal} onClick={onTerminal}><Terminal size={13} /></IconButton>
         {onRunScript && <ScriptsMenu scripts={scripts} onRun={onRunScript} />}
-        <Button variant="ghost" size="sm" onClick={onOpenVSCode}><Code2 size={13} /> {t.projects.vsCode}</Button>
+        {ideLabel && <Button variant="ghost" size="sm" onClick={onOpenVSCode}><Code2 size={13} /> {ideLabel}</Button>}
         <Button variant="secondary" size="sm" onClick={onOpen}>{t.projects.open}</Button>
         {onRemove && <IconButton tone="danger" title={t.projects.remove} onClick={onRemove}><Trash2 size={13} /></IconButton>}
       </div>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { DetectedProject, GitStatus, Project } from '@shared/types'
+import type { DetectedProject, Framework, GitStatus, Project } from '@shared/types'
+import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
 
 const NO_GIT: GitStatus = { branch: null, dirty: false, ahead: 0, behind: 0 }
 
@@ -44,7 +45,6 @@ export function useProjects({ withDetails = false }: Options = {}) {
     await window.devforge.openDirectory(p.path)
   }, [])
 
-  const openInVSCode = useCallback((p: Project) => window.devforge.openInIDE(p.path, 'vscode'), [])
   const openTerminal = useCallback((path: string) => window.devforge.openTerminal(path), [])
 
   const toggleFavorite = useCallback(async (id: string) => {
@@ -74,7 +74,7 @@ export function useProjects({ withDetails = false }: Options = {}) {
 
   return {
     projects, loaded, gitStatuses, scripts,
-    open, openInVSCode, openTerminal, toggleFavorite, remove, importDetected
+    open, openTerminal, toggleFavorite, remove, importDetected
   }
 }
 
@@ -84,4 +84,10 @@ export function sortProjects(list: Project[]): Project[] {
     if (a.favorite !== b.favorite) return a.favorite ? -1 : 1
     return (b.lastOpenedAt ?? '').localeCompare(a.lastOpenedAt ?? '')
   })
+}
+
+/** One filter per framework the projects (saved or detected) actually use, by name */
+export function frameworkFilters(frameworks: Framework[]): Framework[] {
+  const seen = [...new Set(frameworks)].filter(fw => fw !== 'unknown')
+  return seen.sort((a, b) => (FRAMEWORK_LABEL[a] ?? a).localeCompare(FRAMEWORK_LABEL[b] ?? b))
 }

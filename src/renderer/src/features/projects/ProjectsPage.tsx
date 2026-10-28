@@ -4,26 +4,16 @@ import { FolderSearch, LayoutList, LayoutGrid, Plus, Search, FolderOpen } from '
 import type { DetectedProject, Framework } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useConsole } from '@renderer/app/ConsoleContext'
+import { usePreferredIde } from '@renderer/lib/ide'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Page, SectionTitle } from '@renderer/components/ui/Page'
 import { ProjectCard, DetectedProjectCard, type CardLayout } from './components/ProjectCard'
-import { useProjects, sortProjects } from './hooks/useProjects'
+import { useProjects, sortProjects, frameworkFilters } from './hooks/useProjects'
+import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
 
-const FILTERS: { id: Framework | 'all'; label: string }[] = [
-  { id: 'all',     label: 'All' },
-  { id: 'react',   label: 'React' },
-  { id: 'nextjs',  label: 'Next.js' },
-  { id: 'vue',     label: 'Vue' },
-  { id: 'angular', label: 'Angular' },
-  { id: 'nodejs',  label: 'Node.js' },
-  { id: 'symfony', label: 'Symfony' },
-  { id: 'python',  label: 'Python' },
-  { id: 'go',      label: 'Go' },
-  { id: 'rust',    label: 'Rust' }
-]
 
 const VIEW_KEY = 'projects-view'
 
@@ -35,9 +25,10 @@ export default function ProjectsPage() {
   const navigate = useNavigate()
   const { t } = useI18n()
   const { runScript } = useConsole()
+  const ide = usePreferredIde()
   const {
     projects, gitStatuses, scripts,
-    open, openInVSCode, openTerminal, toggleFavorite, remove, importDetected
+    open, openTerminal, toggleFavorite, remove, importDetected
   } = useProjects({ withDetails: true })
 
   const [detected, setDetected] = useState<DetectedProject[]>([])
@@ -78,12 +69,16 @@ export default function ProjectsPage() {
     })
   }, [])
 
-  const matches = (p: { name: string; framework: Framework }) =>
-    (filter === 'all' || p.framework === filter) &&
-    (!search || p.name.toLowerCase().includes(search.toLowerCase()))
-
   const savedPaths       = new Set(projects.map(p => p.path))
   const newDetected      = detected.filter(d => !savedPaths.has(d.path))
+  const filters          = frameworkFilters([...projects.map(p => p.framework), ...newDetected.map(d => d.framework)])
+  // A filter whose last project left: back to all
+  const shown            = filter === 'all' || filters.includes(filter) ? filter : 'all'
+
+  const matches = (p: { name: string; framework: Framework }) =>
+    (shown === 'all' || p.framework === shown) &&
+    (!search || p.name.toLowerCase().includes(search.toLowerCase()))
+
   const filteredSaved    = sortProjects(projects).filter(matches)
   const filteredDetected = newDetected.filter(matches)
 
@@ -134,18 +129,18 @@ export default function ProjectsPage() {
 
       {/* Stack filters */}
       <div className="df-rise flex flex-wrap gap-1.5" style={{ '--i': 1 } as CSSProperties}>
-        {FILTERS.map(f => (
+        {filters.length > 1 && (['all', ...filters] as const).map(id => (
           <button
-            key={f.id}
-            onClick={() => setFilter(f.id)}
+            key={id}
+            onClick={() => setFilter(id)}
             className={cn(
               'h-[30px] rounded-full border px-3 text-[12.5px] font-medium transition-colors',
-              filter === f.id
+              shown === id
                 ? 'border-accent/40 bg-active text-fg'
                 : 'border-line bg-surface text-fg-secondary hover:bg-hover hover:text-fg'
             )}
           >
-            {f.id === 'all' ? t.projects.filterAll : f.label}
+            {id === 'all' ? t.projects.filterAll : FRAMEWORK_LABEL[id] ?? id}
           </button>
         ))}
       </div>
@@ -164,7 +159,8 @@ export default function ProjectsPage() {
                 gitStatus={gitStatuses[p.id]}
                 scripts={scripts[p.id]}
                 onOpen={() => open(p)}
-                onOpenVSCode={() => openInVSCode(p)}
+                ideLabel={ide.label}
+                onOpenVSCode={() => ide.open(p.path)}
                 onTerminal={() => openTerminal(p.path)}
                 onToggleFavorite={() => toggleFavorite(p.id)}
                 onDetail={() => navigate(`/project/${p.id}`)}

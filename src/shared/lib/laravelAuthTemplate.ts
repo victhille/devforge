@@ -1,6 +1,6 @@
 import type { SetupStep } from '../types'
 import { AUTH_RULES } from '../data/authContract'
-import { AUTH_ANVIL, AUTH_CSS } from './nextAuthTemplate'
+import { ANVIL, DEVFORGE_CSS } from './devforgeStyle'
 
 /**
  * v3.4 lot 4: authentication of a Laravel project. Fortify serves the pages
@@ -36,12 +36,12 @@ const layout = (name: string, lang: 'fr' | 'en', t: typeof TEXT.fr) => `<!doctyp
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>@yield('title') · ${name}</title>
-<style>${AUTH_CSS}</style>
+<link rel="stylesheet" href="{{ asset('devforge.css') }}">
 </head>
-<body style="margin:0">
+<body>
 <div class="df-auth">
   <header class="df-bar">
-    <a href="/" class="df-brand">${AUTH_ANVIL}${name}</a>
+    <a href="/" class="df-brand">${ANVIL}${name}</a>
     <a href="/">${t.home}</a>
   </header>
   <main class="df-center">
@@ -95,7 +95,7 @@ const dashboardView = (t: typeof TEXT.fr) => `@extends('layouts.devforge')
 @section('title', '${t.hello}')
 @section('content')
 <div class="df-wide">
-  <section class="df-box" style="max-width:none">
+  <section class="df-box">
     <h1>${t.hello} {{ auth()->user()->name }}</h1>
     <p class="df-lead">${t.signedIn} {{ auth()->user()->email }}</p>
     <form method="POST" action="{{ route('logout') }}">
@@ -103,9 +103,9 @@ const dashboardView = (t: typeof TEXT.fr) => `@extends('layouts.devforge')
       <button type="submit" class="df-ghost">${t.logout}</button>
     </form>
   </section>
-  <section class="df-box" style="max-width:none">
-    <h1 style="font-size:16px">${t.apiTitle}</h1>
-    <p class="df-lead" style="margin:0">${t.apiLead}</p>
+  <section class="df-box">
+    <h2>${t.apiTitle}</h2>
+    <p class="df-note">${t.apiLead}</p>
     <ul class="df-routes">
       <li><b>POST</b>/api/auth/register</li>
       <li><b>POST</b>/api/auth/login</li>
@@ -212,6 +212,7 @@ export function laravelAuthFiles(name: string, lang: 'fr' | 'en'): { path: strin
   const t = TEXT[lang]
   return [
     { path: 'resources/views/layouts/devforge.blade.php', content: layout(name, lang, t) },
+    { path: 'public/devforge.css', content: DEVFORGE_CSS },
     { path: 'resources/views/auth/login.blade.php', content: loginView(t) },
     { path: 'resources/views/auth/register.blade.php', content: registerView(t) },
     { path: 'resources/views/dashboard.blade.php', content: dashboardView(t) },

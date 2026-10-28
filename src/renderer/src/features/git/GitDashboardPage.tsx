@@ -15,6 +15,7 @@ import Tabs from '@renderer/components/ui/Tabs'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import ProjectIcon from '@renderer/features/projects/components/ProjectIcon'
 import { useGitRepos, type RepoRow } from './useGitRepos'
+import { usePreferredIde } from '@renderer/lib/ide'
 import CommitModal from './CommitModal'
 
 type Filter = 'attention' | 'all'
@@ -33,6 +34,7 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: str
 
 export default function GitDashboardPage() {
   const { t, lang } = useI18n()
+  const ide = usePreferredIde()
   const g = t.gitDash
   const toast = useToast()
   const navigate = useNavigate()
@@ -147,7 +149,7 @@ export default function GitDashboardPage() {
                   <Button variant="secondary" size="sm" disabled={d.ahead === 0 && d.hasUpstream} loading={row.busy === 'push'} onClick={() => act(row, 'push')}>
                     {row.busy !== 'push' && <ArrowUp size={13} />} {g.push}
                   </Button>
-                  <IconButton title="VS Code" onClick={() => window.devforge.openInIDE(row.project.path, 'vscode')}><Code2 size={14} /></IconButton>
+                  {ide.label && <IconButton title={ide.label} onClick={() => ide.open(row.project.path)}><Code2 size={14} /></IconButton>}
                   <IconButton title="Terminal" onClick={() => window.devforge.openTerminal(row.project.path)}><Terminal size={14} /></IconButton>
                 </div>
               </Card>

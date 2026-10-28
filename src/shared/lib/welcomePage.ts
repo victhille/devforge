@@ -1,12 +1,13 @@
 import type { Framework, ProjectSetup } from '../types'
 import { AUTH_PAGES } from '../data/authContract'
+import { ANVIL, DEVFORGE_CSS } from './devforgeStyle'
 
 /**
- * v3.4 lot 1: the page a project created by DevForge opens on, in place of
- * the framework's. Pure: the summary lists the same files the setup writes.
- * Self-contained (its CSS inside, no library), it covers the whole window so
- * the template's own styles cannot get in its way, and follows the system's
- * light or dark theme.
+ * v3.4 lot 1, 3.4.1: the page a project created by DevForge opens on, in place
+ * of the framework's. Pure: the summary lists the same files the setup writes.
+ * Views hold markup only: the look is the project's devforge.css, and on
+ * Symfony a controller renders a Twig view. With authentication the top bar
+ * knows who is signed in (Twig app.user, Blade @auth, /api/auth/me elsewhere).
  */
 
 export interface WelcomeInfo {
@@ -16,30 +17,39 @@ export interface WelcomeInfo {
   /** Tailwind set up by DevForge or the template */
   tailwind: boolean
   lang: 'fr' | 'en'
+  /** TypeScript project (React, Vue, Next.js) */
+  typescript?: boolean
 }
 
-/** Frameworks DevForge writes a welcome page for */
-export const WELCOME_FRAMEWORKS: Framework[] = ['nextjs', 'react', 'vue', 'nodejs', 'symfony', 'laravel']
+/** Frameworks DevForge writes a welcome page for (Node has no page: an API or a script) */
+export const WELCOME_FRAMEWORKS: Framework[] = ['nextjs', 'react', 'vue', 'symfony', 'laravel']
 
 const LABEL: Partial<Record<Framework, string>> = {
-  nextjs: 'Next.js', react: 'React', vue: 'Vue', nodejs: 'Node.js', symfony: 'Symfony', laravel: 'Laravel'
+  nextjs: 'Next.js', react: 'React', vue: 'Vue', symfony: 'Symfony', laravel: 'Laravel'
 }
 
 const DOCS: Partial<Record<Framework, string>> = {
   nextjs: 'https://nextjs.org/docs', react: 'https://react.dev/learn', vue: 'https://vuejs.org/guide/introduction.html',
-  nodejs: 'https://nodejs.org/docs/latest/api/', symfony: 'https://symfony.com/doc/current/index.html', laravel: 'https://laravel.com/docs'
+  symfony: 'https://symfony.com/doc/current/index.html', laravel: 'https://laravel.com/docs'
 }
 
-/** The file to edit first, named on the page */
-const ENTRY: Partial<Record<Framework, string>> = {
-  nextjs: '{app}/page.tsx', react: 'src/App.tsx', vue: 'src/App.vue', nodejs: 'index.js',
-  symfony: 'src/Controller/HomeController.php', laravel: 'resources/views/welcome.blade.php'
+/** The view to edit, named on the page */
+const VIEW: Partial<Record<Framework, string>> = {
+  nextjs: '{app}/page.tsx', react: 'src/pages/Home.tsx', vue: 'src/pages/Home.vue',
+  symfony: 'templates/home/index.html.twig', laravel: 'resources/views/welcome.blade.php'
+}
+
+/** Where devforge.css lives in each project */
+export const STYLESHEET: Partial<Record<Framework, string>> = {
+  nextjs: '{app}/devforge.css', react: 'src/styles/devforge.css', vue: 'src/styles/devforge.css',
+  symfony: 'public/devforge.css', laravel: 'public/devforge.css'
 }
 
 const TEXT = {
   fr: {
     ready: 'prêt', online: 'en ligne', what: 'Ce qui est en place', next: 'Pour continuer',
-    login: 'Se connecter', register: 'Créer un compte', app: 'app', base: 'base', branch: 'branche',
+    login: 'Se connecter', register: 'Créer un compte', dashboard: 'Tableau de bord', logout: 'Se déconnecter',
+    app: 'app', base: 'base', branch: 'branche',
     edit: 'Modifiez {file} pour remplacer cette page.', docs: 'Documentation {fw}', health: 'Route de santé {path}',
     db: { postgres: 'Base PostgreSQL', mysql: 'Base MySQL', sqlite: 'Base SQLite' } as Record<string, string>,
     docker: ' (Docker)', api: 'Première route d\'API', auth: 'Connexion et inscription', dockerApp: 'Docker pour l\'application',
@@ -47,63 +57,20 @@ const TEXT = {
   },
   en: {
     ready: 'ready', online: 'online', what: 'What is set up', next: 'Next steps',
-    login: 'Sign in', register: 'Create an account', app: 'app', base: 'database', branch: 'branch',
+    login: 'Sign in', register: 'Create an account', dashboard: 'Dashboard', logout: 'Sign out',
+    app: 'app', base: 'database', branch: 'branch',
     edit: 'Edit {file} to replace this page.', docs: '{fw} documentation', health: 'Health route {path}',
     db: { postgres: 'PostgreSQL database', mysql: 'MySQL database', sqlite: 'SQLite database' } as Record<string, string>,
     docker: ' (Docker)', api: 'First API route', auth: 'Sign-in and sign-up', dockerApp: 'Docker for the app',
     tests: 'Tests', ci: 'GitHub Actions CI', git: 'Git repository (main branch)', tailwind: 'Tailwind CSS', nothing: 'The base project, ready for your code'
   }
 }
-
-/** Where the sign-in and sign-up pages are (v3.4 lots 3 to 6); React and Vue route by the hash */
-const SERVER_PAGES: [string, string] = [AUTH_PAGES.login, AUTH_PAGES.register]
-const HASH_PAGES: [string, string] = [`#${AUTH_PAGES.login}`, `#${AUTH_PAGES.register}`]
-const AUTH_LINKS: Partial<Record<Framework, [string, string]>> = {
-  nextjs: SERVER_PAGES, laravel: SERVER_PAGES, symfony: SERVER_PAGES, react: HASH_PAGES, vue: HASH_PAGES
-}
+type T = typeof TEXT.fr
 
 /** Where the app answers in development */
 const APP_ADDRESS: Partial<Record<Framework, string>> = {
-  nextjs: 'localhost:3000', react: 'localhost:5173', vue: 'localhost:5173', nodejs: 'localhost:3000', symfony: 'localhost:8000', laravel: 'localhost:8000'
+  nextjs: 'localhost:3000', react: 'localhost:5173', vue: 'localhost:5173', symfony: 'localhost:8000', laravel: 'localhost:8000'
 }
-
-const MONO = '"Geist Mono Variable","Geist Mono","Cascadia Code",Consolas,monospace'
-
-/** DevForge's app colors and its anvil's orange, as the v3.4 mock-up B (dark, as the app) */
-const CSS = `.df-welcome{position:fixed;inset:0;overflow:auto;z-index:0;display:flex;flex-direction:column;box-sizing:border-box;text-align:left;
-background:#0D0F13;color:#E8ECF2;font:14px/1.6 "Geist Variable","Geist","Segoe UI",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
-.df-welcome *{box-sizing:border-box}
-.df-welcome a{color:#E8ECF2;text-decoration:none}
-.df-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 28px;border-bottom:1px solid #1F242D;background:#111419}
-.df-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600}
-.df-brand span{font:500 12px ${MONO};color:#6B7584}
-.df-nav{display:flex;align-items:center;gap:8px}
-.df-btn{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:9px;border:1px solid #262C36;background:#1D222B;font-size:13px;font-weight:500;transition:box-shadow .15s}
-.df-btn:hover{box-shadow:inset 0 0 0 100px rgba(255,255,255,.07)}
-.df-welcome .df-primary{background:#F97316;border-color:#F97316;color:#1A0E04;font-weight:600}
-.df-body{flex:1;display:flex;flex-wrap:wrap}
-.df-side{flex:1 1 260px;max-width:320px;min-width:0;padding:28px;border-right:1px solid #1F242D;background:#111419;display:flex;flex-direction:column;gap:16px}
-.df-icon{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;background:#2A1A0C;border:1px solid #5A3214;color:#F97316;font:600 20px ${MONO}}
-.df-welcome h1{margin:0;font-size:26px;line-height:1.25;font-weight:600;letter-spacing:-.01em}
-.df-sub{margin:0;font:500 12.5px ${MONO};color:#9AA4B2}
-.df-pill{align-self:flex-start;font:500 11px ${MONO};color:#3FCF8E;background:#10261C;padding:4px 10px;border-radius:999px}
-.df-info{display:flex;flex-direction:column;gap:8px;font:500 12px ${MONO};color:#9AA4B2}
-.df-info div{display:flex;justify-content:space-between;gap:12px}.df-info b{font-weight:500;color:#C9D1DC}
-.df-tags{display:flex;flex-wrap:wrap;gap:6px}
-.df-tags span{font:500 11px ${MONO};color:#9AA4B2;background:#1D222B;border:1px solid #262C36;padding:2px 8px;border-radius:6px}
-.df-main{flex:999 1 560px;min-width:0;max-width:1040px;padding:28px;display:flex;flex-direction:column;gap:16px}
-.df-card{padding:20px;border-radius:14px;background:#161A21;border:1px solid #222833;display:flex;flex-direction:column;gap:12px}
-.df-welcome h2{margin:0;font:500 11px ${MONO};letter-spacing:.1em;text-transform:uppercase;color:#9AA4B2}
-.df-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;font-size:13px}
-.df-tiles div{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;background:#1D222B}
-.df-tiles div::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:#3FCF8E}
-.df-row{display:flex;flex-wrap:wrap;gap:8px}
-.df-foot{margin:0;font-size:12.5px;color:#9AA4B2;line-height:1.5}
-.df-foot code{font:500 12px ${MONO};color:#C9D1DC;background:#1D222B;border-radius:5px;padding:1px 6px}
-@media (max-width:720px){.df-side{max-width:none;border-right:0;border-bottom:1px solid #1F242D}}`
-
-/** DevForge's anvil, the app's own logo */
-const ANVIL = '<svg width="28" height="28" viewBox="0 0 256 256" aria-hidden="true"><rect width="256" height="256" rx="56" fill="#0F1117"></rect><g fill="#F97316"><polygon points="41,87 200,87 200,118 77,118"></polygon><rect x="108" y="118" width="61" height="31"></rect><rect x="82" y="148" width="113" height="26"></rect></g></svg>'
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&apos;')
 
@@ -122,36 +89,82 @@ export function welcomeItems(info: WelcomeInfo): string[] {
 }
 
 /** The framework's mark in the page's icon */
-const SHORT: Partial<Record<Framework, string>> = { nextjs: 'N', react: 'Re', vue: 'V', nodejs: 'JS', symfony: 'Sf', laravel: 'L' }
+const SHORT: Partial<Record<Framework, string>> = { nextjs: 'N', react: 'Re', vue: 'V', symfony: 'Sf', laravel: 'L' }
 
-/** The page's markup, in HTML (class) or JSX (className) */
-function markup(info: WelcomeInfo, jsx: boolean): string {
+type Engine = 'jsx' | 'vue' | 'twig' | 'blade'
+
+/** The top bar knows who is signed in when the project has DevForge's authentication (TypeScript fronts, PHP servers) */
+export const accountAware = (info: WelcomeInfo) =>
+  info.setup.features.includes('auth') && (info.framework === 'symfony' || info.framework === 'laravel' || !!info.typescript)
+
+const btn = (cls: string, kind: string, href: string, label: string) =>
+  `<a ${cls}="df-btn${kind}" href="${href}">${esc(label)}</a>`
+
+/** The account links: per template engine, or a component asking /api/auth/me */
+function accountNav(info: WelcomeInfo, engine: Engine, t: T): string[] {
+  if (!info.setup.features.includes('auth')) return []
+  const cls = engine === 'jsx' ? 'className' : 'class'
+  if (!accountAware(info)) {
+    // Next.js in JavaScript keeps Auth.js: plain links
+    return [`    <nav ${cls}="df-nav">${btn(cls, '', AUTH_PAGES.login, t.login)}${btn(cls, ' df-primary', AUTH_PAGES.register, t.register)}</nav>`]
+  }
+  if (engine === 'twig') {
+    return [
+      '    <nav class="df-nav">',
+      '      {% if app.user %}',
+      `        <a class="df-btn" href="{{ path('app_dashboard') }}">${esc(t.dashboard)}</a>`,
+      `        <a class="df-btn" href="{{ path('app_logout') }}">${esc(t.logout)}</a>`,
+      '      {% else %}',
+      `        <a class="df-btn" href="{{ path('app_login') }}">${esc(t.login)}</a>`,
+      `        <a class="df-btn df-primary" href="{{ path('app_register') }}">${esc(t.register)}</a>`,
+      '      {% endif %}',
+      '    </nav>'
+    ]
+  }
+  if (engine === 'blade') {
+    return [
+      '    <nav class="df-nav">',
+      '      @auth',
+      `        <a class="df-btn" href="{{ route('dashboard') }}">${esc(t.dashboard)}</a>`,
+      `        <form method="POST" action="{{ route('logout') }}">`,
+      '          @csrf',
+      `          <button class="df-btn" type="submit">${esc(t.logout)}</button>`,
+      '        </form>',
+      '      @else',
+      `        <a class="df-btn" href="{{ route('login') }}">${esc(t.login)}</a>`,
+      `        <a class="df-btn df-primary" href="{{ route('register') }}">${esc(t.register)}</a>`,
+      '      @endauth',
+      '    </nav>'
+    ]
+  }
+  return ['    <AccountNav />']
+}
+
+/** The page's markup for a template engine */
+function markup(info: WelcomeInfo, engine: Engine): string {
   const t = TEXT[info.lang], fw = LABEL[info.framework] ?? info.framework, s = info.setup
-  const cls = jsx ? 'className' : 'class'
-  const link = (kind: string, href: string, label: string) =>
-    `<a ${cls}="df-btn${kind}" href="${href}"${href.startsWith('http') ? ' target="_blank" rel="noreferrer"' : ''}>${esc(label)}</a>`
-  const auth = s.features.includes('auth') ? AUTH_LINKS[info.framework] : undefined
+  const cls = engine === 'jsx' ? 'className' : 'class'
   const sail = info.framework === 'laravel' && s.features.includes('docker')
   const address = sail ? `localhost:${s.appPort ?? 8000}` : APP_ADDRESS[info.framework] ?? ''
   const base = s.database === 'none' ? '' : s.database === 'sqlite' ? 'sqlite' : `${s.database} :${s.dbPort}`
-  const info2: [string, string][] = [[t.app, address], ...(base ? [[t.base, base] as [string, string]] : []), ...(s.git ? [[t.branch, 'main'] as [string, string]] : [])]
+  const facts: [string, string][] = [[t.app, address], ...(base ? [[t.base, base] as [string, string]] : []), ...(s.git ? [[t.branch, 'main'] as [string, string]] : [])]
   const tags = [...(info.tailwind ? ['tailwind'] : []), ...(s.features.includes('docker') ? ['docker'] : []), ...(s.features.includes('tests') ? ['tests'] : []), ...(s.features.includes('ci') ? ['ci'] : [])]
   const health = info.framework === 'laravel' ? '/up' : '/api/health'
-  const links: [string, string][] = [[DOCS[info.framework] ?? '#', t.docs.replace('{fw}', fw)], ...(s.features.includes('api') ? [[health, t.health.replace('{path}', health)] as [string, string]] : [])]
-  const file = (ENTRY[info.framework] ?? '').replace('{app}/', 'app/')
+  const docs = DOCS[info.framework] ?? '#'
+  const file = (VIEW[info.framework] ?? '').replace('{app}/', 'app/')
   const [before, after] = t.edit.split('{file}')
   return [
     `<main ${cls}="df-welcome">`,
     `  <header ${cls}="df-bar">`,
     `    <div ${cls}="df-brand">${ANVIL}DevForge<span>/ ${esc(info.name)}</span></div>`,
-    ...(auth ? [`    <nav ${cls}="df-nav">${link('', auth[0], t.login)}${link(' df-primary', auth[1], t.register)}</nav>`] : []),
+    ...accountNav(info, engine, t),
     '  </header>',
     `  <div ${cls}="df-body">`,
     `    <aside ${cls}="df-side">`,
     `      <div ${cls}="df-icon">${esc(SHORT[info.framework] ?? '')}</div>`,
     `      <div><h1>${esc(info.name)}</h1><p ${cls}="df-sub">${esc(fw)} · ${esc(t.ready)}</p></div>`,
     `      <span ${cls}="df-pill">● ${esc(t.online)}</span>`,
-    `      <div ${cls}="df-info">${info2.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`,
+    `      <div ${cls}="df-info">${facts.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`,
     ...(tags.length ? [`      <div ${cls}="df-tags">${tags.map(x => `<span>${esc(x)}</span>`).join('')}</div>`] : []),
     '    </aside>',
     `    <div ${cls}="df-main">`,
@@ -161,7 +174,7 @@ function markup(info: WelcomeInfo, jsx: boolean): string {
     '      </section>',
     `      <section ${cls}="df-card">`,
     `        <h2>${esc(t.next)}</h2>`,
-    `        <div ${cls}="df-row">${links.map(([href, label]) => link('', href, label)).join('')}</div>`,
+    `        <div ${cls}="df-row"><a ${cls}="df-btn" href="${docs}" target="_blank" rel="noreferrer">${esc(t.docs.replace('{fw}', fw))}</a>${s.features.includes('api') ? btn(cls, '', health, t.health.replace('{path}', health)) : ''}</div>`,
     `        <p ${cls}="df-foot">${esc(before)}<code>${esc(file)}</code>${esc(after)}</p>`,
     '      </section>',
     '    </div>',
@@ -170,8 +183,9 @@ function markup(info: WelcomeInfo, jsx: boolean): string {
   ].join('\n')
 }
 
-/** A whole HTML document (Symfony, Laravel, Node) */
-export function welcomeDocument(info: WelcomeInfo): string {
+/** A whole HTML document for a server view (Twig, Blade), devforge.css linked */
+function serverDocument(info: WelcomeInfo, engine: 'twig' | 'blade'): string {
+  const css = engine === 'blade' ? "{{ asset('devforge.css') }}" : '/devforge.css'
   return [
     '<!doctype html>',
     `<html lang="${info.lang}">`,
@@ -179,10 +193,10 @@ export function welcomeDocument(info: WelcomeInfo): string {
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     `<title>${esc(info.name)}</title>`,
-    `<style>${CSS}</style>`,
+    `<link rel="stylesheet" href="${css}">`,
     '</head>',
     '<body>',
-    markup(info, false),
+    markup(info, engine),
     '</body>',
     '</html>',
     ''
@@ -191,62 +205,68 @@ export function welcomeDocument(info: WelcomeInfo): string {
 
 const indent = (text: string, by: string) => text.split('\n').map(l => l ? by + l : l).join('\n')
 
-/** The files that make the page, per framework; {app} resolved by the main process */
-export function welcomeFiles(info: WelcomeInfo, typescript: boolean): { path: string; content: string }[] {
-  const style = `const css = \`${CSS}\``
-  switch (info.framework) {
-    case 'nextjs':
-      return [{ path: `{app}/page.${typescript ? 'tsx' : 'jsx'}`, content: `${style}\n\nexport default function Home() {\n  return (\n    <>\n      <style>{css}</style>\n${indent(markup(info, true), '      ')}\n    </>\n  )\n}\n` }]
-    case 'react':
-      return [{ path: `src/App.${typescript ? 'tsx' : 'jsx'}`, content: `${style}\n\nexport default function App() {\n  return (\n    <>\n      <style>{css}</style>\n${indent(markup(info, true), '      ')}\n    </>\n  )\n}\n` }]
-    case 'vue':
-      return [{ path: 'src/App.vue', content: `<template>\n${indent(markup(info, false), '  ')}\n</template>\n\n<style>\n${CSS}\n</style>\n` }]
-    case 'nodejs':
-      return [{ path: 'index.js', content: nodeServer(info) }]
-    case 'symfony':
-      return [{ path: 'src/Controller/HomeController.php', content: symfonyController(info) }]
-    case 'laravel':
-      return [{ path: 'resources/views/welcome.blade.php', content: welcomeDocument(info) }]
-    default:
-      return []
-  }
+/** A React component (Next.js page or Vite page) */
+function jsxComponent(name: string, info: WelcomeInfo, imports: string[]): string {
+  return `${imports.join('\n')}\n\n/** DevForge's welcome page: the look is in devforge.css */\nexport default function ${name}() {\n  return (\n${indent(markup(info, 'jsx'), '    ')}\n  )\n}\n`
 }
 
-/** Node: the page on http://localhost:3000, with Node's own http module */
-function nodeServer(info: WelcomeInfo): string {
-  return [
-    "const http = require('http')",
-    '',
-    'const port = Number(process.env.PORT) || 3000',
-    `const page = ${JSON.stringify(welcomeDocument(info))}`,
-    '',
-    'http.createServer((req, res) => {',
-    "  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })",
-    '  res.end(page)',
-    '}).listen(port, () => {',
-    "  console.log('Ready on http://localhost:' + port)",
-    '})',
-    ''
-  ].join('\n')
-}
+const SYMFONY_CONTROLLER = String.raw`<?php
 
-/** Symfony: a controller on / that answers the page itself (no Twig needed) */
-function symfonyController(info: WelcomeInfo): string {
-  return `<?php
+namespace App\Controller;
 
-namespace App\\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 
-use Symfony\\Component\\HttpFoundation\\Response;
-use Symfony\\Component\\Routing\\Attribute\\Route;
-
-final class HomeController
+/** The welcome page: the route here, the view in templates/home/index.html.twig */
+final class HomeController extends AbstractController
 {
     #[Route('/', name: 'home', methods: ['GET'])]
-    public function __invoke(): Response
+    public function index(): Response
     {
-        return new Response(<<<'HTML'
-${welcomeDocument(info)}HTML);
+        return $this->render('home/index.html.twig');
     }
 }
 `
+
+/** The files that make the page, per framework; {app} resolved by the main process */
+export function welcomeFiles(input: WelcomeInfo, typescript: boolean): { path: string; content: string }[] {
+  const info = { ...input, typescript }
+  const ext = typescript ? 'tsx' : 'jsx'
+  const live = accountAware(info)
+  const stylesheet = { path: STYLESHEET[info.framework] ?? '', content: DEVFORGE_CSS }
+  switch (info.framework) {
+    case 'nextjs':
+      return [
+        { path: `{app}/page.${ext}`, content: jsxComponent('Home', info, ["import './devforge.css'", ...(live ? ["import AccountNav from './account-nav'"] : [])]) },
+        stylesheet
+      ]
+    case 'react':
+      return [
+        { path: `src/pages/Home.${ext}`, content: jsxComponent('Home', info, ["import '../styles/devforge.css'", ...(live ? ["import AccountNav from '../components/AccountNav'"] : [])]) },
+        { path: `src/App.${ext}`, content: `/** The app's first page: DevForge's welcome (src/pages/Home) */\nexport { default } from './pages/Home'\n` },
+        stylesheet
+      ]
+    case 'vue': {
+      const lang = typescript ? ' lang="ts"' : ''
+      return [
+        { path: 'src/pages/Home.vue', content: `<script setup${lang}>\nimport '../styles/devforge.css'\n${live ? "import AccountNav from '../components/AccountNav.vue'\n" : ''}</script>\n\n<template>\n${indent(markup(info, 'vue'), '  ')}\n</template>\n` },
+        { path: 'src/App.vue', content: `<script setup${lang}>\n// The app's first page: DevForge's welcome (src/pages/Home.vue)\nimport Home from './pages/Home.vue'\n</script>\n\n<template>\n  <Home />\n</template>\n` },
+        stylesheet
+      ]
+    }
+    case 'symfony':
+      return [
+        { path: 'src/Controller/HomeController.php', content: SYMFONY_CONTROLLER },
+        { path: 'templates/home/index.html.twig', content: serverDocument(info, 'twig') },
+        stylesheet
+      ]
+    case 'laravel':
+      return [
+        { path: 'resources/views/welcome.blade.php', content: serverDocument(info, 'blade') },
+        stylesheet
+      ]
+    default:
+      return []
+  }
 }

@@ -1,14 +1,16 @@
 import type { SetupStep } from '../types'
 import { AUTH_API_ENV, AUTH_RULES } from '../data/authContract'
-import { AUTH_ANVIL, AUTH_CSS } from './nextAuthTemplate'
+import { ANVIL, DEVFORGE_CSS } from './devforgeStyle'
 
 /**
- * v3.4 lot 6: sign-in, sign-up and a dashboard for a React or Vue (Vite,
- * TypeScript) front, client of the shared contract. Pages route by the hash
- * (#/login, #/register, #/dashboard) and the rest goes to the app as it was.
+ * v3.4 lot 6, 3.4.1: sign-in, sign-up and a dashboard for a React or Vue
+ * (Vite, TypeScript) front, client of the shared contract. Laid out as:
+ * src/api (calls to the server), src/pages (one view per page),
+ * src/components (shared pieces), src/styles/devforge.css (the look),
+ * src/Router (#/login, #/register, #/dashboard; the rest is the app).
  * In development the front calls /api on its own origin and Vite proxies it to
- * the server (no CORS to set up); a build for production reads VITE_API_URL.
- * The token is kept in localStorage and sent as Authorization: Bearer.
+ * the server (no CORS); a production build reads VITE_API_URL. The token is
+ * kept in localStorage and sent as Authorization: Bearer.
  */
 
 export const DEFAULT_API_URL = 'http://localhost:8000'
@@ -21,7 +23,7 @@ const TEXT = {
     name: 'Nom', email: 'E-mail', password: 'Mot de passe', home: 'Accueil',
     login: { title: 'Se connecter', lead: 'Content de vous revoir.', submit: 'Se connecter', other: 'Pas encore de compte ?', otherLink: 'Créer un compte', otherHref: '#/register' },
     register: { title: 'Créer un compte', lead: 'Quelques secondes, et vous y êtes.', submit: 'Créer mon compte', other: 'Déjà un compte ?', otherLink: 'Se connecter', otherHref: '#/login' },
-    hello: 'Bonjour', signedIn: 'Vous êtes connecté.', logout: 'Se déconnecter', loading: 'Chargement…',
+    hello: 'Bonjour', signedIn: 'Vous êtes connecté.', logout: 'Se déconnecter', loading: 'Chargement…', dashboard: 'Tableau de bord',
     apiTitle: 'Votre API', apiLead: 'Ce front suit le contrat DevForge : il parle à', network: 'Le serveur ne répond pas. Est-il lancé ?',
     password8: `Au moins ${AUTH_RULES.passwordMin} caractères.`
   },
@@ -29,17 +31,13 @@ const TEXT = {
     name: 'Name', email: 'Email', password: 'Password', home: 'Home',
     login: { title: 'Sign in', lead: 'Good to see you again.', submit: 'Sign in', other: 'No account yet?', otherLink: 'Create an account', otherHref: '#/register' },
     register: { title: 'Create an account', lead: 'A few seconds, and you are in.', submit: 'Create my account', other: 'Already have an account?', otherLink: 'Sign in', otherHref: '#/login' },
-    hello: 'Hello', signedIn: 'You are signed in.', logout: 'Sign out', loading: 'Loading…',
+    hello: 'Hello', signedIn: 'You are signed in.', logout: 'Sign out', loading: 'Loading…', dashboard: 'Dashboard',
     apiTitle: 'Your API', apiLead: 'This front follows the DevForge contract: it talks to', network: 'The server is not answering. Is it running?',
     password8: `At least ${AUTH_RULES.passwordMin} characters.`
   }
 }
 
-/** Above the template's own styles (#app, body): the auth pages take the whole window */
-const SPA_CSS = `${AUTH_CSS}
-.df-auth{position:fixed;inset:0;overflow:auto;text-align:left;z-index:0}`
-
-/** The contract's client, the same for React and Vue */
+/** src/api/auth.ts: the contract's client, the same for React and Vue */
 const CLIENT = `/** Client of the DevForge authentication contract (/api/auth/…) */
 
 export type User = { id: string | number; name: string; email: string }
@@ -114,36 +112,45 @@ export async function me(): Promise<User | null> {
 }
 `
 
-const textFile = (lang: 'fr' | 'en', name: string, apiUrl: string, withCss: boolean) => `/** Texts of the auth pages${withCss ? ', their look (DevForge\'s colors)' : ''} and the project's logo */
+const textsFile = (lang: 'fr' | 'en', name: string, apiUrl: string) => `/** Texts of the account pages, the project's name and DevForge's anvil (the look: styles/devforge.css) */
 export const t = ${JSON.stringify({ ...TEXT[lang], project: name, api: apiUrl }, null, 2)}
 
-export const anvil = ${JSON.stringify(AUTH_ANVIL)}
-${withCss ? `\nexport const css = ${JSON.stringify(SPA_CSS)}\n` : ''}`
+export const anvil = ${JSON.stringify(ANVIL)}
+`
 
-const REACT_ROOT = `import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
-import Home from '../App'
-import { ApiError, login, logout, me, register, type Errors, type User } from '../lib/auth'
-import { anvil, css, t } from './text'
+// ─── React ────────────────────────────────────────────────────────────────────
+
+const REACT_ROUTER = `import { useEffect, useState } from 'react'
+import './styles/devforge.css'
+import App from './App'
+import Dashboard from './pages/Dashboard'
+import Login from './pages/Login'
+import Register from './pages/Register'
 
 /** #/login, #/register and #/dashboard; any other address shows the app */
 const route = () => window.location.hash.replace(/^#/, '') || '/'
 
-export default function Root() {
+export default function Router() {
   const [path, setPath] = useState(route)
   useEffect(() => {
     const onHash = () => setPath(route())
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
-  if (path === '/login' || path === '/register') return <Shell><AuthForm key={path} kind={path === '/login' ? 'login' : 'register'} /></Shell>
-  if (path === '/dashboard') return <Shell><Dashboard /></Shell>
-  return <Home />
+  if (path === '/login') return <Login />
+  if (path === '/register') return <Register />
+  if (path === '/dashboard') return <Dashboard />
+  return <App />
 }
+`
 
-function Shell({ children }: { children: ReactNode }) {
+const REACT_SHELL = `import type { ReactNode } from 'react'
+import { anvil, t } from '../texts'
+
+/** The account pages' frame: the top bar, then the page */
+export default function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="df-auth">
-      <style>{css}</style>
       <header className="df-bar">
         <a href="#/" className="df-brand"><span dangerouslySetInnerHTML={{ __html: anvil }} />{t.project}</a>
         <a href="#/">{t.home}</a>
@@ -152,8 +159,14 @@ function Shell({ children }: { children: ReactNode }) {
     </div>
   )
 }
+`
 
-function AuthForm({ kind }: { kind: 'login' | 'register' }) {
+const REACT_FORM = `import { useState, type FormEvent } from 'react'
+import { ApiError, login, register, type Errors } from '../api/auth'
+import { t } from '../texts'
+
+/** Sign-in or sign-up form: the fields depend on the page */
+export default function AuthForm({ kind }: { kind: 'login' | 'register' }) {
   const w = t[kind]
   const [errors, setErrors] = useState<Errors>({})
   const [message, setMessage] = useState('')
@@ -200,8 +213,57 @@ function AuthForm({ kind }: { kind: 'login' | 'register' }) {
     </form>
   )
 }
+`
 
-function Dashboard() {
+const REACT_ACCOUNT_NAV = `import { useEffect, useState } from 'react'
+import { logout, me, type User } from '../api/auth'
+import { t } from '../texts'
+
+/** The welcome page's account links: who is signed in, from /api/auth/me */
+export default function AccountNav() {
+  const [user, setUser] = useState<User | null>(null)
+  useEffect(() => {
+    me().then(setUser).catch(() => setUser(null))
+  }, [])
+
+  async function signOut() {
+    await logout().catch(() => undefined)
+    setUser(null)
+  }
+
+  return (
+    <nav className="df-nav">
+      {user ? (
+        <>
+          <a className="df-btn" href="#/dashboard">{t.dashboard}</a>
+          <button type="button" className="df-btn" onClick={signOut}>{t.logout}</button>
+        </>
+      ) : (
+        <>
+          <a className="df-btn" href="#/login">{t.login.title}</a>
+          <a className="df-btn df-primary" href="#/register">{t.register.title}</a>
+        </>
+      )}
+    </nav>
+  )
+}
+`
+
+const reactFormPage = (kind: 'login' | 'register') => `import AuthForm from '../components/AuthForm'
+import Shell from '../components/Shell'
+
+export default function ${kind === 'login' ? 'Login' : 'Register'}() {
+  return <Shell><AuthForm kind="${kind}" /></Shell>
+}
+`
+
+const REACT_DASHBOARD = `import { useEffect, useState } from 'react'
+import { logout, me, type User } from '../api/auth'
+import Shell from '../components/Shell'
+import { t } from '../texts'
+
+/** Only for a signed-in user: the others go to #/login */
+export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null)
   const [error, setError] = useState('')
   useEffect(() => {
@@ -213,30 +275,35 @@ function Dashboard() {
     window.location.hash = '#/'
   }
 
-  if (error) return <p className="df-alert" role="alert">{error}</p>
-  if (!user) return <p className="df-lead">{t.loading}</p>
   return (
-    <div className="df-wide">
-      <section className="df-box" style={{ maxWidth: 'none' }}>
-        <h1>{t.hello} {user.name}</h1>
-        <p className="df-lead">{t.signedIn} {user.email}</p>
-        <div><button type="button" className="df-ghost" onClick={signOut}>{t.logout}</button></div>
-      </section>
-      <section className="df-box" style={{ maxWidth: 'none' }}>
-        <h1 style={{ fontSize: 16 }}>{t.apiTitle}</h1>
-        <p className="df-lead" style={{ margin: 0 }}>{t.apiLead} <code>{t.api}</code></p>
-      </section>
-    </div>
+    <Shell>
+      {error ? <p className="df-alert" role="alert">{error}</p> : !user ? <p className="df-lead">{t.loading}</p> : (
+        <div className="df-wide">
+          <section className="df-box">
+            <h1>{t.hello} {user.name}</h1>
+            <p className="df-lead">{t.signedIn} {user.email}</p>
+            <div><button type="button" className="df-ghost" onClick={signOut}>{t.logout}</button></div>
+          </section>
+          <section className="df-box">
+            <h2>{t.apiTitle}</h2>
+            <p className="df-note">{t.apiLead} <code>{t.api}</code></p>
+          </section>
+        </div>
+      )}
+    </Shell>
   )
 }
 `
 
-const VUE_ROOT = (css: string) => `<script setup lang="ts">
+// ─── Vue ──────────────────────────────────────────────────────────────────────
+
+const VUE_ROUTER = `<script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import Home from '../App.vue'
-import AuthForm from './AuthForm.vue'
-import Dashboard from './Dashboard.vue'
-import { anvil, t } from './text'
+import './styles/devforge.css'
+import App from './App.vue'
+import Dashboard from './pages/Dashboard.vue'
+import Login from './pages/Login.vue'
+import Register from './pages/Register.vue'
 
 /** #/login, #/register and #/dashboard; any other address shows the app */
 const route = () => window.location.hash.replace(/^#/, '') || '/'
@@ -247,28 +314,33 @@ onBeforeUnmount(() => window.removeEventListener('hashchange', onHash))
 </script>
 
 <template>
-  <div v-if="path === '/login' || path === '/register' || path === '/dashboard'" class="df-auth">
+  <Login v-if="path === '/login'" />
+  <Register v-else-if="path === '/register'" />
+  <Dashboard v-else-if="path === '/dashboard'" />
+  <App v-else />
+</template>
+`
+
+const VUE_SHELL = `<script setup lang="ts">
+import { anvil, t } from '../texts'
+</script>
+
+<!-- The account pages' frame: the top bar, then the page -->
+<template>
+  <div class="df-auth">
     <header class="df-bar">
       <a href="#/" class="df-brand"><span v-html="anvil"></span>{{ t.project }}</a>
       <a href="#/">{{ t.home }}</a>
     </header>
-    <main class="df-center">
-      <Dashboard v-if="path === '/dashboard'" />
-      <AuthForm v-else :key="path" :kind="path === '/login' ? 'login' : 'register'" />
-    </main>
+    <main class="df-center"><slot /></main>
   </div>
-  <Home v-else />
 </template>
-
-<style>
-${css}
-</style>
 `
 
 const VUE_FORM = `<script setup lang="ts">
 import { ref } from 'vue'
-import { ApiError, login, register, type Errors } from '../lib/auth'
-import { t } from './text'
+import { ApiError, login, register, type Errors } from '../api/auth'
+import { t } from '../texts'
 
 const props = defineProps<{ kind: 'login' | 'register' }>()
 const w = t[props.kind]
@@ -319,11 +391,52 @@ async function submit() {
 </template>
 `
 
+const VUE_ACCOUNT_NAV = `<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { logout, me, type User } from '../api/auth'
+import { t } from '../texts'
+
+// The welcome page's account links: who is signed in, from /api/auth/me
+const user = ref<User | null>(null)
+onMounted(() => { me().then(u => { user.value = u }).catch(() => { user.value = null }) })
+
+async function signOut() {
+  await logout().catch(() => undefined)
+  user.value = null
+}
+</script>
+
+<template>
+  <nav class="df-nav">
+    <template v-if="user">
+      <a class="df-btn" href="#/dashboard">{{ t.dashboard }}</a>
+      <button type="button" class="df-btn" @click="signOut">{{ t.logout }}</button>
+    </template>
+    <template v-else>
+      <a class="df-btn" href="#/login">{{ t.login.title }}</a>
+      <a class="df-btn df-primary" href="#/register">{{ t.register.title }}</a>
+    </template>
+  </nav>
+</template>
+`
+
+const vueFormPage = (kind: 'login' | 'register') => `<script setup lang="ts">
+import AuthForm from '../components/AuthForm.vue'
+import Shell from '../components/Shell.vue'
+</script>
+
+<template>
+  <Shell><AuthForm kind="${kind}" /></Shell>
+</template>
+`
+
 const VUE_DASHBOARD = `<script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { logout, me, type User } from '../lib/auth'
-import { t } from './text'
+import { logout, me, type User } from '../api/auth'
+import Shell from '../components/Shell.vue'
+import { t } from '../texts'
 
+// Only for a signed-in user: the others go to #/login
 const user = ref<User | null>(null)
 const error = ref('')
 
@@ -338,48 +451,63 @@ async function signOut() {
 </script>
 
 <template>
-  <p v-if="error" class="df-alert" role="alert">{{ error }}</p>
-  <p v-else-if="!user" class="df-lead">{{ t.loading }}</p>
-  <div v-else class="df-wide">
-    <section class="df-box" style="max-width:none">
-      <h1>{{ t.hello }} {{ user.name }}</h1>
-      <p class="df-lead">{{ t.signedIn }} {{ user.email }}</p>
-      <div><button type="button" class="df-ghost" @click="signOut">{{ t.logout }}</button></div>
-    </section>
-    <section class="df-box" style="max-width:none">
-      <h1 style="font-size:16px">{{ t.apiTitle }}</h1>
-      <p class="df-lead" style="margin:0">{{ t.apiLead }} <code>{{ t.api }}</code></p>
-    </section>
-  </div>
+  <Shell>
+    <p v-if="error" class="df-alert" role="alert">{{ error }}</p>
+    <p v-else-if="!user" class="df-lead">{{ t.loading }}</p>
+    <div v-else class="df-wide">
+      <section class="df-box">
+        <h1>{{ t.hello }} {{ user.name }}</h1>
+        <p class="df-lead">{{ t.signedIn }} {{ user.email }}</p>
+        <div><button type="button" class="df-ghost" @click="signOut">{{ t.logout }}</button></div>
+      </section>
+      <section class="df-box">
+        <h2>{{ t.apiTitle }}</h2>
+        <p class="df-note">{{ t.apiLead }} <code>{{ t.api }}</code></p>
+      </section>
+    </div>
+  </Shell>
 </template>
 `
 
 /** The auth files of a Vite React or Vue project (TypeScript) */
 export function spaAuthFiles(framework: 'react' | 'vue', name: string, lang: 'fr' | 'en', apiUrl: string): { path: string; content: string }[] {
+  const common = [
+    { path: 'src/api/auth.ts', content: CLIENT },
+    { path: 'src/texts.ts', content: textsFile(lang, name, apiUrl) },
+    { path: 'src/styles/devforge.css', content: DEVFORGE_CSS }
+  ]
   if (framework === 'react') {
     return [
-      { path: 'src/lib/auth.ts', content: CLIENT },
-      { path: 'src/auth/text.ts', content: textFile(lang, name, apiUrl, true) },
-      { path: 'src/auth/Root.tsx', content: REACT_ROOT }
+      ...common,
+      { path: 'src/Router.tsx', content: REACT_ROUTER },
+      { path: 'src/components/Shell.tsx', content: REACT_SHELL },
+      { path: 'src/components/AuthForm.tsx', content: REACT_FORM },
+      { path: 'src/components/AccountNav.tsx', content: REACT_ACCOUNT_NAV },
+      { path: 'src/pages/Login.tsx', content: reactFormPage('login') },
+      { path: 'src/pages/Register.tsx', content: reactFormPage('register') },
+      { path: 'src/pages/Dashboard.tsx', content: REACT_DASHBOARD }
     ]
   }
   return [
-    { path: 'src/lib/auth.ts', content: CLIENT },
-    { path: 'src/auth/text.ts', content: textFile(lang, name, apiUrl, false) },
-    { path: 'src/auth/Root.vue', content: VUE_ROOT(SPA_CSS) },
-    { path: 'src/auth/AuthForm.vue', content: VUE_FORM },
-    { path: 'src/auth/Dashboard.vue', content: VUE_DASHBOARD }
+    ...common,
+    { path: 'src/Router.vue', content: VUE_ROUTER },
+    { path: 'src/components/Shell.vue', content: VUE_SHELL },
+    { path: 'src/components/AuthForm.vue', content: VUE_FORM },
+    { path: 'src/components/AccountNav.vue', content: VUE_ACCOUNT_NAV },
+    { path: 'src/pages/Login.vue', content: vueFormPage('login') },
+    { path: 'src/pages/Register.vue', content: vueFormPage('register') },
+    { path: 'src/pages/Dashboard.vue', content: VUE_DASHBOARD }
   ]
 }
 
-/** Mount Root in place of App, proxy /api to the server, and say where the API is */
+/** Mount the router in place of App, proxy /api to the server, and say where the API is */
 export function spaAuthPatches(framework: 'react' | 'vue', apiUrl: string, label: { main: string; proxy: string }): SetupStep[] {
   const react = framework === 'react'
   return [
     {
       kind: 'patch', label: label.main, file: react ? 'src/main.tsx' : 'src/main.ts',
       find: react ? "import App from '\\./App(\\.tsx)?'" : "import App from '\\./App\\.vue'", mode: 'replace',
-      unless: './auth/Root', text: react ? "import App from './auth/Root'" : "import App from './auth/Root.vue'"
+      unless: './Router', text: react ? "import App from './Router'" : "import App from './Router.vue'"
     },
     {
       kind: 'patch', label: label.proxy, file: 'vite.config.ts', find: 'plugins:\\s*\\[', mode: 'replace', unless: "'/api'",
