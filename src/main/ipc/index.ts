@@ -29,6 +29,7 @@ import { registerVercelHandlers } from './vercel'
 import { registerDictationHandlers } from './dictation'
 import { registerDomainHandlers } from './domains'
 import { registerDatabaseHandlers } from './database'
+import { registerTestsHandlers } from './tests'
 import { registerLogHandlers } from './logs'
 import { registerWebhookHandlers } from './webhooks'
 import { registerSuggestHandlers } from './suggest'
@@ -69,6 +70,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerDictationHandlers()
   registerDomainHandlers()
   registerDatabaseHandlers(mainWindow)
+  registerTestsHandlers(mainWindow)
   registerLogHandlers(mainWindow)
   registerWebhookHandlers(mainWindow)
   registerSuggestHandlers()

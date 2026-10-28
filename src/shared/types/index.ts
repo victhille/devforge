@@ -317,6 +317,7 @@ export * from './deploy'
 export * from './monitor'
 export * from './domains'
 export * from './database'
+export * from './tests'
 export * from './logs'
 export * from './webhooks'
 export * from './suggest'
@@ -362,6 +363,7 @@ import type { NextjsAPI } from './nextjs'
 import type { LaravelAPI } from './laravel'
 import type { ConnectionsAPI } from './connections'
 import type { PackagesAPI } from './packages'
+import type { TestsAPI } from './tests'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -512,6 +514,8 @@ export interface DevForgeAPI {
   laravel: LaravelAPI
   connections: ConnectionsAPI
   packages: PackagesAPI
+  /** v3.7: a project's tests */
+  tests: TestsAPI
   dictation: DictationAPI
 
   // Git
