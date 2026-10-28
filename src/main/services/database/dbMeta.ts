@@ -1,5 +1,5 @@
 import type {
-  DbColumnInfo, DbForeignKey, DbIndexInfo, DbOverview, DbTableDetails, DbTableRef, DbTableStat, DbType
+  DbColumnInfo, DbDiagram, DbDiagramLink, DbDiagramTable, DbForeignKey, DbIndexInfo, DbOverview, DbTableDetails, DbTableRef, DbTableStat, DbType
 } from '@shared/types'
 import { quoteColumn, quoteIdent } from '@shared/lib/sqlQuote'
 
@@ -205,6 +205,81 @@ const sqlite = {
     }
     return { columns, indexes, foreignKeys, referencedBy, ddl: str(def?.sql) || null, stats }
   }
+}
+
+// ─── Schema (v3.8) ────────────────────────────────────────────────────────────
+
+/** Tables and links from flat rows; links to tables not shown (another schema or database) are left out */
+function diagramOf(cols: { s: string; t: string; view: boolean; n: string; ty: string; nu: boolean; pk: boolean }[], fks: { name: string; s: string; t: string; rs: string; rt: string; col: string; refcol: string }[]): DbDiagram {
+  const tables = new Map<string, DbDiagramTable>()
+  for (const c of cols) {
+    const key = `${c.s}.${c.t}`
+    if (!tables.has(key)) tables.set(key, { name: c.t, schema: c.s, type: c.view ? 'view' : 'table', columns: [] })
+    tables.get(key)!.columns.push({ name: c.n, type: c.ty, nullable: c.nu, pk: c.pk })
+  }
+  const links = new Map<string, DbDiagramLink>()
+  for (const f of fks) {
+    if (!tables.has(`${f.s}.${f.t}`) || !tables.has(`${f.rs}.${f.rt}`)) continue
+    const key = `${f.s}.${f.t}|${f.name}`
+    if (!links.has(key)) links.set(key, { from: { schema: f.s, name: f.t }, columns: [], to: { schema: f.rs, name: f.rt }, refColumns: [] })
+    links.get(key)!.columns.push(f.col)
+    // SQLite: no column named = the primary key
+    links.get(key)!.refColumns.push(f.refcol || tables.get(`${f.rs}.${f.rt}`)!.columns.find(c => c.pk)?.name || '')
+  }
+  return { tables: [...tables.values()], links: [...links.values()] }
+}
+
+export async function diagramFor(type: DbType, raw: Raw): Promise<DbDiagram> {
+  if (type === 'mysql') {
+    const cols = await raw(
+      `SELECT c.TABLE_NAME t, c.COLUMN_NAME n, c.COLUMN_TYPE ty, c.IS_NULLABLE nu, c.COLUMN_KEY k, tb.TABLE_TYPE tt
+       FROM information_schema.COLUMNS c JOIN information_schema.TABLES tb ON tb.TABLE_SCHEMA = c.TABLE_SCHEMA AND tb.TABLE_NAME = c.TABLE_NAME
+       WHERE c.TABLE_SCHEMA = DATABASE() ORDER BY c.TABLE_NAME, c.ORDINAL_POSITION`)
+    const fks = await raw(
+      `SELECT CONSTRAINT_NAME name, TABLE_NAME t, REFERENCED_TABLE_NAME rt, COLUMN_NAME col, REFERENCED_COLUMN_NAME refcol
+       FROM information_schema.KEY_COLUMN_USAGE
+       WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL
+       ORDER BY TABLE_NAME, CONSTRAINT_NAME, ORDINAL_POSITION`)
+    return diagramOf(
+      cols.map(r => ({ s: '', t: str(r.t), view: r.tt === 'VIEW', n: str(r.n), ty: str(r.ty), nu: r.nu === 'YES', pk: r.k === 'PRI' })),
+      fks.map(r => ({ name: str(r.name), s: '', t: str(r.t), rs: '', rt: str(r.rt), col: str(r.col), refcol: str(r.refcol) })))
+  }
+  if (type === 'postgres') {
+    const cols = await raw(
+      `SELECT n.nspname s, c.relname t, c.relkind k, a.attname n, format_type(a.atttypid, a.atttypmod) ty, NOT a.attnotnull nu,
+              EXISTS (SELECT 1 FROM pg_index ix WHERE ix.indrelid = c.oid AND ix.indisprimary AND a.attnum = ANY(ix.indkey)) pk
+       FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+       JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped
+       WHERE c.relkind IN ('r', 'p', 'v', 'm') AND NOT c.relispartition
+         AND n.nspname NOT IN ('pg_catalog', 'information_schema') AND n.nspname NOT LIKE 'pg_toast%'
+       ORDER BY n.nspname, c.relname, a.attnum`)
+    const fks = await raw(
+      `SELECT con.conname name, sn.nspname s, sc.relname t, tn.nspname rs, tc.relname rt, k.o, a.attname::text col, fa.attname::text refcol
+       FROM pg_constraint con
+       JOIN pg_class sc ON sc.oid = con.conrelid JOIN pg_namespace sn ON sn.oid = sc.relnamespace
+       JOIN pg_class tc ON tc.oid = con.confrelid JOIN pg_namespace tn ON tn.oid = tc.relnamespace
+       CROSS JOIN LATERAL unnest(con.conkey, con.confkey) WITH ORDINALITY k(n, fn, o)
+       JOIN pg_attribute a ON a.attrelid = con.conrelid AND a.attnum = k.n
+       JOIN pg_attribute fa ON fa.attrelid = con.confrelid AND fa.attnum = k.fn
+       WHERE con.contype = 'f' AND sn.nspname NOT IN ('pg_catalog', 'information_schema')
+       ORDER BY sn.nspname, sc.relname, con.conname, k.o`)
+    return diagramOf(
+      cols.map(r => ({ s: str(r.s), t: str(r.t), view: r.k === 'v' || r.k === 'm', n: str(r.n), ty: str(r.ty), nu: !!r.nu, pk: !!r.pk })),
+      fks.map(r => ({ name: str(r.name), s: str(r.s), t: str(r.t), rs: str(r.rs), rt: str(r.rt), col: str(r.col), refcol: str(r.refcol) })))
+  }
+  const cols: Parameters<typeof diagramOf>[0] = []
+  const fks: Parameters<typeof diagramOf>[1] = []
+  for (const o of await raw(`SELECT name n, type ty FROM sqlite_master WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%' ORDER BY name`)) {
+    const lit = `'${str(o.n).replace(/'/g, "''")}'`
+    for (const r of await raw(`SELECT name n, type ty, "notnull" nn, pk FROM pragma_table_info(${lit}) ORDER BY cid`)) {
+      cols.push({ s: '', t: str(o.n), view: o.ty === 'view', n: str(r.n), ty: str(r.ty), nu: Number(r.nn) === 0 && Number(r.pk) === 0, pk: Number(r.pk) > 0 })
+    }
+    if (o.ty === 'view') continue
+    for (const r of await raw(`SELECT * FROM pragma_foreign_key_list(${lit}) ORDER BY id, seq`)) {
+      fks.push({ name: `fk_${r.id}`, s: '', t: str(o.n), rs: '', rt: str(r.table), col: str(r.from), refcol: str(r.to) })
+    }
+  }
+  return diagramOf(cols, fks)
 }
 
 export async function overviewFor(type: DbType, raw: Raw, version: string, file = ''): Promise<DbOverview> {

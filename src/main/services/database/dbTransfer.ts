@@ -1,5 +1,5 @@
 import { createWriteStream } from 'fs'
-import { readFile, stat } from 'fs/promises'
+import { readFile, stat, writeFile } from 'fs/promises'
 import { randomUUID } from 'crypto'
 import { dialog, type BrowserWindow } from 'electron'
 import type { CsvPreview, DbTableRef, ExportFormat } from '@shared/types'
@@ -68,6 +68,15 @@ export async function saveResult(win: BrowserWindow, name: string, content: stri
   if (pick.canceled || !pick.filePath) return null
   const out = createWriteStream(pick.filePath, { encoding: 'utf-8' })
   await new Promise<void>((res, rej) => out.end(content, () => res()).on('error', rej))
+  return pick.filePath
+}
+
+/** v3.8: the schema as an image; a PNG comes as a data URL */
+export async function saveImage(win: BrowserWindow, name: string, content: string, ext: 'png' | 'svg'): Promise<string | null> {
+  const pick = await dialog.showSaveDialog(win, { defaultPath: `${name.replace(/[^\w.-]+/g, '_') || 'schema'}.${ext}`, filters: [{ name: ext.toUpperCase(), extensions: [ext] }] })
+  if (pick.canceled || !pick.filePath) return null
+  const data = ext === 'png' ? Buffer.from(content.replace(/^data:image\/png;base64,/, ''), 'base64') : Buffer.from(content, 'utf-8')
+  await writeFile(pick.filePath, data)
   return pick.filePath
 }
 

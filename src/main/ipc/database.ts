@@ -1,8 +1,8 @@
 import { ipcMain, type BrowserWindow } from 'electron'
 import type { RowChange } from '@shared/lib/rowEdits'
 import type { DbBrowseOptions, DbConnection, DbTableRef, ExportFormat } from '@shared/types'
-import { exportTable, importCsv, pickCsv, saveResult } from '../services/database/dbTransfer'
-import { closeDb, dbBrowse, dbDetails, dbOverview, dbQuery, dbSchema, testDb, dbApplyRows } from '../services/database/dbClient'
+import { exportTable, importCsv, pickCsv, saveImage, saveResult } from '../services/database/dbTransfer'
+import { closeDb, dbBrowse, dbDetails, dbDiagram, dbOverview, dbQuery, dbSchema, testDb, dbApplyRows } from '../services/database/dbClient'
 import { listDbConnections, removeDbConnection, saveDbConnection } from '../services/database/dbStorage'
 import { addDetected, detectLocal, detectRemote } from '../services/database/dbDetect'
 
@@ -17,6 +17,8 @@ export function registerDatabaseHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle('db:query',  (_e, id: string, sql: string) => dbQuery(id, sql))
   ipcMain.handle('db:overview', (_e, id: string) => dbOverview(id))
   ipcMain.handle('db:details',  (_e, id: string, t: DbTableRef) => dbDetails(id, t))
+  ipcMain.handle('db:diagram',  (_e, id: string) => dbDiagram(id))
+  ipcMain.handle('db:save-image', (_e, name: string, content: string, ext: string) => saveImage(mainWindow, String(name ?? ''), String(content ?? ''), ext === 'png' ? 'png' : 'svg'))
   ipcMain.handle('db:apply-rows', (_e, id: string, t: DbTableRef, changes: RowChange[]) => dbApplyRows(id, t, Array.isArray(changes) ? changes : []))
   ipcMain.handle('db:export', (_e, id: string, t: DbTableRef, format: ExportFormat) => exportTable(mainWindow, id, t, FORMATS.includes(format) ? format : 'csv'))
   ipcMain.handle('db:save-result', (_e, name: string, content: string, ext: string) => saveResult(mainWindow, String(name ?? ''), String(content ?? ''), ext === 'json' ? 'json' : 'csv'))

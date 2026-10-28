@@ -103,6 +103,18 @@ export interface DbTableDetails {
   stats: DbTableStat | null
 }
 
+/** v3.8: a table in the schema, with its columns */
+export interface DbDiagramTable extends DbTableRef {
+  type: 'table' | 'view'
+  columns: { name: string; type: string; nullable: boolean; pk: boolean }[]
+}
+
+/** v3.8: one foreign key, from the table that points to the table pointed at */
+export interface DbDiagramLink { from: DbTableRef; columns: string[]; to: DbTableRef; refColumns: string[] }
+
+/** v3.8: every table and foreign key of a database, read at once */
+export interface DbDiagram { tables: DbDiagramTable[]; links: DbDiagramLink[] }
+
 export interface DbBrowseOptions {
   offset: number
   limit: number
@@ -174,6 +186,10 @@ export interface DatabaseAPI {
   importCsv: (id: string, table: DbTableRef, token: string, mapping: (string | null)[], emptyIsNull: boolean) => Promise<{ inserted: number; error?: string; line?: number }>
   /** v3.6: rows changed, in one transaction (all or none) */
   applyRows: (id: string, table: DbTableRef, changes: RowChange[]) => Promise<{ affected: number; error?: string }>
+  /** v3.8: every table, column and foreign key, for the schema */
+  diagram: (id: string) => Promise<DbDiagram>
+  /** v3.8: the schema saved as an image (PNG: a data URL); null when cancelled */
+  saveImage: (name: string, content: string, ext: 'png' | 'svg') => Promise<string | null>
   /** Look for databases on a server (Docker containers + native services) */
   detectRemote: (sshConnectionId: string) => Promise<DetectedDatabase[]>
   /** Save a detected database as a connection, returns its id */

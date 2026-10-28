@@ -4,8 +4,8 @@ import { dirname, join } from 'path'
 import mysql from 'mysql2/promise'
 import pg from 'pg'
 import initSqlJs, { type Database as SqlJsDb, type SqlJsStatic } from 'sql.js'
-import type { DbBrowseOptions, DbBrowseResult, DbConnection, DbOverview, DbQueryResult, DbTable, DbTableDetails, DbTableRef } from '@shared/types'
-import { detailsFor, overviewFor, type Raw } from './dbMeta'
+import type { DbBrowseOptions, DbBrowseResult, DbConnection, DbDiagram, DbOverview, DbQueryResult, DbTable, DbTableDetails, DbTableRef } from '@shared/types'
+import { detailsFor, diagramFor, overviewFor, type Raw } from './dbMeta'
 import { quoteColumn, quoteIdent } from '@shared/lib/sqlQuote'
 import { rowChangesProblem, rowStatements, type RowChange, type RowStatement } from '@shared/lib/rowEdits'
 import { getDbConnection, saveDbConnection } from './dbStorage'
@@ -377,6 +377,11 @@ export async function dbOverview(id: string): Promise<DbOverview> {
   const c = connOf(id)
   const d = await driverFor(id)
   return overviewFor(c.type, d.raw, await d.version(), c.file)
+}
+
+export async function dbDiagram(id: string): Promise<DbDiagram> {
+  const c = connOf(id)
+  return diagramFor(c.type, (await driverFor(id)).raw)
 }
 
 export async function dbDetails(id: string, t: DbTableRef): Promise<DbTableDetails> {

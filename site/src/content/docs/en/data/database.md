@@ -44,6 +44,19 @@ For a table:
 | SQL | a query on this table |
 | Info | rows, size (data and indexes), engine, collation, encoding, definition (DDL) |
 
+## The schema
+
+**Schema** (at the top of the explorer) opens the database full screen: each table as a card, with its columns, their type, the primary key 🔑 and the required columns (`!`). One arrow per foreign key goes from the column that points to the column pointed at.
+
+- **Automatic layout**: the tables pointed at on the left, the ones pointing at them on the right, ordered so arrows cross little. Tables without links go below.
+- **Move** a table: drag it by its title. Positions are kept for each database; **Rearrange** goes back to the automatic layout.
+- **Navigate**: drag the background to move around, the wheel zooms, **Fit** shows everything. The **minimap** at the bottom right shows the part on screen; a click on it goes there.
+- **Tables shown**: the list on the left checks and searches them; **+ neighbours** adds those linked to the checked tables. Over 60 tables, none is shown at first: check the ones you care about.
+- A click on a table's title opens its **Structure**.
+- **PNG** or **SVG** saves the schema as an image, in the theme's colours.
+
+PostgreSQL (all schemas), MySQL / MariaDB and SQLite.
+
 ## Creating and changing tables
 
 - **New table** (the **+** at the top of the tables list): its name and columns. An auto-incremented `id` column is ready; each column has a **type** (offered per database, or typed: `VARCHAR(255)`, `NUMERIC(10, 2)`…), a **default**, and the boxes **Required**, **Primary key**, **Auto-increment**.

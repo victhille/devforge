@@ -44,6 +44,19 @@ Pour une table :
 | SQL | une requête sur cette table |
 | Infos | lignes, taille (données et index), moteur, interclassement, encodage, définition (DDL) |
 
+## Le schéma
+
+**Schéma** (en haut de l'explorateur) ouvre la base en plein écran : chaque table en carte, avec ses colonnes, leur type, la clé primaire 🔑 et les colonnes requises (`!`). Une flèche par clé étrangère va de la colonne qui pointe vers la colonne pointée.
+
+- **Placement automatique** : les tables pointées à gauche, celles qui pointent vers elles à droite, rangées pour que les flèches se croisent peu. Les tables sans lien vont en dessous.
+- **Déplacer** une table : glisse-la par son titre. Les positions sont gardées pour chaque base ; **Réorganiser** revient au placement automatique.
+- **Naviguer** : glisse le fond pour te déplacer, la molette zoome, **Ajuster** montre tout. La **mini-carte** en bas à droite montre la partie à l'écran ; un clic dessus y va.
+- **Les tables montrées** : la liste à gauche les coche et les cherche ; **+ voisines** ajoute celles qui sont liées aux tables cochées. Au-delà de 60 tables, aucune n'est montrée au départ : coche celles qui t'intéressent.
+- Un clic sur le titre d'une table ouvre sa **Structure**.
+- **PNG** ou **SVG** enregistre le schéma en image, aux couleurs du thème.
+
+PostgreSQL (tous les schémas), MySQL / MariaDB et SQLite.
+
 ## Créer et modifier des tables
 
 - **Nouvelle table** (le **+** en haut de la liste des tables) : son nom et ses colonnes. Une colonne `id` auto-incrémentée est prête ; chaque colonne a un **type** (proposés selon la base, ou à taper : `VARCHAR(255)`, `NUMERIC(10, 2)`…), un **défaut**, et les cases **Requis**, **Clé primaire**, **Auto-incrément**.

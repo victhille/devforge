@@ -3,7 +3,7 @@ import { join } from 'path'
 import { afterAll, describe, expect, it } from 'vitest'
 import { dialog } from '../stubs/electron'
 import type { DbConnection, DbType } from '../../src/shared/types'
-import { closeAllDbs, dbApplyRows, dbDetails, dbQuery } from '../../src/main/services/database/dbClient'
+import { closeAllDbs, dbApplyRows, dbDetails, dbDiagram, dbQuery } from '../../src/main/services/database/dbClient'
 import { saveDbConnection } from '../../src/main/services/database/dbStorage'
 import { exportTable, importCsv, pickCsv } from '../../src/main/services/database/dbTransfer'
 import { addColumnSql, alterColumnSql, createTableSql, dropColumnSql, dropTableSql, renameTableSql, EMPTY_COLUMN } from '../../src/shared/lib/tableDdl'
@@ -81,6 +81,26 @@ describe.skipIf(!process.env.DEVFORGE_REAL_DB)('v3.6: on real PostgreSQL and Mar
       for (const sql of dropColumnSql(s.type, t, 'state')) await run(sql)
       for (const sql of renameTableSql(s.type, t, 'invoices')) await run(sql)
       for (const sql of dropTableSql(s.type, { ...t, name: 'invoices' })) await run(sql)
+    })
+
+    it(`${s.type}: v3.8, the schema reads every table, primary key and foreign key, composite ones included`, async () => {
+      saveDbConnection({ id: s.id, name: s.id, type: s.type, host: '127.0.0.1', port: s.port, user: s.user, password: 'verify', database: 'verify', color: '#5B9BFF' })
+      const q = (n: string) => (s.type === 'mysql' ? `\`${n}\`` : `"${n}"`)
+      const run = async (sql: string) => { const r = await dbQuery(s.id, sql); expect(r.error, sql).toBeUndefined() }
+      for (const n of ['df_line', 'df_order', 'df_user']) await dbQuery(s.id, `DROP TABLE IF EXISTS ${q(n)}`)
+      await run(`CREATE TABLE ${q('df_user')} (id INT PRIMARY KEY, email VARCHAR(100) NOT NULL)`)
+      await run(`CREATE TABLE ${q('df_order')} (id INT, shop INT, user_id INT, PRIMARY KEY (id, shop), FOREIGN KEY (user_id) REFERENCES ${q('df_user')}(id))`)
+      await run(`CREATE TABLE ${q('df_line')} (order_id INT, order_shop INT, qty INT NOT NULL, FOREIGN KEY (order_id, order_shop) REFERENCES ${q('df_order')}(id, shop))`)
+      const d = await dbDiagram(s.id)
+      const schema = s.type === 'postgres' ? 'public' : ''
+      const order = d.tables.find(tb => tb.name === 'df_order')!
+      expect(order.schema).toBe(schema)
+      expect(order.columns.filter(c => c.pk).map(c => c.name)).toEqual(['id', 'shop'])
+      expect(d.tables.find(tb => tb.name === 'df_user')!.columns.find(c => c.name === 'email')).toMatchObject({ nullable: false, pk: false })
+      const mine = d.links.filter(l => l.from.name.startsWith('df_'))
+      expect(mine).toContainEqual({ from: { schema, name: 'df_line' }, columns: ['order_id', 'order_shop'], to: { schema, name: 'df_order' }, refColumns: ['id', 'shop'] })
+      expect(mine.filter(l => l.from.name === 'df_order')).toEqual([{ from: { schema, name: 'df_order' }, columns: ['user_id'], to: { schema, name: 'df_user' }, refColumns: ['id'] }])
+      for (const n of ['df_line', 'df_order', 'df_user']) await run(`DROP TABLE ${q(n)}`)
     })
   }
 })

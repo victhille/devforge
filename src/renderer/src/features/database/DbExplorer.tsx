@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowLeft, ChevronDown, ChevronRight, Code2, Eye, Info, KeyRound, LayoutGrid, Link2, ListTree,
-  PanelLeftClose, PanelLeftOpen, Plus, RefreshCw, Rows3, Table2
+  Network, PanelLeftClose, PanelLeftOpen, Plus, RefreshCw, Rows3, Table2
 } from 'lucide-react'
 import type { DbConnection, DbOverview, DbTable, DbTableDetails, DbTableRef } from '@shared/types'
 import { quoteIdent } from '@shared/lib/sqlQuote'
@@ -17,6 +17,7 @@ import OverviewView from './OverviewView'
 import SqlPanel from './SqlPanel'
 import { BrowseTab, InfoTab, RelationsTab, StructureTab } from './TableTabs'
 import { CreateTableDialog } from './TableDialogs'
+import SchemaView from './SchemaView'
 
 type Tab = 'overview' | 'browse' | 'structure' | 'relations' | 'info' | 'sql'
 
@@ -54,6 +55,7 @@ export default function DbExplorer({ conn, back, actions }: {
   const [sql, setSql] = useState('')
   const [collapsed, setCollapsed] = usePersistentState('devforge:db-tables-collapsed', false)
   const [creating, setCreating] = useState(false)
+  const [schemaOpen, setSchemaOpen] = useState(false)
 
   const loadSchema = useCallback(async () => {
     setTables(null)
@@ -231,6 +233,7 @@ export default function DbExplorer({ conn, back, actions }: {
               </h1>
             </div>
             {actions}
+            <Button variant="secondary" size="sm" onClick={() => setSchemaOpen(true)}><Network size={13} /> {t.schema.button}</Button>
             <Button variant="secondary" size="sm" onClick={refresh}><RefreshCw size={13} /> {t.common.refresh}</Button>
             <Button size="sm" onClick={() => changeTab('sql')}><Code2 size={13} /> {d.newQuery}</Button>
           </div>
@@ -285,6 +288,7 @@ export default function DbExplorer({ conn, back, actions }: {
           )}
         </div>
       </section>
+      {schemaOpen && <SchemaView conn={conn} dbName={dbName} onClose={() => setSchemaOpen(false)} onOpenTable={ref => { setSchemaOpen(false); openTable(ref, 'structure') }} />}
       {creating && <CreateTableDialog conn={conn} onClose={() => setCreating(false)} onDone={name => { setCreating(false); afterTableChange({ name, schema: table?.schema ?? '' }) }} />}
     </div>
   )
