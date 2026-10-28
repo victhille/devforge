@@ -2,6 +2,25 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [3.4.0](https://github.com/victhille/devforge/compare/v3.3.1...v3.4.0) — 2026-10-28
+
+> Un projet qui démarre prêt : page d'accueil DevForge, et connexion, inscription et API d'authentification communes à Next.js, Laravel, Symfony, React et Vue.
+
+### Nouveautés
+
+- **projets** : Authentification React et Vue, client du contrat DevForge (v3.4 lot 6) ([fc8f135](https://github.com/victhille/devforge/commit/fc8f135628bc00be167fb03ccdb30a396c6b0997))
+- **projets** : Authentification Symfony sur le contrat DevForge (v3.4 lot 5) ([82de044](https://github.com/victhille/devforge/commit/82de0449f9ffcc76f4317798be0701c531719a2c))
+- **projets** : Authentification Laravel sur le contrat DevForge (v3.4 lot 4) ([955275b](https://github.com/victhille/devforge/commit/955275b4bb0d557d3feed11934e5d433a922cfda))
+- **projets** : Authentification Next.js sur le contrat DevForge (v3.4 lot 3) ([5e5a1d3](https://github.com/victhille/devforge/commit/5e5a1d3156877cd81e99261f9d3e534d116f5571))
+- **projets** : Contrat d'API d'authentification commun (v3.4 lot 2) ([96c73b2](https://github.com/victhille/devforge/commit/96c73b24daeeaa53e4da4de1e1eee8afa7b64757))
+- **projets** : Page d'accueil DevForge à la création (v3.4 lot 1) ([faa8c88](https://github.com/victhille/devforge/commit/faa8c882205d0d889cb811f3c77008c806599994))
+
+### Corrections
+
+- **projets** : Dashboard Next.js compatible Cache Components, affichage de l'accueil ([5453597](https://github.com/victhille/devforge/commit/5453597ee7ed7a064264e514abca5945a5998e04))
+
+_2 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [3.3.1](https://github.com/victhille/devforge/compare/v3.3.0...v3.3.1) — 2026-10-27
 
 > Création de projet fiabilisée : .gitignore avant le premier commit, Tailwind 4 et Prisma 7 configurés, branche main, journal lisible et console réglable.
