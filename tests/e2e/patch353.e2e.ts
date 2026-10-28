@@ -20,6 +20,7 @@ test('a Python project lists its packages, compared with PyPI, with the command 
       const api = join(dir, 'api')
       file(join(api, 'requirements.txt'), 'Django>=4.2\nrequests==2.31.0\n')
       file(join(api, 'requirements-dev.txt'), 'pytest\n')
+      file(join(api, 'App', 'App.csproj'), '<Project><ItemGroup><PackageReference Include="Serilog" Version="3.1.1" /></ItemGroup></Project>')
       file(join(api, '.venv', 'pyvenv.cfg'), 'home = C:\\Python312\n')
       mkdirSync(join(api, '.venv', 'Lib', 'site-packages', 'Django-4.2.11.dist-info'), { recursive: true })
       mkdirSync(join(api, '.venv', 'Lib', 'site-packages', 'requests-2.31.0.dist-info'), { recursive: true })
@@ -40,10 +41,15 @@ test('a Python project lists its packages, compared with PyPI, with the command 
   await expect(django).toContainText('majeure')
   await expect(page.getByRole('row', { name: /pytest/ })).toContainText('dev')
 
-  // Read only: no audit nor update, the command instead
-  await expect(page.getByRole('button', { name: /Mettre à jour/ })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: /Audit/ })).toHaveCount(0)
-  await expect(page.getByText('pip install -U -r requirements.txt').first()).toBeVisible()
+  // v3.6: updatable, but this environment has no Python of its own: the way to create one
+  await expect(page.getByRole('status').filter({ hasText: 'environnement virtuel' }).first()).toContainText('python -m venv .venv')
+
+  // .NET stays read only: no audit nor update, the command instead
+  await expect(page.getByText('App/App.csproj', { exact: true })).toBeVisible()
+  // The card itself: the innermost box holding its name
+  const card = page.locator('div.overflow-hidden', { has: page.getByText('App/App.csproj', { exact: true }) }).last()
+  await expect(card.getByRole('button', { name: /Vérifier les vulnérabilités/ })).toHaveCount(0)
+  await expect(card.getByText('dotnet list package --outdated')).toBeVisible()
   expect(await settledAxe(page)).toEqual([])
 })
 

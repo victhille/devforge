@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ArrowUpCircle, ExternalLink, Package, RefreshCw, ShieldAlert, ShieldCheck } from 'lucide-react'
-import type { AuditSummary, PackageInfo, PackageManifest, PackageUpdate, UpdateLevel } from '@shared/types'
+import type { AuditSummary, PackageInfo, PackageManagerKind, PackageManifest, PackageUpdate, UpdateLevel } from '@shared/types'
 
 /** A card's key: a folder can hold both a package.json and a composer.json */
 const keyOf = (m: PackageManifest) => `${m.dir}|${m.file}`
-import { fitsRange, rangeFloor, updateLevel } from '@shared/lib/packages'
+import { rangeFloor, updateLevel } from '@shared/lib/packages'
+import { backupFiles, fitsRangeOf } from '@shared/lib/manifestUpdates'
 import { REGISTRY_PAGE, UPDATE_HINT } from '@shared/lib/manifests'
 import CopyButton from '@renderer/components/ui/CopyButton'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -23,11 +24,23 @@ type Filter = 'all' | 'outdated' | 'major'
 const LEVEL_COLOR: Record<UpdateLevel, BadgeColor> = { current: 'success', patch: 'accent', minor: 'warning', major: 'danger', unknown: 'default' }
 const SEVERITY_COLOR = { unknown: 'default', info: 'default', low: 'default', moderate: 'warning', high: 'danger', critical: 'danger' } as const
 
-/** What updating one package means: within its range, or to the latest version */
-function planOf(p: PackageInfo, latest: string | null): { level: UpdateLevel; update: PackageUpdate | null } {
+/** What updating one package means: within its range (as its language reads it), or to the latest version */
+function planOf(manager: PackageManagerKind, p: PackageInfo, latest: string | null): { level: UpdateLevel; update: PackageUpdate | null } {
   const level = updateLevel(p.installed ?? rangeFloor(p.wanted), latest)
   if (level === 'current' || level === 'unknown' || !latest) return { level, update: null }
-  return { level, update: { name: p.name, dev: p.dev, target: fitsRange(latest, p.wanted) ? 'compatible' : 'latest' } }
+  return { level, update: { name: p.name, dev: p.dev, target: fitsRangeOf(manager, latest, p.wanted) ? 'compatible' : 'latest' } }
+}
+
+/** Something to install first, with its command */
+function Missing({ text, install }: { text: string; install: string }) {
+  const { t } = useI18n()
+  return (
+    <div role="status" className="flex flex-wrap items-center gap-2 border-b border-line-subtle bg-warning-soft px-[18px] py-2.5 text-sm text-warning">
+      {text}
+      <code className="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs text-fg">{install}</code>
+      <CopyButton text={install} title={t.packages.copyCommand} />
+    </div>
+  )
 }
 
 /**
@@ -72,13 +85,13 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
     if (!updates.length) return
     const majors = updates.filter(u => {
       const p = m.packages.find(x => x.name === u.name)
-      return p && planOf(p, latest[keyOf(m)]?.[u.name] ?? null).level === 'major'
+      return p && planOf(m.manager, p, latest[keyOf(m)]?.[u.name] ?? null).level === 'major'
     })
     if (majors.length && !window.confirm(k.majorConfirm.replace('{list}', majors.map(u => `${u.name} → ${latest[keyOf(m)]?.[u.name]}`).join('\n')))) return
     setRunning(keyOf(m)); setLog([])
     try {
       const r = await window.devforge.packages.update(projectId, m.dir, m.file, updates)
-      toast.show(r.ok ? { tone: 'success', title: k.updated.replace('{n}', String(updates.length)) } : { tone: 'error', title: r.restored ? k.failedRestored : k.failed })
+      toast.show(r.ok ? { tone: 'success', title: k.updated.replace('{n}', String(updates.length)) } : { tone: 'error', title: !r.restored ? k.failed : m.file === 'package.json' ? k.failedRestored : k.failedRestoredFile.replace('{files}', backupFiles(m.manager, m.file).join(', ') || m.file) })
       setSelected(new Set())
       const fresh = await window.devforge.packages.list(projectId).catch(() => manifests ?? [])
       setManifests(fresh)
@@ -105,7 +118,7 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
       {manifests.map(m => {
         const key = keyOf(m)
         const versions = latest[key]
-        const rows = m.packages.map(p => ({ p, latest: versions?.[p.name] ?? null, ...planOf(p, versions?.[p.name] ?? null) }))
+        const rows = m.packages.map(p => ({ p, latest: versions?.[p.name] ?? null, ...planOf(m.manager, p, versions?.[p.name] ?? null) }))
         const shown = rows.filter(r => filter === 'all' || (filter === 'major' ? r.level === 'major' : !!r.update))
         const compatible = rows.flatMap(r => r.update?.target === 'compatible' ? [r.update] : [])
         const picked = rows.flatMap(r => r.update && selected.has(`${key}:${r.p.name}`) ? [r.update] : [])
@@ -123,6 +136,7 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
                 : audit === 'busy' ? <Spinner />
                 : audit === undefined ? <Button size="sm" variant="ghost" onClick={() => runAudit(m)}><ShieldAlert size={13} /> {k.audit}</Button>
                 : audit === null ? <span className="text-xs text-fg-muted">{k.auditUnavailable}</span>
+                : audit.missingTool ? <span className="text-xs text-warning">{k.auditToolMissing.replace('{tool}', audit.missingTool.name)}</span>
                 : audit.total === 0 ? <Badge color="success"><ShieldCheck size={12} /> {k.auditClean}</Badge>
                 : <Badge color={audit.bySeverity.critical || audit.bySeverity.high ? 'danger' : 'warning'}><ShieldAlert size={12} /> {k.auditFound.replace('{n}', String(audit.total))}</Badge>}
               <Button size="sm" variant="ghost" onClick={() => loadLatest(m)} disabled={!!running}><RefreshCw size={13} /> {t.common.refresh}</Button>
@@ -140,7 +154,13 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
               </div>
             )}
 
-            {m.toolMissing && (
+            {m.missingTool && (
+              <Missing text={m.missingTool.name === '.venv' ? k.venvMissing : k.toolMissing.replace('{tool}', m.missingTool.name)} install={m.missingTool.install} />
+            )}
+            {audit && audit !== 'busy' && audit.missingTool && (
+              <Missing text={k.auditToolMissingLong.replace('{tool}', audit.missingTool.name)} install={audit.missingTool.install} />
+            )}
+            {m.toolMissing && !m.missingTool && (
               <div role="status" className="flex flex-wrap items-center gap-2 border-b border-line-subtle bg-warning-soft px-[18px] py-2.5 text-sm text-warning">
                 {k.composerMissing}
                 <button onClick={() => window.devforge.openExternal('https://getcomposer.org/download/')} className="inline-flex items-center gap-1 underline">getcomposer.org <ExternalLink size={11} /></button>

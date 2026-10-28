@@ -1099,6 +1099,11 @@ const en = {
 
   // ── SSH ───────────────────────────────────────────────────────────────────
   packages: {
+    failedRestoredFile: "The update failed: {files} back as they were.",
+    toolMissing: "{tool} is not installed on this PC: the update cannot run. To install it:",
+    venvMissing: "No virtual environment (.venv) in this folder: DevForge never touches the system's Python. To create it:",
+    auditToolMissing: "{tool} missing",
+    auditToolMissingLong: "Vulnerabilities not checked: {tool} is not installed. To install it:",
     readOnlyHint: "Versions compared only: to update them, in the project's terminal:",
     copyCommand: "Copy the command",
     filter: 'Package filter',

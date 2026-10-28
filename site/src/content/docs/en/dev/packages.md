@@ -1,6 +1,6 @@
 ---
 title: Packages
-description: "The Packages tab of a project's page: npm and Composer (outdated versions, vulnerabilities, updates rolled back if they fail), and the versions of Python, Rust, Go, Ruby, Dart, .NET and Java projects."
+description: "The Packages tab of a project's page: outdated versions, vulnerabilities and updates rolled back if they fail, for npm, Composer, Python, Rust, Go, Ruby and Dart; the versions of .NET and Java."
 ---
 
 The **Packages** tab of a [project's page](/devforge/en/dev/projects/) shows the project's dependencies, what is outdated or vulnerable, and updates them when you decide to. Nothing updates on its own.
@@ -70,7 +70,23 @@ These languages' dependencies get a card too, with the same columns and filters:
 | .NET | `*.csproj`, `*.fsproj`, `*.vbproj` | the file itself | NuGet |
 | Java, Kotlin | `pom.xml`, `build.gradle(.kts)` | the file itself | Maven Central |
 
-These cards **only compare**: no audit nor update button. A line at the top of the card gives the command that updates them (`pip install -U -r requirements.txt`, `poetry update`, `cargo update`, `go get -u ./...`, `bundle update`, `dart pub upgrade`…), with **Copy the command**, to run in the project's terminal.
+They have the same buttons as npm: **Update**, **Move to** *version*, the selection, **Update the compatible ones** and **Check for vulnerabilities**. "Within range" reads each language's syntax: `>=4.2,<5` and `~=1.4` in Python, `1.2` (meaning `^1.2`) in Rust, `~> 7.1` in Ruby.
+
+| Manager | Within range | Beyond | Vulnerabilities |
+|---|---|---|---|
+| pip | `python -m pip install -U` in the virtual environment | the file's line rewritten (`>=` *version*), then the same command | `pip-audit -r` |
+| Poetry | `poetry update` | `poetry add name@^version` | `pip-audit` on the environment |
+| uv | `uv lock --upgrade-package`, then `uv sync` | `uv add "name>=version"` | `pip-audit` on the environment |
+| Pipenv | `pipenv update` | `pipenv install "name>=version"` | `pip-audit` on the environment |
+| Cargo | `cargo update -p` | `cargo add name@version` | `cargo audit` |
+| Go | `go get module@latest` (within its major version), then `go mod tidy` | — | `govulncheck` |
+| Bundler | `bundle update` | the `Gemfile` rewritten (`~> major.minor`), then `bundle update` | `bundle-audit` |
+| pub | `dart pub upgrade` (`flutter` for a Flutter project) | `dart pub add name:^version` | — |
+
+- **As for npm**, the files are saved first (the dependency file and its lockfile); if a command fails, they are put back as they were and the log stays on screen.
+- **Python** always goes through the project's virtual environment (`.venv`, `venv` or `env`), never the system's Python. Without one, the card says so and gives the command that creates it (`python -m venv .venv`). With pip, a failure puts the file back, but the environment keeps what was installed: the log gives the command that brings the old versions back.
+- **A missing tool** (`poetry`, `uv`, `cargo`…) is reported with the command that installs it, and the update stays blocked. **A missing audit tool** (`pip-audit`, `cargo-audit`, `govulncheck`, `bundle-audit`) too: nothing is checked while it is missing.
+- **.NET and Java** only compare: a line at the top of the card gives the command to run in the project's terminal (`dotnet list package --outdated`, `mvn versions:display-dependency-updates`, `./gradlew dependencyUpdates`), with **Copy the command**.
 
 A `requirements-dev.txt` (or `-test`, `-lint`) and a `pyproject.toml`'s optional groups count as *dev* dependencies. A `pyproject.toml` declaring no dependency (tool settings only) gets no card.
 

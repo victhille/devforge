@@ -1091,6 +1091,11 @@ const fr = {
   },
 
   packages: {
+    failedRestoredFile: "La mise à jour a échoué : {files} remis comme avant.",
+    toolMissing: "{tool} n'est pas installé sur ce PC : la mise à jour ne peut pas tourner. Pour l'installer :",
+    venvMissing: "Pas d'environnement virtuel (.venv) dans ce dossier : DevForge ne touche jamais au Python du système. Pour le créer :",
+    auditToolMissing: "{tool} manquant",
+    auditToolMissingLong: "Vulnérabilités non vérifiées : {tool} n'est pas installé. Pour l'installer :",
     readOnlyHint: "Versions comparées seulement : pour les mettre à jour, dans le terminal du projet :",
     copyCommand: "Copier la commande",
     filter: 'Filtre des paquets',

@@ -458,7 +458,7 @@ async function runUndo(u: UndoSpec): Promise<string> {
     case 'vercel-promote': await vercelPromote(u.projectId, u.deploymentId); return 'Production points back to the previous deployment'
     case 'packages-restore': {
       if (!(await restoreAndInstall(u.path, u.dir, u.file, { store: u.store, files: u.files }))) throw new Error('Files put back, but the install failed: run it from the Packages tab')
-      return `${u.file === 'composer.json' ? 'composer.json and composer.lock' : 'package.json and the lockfile'} put back, dependencies reinstalled`
+      return `${u.file === 'composer.json' ? 'composer.json and composer.lock' : u.file === 'package.json' ? 'package.json and the lockfile' : `${u.file} and its lockfile`} put back, dependencies reinstalled`
     }
   }
 }

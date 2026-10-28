@@ -27,8 +27,10 @@ export interface PackageManifest {
   packages: PackageInfo[]
   /** Composer is not installed on this PC (and the project does not run on Sail) */
   toolMissing?: boolean
-  /** v3.5.3: listed and compared only; no audit nor update in DevForge (the command to run is shown) */
+  /** v3.5.3: listed and compared only; no audit nor update in DevForge (the command to run is shown). v3.6: .NET and Java only */
   readOnly?: boolean
+  /** v3.6: what an update needs and this PC lacks (the virtual environment, poetry, cargo…), and how to get it */
+  missingTool?: { name: string; install: string }
 }
 
 export type ManifestFile = PackageManifest['file']
@@ -41,6 +43,8 @@ export interface AuditSummary {
   bySeverity: Record<AuditSeverity, number>
   /** Package name → its worst severity */
   packages: Record<string, AuditSeverity>
+  /** v3.6: the audit tool is not installed (pip-audit, cargo-audit…): nothing was checked */
+  missingTool?: { name: string; install: string }
 }
 
 /** Within the manifest's range ("compatible"), or to the latest version (a major one asks first) */

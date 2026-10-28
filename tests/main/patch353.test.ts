@@ -119,7 +119,7 @@ describe('v3.5.3: a project\'s other packages', () => {
       { name: 'Django', wanted: '>=5.0', dev: false, installed: '5.0.3' },
       { name: 'requests', wanted: '*', dev: false, installed: null }
     ])
-    expect(found[1]).toMatchObject({ name: 'cli', readOnly: true, packages: [{ name: 'clap', installed: '4.5.2' }] })
+    expect(found[1]).toMatchObject({ name: 'cli', packages: [{ name: 'clap', installed: '4.5.2' }] })
   })
 
   it('knows each file\'s registry', () => {

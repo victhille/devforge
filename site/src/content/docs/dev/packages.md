@@ -1,6 +1,6 @@
 ---
 title: Paquets
-description: "L'onglet Paquets de la fiche projet : npm et Composer (versions en retard, vulnérabilités, mises à jour avec retour en arrière), et les versions des projets Python, Rust, Go, Ruby, Dart, .NET et Java."
+description: "L'onglet Paquets de la fiche projet : versions en retard, vulnérabilités et mises à jour avec retour en arrière, pour npm, Composer, Python, Rust, Go, Ruby et Dart ; les versions de .NET et Java."
 ---
 
 L'onglet **Paquets** de la [fiche projet](/devforge/dev/projects/) montre les dépendances du projet, ce qui est en retard ou vulnérable, et les met à jour quand tu le décides. Rien ne se met à jour tout seul.
@@ -70,7 +70,23 @@ Les dépendances de ces langages ont aussi leur carte, avec les mêmes colonnes 
 | .NET | `*.csproj`, `*.fsproj`, `*.vbproj` | le fichier lui-même | NuGet |
 | Java, Kotlin | `pom.xml`, `build.gradle(.kts)` | le fichier lui-même | Maven Central |
 
-Ces cartes **comparent seulement** : pas d'audit ni de bouton de mise à jour. Une ligne en haut de la carte donne la commande qui les met à jour (`pip install -U -r requirements.txt`, `poetry update`, `cargo update`, `go get -u ./...`, `bundle update`, `dart pub upgrade`…), avec **Copier la commande**, à lancer dans le terminal du projet.
+Elles ont les mêmes boutons que npm : **Mettre à jour**, **Passer à** *version*, la sélection, **Mettre à jour les compatibles** et **Vérifier les vulnérabilités**. « Dans l'intervalle » se lit avec la syntaxe de chaque langage : `>=4.2,<5` et `~=1.4` en Python, `1.2` (soit `^1.2`) en Rust, `~> 7.1` en Ruby.
+
+| Gestionnaire | Dans l'intervalle | Au-delà | Vulnérabilités |
+|---|---|---|---|
+| pip | `python -m pip install -U` dans l'environnement virtuel | la ligne du fichier réécrite (`>=` *version*), puis la même commande | `pip-audit -r` |
+| Poetry | `poetry update` | `poetry add nom@^version` | `pip-audit` sur l'environnement |
+| uv | `uv lock --upgrade-package`, puis `uv sync` | `uv add "nom>=version"` | `pip-audit` sur l'environnement |
+| Pipenv | `pipenv update` | `pipenv install "nom>=version"` | `pip-audit` sur l'environnement |
+| Cargo | `cargo update -p` | `cargo add nom@version` | `cargo audit` |
+| Go | `go get module@latest` (dans sa version majeure), puis `go mod tidy` | — | `govulncheck` |
+| Bundler | `bundle update` | le `Gemfile` réécrit (`~> majeure.mineure`), puis `bundle update` | `bundle-audit` |
+| pub | `dart pub upgrade` (`flutter` pour un projet Flutter) | `dart pub add nom:^version` | — |
+
+- **Comme pour npm**, les fichiers sont sauvegardés avant (le fichier de dépendances et son lockfile) ; si une commande échoue, ils sont remis tels quels et le journal reste affiché.
+- **Python** passe toujours par l'environnement virtuel du projet (`.venv`, `venv` ou `env`), jamais par le Python du système. Sans environnement virtuel, la carte le dit et donne la commande qui le crée (`python -m venv .venv`). Avec pip, un échec remet le fichier, mais l'environnement garde ce qui a été installé : le journal donne la commande qui remet les anciennes versions.
+- **Un outil absent** (`poetry`, `uv`, `cargo`…) est signalé avec la commande qui l'installe, et la mise à jour reste bloquée. **Un outil d'audit absent** (`pip-audit`, `cargo-audit`, `govulncheck`, `bundle-audit`) aussi : rien n'est vérifié tant qu'il manque.
+- **.NET et Java** comparent seulement : une ligne en haut de la carte donne la commande à lancer dans le terminal du projet (`dotnet list package --outdated`, `mvn versions:display-dependency-updates`, `./gradlew dependencyUpdates`), avec **Copier la commande**.
 
 Un `requirements-dev.txt` (ou `-test`, `-lint`) et les groupes optionnels d'un `pyproject.toml` comptent comme dépendances *dev*. Un `pyproject.toml` qui ne déclare aucune dépendance (réglages d'outils seulement) n'a pas de carte.
 

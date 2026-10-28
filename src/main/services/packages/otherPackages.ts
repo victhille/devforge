@@ -5,6 +5,7 @@ import {
   distInfo, gemfileLockVersions, parseCargo, parseCsproj, parseGemfile, parseGoMod, parseGradle, parsePipfile, parsePom,
   parsePubspec, parsePyproject, parseRequirements, pipfileLockVersions, pubspecLockVersions, pyName, tomlLockVersions
 } from '@shared/lib/manifests'
+import { UPDATABLE } from '@shared/lib/manifestUpdates'
 import { testData } from './npmPackages'
 
 /**
@@ -121,7 +122,7 @@ export function listOtherManifests(root: string): PackageManifest[] {
         .sort((a, b) => Number(a.dev) - Number(b.dev) || a.name.localeCompare(b.name))
       out.push({
         dir: relative(root, dir).split(sep).join('/'), file: path.split(/[\\/]/).pop()!, name: parsed.name ?? null,
-        manager: parsed.manager, packages, readOnly: true
+        manager: parsed.manager, packages, ...(UPDATABLE.includes(parsed.manager) ? {} : { readOnly: true })
       })
     }
   }

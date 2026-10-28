@@ -31,7 +31,8 @@ export async function packagesReport(p: Project, withAudit: unknown): Promise<st
     parts.push(...lines.slice(0, 40), ...(lines.length > 40 ? [`… and ${lines.length - 40} more`] : []))
     if (withAudit === true && !m.toolMissing && !m.readOnly) {
       const a = await auditFor(p.path, m.dir, m.file).catch(() => null)
-      parts.push(!a ? 'Vulnerabilities: audit unavailable (no lockfile or not installed)'
+      parts.push(a?.missingTool ? `Vulnerabilities: not checked, ${a.missingTool.name} is not installed (${a.missingTool.install})`
+        : !a ? 'Vulnerabilities: audit unavailable (no lockfile or not installed)'
         : a.total === 0 ? 'Vulnerabilities: none'
         : `Vulnerabilities: ${a.total} (${Object.entries(a.bySeverity).filter(([, n]) => n).map(([s, n]) => `${s} ${n}`).join(', ')}) — ${Object.entries(a.packages).map(([n, s]) => `${n}: ${s}`).join(', ')}`)
     }
@@ -65,6 +66,7 @@ export async function updatePackagesPlan(p: Project, rawNames: unknown, to: unkn
   if (names.length > 30) throw new ToolError('30 packages at most per update')
   const target = to === 'latest' ? 'latest' : 'compatible'
   const m = pickManifest(await projectManifests(p.path), names, manifestRef)
+  if (m.missingTool) throw new ToolError(`${m.missingTool.name} is missing on this PC: the update cannot run. The user can get it with: ${m.missingTool.install}`)
   if (m.toolMissing) throw new ToolError('Composer is not installed on this PC: the update cannot run (getcomposer.org)')
   if (m.readOnly) throw new ToolError(`DevForge does not update ${m.manager} packages (${label(m)}): suggest the user runs ${UPDATE_HINT[m.manager] ?? 'the update'} in the project's terminal`)
   const unknown = names.filter(n => !m.packages.some(x => x.name === n))
@@ -80,7 +82,7 @@ export async function updatePackagesPlan(p: Project, rawNames: unknown, to: unkn
   })
   return {
     title: `Update ${names.length === 1 ? names[0] : `${names.length} packages`} · ${p.name}`,
-    preview: [`${label(m)} (${m.manager})`, ...lines, '', `${m.file === 'composer.json' ? 'composer.json and composer.lock' : 'package.json and the lockfile'} are saved first; undo puts them back and reinstalls.`].join('\n'),
+    preview: [`${label(m)} (${m.manager})`, ...lines, '', `${m.file === 'composer.json' ? 'composer.json and composer.lock' : m.file === 'package.json' ? 'package.json and the lockfile' : `${m.file} and its lockfile`} are saved first; undo puts them back and reinstalls.`].join('\n'),
     run: async () => {
       const log: string[] = []
       const r = await updateFor(p.path, m.dir, m.file, names.map(n => ({ name: n, dev: !!m.packages.find(x => x.name === n)?.dev, target })), line => log.push(line))
