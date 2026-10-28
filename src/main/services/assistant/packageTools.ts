@@ -1,5 +1,6 @@
 import type { ManifestFile, PackageManifest, Project } from '@shared/types'
-import { fitsRange, rangeFloor, updateLevel } from '@shared/lib/packages'
+import { rangeFloor, updateLevel } from '@shared/lib/packages'
+import { fitsRangeOf } from '@shared/lib/manifestUpdates'
 import { auditFor, latestFor, projectManifests, updateFor } from '../packages/projectPackages'
 import type { PackagesBackup } from '../packages/npmPackages'
 import { ToolError } from './assistantTools'
@@ -8,7 +9,8 @@ import { UPDATE_HINT } from '@shared/lib/manifests'
 /**
  * Forgy and a project's packages (v3.3 lot 4): `project_packages` tells what
  * is behind or vulnerable; `update_packages` is an action, so it goes through
- * a card the user approves, and its undo puts the saved files back.
+ * a card the user approves, and its undo puts the saved files back. v3.6: the
+ * same for Python, Rust, Go, Ruby and Dart; .NET and Java are reported only.
  */
 
 const label = (m: PackageManifest) => `${m.dir ? `${m.dir}/` : ''}${m.file}`
@@ -16,7 +18,7 @@ const label = (m: PackageManifest) => `${m.dir ? `${m.dir}/` : ''}${m.file}`
 /** What is behind (or not installed), per manifest; the audit only when asked (it is slow) */
 export async function packagesReport(p: Project, withAudit: unknown): Promise<string> {
   const manifests = await projectManifests(p.path)
-  if (!manifests.length) return 'This project has no package.json nor composer.json.'
+  if (!manifests.length) return 'This project declares no packages (no package.json, composer.json, requirements.txt, pyproject.toml, Cargo.toml, go.mod, Gemfile, pubspec.yaml, .csproj, pom.xml nor build.gradle).'
   const parts: string[] = []
   for (const m of manifests) {
     const latest = await latestFor(p.path, m.dir, m.file, m.packages.map(x => x.name))
@@ -25,9 +27,10 @@ export async function packagesReport(p: Project, withAudit: unknown): Promise<st
       const l = latest[x.name] ?? null
       const level = updateLevel(x.installed ?? rangeFloor(x.wanted), l)
       if (!x.installed) lines.push(`- ${x.name}: not installed (wants ${x.wanted}${l ? `, latest ${l}` : ''})`)
-      else if (level !== 'current' && level !== 'unknown') lines.push(`- ${x.name} ${x.installed} → ${l} (${level}, ${fitsRange(l, x.wanted) ? 'within its range' : 'needs a range change'})${x.dev ? ' [dev]' : ''}`)
+      else if (level !== 'current' && level !== 'unknown') lines.push(`- ${x.name} ${x.installed} → ${l} (${level}, ${fitsRangeOf(m.manager, l, x.wanted) ? 'within its range' : 'needs a range change'})${x.dev ? ' [dev]' : ''}`)
     }
-    parts.push(`${label(m)} (${m.manager}${m.toolMissing ? ', Composer NOT installed on this PC' : ''}): ${m.packages.length} packages, ${lines.length} to look at`)
+    const state = m.missingTool ? `, ${m.missingTool.name} MISSING on this PC (${m.missingTool.install})` : m.toolMissing ? ', Composer NOT installed on this PC' : m.readOnly ? `, read only: DevForge does not update it (${UPDATE_HINT[m.manager] ?? 'its own tool'})` : ''
+    parts.push(`${label(m)} (${m.manager}${state}): ${m.packages.length} packages, ${lines.length} to look at`)
     parts.push(...lines.slice(0, 40), ...(lines.length > 40 ? [`… and ${lines.length - 40} more`] : []))
     if (withAudit === true && !m.toolMissing && !m.readOnly) {
       const a = await auditFor(p.path, m.dir, m.file).catch(() => null)
