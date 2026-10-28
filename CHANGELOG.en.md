@@ -2,6 +2,24 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [3.6.0](https://github.com/victhille/devforge/compare/v3.5.3...v3.6.0) — 2026-10-28
+
+> Python, Rust, Go, Ruby and Dart packages are updated and audited, a table's rows are edited in one transaction, a table exports (CSV, JSON, SQL) and a CSV imports, and a search goes through the whole project; a file opens in its project's window.
+
+### New features
+
+- **fichiers**: Rechercher dans tout le projet, et ouvrir un résultat à sa ligne (v3.6 lot 5) ([14a1cff](https://github.com/victhille/devforge/commit/14a1cff186f4d2e888e94186c59daf6711c9629b))
+- **base**: Exporter une table (CSV, JSON, SQL) et importer un CSV (v3.6 lot 4) ([81bbdb1](https://github.com/victhille/devforge/commit/81bbdb1b9ff68de879e891b4d7481a35d49d2605))
+- **base**: Modifier les lignes d'une table dans Parcourir, en une transaction (v3.6 lot 3) ([6f5f9eb](https://github.com/victhille/devforge/commit/6f5f9eb73c49caea2bc206940ef5291118b5e5cb))
+- **forgy**: Paquets Python, Rust, Go, Ruby et Dart dans project_packages et update_packages (v3.6 lot 2) ([ef0ff0f](https://github.com/victhille/devforge/commit/ef0ff0fc25c86d02234a6d32e9d1b8d09b25202e))
+- **paquets**: Mise à jour et audit des paquets Python, Rust, Go, Ruby et Dart (v3.6 lot 1) ([2d1e5d6](https://github.com/victhille/devforge/commit/2d1e5d6ae28943c07aa7ffa6f06ecc4cd9c109ae))
+
+### Fixes
+
+- **fichiers**: Un fichier s'ouvre dans la fenêtre de son projet (VS Code, Cursor, Windsurf, Antigravity, Zed) ([d6a1e95](https://github.com/victhille/devforge/commit/d6a1e95aaebd88db8f37675bd4efb4b52d1e07fc))
+
+_2 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [3.5.3](https://github.com/victhille/devforge/compare/v3.5.2...v3.5.3) — 2026-10-28
 
 > File code in colours as in an IDE, a button to open the file in your IDE, and the Packages tab for Python, Rust, Go, Ruby, Dart, .NET and Java projects.

@@ -2,6 +2,24 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [3.6.0](https://github.com/victhille/devforge/compare/v3.5.3...v3.6.0) — 2026-10-28
+
+> Les paquets Python, Rust, Go, Ruby et Dart se mettent à jour et s'auditent, les lignes d'une table se modifient en une transaction, une table s'exporte (CSV, JSON, SQL) et un CSV s'importe, et une recherche parcourt tout le projet ; un fichier s'ouvre dans la fenêtre de son projet.
+
+### Nouveautés
+
+- **fichiers** : Rechercher dans tout le projet, et ouvrir un résultat à sa ligne (v3.6 lot 5) ([14a1cff](https://github.com/victhille/devforge/commit/14a1cff186f4d2e888e94186c59daf6711c9629b))
+- **base** : Exporter une table (CSV, JSON, SQL) et importer un CSV (v3.6 lot 4) ([81bbdb1](https://github.com/victhille/devforge/commit/81bbdb1b9ff68de879e891b4d7481a35d49d2605))
+- **base** : Modifier les lignes d'une table dans Parcourir, en une transaction (v3.6 lot 3) ([6f5f9eb](https://github.com/victhille/devforge/commit/6f5f9eb73c49caea2bc206940ef5291118b5e5cb))
+- **forgy** : Paquets Python, Rust, Go, Ruby et Dart dans project_packages et update_packages (v3.6 lot 2) ([ef0ff0f](https://github.com/victhille/devforge/commit/ef0ff0fc25c86d02234a6d32e9d1b8d09b25202e))
+- **paquets** : Mise à jour et audit des paquets Python, Rust, Go, Ruby et Dart (v3.6 lot 1) ([2d1e5d6](https://github.com/victhille/devforge/commit/2d1e5d6ae28943c07aa7ffa6f06ecc4cd9c109ae))
+
+### Corrections
+
+- **fichiers** : Un fichier s'ouvre dans la fenêtre de son projet (VS Code, Cursor, Windsurf, Antigravity, Zed) ([d6a1e95](https://github.com/victhille/devforge/commit/d6a1e95aaebd88db8f37675bd4efb4b52d1e07fc))
+
+_2 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [3.5.3](https://github.com/victhille/devforge/compare/v3.5.2...v3.5.3) — 2026-10-28
 
 > Le code des fichiers en couleurs comme dans un IDE, un bouton pour ouvrir le fichier dans ton IDE, et l'onglet Paquets pour les projets Python, Rust, Go, Ruby, Dart, .NET et Java.
