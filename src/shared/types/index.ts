@@ -1,4 +1,5 @@
 import type { HomeWidget } from '../lib/homeWidgets'
+import type { IdeInfo } from '../data/ides'
 export type { HomeWidget, WidgetId } from '../lib/homeWidgets'
 // ─── Project ─────────────────────────────────────────────────────────────────
 
@@ -55,6 +56,10 @@ export interface Project {
   missing?: boolean
   /** v3.5: a group's projects, as on disk now (worked out on load, never saved) */
   subprojects?: SubProject[]
+  /** v3.5: the IDE this project opens in, in place of the default one */
+  ide?: DefaultIDE
+  /** v3.5: a group's projects' own IDEs, by their name in the group */
+  subIdes?: Record<string, DefaultIDE>
 }
 
 // ─── Project Creation ─────────────────────────────────────────────────────────
@@ -120,7 +125,18 @@ export interface LogLine {
 // ─── Settings ────────────────────────────────────────────────────────────────
 
 export type Theme = 'dark' | 'light' | 'system'
-export type DefaultIDE = 'vscode' | 'phpstorm' | 'webstorm' | 'intellij' | 'none'
+/** v3.5: an IDE of the catalog (shared/data/ides), one added by hand (its id), or 'none' */
+export type DefaultIDE = string
+
+/** v3.5: an IDE added by hand in Settings */
+export interface CustomIde {
+  id: string
+  name: string
+  /** The program (.exe, .cmd or .bat) */
+  path: string
+  /** Its arguments, {dir} standing for the project's folder */
+  args: string
+}
 export type DefaultTerminal = 'powershell' | 'cmd' | 'gitbash'
 export type AppLanguage = 'en' | 'fr'
 
@@ -131,6 +147,8 @@ export interface AppSettings {
   extraProjectsDirs?: string[]
   defaultPackageManager: PackageManager
   defaultIDE: DefaultIDE
+  /** v3.5: IDEs added by hand */
+  customIdes?: CustomIde[]
   theme: Theme
   defaultTerminal: DefaultTerminal
   language: AppLanguage
@@ -399,6 +417,12 @@ export interface DevForgeAPI {
   selectFile: () => Promise<string | null>
   openDirectory: (path: string) => Promise<void>
   openInIDE: (path: string, ide: DefaultIDE) => Promise<void>
+  /** v3.5: the IDEs of the catalog and those added by hand, with which are on this PC */
+  listIdes: (fresh?: boolean) => Promise<IdeInfo[]>
+  /** v3.5: opens the projects folder with an IDE being added by hand, before it is saved */
+  tryIde: (ide: CustomIde) => Promise<void>
+  /** v3.5: picks a program (.exe, .cmd, .bat) */
+  selectProgram: () => Promise<string | null>
   openExternal: (url: string) => Promise<void>
   pathExists: (path: string) => Promise<boolean>
   openTerminal: (path: string) => Promise<void>

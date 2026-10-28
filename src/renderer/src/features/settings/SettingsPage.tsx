@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Check, Database, Info, Palette, Plug, RefreshCw, Search, Server, SlidersHorizontal, Bot, type LucideIcon } from 'lucide-react'
-import type { AppSettings, DefaultIDE, PackageManager, Theme, AppLanguage, MotionSetting, Density } from '@shared/types'
+import type { AppSettings, PackageManager, Theme, AppLanguage, MotionSetting, Density } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { applyAppearance } from '@renderer/lib/appearance'
@@ -17,6 +17,7 @@ import UpdatesSettings from './UpdatesRow'
 import ReleaseNotes from './ReleaseNotes'
 import LauncherSettings from './LauncherSettings'
 import ProjectFolders from './ProjectFolders'
+import IdeSettings from './IdeSettings'
 import { projectFolders } from '@shared/lib/projectFolders'
 import { Segmented, SettingRow, SettingsCard } from './parts'
 
@@ -139,10 +140,7 @@ export default function SettingsPage() {
                 <Segmented<PackageManager> label={s.defaultPM} mono value={settings.defaultPackageManager} onChange={v => set('defaultPackageManager', v)}
                   items={(['npm', 'pnpm', 'yarn'] as const).map(pm => ({ value: pm, label: pm }))} />
               </SettingRow>
-              <SettingRow label={s.defaultIDE} hint={s.defaultIDEHint}>
-                <Segmented<DefaultIDE> label={s.defaultIDE} value={settings.defaultIDE} onChange={v => set('defaultIDE', v)}
-                  items={[{ value: 'vscode', label: 'VS Code' }, { value: 'phpstorm', label: 'PhpStorm' }, { value: 'webstorm', label: 'WebStorm' }, { value: 'none', label: s.ideNone }]} />
-              </SettingRow>
+              <IdeSettings settings={settings} update={update} />
               <SettingRow label={s.startWithWindows} hint={s.startWithWindowsHint}>
                 <Switch checked={settings.startWithWindows} onChange={v => set('startWithWindows', v)} label={s.startWithWindows} />
               </SettingRow>

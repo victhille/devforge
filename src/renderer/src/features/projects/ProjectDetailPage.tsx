@@ -32,6 +32,8 @@ import TerminalTabs from '@renderer/features/terminal/TerminalTabs'
 import DbExplorer from '@renderer/features/database/DbExplorer'
 import PackagesPanel from './PackagesPanel'
 import GroupProjects from './GroupProjects'
+import IdeSelect from './components/IdeSelect'
+import { usePreferredIde } from '@renderer/lib/ide'
 
 type Tab = 'overview' | 'git' | 'github' | 'symfony' | 'nextjs' | 'laravel' | 'terminal' | 'docker' | 'env' | 'packages' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
 const TABS: Tab[] = ['overview', 'git', 'github', 'symfony', 'nextjs', 'laravel', 'terminal', 'docker', 'env', 'packages', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
@@ -116,7 +118,7 @@ export default function ProjectDetailPage() {
   const [scripts, setScripts] = useState<Record<string, string>>({})
   /** Deploy target whose .env sync panel is open */
   const [envSync, setEnvSync] = useState<string | null>(null)
-  const [ide, setIde] = useState<DefaultIDE>('vscode')
+  const ide = usePreferredIde()
   const [busy, setBusy] = useState<string | null>(null)
   const [committing, setCommitting] = useState(false)
   /** The linked database shown in the Database tab */
@@ -137,7 +139,6 @@ export default function ProjectDetailPage() {
     loadHub()
     // Opening a project makes it the active one (Forgy, widget, home)
     if (id) window.devforge.hub.setActive(id).catch(() => {})
-    window.devforge.getSettings().then(s => setIde(s.defaultIDE)).catch(() => {})
   }, [id, loadHub])
 
   useEffect(() => {
@@ -165,6 +166,12 @@ export default function ProjectDetailPage() {
       const r = await window.devforge.git[action](p.path)
       toast.show({ tone: r.ok ? 'success' : 'error', title: `${p.name} · ${h[action]}`, description: r.ok ? undefined : r.output.slice(-400) })
     } finally { setBusy(null); loadGit(true) }
+  }
+
+  /** v3.5: the project's own IDE (a group: its projects' too) */
+  async function saveProject(patch: { ide?: DefaultIDE; subIdes?: Record<string, DefaultIDE> }) {
+    await window.devforge.saveProject({ ...p, ...patch })
+    loadHub()
   }
 
   async function toggleFavorite() {
@@ -264,7 +271,7 @@ export default function ProjectDetailPage() {
   const content: Record<Tab, ReactNode> = {
     overview: (
       <div className="flex flex-col gap-5">
-      {p.framework === 'group' && <GroupProjects group={p} />}
+      {p.framework === 'group' && <GroupProjects group={p} ide={ide} onSave={saveProject} />}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Tile i={1} title="Git" icon={<GitBranch size={16} />} onSee={() => setTab('git')}>{gitSummary}{gitButtons}</Tile>
         <Tile i={2} title="Docker" icon={<Container size={16} />} onSee={hub.composeDir ? () => setTab('docker') : undefined}>{composeSummary}</Tile>
@@ -320,6 +327,7 @@ export default function ProjectDetailPage() {
             <dt className="text-fg-muted">{h.packageManager}</dt><dd className="text-fg">{p.packageManager}</dd>
             <dt className="text-fg-muted">{h.created}</dt><dd className="text-fg">{formatDate(p.createdAt, lang)}</dd>
             <dt className="text-fg-muted">{h.lastOpened}</dt><dd className="text-fg">{formatDate(p.lastOpenedAt, lang)}</dd>
+            <dt className="self-center text-fg-muted">IDE</dt><dd><IdeSelect ide={ide} value={p.ide} label={h.projectIde} onChange={next => saveProject({ ide: next })} /></dd>
           </dl>
         </Tile>
       </div>
@@ -506,7 +514,7 @@ export default function ProjectDetailPage() {
         </div>
         <div className="flex items-center gap-1">
           <IconButton title={h.favorite} onClick={toggleFavorite} className={cn(p.favorite && 'text-warning hover:text-warning')}><Star size={15} fill={p.favorite ? 'currentColor' : 'none'} /></IconButton>
-          <IconButton title={h.openIde} onClick={() => window.devforge.openInIDE(p.path, ide)}><Code2 size={15} /></IconButton>
+          {ide.labelFor(p.ide) && <IconButton title={`${h.openIde} · ${ide.labelFor(p.ide)}`} onClick={() => ide.open(p.path, p.ide)}><Code2 size={15} /></IconButton>}
           <IconButton title={h.openTerminal} onClick={() => window.devforge.openTerminal(p.path)}><Terminal size={15} /></IconButton>
           <IconButton title={h.remove} tone="danger" onClick={remove}><Trash2 size={15} /></IconButton>
         </div>

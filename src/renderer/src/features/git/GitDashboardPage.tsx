@@ -149,7 +149,7 @@ export default function GitDashboardPage() {
                   <Button variant="secondary" size="sm" disabled={d.ahead === 0 && d.hasUpstream} loading={row.busy === 'push'} onClick={() => act(row, 'push')}>
                     {row.busy !== 'push' && <ArrowUp size={13} />} {g.push}
                   </Button>
-                  {ide.label && <IconButton title={ide.label} onClick={() => ide.open(row.project.path)}><Code2 size={14} /></IconButton>}
+                  {ide.labelFor(row.project.ide) && <IconButton title={ide.labelFor(row.project.ide)!} onClick={() => ide.open(row.project.path, row.project.ide)}><Code2 size={14} /></IconButton>}
                   <IconButton title="Terminal" onClick={() => window.devforge.openTerminal(row.project.path)}><Terminal size={14} /></IconButton>
                 </div>
               </Card>

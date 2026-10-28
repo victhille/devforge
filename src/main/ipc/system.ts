@@ -10,8 +10,9 @@ import { getGitStatus } from '../services/git/gitStatus'
 import { freePort, getListeningPorts } from '../services/system/portService'
 import { spawn } from 'child_process'
 import { runFile } from '../lib/exec'
-import type { FileEntry } from '@shared/types'
-import { assertSafeDir, assertWebUrl, isInsideProject, launch } from '../lib/safe'
+import type { CustomIde, FileEntry } from '@shared/types'
+import { assertSafeDir, assertWebUrl, isInsideProject } from '../lib/safe'
+import { listIdes, openInIde, tryIde } from '../services/system/ides'
 
 export function registerSystemHandlers(mainWindow: BrowserWindow): void {
   // ─── Environment ─────────────────────────────────────────────────────────────
@@ -33,13 +34,14 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
     await shell.openPath(assertSafeDir(dirPath))
   })
 
-  ipcMain.handle('open-in-ide', async (_event, dirPath: string, ide: string) => {
-    const commands: Record<string, string> = {
-      vscode: 'code', phpstorm: 'phpstorm', webstorm: 'webstorm', intellij: 'idea'
-    }
-    const cmd = commands[ide]
-    if (!cmd) return
-    if (!(await launch(cmd, [assertSafeDir(dirPath)]))) throw new Error(`${cmd} was not found in PATH`)
+  // v3.5: the catalog's IDEs and those added by hand
+  ipcMain.handle('open-in-ide', async (_event, dirPath: string, ide: string) => openInIde(dirPath, String(ide ?? '')))
+  ipcMain.handle('ide:list', async (_event, fresh: boolean) => listIdes(fresh === true))
+  ipcMain.handle('ide:try', async (_event, ide: CustomIde) => tryIde(ide, app.getPath('home')))
+
+  ipcMain.handle('select-program', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, { properties: ['openFile'], filters: [{ name: 'Programs', extensions: ['exe', 'cmd', 'bat'] }] })
+    return result.canceled ? null : result.filePaths[0]
   })
 
   ipcMain.handle('path-exists', async (_event, p: string) => existsSync(p))

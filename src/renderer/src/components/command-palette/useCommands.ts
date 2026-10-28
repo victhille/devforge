@@ -81,7 +81,7 @@ export function useCommands(open: boolean): Command[] {
     // Projects
     for (const p of projects) {
       list.push(
-        { id: `proj:code:${p.id}`,   group: c.groupProjects, title: `${c.openInVSCode.replace('{ide}', ide.label ?? 'IDE')} — ${p.name}`, subtitle: p.path, icon: Code2,      keywords: p.framework, run: () => { window.devforge.updateProjectLastOpened(p.id); void ide.open(p.path) } },
+        { id: `proj:code:${p.id}`,   group: c.groupProjects, title: `${c.openInVSCode.replace('{ide}', ide.labelFor(p.ide) ?? 'IDE')} — ${p.name}`, subtitle: p.path, icon: Code2,      keywords: p.framework, run: () => { window.devforge.updateProjectLastOpened(p.id); void ide.open(p.path, p.ide) } },
         { id: `proj:detail:${p.id}`, group: c.groupProjects, title: `${c.details} — ${p.name}`,      subtitle: p.path, icon: Info,       run: () => navigate(`/project/${p.id}`) },
         { id: `proj:folder:${p.id}`, group: c.groupProjects, title: `${c.openFolder} — ${p.name}`,   subtitle: p.path, icon: FolderOpen, run: () => window.devforge.openDirectory(p.path) },
         { id: `proj:term:${p.id}`,   group: c.groupProjects, title: `${c.terminal} — ${p.name}`,     subtitle: p.path, icon: Terminal,   run: () => window.devforge.openTerminal(p.path) }

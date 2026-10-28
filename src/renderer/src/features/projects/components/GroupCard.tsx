@@ -8,6 +8,7 @@ import IconButton from '@renderer/components/ui/IconButton'
 import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
 import ProjectIcon from './ProjectIcon'
 import ScriptsMenu from './ScriptsMenu'
+import type { PreferredIde } from '@renderer/lib/ide'
 
 const OPEN_KEY = 'projects-groups-folded'
 
@@ -23,9 +24,8 @@ function writeFolded(ids: Set<string>): void {
 interface Props {
   project: Project
   gitStatus?: GitStatus | null
-  /** The chosen IDE's name; null: no IDE, no button */
-  ideLabel: string | null
-  onOpenIde: (path: string) => void
+  /** The IDEs: the group's own, each project's own, else the default */
+  ide: PreferredIde
   onTerminal: (path: string) => void
   onRunScript: (sub: SubProject, script: string) => void
   onToggleFavorite: () => void
@@ -37,7 +37,7 @@ interface Props {
 }
 
 /** One project of the group: its stack, its Git state, its own IDE, terminal and scripts */
-function SubRow({ sub, ideLabel, onOpenIde, onTerminal, onRunScript }: { sub: SubProject } & Pick<Props, 'ideLabel' | 'onOpenIde' | 'onTerminal'> & { onRunScript: (s: string) => void }) {
+function SubRow({ sub, ideLabel, onOpenIde, onTerminal, onRunScript }: { sub: SubProject; ideLabel: string | null; onOpenIde: (path: string) => void } & Pick<Props, 'onTerminal'> & { onRunScript: (s: string) => void }) {
   const { t } = useI18n()
   const [git, setGit] = useState<GitStatus | null>(null)
   const [scripts, setScripts] = useState<Record<string, string>>({})
@@ -70,7 +70,7 @@ function SubRow({ sub, ideLabel, onOpenIde, onTerminal, onRunScript }: { sub: Su
 
 /** v3.5: a folder holding several projects (back + front), unfolded on its card */
 export default function GroupCard(props: Props) {
-  const { project, gitStatus, ideLabel, onOpenIde, onTerminal, onRunScript, onToggleFavorite, onDetail, onRemove, index = 0, folder } = props
+  const { project, gitStatus, ide, onTerminal, onRunScript, onToggleFavorite, onDetail, onRemove, index = 0, folder } = props
   const { t } = useI18n()
   const subs = project.subprojects ?? []
   const [folded, setFolded] = useState(() => readFolded().has(project.id))
@@ -81,6 +81,9 @@ export default function GroupCard(props: Props) {
     writeFolded(all)
     setFolded(!folded)
   }
+  // A project of the group: its own IDE, else the group's
+  const subIde = (sub: SubProject) => project.subIdes?.[sub.name] ?? project.ide
+  const ideLabel = ide.labelFor(project.ide)
   const stacks = [...new Set(subs.map(s => FRAMEWORK_LABEL[s.framework] ?? s.framework))]
   const action = 'h-8 flex-1 rounded-lg border text-[12.5px] font-medium transition-colors'
 
@@ -110,12 +113,12 @@ export default function GroupCard(props: Props) {
         : subs.length > 0 && (
           <div className="overflow-hidden rounded-[10px] border border-line">
             {subs.map(sub => (
-              <SubRow key={sub.path} sub={sub} ideLabel={ideLabel} onOpenIde={onOpenIde} onTerminal={onTerminal} onRunScript={s => onRunScript(sub, s)} />
+              <SubRow key={sub.path} sub={sub} ideLabel={ide.labelFor(subIde(sub))} onOpenIde={path => ide.open(path, subIde(sub))} onTerminal={onTerminal} onRunScript={s => onRunScript(sub, s)} />
             ))}
           </div>
         )}
       <div className="mt-auto flex items-center gap-1.5">
-        {ideLabel && <button onClick={() => onOpenIde(project.path)} className={cn(action, 'border-line bg-elevated text-fg hover:bg-hover')}>{t.projects.groupIde.replace('{ide}', ideLabel)}</button>}
+        {ideLabel && <button onClick={() => ide.open(project.path, project.ide)} className={cn(action, 'border-line bg-elevated text-fg hover:bg-hover')}>{t.projects.groupIde.replace('{ide}', ideLabel)}</button>}
         <button onClick={() => onTerminal(project.path)} className={cn(action, 'border-line bg-elevated text-fg hover:bg-hover')}>{t.projects.terminal}</button>
         <button onClick={onDetail} className={cn(action, 'border-transparent bg-accent-soft font-semibold text-accent hover:bg-accent hover:text-accent-fg')}>{t.projects.groupOpen}</button>
         {onRemove && <IconButton tone="danger" title={t.projects.remove} onClick={onRemove}><Trash2 size={13} /></IconButton>}

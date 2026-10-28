@@ -180,8 +180,7 @@ export default function ProjectsPage() {
                 index={i + 2}
                 project={p}
                 gitStatus={gitStatuses[p.id]}
-                ideLabel={ide.label}
-                onOpenIde={path => ide.open(path)}
+                ide={ide}
                 onTerminal={openTerminal}
                 onRunScript={(sub, s) => runScript(sub.path, s, sub.packageManager, `${p.name}/${sub.name}`)}
                 onToggleFavorite={() => toggleFavorite(p.id)}
@@ -199,8 +198,8 @@ export default function ProjectsPage() {
                 gitStatus={gitStatuses[p.id]}
                 scripts={scripts[p.id]}
                 onOpen={() => open(p)}
-                ideLabel={ide.label}
-                onOpenVSCode={() => ide.open(p.path)}
+                ideLabel={ide.labelFor(p.ide)}
+                onOpenVSCode={() => ide.open(p.path, p.ide)}
                 onTerminal={() => openTerminal(p.path)}
                 onToggleFavorite={() => toggleFavorite(p.id)}
                 onDetail={() => navigate(`/project/${p.id}`)}

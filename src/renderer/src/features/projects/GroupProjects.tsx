@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Code2, Play, Terminal } from 'lucide-react'
-import type { Project, SubProject } from '@shared/types'
+import type { DefaultIDE, Project, SubProject } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useConsole } from '@renderer/app/ConsoleContext'
-import { usePreferredIde } from '@renderer/lib/ide'
+import type { PreferredIde } from '@renderer/lib/ide'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
@@ -15,6 +15,7 @@ import FileTree from './components/FileTree'
 import SymfonyPanel from './symfony/SymfonyPanel'
 import NextPanel from './nextjs/NextPanel'
 import LaravelPanel from './laravel/LaravelPanel'
+import IdeSelect from './components/IdeSelect'
 
 type SubTab = 'scripts' | 'workshop' | 'env' | 'files'
 
@@ -28,11 +29,13 @@ const WORKSHOP: Partial<Record<string, (path: string) => JSX.Element>> = {
 /** The script a "run everything" starts in each project */
 const devScript = (scripts: Record<string, string>) => ['dev', 'start', 'serve'].find(s => s in scripts) ?? null
 
-function SubPanel({ group, sub, scripts }: { group: Project; sub: SubProject; scripts: Record<string, string> }) {
+function SubPanel({ group, sub, scripts, ide, onIde }: { group: Project; sub: SubProject; scripts: Record<string, string>; ide: PreferredIde; onIde: (next: DefaultIDE | undefined) => void }) {
   const { t } = useI18n()
   const h = t.hub
   const { runScript } = useConsole()
-  const ide = usePreferredIde()
+  // Its own IDE, else the group's
+  const own = group.subIdes?.[sub.name] ?? group.ide
+  const ideLabel = ide.labelFor(own)
   const [tab, setTab] = useState<SubTab>('scripts')
   const workshop = WORKSHOP[sub.framework]
   const tabs: SubTab[] = ['scripts', ...(workshop ? ['workshop' as const] : []), 'env', 'files']
@@ -49,7 +52,8 @@ function SubPanel({ group, sub, scripts }: { group: Project; sub: SubProject; sc
           <h3 className="truncate text-[15px] font-semibold text-fg">{sub.name}</h3>
           <div className="truncate font-mono text-[11.5px] text-fg-muted" title={sub.path}>{FRAMEWORK_LABEL[sub.framework] ?? sub.framework} · {sub.packageManager}</div>
         </div>
-        {ide.label && <Button size="sm" variant="secondary" onClick={() => ide.open(sub.path)}><Code2 size={13} /> {ide.label}</Button>}
+        <IdeSelect ide={ide} value={group.subIdes?.[sub.name]} label={h.subIde.replace('{name}', sub.name)} onChange={onIde} />
+        {ideLabel && <Button size="sm" variant="secondary" onClick={() => ide.open(sub.path, own)}><Code2 size={13} /> {ideLabel}</Button>}
         <IconButton title={h.openTerminal} onClick={() => window.devforge.openTerminal(sub.path)}><Terminal size={14} /></IconButton>
       </div>
       <div role="tablist" aria-label={sub.name} className="flex gap-1 overflow-x-auto border-b border-line px-3">
@@ -84,7 +88,7 @@ function SubPanel({ group, sub, scripts }: { group: Project; sub: SubProject; sc
 }
 
 /** v3.5: a group's projects side by side on its page, each with its scripts, workshop, .env and files */
-export default function GroupProjects({ group }: { group: Project }) {
+export default function GroupProjects({ group, ide, onSave }: { group: Project; ide: PreferredIde; onSave: (patch: { subIdes: Record<string, DefaultIDE> }) => void }) {
   const { t } = useI18n()
   const h = t.hub
   const { runScript } = useConsole()
@@ -108,7 +112,13 @@ export default function GroupProjects({ group }: { group: Project }) {
         {startable.length > 1 && <Button size="sm" onClick={runAll}><Play size={13} /> {h.groupRunAll}</Button>}
       </div>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(380px,1fr))] gap-4">
-        {subs.map(sub => <SubPanel key={sub.path} group={group} sub={sub} scripts={scripts[sub.path] ?? {}} />)}
+        {subs.map(sub => (
+          <SubPanel key={sub.path} group={group} sub={sub} scripts={scripts[sub.path] ?? {}} ide={ide}
+            onIde={next => {
+              const { [sub.name]: _old, ...rest } = group.subIdes ?? {}
+              onSave({ subIdes: next ? { ...rest, [sub.name]: next } : rest })
+            }} />
+        ))}
       </div>
     </section>
   )
