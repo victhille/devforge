@@ -456,7 +456,9 @@ export interface DevForgeAPI {
   openDirectory: (path: string) => Promise<void>
   openInIDE: (path: string, ide: DefaultIDE) => Promise<void>
   /** v3.5.3: a file of a saved project; `root`, its project's folder, opens in that project's window */
-  openFileInIDE: (path: string, ide: DefaultIDE, root?: string) => Promise<void>
+  openFileInIDE: (path: string, ide: DefaultIDE, root?: string, line?: number) => Promise<void>
+  /** v3.6: a text or a regex in every file of a saved project */
+  searchProject: (root: string, query: string, options: import('../lib/projectSearch').SearchOptions) => Promise<import('../lib/projectSearch').SearchResult>
   /** v3.5: the IDEs of the catalog and those added by hand, with which are on this PC */
   listIdes: (fresh?: boolean) => Promise<IdeInfo[]>
   /** v3.5: opens the projects folder with an IDE being added by hand, before it is saved */

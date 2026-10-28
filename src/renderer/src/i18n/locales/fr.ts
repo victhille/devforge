@@ -1008,6 +1008,16 @@ const fr = {
   },
 
   files: {
+    searchPlaceholder: "Rechercher dans le projet",
+    searchClear: "Effacer la recherche",
+    searchCase: "Respecter la casse",
+    searchWord: "Mot entier",
+    searchRegex: "Expression régulière",
+    searchInclude: "Fichiers : *.ts, src/**, !*.test.ts",
+    searchInvalid: "Recherche invalide :",
+    searchNone: "Aucun résultat.",
+    searchCount: "{n} résultat(s) dans {files} fichier(s)",
+    searchTruncated: "arrêté à 1 000",
     title: "Fichiers",
     refresh: "Actualiser",
     empty: "Aucun fichier",

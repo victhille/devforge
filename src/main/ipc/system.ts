@@ -14,6 +14,8 @@ import type { CustomIde, FileEntry, FilePreview } from '@shared/types'
 import { PREVIEW_LIMIT, imageMime, looksBinary, previewKind } from '@shared/lib/filePreview'
 import { assertSafeDir, assertWebUrl, isInsideProject } from '../lib/safe'
 import { listIdes, openFileInIde, openInIde, tryIde } from '../services/system/ides'
+import { searchProject } from '../services/system/projectSearch'
+import type { SearchOptions } from '@shared/lib/projectSearch'
 
 export function registerSystemHandlers(mainWindow: BrowserWindow): void {
   // ─── Environment ─────────────────────────────────────────────────────────────
@@ -37,7 +39,11 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
 
   // v3.5: the catalog's IDEs and those added by hand
   ipcMain.handle('open-in-ide', async (_event, dirPath: string, ide: string) => openInIde(dirPath, String(ide ?? '')))
-  ipcMain.handle('open-file-in-ide', async (_event, filePath: string, ide: string, root?: string) => openFileInIde(filePath, String(ide ?? ''), typeof root === 'string' ? root : undefined))
+  ipcMain.handle('open-file-in-ide', async (_event, filePath: string, ide: string, root?: string, line?: number) =>
+    openFileInIde(filePath, String(ide ?? ''), typeof root === 'string' ? root : undefined, typeof line === 'number' ? line : undefined))
+  // v3.6 lot 5: a text or a regex in a whole project
+  ipcMain.handle('fs:search', async (_event, root: string, query: string, options: SearchOptions) =>
+    searchProject(root, String(query ?? ''), { regex: !!options?.regex, caseSensitive: !!options?.caseSensitive, wholeWord: !!options?.wholeWord, include: String(options?.include ?? '') }))
   ipcMain.handle('ide:list', async (_event, fresh: boolean) => listIdes(fresh === true))
   ipcMain.handle('ide:try', async (_event, ide: CustomIde) => tryIde(ide, app.getPath('home')))
 

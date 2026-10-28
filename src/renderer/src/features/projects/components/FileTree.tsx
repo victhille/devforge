@@ -8,6 +8,7 @@ import IconButton from '@renderer/components/ui/IconButton'
 import { SectionTitle } from '@renderer/components/ui/Page'
 import { pressable } from '@renderer/lib/a11y'
 import FilePreview from './FilePreview'
+import { SearchBar, SearchResults, useProjectSearch, type SearchHit } from './ProjectSearch'
 
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', '.next', 'build', 'out', '.nuxt', 'vendor', '__pycache__', '.cache'])
 
@@ -96,6 +97,16 @@ export default function FileTree({ rootPath, ide }: { rootPath: string; ide?: De
   const { t } = useI18n()
   const f = t.files
   const [file,     setFile]     = useState<FileEntry | null>(null)
+  /** v3.6: the line a search result opens at */
+  const [line,     setLine]     = useState<number | undefined>(undefined)
+  const search = useProjectSearch(rootPath)
+  const sep = rootPath.includes('\\') ? '\\' : '/'
+  function openHit(hit: SearchHit) {
+    const name = hit.path.split('/').pop() ?? hit.path
+    setFile({ name, path: [rootPath, ...hit.path.split('/')].join(sep), isDirectory: false, size: null, extension: name.includes('.') ? name.split('.').pop()! : null })
+    setLine(hit.line)
+  }
+  const pickFile = (entry: FileEntry) => { setFile(entry); setLine(undefined) }
   const [dirs,     setDirs]     = useState<Map<string, FileEntry[]>>(new Map())
   const [expanded, setExpanded] = useState<Set<string>>(new Set([rootPath]))
 
@@ -126,20 +137,25 @@ export default function FileTree({ rootPath, ide }: { rootPath: string; ide?: De
 
   return (
     <div className="flex h-full min-h-0">
-      <div className={cn('flex min-h-0 flex-col', file ? 'w-[280px] shrink-0' : 'flex-1')}>
+      <div className={cn('flex min-h-0 flex-col', file ? 'w-[320px] shrink-0' : 'flex-1')}>
         <div className="flex h-10 shrink-0 items-center justify-between border-b border-line-subtle px-3">
           <SectionTitle>{f.title}</SectionTitle>
           <IconButton size="sm" title={f.refresh} onClick={reset}><RefreshCw size={12} /></IconButton>
         </div>
+        <SearchBar s={search} />
         <div className="flex-1 overflow-y-auto p-1">
-          {root.map(entry => (
-            <TreeNode key={entry.path} entry={entry} depth={0} dirs={dirs} expanded={expanded} onToggle={toggle} selected={file?.path ?? null} onSelect={setFile} emptyLabel={f.emptyDir} />
-          ))}
-          {root.length === 0 && <p className="px-3 py-3 text-sm text-fg-muted">{f.empty}</p>}
+          {search.active
+            ? <SearchResults s={search} selected={file && line ? { path: file.path.slice(rootPath.length + 1).split(sep).join('/'), line } : null} onOpen={openHit} />
+            : <>
+              {root.map(entry => (
+                <TreeNode key={entry.path} entry={entry} depth={0} dirs={dirs} expanded={expanded} onToggle={toggle} selected={file?.path ?? null} onSelect={pickFile} emptyLabel={f.emptyDir} />
+              ))}
+              {root.length === 0 && <p className="px-3 py-3 text-sm text-fg-muted">{f.empty}</p>}
+            </>}
         </div>
-        {!file && root.length > 0 && <p className="shrink-0 border-t border-line-subtle px-3 py-2 text-2xs text-fg-muted">{f.pickFile}</p>}
+        {!file && root.length > 0 && !search.active && <p className="shrink-0 border-t border-line-subtle px-3 py-2 text-2xs text-fg-muted">{f.pickFile}</p>}
       </div>
-      {file && <FilePreview file={file} root={rootPath} ide={ide} onClose={() => setFile(null)} />}
+      {file && <FilePreview file={file} line={line} root={rootPath} ide={ide} onClose={() => setFile(null)} />}
     </div>
   )
 }

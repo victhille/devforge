@@ -91,9 +91,22 @@ export async function openInIde(dirPath: string, ideId: string): Promise<void> {
 /** Given a folder then a file, these open the folder's window (the one already open, if any) with the file in it */
 const FOLDER_THEN_FILE = new Set(['vscode', 'cursor', 'windsurf', 'antigravity', 'zed'])
 
-/** The catalog IDE's arguments for a file of the project at `root` */
-export function fileArgs(ideId: string, filePath: string, root: string | null): string[] {
-  return root && FOLDER_THEN_FILE.has(ideId) ? [root, filePath] : [filePath]
+const JETBRAINS = new Set(['phpstorm', 'webstorm', 'intellij', 'pycharm', 'rider', 'goland', 'rustrover'])
+
+/**
+ * The catalog IDE's arguments for a file of the project at `root`; v3.6 lot 5:
+ * at a line, each IDE its own way (VS Code -g file:line, JetBrains --line…)
+ */
+export function fileArgs(ideId: string, filePath: string, root: string | null, line?: number): string[] {
+  const at = line && Number.isInteger(line) && line > 0 ? line : null
+  const folder = root && FOLDER_THEN_FILE.has(ideId) ? [root] : []
+  if (!at) return [...folder, filePath]
+  if (ideId === 'zed') return [...folder, `${filePath}:${at}`]
+  if (FOLDER_THEN_FILE.has(ideId)) return [...folder, '-g', `${filePath}:${at}`]
+  if (JETBRAINS.has(ideId)) return ['--line', String(at), filePath]
+  if (ideId === 'sublime') return [`${filePath}:${at}`]
+  if (ideId === 'notepadpp') return [`-n${at}`, filePath]
+  return [filePath]
 }
 
 /**
@@ -102,7 +115,7 @@ export function fileArgs(ideId: string, filePath: string, root: string | null): 
  * opens in that project's window, not in the last one used. Others get the
  * file alone; one added by hand gets its arguments, {dir} being the file.
  */
-export async function openFileInIde(filePath: string, ideId: string, root?: string): Promise<void> {
+export async function openFileInIde(filePath: string, ideId: string, root?: string, line?: number): Promise<void> {
   if (typeof filePath !== 'string' || !isInsideProject(filePath) || !existsSync(filePath) || !statSync(filePath).isFile()) throw new Error('Not a file of a saved project')
   // The folder must be a saved project's, and hold the file
   const folder = typeof root === 'string' && root && isInsideProject(root) && existsSync(root) && statSync(root).isDirectory()
@@ -117,7 +130,7 @@ export async function openFileInIde(filePath: string, ideId: string, root?: stri
   if (!ide) throw new Error(`Unknown IDE: ${ideId}`)
   const program = await programOf(ide)
   if (!program) throw new Error(`${ide.name} was not found on this PC`)
-  return start(program, fileArgs(ide.id, filePath, folder))
+  return start(program, fileArgs(ide.id, filePath, folder, line))
 }
 
 /** "Try" in Settings: the IDE being added opens the projects folder (or the home folder) */

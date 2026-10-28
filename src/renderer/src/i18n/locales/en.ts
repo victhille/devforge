@@ -1015,6 +1015,16 @@ const en = {
   },
 
   files: {
+    searchPlaceholder: "Search the project",
+    searchClear: "Clear the search",
+    searchCase: "Match case",
+    searchWord: "Whole word",
+    searchRegex: "Regular expression",
+    searchInclude: "Files: *.ts, src/**, !*.test.ts",
+    searchInvalid: "Invalid search:",
+    searchNone: "No results.",
+    searchCount: "{n} result(s) in {files} file(s)",
+    searchTruncated: "stopped at 1,000",
     title: "Files",
     refresh: "Refresh",
     empty: "No files found",

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Code2, Eye, SquareArrowOutUpRight, X } from 'lucide-react'
 import type { DefaultIDE, FileEntry, FilePreview as Preview } from '@shared/types'
 import { codeLanguage } from '@shared/lib/codeLanguage'
@@ -18,9 +18,22 @@ const PdfView = lazy(() => import('./PdfView'))
 const HIGHLIGHT_LIMIT = 300 * 1024
 
 /** v3.5.3: code in colours, as in an IDE (highlight.js loaded with the first one) */
-function CodeView({ text, name }: { text: string; name: string }) {
+function CodeView({ text, name, line }: { text: string; name: string; line?: number }) {
   const language = text.length <= HIGHLIGHT_LIMIT ? codeLanguage(name) : null
   const [html, setHtml] = useState<string | null>(null)
+  const pre = useRef<HTMLPreElement>(null)
+  const [band, setBand] = useState<{ top: number; height: number } | null>(null)
+  // v3.6: a search result's line, highlighted and brought into view
+  useEffect(() => {
+    const el = pre.current
+    if (!el || !line) { setBand(null); return }
+    const style = getComputedStyle(el)
+    const height = parseFloat(style.lineHeight) || 19.5
+    const top = parseFloat(style.paddingTop) + (line - 1) * height
+    setBand({ top, height })
+    const box = el.parentElement
+    if (box) box.scrollTop = Math.max(0, top - box.clientHeight / 3)
+  }, [line, html, text])
   useEffect(() => {
     let alive = true
     setHtml(null)
@@ -28,9 +41,10 @@ function CodeView({ text, name }: { text: string; name: string }) {
     return () => { alive = false }
   }, [text, language])
   return (
-    <pre data-language={language ?? undefined} className="df-code min-w-max p-4 font-mono text-xs leading-relaxed text-fg-secondary">
+    <pre ref={pre} data-language={language ?? undefined} className="df-code relative min-w-max p-4 font-mono text-xs leading-relaxed text-fg-secondary">
+      {band && <span aria-hidden data-testid="line-band" className="pointer-events-none absolute right-0 left-0 bg-warning-soft" style={{ top: band.top, height: band.height }} />}
       {/* highlight.js escapes the code: only its own <span> tags are added */}
-      {html !== null ? <code dangerouslySetInnerHTML={{ __html: html }} /> : <code>{text}</code>}
+      {html !== null ? <code className="relative" dangerouslySetInnerHTML={{ __html: html }} /> : <code className="relative">{text}</code>}
     </pre>
   )
 }
@@ -40,7 +54,7 @@ function CodeView({ text, name }: { text: string; name: string }) {
  * source one click away), images and PDFs as such, other text in a fixed
  * font, in colours (v3.5.3). The project's IDE opens it.
  */
-export default function FilePreview({ file, root, ide: own, onClose }: { file: FileEntry; root?: string; ide?: DefaultIDE; onClose: () => void }) {
+export default function FilePreview({ file, line, root, ide: own, onClose }: { file: FileEntry; line?: number; root?: string; ide?: DefaultIDE; onClose: () => void }) {
   const { t } = useI18n()
   const f = t.files
   const toast = useToast()
@@ -52,15 +66,16 @@ export default function FilePreview({ file, root, ide: own, onClose }: { file: F
   useEffect(() => {
     let alive = true
     setPreview(null)
-    setSource(false)
+    // At a line (a search result): the source, where the line is
+    setSource(!!line)
     window.devforge.previewFile(file.path).then(p => { if (alive) setPreview(p) }).catch(() => { if (alive) setPreview({ kind: 'unreadable', size: 0 }) })
     return () => { alive = false }
-  }, [file.path])
+  }, [file.path, line])
 
   const text = preview && (preview.kind === 'markdown' || preview.kind === 'text') ? preview.text : null
 
   async function openInIde() {
-    try { await ide.openFile(file.path, own, root) }
+    try { await ide.openFile(file.path, own, root, line) }
     catch (err) { toast.show({ tone: 'error', title: String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') }) }
   }
 
@@ -80,10 +95,11 @@ export default function FilePreview({ file, root, ide: own, onClose }: { file: F
           <IconButton size="sm" title={f.closePreview} onClick={onClose}><X size={13} /></IconButton>
         </span>
       </header>
-      <div className="min-h-0 flex-1 overflow-auto" data-testid="file-preview">
+      {/* Scrollable: reachable with the keyboard too */}
+      <div className="min-h-0 flex-1 overflow-auto" data-testid="file-preview" tabIndex={0}>
         {!preview ? <Spinner className="m-6" />
           : preview.kind === 'markdown' && !source ? <div className="max-w-[860px] px-5 py-4 text-sm leading-relaxed text-fg-secondary"><Markdown text={preview.text} asDocument /></div>
-          : text !== null ? <CodeView text={text} name={file.name} />
+          : text !== null ? <CodeView text={text} name={file.name} line={line} />
           : preview.kind === 'image' ? <div className="flex min-h-full items-center justify-center bg-[repeating-conic-gradient(var(--color-elevated)_0%_25%,transparent_0%_50%)] bg-[length:16px_16px] p-4"><img src={preview.dataUrl} alt={file.name} className="max-h-full max-w-full object-contain" /></div>
           : preview.kind === 'pdf' ? <Suspense fallback={<Spinner className="m-6" />}><PdfView bytes={preview.bytes} /></Suspense>
           : <p className="p-4 text-sm text-fg-muted">{preview.kind === 'binary' ? f.binary : preview.kind === 'tooBig' ? f.tooBig : f.unreadable}</p>}
