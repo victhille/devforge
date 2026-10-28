@@ -2,7 +2,7 @@ import {
   Atom, Triangle, Wind, Server, Code2, FolderPlus,
   Hexagon, Zap, Globe, Layers, Coffee, Gem, Hash,
   Braces, Binary, Wrench, FolderOpen, FileCode2,
-  Smartphone, Terminal, FileCode, Box, Cpu,
+  Smartphone, Terminal, FileCode, Box, Cpu, FolderTree,
   type LucideProps
 } from 'lucide-react'
 import type { ComponentType } from 'react'
@@ -38,7 +38,8 @@ const ICONS: Record<string, ComponentType<LucideProps>> = {
   docker:     Box,
   html:       Globe,
   empty:      FolderPlus,
-  unknown:    FolderOpen
+  unknown:    FolderOpen,
+  group:      FolderTree
 }
 
 export const FRAMEWORK_COLOR: Record<string, string> = {
@@ -68,7 +69,8 @@ export const FRAMEWORK_COLOR: Record<string, string> = {
   docker:     '#2496ED',
   html:       '#E34F26',
   empty:      '#6B7280',
-  unknown:    '#4A5068'
+  unknown:    '#4A5068',
+  group:      '#5B9BFF'
 }
 
 export const FRAMEWORK_LABEL: Record<string, string> = {
@@ -98,7 +100,8 @@ export const FRAMEWORK_LABEL: Record<string, string> = {
   docker:     'Docker',
   html:       'HTML / CSS',
   empty:      'Empty',
-  unknown:    'Unknown'
+  unknown:    'Unknown',
+  group:      'Group'
 }
 
 interface Props extends LucideProps {

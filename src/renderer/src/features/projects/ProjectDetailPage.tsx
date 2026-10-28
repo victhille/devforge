@@ -31,6 +31,7 @@ import LaravelPanel from './laravel/LaravelPanel'
 import TerminalTabs from '@renderer/features/terminal/TerminalTabs'
 import DbExplorer from '@renderer/features/database/DbExplorer'
 import PackagesPanel from './PackagesPanel'
+import GroupProjects from './GroupProjects'
 
 type Tab = 'overview' | 'git' | 'github' | 'symfony' | 'nextjs' | 'laravel' | 'terminal' | 'docker' | 'env' | 'packages' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
 const TABS: Tab[] = ['overview', 'git', 'github', 'symfony', 'nextjs', 'laravel', 'terminal', 'docker', 'env', 'packages', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
@@ -262,6 +263,8 @@ export default function ProjectDetailPage() {
 
   const content: Record<Tab, ReactNode> = {
     overview: (
+      <div className="flex flex-col gap-5">
+      {p.framework === 'group' && <GroupProjects group={p} />}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Tile i={1} title="Git" icon={<GitBranch size={16} />} onSee={() => setTab('git')}>{gitSummary}{gitButtons}</Tile>
         <Tile i={2} title="Docker" icon={<Container size={16} />} onSee={hub.composeDir ? () => setTab('docker') : undefined}>{composeSummary}</Tile>
@@ -319,6 +322,7 @@ export default function ProjectDetailPage() {
             <dt className="text-fg-muted">{h.lastOpened}</dt><dd className="text-fg">{formatDate(p.lastOpenedAt, lang)}</dd>
           </dl>
         </Tile>
+      </div>
       </div>
     ),
 

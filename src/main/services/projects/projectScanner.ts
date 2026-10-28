@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'fs'
 import { readdir } from 'fs/promises'
 import { join } from 'path'
-import type { DetectedProject, Framework, PackageManager } from '@shared/types'
+import type { DetectedProject, Framework, PackageManager, SubProject } from '@shared/types'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -139,21 +139,65 @@ async function listDir(path: string): Promise<Dir | null> {
   try { return { path, files: new Set(await readdir(path)) } } catch { return null }
 }
 
-/** Detect projects in the direct sub-folders of `directory`, all folders in parallel. */
+// ─── Groups (v3.5) ────────────────────────────────────────────────────────────
+
+/** Files that make a folder a project of its own (loose .php or .html files do not) */
+const MARKERS = [
+  'package.json', 'composer.json', 'pyproject.toml', 'requirements.txt', 'Pipfile', 'setup.py',
+  'Cargo.toml', 'go.mod', 'pom.xml', 'build.gradle', 'build.gradle.kts', 'Gemfile', 'pubspec.yaml', 'Package.swift'
+]
+
+/** Never a project of a group: dependencies, builds, tooling */
+const SKIPPED = new Set(['node_modules', 'vendor', 'dist', 'build', 'out', 'target', 'bin', 'obj', 'coverage', 'venv', 'env', '__pycache__'])
+
+function hasMarker(dir: Dir): boolean {
+  return MARKERS.some(m => dir.files.has(m)) || [...dir.files].some(f => f.endsWith('.csproj') || f.endsWith('.sln'))
+}
+
+async function subFolders(path: string): Promise<string[]> {
+  try {
+    const entries = await readdir(path, { withFileTypes: true })
+    return entries.filter(e => (e.isDirectory() || e.isSymbolicLink()) && !e.name.startsWith('.') && !SKIPPED.has(e.name)).map(e => e.name)
+  } catch { return [] }
+}
+
+/**
+ * The projects inside a folder that is not one: its sub-folders with a
+ * project file, looking one level further (two at most) in those without.
+ */
+export async function findSubProjects(path: string, depth = 2, prefix = ''): Promise<SubProject[]> {
+  const found = await Promise.all((await subFolders(path)).map(async name => {
+    const dir = await listDir(join(path, name))
+    if (!dir) return []
+    const rel = prefix + name
+    if (hasMarker(dir)) return [{ name: rel, path: dir.path, framework: detectFramework(dir), packageManager: detectPackageManager(dir) }]
+    return depth > 1 ? findSubProjects(dir.path, depth - 1, `${rel}/`) : []
+  }))
+  return found.flat().sort((a, b) => a.name.localeCompare(b.name))
+}
+
+/** One folder: a project, a group of projects, or nothing (empty) */
+async function detectFolder(name: string, path: string): Promise<DetectedProject | null> {
+  const dir = await listDir(path)
+  if (!dir) return null
+  if (!hasMarker(dir)) {
+    const subprojects = await findSubProjects(path)
+    if (subprojects.length) return { name, path, framework: 'group', packageManager: subprojects[0].packageManager, subprojects }
+  }
+  const framework = detectFramework(dir)
+  // Skip completely empty directories
+  if (framework === 'unknown' && dir.files.size === 0) return null
+  return { name, path, framework, packageManager: detectPackageManager(dir) }
+}
+
+/** Detect projects (and groups of projects) in the direct sub-folders of `directory`, all folders in parallel. */
 export async function scanDirectory(directory: string): Promise<DetectedProject[]> {
   let entries
   try { entries = await readdir(directory, { withFileTypes: true }) } catch { return [] }
 
   const folders = entries.filter(e => (e.isDirectory() || e.isSymbolicLink()) && !e.name.startsWith('.'))
 
-  const results = await Promise.all(folders.map(async entry => {
-    const dir = await listDir(join(directory, entry.name))
-    if (!dir) return null
-    const framework = detectFramework(dir)
-    // Skip completely empty directories
-    if (framework === 'unknown' && dir.files.size === 0) return null
-    return { name: entry.name, path: dir.path, framework, packageManager: detectPackageManager(dir) }
-  }))
+  const results = await Promise.all(folders.map(entry => detectFolder(entry.name, join(directory, entry.name))))
 
   return results
     .filter((p): p is DetectedProject => p !== null)

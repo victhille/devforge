@@ -19,11 +19,23 @@ export type Framework =
   | 'docker'
   // Generic
   | 'typescript' | 'empty' | 'unknown'
+  // v3.5: a folder that is not a project but holds several (backend/ + frontend/)
+  | 'group'
 
 export type PackageManager = 'npm' | 'pnpm' | 'yarn'
 
 /** A project found by scanning a directory on disk (may not be in DevForge storage yet). */
 export interface DetectedProject {
+  name: string
+  path: string
+  framework: Framework
+  packageManager: PackageManager
+  /** v3.5: a group's projects (framework 'group'); a name is its path inside the group (api, apps/web) */
+  subprojects?: SubProject[]
+}
+
+/** v3.5: one project of a group */
+export interface SubProject {
   name: string
   path: string
   framework: Framework
@@ -41,6 +53,8 @@ export interface Project {
   favorite: boolean
   /** v3.3.1: its folder no longer exists (worked out on load, never saved) */
   missing?: boolean
+  /** v3.5: a group's projects, as on disk now (worked out on load, never saved) */
+  subprojects?: SubProject[]
 }
 
 // ─── Project Creation ─────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FolderSearch, LayoutList, LayoutGrid, Plus, Search, FolderOpen, TriangleAlert } from 'lucide-react'
-import type { DetectedProject, Framework } from '@shared/types'
+import type { DetectedProject, Framework, SubProject } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useConsole } from '@renderer/app/ConsoleContext'
 import { usePreferredIde } from '@renderer/lib/ide'
@@ -11,7 +11,8 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Page, SectionTitle } from '@renderer/components/ui/Page'
 import { ProjectCard, DetectedProjectCard, type CardLayout } from './components/ProjectCard'
-import { useProjects, sortProjects, frameworkFilters } from './hooks/useProjects'
+import GroupCard from './components/GroupCard'
+import { useProjects, sortProjects, frameworkFilters, hideGroupMembers } from './hooks/useProjects'
 import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
 import { folderName, folderOf, projectFolders } from '@shared/lib/projectFolders'
 
@@ -79,7 +80,10 @@ export default function ProjectsPage() {
 
   const savedPaths       = new Set(projects.map(p => p.path))
   const newDetected      = detected.filter(d => !savedPaths.has(d.path))
-  const filters          = frameworkFilters([...projects.map(p => p.framework), ...newDetected.map(d => d.framework)])
+  // A saved project that lives in a saved group shows inside the group only
+  const listed           = hideGroupMembers(projects)
+  const frameworksOf     = (p: { framework: Framework; subprojects?: SubProject[] }) => [p.framework, ...(p.subprojects ?? []).map(s => s.framework)]
+  const filters          = frameworkFilters([...listed.flatMap(frameworksOf), ...newDetected.flatMap(frameworksOf)])
   // A filter whose last project left: back to all
   const shown            = filter === 'all' || filters.includes(filter) ? filter : 'all'
   // Several folders: each card names its own, and a filter per folder
@@ -87,12 +91,12 @@ export default function ProjectsPage() {
   const placeOf          = (path: string) => folderOf(path, folders)
   const shownPlace       = place === 'all' || folders.includes(place) ? place : 'all'
 
-  const matches = (p: { name: string; framework: Framework; path: string }) =>
-    (shown === 'all' || p.framework === shown) &&
+  const matches = (p: { name: string; framework: Framework; path: string; subprojects?: SubProject[] }) =>
+    (shown === 'all' || frameworksOf(p).includes(shown)) &&
     (shownPlace === 'all' || placeOf(p.path) === shownPlace) &&
     (!search || p.name.toLowerCase().includes(search.toLowerCase()))
 
-  const filteredSaved    = sortProjects(projects).filter(matches)
+  const filteredSaved    = sortProjects(listed).filter(matches)
   const filteredDetected = newDetected.filter(matches)
 
   const container = view === 'list'
@@ -144,7 +148,7 @@ export default function ProjectsPage() {
       <div className="df-rise flex flex-wrap gap-1.5" style={{ '--i': 1 } as CSSProperties}>
         {filters.length > 1 && (['all', ...filters] as const).map(id => (
           <FilterChip key={id} active={shown === id} onClick={() => setFilter(id)}>
-            {id === 'all' ? t.projects.filterAll : FRAMEWORK_LABEL[id] ?? id}
+            {id === 'all' ? t.projects.filterAll : id === 'group' ? t.projects.filterGroups : FRAMEWORK_LABEL[id] ?? id}
           </FilterChip>
         ))}
       </div>
@@ -170,7 +174,22 @@ export default function ProjectsPage() {
         <section className="flex flex-col gap-2.5">
           <SectionTitle>{t.projects.yourProjects}</SectionTitle>
           <div className={container}>
-            {filteredSaved.map((p, i) => (
+            {filteredSaved.map((p, i) => p.framework === 'group' ? (
+              <GroupCard
+                key={p.id}
+                index={i + 2}
+                project={p}
+                gitStatus={gitStatuses[p.id]}
+                ideLabel={ide.label}
+                onOpenIde={path => ide.open(path)}
+                onTerminal={openTerminal}
+                onRunScript={(sub, s) => runScript(sub.path, s, sub.packageManager, `${p.name}/${sub.name}`)}
+                onToggleFavorite={() => toggleFavorite(p.id)}
+                onDetail={() => navigate(`/project/${p.id}`)}
+                onRemove={() => remove(p.id)}
+                folder={many ? folderName(placeOf(p.path) ?? '') || null : null}
+              />
+            ) : (
               <ProjectCard
                 key={p.id}
                 index={i + 2}

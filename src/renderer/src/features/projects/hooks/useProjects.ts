@@ -66,7 +66,9 @@ export function useProjects({ withDetails = false }: Options = {}) {
       packageManager: dp.packageManager,
       createdAt: new Date().toISOString(),
       lastOpenedAt: null,
-      favorite: false
+      favorite: false,
+      // A group's projects show at once (worked out again on each load)
+      ...(dp.subprojects ? { subprojects: dp.subprojects } : {})
     }
     await window.devforge.saveProject(project)
     setProjects(prev => [project, ...prev])
@@ -84,6 +86,17 @@ export function sortProjects(list: Project[]): Project[] {
     if (a.favorite !== b.favorite) return a.favorite ? -1 : 1
     return (b.lastOpenedAt ?? '').localeCompare(a.lastOpenedAt ?? '')
   })
+}
+
+const within = (root: string, path: string) => {
+  const r = root.replace(/[/\\]+$/, '').toLowerCase()
+  return /^[/\\]/.test(path.slice(r.length)) && path.toLowerCase().startsWith(r)
+}
+
+/** v3.5: the projects to list, without those living in a saved group (they show inside it) */
+export function hideGroupMembers<P extends { path: string; framework: Framework }>(list: P[]): P[] {
+  const groups = list.filter(p => p.framework === 'group')
+  return list.filter(p => p.framework === 'group' || !groups.some(g => within(g.path, p.path)))
 }
 
 /** One filter per framework the projects (saved or detected) actually use, by name */

@@ -1,7 +1,8 @@
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
-import type { DbConnection, DetectedDatabase } from '@shared/types'
+import type { DbConnection, DetectedDatabase, Project } from '@shared/types'
+import { findSubProjects } from '../projects/projectScanner'
 import { connectSsh, shQuote, sshRun } from '../ssh/sshClient'
 import { getSshConnectionWithSecret, sshServerFor } from '../ssh/sshStorage'
 import { loadProjects } from '../projects/projectStorage'
@@ -258,34 +259,46 @@ export async function findInCompose(c: DbConnection): Promise<Found | undefined>
   return undefined
 }
 
+/** The database a folder's .env files describe (.env.local overrides .env, like most frameworks) */
+async function fromEnvFiles(dir: string, files: string[]): Promise<{ db: NonNullable<ReturnType<typeof fromEnv>>; file: string } | null> {
+  const merged: Record<string, string> = {}
+  let file = ''
+  for (const name of files) {
+    const content = await readFile(join(dir, name), 'utf-8').catch(() => null)
+    if (content === null) continue
+    Object.assign(merged, parseEnv(content))
+    file = name
+  }
+  const db = file ? fromEnv(merged) : null
+  return db ? { db, file } : null
+}
+
+/** Where a saved project keeps its configuration: itself, or each project of a group (v3.5) */
+export async function configDirs(p: Pick<Project, 'name' | 'path' | 'framework'>): Promise<{ dir: string; label: string }[]> {
+  if (p.framework !== 'group') return [{ dir: p.path, label: p.name }]
+  return (await findSubProjects(p.path)).map(s => ({ dir: s.path, label: `${p.name}/${s.name}` }))
+}
+
 export async function detectLocal(): Promise<DetectedDatabase[]> {
   const found: Found[] = []
   const composeDone = new Set<string>()
-  await Promise.all(loadProjects().map(async p => {
+  const places = (await Promise.all(loadProjects().map(configDirs))).flat()
+  await Promise.all(places.map(async ({ dir: path, label }) => {
     // A compose project describes its database better than the app's .env
-    const dir = composeDirFor(p.path)
+    const dir = composeDirFor(path)
     if (dir) {
       if (composeDone.has(dir)) return
       composeDone.add(dir)
-      const fromDocker = await fromCompose(dir, p.name)
+      const fromDocker = await fromCompose(dir, label)
       if (fromDocker.length) { found.push(...fromDocker); return }
     }
-    // .env.local overrides .env, like most frameworks
-    const merged: Record<string, string> = {}
-    let origin = ''
-    for (const name of ['.env', '.env.local', 'backend/.env', 'api/.env']) {
-      const content = await readFile(join(p.path, name), 'utf-8').catch(() => null)
-      if (content === null) continue
-      Object.assign(merged, parseEnv(content))
-      origin = `${p.name}/${name}`
-    }
-    const r = origin ? fromEnv(merged) : null
+    const r = await fromEnvFiles(path, ['.env', '.env.local', 'backend/.env', 'api/.env'])
     if (!r) return
     // Points at one of our SSH servers: connect through it
-    const server = sshServerFor(r.host)
+    const server = sshServerFor(r.db.host)
     found.push({
-      ...r, ...(server && { host: '127.0.0.1', sshConnectionId: server.id }),
-      name: `${r.database ?? p.name} (${p.name})`, source: 'env', origin
+      ...r.db, ...(server && { host: '127.0.0.1', sshConnectionId: server.id }),
+      name: `${r.db.database ?? label} (${label})`, source: 'env', origin: `${label}/${r.file}`
     })
   }))
   // Same database used by several projects: keep one entry

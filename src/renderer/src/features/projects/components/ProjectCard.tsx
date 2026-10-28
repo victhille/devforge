@@ -24,6 +24,17 @@ function FolderTag({ name }: { name?: string | null }) {
   )
 }
 
+/** A detected group's projects, with their stack */
+function SubNames({ project }: { project: DetectedProject }) {
+  const { t } = useI18n()
+  if (!project.subprojects?.length) return null
+  return (
+    <span className="truncate text-xs text-fg-secondary">
+      {t.projects.groupCount.replace('{n}', String(project.subprojects.length))} · {project.subprojects.map(s => `${s.name} (${FRAMEWORK_LABEL[s.framework] ?? s.framework})`).join(', ')}
+    </span>
+  )
+}
+
 function FavoriteButton({ active, onClick, title }: { active: boolean; onClick: () => void; title: string }) {
   return (
     <IconButton
@@ -160,6 +171,7 @@ export function DetectedProjectCard({ project, layout, onImport, onOpen, onTermi
         <div className="flex min-w-0 flex-col gap-1">
           <span className="truncate text-md font-semibold text-fg">{project.name}</span>
           <span className="truncate font-mono text-xs text-fg-muted">{project.path}</span>
+          <SubNames project={project} />
         </div>
         <div className="mt-auto flex items-center gap-2">
           <Button variant="secondary" size="sm" className="flex-1" onClick={onImport}><Plus size={12} /> {t.projects.import}</Button>
@@ -175,6 +187,7 @@ export function DetectedProjectCard({ project, layout, onImport, onOpen, onTermi
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="truncate font-medium text-fg">{project.name}</span>
         <span className="truncate font-mono text-xs text-fg-muted">{project.path}</span>
+        <SubNames project={project} />
       </div>
       <FolderTag name={folder} />
       <Badge>{label}</Badge>

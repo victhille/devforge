@@ -8,7 +8,8 @@ import { findManifestDirs } from '../packages/npmPackages'
 import { composeConfig, composeDirFor, composeName } from '../docker/composeProjects'
 import { readEnvProject } from '../envfiles/envFiles'
 import { listDbConnections } from '../database/dbStorage'
-import { fromEnv } from '../database/dbDetect'
+import { configDirs, fromEnv } from '../database/dbDetect'
+import { findSubProjects } from './projectScanner'
 import { listDomains } from '../domains/domainService'
 import { listTargets } from '../deploy/deployService'
 import { readLink } from '../vercel/vercelService'
@@ -76,10 +77,12 @@ export async function getProjectHub(projectId: string): Promise<ProjectHub> {
   const ports = await projectPorts(p, env, composeDir)
 
   // Databases: the one the .env describes, SQLite files inside the project, and manual ones
-  const wanted = fromEnv(env)
+  // (a group: the .env of each of its projects)
+  const envs = p.framework === 'group' ? await Promise.all((await configDirs(p)).map(d => readEnvs({ ...p, path: d.dir }))) : [env]
+  const wanted = envs.map(fromEnv).filter(w => !!w)
   const autoDb = listDbConnections().filter(c =>
     (c.type === 'sqlite' && !!c.file && inside(p.path, c.file)) ||
-    (!!wanted && c.type === wanted.type && !!wanted.database && c.database === wanted.database && (!c.port || !wanted.port || c.port === wanted.port || !!c.sshConnectionId))
+    wanted.some(w => c.type === w.type && !!w.database && c.database === w.database && (!c.port || !w.port || c.port === w.port || !!c.sshConnectionId))
   ).map(c => c.id)
   const dbs = listDbConnections()
   const databases = [
@@ -102,7 +105,7 @@ export async function getProjectHub(projectId: string): Promise<ProjectHub> {
   ].flatMap(({ id, origin }) => { const d = allDomains.find(x => x.id === id); return d ? [{ id, domain: d.domain, port: d.port, enabled: d.enabled, origin }] : [] })
 
   return {
-    project: p,
+    project: p.framework === 'group' ? { ...p, subprojects: await findSubProjects(p.path) } : p,
     composeDir,
     composeName: composeDir ? composeName(composeDir) : null,
     envFiles: envProject.files.map(f => ({ name: f.name, keys: Object.keys(f.values).length })),
