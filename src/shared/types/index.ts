@@ -111,7 +111,10 @@ export type DefaultTerminal = 'powershell' | 'cmd' | 'gitbash'
 export type AppLanguage = 'en' | 'fr'
 
 export interface AppSettings {
+  /** The first projects folder: new projects go there by default */
   defaultProjectsDir: string
+  /** v3.5: the other projects folders, scanned too (see shared/lib/projectFolders) */
+  extraProjectsDirs?: string[]
   defaultPackageManager: PackageManager
   defaultIDE: DefaultIDE
   theme: Theme

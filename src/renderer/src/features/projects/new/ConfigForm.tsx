@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Folder } from 'lucide-react'
 import type { Framework, PackageManager, ProjectCreationOptions, AppSettings } from '@shared/types'
 import { PROJECT_TEMPLATES } from '@shared/data/projectTemplates'
+import { folderName, projectFolders } from '@shared/lib/projectFolders'
 import { useI18n } from '@renderer/i18n/I18nContext'
+import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import Checkbox from '@renderer/components/ui/Checkbox'
@@ -82,6 +84,10 @@ export default function ConfigForm({ framework, settings, onBack, onSubmit }: Pr
     { id: 'installDeps', label: t.newProject.optInstall }
   ].filter(o => template.options.some(opt => opt.id === o.id)) as { id: BoolOption; label: string }[]
 
+  // v3.5: the projects folders, one click each
+  const folders = settings ? projectFolders(settings) : []
+  const sameDir = (a: string, b: string) => a.replace(/[/\\]+$/, '').toLowerCase() === b.trim().replace(/[/\\]+$/, '').toLowerCase()
+
   const sep = form.destination.includes('/') ? '/' : '\\'
   const preview = form.destination && form.name ? `${form.destination.replace(/[/\\]$/, '')}${sep}${form.name}` : null
 
@@ -116,6 +122,17 @@ export default function ConfigForm({ framework, settings, onBack, onSubmit }: Pr
             />
             <Button variant="secondary" onClick={browse}>{t.newProject.browse}</Button>
           </div>
+          {folders.length > 1 && (
+            <div role="group" aria-label={t.newProject.destFolders} className="mt-2 flex flex-wrap gap-1.5">
+              {folders.map(dir => (
+                <button key={dir} type="button" title={dir} aria-pressed={sameDir(dir, form.destination)} onClick={() => set('destination', dir)}
+                  className={cn('flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-[12px] font-medium transition-colors',
+                    sameDir(dir, form.destination) ? 'border-accent/40 bg-active text-fg' : 'border-line bg-surface text-fg-secondary hover:bg-hover hover:text-fg')}>
+                  <Folder size={12} aria-hidden /> {folderName(dir)}
+                </button>
+              ))}
+            </div>
+          )}
         </Field>
 
         {PM_FRAMEWORKS.includes(framework) && (

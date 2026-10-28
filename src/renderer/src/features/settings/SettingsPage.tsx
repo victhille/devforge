@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Check, Database, Info, Palette, Plug, RefreshCw, Search, Server, SlidersHorizontal, Bot, type LucideIcon } from 'lucide-react'
 import type { AppSettings, DefaultIDE, PackageManager, Theme, AppLanguage, MotionSetting, Density } from '@shared/types'
@@ -8,7 +8,6 @@ import { applyAppearance } from '@renderer/lib/appearance'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Switch from '@renderer/components/ui/Switch'
-import { Input } from '@renderer/components/ui/Input'
 import { Page } from '@renderer/components/ui/Page'
 import AssistantSettings from './AssistantSettings'
 import ServerSettings from './ServerSettings'
@@ -17,6 +16,8 @@ import DataSettings from './DataSettings'
 import UpdatesSettings from './UpdatesRow'
 import ReleaseNotes from './ReleaseNotes'
 import LauncherSettings from './LauncherSettings'
+import ProjectFolders from './ProjectFolders'
+import { projectFolders } from '@shared/lib/projectFolders'
 import { Segmented, SettingRow, SettingsCard } from './parts'
 
 type Section = 'general' | 'connections' | 'appearance' | 'forgy' | 'servers' | 'data' | 'updates' | 'about'
@@ -48,9 +49,8 @@ export default function SettingsPage() {
   const [params, setParams] = useSearchParams()
   const notes = params.get('notes')
   const asked = params.get('section')
-  const dirRef = useRef<string>('')
 
-  useEffect(() => { window.devforge.getSettings().then(v => { setSettings(v); dirRef.current = v.defaultProjectsDir }) }, [])
+  useEffect(() => { window.devforge.getSettings().then(setSettings) }, [])
 
   // "Saved" shows for two seconds after each change
   const [savedVisible, setSavedVisible] = useState(false)
@@ -62,7 +62,7 @@ export default function SettingsPage() {
   }, [savedAt])
   const onSaved = () => setSavedAt(Date.now())
 
-  /** Every change is saved at once (the projects folder: when the field loses focus) */
+  /** Every change is saved at once (the projects folders: when a field loses focus) */
   async function set<K extends keyof AppSettings>(key: K, value: AppSettings[K], persist = true) {
     if (!settings) return
     const next = { ...settings, [key]: value }
@@ -87,11 +87,6 @@ export default function SettingsPage() {
     const report = [`DevForge v${__APP_VERSION__} (${__APP_COMMIT__}, ${__BUILD_DATE__})`, await window.devforge.getReport()].join('\n')
     await navigator.clipboard.writeText(report)
     toast.show({ tone: 'success', title: s.reportCopied })
-  }
-
-  async function browseProjDir() {
-    const dir = await window.devforge.selectDirectory()
-    if (dir) set('defaultProjectsDir', dir)
   }
 
   const q = query.trim().toLowerCase()
@@ -138,12 +133,7 @@ export default function SettingsPage() {
           {section === 'general' && (
             <SettingsCard title={s.nav.general} hint={s.generalHint}>
               <SettingRow label={s.defaultDir} hint={s.defaultDirHint}>
-                <div className="flex flex-[1_1_320px] gap-2">
-                  <Input value={settings.defaultProjectsDir} aria-label={s.defaultDir} className="font-mono text-[12.5px]"
-                    onChange={e => set('defaultProjectsDir', e.target.value, false)}
-                    onBlur={() => { if (settings.defaultProjectsDir !== dirRef.current) { dirRef.current = settings.defaultProjectsDir; set('defaultProjectsDir', settings.defaultProjectsDir) } }} />
-                  <Button variant="secondary" onClick={browseProjDir}>{s.browse}</Button>
-                </div>
+                <ProjectFolders key={projectFolders(settings).join('\n')} settings={settings} update={update} />
               </SettingRow>
               <SettingRow label={s.defaultPM} hint={s.defaultPMHint}>
                 <Segmented<PackageManager> label={s.defaultPM} mono value={settings.defaultPackageManager} onChange={v => set('defaultPackageManager', v)}

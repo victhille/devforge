@@ -1,6 +1,6 @@
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FolderSearch, LayoutList, LayoutGrid, Plus, Search, FolderOpen } from 'lucide-react'
+import { FolderSearch, LayoutList, LayoutGrid, Plus, Search, FolderOpen, TriangleAlert } from 'lucide-react'
 import type { DetectedProject, Framework } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useConsole } from '@renderer/app/ConsoleContext'
@@ -13,6 +13,7 @@ import { Page, SectionTitle } from '@renderer/components/ui/Page'
 import { ProjectCard, DetectedProjectCard, type CardLayout } from './components/ProjectCard'
 import { useProjects, sortProjects, frameworkFilters } from './hooks/useProjects'
 import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
+import { folderName, folderOf, projectFolders } from '@shared/lib/projectFolders'
 
 
 const VIEW_KEY = 'projects-view'
@@ -33,8 +34,10 @@ export default function ProjectsPage() {
 
   const [detected, setDetected] = useState<DetectedProject[]>([])
   const [scanning, setScanning] = useState(false)
-  const [scanDir,  setScanDir]  = useState('')
+  const [folders,  setFolders]  = useState<string[]>([])
+  const [lost,     setLost]     = useState<string[]>([])
   const [filter,   setFilter]   = useState<Framework | 'all'>('all')
+  const [place,    setPlace]    = useState<string>('all')
   const [search,   setSearch]   = useState('')
   const [view,     setView]     = useState<CardLayout>(readView)
 
@@ -43,16 +46,22 @@ export default function ProjectsPage() {
     try { localStorage.setItem(VIEW_KEY, v) } catch { /* ignore */ }
   }
 
-  async function runScan(dir: string) {
-    if (!dir) return
+  /** Every projects folder; one that no longer exists is reported, not scanned */
+  async function runScan(dirs: string[]) {
+    if (!dirs.length) return
     setScanning(true)
-    try { setDetected(await window.devforge.scanDirectory(dir)) }
-    finally { setScanning(false) }
+    try {
+      const exists = await Promise.all(dirs.map(d => window.devforge.pathExists(d).catch(() => false)))
+      setLost(dirs.filter((_, i) => !exists[i]))
+      const found = await Promise.all(dirs.filter((_, i) => exists[i]).map(d => window.devforge.scanDirectory(d).catch(() => [])))
+      const byPath = new Map(found.flat().map(d => [d.path, d]))
+      setDetected([...byPath.values()])
+    } finally { setScanning(false) }
   }
 
   /** Rescan also offers to remove the projects whose folder is gone */
   async function rescan() {
-    await runScan(scanDir)
+    await runScan(folders)
     const gone = (await window.devforge.getProjects()).filter(p => p.missing)
     if (!gone.length) return
     const text = t.hub.missingConfirm.replace('{count}', String(gone.length)).replace('{names}', gone.map(p => p.name).join(', '))
@@ -62,10 +71,9 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     window.devforge.getSettings().then(s => {
-      if (s.defaultProjectsDir) {
-        setScanDir(s.defaultProjectsDir)
-        runScan(s.defaultProjectsDir)
-      }
+      const dirs = projectFolders(s)
+      setFolders(dirs)
+      runScan(dirs)
     })
   }, [])
 
@@ -74,9 +82,14 @@ export default function ProjectsPage() {
   const filters          = frameworkFilters([...projects.map(p => p.framework), ...newDetected.map(d => d.framework)])
   // A filter whose last project left: back to all
   const shown            = filter === 'all' || filters.includes(filter) ? filter : 'all'
+  // Several folders: each card names its own, and a filter per folder
+  const many             = folders.length > 1
+  const placeOf          = (path: string) => folderOf(path, folders)
+  const shownPlace       = place === 'all' || folders.includes(place) ? place : 'all'
 
-  const matches = (p: { name: string; framework: Framework }) =>
+  const matches = (p: { name: string; framework: Framework; path: string }) =>
     (shown === 'all' || p.framework === shown) &&
+    (shownPlace === 'all' || placeOf(p.path) === shownPlace) &&
     (!search || p.name.toLowerCase().includes(search.toLowerCase()))
 
   const filteredSaved    = sortProjects(projects).filter(matches)
@@ -111,7 +124,7 @@ export default function ProjectsPage() {
             className="min-w-0 flex-1 bg-transparent text-base text-fg outline-none placeholder:text-fg-muted"
           />
         </label>
-        {scanDir && (
+        {folders.length > 0 && (
           <Button variant="secondary" loading={scanning} onClick={rescan}>
             {!scanning && <FolderSearch size={14} />} {t.projects.rescan}
           </Button>
@@ -127,23 +140,30 @@ export default function ProjectsPage() {
         <Button onClick={() => navigate('/new-project')}><Plus size={15} /> {t.projects.newProject}</Button>
       </header>
 
-      {/* Stack filters */}
+      {/* Stack filters, then folder filters */}
       <div className="df-rise flex flex-wrap gap-1.5" style={{ '--i': 1 } as CSSProperties}>
         {filters.length > 1 && (['all', ...filters] as const).map(id => (
-          <button
-            key={id}
-            onClick={() => setFilter(id)}
-            className={cn(
-              'h-[30px] rounded-full border px-3 text-[12.5px] font-medium transition-colors',
-              shown === id
-                ? 'border-accent/40 bg-active text-fg'
-                : 'border-line bg-surface text-fg-secondary hover:bg-hover hover:text-fg'
-            )}
-          >
+          <FilterChip key={id} active={shown === id} onClick={() => setFilter(id)}>
             {id === 'all' ? t.projects.filterAll : FRAMEWORK_LABEL[id] ?? id}
-          </button>
+          </FilterChip>
         ))}
       </div>
+      {many && (
+        <div role="group" aria-label={t.projects.folderFilter} className="-mt-2 flex flex-wrap items-center gap-1.5">
+          <FolderOpen size={14} className="mr-0.5 text-fg-muted" aria-hidden />
+          {['all', ...folders].map(dir => (
+            <FilterChip key={dir} active={shownPlace === dir} onClick={() => setPlace(dir)} title={dir === 'all' ? undefined : dir}>
+              {dir === 'all' ? t.projects.allFolders : folderName(dir)}
+            </FilterChip>
+          ))}
+        </div>
+      )}
+      {lost.length > 0 && (
+        <p role="status" className="flex items-center gap-2 text-[12.5px] text-warning">
+          <TriangleAlert size={14} aria-hidden />
+          {t.projects.folderMissing.replace('{dirs}', lost.join(', '))}
+        </p>
+      )}
 
       {/* Saved */}
       {filteredSaved.length > 0 && (
@@ -155,6 +175,7 @@ export default function ProjectsPage() {
                 key={p.id}
                 index={i + 2}
                 project={p}
+                folder={many ? folderName(placeOf(p.path) ?? '') || null : null}
                 layout={view}
                 gitStatus={gitStatuses[p.id]}
                 scripts={scripts[p.id]}
@@ -176,7 +197,7 @@ export default function ProjectsPage() {
       {filteredDetected.length > 0 && (
         <section className="flex flex-col gap-2.5">
           <div className="flex items-baseline gap-3">
-            <SectionTitle>{t.projects.detectedIn.replace('{dir}', scanDir)}</SectionTitle>
+            <SectionTitle>{many ? t.projects.detectedInFolders : t.projects.detectedIn.replace('{dir}', folders[0] ?? '')}</SectionTitle>
             <span className="text-xs text-fg-muted">{t.projects.detectedHint}</span>
           </div>
           <div className={container}>
@@ -185,6 +206,7 @@ export default function ProjectsPage() {
                 key={p.path}
                 project={p}
                 layout={view}
+                folder={many ? folderName(placeOf(p.path) ?? '') || null : null}
                 onImport={() => importDetected(p)}
                 onOpen={() => open(p)}
                 onTerminal={() => openTerminal(p.path)}
@@ -207,5 +229,23 @@ export default function ProjectsPage() {
             />
       )}
     </Page>
+  )
+}
+
+function FilterChip({ active, onClick, title, children }: { active: boolean; onClick: () => void; title?: string; children: ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      aria-pressed={active}
+      className={cn(
+        'h-[30px] rounded-full border px-3 text-[12.5px] font-medium transition-colors',
+        active
+          ? 'border-accent/40 bg-active text-fg'
+          : 'border-line bg-surface text-fg-secondary hover:bg-hover hover:text-fg'
+      )}
+    >
+      {children}
+    </button>
   )
 }

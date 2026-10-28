@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { Code2, FolderOpen, GitBranch, Plus, Star, Terminal, Trash2 } from 'lucide-react'
+import { Code2, Folder, FolderOpen, GitBranch, Plus, Star, Terminal, Trash2 } from 'lucide-react'
 import type { DetectedProject, GitStatus, Project } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -13,6 +13,16 @@ import GitBadge from './GitBadge'
 import ScriptsMenu from './ScriptsMenu'
 
 export type CardLayout = 'list' | 'grid'
+
+/** The projects folder a project comes from, when there are several */
+function FolderTag({ name }: { name?: string | null }) {
+  if (!name) return null
+  return (
+    <span className="flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-fg-muted" title={name}>
+      <Folder size={11} aria-hidden /> {name}
+    </span>
+  )
+}
 
 function FavoriteButton({ active, onClick, title }: { active: boolean; onClick: () => void; title: string }) {
   return (
@@ -44,10 +54,12 @@ interface SavedProps {
   onRunScript?: (script: string) => void
   /** Position in the list, to stagger the entrance */
   index?: number
+  /** v3.5: the name of its projects folder, shown when there are several */
+  folder?: string | null
 }
 
 export function ProjectCard(props: SavedProps) {
-  const { project, layout, gitStatus, scripts = {}, ideLabel, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript, index = 0 } = props
+  const { project, layout, gitStatus, scripts = {}, ideLabel, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript, index = 0, folder } = props
   const { t } = useI18n()
   const label = FRAMEWORK_LABEL[project.framework] ?? project.framework
 
@@ -71,6 +83,7 @@ export function ProjectCard(props: SavedProps) {
           {[label, project.packageManager].filter(Boolean).map(tag => (
             <span key={tag} className="rounded-md border border-line bg-elevated px-2 py-0.5 font-mono text-[11px] text-fg-secondary">{tag}</span>
           ))}
+          <FolderTag name={folder} />
         </div>
         {project.missing && <div className="text-xs font-medium text-warning">{t.hub.missing}</div>}
         {git && (
@@ -101,6 +114,7 @@ export function ProjectCard(props: SavedProps) {
         </span>
       </button>
       {project.missing && <span className="shrink-0 text-xs font-medium text-warning">{t.hub.missing}</span>}
+      <FolderTag name={folder} />
       <Badge>{label}</Badge>
       <div className="flex shrink-0 items-center gap-2">
         <IconButton title={t.projects.terminal} onClick={onTerminal}><Terminal size={13} /></IconButton>
@@ -121,9 +135,11 @@ interface DetectedProps {
   onImport: () => void
   onOpen: () => void
   onTerminal: () => void
+  /** v3.5: the name of its projects folder, shown when there are several */
+  folder?: string | null
 }
 
-export function DetectedProjectCard({ project, layout, onImport, onOpen, onTerminal }: DetectedProps) {
+export function DetectedProjectCard({ project, layout, onImport, onOpen, onTerminal, folder }: DetectedProps) {
   const { t } = useI18n()
   const label = FRAMEWORK_LABEL[project.framework] ?? project.framework
 
@@ -139,7 +155,7 @@ export function DetectedProjectCard({ project, layout, onImport, onOpen, onTermi
       <Card className="flex flex-col gap-3 border-dashed p-4">
         <div className="flex items-start justify-between">
           <ProjectIcon framework={project.framework} size="lg" />
-          <Badge>{label}</Badge>
+          <div className="flex items-center gap-1"><FolderTag name={folder} /><Badge>{label}</Badge></div>
         </div>
         <div className="flex min-w-0 flex-col gap-1">
           <span className="truncate text-md font-semibold text-fg">{project.name}</span>
@@ -160,6 +176,7 @@ export function DetectedProjectCard({ project, layout, onImport, onOpen, onTermi
         <span className="truncate font-medium text-fg">{project.name}</span>
         <span className="truncate font-mono text-xs text-fg-muted">{project.path}</span>
       </div>
+      <FolderTag name={folder} />
       <Badge>{label}</Badge>
       <div className="flex shrink-0 items-center gap-2">
         {actions}
