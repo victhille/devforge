@@ -43,7 +43,7 @@ Les bases de données sont cherchées dans le `.env` et le `compose.yaml` de **c
 
 ![La fiche d'un projet Next.js](../../../assets/screens/project-fr.png)
 
-Clique sur un projet pour ouvrir sa fiche. En haut : le nom, le chemin (cliquer ouvre le dossier), et les boutons **Favori**, **Ouvrir dans l'IDE**, **Ouvrir un terminal**, **Retirer de DevForge** et **Demander à Forgy** (Forgy s'ouvre avec ce projet en contexte). Ouvrir une fiche rend le projet **actif**.
+Clique sur un projet pour ouvrir sa fiche. En haut : le nom, le chemin (cliquer ouvre le dossier), et les boutons **Favori**, **Ouvrir dans l'IDE**, **Ouvrir un terminal**, **Enregistrer comme modèle** (voir [Mes modèles](/devforge/dev/new-project/#mes-modèles)), **Retirer de DevForge** et **Demander à Forgy** (Forgy s'ouvre avec ce projet en contexte). Ouvrir une fiche rend le projet **actif**.
 
 La tuile **Projet** de la vue d'ensemble a un choix **IDE de ce projet** : *Par défaut* suit les Paramètres, ou un autre IDE trouvé sur ce PC, que ce projet gardera (voir [IDE](/devforge/dev/ide/)).
 
@@ -52,6 +52,7 @@ Les onglets n'apparaissent que s'ils ont un sens pour ce projet :
 | Onglet | Contenu |
 |---|---|
 | Vue d'ensemble | une tuile par sujet (Git, Docker, variables, base, ports…) avec son résumé et **Voir** |
+| Notes | les tâches à cocher et les notes en Markdown du projet, voir plus bas ; le nombre de tâches à faire s'affiche sur l'onglet |
 | Git | branche, fichiers modifiés, commits à pousser ou à récupérer, dernier commit, **Commit…**, **Pull**, **Push**, **Fetch** |
 | GitHub | si le dépôt est sur GitHub : GitHub Actions (avec **Relancer les échecs**), pull requests ouvertes, versions publiées |
 | Atelier Symfony / Next.js / Laravel | selon le framework, voir plus bas |
@@ -125,6 +126,27 @@ Depuis l'onglet **Déploiement**, **Synchroniser le .env** compare le fichier su
 
 - **Envoyer vers le serveur** : les clés d'ici remplacent celles du serveur. Une copie du fichier du serveur est gardée à côté (`.devforge-….bak`).
 - **Récupérer ici** : l'inverse. Une copie chiffrée des `.env` du projet est faite avant (restaurable depuis [Variables .env](/devforge/system/env-files/)).
+
+### Les notes et les tâches
+
+L'onglet **Notes** garde ce qui concerne le projet, dans les données de DevForge (jamais dans le dossier du projet) :
+
+- **Tâches** : écris-en une et <kbd>Entrée</kbd> l'ajoute. Coche-la quand elle est faite (la date s'affiche), double-clique pour la modifier, glisse-la pour changer l'ordre, la corbeille la supprime. **Masquer les faites** ne garde que ce qui reste.
+- **Notes** : du texte libre en Markdown. **Éditer** pour écrire, **Aperçu** pour le voir mis en forme (titres, listes, code, liens). Tout s'enregistre au fil de la frappe.
+
+Sur la [liste des projets](#la-liste-des-projets), la carte d'un projet montre **n à faire** tant qu'il reste des tâches. Les notes font partie de l'export du profil.
+
+Forgy les lit (« qu'est-ce qui reste à faire sur ce projet ? ») et peut ajouter, cocher ou décocher une tâche : une action que tu valides, annulable (voir [Actions de Forgy](/devforge/forgy/actions/)).
+
+### Les alertes du CI GitHub
+
+Quand GitHub est connecté ([Connexions](/devforge/getting-started/connections/#github)), DevForge regarde toutes les 5 minutes (tant qu'il est ouvert) le dernier passage de chaque workflow GitHub Actions de tes projets :
+
+- une **notification** quand un workflow passe au rouge, puis quand il revient au vert ; un clic dessus ouvre l'onglet **GitHub** du projet ;
+- un **point rouge** sur la carte du projet tant qu'un workflow échoue (son nom au survol) ;
+- un échec déjà là la première fois que DevForge voit le workflow ne déclenche pas de notification, seulement le point rouge.
+
+**Paramètres › Général › Alertes du CI GitHub** choisit les projets suivis : **Favoris** (par défaut), **Tous les projets** ou **Aucune**.
 
 ## Les ateliers par framework
 

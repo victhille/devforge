@@ -25,6 +25,7 @@ Forgy peut aussi **agir**. Chaque action s'affiche en **carte** dans le panneau 
 | Client VPN | crée un client WireGuard ; la page VPN s'ouvre sur son QR code | non | non |
 | Sauvegarde | lance tout de suite la sauvegarde de nuit du serveur | non | non |
 | GitHub Actions | relance les jobs en échec d'un run | non | non |
+| Tâche | ajoute une tâche aux [notes d'un projet](/devforge/dev/projects/#les-notes-et-les-tâches), la coche ou la décoche | oui (supprimée, ou état d'avant) | oui |
 | Paquets | met à jour des [paquets](/devforge/dev/packages/) npm, pnpm, yarn, Composer, Python (pip dans l'environnement virtuel, Poetry, uv, Pipenv), Cargo, Go, Bundler ou pub, dans leur intervalle ou vers la dernière version (une majeure est signalée sur la carte) | oui : manifeste et verrouillage remis, puis réinstallation | non |
 
 ## Toujours demander, ou Auto

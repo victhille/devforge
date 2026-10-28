@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ProjectActivity } from '@shared/types'
-import { asleep, commitsByWeek, mostActive, parseGitLog, toFollow, weekStart, WEEKS } from '@shared/lib/activity'
+import { asleep, commitsByWeek, mostActive, parseGitLog, parseHeadRef, toFollow, weekStart, WEEKS } from '@shared/lib/activity'
 
 /** v3.8 lot 3: the Activity page's figures */
 
@@ -21,6 +21,17 @@ describe('parseGitLog', () => {
     ])
     expect(parseGitLog('')).toEqual([])
     expect(parseGitLog('\x1enot-a-date\x1fa@b')).toEqual([])
+  })
+})
+
+describe('parseHeadRef', () => {
+  it('reads the checked-out branch, what it has to push or pull, its last commit', () => {
+    const out = '  \tfeature\t\t1700000000\n*\tmain\tahead 2, behind 1\t1700000500\r\n  \told\tgone\t1600000000\n'
+    expect(parseHeadRef(out)).toEqual({ branch: 'main', ahead: 2, behind: 1, lastCommitAt: 1700000500 })
+    expect(parseHeadRef('*\tdev\t\t1700000000')).toEqual({ branch: 'dev', ahead: 0, behind: 0, lastCommitAt: 1700000000 })
+    // Detached HEAD, or a repository without commits
+    expect(parseHeadRef('  \tmain\t\t1700000000\n')).toBeNull()
+    expect(parseHeadRef('')).toBeNull()
   })
 })
 

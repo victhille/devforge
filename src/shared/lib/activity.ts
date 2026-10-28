@@ -19,6 +19,20 @@ export function parseGitLog(out: string): ActivityCommit[] {
   })
 }
 
+/** `git for-each-ref` with this format on refs/heads: one line per branch, `*` on the checked-out one */
+export const HEAD_REF_FORMAT = '--format=%(HEAD)%09%(refname:short)%09%(upstream:track,nobracket)%09%(committerdate:unix)'
+
+/** The checked-out branch, what it has to push or pull, its last commit; null when detached */
+export function parseHeadRef(out: string): { branch: string; ahead: number; behind: number; lastCommitAt: number | null } | null {
+  const line = out.split('\n').find(l => l.startsWith('*'))
+  if (!line) return null
+  const [, branch = '', track = '', date = ''] = line.replace(/\r$/, '').split('\t')
+  return {
+    branch, ahead: Number(/ahead (\d+)/.exec(track)?.[1] ?? 0), behind: Number(/behind (\d+)/.exec(track)?.[1] ?? 0),
+    lastCommitAt: /^\d+$/.test(date) ? Number(date) : null
+  }
+}
+
 /** The Monday 00:00 (local) of a week, as Unix seconds */
 export function weekStart(atSeconds: number): number {
   const d = new Date(atSeconds * 1000)

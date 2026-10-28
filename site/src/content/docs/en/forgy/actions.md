@@ -25,6 +25,7 @@ Forgy can also **act**. Each action shows as a **card** in the panel: what will 
 | VPN client | creates a WireGuard client; the VPN page opens on its QR code | no | no |
 | Backup | runs the server's nightly backup right now | no | no |
 | GitHub Actions | re-runs the failed jobs of a run | no | no |
+| Task | adds a task to a [project's notes](/devforge/en/dev/projects/#notes-and-tasks), checks or unchecks it | yes (removed, or previous state) | yes |
 | Packages | updates npm, pnpm, yarn, Composer, Python (pip in the virtual environment, Poetry, uv, Pipenv), Cargo, Go, Bundler or pub [packages](/devforge/en/dev/packages/), within their range or to the latest version (a major is flagged on the card) | yes: manifest and lockfile put back, then reinstall | no |
 
 ## Always ask, or Auto

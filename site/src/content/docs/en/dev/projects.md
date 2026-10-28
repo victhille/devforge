@@ -43,7 +43,7 @@ Databases are looked for in the `.env` and `compose.yaml` of **each** project of
 
 ![A Next.js project's page](../../../../assets/screens/project-en.png)
 
-Click a project to open its page. At the top: the name, the path (click to open the folder), and the buttons **Favorite**, **Open in the IDE**, **Open a terminal**, **Remove from DevForge** and **Ask Forgy** (Forgy opens with this project in context). Opening a project's page makes it **active**.
+Click a project to open its page. At the top: the name, the path (click to open the folder), and the buttons **Favorite**, **Open in the IDE**, **Open a terminal**, **Save as template** (see [My templates](/devforge/en/dev/new-project/#my-templates)), **Remove from DevForge** and **Ask Forgy** (Forgy opens with this project in context). Opening a project's page makes it **active**.
 
 The overview's **Project** tile has an **IDE of this project** choice: *Default* follows Settings, or another IDE found on this PC that this project keeps (see [IDE](/devforge/en/dev/ide/)).
 
@@ -52,6 +52,7 @@ Tabs only show when they make sense for the project:
 | Tab | Content |
 |---|---|
 | Overview | one tile per topic (Git, Docker, variables, database, ports…) with its summary and **See** |
+| Notes | the project's tasks to check off and its Markdown notes, see below; the number of open tasks shows on the tab |
 | Git | branch, changed files, commits to push or pull, last commit, **Commit…**, **Pull**, **Push**, **Fetch** |
 | GitHub | if the repository is on GitHub: GitHub Actions (with **Re-run failed jobs**), open pull requests, releases |
 | Symfony / Next.js / Laravel workshop | depending on the framework, see below |
@@ -125,6 +126,27 @@ From the **Deploy** tab, **Sync the .env** compares the file on this PC and the 
 
 - **Send to the server**: the keys from here replace the server's. A copy of the server's file is kept next to it (`.devforge-….bak`).
 - **Bring here**: the other way round. An encrypted copy of the project's `.env` files is made first (restorable from [Env variables](/devforge/en/system/env-files/)).
+
+### Notes and tasks
+
+The **Notes** tab keeps what is about the project, in DevForge's data (never in the project's folder):
+
+- **Tasks**: type one and <kbd>Enter</kbd> adds it. Check it when done (the date shows), double-click to edit it, drag it to reorder, the bin deletes it. **Hide done ones** keeps only what is left.
+- **Notes**: free Markdown text. **Edit** to write, **Preview** to see it formatted (headings, lists, code, links). Everything is saved as you type.
+
+On the [project list](#the-project-list), a project's card shows **n to do** while tasks remain. Notes are part of the profile export.
+
+Forgy reads them ("what is left to do on this project?") and can add, check or uncheck a task: an action you confirm, which can be undone (see [Forgy's actions](/devforge/en/forgy/actions/)).
+
+### GitHub CI alerts
+
+When GitHub is connected ([Connections](/devforge/en/getting-started/connections/#github)), DevForge checks every 5 minutes (while it is open) the latest run of each GitHub Actions workflow of your projects:
+
+- a **notification** when a workflow turns red, then when it is green again; a click opens the project's **GitHub** tab;
+- a **red dot** on the project's card while a workflow fails (its name on hover);
+- a failure already there the first time DevForge sees the workflow does not notify, it only shows the red dot.
+
+**Settings › General › GitHub CI alerts** picks the projects followed: **Favourites** (default), **All projects** or **None**.
 
 ## Framework workshops
 
