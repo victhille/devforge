@@ -26,7 +26,7 @@ A click on a project opens its [page](/devforge/en/dev/projects/).
 
 ## Refresh
 
-The activity is read when the page opens, six projects at a time, then kept 3 minutes. **Refresh** reads it again right away (after a `git fetch`, for example).
+The activity is read when the page opens, eight projects at a time, then kept 3 minutes. **Refresh** reads it again right away (after a `git fetch`, for example).
 
 ## On Home
 

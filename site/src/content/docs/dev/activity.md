@@ -26,7 +26,7 @@ Un clic sur un projet ouvre sa [fiche](/devforge/dev/projects/).
 
 ## Rafraîchir
 
-L'activité est lue à l'ouverture de la page, six projets à la fois, puis gardée 3 minutes. **Rafraîchir** la relit tout de suite (après un `git fetch`, par exemple).
+L'activité est lue à l'ouverture de la page, huit projets à la fois, puis gardée 3 minutes. **Rafraîchir** la relit tout de suite (après un `git fetch`, par exemple).
 
 ## Sur l'accueil
 
