@@ -2,6 +2,21 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [3.5.0](https://github.com/victhille/devforge/compare/v3.4.1...v3.5.0) — 2026-10-28
+
+> Tous tes projets, partout : plusieurs dossiers de projets, projets imbriqués en groupes, IDE détectés ou ajoutés à la main (un par projet), aide et exemples dans chaque outil, commandes perso dans la doc, suggestions grisées dans le terminal.
+
+### Nouveautés
+
+- **terminal** : Suggestion grisée en fin de ligne (v3.5 lot 6) ([e074cf8](https://github.com/victhille/devforge/commit/e074cf8ff84f61ba6bbaa23d964a4ecb5cd8bad3))
+- **doc** : Commandes perso, vérifiées et complétées (v3.5 lot 5) ([3c04008](https://github.com/victhille/devforge/commit/3c04008762b8e4f9ed417c113e38d520194ee612))
+- **outils** : Aide et exemples dans la boîte à outils (v3.5 lot 4) ([c52e6ec](https://github.com/victhille/devforge/commit/c52e6ece30e51d836419e9adc084b321a683bd3a))
+- **ide** : IDE détectés, ajoutés à la main et propres à chaque projet (v3.5 lot 3) ([fad61f7](https://github.com/victhille/devforge/commit/fad61f7559dffa407d99aff40a66b004ae0c64f8))
+- **projets** : Projets imbriqués en groupes (v3.5 lot 2) ([3ac27d8](https://github.com/victhille/devforge/commit/3ac27d8baed2e58259e9933beb03f41a7690b7ed))
+- **projets** : Plusieurs dossiers de projets (v3.5 lot 1) ([9ebfa42](https://github.com/victhille/devforge/commit/9ebfa428c851bf41a051fd337bde1bcaaf9d3c9e))
+
+_1 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [3.4.1](https://github.com/victhille/devforge/compare/v3.4.0...v3.4.1) — 2026-10-28
 
 > Correctifs : bouton IDE selon le réglage, filtres utiles, pages générées plus propres (CSS à part, accueil selon la connexion, React/Vue rangés), Node simple avec npm test, Symfony sans dépôt en double.
