@@ -371,7 +371,8 @@ export default function ProjectDetailPage() {
     env: <ProjectEnvEditor projectPath={p.path} onEnvChange={() => {}} />,
 
     packages: <PackagesPanel projectId={p.id} />,
-    tests: <TestsPanel path={p.path} runners={testRunners} />,
+    tests: <TestsPanel path={p.path} runners={testRunners} projectName={p.name}
+      onOpen={(file, line) => setParams({ tab: 'files', open: file, line: String(line) }, { replace: true })} />,
 
     database: (
       <div className="flex flex-col gap-4">
@@ -489,7 +490,7 @@ export default function ProjectDetailPage() {
     terminal: null,
 
     // The scripts are on the overview: here, the whole width for the tree and the preview
-    files: <Card className="h-[640px] overflow-hidden"><FileTree rootPath={p.path} ide={p.ide} /></Card>
+    files: <Card className="h-[640px] overflow-hidden"><FileTree rootPath={p.path} ide={p.ide} open={params.get('open') ? { path: params.get('open')!, line: Number(params.get('line')) || undefined } : undefined} /></Card>
   }
 
   return (

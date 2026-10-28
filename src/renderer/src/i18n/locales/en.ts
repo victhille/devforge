@@ -1015,6 +1015,17 @@ const en = {
   },
 
   tests: {
+    expected: "Expected",
+    received: "Received",
+    at: "At",
+    details: "Full message",
+    rerunFile: "Run this file again",
+    rerunFailed: "Run the failures again ({n})",
+    explain: "Explain with Forgy",
+    filter: "Tests shown",
+    all: "All",
+    onlyFailed: "Failures only",
+    explainPrompt: "This test fails in the project {project} ({tool}): \"{test}\", at {file}. Explain why and suggest a fix. Here is the message:",
     none: "No test tool found in this project.",
     runner: "Test tool",
     run: "Run the tests ({tool})",

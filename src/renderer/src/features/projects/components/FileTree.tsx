@@ -93,7 +93,8 @@ function TreeNode({ entry, depth, dirs, expanded, onToggle, selected, onSelect, 
 // ─── Tree ─────────────────────────────────────────────────────────────────────
 
 /** Lazy-loaded directory tree rooted at `rootPath`; a file opens beside it (v3.5.1). */
-export default function FileTree({ rootPath, ide }: { rootPath: string; ide?: DefaultIDE }) {
+/** `open`: a file of the project (relative path) to show at once, at a line (v3.7: a failed test's place) */
+export default function FileTree({ rootPath, ide, open }: { rootPath: string; ide?: DefaultIDE; open?: { path: string; line?: number } }) {
   const { t } = useI18n()
   const f = t.files
   const [file,     setFile]     = useState<FileEntry | null>(null)
@@ -123,6 +124,16 @@ export default function FileTree({ rootPath, ide }: { rootPath: string; ide?: De
   }, [rootPath, load])
 
   useEffect(() => { reset() }, [reset])
+
+  // After the reset above: a file asked from outside (a failed test's place)
+  const openPath = open?.path
+  const openLine = open?.line
+  useEffect(() => {
+    if (!openPath) return
+    const name = openPath.split('/').pop() ?? openPath
+    setFile({ name, path: [rootPath, ...openPath.split('/')].join(sep), isDirectory: false, size: null, extension: name.includes('.') ? name.split('.').pop()! : null })
+    setLine(openLine)
+  }, [openPath, openLine, rootPath, sep])
 
   function toggle(path: string) {
     if (expanded.has(path)) {

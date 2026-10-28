@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Check, ChevronDown, ChevronRight, Circle, FlaskConical, Play, Square, X } from 'lucide-react'
+import { Bot, Check, ChevronDown, ChevronRight, Circle, FlaskConical, Play, RotateCw, Square, X } from 'lucide-react'
 import type { TestCase, TestFile, TestRun, TestRunner, TestRunnerInfo } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { formatRelative } from '@renderer/lib/format'
@@ -9,6 +9,7 @@ import CopyButton from '@renderer/components/ui/CopyButton'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Select } from '@renderer/components/ui/Input'
+import { useAssistant } from '@renderer/features/assistant/AssistantContext'
 
 const LABEL: Record<TestRunner, string> = { vitest: 'Vitest', jest: 'Jest', playwright: 'Playwright', phpunit: 'PHPUnit', pytest: 'pytest', go: 'Go', cargo: 'Cargo' }
 
@@ -19,6 +20,42 @@ export function StatusIcon({ status, size = 13 }: { status: TestCase['status']; 
   return status === 'passed' ? <Check size={size} className="shrink-0 text-success" aria-hidden />
     : status === 'failed' ? <X size={size} className="shrink-0 text-danger" aria-hidden />
     : <Circle size={size - 3} className="shrink-0 text-fg-muted" aria-hidden />
+}
+
+/** v3.7 lot 2: a failed test, unfolded: its message, expected and received, where; rerun, Forgy */
+function Failure({ test, onOpen, onRerun, onExplain, running }: {
+  test: TestCase; onOpen?: (file: string, line: number) => void; onRerun: () => void; onExplain: () => void; running: boolean
+}) {
+  const { t } = useI18n()
+  const k = t.tests
+  return (
+    <div className="flex flex-col gap-2.5 border-t border-line-subtle bg-danger-soft/25 py-3 pr-4 pl-10" data-testid="test-failure">
+      {test.message && <pre className="font-mono text-[12.5px] font-medium whitespace-pre-wrap text-danger">{test.message}</pre>}
+      {(test.expected !== undefined || test.actual !== undefined) && (
+        <dl className="grid grid-cols-[90px_1fr] gap-x-3 gap-y-1 font-mono text-[12.5px]">
+          <dt className="text-fg-muted">{k.expected}</dt><dd className="break-all text-success">{test.expected ?? '—'}</dd>
+          <dt className="text-fg-muted">{k.received}</dt><dd className="break-all text-danger">{test.actual ?? '—'}</dd>
+        </dl>
+      )}
+      {test.location && (
+        <div className="text-xs text-fg-secondary">
+          {k.at}{' '}
+          {onOpen
+            ? <button onClick={() => onOpen(test.location!.file, test.location!.line)} className="font-mono text-accent underline hover:text-accent-hover">{test.location.file}:{test.location.line}</button>
+            : <span className="font-mono">{test.location.file}:{test.location.line}</span>}
+        </div>
+      )}
+      {test.details && test.details !== test.message && (
+        <details className="text-xs"><summary className="cursor-pointer text-fg-secondary">{k.details}</summary>
+          <pre className="mt-1.5 max-h-60 overflow-auto rounded-lg bg-console p-3 font-mono text-[11.5px] whitespace-pre-wrap text-fg-secondary" tabIndex={0}>{test.details}</pre>
+        </details>
+      )}
+      <div className="flex gap-2">
+        <Button size="sm" variant="secondary" disabled={running} onClick={onRerun}><RotateCw size={12} /> {k.rerunFile}</Button>
+        <Button size="sm" variant="secondary" onClick={onExplain} className="text-forgy"><Bot size={13} /> {k.explain}</Button>
+      </div>
+    </div>
+  )
 }
 
 /** One of the four figures above the list */
@@ -81,19 +118,17 @@ function FileRow({ file, open, onToggle, lang, renderTest, actions }: FileRowPro
  * v3.7: a project's tests (piste A of the mock-up): the tool, Run, four
  * figures, the tests by file, the command's output below.
  */
-export default function TestsPanel({ path, runners, extra }: {
+export default function TestsPanel({ path, runners, projectName, onOpen }: {
   path: string
   runners: TestRunnerInfo[]
-  /** v3.7 lot 2: failures, reruns and Forgy, given the run and a way to start one */
-  extra?: (args: { run: TestRun; start: (files?: string[]) => void; running: boolean }) => {
-    toolbar?: React.ReactNode
-    filter?: (file: TestFile) => TestFile | null
-    renderTest?: (file: TestFile, test: TestCase) => React.ReactNode
-    fileActions?: (file: TestFile) => React.ReactNode
-  }
+  projectName?: string
+  /** v3.7 lot 2: a failure's place, opened in the Files tab */
+  onOpen?: (file: string, line: number) => void
 }) {
   const { t, lang } = useI18n()
   const k = t.tests
+  const { ask } = useAssistant()
+  const [onlyFailed, setOnlyFailed] = useState(false)
   const usable = runners.filter(r => !r.missing)
   const [runner, setRunner] = useState<TestRunner | null>(usable[0]?.runner ?? runners[0]?.runner ?? null)
   const [run, setRun] = useState<TestRun | null>(null)
@@ -141,10 +176,23 @@ export default function TestsPanel({ path, runners, extra }: {
 
   if (!runners.length || !runner) return <EmptyState icon={<FlaskConical size={28} />} title={k.none} />
 
-  const more = run && extra ? extra({ run, start, running }) : null
   // Recomputed for a partial run
   const totals = run ? run.files.reduce((t2, f) => { for (const x of f.tests) t2[x.status]++; return t2 }, { passed: 0, failed: 0, skipped: 0 }) : null
-  const shown = run ? run.files.map(f => (more?.filter ? more.filter(f) : f)).filter((f): f is TestFile => !!f) : []
+  const failedFiles = run ? run.files.filter(f => f.tests.some(x => x.status === 'failed')).map(f => f.file) : []
+  const shown = run ? run.files.flatMap(f => {
+    if (!onlyFailed) return [f]
+    const tests = f.tests.filter(x => x.status === 'failed')
+    return tests.length ? [{ ...f, tests }] : []
+  }) : []
+  // Whole-project reruns name real files; "(file)" or doc tests do not
+  const rerunnable = (file: string) => !file.startsWith('doc-tests ') && file !== '.'
+
+  function explain(file: TestFile, test: TestCase) {
+    ask(k.explainPrompt
+      .replace('{project}', projectName ?? path).replace('{tool}', LABEL[runner!])
+      .replace('{test}', [test.suite, test.name].filter(Boolean).join(' › ')).replace('{file}', test.location ? `${test.location.file}:${test.location.line}` : file.file)
+      + `\n\n\`\`\`\n${(test.details ?? test.message ?? '').slice(0, 3500)}\n\`\`\``)
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -157,7 +205,17 @@ export default function TestsPanel({ path, runners, extra }: {
         {running
           ? <Button size="sm" variant="secondary" onClick={() => window.devforge.tests.stop()}><Square size={12} /> {k.stop}</Button>
           : <Button size="sm" disabled={!!info?.missing} onClick={() => start()}><Play size={13} /> {k.run.replace('{tool}', LABEL[runner])}</Button>}
-        {more?.toolbar}
+        {failedFiles.length > 0 && !running && (
+          <Button size="sm" variant="secondary" onClick={() => start(failedFiles.filter(rerunnable))}><RotateCw size={12} /> {k.rerunFailed.replace('{n}', String(totals?.failed ?? 0))}</Button>
+        )}
+        {run && (
+          <span role="group" aria-label={k.filter} className="flex rounded-full border border-line p-0.5 text-xs">
+            {[false, true].map(v => (
+              <button key={String(v)} aria-pressed={onlyFailed === v} onClick={() => setOnlyFailed(v)}
+                className={cn('rounded-full px-3 py-1', onlyFailed === v ? 'bg-active text-fg' : 'text-fg-secondary hover:text-fg')}>{v ? k.onlyFailed : k.all}</button>
+            ))}
+          </span>
+        )}
         {running && <span className="flex items-center gap-2 text-sm text-fg-secondary"><Spinner /> {k.running}</span>}
         {run && !running && <span className="ml-auto text-xs text-fg-muted">{k.lastRun.replace('{when}', formatRelative(run.startedAt, lang))}</span>}
       </div>
@@ -186,8 +244,12 @@ export default function TestsPanel({ path, runners, extra }: {
               {shown.map(f => (
                 <FileRow key={f.file} file={f} lang={lang} open={open.has(f.file)}
                   onToggle={() => setOpen(prev => { const n = new Set(prev); if (n.has(f.file)) n.delete(f.file); else n.add(f.file); return n })}
-                  renderTest={more?.renderTest ? test => more.renderTest!(f, test) : undefined}
-                  actions={more?.fileActions?.(f)} />
+                  renderTest={test => test.status === 'failed'
+                    ? <Failure test={test} onOpen={onOpen} running={running} onRerun={() => start([f.file])} onExplain={() => explain(f, test)} />
+                    : null}
+                  actions={rerunnable(f.file) && !running
+                    ? <button onClick={() => start([f.file])} title={k.rerunFile} aria-label={`${k.rerunFile} ${f.file}`} className="rounded p-1 text-fg-muted hover:bg-hover hover:text-fg"><RotateCw size={12} /></button>
+                    : null} />
               ))}
             </div>
           )}

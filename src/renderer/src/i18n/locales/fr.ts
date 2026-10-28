@@ -1008,6 +1008,17 @@ const fr = {
   },
 
   tests: {
+    expected: "Attendu",
+    received: "Reçu",
+    at: "À",
+    details: "Message complet",
+    rerunFile: "Relancer ce fichier",
+    rerunFailed: "Relancer les échecs ({n})",
+    explain: "Expliquer avec Forgy",
+    filter: "Tests affichés",
+    all: "Tous",
+    onlyFailed: "Échecs seulement",
+    explainPrompt: "Ce test échoue dans le projet {project} ({tool}) : « {test} », à {file}. Explique pourquoi et propose une correction. Voici le message :",
     none: "Aucun outil de test trouvé dans ce projet.",
     runner: "Outil de test",
     run: "Lancer les tests ({tool})",
