@@ -43,7 +43,8 @@ test('a table of 2,500 rows exports in three formats; a CSV imports, or is refus
     await saveTo(path)
     await page.getByRole('button', { name: 'Exporter' }).click()
     await page.getByRole('menuitem', { name: label, exact: true }).click()
-    await expect(page.getByText('2500 ligne(s) exportée(s)').last()).toBeVisible()
+    // This export's own message (the previous one may still be on screen): the file is complete
+    await expect(page.getByRole('status').filter({ hasText: '2500 ligne(s) exportée(s)' }).filter({ hasText: path })).toBeVisible()
   }
   await exportAs('CSV', join(dir, 'out.csv'))
   const csv = readFileSync(join(dir, 'out.csv'), 'utf-8').split('\n')
