@@ -2,6 +2,23 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [3.7.0](https://github.com/victhille/devforge/compare/v3.6.0...v3.7.0) — 2026-10-28
+
+> Un onglet Tests dans la fiche projet (Vitest, Jest, Playwright, PHPUnit, pytest, Go, Cargo) : chaque test, ses échecs avec attendu et reçu, relancer, demander à Forgy ; et l'arbre des fichiers montre ce qui a changé depuis le dernier commit, avec le diff.
+
+### Nouveautés
+
+- **fichiers** : Git dans l'arbre de fichiers et le diff dans l'aperçu (v3.7 lot 3) ([6443b29](https://github.com/victhille/devforge/commit/6443b29afc2101648922cb12a0e268dd82053031))
+- **tests** : Échecs dépliés, relancer, Forgy (v3.7 lot 2) ([f9cec82](https://github.com/victhille/devforge/commit/f9cec82ff6a1a53950eb8a9c2911fe9d9182d651))
+- **tests** : Onglet Tests dans la fiche projet (v3.7 lot 1) ([64d3357](https://github.com/victhille/devforge/commit/64d3357e7c43bfa374b60a824dff310cf9c5798f))
+
+### Corrections
+
+- **tests** : L'endroit d'un échec se lit aussi sous un nom de dossier court de Windows (RUNNER~1) ([4a397f1](https://github.com/victhille/devforge/commit/4a397f1ac4f00a96d1d2f7b669d3682f9ace3c61))
+- **fichiers** : La recherche reste dans sa carte avec de longues lignes, une ligne trouvée plusieurs fois n'apparaît qu'une fois ([087dfc8](https://github.com/victhille/devforge/commit/087dfc8071c896bb8e7a77fef085eab78dd0f488))
+
+_2 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [3.6.0](https://github.com/victhille/devforge/compare/v3.5.3...v3.6.0) — 2026-10-28
 
 > Les paquets Python, Rust, Go, Ruby et Dart se mettent à jour et s'auditent, les lignes d'une table se modifient en une transaction, une table s'exporte (CSV, JSON, SQL) et un CSV s'importe, et une recherche parcourt tout le projet ; un fichier s'ouvre dans la fenêtre de son projet.

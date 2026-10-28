@@ -2,6 +2,23 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [3.7.0](https://github.com/victhille/devforge/compare/v3.6.0...v3.7.0) — 2026-10-28
+
+> A Tests tab on the project page (Vitest, Jest, Playwright, PHPUnit, pytest, Go, Cargo): each test, its failures with expected and received, run again, ask Forgy; and the file tree shows what changed since the last commit, with the diff.
+
+### New features
+
+- **fichiers**: Git dans l'arbre de fichiers et le diff dans l'aperçu (v3.7 lot 3) ([6443b29](https://github.com/victhille/devforge/commit/6443b29afc2101648922cb12a0e268dd82053031))
+- **tests**: Échecs dépliés, relancer, Forgy (v3.7 lot 2) ([f9cec82](https://github.com/victhille/devforge/commit/f9cec82ff6a1a53950eb8a9c2911fe9d9182d651))
+- **tests**: Onglet Tests dans la fiche projet (v3.7 lot 1) ([64d3357](https://github.com/victhille/devforge/commit/64d3357e7c43bfa374b60a824dff310cf9c5798f))
+
+### Fixes
+
+- **tests**: L'endroit d'un échec se lit aussi sous un nom de dossier court de Windows (RUNNER~1) ([4a397f1](https://github.com/victhille/devforge/commit/4a397f1ac4f00a96d1d2f7b669d3682f9ace3c61))
+- **fichiers**: La recherche reste dans sa carte avec de longues lignes, une ligne trouvée plusieurs fois n'apparaît qu'une fois ([087dfc8](https://github.com/victhille/devforge/commit/087dfc8071c896bb8e7a77fef085eab78dd0f488))
+
+_2 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [3.6.0](https://github.com/victhille/devforge/compare/v3.5.3...v3.6.0) — 2026-10-28
 
 > Python, Rust, Go, Ruby and Dart packages are updated and audited, a table's rows are edited in one transaction, a table exports (CSV, JSON, SQL) and a CSV imports, and a search goes through the whole project; a file opens in its project's window.
