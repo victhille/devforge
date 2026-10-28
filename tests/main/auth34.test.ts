@@ -21,9 +21,11 @@ describe('v3.4: authentication contract', () => {
   })
 
   it('gives authentication without a database SQLite, and leaves the rest as chosen', () => {
-    expect(withAuthDatabase(setup()).database).toBe('sqlite')
-    expect(withAuthDatabase(setup({ database: 'postgres' })).database).toBe('postgres')
-    expect(withAuthDatabase(setup({ features: [] })).database).toBe('none')
+    expect(withAuthDatabase(setup(), 'laravel').database).toBe('sqlite')
+    expect(withAuthDatabase(setup({ database: 'postgres' }), 'laravel').database).toBe('postgres')
+    expect(withAuthDatabase(setup({ features: [] }), 'laravel').database).toBe('none')
+    // A React or Vue front keeps no accounts: its server does
+    expect(withAuthDatabase(setup(), 'react').database).toBe('none')
     // The plan follows: Laravel writes SQLite to its .env, with no Docker step
     const steps = planSetup({ name: 'shop', framework: 'laravel', packageManager: 'npm', typescript: true, eslint: true, setup: setup() }, { password: 'pw', secret: 's', lang: 'fr', composeName: '' })
     expect(steps.find(s => s.kind === 'env' && s.file === '.env')).toMatchObject({ vars: { DB_CONNECTION: 'sqlite' } })

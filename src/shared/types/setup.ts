@@ -18,6 +18,8 @@ export interface ProjectSetup {
   openVSCode: boolean
   /** v3.4: DevForge's welcome page in place of the framework's */
   welcome?: boolean
+  /** v3.4: the server a React or Vue front with authentication talks to (Vite proxies /api to it) */
+  apiUrl?: string
 }
 
 /** One step of the plan: shown as is in the summary, then run in order */

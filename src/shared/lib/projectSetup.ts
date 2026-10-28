@@ -3,6 +3,7 @@ import { WELCOME_FRAMEWORKS, welcomeFiles } from './welcomePage'
 import { NEXT_AUTH_PACKAGES, USER_MODEL, nextAuthFiles } from './nextAuthTemplate'
 import { laravelAuthFiles, laravelAuthPatches } from './laravelAuthTemplate'
 import { SYMFONY_AUTH_PACKAGES, symfonyAuthFiles } from './symfonyAuthTemplate'
+import { API_URL_RE, DEFAULT_API_URL, spaAuthFiles, spaAuthPatches } from './spaAuthTemplate'
 import type { Framework, PackageManager, ProjectCreationOptions, ProjectSetup, SetupFeature, SetupStep } from '../types'
 
 /**
@@ -42,6 +43,7 @@ const LABELS = {
     sail: 'Laravel Sail', sailInstall: 'Conteneurs Sail', sailInitScript: 'Base « testing » de Sail retirée (illisible hors WSL)', sailStart: 'Démarrage de Sail (construction de l\'image)',
     gitInit: 'Dépôt Git', gitAdd: 'Fichiers suivis', gitCommit: 'Premier commit', github: 'Dépôt GitHub', vscode: 'Ouverture dans VS Code',
     install: 'Installation des dépendances', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Configuration de Tailwind CSS',
+    spaAuth: 'Connexion, inscription et client de l\'API', spaMain: 'Pages d\'authentification montées', spaProxy: 'Proxy /api vers le serveur',
     sfAuthDeps: 'Twig et CSRF', sfAuthFiles: 'Entité User, sécurité, pages et API du contrat', sfMigration: 'Migration de la table user',
     authViews: 'Pages de connexion (Blade)', fortifyViews: 'Vues de Fortify', fortifyHome: 'Après connexion : /dashboard', authRoutes: 'Routes du tableau de bord et de l\'API',
     userModel: 'Modèle User (Prisma)', authPages: 'Connexion, inscription et API du contrat', authNext: 'Authentification (bcryptjs, jose)',
@@ -57,6 +59,7 @@ const LABELS = {
     sail: 'Laravel Sail', sailInstall: 'Sail containers', sailInitScript: 'Sail\'s "testing" database removed (unreadable outside WSL)', sailStart: 'Starting Sail (building the image)',
     gitInit: 'Git repository', gitAdd: 'Tracked files', gitCommit: 'First commit', github: 'GitHub repository', vscode: 'Opening in VS Code',
     install: 'Installing dependencies', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Tailwind CSS setup',
+    spaAuth: 'Sign-in, sign-up and the API client', spaMain: 'Authentication pages mounted', spaProxy: '/api proxied to the server',
     sfAuthDeps: 'Twig and CSRF', sfAuthFiles: 'User entity, security, pages and the contract\'s API', sfMigration: 'Migration of the user table',
     authViews: 'Sign-in pages (Blade)', fortifyViews: 'Fortify\'s views', fortifyHome: 'After sign-in: /dashboard', authRoutes: 'Dashboard and API routes',
     userModel: 'User model (Prisma)', authPages: 'Sign-in, sign-up and the contract\'s API', authNext: 'Authentication (bcryptjs, jose)',
@@ -442,17 +445,23 @@ function commonSteps(o: Opts, ctx: PlanContext): SetupStep[] {
     steps.push({ kind: 'run', label: l.tailwindDeps, exe: pm, args: pmAdd(pm, ['@tailwindcss/vite'], true), skipIf: 'node_modules/@tailwindcss/vite' })
     steps.push({ kind: 'tailwind', label: l.tailwind })
   }
+  // v3.4: a React or Vue front, client of the contract (TypeScript templates)
+  if ((o.framework === 'react' || o.framework === 'vue') && o.typescript && o.setup.features.includes('auth')) {
+    const apiUrl = o.setup.apiUrl && API_URL_RE.test(o.setup.apiUrl) ? o.setup.apiUrl.replace(/\/+$/, '') : DEFAULT_API_URL
+    steps.push({ kind: 'write', label: l.spaAuth, files: spaAuthFiles(o.framework, o.name, ctx.lang, apiUrl) })
+    steps.push(...spaAuthPatches(o.framework, apiUrl, { main: l.spaMain, proxy: l.spaProxy }))
+  }
   return steps
 }
 
-/** v3.4: accounts need somewhere to live: authentication without a database takes SQLite (no Docker) */
-export function withAuthDatabase(s: ProjectSetup): ProjectSetup {
-  return s.features.includes('auth') && s.database === 'none' ? { ...s, database: 'sqlite' } : s
+/** v3.4: accounts need somewhere to live: authentication without a database takes SQLite (no Docker), on the servers (a React or Vue front keeps none) */
+export function withAuthDatabase(s: ProjectSetup, fw: Framework): ProjectSetup {
+  return SETUP_FRAMEWORKS.includes(fw) && s.features.includes('auth') && s.database === 'none' ? { ...s, database: 'sqlite' } : s
 }
 
 /** Every step after the framework's creation, in order */
 export function planSetup(input: Opts, ctx: PlanContext): SetupStep[] {
-  const o = { ...input, setup: withAuthDatabase(input.setup) }
+  const o = { ...input, setup: withAuthDatabase(input.setup, input.framework) }
   const s = o.setup, l = LABELS[ctx.lang], steps: SetupStep[] = commonSteps(o, ctx)
   if (SETUP_FRAMEWORKS.includes(o.framework)) {
     steps.push(...(o.framework === 'symfony' ? symfonySteps(o, ctx) : o.framework === 'laravel' ? laravelSteps(o, ctx) : nextSteps(o, ctx)))

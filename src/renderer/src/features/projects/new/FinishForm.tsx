@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import type { ProjectCreationOptions, ProjectSetup } from '@shared/types'
 import { planSetup, REPO_RE, stepCommand } from '@shared/lib/projectSetup'
 import { WELCOME_FRAMEWORKS } from '@shared/lib/welcomePage'
+import { API_URL_RE, DEFAULT_API_URL } from '@shared/lib/spaAuthTemplate'
 import { PROJECT_TEMPLATES } from '@shared/data/projectTemplates'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
@@ -30,6 +31,11 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
   const [repo, setRepo] = useState(options.name)
   const [openVSCode, setOpenVSCode] = useState(true)
   const [welcome, setWelcome] = useState(true)
+  // v3.4: a React or Vue front (TypeScript) can be the contract's client
+  const spa = (options.framework === 'react' || options.framework === 'vue') && options.typescript
+  const [spaAuth, setSpaAuth] = useState(false)
+  const [apiUrl, setApiUrl] = useState(DEFAULT_API_URL)
+  const apiOk = !spaAuth || API_URL_RE.test(apiUrl)
   const [login, setLogin] = useState<string | null | undefined>(undefined)
   const [busy, setBusy] = useState(false)
   const [volumes, setVolumes] = useState<string[]>([])
@@ -53,7 +59,8 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
   const setup: ProjectSetup = {
     database: stack?.database ?? 'none', dbName: stack?.dbName ?? '', dbPort: stack?.dbPort ?? 0, appPort: stack?.appPort, features: stack?.features ?? [],
     git: git || github, github: github ? { repo, private: isPrivate } : null, openVSCode,
-    welcome: WELCOME_FRAMEWORKS.includes(options.framework) && welcome
+    welcome: WELCOME_FRAMEWORKS.includes(options.framework) && welcome,
+    ...(spa && spaAuth ? { features: ['auth'], apiUrl } : {})
   }
   const steps = planSetup({ ...options, setup }, { password: '••••', secret: '••••', composeName: '', lang: lang === 'en' ? 'en' : 'fr' })
   const template = PROJECT_TEMPLATES.find(tpl => tpl.id === options.framework)
@@ -92,6 +99,21 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
               </span>
             </Checkbox>
           )}
+          {spa && (
+            <Checkbox checked={spaAuth} onChange={setSpaAuth} className="items-start">
+              <span className="flex flex-col">
+                <span>{s.spaAuth}</span>
+                <span className="text-sm text-fg-muted">{s.spaAuthHint}</span>
+              </span>
+            </Checkbox>
+          )}
+          {spa && spaAuth && (
+            <div className="pl-6">
+              <Field label={s.apiUrl} hint={s.apiUrlHint} error={apiOk ? undefined : s.apiUrlError}>
+                <Input value={apiUrl} onChange={e => setApiUrl(e.target.value.trim())} className="font-mono" spellCheck={false} invalid={!apiOk} />
+              </Field>
+            </div>
+          )}
           <Checkbox checked={openVSCode} onChange={setOpenVSCode}>{s.openVSCode}</Checkbox>
         </Card>
 
@@ -120,7 +142,7 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
 
       <div className="flex justify-end gap-2">
         <Button variant="ghost" onClick={onBack}>{t.newProject.cancel}</Button>
-        <Button size="lg" disabled={busy || (github && !repoOk)} onClick={() => { setBusy(true); onSubmit(setup) }}>{t.newProject.create}</Button>
+        <Button size="lg" disabled={busy || (github && !repoOk) || !apiOk} onClick={() => { setBusy(true); onSubmit(setup) }}>{t.newProject.create}</Button>
       </div>
     </Page>
   )
