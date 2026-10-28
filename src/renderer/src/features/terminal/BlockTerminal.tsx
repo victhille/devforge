@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { Bookmark, Bot, Check, ChevronDown, ChevronRight, Copy, RotateCcw, Square, X } from 'lucide-react'
-import type { TerminalHistoryEntry } from '@shared/types'
+import type { PackageManager, TerminalHistoryEntry } from '@shared/types'
+import { scriptCommand, suggestRest } from '@shared/lib/terminalSuggest'
+import { DOCS } from '@renderer/features/docs/data'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { useAssistant } from '@renderer/features/assistant/AssistantContext'
@@ -196,6 +198,35 @@ function InputBar({ shell, historyKey, shellLabel, onAsk }: {
   const [searching, setSearching] = useState(false)
   const [pick, setPick] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  // v3.5: the greyed rest of the line, from the project's scripts, its history and the docs
+  const [suggest, setSuggest] = useState(true)
+  const [scripts, setScripts] = useState<string[]>([])
+  const [docs, setDocs] = useState<string[]>([])
+  const [atEnd, setAtEnd] = useState(true)
+  const local = !historyKey.startsWith('ssh:')
+
+  useEffect(() => {
+    window.devforge.getSettings().then(st => setSuggest(st.terminalSuggest !== false)).catch(() => {})
+    window.devforge.docs.list()
+      .then(own => setDocs([...own.map(c => c.cmd), ...DOCS.flatMap(d => d.sections.flatMap(x => x.entries.map(e => e.cmd)))]))
+      .catch(() => setDocs(DOCS.flatMap(d => d.sections.flatMap(x => x.entries.map(e => e.cmd)))))
+  }, [])
+
+  // The scripts of the folder the shell is in, with the project's package manager
+  useEffect(() => {
+    if (!local || !shell.cwd) { setScripts([]); return }
+    let alive = true
+    Promise.all([window.devforge.getProjectScripts(shell.cwd).catch(() => ({})), window.devforge.getProjects().catch(() => [])]).then(([found, projects]) => {
+      const pm: PackageManager = projects.find(p => p.path.toLowerCase() === shell.cwd.toLowerCase())?.packageManager ?? 'npm'
+      if (alive) setScripts(Object.keys(found).map(name => scriptCommand(pm, name)))
+    })
+    return () => { alive = false }
+  }, [local, shell.cwd])
+
+  const rest = useMemo(
+    () => suggest && atEnd ? suggestRest(value, { scripts, history: history.map(h => h.cmd), docs }) : '',
+    [suggest, atEnd, value, scripts, history, docs]
+  )
 
   // Read again after each command
   useEffect(() => {
@@ -227,6 +258,8 @@ function InputBar({ shell, historyKey, shellLabel, onAsk }: {
       else if (e.key === 'Enter') { e.preventDefault(); if (matches[pick]) { setValue(matches[pick].cmd); setSearching(false) } }
       return
     }
+    // → or End at the end of the line takes the greyed rest
+    if ((e.key === 'ArrowRight' || e.key === 'End') && rest) { e.preventDefault(); setValue(value + rest); setCursor(null); return }
     if (e.key === 'Enter') { e.preventDefault(); submit() }
     else if (e.key === 'ArrowUp' && history.length) {
       e.preventDefault()
@@ -261,10 +294,22 @@ function InputBar({ shell, historyKey, shellLabel, onAsk }: {
         <span className="truncate" title={shell.cwd}>{shell.cwd || '…'}</span>
         <span className="ml-auto shrink-0">{shellLabel}</span>
       </div>
-      <input ref={inputRef} value={value} disabled={disabled} onChange={e => { setValue(e.target.value); setCursor(null) }} onKeyDown={onKey}
-        aria-label={s.inputLabel} placeholder={placeholder} spellCheck={false} autoComplete="off"
-        className="mt-1 w-full bg-transparent font-mono text-[13.5px] text-fg outline-none placeholder:text-fg-secondary disabled:cursor-not-allowed" />
+      <div className="relative mt-1">
+        {/* The greyed rest, drawn behind the typed text at the same place */}
+        {rest && !disabled && (
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden font-mono text-[13.5px] whitespace-pre">
+            <span className="invisible">{value}</span><span data-testid="terminal-suggestion" className="text-[#5A6372]">{rest}</span>
+          </div>
+        )}
+        <input ref={inputRef} value={value} disabled={disabled} onKeyDown={onKey}
+          onChange={e => { setValue(e.target.value); setCursor(null); setAtEnd(e.target.selectionStart === e.target.value.length) }}
+          onSelect={e => { const el = e.currentTarget; setAtEnd(el.selectionStart === el.value.length && el.scrollWidth <= el.clientWidth) }}
+          aria-label={s.inputLabel} aria-describedby={rest ? 'terminal-suggest' : undefined} placeholder={placeholder} spellCheck={false} autoComplete="off"
+          className="relative w-full bg-transparent font-mono text-[13.5px] text-fg outline-none placeholder:text-fg-secondary disabled:cursor-not-allowed" />
+        {rest && <span id="terminal-suggest" className="sr-only">{s.suggestion.replace('{cmd}', value + rest)}</span>}
+      </div>
       <div className="mt-1 flex flex-wrap gap-x-4 text-[11px] text-fg-secondary">
+        {suggest && <span><kbd className="font-mono">→</kbd> {s.hintAccept}</span>}
         <span><kbd className="font-mono">↑↓</kbd> {s.hintHistory}</span>
         <span><kbd className="font-mono">Ctrl+R</kbd> {s.hintSearch}</span>
         <span><kbd className="font-mono">#</kbd> {s.hintForgy}</span>

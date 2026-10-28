@@ -144,6 +144,9 @@ export default function SettingsPage() {
               <SettingRow label={s.startWithWindows} hint={s.startWithWindowsHint}>
                 <Switch checked={settings.startWithWindows} onChange={v => set('startWithWindows', v)} label={s.startWithWindows} />
               </SettingRow>
+              <SettingRow label={s.terminalSuggest} hint={s.terminalSuggestHint}>
+                <Switch checked={settings.terminalSuggest !== false} onChange={v => set('terminalSuggest', v)} label={s.terminalSuggest} />
+              </SettingRow>
               <SettingRow label={s.minimizeToTray} hint={s.minimizeToTrayHint}>
                 <Switch checked={settings.minimizeToTray} onChange={v => set('minimizeToTray', v)} label={s.minimizeToTray} />
               </SettingRow>

@@ -166,6 +166,8 @@ export interface AppSettings {
   defaultIDE: DefaultIDE
   /** v3.5: IDEs added by hand */
   customIdes?: CustomIde[]
+  /** v3.5: the greyed rest of a terminal line (on unless turned off) */
+  terminalSuggest?: boolean
   theme: Theme
   defaultTerminal: DefaultTerminal
   language: AppLanguage
