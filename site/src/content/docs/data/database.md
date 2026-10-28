@@ -1,6 +1,6 @@
 ---
 title: Base de données
-description: Un client PostgreSQL, MySQL / MariaDB et SQLite, avec détection des bases de tes projets et de tes serveurs, et tunnel SSH.
+description: Un client PostgreSQL, MySQL / MariaDB et SQLite, avec détection des bases de tes projets et de tes serveurs, tunnel SSH, tables et lignes modifiables, import CSV et export.
 ---
 
 La page **Base de données** est un client pour **PostgreSQL**, **MySQL / MariaDB** et **SQLite**. Les mots de passe sont chiffrés par Windows.
@@ -38,7 +38,7 @@ Pour une table :
 
 | Onglet | Contenu |
 |---|---|
-| Parcourir | les lignes, page par page, triables en cliquant sur une colonne |
+| Parcourir | les lignes, page par page, triables en cliquant sur une colonne ; modifiables (voir plus bas), exportables, et un CSV s'y importe |
 | Structure | colonnes (type, null, défaut, clé, extra, commentaire) et index ; ajouter, modifier ou supprimer une colonne, renommer ou supprimer la table (voir plus bas) |
 | Relations | clés étrangères vers d'autres tables, et tables qui pointent vers celle-ci |
 | SQL | une requête sur cette table |
@@ -54,6 +54,27 @@ Chaque fenêtre montre d'abord la **requête qui va partir** ; rien ne s'exécut
 Un défaut est pris tel quel s'il s'agit d'un nombre, d'un mot-clé (`CURRENT_TIMESTAMP`, `NULL`, `TRUE`…), d'une fonction (`now()`) ou d'une chaîne déjà entre apostrophes ; sinon il est mis entre apostrophes.
 
 **SQLite** ne sait que renommer une colonne : pour changer son type, son défaut ou « Requis », la fenêtre renvoie à l'onglet **SQL**.
+
+## Modifier les lignes
+
+Dans **Parcourir**, une table qui a une **clé primaire** se modifie sur place :
+
+- **double-clic** (ou <kbd>Entrée</kbd>) sur une cellule pour la modifier ; **NULL** d'un clic à côté du champ ; <kbd>Échap</kbd> annule ;
+- **Ajouter une ligne** : une ligne vide en haut ; une cellule laissée vide garde la valeur par défaut de la colonne (l'auto-incrément, par exemple) ;
+- coche des lignes, puis **Supprimer** : elles sont barrées ; **Garder** les reprend.
+
+Les changements en attente sont surlignés ; tant qu'il y en a, la page et le tri ne changent pas. **Appliquer (n modifications)** montre les requêtes `UPDATE`, `INSERT` et `DELETE`, puis les lance **en une transaction** : si l'une échoue, aucune n'est gardée et le message de la base reste affiché. **Annuler les modifications** les oublie.
+
+Les valeurs partent en paramètres, jamais collées dans le SQL. Une table sans clé primaire, une vue et les résultats de l'onglet SQL restent en lecture ; les colonnes binaires ne se modifient pas ici.
+
+## Importer et exporter
+
+- **Exporter** (dans **Parcourir**) écrit **toute la table** dans un fichier, pas seulement la page affichée : **CSV**, **JSON**, **SQL** (des `INSERT`) ou **SQL avec CREATE TABLE**. Les lignes sont lues par paquets de 1 000, dans l'ordre de la clé primaire.
+- Les résultats d'une requête s'enregistrent aussi, en CSV ou en JSON, avec le bouton à côté de **Copier**.
+- **Importer un CSV** : choisis le fichier ; le séparateur (`,`, `;`, tabulation, `|`) et l'encodage (UTF-8, ou Windows-1252 comme les CSV d'Excel) sont reconnus. Chaque colonne du fichier va dans la colonne de la table du même nom (casse, espaces, `_` et `-` ignorés) ; sous chaque en-tête, tu la changes ou tu l'ignores. Les 10 premières lignes s'affichent ; **Une cellule vide devient NULL** est coché par défaut.
+- L'import part **en une transaction** : si une ligne est refusée (colonne requise vide, doublon de clé…), aucune n'est gardée et la ligne fautive du fichier est donnée. 50 Mo au plus.
+
+Les fichiers passent toujours par la fenêtre d'enregistrement ou d'ouverture de Windows.
 
 ## Requêtes SQL
 

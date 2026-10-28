@@ -25,7 +25,7 @@ Forgy peut aussi **agir**. Chaque action s'affiche en **carte** dans le panneau 
 | Client VPN | crée un client WireGuard ; la page VPN s'ouvre sur son QR code | non | non |
 | Sauvegarde | lance tout de suite la sauvegarde de nuit du serveur | non | non |
 | GitHub Actions | relance les jobs en échec d'un run | non | non |
-| Paquets | met à jour des [paquets](/devforge/dev/packages/) npm, pnpm, yarn ou Composer, dans leur intervalle ou vers la dernière version (une majeure est signalée sur la carte) | oui : manifeste et verrouillage remis, puis réinstallation | non |
+| Paquets | met à jour des [paquets](/devforge/dev/packages/) npm, pnpm, yarn, Composer, Python (pip dans l'environnement virtuel, Poetry, uv, Pipenv), Cargo, Go, Bundler ou pub, dans leur intervalle ou vers la dernière version (une majeure est signalée sur la carte) | oui : manifeste et verrouillage remis, puis réinstallation | non |
 
 ## Toujours demander, ou Auto
 
@@ -42,7 +42,7 @@ Forgy peut aussi **agir**. Chaque action s'affiche en **carte** dans le panneau 
 | Git | jamais de push forcé ; un premier push (sans upstream) se fait depuis la page Git |
 | `.env` | jamais de modification d'une clé existante |
 | Ports | jamais un service Windows ni DevForge |
-| Paquets | seulement des paquets déclarés dans le manifeste ; Composer absent ou manifeste ambigu : refusé avant toute carte |
+| Paquets | seulement des paquets déclarés dans le manifeste ; outil absent (Composer, environnement virtuel, poetry, cargo…), .NET, Java ou manifeste ambigu : refusé avant toute carte |
 | Refus | Forgy est prévenu et ne relance pas l'action |
 | Arrêt | arrêter la réponse vaut refus des actions en attente |
 

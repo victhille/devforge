@@ -1,6 +1,6 @@
 ---
 title: Database
-description: A PostgreSQL, MySQL / MariaDB and SQLite client, finding the databases of your projects and servers, with SSH tunnels.
+description: A PostgreSQL, MySQL / MariaDB and SQLite client, finding the databases of your projects and servers, with SSH tunnels, editable tables and rows, CSV import and export.
 ---
 
 The **Database** page is a client for **PostgreSQL**, **MySQL / MariaDB** and **SQLite**. Passwords are encrypted by Windows.
@@ -38,7 +38,7 @@ For a table:
 
 | Tab | Content |
 |---|---|
-| Browse | the rows, page by page, sortable by clicking a column |
+| Browse | the rows, page by page, sortable by clicking a column; editable (see below), exportable, and a CSV imports into it |
 | Structure | columns (type, null, default, key, extra, comment) and indexes; add, edit or drop a column, rename or drop the table (see below) |
 | Relations | foreign keys to other tables, and tables pointing to this one |
 | SQL | a query on this table |
@@ -54,6 +54,27 @@ Each dialog first shows the **query about to run**; nothing runs before **Apply*
 A default is kept as is when it is a number, a keyword (`CURRENT_TIMESTAMP`, `NULL`, `TRUE`…), a function (`now()`) or a string already in quotes; otherwise it is quoted.
 
 **SQLite** can only rename a column: to change its type, default or "Required", the dialog points to the **SQL** tab.
+
+## Editing rows
+
+In **Browse**, a table with a **primary key** is edited in place:
+
+- **double-click** (or <kbd>Enter</kbd>) a cell to edit it; **NULL** in one click next to the field; <kbd>Esc</kbd> cancels;
+- **Add a row**: an empty row at the top; a cell left empty keeps the column's default (an auto-increment, say);
+- check rows, then **Delete**: they are struck through; **Keep** takes them back.
+
+Pending changes are highlighted; while there are some, the page and the sort stay put. **Apply (n changes)** shows the `UPDATE`, `INSERT` and `DELETE` queries, then runs them **in one transaction**: if one fails, none is kept and the database's message stays on screen. **Drop the changes** forgets them.
+
+Values travel as parameters, never pasted into the SQL. A table without a primary key, a view and the SQL tab's results stay read only; binary columns are not edited here.
+
+## Import and export
+
+- **Export** (in **Browse**) writes **the whole table** to a file, not just the page shown: **CSV**, **JSON**, **SQL** (`INSERT`s) or **SQL with CREATE TABLE**. Rows are read 1,000 at a time, in primary key order.
+- A query's results can be saved too, as CSV or JSON, with the button next to **Copy**.
+- **Import a CSV**: pick the file; the separator (`,`, `;`, tab, `|`) and the encoding (UTF-8, or Windows-1252 as Excel's CSVs) are recognised. Each column of the file goes into the table's column of the same name (case, spaces, `_` and `-` ignored); under each header you change it or skip it. The first 10 rows show; **An empty cell becomes NULL** is checked by default.
+- The import runs **in one transaction**: if a row is refused (a required column empty, a duplicate key…), none is kept and the file's faulty line is given. 50 MB at most.
+
+Files always go through Windows' save or open window.
 
 ## SQL queries
 

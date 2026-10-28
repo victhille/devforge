@@ -25,7 +25,7 @@ Forgy can also **act**. Each action shows as a **card** in the panel: what will 
 | VPN client | creates a WireGuard client; the VPN page opens on its QR code | no | no |
 | Backup | runs the server's nightly backup right now | no | no |
 | GitHub Actions | re-runs the failed jobs of a run | no | no |
-| Packages | updates npm, pnpm, yarn or Composer [packages](/devforge/en/dev/packages/), within their range or to the latest version (a major is flagged on the card) | yes: manifest and lockfile put back, then reinstall | no |
+| Packages | updates npm, pnpm, yarn, Composer, Python (pip in the virtual environment, Poetry, uv, Pipenv), Cargo, Go, Bundler or pub [packages](/devforge/en/dev/packages/), within their range or to the latest version (a major is flagged on the card) | yes: manifest and lockfile put back, then reinstall | no |
 
 ## Always ask, or Auto
 
@@ -42,7 +42,7 @@ Forgy can also **act**. Each action shows as a **card** in the panel: what will 
 | Git | never a force push; a first push (no upstream) is done from the Git page |
 | `.env` | never changes an existing key |
 | Ports | never a Windows service nor DevForge |
-| Packages | only packages declared in the manifest; Composer missing or an ambiguous manifest: refused before any card |
+| Packages | only packages declared in the manifest; a missing tool (Composer, virtual environment, poetry, cargo…), .NET, Java or an ambiguous manifest: refused before any card |
 | Refusal | Forgy is told and does not run the action again |
 | Stop | stopping the answer refuses the pending actions |
 

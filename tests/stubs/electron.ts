@@ -29,5 +29,6 @@ export class Notification {
 /** Save / open dialogs: `next` is the path the user "picks", empty for Cancel */
 export const dialog = {
   next: '',
-  showSaveDialog: async () => (dialog.next ? { canceled: false, filePath: dialog.next } : { canceled: true, filePath: undefined })
+  showSaveDialog: async () => (dialog.next ? { canceled: false, filePath: dialog.next } : { canceled: true, filePath: undefined }),
+  showOpenDialog: async () => (dialog.next ? { canceled: false, filePaths: [dialog.next] } : { canceled: true, filePaths: [] })
 }

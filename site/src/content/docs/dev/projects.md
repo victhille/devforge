@@ -83,6 +83,17 @@ Dans l'onglet **Fichiers**, un clic sur un fichier l'ouvre à côté de l'arbre 
 
 Un fichier binaire (archive, exécutable, document Office) ou trop gros (plus de 1 Mo de texte, 10 Mo d'image, 30 Mo de PDF) le dit au lieu de s'afficher. Rien n'est lancé : le fichier est seulement lu.
 
+### Rechercher dans le projet
+
+En haut de l'onglet **Fichiers**, **Rechercher dans le projet** cherche un texte dans tous les fichiers du projet, 300 ms après la dernière touche :
+
+- trois boutons dans le champ : **Respecter la casse**, **Mot entier**, **Expression régulière** ;
+- sous le champ, un filtre de fichiers : `*.ts` (le nom), `src/**` (le chemin), `!*.test.ts` (exclure), séparés par des virgules ;
+- les résultats remplacent l'arbre, groupés par fichier, le texte trouvé surligné ; un clic ouvre le fichier dans l'aperçu **à sa ligne**, surlignée, et **Ouvrir dans** *ton IDE* l'ouvre à cette ligne (VS Code et sa famille, Zed, les IDE JetBrains, Sublime Text, Notepad++) ;
+- <kbd>Échap</kbd> efface la recherche et ramène l'arbre.
+
+Sont laissés de côté : `node_modules`, `vendor`, les builds (`dist`, `build`, `target`…), les environnements virtuels, les dossiers cachés (sauf `.github`, `.vscode`…), les fichiers binaires et ceux de plus de 1 Mo. La recherche s'arrête à 1 000 résultats.
+
 ### La base de données du projet
 
 L'onglet **Base de données** affiche directement la base liée : les tables dans une colonne repliable, puis les mêmes onglets que la page [Base de données](/devforge/data/database/#explorer) (**Base** et **SQL**, et pour une table **Parcourir**, **Structure**, **Relations**, **Infos**). La connexion ne s'ouvre qu'à l'affichage de l'onglet.

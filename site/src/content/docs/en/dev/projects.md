@@ -83,6 +83,17 @@ In the **Files** tab, clicking a file opens it next to the tree:
 
 A binary file (archive, program, Office document) or one too big (over 1 MB of text, 10 MB of image, 30 MB of PDF) says so instead. Nothing runs: the file is only read.
 
+### Searching the project
+
+At the top of the **Files** tab, **Search the project** looks for a text in every file of the project, 300 ms after the last key:
+
+- three buttons in the field: **Match case**, **Whole word**, **Regular expression**;
+- under the field, a file filter: `*.ts` (the name), `src/**` (the path), `!*.test.ts` (leave out), comma-separated;
+- the results replace the tree, grouped by file, the text found highlighted; a click opens the file in the preview **at its line**, highlighted, and **Open in** *your IDE* opens it at that line (VS Code and its family, Zed, the JetBrains IDEs, Sublime Text, Notepad++);
+- <kbd>Esc</kbd> clears the search and brings the tree back.
+
+Left out: `node_modules`, `vendor`, builds (`dist`, `build`, `target`…), virtual environments, hidden folders (but `.github`, `.vscode`…), binary files and files over 1 MB. The search stops at 1,000 results.
+
 ### The project's database
 
 The **Database** tab shows the linked database right there: the tables in a collapsible column, then the same tabs as the [Database](/devforge/en/data/database/#explore) page (**Database** and **SQL**, and for a table **Browse**, **Structure**, **Relations**, **Info**). The connection only opens when the tab shows.
