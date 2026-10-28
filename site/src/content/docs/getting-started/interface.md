@@ -85,6 +85,16 @@ Une action sensible demande <kbd>Entrée</kbd> une seconde fois. Le lanceur se r
 - Une ligne qui commence par `#` est une question pour Forgy.
 - Pendant qu'un programme tourne, tape dans le bloc, ou **Arrêter** (<kbd>Ctrl</kbd> <kbd>C</kbd>).
 
+### Les suggestions
+
+Pendant que tu tapes, la **suite probable** de la ligne s'affiche en gris après le curseur, comme dans le shell fish. Elle vient, dans l'ordre :
+
+1. des **scripts du projet** du dossier où tu es (`npm run dev`, `pnpm build`…, selon son gestionnaire de paquets) ;
+2. de l'**historique** de ce dossier, le plus récent d'abord ;
+3. des commandes de la page [Docs](/devforge/tools/utilities/#docs), les tiennes comprises.
+
+<kbd>→</kbd> ou <kbd>Fin</kbd> l'accepte. Si tu continues de taper, elle suit ou disparaît ; <kbd>Entrée</kbd> lance ce qui est tapé, pas la suggestion. Tout se calcule sur ton PC, sur des listes déjà chargées : la saisie n'est pas ralentie et rien n'est envoyé. **Suggestions dans le terminal**, dans [Paramètres › Général](/devforge/settings/general/), les coupe.
+
 ## Raccourcis
 
 | Raccourci | Effet |

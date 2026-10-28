@@ -28,7 +28,7 @@ And [Forgy](/devforge/en/forgy/assistant/) on top: an assistant that knows the o
 
 ## What it does not replace
 
-- **Your code editor.** DevForge opens the project in your IDE (VS Code, PhpStorm or WebStorm); it does not edit code itself.
+- **Your code editor.** DevForge opens the project in your IDE (VS Code, Cursor, PhpStorm, Zed… or one added by hand); it does not edit code itself.
 - **Git, Node, Docker, PHP…** DevForge uses the ones installed on your PC. The [Environment](/devforge/en/system/environment/) page tells what is missing.
 - **Your host.** DevForge deploys to your server or to Vercel; it hosts nothing.
 - **A real terminal, when you need one.** There is one on each project page and on each server.

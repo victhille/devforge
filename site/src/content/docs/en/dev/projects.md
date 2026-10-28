@@ -7,18 +7,44 @@ description: The list of your projects and each project's page, with Git, GitHub
 
 The **Projects** page shows:
 
-- **Your Projects**: the ones DevForge tracks. Each card shows the framework, the Git state ("uncommitted") and buttons **Open** (in the chosen IDE), **VS Code**, **Terminal**, **Scripts** (the `package.json` scripts), **Favorite** and **Remove**.
-- **Detected in…**: projects found in your projects folder but not tracked yet. **Import** adds them.
+- **Your Projects**: the ones DevForge tracks. Each card shows the framework, the Git state ("uncommitted") and buttons **Open**, the name of the project's [IDE](/devforge/en/dev/ide/) (no button when the chosen IDE is "None"), **Terminal**, **Scripts** (the `package.json` scripts), **Favorite** and **Remove**.
+- **Detected in…**: projects found in your projects folders but not tracked yet. **Import** adds them.
 
-Filter by framework (**All**, React, Symfony…) or by name; **Rescan** reads the folder again. The folder scanned is the **default projects directory** from [Settings](/devforge/en/settings/general/).
+Filter by name, and by framework: only your projects' frameworks get a filter, and none shows when there is only one. **Rescan** reads the folders again.
 
 **Remove** takes a project out of DevForge; the folder is never deleted.
+
+## Several projects folders
+
+Your projects may live in several folders ("Personal", "School"…). In [Settings › General](/devforge/en/settings/general/), **Projects folders** keeps their list:
+
+- **Add a folder**, **Remove this folder** (nothing is deleted on disk), **Move up** / **Move down** to reorder them;
+- the **first** one is the *default*: the built-in terminal opens there and new projects go there unless you pick another.
+
+With several folders, the Projects page scans them all: each card bears its folder's name, discreetly, and a row of folder filters appears (**All folders**, then one per folder). A folder that no longer exists is reported ("Folder not found") instead of failing.
+
+In [New project](/devforge/en/dev/new-project/), the destination offers your folders in one click.
+
+## Nested projects (groups)
+
+A folder that is not a project but holds several, for instance `FreelanceManager/` with `backend/` (Symfony) and `frontend/` (React), becomes a **group**:
+
+- DevForge looks one level down, two at most, when the folder has no project file (`package.json`, `composer.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`…) but its sub-folders do. `node_modules`, `vendor`, build folders and hidden folders are skipped.
+- The **group's card** reads "group · *n* projects" with its projects' stacks. Unfolded, it shows each project with its stack, Git state, IDE, terminal and scripts; **Fold the group** shrinks it to one line (remembered). At the bottom: the whole group in the IDE, its terminal, **Open its page**.
+- The **Groups** filter keeps only them; a framework filter also keeps a group one of whose projects uses it.
+- A project you already tracked that sits in a tracked group no longer shows twice: it is in its group.
+
+A **group's page** starts with its projects side by side. Each has its IDE, its terminal and its tabs: **Scripts**, its **workshop** (Symfony, Next.js, Laravel), **Variables**, **Files**. **Run them all** starts each one's `dev` (or `start`) script. The rest of the page (Git, Docker, database, logs…) is about the group's folder.
+
+Databases are looked for in the `.env` and `compose.yaml` of **each** project of the group: the back's database shows on the [Database](/devforge/en/data/database/) page as *group/back*, and on the group's page.
 
 ## A project's page
 
 ![A Next.js project's page](../../../../assets/screens/project-en.png)
 
 Click a project to open its page. At the top: the name, the path (click to open the folder), and the buttons **Favorite**, **Open in the IDE**, **Open a terminal**, **Remove from DevForge** and **Ask Forgy** (Forgy opens with this project in context). Opening a project's page makes it **active**.
+
+The overview's **Project** tile has an **IDE of this project** choice: *Default* follows Settings, or another IDE found on this PC that this project keeps (see [IDE](/devforge/en/dev/ide/)).
 
 Tabs only show when they make sense for the project:
 

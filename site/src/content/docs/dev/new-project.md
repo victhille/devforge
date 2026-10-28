@@ -17,7 +17,7 @@ description: Créer un projet React, Next.js, Vue, Node.js, Symfony, Laravel ou 
 ## 2. Le projet
 
 - **Nom du projet** : lettres, chiffres, tirets et underscores.
-- **Destination** : par défaut ton dossier de projets.
+- **Destination** : par défaut ton premier dossier de projets ; avec plusieurs dossiers, chacun se choisit d'un clic sous le champ.
 - **Gestionnaire de paquets** : npm, pnpm ou yarn (projets JavaScript).
 - **Options** selon la technologie : TypeScript, ESLint, installer les dépendances.
 

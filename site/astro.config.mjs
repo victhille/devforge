@@ -39,7 +39,7 @@ export default defineConfig({
         ]),
         group('Guides', 'Guides', ['guides/deploy-site', 'guides/sqlite', 'guides/forgy-commit']),
         group('Développement', 'Development', [
-          'dev/projects', 'dev/packages', 'dev/new-project', 'dev/authentication', 'dev/git', 'dev/stacks', 'dev/docker'
+          'dev/projects', 'dev/ide', 'dev/packages', 'dev/new-project', 'dev/authentication', 'dev/git', 'dev/stacks', 'dev/docker'
         ]),
         group('Serveurs', 'Servers', [
           'servers/ssh', 'servers/health', 'servers/services', 'servers/backups', 'servers/monitoring'

@@ -85,6 +85,16 @@ A sensitive action needs <kbd>Enter</kbd> a second time. The launcher is set in 
 - A line starting with `#` is a question for Forgy.
 - While a program runs, type in the block, or **Stop** (<kbd>Ctrl</kbd> <kbd>C</kbd>).
 
+### Suggestions
+
+As you type, the line's **likely rest** shows greyed after the caret, as in the fish shell. It comes, in order, from:
+
+1. the **project's scripts** of the folder you are in (`npm run dev`, `pnpm build`…, by its package manager);
+2. this folder's **history**, latest first;
+3. the [Docs](/devforge/en/tools/utilities/#docs) page's commands, yours included.
+
+<kbd>→</kbd> or <kbd>End</kbd> accepts it. Keep typing and it follows or goes; <kbd>Enter</kbd> runs what is typed, not the suggestion. Everything is worked out on your PC, over lists already loaded: typing is never slowed and nothing is sent. **Terminal suggestions**, in [Settings › General](/devforge/en/settings/general/), turns them off.
+
 ## Shortcuts
 
 | Shortcut | Effect |

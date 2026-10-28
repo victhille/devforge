@@ -7,7 +7,7 @@ description: Every DevForge setting, section by section, from General to About.
 
 | Section | Content |
 |---|---|
-| General | projects folder, package manager, IDE, startup, global launcher |
+| General | projects folders, package manager, IDE, terminal suggestions, startup, global launcher |
 | [Connections](/devforge/en/getting-started/connections/) | GitHub, Git identity, Forgy key, Vercel, Docker, servers, databases |
 | Appearance | theme, language, animations, density |
 | [Forgy](/devforge/en/forgy/assistant/#settings) | key, model, depth, budget, actions, desktop widget, dictation, stroll |
@@ -20,9 +20,11 @@ description: Every DevForge setting, section by section, from General to About.
 
 | Setting | Effect |
 |---|---|
-| Default projects directory | new projects are created here and the Projects page scans it |
+| Projects folders | the Projects page scans them all; the first gets new projects by default. Add, remove (nothing is deleted), reorder: see [Projects](/devforge/en/dev/projects/#several-projects-folders) |
 | Default package manager | npm, pnpm or yarn, used when the project has no lock file |
-| Default IDE | what the projects' "Open" button launches: VS Code (default), PhpStorm, WebStorm or none |
+| Default IDE | the IDE projects open in, among those found on this PC, or none; a project may have its own. See [IDE](/devforge/en/dev/ide/) |
+| IDEs added by hand | a program and its arguments, with **Try**; see [IDE](/devforge/en/dev/ide/#adding-an-ide-by-hand) |
+| Terminal suggestions | the line's likely rest, greyed; see [the terminal](/devforge/en/getting-started/interface/#suggestions) |
 | Start with Windows | DevForge starts minimized when you sign in |
 | Minimize to tray on close | closing the window keeps the watch and the widget running |
 | Global launcher | turn it on, and change the shortcut (<kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>Space</kbd> by default); see [Finding your way](/devforge/en/getting-started/interface/#the-global-launcher) |

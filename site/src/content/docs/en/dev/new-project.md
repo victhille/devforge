@@ -17,7 +17,7 @@ description: Create a React, Next.js, Vue, Node.js, Symfony, Laravel or empty pr
 ## 2. The project
 
 - **Project name**: letters, numbers, hyphens and underscores.
-- **Destination**: your projects folder by default.
+- **Destination**: your first projects folder by default; with several folders, each is one click away under the field.
 - **Package manager**: npm, pnpm or yarn (JavaScript projects).
 - **Options** depending on the technology: TypeScript, ESLint, install dependencies.
 

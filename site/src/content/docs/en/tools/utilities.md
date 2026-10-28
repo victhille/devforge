@@ -23,6 +23,17 @@ One page, one tab per tool, and **Find a tool…** to go fast:
 
 Each output has its **Copy** button.
 
+## Help and examples
+
+At the top of each tool (the toolbox's tabs, Snippets, Diff, the Generator and [Webhooks](/devforge/en/data/webhooks/)), a banner says **what it is for** and **how to use it**, with **examples** to load in one click:
+
+- **Regex**: greyed examples in the fields, and models that fill the pattern and the test text: *Email*, *Date dd/mm/yyyy*, *http(s) link*, *French phone*;
+- **JSON**, **Base64**, **JWT**, **Hash**, **URL**, **Timestamp**, **Diff**: an example fills the fields;
+- **Snippets**: while you have none, an example snippet shows, greyed; it is saved only if you click **Start from this example**;
+- **Webhooks**: *A Stripe payment* shows a typical received request (headers, body); its replay address ends in `.invalid`, which does not exist, and **Send** is off.
+
+An example only fills fields: nothing is saved or sent. **Hide the help** folds the banner for that tool (remembered), **Help** opens it again.
+
 ## Snippets
 
 Your reusable bits of code: a **title**, a **language**, the **code** and **tags** (`react, hook, typescript`). Search, **Copy**, **Delete**. A block of the [built-in terminal](/devforge/en/getting-started/interface/#the-built-in-terminal) can also be saved as a snippet.
@@ -44,3 +55,12 @@ Paste an **Original** text and a **Modified** text: the result shows side by sid
 ## Docs
 
 Command cheat sheets for **Docker**, **React**, **Vue**, **Symfony**, **Node.js**, **Git**, **Shell** and **Python**, with a search. Each command copies in one click.
+
+### Your own commands
+
+**Add a command**: the command, a description, and a **category**, one of the references (Git, Docker…) or a **New category…** that joins the list on the left. Your commands come first in their reference, under **My commands**, and the search finds them; hover one to **Edit** or **Delete** it.
+
+- **As you type**, suggestions complete the command: your `PATH`'s programs for the first word, the commands already in the docs, and the known sub-commands of `git`, `npm`, `pnpm`, `yarn`, `composer`, `php artisan`, `php bin/console`, `symfony`, `docker`, `docker compose` and `gh`. <kbd>↓</kbd> <kbd>↑</kbd> to choose, <kbd>Enter</kbd> or <kbd>Tab</kbd> to take one.
+- **Check**: the program (the first word) is looked for on this PC. Found, its path shows; otherwise a warning says it is not here, and you can save anyway (a remote server's command, say).
+
+Your commands are kept in `doc-commands.json`, with DevForge's [backups and export](/devforge/en/settings/data/). The [built-in terminal](/devforge/en/getting-started/interface/#the-built-in-terminal) uses them for its suggestions too.

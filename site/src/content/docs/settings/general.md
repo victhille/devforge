@@ -7,7 +7,7 @@ description: Tous les réglages de DevForge, section par section, de Général �
 
 | Section | Contenu |
 |---|---|
-| Général | dossier de projets, gestionnaire de paquets, IDE, démarrage, lanceur global |
+| Général | dossiers de projets, gestionnaire de paquets, IDE, suggestions du terminal, démarrage, lanceur global |
 | [Connexions](/devforge/getting-started/connections/) | GitHub, identité Git, clé Forgy, Vercel, Docker, serveurs, bases |
 | Apparence | thème, langue, animations, densité |
 | [Forgy](/devforge/forgy/assistant/#réglages) | clé, modèle, profondeur, budget, actions, widget de bureau, dictée, balade |
@@ -20,9 +20,11 @@ description: Tous les réglages de DevForge, section par section, de Général �
 
 | Réglage | Effet |
 |---|---|
-| Dossier de projets par défaut | les nouveaux projets sont créés ici et la page Projets le parcourt |
+| Dossiers de projets | la page Projets les parcourt tous ; le premier reçoit les nouveaux projets par défaut. Ajouter, retirer (rien n'est supprimé), réordonner : voir [Projets](/devforge/dev/projects/#plusieurs-dossiers-de-projets) |
 | Gestionnaire de paquets par défaut | npm, pnpm ou yarn, utilisé quand le projet n'a pas de fichier de verrou |
-| IDE par défaut | ce que lance le bouton « Ouvrir » des projets : VS Code (par défaut), PhpStorm, WebStorm ou aucun |
+| IDE par défaut | l'IDE qui ouvre les projets, parmi ceux trouvés sur ce PC, ou aucun ; un projet peut avoir le sien. Voir [IDE](/devforge/dev/ide/) |
+| IDE ajoutés à la main | un programme et ses arguments, avec **Essayer** ; voir [IDE](/devforge/dev/ide/#ajouter-un-ide-à-la-main) |
+| Suggestions dans le terminal | la suite probable de la ligne en gris ; voir [le terminal](/devforge/getting-started/interface/#les-suggestions) |
 | Démarrer avec Windows | DevForge s'ouvre réduit à l'ouverture de session |
 | Réduire dans la barre système à la fermeture | fermer la fenêtre garde la surveillance et le widget actifs |
 | Lanceur global | activer, et changer le raccourci (<kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>Espace</kbd> par défaut) ; voir [Se repérer](/devforge/getting-started/interface/#le-lanceur-global) |

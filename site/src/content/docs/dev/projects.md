@@ -7,18 +7,44 @@ description: La liste de tes projets et la fiche de chaque projet, avec Git, Git
 
 La page **Projets** montre :
 
-- **Vos projets** : ceux que DevForge suit. Chaque carte affiche le framework, l'état Git (« modifs en cours ») et des boutons **Ouvrir** (dans l'IDE choisi), **VS Code**, **Terminal**, **Scripts** (les scripts du `package.json`), **Favori** et **Retirer**.
-- **Détectés dans…** : les projets trouvés dans ton dossier de projets mais pas encore suivis. **Importer** les ajoute.
+- **Vos projets** : ceux que DevForge suit. Chaque carte affiche le framework, l'état Git (« modifs en cours ») et des boutons **Ouvrir**, le nom de l'[IDE](/devforge/dev/ide/) du projet (aucun bouton si l'IDE choisi est « Aucun »), **Terminal**, **Scripts** (les scripts du `package.json`), **Favori** et **Retirer**.
+- **Détectés dans…** : les projets trouvés dans tes dossiers de projets mais pas encore suivis. **Importer** les ajoute.
 
-Filtre par framework (**Tous**, React, Symfony…) ou par nom ; **Rescanner** relit le dossier. Le dossier parcouru est le **dossier de projets par défaut** des [Paramètres](/devforge/settings/general/).
+Filtre par nom, et par framework : seuls les frameworks de tes projets ont un filtre, et aucun filtre ne s'affiche s'il n'y en a qu'un. **Rescanner** relit les dossiers.
 
 **Retirer** un projet l'enlève de DevForge ; le dossier n'est jamais supprimé.
+
+## Plusieurs dossiers de projets
+
+Tes projets peuvent vivre dans plusieurs dossiers (« Projet Perso », « Projet Cefim »…). Dans [Paramètres › Général](/devforge/settings/general/), **Dossiers de projets** en tient la liste :
+
+- **Ajouter un dossier**, **Retirer ce dossier** (rien n'est supprimé sur le disque), **Monter** / **Descendre** pour les réordonner ;
+- le **premier** est le dossier *par défaut* : le terminal intégré s'y ouvre et les nouveaux projets y vont d'office.
+
+Avec plusieurs dossiers, la page Projets les parcourt tous : chaque carte porte le nom de son dossier, discret, et une ligne de filtres par dossier s'ajoute (**Tous les dossiers**, puis un par dossier). Un dossier qui n'existe plus est signalé (« Dossier introuvable ») au lieu de faire une erreur.
+
+Dans [Nouveau projet](/devforge/dev/new-project/), la destination propose tes dossiers en un clic.
+
+## Les projets imbriqués (groupes)
+
+Un dossier qui n'est pas un projet mais en contient plusieurs, par exemple `FreelanceManager/` avec `backend/` (Symfony) et `frontend/` (React), devient un **groupe** :
+
+- DevForge y descend d'un niveau, deux au plus, quand le dossier n'a pas de fichier de projet (`package.json`, `composer.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`…) mais que ses sous-dossiers en ont. `node_modules`, `vendor`, les dossiers de build et les dossiers cachés sont ignorés.
+- La **carte du groupe** porte « groupe · *n* projets » et les technos de ses projets. Dépliée, elle montre chaque sous-projet avec sa techno, son état Git, son IDE, son terminal et ses scripts ; **Replier le groupe** la réduit à une ligne (le choix est retenu). En bas : le groupe entier dans l'IDE, son terminal, **Ouvrir la fiche**.
+- Le filtre **Groupes** ne garde qu'eux ; un filtre de framework retient aussi un groupe dont un projet l'utilise.
+- Un projet que tu suivais déjà et qui fait partie d'un groupe suivi n'apparaît plus deux fois : il est dans son groupe.
+
+La **fiche d'un groupe** commence par ses projets côte à côte. Chacun a son IDE, son terminal et ses onglets : **Scripts**, son **atelier** (Symfony, Next.js, Laravel), **Variables**, **Fichiers**. **Tout lancer** démarre le script `dev` (ou `start`) de chacun. Le reste de la fiche (Git, Docker, base, logs…) porte sur le dossier du groupe.
+
+Les bases de données sont cherchées dans le `.env` et le `compose.yaml` de **chaque** projet du groupe : la base du back apparaît dans la page [Base de données](/devforge/data/database/) sous le nom *groupe/back*, et sur la fiche du groupe.
 
 ## La fiche d'un projet
 
 ![La fiche d'un projet Next.js](../../../assets/screens/project-fr.png)
 
 Clique sur un projet pour ouvrir sa fiche. En haut : le nom, le chemin (cliquer ouvre le dossier), et les boutons **Favori**, **Ouvrir dans l'IDE**, **Ouvrir un terminal**, **Retirer de DevForge** et **Demander à Forgy** (Forgy s'ouvre avec ce projet en contexte). Ouvrir une fiche rend le projet **actif**.
+
+La tuile **Projet** de la vue d'ensemble a un choix **IDE de ce projet** : *Par défaut* suit les Paramètres, ou un autre IDE trouvé sur ce PC, que ce projet gardera (voir [IDE](/devforge/dev/ide/)).
 
 Les onglets n'apparaissent que s'ils ont un sens pour ce projet :
 
