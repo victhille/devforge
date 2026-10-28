@@ -17,14 +17,14 @@ const file = (path: string, content = '{}') => { mkdirSync(join(path, '..'), { r
 describe('v3.5.1: a group lists the rest of its folder', () => {
   it('shows docs, infra, README and Dockerfile, not its projects nor hidden or dependency folders', async () => {
     const root = tempDir('extras')
-    const g = join(root, 'time-manager')
+    const g = join(root, 'agenda-app')
     file(join(g, 'backend', 'composer.json'))
     file(join(g, 'frontend', 'package.json'))
     file(join(g, 'docs', 'cahier-des-charges.pdf'), '%PDF')
     file(join(g, 'infra', 'proxy', 'Dockerfile'), 'FROM nginx')
     file(join(g, '.github', 'pull_request_template.md'), '#')
     file(join(g, 'node_modules', 'x', 'package.json'))
-    file(join(g, 'README.md'), '# Time manager')
+    file(join(g, 'README.md'), '# Agenda app')
     file(join(g, 'Dockerfile'), 'FROM node')
     file(join(g, '.env'), 'SECRET=1')
 

@@ -35,23 +35,23 @@ function tinyPdf(): Buffer {
 test('a group: one-line buttons when folded, the rest of its folder, files previewed', async () => {
   run = await launch({
     seed: dir => {
-      const g = join(dir, 'code', 'time-manager')
+      const g = join(dir, 'code', 'agenda-app')
       file(join(g, 'backend', 'package.json'), JSON.stringify({ dependencies: { express: '^5' } }))
       file(join(g, 'frontend', 'package.json'), JSON.stringify({ dependencies: { react: '^19' } }))
-      file(join(g, 'README.md'), '# Time manager\n\nUn **gestionnaire** de temps.\n\n- back\n- front\n')
+      file(join(g, 'README.md'), '# Agenda app\n\nUn **gestionnaire** de temps.\n\n- back\n- front\n')
       file(join(g, 'docs', 'cahier.pdf'), tinyPdf())
       file(join(g, 'infra', 'Dockerfile'), 'FROM nginx:alpine\n')
       file(join(g, 'docs', 'logo.zip'), Buffer.from([0x50, 0x4b, 3, 4, 0, 0]))
       writeFileSync(join(dir, 'projects.json'), JSON.stringify([
-        { id: 'tm', name: 'time-manager', path: g, framework: 'group', packageManager: 'npm', createdAt: '', lastOpenedAt: null, favorite: false },
-        { id: 'p2', name: 'lifehub', path: join(dir, 'code', 'lifehub'), framework: 'react', packageManager: 'npm', createdAt: '', lastOpenedAt: null, favorite: false }
+        { id: 'tm', name: 'agenda-app', path: g, framework: 'group', packageManager: 'npm', createdAt: '', lastOpenedAt: null, favorite: false },
+        { id: 'p2', name: 'blog', path: join(dir, 'code', 'blog'), framework: 'react', packageManager: 'npm', createdAt: '', lastOpenedAt: null, favorite: false }
       ]))
       writeFileSync(join(dir, 'settings.json'), JSON.stringify({ language: 'fr', onboarded: true, launcherEnabled: false, defaultProjectsDir: join(dir, 'code'), defaultIDE: 'vscode' }))
     }
   })
   const { page } = run
   await goTo(page, '/projects')
-  const card = page.locator('.df-rise', { has: page.getByRole('heading', { name: 'time-manager' }) }).last()
+  const card = page.locator('.df-rise', { has: page.getByRole('heading', { name: 'agenda-app' }) }).last()
 
   // Unfolded: the rest of the folder under its projects
   const extras = card.getByTestId('group-extras')
@@ -78,10 +78,10 @@ test('a group: one-line buttons when folded, the rest of its folder, files previ
   await goTo(page, '/project/tm?tab=files')
   await page.getByRole('button', { name: 'README.md' }).click()
   const preview = page.getByTestId('file-preview')
-  await expect(preview.getByRole('heading', { name: 'Time manager' })).toBeVisible()
+  await expect(preview.getByRole('heading', { name: 'Agenda app' })).toBeVisible()
   await expect(preview.locator('strong')).toHaveText('gestionnaire')
   await page.getByRole('button', { name: 'Voir le source' }).click()
-  await expect(preview.locator('pre')).toContainText('# Time manager')
+  await expect(preview.locator('pre')).toContainText('# Agenda app')
   expect(await settledAxe(page)).toEqual([])
 
   await page.getByRole('button', { name: 'docs' }).click()
