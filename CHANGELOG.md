@@ -2,6 +2,16 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [3.5.2](https://github.com/victhille/devforge/compare/v3.5.1...v3.5.2) — 2026-10-28
+
+> L'aperçu des fichiers .md écrits sous Windows ne plante plus, un clic sur une carte groupe ouvre sa fiche, et l'onglet Fichiers laisse toute la place à l'arbre et à l'aperçu.
+
+### Corrections
+
+- **projets** : Aperçu des .md Windows, carte groupe cliquable, onglet Fichiers sans scripts ([b2c9f3e](https://github.com/victhille/devforge/commit/b2c9f3e4a0143e4e6f8245635e6ad1f8419f4d79))
+
+_1 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [3.5.1](https://github.com/victhille/devforge/compare/v3.5.0...v3.5.1) — 2026-10-28
 
 > Cartes groupe plus nettes avec le reste du dossier, aperçu des fichiers (Markdown, images, PDF), tables créées et modifiées depuis la page Base de données, copie en JSON, console qui se ferme avec son dernier onglet.

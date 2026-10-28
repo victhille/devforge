@@ -2,6 +2,16 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [3.5.2](https://github.com/victhille/devforge/compare/v3.5.1...v3.5.2) — 2026-10-28
+
+> Previews of .md files written on Windows no longer crash, clicking a group's card opens its page, and the Files tab gives all its room to the tree and the preview.
+
+### Fixes
+
+- **projets**: Aperçu des .md Windows, carte groupe cliquable, onglet Fichiers sans scripts ([b2c9f3e](https://github.com/victhille/devforge/commit/b2c9f3e4a0143e4e6f8245635e6ad1f8419f4d79))
+
+_1 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [3.5.1](https://github.com/victhille/devforge/compare/v3.5.0...v3.5.1) — 2026-10-28
 
 > Tidier group cards listing the rest of the folder, file previews (Markdown, images, PDF), tables created and changed from the Database page, copy as JSON, a console that closes with its last tab.
