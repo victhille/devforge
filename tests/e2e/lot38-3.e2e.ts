@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { execFileSync } from 'child_process'
 import { mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import { goTo, launch, type Launched } from './launch'
+import { launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
 /** v3.8 lot 3: the Activity page (piste A), read from real Git repositories */

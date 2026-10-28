@@ -30,4 +30,4 @@ The activity is read when the page opens, six projects at a time, then kept 3 mi
 
 ## On Home
 
-The **Commits** widget on [Home](/devforge/en/getting-started/home/) shows your commits of the week, the last 12 weeks in small and the branches to push. Add it with **Customize**.
+The **Commits** widget on [Home](/devforge/en/getting-started/interface/) shows your commits of the week, the last 12 weeks in small and the branches to push. Add it with **Customize**.

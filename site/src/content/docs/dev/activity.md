@@ -30,4 +30,4 @@ L'activité est lue à l'ouverture de la page, six projets à la fois, puis gard
 
 ## Sur l'accueil
 
-Le widget **Commits** de l'[accueil](/devforge/getting-started/home/) montre tes commits de la semaine, les 12 dernières semaines en petit et les branches à pousser. Ajoute-le avec **Personnaliser**.
+Le widget **Commits** de l'[accueil](/devforge/getting-started/interface/) montre tes commits de la semaine, les 12 dernières semaines en petit et les branches à pousser. Ajoute-le avec **Personnaliser**.
