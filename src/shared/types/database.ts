@@ -1,3 +1,4 @@
+import type { RowChange } from '../lib/rowEdits'
 // ─── Database client ─────────────────────────────────────────────────────────
 
 export type DbType = 'mysql' | 'postgres' | 'sqlite'
@@ -146,6 +147,8 @@ export interface DatabaseAPI {
   details: (id: string, table: DbTableRef) => Promise<DbTableDetails>
   /** One page of a table's rows */
   browse: (id: string, table: DbTableRef, opts: DbBrowseOptions) => Promise<DbBrowseResult>
+  /** v3.6: rows changed, in one transaction (all or none) */
+  applyRows: (id: string, table: DbTableRef, changes: RowChange[]) => Promise<{ affected: number; error?: string }>
   /** Look for databases on a server (Docker containers + native services) */
   detectRemote: (sshConnectionId: string) => Promise<DetectedDatabase[]>
   /** Save a detected database as a connection, returns its id */

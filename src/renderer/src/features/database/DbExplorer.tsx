@@ -272,7 +272,7 @@ export default function DbExplorer({ conn, back, actions }: {
           ) : tab === 'sql' ? (
             <SqlPanel connId={conn.id} sql={sql} onSql={setSql} onSchemaChange={() => { loadSchema(); loadOverview() }} />
           ) : table && tab === 'browse' ? (
-            <BrowseTab connId={conn.id} table={table} />
+            <BrowseTab conn={conn} table={table} />
           ) : !details || !sameTable(table, detailsFor) ? (
             <Spinner className="m-6" />
           ) : tab === 'structure' ? (

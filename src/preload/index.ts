@@ -106,6 +106,7 @@ const api: DevForgeAPI = {
     overview: invoke('db:overview'),
     details:  invoke('db:details'),
     browse:   invoke('db:browse'),
+    applyRows: invoke('db:apply-rows'),
     detectRemote: invoke('db:detect-remote'),
     detectLocal:  invoke('db:detect-local'),
     addDetected:  invoke('db:add-detected')

@@ -7,6 +7,7 @@ import initSqlJs, { type Database as SqlJsDb, type SqlJsStatic } from 'sql.js'
 import type { DbBrowseOptions, DbBrowseResult, DbConnection, DbOverview, DbQueryResult, DbTable, DbTableDetails, DbTableRef } from '@shared/types'
 import { detailsFor, overviewFor, type Raw } from './dbMeta'
 import { quoteColumn, quoteIdent } from '@shared/lib/sqlQuote'
+import { rowChangesProblem, rowStatements, type RowChange, type RowStatement } from '@shared/lib/rowEdits'
 import { getDbConnection, saveDbConnection } from './dbStorage'
 import { findInCompose, findOnServer } from './dbDetect'
 import { openTunnel } from '../ssh/sshClient'
@@ -24,6 +25,8 @@ interface Driver {
   query(sql: string): Promise<Omit<DbQueryResult, 'durationMs'>>
   /** Parameterized catalog query, rows as objects */
   raw: Raw
+  /** v3.6: statements with their parameters, all or none (rolled back at the first error); rows affected */
+  transaction(statements: RowStatement[]): Promise<number>
   close(): Promise<void>
   /** Called once if the server drops the connection (restart, container stopped…) */
   onLost?(cb: () => void): void
@@ -86,6 +89,18 @@ async function mysqlDriver(c: DbConnection): Promise<Driver> {
       return { columns: (fields ?? []).map(f => f.name), rows, affected: null, truncated }
     },
     async raw(sql, params = []) { const [rows] = await conn.query({ sql, values: params, timeout: 60_000 }); return rows as Record<string, unknown>[] },
+    async transaction(statements) {
+      await conn.beginTransaction()
+      try {
+        let n = 0
+        for (const s of statements) {
+          const [r] = await conn.query({ sql: s.sql, values: s.params, timeout: 60_000 })
+          n += (r as { affectedRows?: number }).affectedRows ?? 0
+        }
+        await conn.commit()
+        return n
+      } catch (err) { await conn.rollback().catch(() => {}); throw err }
+    },
     close: () => conn.end()
   }
 }
@@ -124,6 +139,15 @@ async function postgresDriver(c: DbConnection): Promise<Driver> {
       return { columns: res.fields.map((f: { name: string }) => f.name), rows, affected: null, truncated }
     },
     async raw(sql, params = []) { return (await client.query(sql, params as unknown[])).rows },
+    async transaction(statements) {
+      await client.query('BEGIN')
+      try {
+        let n = 0
+        for (const s of statements) n += (await client.query(s.sql, s.params)).rowCount ?? 0
+        await client.query('COMMIT')
+        return n
+      } catch (err) { await client.query('ROLLBACK').catch(() => {}); throw err }
+    },
     close: () => client.end()
   }
 }
@@ -172,6 +196,20 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
         while (stmt.step()) rows.push(stmt.getAsObject())
         return rows
       } finally { stmt.free() }
+    },
+    async transaction(statements) {
+      db.run('BEGIN')
+      try {
+        let n = 0
+        for (const s of statements) {
+          // sql.js takes 1/0 for booleans
+          db.run(s.sql, s.params.map(v => (typeof v === 'boolean' ? Number(v) : v)))
+          n += db.getRowsModified()
+        }
+        db.run('COMMIT')
+        await writeFile(file, db.export())
+        return n
+      } catch (err) { try { db.run('ROLLBACK') } catch { /* already over */ } throw err }
     },
     async close() { db.close() }
   }
@@ -346,6 +384,24 @@ export async function dbDetails(id: string, t: DbTableRef): Promise<DbTableDetai
   const stats = (await overviewFor(c.type, d.raw, '', c.file).catch(() => null))?.tables
     .find(s => s.name === t.name && s.schema === t.schema) ?? null
   return detailsFor(c.type, d.raw, t, stats)
+}
+
+/**
+ * v3.6 lot 3: rows changed from the Browse tab, checked against the table's
+ * real columns and primary key, then run in one transaction.
+ */
+export async function dbApplyRows(id: string, t: DbTableRef, changes: RowChange[]): Promise<{ affected: number; error?: string }> {
+  const c = connOf(id)
+  const details = await dbDetails(id, t)
+  if (details.stats?.type === 'view') return { affected: 0, error: 'A view cannot be changed here' }
+  const problem = rowChangesProblem(changes, details.columns.map(x => x.name), details.columns.filter(x => x.key === 'PRI').map(x => x.name))
+  if (problem) return { affected: 0, error: problem }
+  try {
+    return { affected: await (await driverFor(id)).transaction(rowStatements(c.type, t, changes)) }
+  } catch (err) {
+    if (/closed|terminated|ECONNRESET|Connection lost/i.test(String(err))) await closeDb(id)
+    return { affected: 0, error: err instanceof Error ? err.message : String(err) }
+  }
 }
 
 export async function dbBrowse(id: string, t: DbTableRef, o: DbBrowseOptions): Promise<DbBrowseResult> {

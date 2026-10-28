@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { ArrowRight, ChevronLeft, ChevronRight, KeyRound, Link2, Pencil, Plus, Trash2, TextCursorInput } from 'lucide-react'
+import { ArrowRight, Check, ChevronLeft, ChevronRight, KeyRound, Link2, Pencil, Plus, RotateCcw, Trash2, TextCursorInput, Undo2 } from 'lucide-react'
 import type { DbBrowseResult, DbColumnInfo, DbConnection, DbForeignKey, DbTableDetails, DbTableRef, DbTableStat } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
@@ -15,19 +15,31 @@ import { SectionTitle } from '@renderer/components/ui/Page'
 import Button from '@renderer/components/ui/Button'
 import ResultGrid, { type GridSort } from './ResultGrid'
 import { ColumnDialog, DropColumnDialog, DropTableDialog, RenameTableDialog } from './TableDialogs'
+import { ApplyRowsDialog, useRowChanges } from './RowChanges'
+import { useToast } from '@renderer/app/ToastContext'
 
 const PAGE_SIZES = [25, 50, 100, 250, 500]
 
 // ─── Parcourir ────────────────────────────────────────────────────────────────
 
-export function BrowseTab({ connId, table }: { connId: string; table: DbTableRef }) {
+/**
+ * The table's rows, page by page. v3.6 lot 3: with a primary key, cells are
+ * edited in place, rows added and deleted, then applied in one transaction
+ * after the SQL is shown.
+ */
+export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableRef }) {
   const { t } = useI18n()
   const d = t.database
+  const toast = useToast()
+  const connId = conn.id
   const [limit, setLimit] = usePersistentState('devforge:db-page-size', 50)
   const [page, setPage] = useState(0)
   const [sort, setSort] = useState<GridSort | null>(null)
   const [result, setResult] = useState<DbBrowseResult | null>(null)
   const [loading, setLoading] = useState(true)
+  const [columns, setColumns] = useState<DbColumnInfo[] | null>(null)
+  const [reload, setReload] = useState(0)
+  const [applying, setApplying] = useState(false)
 
   // Another table: back to its first page, natural order
   useEffect(() => { setPage(0); setSort(null) }, [table.name, table.schema])
@@ -39,9 +51,26 @@ export function BrowseTab({ connId, table }: { connId: string; table: DbTableRef
       .then(r => { if (alive) setResult(r) })
       .finally(() => { if (alive) setLoading(false) })
     return () => { alive = false }
-  }, [connId, table, page, limit, sort])
+  }, [connId, table, page, limit, sort, reload])
 
-  if (!result) return <Spinner className="m-6" />
+  // The columns and primary key: what can be edited
+  useEffect(() => {
+    let alive = true
+    setColumns(null)
+    window.devforge.db.details(connId, table)
+      .then(r => { if (alive) setColumns(r.stats?.type === 'view' ? [] : r.columns) })
+      .catch(() => { if (alive) setColumns([]) })
+    return () => { alive = false }
+  }, [connId, table])
+
+  // An empty page has no column names (SQLite): the table's own
+  const grid = result && !result.columns.length && columns?.length ? { ...result, columns: columns.map(c => c.name) } : result
+  const rows = useRowChanges(grid, columns)
+  // Pending changes are tied to this page: no paging nor sorting until applied or dropped
+  const pending = rows.changes.length > 0
+  useEffect(() => { rows.reset() }, [page, limit, sort, reload, table.name, table.schema]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!result || !grid) return <Spinner className="m-6" />
 
   const from = result.rows.length ? page * limit + 1 : 0
   const to = page * limit + result.rows.length
@@ -50,23 +79,52 @@ export function BrowseTab({ connId, table }: { connId: string; table: DbTableRef
 
   const pager = (
     <span className="flex items-center gap-2">
-      <IconButton size="sm" title={d.prev} disabled={page === 0 || loading} onClick={() => setPage(p => p - 1)}><ChevronLeft size={13} /></IconButton>
+      <IconButton size="sm" title={d.prev} disabled={page === 0 || loading || pending} onClick={() => setPage(p => p - 1)}><ChevronLeft size={13} /></IconButton>
       <span className="tabular-nums text-fg-secondary">
         {(result.total !== null ? d.pageOf : d.pageOfUnknown)
           .replace('{from}', String(from)).replace('{to}', String(to)).replace('{total}', String(result.total))}
       </span>
-      <IconButton size="sm" title={d.next} disabled={!hasNext || loading} onClick={() => setPage(p => p + 1)}><ChevronRight size={13} /></IconButton>
-      <Select aria-label={d.rowsPerPage} value={limit} onChange={e => { setLimit(Number(e.target.value)); setPage(0) }} className="h-7 w-auto py-0 text-xs">
+      <IconButton size="sm" title={d.next} disabled={!hasNext || loading || pending} onClick={() => setPage(p => p + 1)}><ChevronRight size={13} /></IconButton>
+      <Select aria-label={d.rowsPerPage} disabled={pending} value={limit} onChange={e => { setLimit(Number(e.target.value)); setPage(0) }} className="h-7 w-auto py-0 text-xs">
         {PAGE_SIZES.map(n => <option key={n} value={n}>{n} {d.perPage}</option>)}
       </Select>
       {loading && <Spinner />}
     </span>
   )
 
-  if (!result.error && result.total === 0) {
-    return <div className="flex flex-col">{<div className="border-b border-line-subtle px-3 py-1.5 text-xs">{pager}</div>}<p className="p-6 text-sm text-fg-muted">{d.emptyTable}</p></div>
-  }
-  return <ResultGrid result={result} rowOffset={page * limit} sort={sort} onSort={s => { setSort(s); setPage(0) }} toolbar={pager} />
+  // The row tools: add, delete the checked ones, apply or drop what is pending
+  const tools = !result.error && columns && (
+    <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line-subtle px-3 py-1.5 text-xs">
+      {rows.editable ? (
+        <>
+          <Button size="sm" variant="ghost" onClick={rows.addRow}><Plus size={13} /> {d.rowAdd}</Button>
+          <Button size="sm" variant="ghost" disabled={!rows.checkedCount} onClick={rows.deleteChecked}><Trash2 size={13} /> {d.rowDelete.replace('{n}', String(rows.checkedCount))}</Button>
+          <Button size="sm" variant="ghost" disabled={!rows.checkedCount} onClick={rows.restoreChecked}><Undo2 size={13} /> {d.rowKeep}</Button>
+          <span className="text-fg-muted">{d.rowEditHint}</span>
+          {pending && (
+            <span className="ml-auto flex items-center gap-2">
+              <Button size="sm" variant="secondary" onClick={rows.reset}><RotateCcw size={13} /> {d.rowDrop}</Button>
+              <Button size="sm" onClick={() => setApplying(true)}><Check size={13} /> {d.rowApply.replace('{n}', String(rows.changes.length))}</Button>
+            </span>
+          )}
+        </>
+      ) : columns.length > 0 && <span className="text-fg-muted">{d.rowNoKey}</span>}
+    </div>
+  )
+  const empty = !result.error && result.total === 0 && !rows.editing?.newRows.length
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      {tools}
+      {empty
+        ? <div className="flex flex-col"><div className="border-b border-line-subtle px-3 py-1.5 text-xs">{pager}</div><p className="p-6 text-sm text-fg-muted">{d.emptyTable}</p></div>
+        : <ResultGrid result={grid} rowOffset={page * limit} sort={sort} onSort={pending ? undefined : s => { setSort(s); setPage(0) }} toolbar={pager} editing={rows.editing} />}
+      {applying && (
+        <ApplyRowsDialog conn={conn} table={table} changes={rows.changes} onClose={() => setApplying(false)}
+          onDone={n => { setApplying(false); toast.show({ tone: 'success', title: d.rowApplied.replace('{n}', String(n)) }); setReload(r => r + 1) }} />
+      )}
+    </div>
+  )
 }
 
 // ─── Structure ────────────────────────────────────────────────────────────────

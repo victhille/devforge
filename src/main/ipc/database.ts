@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron'
+import type { RowChange } from '@shared/lib/rowEdits'
 import type { DbBrowseOptions, DbConnection, DbTableRef } from '@shared/types'
-import { closeDb, dbBrowse, dbDetails, dbOverview, dbQuery, dbSchema, testDb } from '../services/database/dbClient'
+import { closeDb, dbBrowse, dbDetails, dbOverview, dbQuery, dbSchema, testDb, dbApplyRows } from '../services/database/dbClient'
 import { listDbConnections, removeDbConnection, saveDbConnection } from '../services/database/dbStorage'
 import { addDetected, detectLocal, detectRemote } from '../services/database/dbDetect'
 
@@ -13,6 +14,7 @@ export function registerDatabaseHandlers(): void {
   ipcMain.handle('db:query',  (_e, id: string, sql: string) => dbQuery(id, sql))
   ipcMain.handle('db:overview', (_e, id: string) => dbOverview(id))
   ipcMain.handle('db:details',  (_e, id: string, t: DbTableRef) => dbDetails(id, t))
+  ipcMain.handle('db:apply-rows', (_e, id: string, t: DbTableRef, changes: RowChange[]) => dbApplyRows(id, t, Array.isArray(changes) ? changes : []))
   ipcMain.handle('db:browse',   (_e, id: string, t: DbTableRef, o: DbBrowseOptions) => dbBrowse(id, t, o))
   ipcMain.handle('db:detect-remote', (_e, sshId: string) => detectRemote(sshId))
   ipcMain.handle('db:detect-local',  () => detectLocal())
