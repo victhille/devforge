@@ -7,6 +7,9 @@ on:
 
 jobs:
   check:
+    # The release commit only bumps the version and the changelogs: the code was
+    # checked on the push before it (the Release workflow runs on the tag anyway)
+    if: ${{ !(github.event_name == 'push' && startsWith(github.event.head_commit.message, 'chore(release):')) }}
     # The app targets Windows (paths, hosts file, taskkill): test where it runs
     runs-on: windows-latest
     steps:
