@@ -1925,6 +1925,29 @@ const en = {
     noMatch:     'No match'
   },
 
+  // v3.5 lot 5: the commands added to the Docs page
+  docsCustom: {
+    reference: 'Quick reference',
+    searchIn: 'Search in {name}…',
+    noResult: 'No result for "{q}"',
+    mine: 'My commands',
+    add: 'Add a command',
+    addTitle: 'Add a command',
+    editTitle: 'Edit the command',
+    edit: 'Edit',
+    remove: 'Delete',
+    removeConfirm: 'Delete the command "{cmd}" from the docs?',
+    cmd: 'Command',
+    desc: 'Description',
+    descHint: 'What the command does',
+    category: 'Category',
+    newCategory: 'New category…',
+    newCategoryName: 'Category name',
+    suggestions: 'Suggestions',
+    found: 'Found on this PC: {path}',
+    notFound: '"{program}" is not on this PC. You can save it anyway (for a remote server, say).'
+  },
+
   // v3.5 lot 4: what each tool is for, how to use it, and its examples
   toolHelp: {
     label: "Tool help",

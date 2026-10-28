@@ -117,6 +117,14 @@ const api: DevForgeAPI = {
     onLines: on('logs:lines')
   },
 
+  docs: {
+    list:     invoke('docs:list'),
+    save:     invoke('docs:save'),
+    remove:   invoke('docs:remove'),
+    check:    invoke('docs:check'),
+    programs: invoke('docs:programs')
+  },
+
   webhooks: {
     start:       invoke('webhooks:start'),
     stop:        invoke('webhooks:stop'),

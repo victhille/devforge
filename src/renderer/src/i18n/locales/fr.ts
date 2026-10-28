@@ -1914,6 +1914,29 @@ const fr = {
     noMatch:     'Aucune correspondance'
   },
 
+  // v3.5 lot 5: the commands added to the Docs page
+  docsCustom: {
+    reference: 'Référence rapide',
+    searchIn: 'Rechercher dans {name}…',
+    noResult: 'Aucun résultat pour « {q} »',
+    mine: 'Mes commandes',
+    add: 'Ajouter une commande',
+    addTitle: 'Ajouter une commande',
+    editTitle: 'Modifier la commande',
+    edit: 'Modifier',
+    remove: 'Supprimer',
+    removeConfirm: 'Supprimer la commande « {cmd} » de la doc ?',
+    cmd: 'Commande',
+    desc: 'Description',
+    descHint: 'Ce que fait la commande',
+    category: 'Catégorie',
+    newCategory: 'Nouvelle catégorie…',
+    newCategoryName: 'Nom de la catégorie',
+    suggestions: 'Suggestions',
+    found: 'Trouvée sur ce PC : {path}',
+    notFound: "« {program} » n'est pas sur ce PC. Vous pouvez quand même l'enregistrer (pour un serveur distant, par exemple)."
+  },
+
   // v3.5 lot 4: what each tool is for, how to use it, and its examples
   toolHelp: {
     label: "Aide de l'outil",

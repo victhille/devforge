@@ -128,6 +128,23 @@ export type Theme = 'dark' | 'light' | 'system'
 /** v3.5: an IDE of the catalog (shared/data/ides), one added by hand (its id), or 'none' */
 export type DefaultIDE = string
 
+/** v3.5: a command added to the Docs page */
+export interface CustomCommand {
+  id: string
+  cmd: string
+  desc: string
+  /** A reference of the page (Git, Docker…) or a new one */
+  category: string
+  createdAt: string
+}
+
+/** v3.5: whether a command's program is on this PC */
+export interface CommandCheck {
+  program: string
+  found: boolean
+  path?: string
+}
+
 /** v3.5: an IDE added by hand in Settings */
 export interface CustomIde {
   id: string
@@ -378,6 +395,14 @@ export interface DevForgeAPI {
   db: DatabaseAPI
   logs: LogsAPI
   webhooks: WebhooksAPI
+  /** v3.5: the commands added to the Docs page */
+  docs: {
+    list: () => Promise<CustomCommand[]>
+    save: (c: Partial<CustomCommand>) => Promise<CustomCommand[]>
+    remove: (id: string) => Promise<CustomCommand[]>
+    check: (cmd: string) => Promise<CommandCheck>
+    programs: () => Promise<string[]>
+  }
   suggest: SuggestAPI
   http: { request: (req: HttpRequest) => Promise<HttpResponse> }
   assistant: AssistantAPI

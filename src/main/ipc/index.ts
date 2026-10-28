@@ -35,9 +35,11 @@ import { registerSuggestHandlers } from './suggest'
 import { registerHttpHandlers } from './http'
 import { registerAssistantHandlers } from './assistant'
 import { registerWidgetHandlers } from './widget'
+import { registerDocsHandlers } from './docs'
 
 export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerSshHandlers(mainWindow)
+  registerDocsHandlers()
   registerSystemHandlers(mainWindow)
   registerWindowHandlers(mainWindow)
   registerProjectHandlers(mainWindow)
