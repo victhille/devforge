@@ -2,6 +2,16 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [3.4.1](https://github.com/victhille/devforge/compare/v3.4.0...v3.4.1) — 2026-10-28
+
+> Fixes: IDE button follows the setting, useful filters only, cleaner generated pages (separate CSS, account-aware welcome, organized React/Vue), plain Node with npm test, Symfony without a duplicate repository.
+
+### Fixes
+
+- **projets**: Correctifs 3.4.1 (IDE, filtres, pages générées) ([b407415](https://github.com/victhille/devforge/commit/b407415fb763591be0076fbf8d4d27ee7d497abe))
+
+_1 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [3.4.0](https://github.com/victhille/devforge/compare/v3.3.1...v3.4.0) — 2026-10-28
 
 > A project that starts ready: a DevForge welcome page, plus sign-in, sign-up and one authentication API shared by Next.js, Laravel, Symfony, React and Vue.

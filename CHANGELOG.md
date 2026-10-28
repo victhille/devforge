@@ -2,6 +2,16 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [3.4.1](https://github.com/victhille/devforge/compare/v3.4.0...v3.4.1) — 2026-10-28
+
+> Correctifs : bouton IDE selon le réglage, filtres utiles, pages générées plus propres (CSS à part, accueil selon la connexion, React/Vue rangés), Node simple avec npm test, Symfony sans dépôt en double.
+
+### Corrections
+
+- **projets** : Correctifs 3.4.1 (IDE, filtres, pages générées) ([b407415](https://github.com/victhille/devforge/commit/b407415fb763591be0076fbf8d4d27ee7d497abe))
+
+_1 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [3.4.0](https://github.com/victhille/devforge/compare/v3.3.1...v3.4.0) — 2026-10-28
 
 > Un projet qui démarre prêt : page d'accueil DevForge, et connexion, inscription et API d'authentification communes à Next.js, Laravel, Symfony, React et Vue.
