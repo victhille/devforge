@@ -1914,6 +1914,86 @@ const fr = {
     noMatch:     'Aucune correspondance'
   },
 
+  // v3.5 lot 4: what each tool is for, how to use it, and its examples
+  toolHelp: {
+    label: "Aide de l'outil",
+    hide: "Masquer l'aide",
+    show: 'Aide',
+    examples: 'Exemples :',
+    example: 'Exemple',
+    json: {
+      what: "Rend lisible un JSON compact (réponse d'API, fichier de config) ou le compacte pour l'envoyer, et dit s'il est invalide.",
+      how: "Collez le JSON à gauche, puis Formater (indenté) ou Minifier (sur une ligne). Le résultat se copie à droite.",
+      sample: "Une réponse d'API"
+    },
+    base64: {
+      what: "Base64 écrit n'importe quelles données en lettres et chiffres : pièces jointes, images dans du CSS, en-têtes Basic Auth.",
+      how: "Texte à gauche puis Encoder, ou du Base64 puis Décoder. Les accents et emojis passent (UTF-8).",
+      text: 'Un texte à encoder',
+      encoded: 'Du Base64 à décoder'
+    },
+    jwt: {
+      what: "Un JWT est le jeton d'une session (Authorization: Bearer …) : trois parties séparées par des points, dont deux lisibles.",
+      how: "Collez le jeton puis Décoder : vous voyez l'en-tête (algorithme) et le contenu (utilisateur, expiration). La signature n'est pas vérifiée.",
+      sample: 'Un jeton de connexion'
+    },
+    regex: {
+      what: "Une expression régulière décrit un motif de texte : trouver des e-mails, valider une date, extraire des liens.",
+      how: "Écrivez le motif entre les barres, les options à droite (g : toutes les correspondances, i : sans casse), et un texte de test : les correspondances s'allument en direct.",
+      patternHint: '\\d{2}/\\d{2}/\\d{4}',
+      textHint: 'Collez ici le texte à tester, par exemple : Livré le 28/10/2026.',
+      models: { email: 'E-mail', date: 'Date jj/mm/aaaa', url: 'Lien http(s)', phone: 'Téléphone français' }
+    },
+    uuid: {
+      what: "Un UUID est un identifiant unique au monde, sans serveur pour le distribuer : clés de base, noms de fichiers, identifiants d'objets.",
+      how: "Choisissez combien en générer, puis Générer ; chaque ligne se copie. Il ressemble à : 9b2f6c1e-4d7a-4e3b-9a10-2c5f8e7d6b41",
+      sample: 'En générer 3'
+    },
+    hash: {
+      what: "Une empreinte (hash) résume un texte en une suite fixe : comparer deux fichiers, vérifier un téléchargement. Elle ne se « décode » pas.",
+      how: "Choisissez l'algorithme (SHA-256 le plus courant), le texte, puis Générer. Le même texte donne toujours la même empreinte.",
+      sample: 'Un texte à résumer'
+    },
+    cron: {
+      what: "Une expression cron dit quand une tâche planifiée tourne : sauvegardes, envois d'e-mails, nettoyages.",
+      how: "Cinq champs : minute, heure, jour, mois, jour de la semaine. Tapez-la ou choisissez un exemple : DevForge la traduit et montre les prochaines exécutions."
+    },
+    timestamp: {
+      what: "Un timestamp Unix compte les secondes (ou millisecondes) depuis le 1er janvier 1970 : c'est ainsi que les bases et les API stockent souvent les dates.",
+      how: "Collez un nombre ou une date (ISO, texte) : vous obtenez toutes les écritures, en heure locale et UTC.",
+      seconds: 'En secondes',
+      millis: 'En millisecondes',
+      iso: 'Date ISO'
+    },
+    url: {
+      what: "Une URL ne peut pas contenir d'espaces ni d'accents tels quels : on les encode (%20, %C3%A9). L'outil encode, décode et détaille une adresse.",
+      how: "Collez une adresse ou un morceau, puis Encoder ou Décoder. En dessous : protocole, hôte, chemin et chaque paramètre ?clé=valeur.",
+      sample: 'Une adresse avec paramètres'
+    },
+    snippets: {
+      what: "Vos bouts de code réutilisables, rangés par langage et étiquettes : une requête SQL, une config, une fonction utile.",
+      how: "Nouveau snippet, un titre, le langage, des étiquettes séparées par des virgules, puis Enregistrer. La recherche porte sur le titre, le langage et les étiquettes.",
+      exampleTitle: 'Exemple de snippet',
+      exampleHint: "Rien n'est enregistré tant que vous ne partez pas de cet exemple.",
+      useExample: 'Partir de cet exemple'
+    },
+    diff: {
+      what: "Compare deux versions d'un texte ligne à ligne : deux .env, deux configs, un fichier avant et après.",
+      how: "L'original à gauche, la version modifiée à droite : les lignes ajoutées sont en vert, les retirées en rouge.",
+      sample: 'Deux .env'
+    },
+    generator: {
+      what: "Génère au hasard ce qu'il ne faut pas inventer soi-même : mots de passe, secrets d'application (APP_KEY, JWT_SECRET), UUID.",
+      how: "Réglez la longueur et les caractères, puis Générer et copiez. Tout est tiré sur ce PC (crypto.getRandomValues), rien n'est envoyé."
+    },
+    webhooks: {
+      what: "Un webhook est un appel qu'un service (Stripe, GitHub…) envoie à votre application quand un événement arrive. Ici, DevForge les reçoit pour que vous voyiez leur forme.",
+      how: "Démarrer, puis donnez l'adresse au service (via un tunnel s'il est en ligne). Chaque appel s'affiche : en-têtes, corps, et Rejouer vers votre application.",
+      sample: 'Un paiement Stripe',
+      exampleNote: "Exemple : rien n'a été reçu ni ne sera envoyé (l'adresse se termine par .invalid, elle n'existe pas)."
+    }
+  },
+
   apiTester: {
     title:        'API Tester',
     subtitle:     'Envoyer des requêtes HTTP',

@@ -8,6 +8,7 @@ import IconButton from '@renderer/components/ui/IconButton'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { generatePassword, generateSecret, generateUuid, type SecretFormat } from './random'
+import ToolHelp from '@renderer/components/ui/ToolHelp'
 
 type T = ReturnType<typeof useI18n>['t']['generator']
 
@@ -142,6 +143,7 @@ export default function GeneratorPage() {
   return (
     <Page className="max-w-4xl">
       <PageHeader title={t.generator.title} subtitle={t.generator.subtitle} />
+      <ToolHelp id="generator" what={t.toolHelp.generator.what} how={t.toolHelp.generator.how} />
       <PasswordSection t={t.generator} />
       <SecretSection   t={t.generator} />
       <UuidSection     t={t.generator} />

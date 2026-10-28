@@ -9,6 +9,8 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import { Field, Input, Select, Textarea } from '@renderer/components/ui/Input'
 import { useSnippets, type Snippet } from './useSnippets'
+import ToolHelp from '@renderer/components/ui/ToolHelp'
+import { SNIPPET_EXAMPLE } from '../examples'
 
 const LANGUAGES = [
   'TypeScript', 'JavaScript', 'Python', 'Go', 'Rust', 'PHP', 'Java',
@@ -31,6 +33,14 @@ export default function SnippetsPage() {
     setSelected(s.id)
     setDraft(toDraft(s))
     setDirty(false)
+  }
+
+  /** The example becomes a snippet only on demand */
+  function fromExample() {
+    const s = create()
+    const patch = { title: SNIPPET_EXAMPLE.title, language: SNIPPET_EXAMPLE.language, code: SNIPPET_EXAMPLE.code, tags: SNIPPET_EXAMPLE.tags }
+    update(s.id, patch)
+    select({ ...s, ...patch })
   }
 
   function edit(patch: Partial<Draft>) {
@@ -103,7 +113,24 @@ export default function SnippetsPage() {
 
       {/* ── Editor ── */}
       <section className="flex min-w-0 flex-1 flex-col gap-4 p-6">
-        {!draft ? (
+        <ToolHelp id="snippets" what={t.toolHelp.snippets.what} how={t.toolHelp.snippets.how} />
+        {!draft && snippets.length === 0 ? (
+          // An example to look at, greyed: saved only if the user starts from it
+          <div className="flex flex-col gap-3 rounded-[12px] border border-dashed border-line p-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge>{t.toolHelp.example}</Badge>
+              <span className="font-semibold text-fg-secondary">{SNIPPET_EXAMPLE.title}</span>
+              <Badge color="accent" className="py-0 text-2xs">{SNIPPET_EXAMPLE.language}</Badge>
+              {SNIPPET_EXAMPLE.tags.map(tag => <Badge key={tag} className="py-0 text-2xs">{tag}</Badge>)}
+            </div>
+            <pre aria-label={t.toolHelp.snippets.exampleTitle} className="overflow-auto rounded-[10px] bg-surface p-3 font-mono text-sm text-fg-muted">{SNIPPET_EXAMPLE.code}</pre>
+            <p className="text-xs text-fg-muted">{t.toolHelp.snippets.exampleHint}</p>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={fromExample}>{t.toolHelp.snippets.useExample}</Button>
+              <Button size="sm" variant="secondary" onClick={() => select(create())}><Plus size={13} /> {t.snippets.newSnippet}</Button>
+            </div>
+          </div>
+        ) : !draft ? (
           <EmptyState
             className="flex-1"
             title={t.snippets.noSnippets}

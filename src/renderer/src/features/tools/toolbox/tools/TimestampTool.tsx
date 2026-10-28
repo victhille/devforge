@@ -7,6 +7,8 @@ import CopyButton from '@renderer/components/ui/CopyButton'
 import { Input } from '@renderer/components/ui/Input'
 import { formatRelative } from '@renderer/lib/format'
 import type { ToolboxT } from '../IoPanel'
+import ToolHelp from '@renderer/components/ui/ToolHelp'
+import { TIMESTAMP_EXAMPLES } from '../../examples'
 
 /** Unix seconds, unix ms or any date string Date can parse */
 function parseInput(raw: string): Date | null {
@@ -22,7 +24,8 @@ function parseInput(raw: string): Date | null {
 }
 
 export default function TimestampTool({ t }: { t: ToolboxT }) {
-  const { lang } = useI18n()
+  const { lang, t: all } = useI18n()
+  const h = all.toolHelp
   const [input, setInput] = useState(() => String(Math.floor(Date.now() / 1000)))
   const date = useMemo(() => parseInput(input), [input])
 
@@ -38,8 +41,10 @@ export default function TimestampTool({ t }: { t: ToolboxT }) {
 
   return (
     <div className="flex max-w-3xl flex-col gap-4">
+      <ToolHelp id="timestamp" what={h.timestamp.what} how={h.timestamp.how}
+        examples={[h.timestamp.seconds, h.timestamp.millis, h.timestamp.iso].map((label, i) => ({ label, onPick: () => setInput(TIMESTAMP_EXAMPLES[i]) }))} />
       <div className="flex gap-2">
-        <Input value={input} onChange={e => setInput(e.target.value)} placeholder="1729156800 · 2026-10-17T09:00:00Z" className="h-12 font-mono text-lg" spellCheck={false} />
+        <Input value={input} onChange={e => setInput(e.target.value)} placeholder="1793145600 · 2026-10-28T09:00:00Z" aria-label={t.tabTimestamp} className="h-12 font-mono text-lg" spellCheck={false} />
         <Button variant="secondary" size="lg" onClick={() => setInput(String(Math.floor(Date.now() / 1000)))}><Clock size={15} /> {t.tsNow}</Button>
       </div>
       {!date ? (

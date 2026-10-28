@@ -1925,6 +1925,86 @@ const en = {
     noMatch:     'No match'
   },
 
+  // v3.5 lot 4: what each tool is for, how to use it, and its examples
+  toolHelp: {
+    label: "Tool help",
+    hide: 'Hide the help',
+    show: 'Help',
+    examples: 'Examples:',
+    example: 'Example',
+    json: {
+      what: "Makes compact JSON readable (an API response, a config file) or compacts it to send it, and tells when it is invalid.",
+      how: "Paste the JSON on the left, then Format (indented) or Minify (one line). Copy the result on the right.",
+      sample: 'An API response'
+    },
+    base64: {
+      what: "Base64 writes any data as letters and digits: attachments, images in CSS, Basic Auth headers.",
+      how: "Text on the left then Encode, or Base64 then Decode. Accents and emojis work (UTF-8).",
+      text: 'A text to encode',
+      encoded: 'Base64 to decode'
+    },
+    jwt: {
+      what: "A JWT is a session's token (Authorization: Bearer …): three parts separated by dots, two of them readable.",
+      how: "Paste the token then Decode: you see the header (algorithm) and the content (user, expiry). The signature is not checked.",
+      sample: 'A sign-in token'
+    },
+    regex: {
+      what: "A regular expression describes a text pattern: find emails, check a date, pull out links.",
+      how: "Type the pattern between the slashes, the flags on the right (g: every match, i: any case), and a test text: matches light up as you type.",
+      patternHint: '\\d{2}/\\d{2}/\\d{4}',
+      textHint: 'Paste the text to test here, for instance: Shipped on 28/10/2026.',
+      models: { email: 'Email', date: 'Date dd/mm/yyyy', url: 'http(s) link', phone: 'French phone' }
+    },
+    uuid: {
+      what: "A UUID is a worldwide unique id, with no server handing them out: database keys, file names, object ids.",
+      how: "Pick how many, then Generate; each line copies. One looks like: 9b2f6c1e-4d7a-4e3b-9a10-2c5f8e7d6b41",
+      sample: 'Generate 3'
+    },
+    hash: {
+      what: "A hash sums up a text in a fixed string: compare two files, check a download. It cannot be \"decoded\".",
+      how: "Pick the algorithm (SHA-256 is the usual one), the text, then Generate. The same text always gives the same hash.",
+      sample: 'A text to hash'
+    },
+    cron: {
+      what: "A cron expression says when a scheduled task runs: backups, emails, clean-ups.",
+      how: "Five fields: minute, hour, day, month, weekday. Type one or pick an example: DevForge spells it out and shows the next runs."
+    },
+    timestamp: {
+      what: "A Unix timestamp counts the seconds (or milliseconds) since 1 January 1970: how databases and APIs often store dates.",
+      how: "Paste a number or a date (ISO, text): you get every form of it, in local time and UTC.",
+      seconds: 'In seconds',
+      millis: 'In milliseconds',
+      iso: 'ISO date'
+    },
+    url: {
+      what: "A URL cannot hold spaces or accents as they are: they are encoded (%20, %C3%A9). The tool encodes, decodes and breaks down an address.",
+      how: "Paste an address or a part of it, then Encode or Decode. Below: protocol, host, path and each ?key=value parameter.",
+      sample: 'An address with parameters'
+    },
+    snippets: {
+      what: "Your reusable bits of code, sorted by language and tags: an SQL query, a config, a handy function.",
+      how: "New snippet, a title, the language, tags separated by commas, then Save. Search looks at the title, the language and the tags.",
+      exampleTitle: 'Example snippet',
+      exampleHint: 'Nothing is saved until you start from this example.',
+      useExample: 'Start from this example'
+    },
+    diff: {
+      what: "Compares two versions of a text line by line: two .env files, two configs, a file before and after.",
+      how: "The original on the left, the changed one on the right: added lines are green, removed ones red.",
+      sample: 'Two .env files'
+    },
+    generator: {
+      what: "Draws at random what you should not make up yourself: passwords, app secrets (APP_KEY, JWT_SECRET), UUIDs.",
+      how: "Set the length and characters, then Generate and copy. Everything is drawn on this PC (crypto.getRandomValues), nothing is sent."
+    },
+    webhooks: {
+      what: "A webhook is a call a service (Stripe, GitHub…) sends your app when something happens. Here DevForge receives them so you can see their shape.",
+      how: "Start, then give the address to the service (through a tunnel if it is online). Each call shows: headers, body, and Replay to your app.",
+      sample: 'A Stripe payment',
+      exampleNote: 'Example: nothing was received and nothing will be sent (the address ends in .invalid, it does not exist).'
+    }
+  },
+
   // ── API Tester ────────────────────────────────────────────────────────────
   apiTester: {
     title:        'API Tester',

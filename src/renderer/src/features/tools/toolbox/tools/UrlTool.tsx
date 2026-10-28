@@ -2,11 +2,15 @@ import { useMemo, useState } from 'react'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import CopyButton from '@renderer/components/ui/CopyButton'
+import { useI18n } from '@renderer/i18n/I18nContext'
+import ToolHelp from '@renderer/components/ui/ToolHelp'
+import { URL_EXAMPLE } from '../../examples'
 import { IoGrid, IoPanel, IO_TEXTAREA, ToolActions, type ToolboxT } from '../IoPanel'
 
 export default function UrlTool({ t }: { t: ToolboxT }) {
-  const [input, setInput] = useState('https://shop.test/search?q=caf%C3%A9%20cr%C3%A8me&page=2&tags=a&tags=b#results')
+  const [input, setInput] = useState('')
   const [output, setOutput] = useState('')
+  const h = useI18n().t.toolHelp
 
   const parsed = useMemo(() => {
     try { return new URL(input.trim()) } catch { return null }
@@ -18,9 +22,11 @@ export default function UrlTool({ t }: { t: ToolboxT }) {
 
   return (
     <>
+      <ToolHelp id="url" what={h.url.what} how={h.url.how}
+        examples={[{ label: h.url.sample, onPick: () => { setInput(URL_EXAMPLE); setOutput('') } }]} />
       <IoGrid>
         <IoPanel label={t.input}>
-          <textarea className={IO_TEXTAREA} value={input} onChange={e => setInput(e.target.value)} spellCheck={false} />
+          <textarea className={IO_TEXTAREA} value={input} onChange={e => setInput(e.target.value)} placeholder={URL_EXAMPLE} aria-label={t.input} spellCheck={false} />
         </IoPanel>
         <IoPanel label={t.output} actions={output && <CopyButton text={output} />}>
           <textarea className={IO_TEXTAREA} value={output} readOnly aria-label={t.output} spellCheck={false} />

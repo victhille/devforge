@@ -1,6 +1,9 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import Badge from '@renderer/components/ui/Badge'
 import { Input } from '@renderer/components/ui/Input'
+import { useI18n } from '@renderer/i18n/I18nContext'
+import ToolHelp from '@renderer/components/ui/ToolHelp'
+import { REGEX_MODELS, type RegexModel } from '../../examples'
 import { IoGrid, IoPanel, IO_TEXTAREA, type ToolboxT } from '../IoPanel'
 
 type Result = { count: number; nodes: ReactNode[] } | { error: true }
@@ -33,21 +36,25 @@ export default function RegexTool({ t }: { t: ToolboxT }) {
   const [pattern, setPattern] = useState('')
   const [flags, setFlags]     = useState('g')
   const [text, setText]       = useState('')
+  const h = useI18n().t.toolHelp
+  const pickModel = (m: RegexModel) => { setPattern(REGEX_MODELS[m].pattern); setFlags(REGEX_MODELS[m].flags); setText(REGEX_MODELS[m].text) }
 
   // Live result, updated on every keystroke
   const result = useMemo(() => (pattern ? highlight(text, pattern, flags) : null), [text, pattern, flags])
 
   return (
     <>
+      <ToolHelp id="regex" what={h.regex.what} how={h.regex.how}
+        examples={(Object.keys(REGEX_MODELS) as RegexModel[]).map(m => ({ label: h.regex.models[m], onPick: () => pickModel(m) }))} />
       <div className="flex shrink-0 items-center gap-1 font-mono">
         <span className="text-lg text-fg-muted">/</span>
-        <Input value={pattern} onChange={e => setPattern(e.target.value)} placeholder={t.pattern} spellCheck={false} className="font-mono" />
+        <Input value={pattern} onChange={e => setPattern(e.target.value)} placeholder={h.regex.patternHint} aria-label={t.pattern} spellCheck={false} className="font-mono" />
         <span className="text-lg text-fg-muted">/</span>
-        <Input value={flags} onChange={e => setFlags(e.target.value)} placeholder={t.flags} spellCheck={false} className="w-20 font-mono" />
+        <Input value={flags} onChange={e => setFlags(e.target.value)} placeholder="gi" aria-label={t.flags} spellCheck={false} className="w-20 font-mono" />
       </div>
       <IoGrid>
         <IoPanel label={t.input}>
-          <textarea className={IO_TEXTAREA} value={text} onChange={e => setText(e.target.value)} placeholder="Text to test against..." spellCheck={false} />
+          <textarea className={IO_TEXTAREA} value={text} onChange={e => setText(e.target.value)} placeholder={h.regex.textHint} aria-label={t.input} spellCheck={false} />
         </IoPanel>
         <IoPanel
           label={t.output}

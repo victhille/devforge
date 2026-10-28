@@ -11,6 +11,8 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 import Modal from '@renderer/components/ui/Modal'
 import { Field, Input, Textarea } from '@renderer/components/ui/Input'
 import { SectionTitle } from '@renderer/components/ui/Page'
+import ToolHelp from '@renderer/components/ui/ToolHelp'
+import { WEBHOOK_EXAMPLE, WEBHOOK_EXAMPLE_TARGET } from '@renderer/features/tools/examples'
 
 const METHOD_COLOR: Record<string, string> = {
   GET: 'text-success', POST: 'text-accent', PUT: 'text-warning', PATCH: 'text-violet-400', DELETE: 'text-danger'
@@ -39,6 +41,8 @@ export default function WebhooksPage() {
   const [replayUrl, setReplayUrl] = useState('http://localhost:3000')
   const [replayResult, setReplayResult] = useState<string | null>(null)
   const [editingResponse, setEditingResponse] = useState(false)
+  /** The example request shown in place of a real one (never sent, never stored) */
+  const [example, setExample] = useState(false)
 
   const load = useCallback(async () => {
     const [st, list] = await Promise.all([window.devforge.webhooks.status(), window.devforge.webhooks.list()])
@@ -104,6 +108,11 @@ export default function WebhooksPage() {
         </p>
       )}
 
+      <div className="shrink-0 px-6 pt-4">
+        <ToolHelp id="webhooks" what={t.toolHelp.webhooks.what} how={t.toolHelp.webhooks.how}
+          examples={[{ label: t.toolHelp.webhooks.sample, onPick: () => { setSelected(null); setExample(true) } }]} />
+      </div>
+
       <div className="flex min-h-0 flex-1">
         {/* Requests */}
         <aside className="flex w-80 shrink-0 flex-col overflow-y-auto border-r border-line-subtle">
@@ -111,7 +120,7 @@ export default function WebhooksPage() {
             <p className="p-6 text-center text-sm text-fg-muted">{status?.port ? w.waiting : w.notStarted}</p>
           )}
           {requests.map(r => (
-            <button key={r.id} onClick={() => { setSelected(r.id); setReplayResult(null) }}
+            <button key={r.id} onClick={() => { setSelected(r.id); setExample(false); setReplayResult(null) }}
               className={cn('flex flex-col gap-0.5 border-b border-line-subtle px-4 py-2.5 text-left', selected === r.id ? 'bg-active' : 'hover:bg-hover')}>
               <span className="flex items-center gap-2">
                 <span className={cn('w-14 font-mono text-xs font-bold', METHOD_COLOR[r.method] ?? 'text-fg')}>{r.method}</span>
@@ -124,7 +133,9 @@ export default function WebhooksPage() {
 
         {/* Detail */}
         <section className="flex min-w-0 flex-1 flex-col gap-5 overflow-y-auto p-6">
-          {!req ? (
+          {!req && example ? (
+            <ExampleRequest onClose={() => setExample(false)} />
+          ) : !req ? (
             <EmptyState icon={<Webhook size={32} />} title={w.emptyTitle} description={w.emptyHint} />
           ) : (
             <>
@@ -182,6 +193,46 @@ export default function WebhooksPage() {
         />
       )}
     </div>
+  )
+}
+
+/** The example: what a captured request looks like, with nothing to send */
+function ExampleRequest({ onClose }: { onClose: () => void }) {
+  const { t } = useI18n()
+  const w = t.webhooks
+  return (
+    <>
+      <div className="flex items-center gap-3">
+        <Badge color="warning">{t.toolHelp.example}</Badge>
+        <span className={cn('font-mono text-lg font-bold', METHOD_COLOR[WEBHOOK_EXAMPLE.method])}>{WEBHOOK_EXAMPLE.method}</span>
+        <span className="flex-1 truncate font-mono text-md text-fg">{WEBHOOK_EXAMPLE.url}</span>
+        <Button size="sm" variant="ghost" onClick={onClose}>{t.common.close}</Button>
+      </div>
+      <p role="note" className="rounded-[10px] border border-warning/30 bg-warning-soft px-3 py-2 text-xs text-warning">{t.toolHelp.webhooks.exampleNote}</p>
+      <section className="flex flex-col gap-2">
+        <SectionTitle>{w.headers} ({Object.keys(WEBHOOK_EXAMPLE.headers).length})</SectionTitle>
+        <div className="overflow-hidden rounded-xl border border-line-subtle">
+          {Object.entries(WEBHOOK_EXAMPLE.headers).map(([k, v]) => (
+            <div key={k} className="flex gap-4 border-b border-line-subtle px-3 py-1.5 font-mono text-xs last:border-0">
+              <span className="w-56 shrink-0 text-fg-muted">{k}</span>
+              <span className="break-all text-fg-secondary">{v}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="flex flex-col gap-2">
+        <SectionTitle>{w.body}</SectionTitle>
+        <pre className="max-h-96 overflow-auto rounded-xl bg-console p-3 font-mono text-xs whitespace-pre-wrap break-all text-fg-secondary">{WEBHOOK_EXAMPLE.body}</pre>
+      </section>
+      <section className="flex flex-col gap-2">
+        <SectionTitle>{w.replay}</SectionTitle>
+        <div className="flex gap-2">
+          <Input value={WEBHOOK_EXAMPLE_TARGET} readOnly aria-label={w.replay} className="font-mono text-fg-muted" />
+          <Button variant="secondary" disabled><Repeat size={13} /> {w.send}</Button>
+        </div>
+        <p className="text-xs text-fg-muted">{w.replayHint}</p>
+      </section>
+    </>
   )
 }
 

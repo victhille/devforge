@@ -7,6 +7,8 @@ import Card from '@renderer/components/ui/Card'
 import { Textarea } from '@renderer/components/ui/Input'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
 import { computeDiff, type DiffType } from './diff'
+import ToolHelp from '@renderer/components/ui/ToolHelp'
+import { DIFF_EXAMPLE } from '../examples'
 
 const LINE_STYLE: Record<DiffType, { row: string; prefix: string; text: string; sign: string }> = {
   add:    { row: 'bg-success-soft', prefix: 'bg-success/15 text-success', text: 'text-success',        sign: '+' },
@@ -34,6 +36,8 @@ export default function DiffPage() {
           </Button>
         )}
       />
+      <ToolHelp id="diff" what={t.toolHelp.diff.what} how={t.toolHelp.diff.how}
+        examples={[{ label: t.toolHelp.diff.sample, onPick: () => { setLeft(DIFF_EXAMPLE.left); setRight(DIFF_EXAMPLE.right) } }]} />
 
       <div className="grid shrink-0 grid-cols-2 gap-3">
         {[
