@@ -137,13 +137,14 @@ export default function FileTree({ rootPath, ide }: { rootPath: string; ide?: De
 
   return (
     <div className="flex h-full min-h-0">
-      <div className={cn('flex min-h-0 flex-col', file ? 'w-[320px] shrink-0' : 'flex-1')}>
+      {/* min-w-0: a long line found never widens the pane past its card */}
+      <div className={cn('flex min-h-0 min-w-0 flex-col', file ? 'w-[320px] shrink-0' : 'flex-1')}>
         <div className="flex h-10 shrink-0 items-center justify-between border-b border-line-subtle px-3">
           <SectionTitle>{f.title}</SectionTitle>
           <IconButton size="sm" title={f.refresh} onClick={reset}><RefreshCw size={12} /></IconButton>
         </div>
         <SearchBar s={search} />
-        <div className="flex-1 overflow-y-auto p-1">
+        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-1">
           {search.active
             ? <SearchResults s={search} selected={file && line ? { path: file.path.slice(rootPath.length + 1).split(sep).join('/'), line } : null} onOpen={openHit} />
             : <>

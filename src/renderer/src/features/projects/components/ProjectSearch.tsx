@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { CaseSensitive, Regex, Search, WholeWord, X } from 'lucide-react'
-import type { SearchResult } from '@shared/lib/projectSearch'
+import type { SearchMatch, SearchResult } from '@shared/lib/projectSearch'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Spinner from '@renderer/components/ui/Spinner'
@@ -8,7 +8,7 @@ import Spinner from '@renderer/components/ui/Spinner'
 export interface SearchHit { path: string; line: number }
 
 /** A toggle of the search: case, whole word, regex */
-function Toggle({ on, onChange, title, children }: { on: boolean; onChange: (v: boolean) => void; title: string; children: React.ReactNode }) {
+function Toggle({ on, onChange, title, children }: { on: boolean; onChange: (v: boolean) => void; title: string; children: ReactNode }) {
   return (
     <button aria-pressed={on} title={title} aria-label={title} onClick={() => onChange(!on)}
       className={cn('flex size-6 shrink-0 items-center justify-center rounded', on ? 'bg-accent-soft text-accent' : 'text-fg-muted hover:bg-hover hover:text-fg')}>
@@ -68,6 +68,34 @@ export function SearchBar({ s }: { s: ReturnType<typeof useProjectSearch> }) {
   )
 }
 
+interface LineHit { line: number; text: string; spans: [number, number][] }
+
+/** One row per line: the matches of a same line (same text shown) gathered */
+function byLine(matches: SearchMatch[]): LineHit[] {
+  const out: LineHit[] = []
+  for (const m of matches) {
+    const last = out[out.length - 1]
+    if (last && last.line === m.line && last.text === m.text) last.spans.push([m.column, m.length])
+    else out.push({ line: m.line, text: m.text, spans: [[m.column, m.length]] })
+  }
+  return out
+}
+
+/** The line, its leading spaces dropped, every match marked */
+function highlighted(hit: LineHit): ReactNode[] {
+  const lead = hit.text.length - hit.text.trimStart().length
+  const parts: ReactNode[] = []
+  let at = lead
+  hit.spans.forEach(([col, len], i) => {
+    if (col < at) return
+    parts.push(hit.text.slice(at, col))
+    parts.push(<mark key={i} className="rounded-sm bg-warning-soft px-px text-fg">{hit.text.slice(col, col + len)}</mark>)
+    at = col + len
+  })
+  parts.push(hit.text.slice(at))
+  return parts
+}
+
 /** The results, by file; a click opens the line */
 export function SearchResults({ s, selected, onOpen }: { s: ReturnType<typeof useProjectSearch>; selected: SearchHit | null; onOpen: (hit: SearchHit) => void }) {
   const { t } = useI18n()
@@ -87,17 +115,13 @@ export function SearchResults({ s, selected, onOpen }: { s: ReturnType<typeof us
           <div className="truncate px-2 py-0.5 font-mono text-[11.5px] font-semibold text-fg" title={file.path}>
             {file.path} <span className="font-normal text-fg-muted">({file.matches.length})</span>
           </div>
-          {file.matches.map((m, i) => {
+          {byLine(file.matches).map((m, i) => {
             const on = selected?.path === file.path && selected.line === m.line
             return (
               <button key={i} onClick={() => onOpen({ path: file.path, line: m.line })} aria-current={on ? 'true' : undefined}
-                className={cn('flex w-full items-baseline gap-2 rounded px-2 py-0.5 text-left font-mono text-[11.5px] hover:bg-hover', on && 'bg-accent-soft')}>
+                className={cn('flex w-full min-w-0 items-baseline gap-2 rounded px-2 py-0.5 text-left font-mono text-[11.5px] hover:bg-hover', on && 'bg-accent-soft')}>
                 <span className="w-8 shrink-0 text-right text-fg-muted">{m.line}</span>
-                <span className="truncate text-fg-secondary">
-                  {m.text.slice(0, m.column).trimStart()}
-                  <mark className="rounded-sm bg-warning-soft px-px text-fg">{m.text.slice(m.column, m.column + m.length)}</mark>
-                  {m.text.slice(m.column + m.length)}
-                </span>
+                <span className="min-w-0 truncate text-fg-secondary">{highlighted(m)}</span>
               </button>
             )
           })}
