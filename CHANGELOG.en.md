@@ -2,6 +2,16 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [3.5.1](https://github.com/victhille/devforge/compare/v3.5.0...v3.5.1) — 2026-10-28
+
+> Tidier group cards listing the rest of the folder, file previews (Markdown, images, PDF), tables created and changed from the Database page, copy as JSON, a console that closes with its last tab.
+
+### Fixes
+
+- Retours d'essai de la 3.5.0 (v3.5.1) ([a6be2f6](https://github.com/victhille/devforge/commit/a6be2f6be02ab54a94ff0ea2db1466accfdc5732))
+
+_1 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [3.5.0](https://github.com/victhille/devforge/compare/v3.4.1...v3.5.0) — 2026-10-28
 
 > All your projects, everywhere: several projects folders, nested projects as groups, detected or hand-added IDEs (one per project), help and examples in every tool, your own commands in the docs, greyed suggestions in the terminal.

@@ -2,6 +2,16 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [3.5.1](https://github.com/victhille/devforge/compare/v3.5.0...v3.5.1) — 2026-10-28
+
+> Cartes groupe plus nettes avec le reste du dossier, aperçu des fichiers (Markdown, images, PDF), tables créées et modifiées depuis la page Base de données, copie en JSON, console qui se ferme avec son dernier onglet.
+
+### Corrections
+
+- Retours d'essai de la 3.5.0 (v3.5.1) ([a6be2f6](https://github.com/victhille/devforge/commit/a6be2f6be02ab54a94ff0ea2db1466accfdc5732))
+
+_1 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [3.5.0](https://github.com/victhille/devforge/compare/v3.4.1...v3.5.0) — 2026-10-28
 
 > Tous tes projets, partout : plusieurs dossiers de projets, projets imbriqués en groupes, IDE détectés ou ajoutés à la main (un par projet), aide et exemples dans chaque outil, commandes perso dans la doc, suggestions grisées dans le terminal.
