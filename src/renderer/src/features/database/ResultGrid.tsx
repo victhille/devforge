@@ -3,15 +3,25 @@ import { ArrowDown, ArrowUp } from 'lucide-react'
 import type { DbQueryResult } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
+import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import CopyButton from '@renderer/components/ui/CopyButton'
+import { formatResult, type ResultFormat } from '@shared/lib/resultExport'
 
-/** CSV with RFC 4180 quoting, for the copy button */
-function toCsv(r: DbQueryResult): string {
-  const q = (v: unknown) => {
-    const s = v === null || v === undefined ? '' : String(v)
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
-  }
-  return [r.columns.map(q).join(','), ...r.rows.map(row => row.map(q).join(','))].join('\n')
+/** v3.5.1: copy the rows as CSV or JSON (the choice is kept) */
+function CopyAs({ result }: { result: DbQueryResult }) {
+  const { t } = useI18n()
+  const [format, setFormat] = usePersistentState<ResultFormat>('devforge:db-copy-format', 'csv')
+  return (
+    <span className="ml-auto flex items-center gap-1">
+      <span role="group" aria-label={t.database.copyAs} className="flex rounded-md border border-line p-px">
+        {(['csv', 'json'] as const).map(f => (
+          <button key={f} aria-pressed={format === f} onClick={() => setFormat(f)}
+            className={cn('h-5 rounded px-1.5 font-mono text-[10.5px] uppercase', format === f ? 'bg-active text-fg' : 'text-fg-muted hover:text-fg')}>{f}</button>
+        ))}
+      </span>
+      <CopyButton text={formatResult(result, format)} title={t.database.copyFormat.replace('{f}', format.toUpperCase())} />
+    </span>
+  )
 }
 
 export interface GridSort { column: string; desc: boolean }
@@ -51,7 +61,7 @@ export default function ResultGrid({ result, rowOffset = 0, sort, onSort, toolba
       <div className="flex shrink-0 items-center gap-3 border-b border-line-subtle px-3 py-1.5 text-xs text-fg-muted">
         {toolbar ?? <span>{d.rows.replace('{n}', String(result.rows.length))}{result.truncated ? ` (${d.truncated})` : ''}</span>}
         <span>{result.durationMs} ms</span>
-        <span className="ml-auto flex items-center gap-1">CSV <CopyButton text={toCsv(result)} /></span>
+        <CopyAs result={result} />
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
         <table className="w-max min-w-full border-collapse font-mono text-xs">

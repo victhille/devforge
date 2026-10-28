@@ -4,13 +4,14 @@ import { arch, release, type, userInfo } from 'os'
 import { log, tailLog } from '../lib/log'
 import { readSchemaVersion } from '../services/storage/migrations'
 import { existsSync } from 'fs'
-import { readdir, stat } from 'fs/promises'
+import { readFile, readdir, stat } from 'fs/promises'
 import { detectEnvironment } from '../services/system/environmentDetector'
 import { getGitStatus } from '../services/git/gitStatus'
 import { freePort, getListeningPorts } from '../services/system/portService'
 import { spawn } from 'child_process'
 import { runFile } from '../lib/exec'
-import type { CustomIde, FileEntry } from '@shared/types'
+import type { CustomIde, FileEntry, FilePreview } from '@shared/types'
+import { PREVIEW_LIMIT, imageMime, looksBinary, previewKind } from '@shared/lib/filePreview'
 import { assertSafeDir, assertWebUrl, isInsideProject } from '../lib/safe'
 import { listIdes, openInIde, tryIde } from '../services/system/ides'
 
@@ -45,6 +46,25 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
   })
 
   ipcMain.handle('path-exists', async (_event, p: string) => existsSync(p))
+
+  // v3.5.1: a file of a saved project, read for its preview (never run)
+  ipcMain.handle('fs:preview', async (_event, filePath: string): Promise<FilePreview> => {
+    if (typeof filePath !== 'string' || !isInsideProject(filePath)) return { kind: 'unreadable', size: 0 }
+    try {
+      const { size, isFile } = await stat(filePath).then(s => ({ size: s.size, isFile: s.isFile() }))
+      if (!isFile) return { kind: 'unreadable', size: 0 }
+      const kind = previewKind(filePath.split(/[\\/]/).pop() ?? '')
+      if (!kind) return { kind: 'binary', size }
+      if (size > PREVIEW_LIMIT[kind === 'markdown' ? 'text' : kind]) return { kind: 'tooBig', size }
+      const bytes = await readFile(filePath)
+      if (kind === 'image') return { kind, size, dataUrl: `data:${imageMime(filePath)};base64,${bytes.toString('base64')}` }
+      if (kind === 'pdf') return { kind, size, bytes: new Uint8Array(bytes) }
+      if (looksBinary(bytes)) return { kind: 'binary', size }
+      return { kind, size, text: bytes.toString('utf-8') }
+    } catch {
+      return { kind: 'unreadable', size: 0 }
+    }
+  })
 
   ipcMain.handle('fs:read-dir', async (_event, dirPath: string): Promise<FileEntry[]> => {
     // The file tree only browses saved projects

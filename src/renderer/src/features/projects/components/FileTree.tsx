@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ChevronDown, ChevronRight, File, Folder, FolderOpen, RefreshCw } from 'lucide-react'
 import type { FileEntry } from '@shared/types'
+import { useI18n } from '@renderer/i18n/I18nContext'
 import { formatSize } from '@renderer/lib/format'
+import { cn } from '@renderer/lib/cn'
 import IconButton from '@renderer/components/ui/IconButton'
 import { SectionTitle } from '@renderer/components/ui/Page'
 import { pressable } from '@renderer/lib/a11y'
+import FilePreview from './FilePreview'
 
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', '.next', 'build', 'out', '.nuxt', 'vendor', '__pycache__', '.cache'])
 
@@ -42,21 +45,29 @@ interface NodeProps {
   dirs:     Map<string, FileEntry[]>
   expanded: Set<string>
   onToggle: (path: string) => void
+  /** v3.5.1: a file opens in the preview */
+  selected: string | null
+  onSelect: (entry: FileEntry) => void
+  emptyLabel: string
 }
 
-function TreeNode({ entry, depth, dirs, expanded, onToggle }: NodeProps) {
+function TreeNode({ entry, depth, dirs, expanded, onToggle, selected, onSelect, emptyLabel }: NodeProps) {
   const isOpen   = expanded.has(entry.path)
   const children = dirs.get(entry.path)
   const color    = entry.isDirectory ? DIR_COLOR : fileColor(entry.extension)
   const Icon     = entry.isDirectory ? (isOpen ? FolderOpen : Folder) : File
+  const activate = () => (entry.isDirectory ? onToggle(entry.path) : onSelect(entry))
 
   return (
     <>
       <div
-        onClick={() => entry.isDirectory && onToggle(entry.path)}
-        {...(entry.isDirectory ? { ...pressable(() => onToggle(entry.path)), role: 'button', 'aria-expanded': isOpen } : {})}
+        onClick={activate}
+        {...pressable(activate)}
+        role="button"
+        {...(entry.isDirectory ? { 'aria-expanded': isOpen } : { 'aria-current': selected === entry.path ? 'true' as const : undefined })}
         style={{ paddingLeft: 8 + depth * 14 }}
-        className="flex h-6 cursor-default items-center gap-1.5 rounded pr-2 text-sm text-fg-secondary hover:bg-hover hover:text-fg"
+        className={cn('flex h-6 cursor-default items-center gap-1.5 rounded pr-2 text-sm hover:bg-hover hover:text-fg',
+          selected === entry.path ? 'bg-accent-soft text-fg' : 'text-fg-secondary')}
       >
         <span className="flex w-2.5 shrink-0 justify-center text-fg-muted">
           {entry.isDirectory && (isOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />)}
@@ -69,9 +80,9 @@ function TreeNode({ entry, depth, dirs, expanded, onToggle }: NodeProps) {
       </div>
       {entry.isDirectory && isOpen && children && (
         visibleEntries(children).length === 0 ? (
-          <div className="h-6 text-xs italic text-fg-muted" style={{ paddingLeft: 22 + (depth + 1) * 14 }}>empty</div>
+          <div className="h-6 text-xs italic text-fg-muted" style={{ paddingLeft: 22 + (depth + 1) * 14 }}>{emptyLabel}</div>
         ) : visibleEntries(children).map(child => (
-          <TreeNode key={child.path} entry={child} depth={depth + 1} dirs={dirs} expanded={expanded} onToggle={onToggle} />
+          <TreeNode key={child.path} entry={child} depth={depth + 1} dirs={dirs} expanded={expanded} onToggle={onToggle} selected={selected} onSelect={onSelect} emptyLabel={emptyLabel} />
         ))
       )}
     </>
@@ -80,8 +91,11 @@ function TreeNode({ entry, depth, dirs, expanded, onToggle }: NodeProps) {
 
 // ─── Tree ─────────────────────────────────────────────────────────────────────
 
-/** Lazy-loaded directory tree rooted at `rootPath`. */
+/** Lazy-loaded directory tree rooted at `rootPath`; a file opens beside it (v3.5.1). */
 export default function FileTree({ rootPath }: { rootPath: string }) {
+  const { t } = useI18n()
+  const f = t.files
+  const [file,     setFile]     = useState<FileEntry | null>(null)
   const [dirs,     setDirs]     = useState<Map<string, FileEntry[]>>(new Map())
   const [expanded, setExpanded] = useState<Set<string>>(new Set([rootPath]))
 
@@ -91,6 +105,7 @@ export default function FileTree({ rootPath }: { rootPath: string }) {
   }, [])
 
   const reset = useCallback(() => {
+    setFile(null)
     setDirs(new Map())
     setExpanded(new Set([rootPath]))
     load(rootPath)
@@ -110,17 +125,21 @@ export default function FileTree({ rootPath }: { rootPath: string }) {
   const root = visibleEntries(dirs.get(rootPath) ?? [])
 
   return (
-    <div className="flex min-h-0 flex-col">
-      <div className="flex h-10 shrink-0 items-center justify-between border-b border-line-subtle px-3">
-        <SectionTitle>Files</SectionTitle>
-        <IconButton size="sm" title="Refresh" onClick={reset}><RefreshCw size={12} /></IconButton>
+    <div className="flex h-full min-h-0">
+      <div className={cn('flex min-h-0 flex-col', file ? 'w-[280px] shrink-0' : 'flex-1')}>
+        <div className="flex h-10 shrink-0 items-center justify-between border-b border-line-subtle px-3">
+          <SectionTitle>{f.title}</SectionTitle>
+          <IconButton size="sm" title={f.refresh} onClick={reset}><RefreshCw size={12} /></IconButton>
+        </div>
+        <div className="flex-1 overflow-y-auto p-1">
+          {root.map(entry => (
+            <TreeNode key={entry.path} entry={entry} depth={0} dirs={dirs} expanded={expanded} onToggle={toggle} selected={file?.path ?? null} onSelect={setFile} emptyLabel={f.emptyDir} />
+          ))}
+          {root.length === 0 && <p className="px-3 py-3 text-sm text-fg-muted">{f.empty}</p>}
+        </div>
+        {!file && root.length > 0 && <p className="shrink-0 border-t border-line-subtle px-3 py-2 text-2xs text-fg-muted">{f.pickFile}</p>}
       </div>
-      <div className="flex-1 overflow-y-auto p-1">
-        {root.map(entry => (
-          <TreeNode key={entry.path} entry={entry} depth={0} dirs={dirs} expanded={expanded} onToggle={toggle} />
-        ))}
-        {root.length === 0 && <p className="px-3 py-3 text-sm text-fg-muted">No files found</p>}
-      </div>
+      {file && <FilePreview file={file} onClose={() => setFile(null)} />}
     </div>
   )
 }

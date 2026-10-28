@@ -480,7 +480,7 @@ export default function ProjectDetailPage() {
 
     files: (
       <div className="flex flex-wrap gap-4">
-        <Card className="h-[520px] min-w-[280px] flex-[1_1_320px] overflow-hidden"><FileTree rootPath={p.path} /></Card>
+        <Card className="h-[600px] min-w-[280px] flex-[3_1_560px] overflow-hidden"><FileTree rootPath={p.path} /></Card>
         {scriptList.length > 0 && (
           <Card className="min-w-[280px] flex-[1_1_320px] self-start overflow-hidden">
             <h2 className="px-[18px] pt-4 pb-2 text-md font-semibold text-fg">{h.scripts}</h2>

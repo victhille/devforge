@@ -10,7 +10,7 @@ La page **Projets** montre :
 - **Vos projets** : ceux que DevForge suit. Chaque carte affiche le framework, l'état Git (« modifs en cours ») et des boutons **Ouvrir**, le nom de l'[IDE](/devforge/dev/ide/) du projet (aucun bouton si l'IDE choisi est « Aucun »), **Terminal**, **Scripts** (les scripts du `package.json`), **Favori** et **Retirer**.
 - **Détectés dans…** : les projets trouvés dans tes dossiers de projets mais pas encore suivis. **Importer** les ajoute.
 
-Filtre par nom, et par framework : seuls les frameworks de tes projets ont un filtre, et aucun filtre ne s'affiche s'il n'y en a qu'un. **Rescanner** relit les dossiers.
+Filtre par nom, et par framework : seuls les frameworks de tes projets ont un filtre, et aucun filtre ne s'affiche s'il n'y en a qu'un. **Rescanner** relit les dossiers. Au bout de la ligne des filtres, **Ajouter un dossier** mène aux dossiers de projets des [Paramètres](/devforge/settings/general/), pour des projets rangés ailleurs.
 
 **Retirer** un projet l'enlève de DevForge ; le dossier n'est jamais supprimé.
 
@@ -30,7 +30,8 @@ Dans [Nouveau projet](/devforge/dev/new-project/), la destination propose tes do
 Un dossier qui n'est pas un projet mais en contient plusieurs, par exemple `FreelanceManager/` avec `backend/` (Symfony) et `frontend/` (React), devient un **groupe** :
 
 - DevForge y descend d'un niveau, deux au plus, quand le dossier n'a pas de fichier de projet (`package.json`, `composer.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`…) mais que ses sous-dossiers en ont. `node_modules`, `vendor`, les dossiers de build et les dossiers cachés sont ignorés.
-- La **carte du groupe** porte « groupe · *n* projets » et les technos de ses projets. Dépliée, elle montre chaque sous-projet avec sa techno, son état Git, son IDE, son terminal et ses scripts ; **Replier le groupe** la réduit à une ligne (le choix est retenu). En bas : le groupe entier dans l'IDE, son terminal, **Ouvrir la fiche**.
+- La **carte du groupe** porte « groupe · *n* projets » et les technos de ses projets. Dépliée, elle montre chaque sous-projet avec sa techno, son état Git, son IDE, son terminal et ses scripts ; **Replier le groupe** la réduit à une ligne (le choix est retenu). En bas : le groupe entier dans l'IDE, son terminal, **Ouvrir la fiche**. Dépliée, elle prend deux colonnes et les cartes suivantes remontent dans la place libre.
+- Ce qui n'est pas un projet fait aussi partie du groupe : sous ses projets, la carte liste « Aussi dans le dossier : » `docs/`, `infra/`, `README.md`, `Dockerfile`… (repliée : « + *n* autres »). Les dossiers cachés et de dépendances n'y sont pas.
 - Le filtre **Groupes** ne garde qu'eux ; un filtre de framework retient aussi un groupe dont un projet l'utilise.
 - Un projet que tu suivais déjà et qui fait partie d'un groupe suivi n'apparaît plus deux fois : il est dans son groupe.
 
@@ -63,9 +64,22 @@ Les onglets n'apparaissent que s'ils ont un sens pour ce projet :
 | Ports & domaines | les ports trouvés dans la config (`.env`, scripts, Compose), en écoute ou libres, **Libérer** ; les domaines locaux liés |
 | Déploiement | les cibles de déploiement du projet et **Synchroniser le .env** avec le serveur |
 | Vercel | si le dossier est lié à Vercel : déploiements, variables, domaines |
-| Fichiers | l'arborescence du projet et la liste de ses scripts, avec **Lancer** |
+| Fichiers | l'arborescence du projet, avec l'aperçu du fichier cliqué, et la liste de ses scripts, avec **Lancer** |
 
 Ce que DevForge a **trouvé** seul (une base, un domaine, un port) est marqué *trouvé* ; ce que tu as lié à la main, *ajouté*. **Retirer du projet** masque un élément ; **Réafficher** le remet.
+
+### L'aperçu des fichiers
+
+Dans l'onglet **Fichiers**, un clic sur un fichier l'ouvre à côté de l'arbre :
+
+| Fichier | Aperçu |
+|---|---|
+| Markdown (`.md`) | mis en forme : titres, listes, tableaux, code ; **Voir le source** montre le texte brut |
+| Images (`.png`, `.jpg`, `.svg`, `.webp`…) | l'image, sur un damier pour la transparence |
+| PDF | les pages dessinées (les 20 premières, puis **Afficher les pages suivantes**) |
+| Texte et code (`Dockerfile`, `.env`, `.ts`, `.yaml`…) | le texte en police fixe, avec **Copier le contenu** |
+
+Un fichier binaire (archive, exécutable, document Office) ou trop gros (plus de 1 Mo de texte, 10 Mo d'image, 30 Mo de PDF) le dit au lieu de s'afficher. Rien n'est lancé : le fichier est seulement lu.
 
 ### La base de données du projet
 

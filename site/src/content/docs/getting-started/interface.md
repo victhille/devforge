@@ -78,7 +78,7 @@ Une action sensible demande <kbd>Entrée</kbd> une seconde fois. Le lanceur se r
 
 ## Le terminal intégré
 
-<kbd>Ctrl</kbd> <kbd>`</kbd> ouvre le terminal en bas de la fenêtre, avec des onglets (**+** pour en ouvrir un). Chaque commande devient un **bloc** : sa sortie, son code de retour et sa durée.
+<kbd>Ctrl</kbd> <kbd>`</kbd> ouvre le terminal en bas de la fenêtre, avec des onglets (**+** pour en ouvrir un). **Masquer**, à droite des onglets, le cache sans arrêter ses shells ; fermer le dernier onglet le ferme entièrement, et il repart sur un shell neuf à la prochaine ouverture. Chaque commande devient un **bloc** : sa sortie, son code de retour et sa durée.
 
 - Sur un bloc : **Copier la sortie**, **Relancer**, **Enregistrer comme snippet**, **Expliquer avec Forgy** (proposé quand la commande échoue).
 - <kbd>↑</kbd> <kbd>↓</kbd> parcourent l'historique du dossier, <kbd>Ctrl</kbd> <kbd>R</kbd> y cherche.

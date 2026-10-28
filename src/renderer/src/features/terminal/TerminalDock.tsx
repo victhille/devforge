@@ -56,7 +56,8 @@ export default function TerminalDock() {
         onMouseDown={e => { drag.current = { y: e.clientY, h: height }; e.preventDefault() }}
         className="absolute -top-1 right-0 left-0 z-10 h-2 cursor-row-resize" />
       {/* The shells already open stay where they are; new tabs open in the active project */}
-      <TerminalTabs cwd={cwd} className="h-full" />
+      {/* Closing the last tab closes the dock: the next opening starts afresh */}
+      <TerminalTabs cwd={cwd} className="h-full" onHide={() => setOpen(false)} onEmpty={() => { setOpen(false); setOpened(false) }} />
     </section>
   )
 }

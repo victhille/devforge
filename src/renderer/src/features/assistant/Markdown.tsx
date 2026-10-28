@@ -30,7 +30,8 @@ function inline(text: string, key = 0): ReactNode[] {
 const isTableSep = (l: string) => /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(l)
 const cells = (l: string) => l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim())
 
-export default function Markdown({ text }: { text: string }) {
+/** `asDocument`: a project's .md file (v3.5.1), with real, larger headings */
+export default function Markdown({ text, asDocument = false }: { text: string; asDocument?: boolean }) {
   const lines = text.split('\n')
   const blocks: ReactNode[] = []
   let i = 0
@@ -57,7 +58,16 @@ export default function Markdown({ text }: { text: string }) {
       continue
     }
 
-    const heading = line.match(/^(#{1,4})\s+(.*)$/)
+    const heading = line.match(/^(#{1,6})\s+(.*)$/)
+    if (heading && asDocument) {
+      // A file read as a document: real headings, sized by level
+      const level = Math.min(heading[1].length, 4) as 1 | 2 | 3 | 4
+      const Tag = `h${level}` as const
+      const size = { 1: 'mt-2 border-b border-line-subtle pb-1.5 text-2xl', 2: 'mt-3 border-b border-line-subtle pb-1 text-xl', 3: 'mt-2 text-lg', 4: 'mt-1 text-md' }[level]
+      blocks.push(<Tag key={blocks.length} className={`${size} font-semibold text-fg`}>{inline(heading[2])}</Tag>)
+      i++
+      continue
+    }
     if (heading) {
       const size = heading[1].length <= 2 ? 'text-md' : 'text-sm'
       blocks.push(<p key={blocks.length} className={`${size} mt-1 font-semibold text-fg`}>{inline(heading[2])}</p>)
@@ -111,7 +121,7 @@ export default function Markdown({ text }: { text: string }) {
 
     // Paragraph: until a blank line or another block
     const para: string[] = []
-    while (i < lines.length && lines[i].trim() && !/^\s*(```|#{1,4}\s|[-*•]\s|\d+[.)]\s|>)/.test(lines[i])) para.push(lines[i++])
+    while (i < lines.length && lines[i].trim() && !/^\s*(```|#{1,6}\s|[-*•]\s|\d+[.)]\s|>)/.test(lines[i])) para.push(lines[i++])
     if (!para.length) para.push(lines[i++])
     blocks.push(<p key={blocks.length}>{inline(para.join(' '))}</p>)
   }

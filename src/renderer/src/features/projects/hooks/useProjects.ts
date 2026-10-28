@@ -68,7 +68,7 @@ export function useProjects({ withDetails = false }: Options = {}) {
       lastOpenedAt: null,
       favorite: false,
       // A group's projects show at once (worked out again on each load)
-      ...(dp.subprojects ? { subprojects: dp.subprojects } : {})
+      ...(dp.subprojects ? { subprojects: dp.subprojects, extras: dp.extras } : {})
     }
     await window.devforge.saveProject(project)
     setProjects(prev => [project, ...prev])

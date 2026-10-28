@@ -9,7 +9,7 @@ import { composeConfig, composeDirFor, composeName } from '../docker/composeProj
 import { readEnvProject } from '../envfiles/envFiles'
 import { listDbConnections } from '../database/dbStorage'
 import { configDirs, fromEnv } from '../database/dbDetect'
-import { findSubProjects } from './projectScanner'
+import { groupContents } from './projectScanner'
 import { listDomains } from '../domains/domainService'
 import { listTargets } from '../deploy/deployService'
 import { readLink } from '../vercel/vercelService'
@@ -105,7 +105,7 @@ export async function getProjectHub(projectId: string): Promise<ProjectHub> {
   ].flatMap(({ id, origin }) => { const d = allDomains.find(x => x.id === id); return d ? [{ id, domain: d.domain, port: d.port, enabled: d.enabled, origin }] : [] })
 
   return {
-    project: p.framework === 'group' ? { ...p, subprojects: await findSubProjects(p.path) } : p,
+    project: p.framework === 'group' ? { ...p, ...await groupContents(p.path) } : p,
     composeDir,
     composeName: composeDir ? composeName(composeDir) : null,
     envFiles: envProject.files.map(f => ({ name: f.name, keys: Object.keys(f.values).length })),

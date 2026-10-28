@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FolderSearch, LayoutList, LayoutGrid, Plus, Search, FolderOpen, TriangleAlert } from 'lucide-react'
+import { FolderPlus, FolderSearch, LayoutList, LayoutGrid, Plus, Search, FolderOpen, TriangleAlert } from 'lucide-react'
 import type { DetectedProject, Framework, SubProject } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useConsole } from '@renderer/app/ConsoleContext'
@@ -101,7 +101,7 @@ export default function ProjectsPage() {
 
   const container = view === 'list'
     ? 'flex flex-col gap-2'
-    : 'grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4'
+    : 'grid grid-flow-row-dense grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4'
 
   const subtitle = t.projects.subtitle
     .replace('{n}', String(projects.length))
@@ -145,12 +145,17 @@ export default function ProjectsPage() {
       </header>
 
       {/* Stack filters, then folder filters */}
-      <div className="df-rise flex flex-wrap gap-1.5" style={{ '--i': 1 } as CSSProperties}>
+      <div className="df-rise flex flex-wrap items-center gap-1.5" style={{ '--i': 1 } as CSSProperties}>
         {filters.length > 1 && (['all', ...filters] as const).map(id => (
           <FilterChip key={id} active={shown === id} onClick={() => setFilter(id)}>
             {id === 'all' ? t.projects.filterAll : id === 'group' ? t.projects.filterGroups : FRAMEWORK_LABEL[id] ?? id}
           </FilterChip>
         ))}
+        {/* Projects elsewhere: the folders are kept in Settings */}
+        <button onClick={() => navigate('/settings?section=general')} title={t.projects.addFolderHint}
+          className="ml-auto flex h-[30px] items-center gap-1.5 rounded-full border border-dashed border-line px-3 text-[12.5px] font-medium text-fg-secondary transition-colors hover:border-accent/50 hover:text-fg">
+          <FolderPlus size={13} aria-hidden /> {t.projects.addFolder}
+        </button>
       </div>
       {many && (
         <div role="group" aria-label={t.projects.folderFilter} className="-mt-2 flex flex-wrap items-center gap-1.5">

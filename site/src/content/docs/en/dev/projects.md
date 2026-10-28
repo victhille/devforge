@@ -10,7 +10,7 @@ The **Projects** page shows:
 - **Your Projects**: the ones DevForge tracks. Each card shows the framework, the Git state ("uncommitted") and buttons **Open**, the name of the project's [IDE](/devforge/en/dev/ide/) (no button when the chosen IDE is "None"), **Terminal**, **Scripts** (the `package.json` scripts), **Favorite** and **Remove**.
 - **Detected in…**: projects found in your projects folders but not tracked yet. **Import** adds them.
 
-Filter by name, and by framework: only your projects' frameworks get a filter, and none shows when there is only one. **Rescan** reads the folders again.
+Filter by name, and by framework: only your projects' frameworks get a filter, and none shows when there is only one. **Rescan** reads the folders again. At the end of the filters row, **Add a folder** leads to the projects folders in [Settings](/devforge/en/settings/general/), for projects kept elsewhere.
 
 **Remove** takes a project out of DevForge; the folder is never deleted.
 
@@ -30,7 +30,8 @@ In [New project](/devforge/en/dev/new-project/), the destination offers your fol
 A folder that is not a project but holds several, for instance `FreelanceManager/` with `backend/` (Symfony) and `frontend/` (React), becomes a **group**:
 
 - DevForge looks one level down, two at most, when the folder has no project file (`package.json`, `composer.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`…) but its sub-folders do. `node_modules`, `vendor`, build folders and hidden folders are skipped.
-- The **group's card** reads "group · *n* projects" with its projects' stacks. Unfolded, it shows each project with its stack, Git state, IDE, terminal and scripts; **Fold the group** shrinks it to one line (remembered). At the bottom: the whole group in the IDE, its terminal, **Open its page**.
+- The **group's card** reads "group · *n* projects" with its projects' stacks. Unfolded, it shows each project with its stack, Git state, IDE, terminal and scripts; **Fold the group** shrinks it to one line (remembered). At the bottom: the whole group in the IDE, its terminal, **Open its page**. Unfolded, it spans two columns and the next cards move up into the free room.
+- What is not a project is part of the group too: under its projects, the card lists "Also in the folder:" `docs/`, `infra/`, `README.md`, `Dockerfile`… (folded: "+ *n* more"). Hidden and dependency folders are left out.
 - The **Groups** filter keeps only them; a framework filter also keeps a group one of whose projects uses it.
 - A project you already tracked that sits in a tracked group no longer shows twice: it is in its group.
 
@@ -63,9 +64,22 @@ Tabs only show when they make sense for the project:
 | Ports & domains | the ports found in the config (`.env`, scripts, Compose), listening or free, **Free**; the linked local domains |
 | Deploy | the project's deploy targets and **Sync the .env** with the server |
 | Vercel | if the folder is linked to Vercel: deployments, variables, domains |
-| Files | the project tree and the list of its scripts, with **Run** |
+| Files | the project tree, with a preview of the file clicked, and the list of its scripts, with **Run** |
 
 What DevForge **found** by itself (a database, a domain, a port) is marked *found*; what you linked by hand, *added*. **Remove from the project** hides an item; **Show again** brings it back.
+
+### File previews
+
+In the **Files** tab, clicking a file opens it next to the tree:
+
+| File | Preview |
+|---|---|
+| Markdown (`.md`) | formatted: headings, lists, tables, code; **Show source** shows the raw text |
+| Images (`.png`, `.jpg`, `.svg`, `.webp`…) | the image, on a checkerboard for transparency |
+| PDF | the pages drawn (the first 20, then **Show the next pages**) |
+| Text and code (`Dockerfile`, `.env`, `.ts`, `.yaml`…) | the text in a fixed font, with **Copy the content** |
+
+A binary file (archive, program, Office document) or one too big (over 1 MB of text, 10 MB of image, 30 MB of PDF) says so instead. Nothing runs: the file is only read.
 
 ### The project's database
 

@@ -33,6 +33,8 @@ export interface DetectedProject {
   packageManager: PackageManager
   /** v3.5: a group's projects (framework 'group'); a name is its path inside the group (api, apps/web) */
   subprojects?: SubProject[]
+  /** v3.5.1: the rest of a group's folder (docs/, README.md…) */
+  extras?: string[]
 }
 
 /** v3.5: one project of a group */
@@ -56,6 +58,8 @@ export interface Project {
   missing?: boolean
   /** v3.5: a group's projects, as on disk now (worked out on load, never saved) */
   subprojects?: SubProject[]
+  /** v3.5.1: the rest of a group's folder (docs/, README.md…), worked out on load, never saved */
+  extras?: string[]
   /** v3.5: the IDE this project opens in, in place of the default one */
   ide?: DefaultIDE
   /** v3.5: a group's projects' own IDEs, by their name in the group */
@@ -279,6 +283,13 @@ export interface FileEntry {
   extension: string | null
 }
 
+/** v3.5.1: a project's file, ready to show */
+export type FilePreview =
+  | { kind: 'markdown' | 'text'; size: number; text: string }
+  | { kind: 'image'; size: number; dataUrl: string }
+  | { kind: 'pdf'; size: number; bytes: Uint8Array }
+  | { kind: 'binary' | 'tooBig' | 'unreadable'; size: number }
+
 // ─── Git ─────────────────────────────────────────────────────────────────────
 
 export interface GitStatus {
@@ -454,6 +465,8 @@ export interface DevForgeAPI {
   pathExists: (path: string) => Promise<boolean>
   openTerminal: (path: string) => Promise<void>
   readDirectory: (path: string) => Promise<FileEntry[]>
+  /** v3.5.1: a file of a saved project, for the Files tab's preview */
+  previewFile: (path: string) => Promise<FilePreview>
 
   // Project creation
   createProject: (options: ProjectCreationOptions) => Promise<string>

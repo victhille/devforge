@@ -3,7 +3,7 @@ import { join } from 'path'
 import { existsSync, readFileSync } from 'fs'
 import { randomUUID } from 'crypto'
 import { createProject } from '../services/projects/projectCreator'
-import { findSubProjects, scanDirectory } from '../services/projects/projectScanner'
+import { groupContents, scanDirectory } from '../services/projects/projectScanner'
 import { loadProjects, saveProject, removeProject, updateLastOpened, toggleFavorite } from '../services/projects/projectStorage'
 import { commandRunner } from '../services/system/commandRunner'
 import { assertSafeDir, assertScriptName } from '../lib/safe'
@@ -103,7 +103,7 @@ export function registerProjectHandlers(mainWindow: BrowserWindow): void {
   // ─── Project Storage ──────────────────────────────────────────────────────────
   // A group's projects are read from disk each time: one added or removed shows at once
   ipcMain.handle('get-projects', async () => Promise.all(loadProjects().map(async p => ({
-    ...p, missing: !existsSync(p.path), ...(p.framework === 'group' ? { subprojects: await findSubProjects(p.path) } : {})
+    ...p, missing: !existsSync(p.path), ...(p.framework === 'group' ? await groupContents(p.path) : {})
   }))))
 
   ipcMain.handle('save-project', async (_event, project: Project) => {

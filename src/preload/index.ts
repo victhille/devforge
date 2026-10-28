@@ -231,6 +231,7 @@ const api: DevForgeAPI = {
   pathExists:       (path)         => ipcRenderer.invoke('path-exists', path),
   openTerminal:     (path)         => ipcRenderer.invoke('open-terminal', path),
   readDirectory:    (path)         => ipcRenderer.invoke('fs:read-dir', path),
+  previewFile:      (path)         => ipcRenderer.invoke('fs:preview', path),
 
   // Project creation
   createProject: (options) => ipcRenderer.invoke('create-project', options),

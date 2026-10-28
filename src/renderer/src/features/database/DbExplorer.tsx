@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowLeft, ChevronDown, ChevronRight, Code2, Eye, Info, KeyRound, LayoutGrid, Link2, ListTree,
-  PanelLeftClose, PanelLeftOpen, RefreshCw, Rows3, Table2
+  PanelLeftClose, PanelLeftOpen, Plus, RefreshCw, Rows3, Table2
 } from 'lucide-react'
 import type { DbConnection, DbOverview, DbTable, DbTableDetails, DbTableRef } from '@shared/types'
 import { quoteIdent } from '@shared/lib/sqlQuote'
@@ -16,6 +16,7 @@ import { formatSize } from '@renderer/lib/format'
 import OverviewView from './OverviewView'
 import SqlPanel from './SqlPanel'
 import { BrowseTab, InfoTab, RelationsTab, StructureTab } from './TableTabs'
+import { CreateTableDialog } from './TableDialogs'
 
 type Tab = 'overview' | 'browse' | 'structure' | 'relations' | 'info' | 'sql'
 
@@ -52,6 +53,7 @@ export default function DbExplorer({ conn, back, actions }: {
   const [viewError, setViewError] = useState('')
   const [sql, setSql] = useState('')
   const [collapsed, setCollapsed] = usePersistentState('devforge:db-tables-collapsed', false)
+  const [creating, setCreating] = useState(false)
 
   const loadSchema = useCallback(async () => {
     setTables(null)
@@ -112,6 +114,13 @@ export default function DbExplorer({ conn, back, actions }: {
     setRev(r => r + 1)
   }
 
+  /** v3.5.1: a table created, renamed or dropped here */
+  function afterTableChange(next: DbTableRef | null) {
+    refresh()
+    if (next) openTable(next, 'structure')
+    else { setTable(null); setTab('overview') }
+  }
+
   // Structure only (no row data): what the user is looking at
   useAssistantPageContext({
     label: `${conn.name}${table ? ` › ${table.name}` : ''}`,
@@ -158,9 +167,12 @@ export default function DbExplorer({ conn, back, actions }: {
       <aside aria-label={d.tables} className={cn('flex shrink-0 flex-col border-r border-line-subtle bg-sidebar transition-[width] duration-200', collapsed ? 'w-11' : 'w-[230px]')}>
         <div className={cn('flex h-11 shrink-0 items-center border-b border-line-subtle', collapsed ? 'justify-center' : 'justify-between pr-1.5 pl-3')}>
           {!collapsed && <span className="text-2xs uppercase tracking-wider text-fg-muted">{tables ? `${tables.length} ${d.tables}` : d.loading}</span>}
-          <IconButton size="sm" title={collapsed ? d.showTables : d.hideTables} onClick={() => setCollapsed(c => !c)}>
-            {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
-          </IconButton>
+          <span className="flex items-center">
+            {!collapsed && <IconButton size="sm" title={d.newTable} onClick={() => setCreating(true)}><Plus size={14} /></IconButton>}
+            <IconButton size="sm" title={collapsed ? d.showTables : d.hideTables} onClick={() => setCollapsed(c => !c)}>
+              {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+            </IconButton>
+          </span>
         </div>
         {!collapsed && (
           <div className="flex-1 overflow-y-auto p-1.5">
@@ -264,7 +276,8 @@ export default function DbExplorer({ conn, back, actions }: {
           ) : !details || !sameTable(table, detailsFor) ? (
             <Spinner className="m-6" />
           ) : tab === 'structure' ? (
-            <StructureTab details={details} />
+            <StructureTab details={details} conn={conn} table={table ?? undefined} onChanged={refresh}
+              onRenamed={name => afterTableChange({ name, schema: table?.schema ?? '' })} onDropped={() => afterTableChange(null)} />
           ) : tab === 'relations' && table ? (
             <RelationsTab details={details} table={table} onOpenTable={openTableByName} />
           ) : (
@@ -272,6 +285,7 @@ export default function DbExplorer({ conn, back, actions }: {
           )}
         </div>
       </section>
+      {creating && <CreateTableDialog conn={conn} onClose={() => setCreating(false)} onDone={name => { setCreating(false); afterTableChange({ name, schema: table?.schema ?? '' }) }} />}
     </div>
   )
 }

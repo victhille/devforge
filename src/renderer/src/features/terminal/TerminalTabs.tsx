@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { ChevronDown, Plus, X } from 'lucide-react'
 import type { SSHConnection, TerminalShell } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -27,7 +27,15 @@ const LANGUAGE: Record<TerminalShell['kind'], string> = { powershell: 'PowerShel
  * Shells side by side: local ones in `cwd`, or a server over SSH. Each tab
  * keeps its shell while hidden.
  */
-export default function TerminalTabs({ cwd, className, withSsh = true }: { cwd: string; className?: string; withSsh?: boolean }) {
+export default function TerminalTabs({ cwd, className, withSsh = true, onEmpty, onHide }: {
+  cwd: string
+  className?: string
+  withSsh?: boolean
+  /** The last tab was closed (the dock closes) */
+  onEmpty?: () => void
+  /** A "Hide" button at the right of the tabs; the shells live on */
+  onHide?: () => void
+}) {
   const { t } = useI18n()
   const s = t.terminal
   const [shells, setShells] = useState<TerminalShell[]>([])
@@ -74,11 +82,10 @@ export default function TerminalTabs({ cwd, className, withSsh = true }: { cwd: 
   }, [menu])
 
   function closeTab(key: number) {
-    setTabs(list => {
-      const next = list.filter(x => x.key !== key)
-      if (active === key) setActive(next[next.length - 1]?.key ?? null)
-      return next
-    })
+    const next = tabs.filter(x => x.key !== key)
+    setTabs(next)
+    if (active === key) setActive(next[next.length - 1]?.key ?? null)
+    if (!next.length) onEmpty?.()
   }
 
   function restart(key: number) {
@@ -118,6 +125,11 @@ export default function TerminalTabs({ cwd, className, withSsh = true }: { cwd: 
             </div>
           )}
         </div>
+        {onHide && (
+          <button onClick={onHide} title={s.hide + ' (Ctrl+`)'} className="ml-auto flex h-7 items-center gap-1 rounded-md px-2 text-xs text-fg-secondary hover:bg-hover hover:text-fg">
+            <ChevronDown size={13} aria-hidden /> {s.hide}
+          </button>
+        )}
       </div>
       <div className="relative min-h-0 flex-1">
         {items.length === 0 && <p className="p-4 text-sm text-fg-secondary">{s.noTab}</p>}

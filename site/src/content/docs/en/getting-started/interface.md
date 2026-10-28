@@ -78,7 +78,7 @@ A sensitive action needs <kbd>Enter</kbd> a second time. The launcher is set in 
 
 ## The built-in terminal
 
-<kbd>Ctrl</kbd> <kbd>`</kbd> opens the terminal at the bottom of the window, with tabs (**+** opens one). Each command becomes a **block**: its output, exit code and duration.
+<kbd>Ctrl</kbd> <kbd>`</kbd> opens the terminal at the bottom of the window, with tabs (**+** opens one). **Hide**, right of the tabs, hides it and keeps its shells; closing the last tab closes it, and it starts on a fresh shell the next time. Each command becomes a **block**: its output, exit code and duration.
 
 - On a block: **Copy the output**, **Run again**, **Save as a snippet**, **Explain with Forgy** (offered when the command fails).
 - <kbd>↑</kbd> <kbd>↓</kbd> go through the folder's history, <kbd>Ctrl</kbd> <kbd>R</kbd> searches it.

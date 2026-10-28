@@ -73,6 +73,7 @@ export default function GroupCard(props: Props) {
   const { project, gitStatus, ide, onTerminal, onRunScript, onToggleFavorite, onDetail, onRemove, index = 0, folder } = props
   const { t } = useI18n()
   const subs = project.subprojects ?? []
+  const extras = project.extras ?? []
   const [folded, setFolded] = useState(() => readFolded().has(project.id))
   function toggle() {
     const all = readFolded()
@@ -85,7 +86,8 @@ export default function GroupCard(props: Props) {
   const subIde = (sub: SubProject) => project.subIdes?.[sub.name] ?? project.ide
   const ideLabel = ide.labelFor(project.ide)
   const stacks = [...new Set(subs.map(s => FRAMEWORK_LABEL[s.framework] ?? s.framework))]
-  const action = 'h-8 flex-1 rounded-lg border text-[12.5px] font-medium transition-colors'
+  // One line, whatever the card's width
+  const action = 'h-8 min-w-0 flex-1 truncate whitespace-nowrap rounded-lg border px-2 text-[12.5px] font-medium transition-colors'
 
   return (
     <Card className={cn('df-rise flex flex-col gap-3 rounded-[14px] p-[18px]', !folded && 'border-accent/40 xl:col-span-2')} style={{ '--i': index } as CSSProperties}>
@@ -109,18 +111,37 @@ export default function GroupCard(props: Props) {
       </div>
       {project.missing && <div className="text-xs font-medium text-warning">{t.hub.missing}</div>}
       {folded
-        ? <div className="truncate font-mono text-xs text-fg-secondary">{subs.map(s => s.name).join(' · ')}{gitStatus?.branch && <span className="text-fg-muted"> · {gitStatus.branch}</span>}</div>
-        : subs.length > 0 && (
-          <div className="overflow-hidden rounded-[10px] border border-line">
-            {subs.map(sub => (
-              <SubRow key={sub.path} sub={sub} ideLabel={ide.labelFor(subIde(sub))} onOpenIde={path => ide.open(path, subIde(sub))} onTerminal={onTerminal} onRunScript={s => onRunScript(sub, s)} />
-            ))}
+        ? (
+          <div className="truncate font-mono text-xs text-fg-secondary" title={extras.length ? `${t.projects.groupExtras} ${extras.join(', ')}` : undefined}>
+            {subs.map(s => s.name).join(' · ')}
+            {extras.length > 0 && <span className="text-fg-muted"> {t.projects.groupMore.replace('{n}', String(extras.length))}</span>}
+            {gitStatus?.branch && <span className="text-fg-muted"> · {gitStatus.branch}</span>}
           </div>
+        )
+        : subs.length > 0 && (
+          <>
+            <div className="overflow-hidden rounded-[10px] border border-line">
+              {subs.map(sub => (
+                <SubRow key={sub.path} sub={sub} ideLabel={ide.labelFor(subIde(sub))} onOpenIde={path => ide.open(path, subIde(sub))} onTerminal={onTerminal} onRunScript={s => onRunScript(sub, s)} />
+              ))}
+            </div>
+            {/* The rest of the folder: docs, infra, README… part of the group too */}
+            {extras.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5" data-testid="group-extras">
+                <span className="text-[11.5px] text-fg-muted">{t.projects.groupExtras}</span>
+                {extras.slice(0, 8).map(x => <span key={x} className="rounded-md bg-elevated px-1.5 py-0.5 font-mono text-[11px] text-fg-secondary">{x}</span>)}
+                {extras.length > 8 && <span className="font-mono text-[11px] text-fg-muted">+{extras.length - 8}</span>}
+              </div>
+            )}
+          </>
         )}
       <div className="mt-auto flex items-center gap-1.5">
-        {ideLabel && <button onClick={() => ide.open(project.path, project.ide)} className={cn(action, 'border-line bg-elevated text-fg hover:bg-hover')}>{t.projects.groupIde.replace('{ide}', ideLabel)}</button>}
+        {ideLabel && (
+          <button onClick={() => ide.open(project.path, project.ide)} title={t.projects.groupIde.replace('{ide}', ideLabel)} aria-label={t.projects.groupIde.replace('{ide}', ideLabel)}
+            className={cn(action, 'border-line bg-elevated text-fg hover:bg-hover')}>{folded ? ideLabel : t.projects.groupIde.replace('{ide}', ideLabel)}</button>
+        )}
         <button onClick={() => onTerminal(project.path)} className={cn(action, 'border-line bg-elevated text-fg hover:bg-hover')}>{t.projects.terminal}</button>
-        <button onClick={onDetail} className={cn(action, 'border-transparent bg-accent-soft font-semibold text-accent hover:bg-accent hover:text-accent-fg')}>{t.projects.groupOpen}</button>
+        <button onClick={onDetail} title={t.projects.groupOpen} className={cn(action, 'border-transparent bg-accent-soft font-semibold text-accent hover:bg-accent hover:text-accent-fg')}>{folded ? t.projects.open : t.projects.groupOpen}</button>
         {onRemove && <IconButton tone="danger" title={t.projects.remove} onClick={onRemove}><Trash2 size={13} /></IconButton>}
       </div>
     </Card>

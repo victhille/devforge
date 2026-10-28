@@ -176,13 +176,35 @@ export async function findSubProjects(path: string, depth = 2, prefix = ''): Pro
   return found.flat().sort((a, b) => a.name.localeCompare(b.name))
 }
 
+/**
+ * v3.5.1: what a group holds besides its projects (docs/, infra/, README.md,
+ * Dockerfile…), folders first with a trailing slash. Hidden entries and
+ * build or dependency folders are left out.
+ */
+export async function findGroupExtras(path: string, subprojects: SubProject[]): Promise<string[]> {
+  const taken = new Set(subprojects.map(s => s.name.split('/')[0]))
+  try {
+    const entries = await readdir(path, { withFileTypes: true })
+    const shown = entries.filter(e => !e.name.startsWith('.') && !SKIPPED.has(e.name) && !taken.has(e.name))
+    const dirs = shown.filter(e => e.isDirectory() || e.isSymbolicLink()).map(e => e.name + '/').sort((a, b) => a.localeCompare(b))
+    const files = shown.filter(e => e.isFile()).map(e => e.name).sort((a, b) => a.localeCompare(b))
+    return [...dirs, ...files]
+  } catch { return [] }
+}
+
+/** A group's projects and the rest of its folder, as on disk now */
+export async function groupContents(path: string): Promise<{ subprojects: SubProject[]; extras: string[] }> {
+  const subprojects = await findSubProjects(path)
+  return { subprojects, extras: await findGroupExtras(path, subprojects) }
+}
+
 /** One folder: a project, a group of projects, or nothing (empty) */
 async function detectFolder(name: string, path: string): Promise<DetectedProject | null> {
   const dir = await listDir(path)
   if (!dir) return null
   if (!hasMarker(dir)) {
     const subprojects = await findSubProjects(path)
-    if (subprojects.length) return { name, path, framework: 'group', packageManager: subprojects[0].packageManager, subprojects }
+    if (subprojects.length) return { name, path, framework: 'group', packageManager: subprojects[0].packageManager, subprojects, extras: await findGroupExtras(path, subprojects) }
   }
   const framework = detectFramework(dir)
   // Skip completely empty directories

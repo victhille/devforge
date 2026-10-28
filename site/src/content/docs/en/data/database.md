@@ -39,14 +39,25 @@ For a table:
 | Tab | Content |
 |---|---|
 | Browse | the rows, page by page, sortable by clicking a column |
-| Structure | columns (type, null, default, key, extra, comment) and indexes |
+| Structure | columns (type, null, default, key, extra, comment) and indexes; add, edit or drop a column, rename or drop the table (see below) |
 | Relations | foreign keys to other tables, and tables pointing to this one |
 | SQL | a query on this table |
 | Info | rows, size (data and indexes), engine, collation, encoding, definition (DDL) |
 
+## Creating and changing tables
+
+- **New table** (the **+** at the top of the tables list): its name and columns. An auto-incremented `id` column is ready; each column has a **type** (offered per database, or typed: `VARCHAR(255)`, `NUMERIC(10, 2)`…), a **default**, and the boxes **Required**, **Primary key**, **Auto-increment**.
+- In **Structure**: **Add a column**, a column's pencil to edit it (name, type, default, required), its bin to drop it; **Rename the table**; **Drop the table**, which asks for its name typed again.
+
+Each dialog first shows the **query about to run**; nothing runs before **Apply**. If the database refuses, its message stays on screen and nothing else runs.
+
+A default is kept as is when it is a number, a keyword (`CURRENT_TIMESTAMP`, `NULL`, `TRUE`…), a function (`now()`) or a string already in quotes; otherwise it is quoted.
+
+**SQLite** can only rename a column: to change its type, default or "Required", the dialog points to the **SQL** tab.
+
 ## SQL queries
 
-**New query** opens an SQL editor. <kbd>Ctrl</kbd> <kbd>Enter</kbd> runs it. Results are limited to 1000 rows; a write query shows the number of rows changed.
+**New query** opens an SQL editor. <kbd>Ctrl</kbd> <kbd>Enter</kbd> runs it. Results are limited to 1000 rows; a write query shows the number of rows changed. Above the results, **CSV** or **JSON** picks the copy format (remembered): in JSON, one object per row.
 
 ## Elsewhere
 

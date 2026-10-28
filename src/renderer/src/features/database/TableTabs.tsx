@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { ArrowRight, ChevronLeft, ChevronRight, KeyRound, Link2 } from 'lucide-react'
-import type { DbBrowseResult, DbForeignKey, DbTableDetails, DbTableRef, DbTableStat } from '@shared/types'
+import { ArrowRight, ChevronLeft, ChevronRight, KeyRound, Link2, Pencil, Plus, Trash2, TextCursorInput } from 'lucide-react'
+import type { DbBrowseResult, DbColumnInfo, DbConnection, DbForeignKey, DbTableDetails, DbTableRef, DbTableStat } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import { formatSize } from '@renderer/lib/format'
@@ -12,7 +12,9 @@ import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Select } from '@renderer/components/ui/Input'
 import { SectionTitle } from '@renderer/components/ui/Page'
+import Button from '@renderer/components/ui/Button'
 import ResultGrid, { type GridSort } from './ResultGrid'
+import { ColumnDialog, DropColumnDialog, DropTableDialog, RenameTableDialog } from './TableDialogs'
 
 const PAGE_SIZES = [25, 50, 100, 250, 500]
 
@@ -54,7 +56,7 @@ export function BrowseTab({ connId, table }: { connId: string; table: DbTableRef
           .replace('{from}', String(from)).replace('{to}', String(to)).replace('{total}', String(result.total))}
       </span>
       <IconButton size="sm" title={d.next} disabled={!hasNext || loading} onClick={() => setPage(p => p + 1)}><ChevronRight size={13} /></IconButton>
-      <Select value={limit} onChange={e => { setLimit(Number(e.target.value)); setPage(0) }} className="h-7 w-auto py-0 text-xs">
+      <Select aria-label={d.rowsPerPage} value={limit} onChange={e => { setLimit(Number(e.target.value)); setPage(0) }} className="h-7 w-auto py-0 text-xs">
         {PAGE_SIZES.map(n => <option key={n} value={n}>{n} {d.perPage}</option>)}
       </Select>
       {loading && <Spinner />}
@@ -78,17 +80,43 @@ function Td({ children, className }: { children?: ReactNode; className?: string 
   return <td className={cn('border-b border-line-subtle px-3 py-2 align-top', className)}>{children}</td>
 }
 
-export function StructureTab({ details }: { details: DbTableDetails }) {
+type Editing = { kind: 'add' } | { kind: 'edit'; column: DbColumnInfo } | { kind: 'dropColumn'; column: string } | { kind: 'rename' } | { kind: 'drop' }
+
+/**
+ * Columns and indexes. v3.5.1: a table (not a view) can be changed here:
+ * columns added, changed, dropped; the table renamed or dropped.
+ */
+export function StructureTab({ details, conn, table, onChanged, onRenamed, onDropped }: {
+  details: DbTableDetails
+  conn?: DbConnection
+  table?: DbTableRef
+  onChanged?: () => void
+  onRenamed?: (name: string) => void
+  onDropped?: () => void
+}) {
   const { t } = useI18n()
   const d = t.database
+  const [editing, setEditing] = useState<Editing | null>(null)
+  const editable = !!conn && !!table && details.stats?.type !== 'view'
+  const close = () => setEditing(null)
+  const changed = () => { close(); onChanged?.() }
   return (
     <div className="flex flex-col gap-5 p-5">
       <section className="flex flex-col gap-2">
-        <SectionTitle>{d.columnsTitle.replace('{n}', String(details.columns.length))}</SectionTitle>
+        <div className="flex flex-wrap items-center gap-2">
+          <SectionTitle>{d.columnsTitle.replace('{n}', String(details.columns.length))}</SectionTitle>
+          {editable && (
+            <span className="ml-auto flex flex-wrap gap-1.5">
+              <Button size="sm" variant="secondary" onClick={() => setEditing({ kind: 'add' })}><Plus size={13} /> {d.addColumn}</Button>
+              <Button size="sm" variant="secondary" onClick={() => setEditing({ kind: 'rename' })}><TextCursorInput size={13} /> {d.renameTable}</Button>
+              <Button size="sm" variant="danger" onClick={() => setEditing({ kind: 'drop' })}><Trash2 size={13} /> {d.dropTable}</Button>
+            </span>
+          )}
+        </div>
         <Card className="overflow-x-auto p-0">
           <table className="w-full border-collapse text-sm">
             <thead className="bg-elevated">
-              <tr><Th className="w-10">#</Th><Th>{d.colName}</Th><Th>{d.colType}</Th><Th>{d.colNull}</Th><Th>{d.colDefault}</Th><Th>{d.colKey}</Th><Th>{d.colExtra}</Th><Th>{d.colComment}</Th></tr>
+              <tr><Th className="w-10">#</Th><Th>{d.colName}</Th><Th>{d.colType}</Th><Th>{d.colNull}</Th><Th>{d.colDefault}</Th><Th>{d.colKey}</Th><Th>{d.colExtra}</Th><Th>{d.colComment}</Th>{editable && <Th className="w-[72px]"><span className="sr-only">{d.colActions}</span></Th>}</tr>
             </thead>
             <tbody>
               {details.columns.map((c, i) => (
@@ -103,6 +131,14 @@ export function StructureTab({ details }: { details: DbTableDetails }) {
                   <Td>{c.key && <Badge color={KEY_COLOR[c.key]} className="font-mono text-2xs">{c.key}</Badge>}</Td>
                   <Td className="text-xs text-fg-secondary">{c.extra}</Td>
                   <Td className="text-xs text-fg-muted">{c.comment}</Td>
+                  {editable && (
+                    <Td className="py-1">
+                      <span className="flex gap-0.5">
+                        <IconButton size="sm" title={d.editColumn.replace('{name}', c.name)} onClick={() => setEditing({ kind: 'edit', column: c })}><Pencil size={12} /></IconButton>
+                        <IconButton size="sm" tone="danger" title={d.dropColumn.replace('{name}', c.name)} disabled={details.columns.length === 1} onClick={() => setEditing({ kind: 'dropColumn', column: c.name })}><Trash2 size={12} /></IconButton>
+                      </span>
+                    </Td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -132,6 +168,12 @@ export function StructureTab({ details }: { details: DbTableDetails }) {
           </Card>
         )}
       </section>
+
+      {editable && editing?.kind === 'add' && <ColumnDialog conn={conn} table={table} onClose={close} onDone={changed} />}
+      {editable && editing?.kind === 'edit' && <ColumnDialog conn={conn} table={table} column={editing.column} onClose={close} onDone={changed} />}
+      {editable && editing?.kind === 'dropColumn' && <DropColumnDialog conn={conn} table={table} column={editing.column} onClose={close} onDone={changed} />}
+      {editable && editing?.kind === 'rename' && <RenameTableDialog conn={conn} table={table} onClose={close} onDone={name => { close(); onRenamed?.(name) }} />}
+      {editable && editing?.kind === 'drop' && <DropTableDialog conn={conn} table={table} onClose={close} onDone={() => { close(); onDropped?.() }} />}
     </div>
   )
 }
