@@ -59,12 +59,13 @@ Les onglets n'apparaissent que s'ils ont un sens pour ce projet :
 | Docker | le projet Compose du dossier (ou du dossier parent) : services, état, démarrer / arrêter |
 | Variables | les fichiers `.env` et leurs clés, voir [Variables .env](/devforge/system/env-files/) |
 | Paquets | si le projet a un `package.json`, un `composer.json` ou les dépendances d'un autre langage (Python, Rust, Go…) : versions, vulnérabilités, mises à jour ; voir [Paquets](/devforge/dev/packages/) |
+| Tests | si le projet a un outil de test (Vitest, Jest, Playwright, PHPUnit, pytest, Go, Cargo) : les lancer, voir chaque test et ses échecs ; voir [Tests](/devforge/dev/tests/) |
 | Base de données | la base liée, explorée sur place (voir plus bas) ; **Lier une connexion…** |
 | Logs | les fichiers de log trouvés (`storage/logs`, `var/log`, `logs`…), suivis en direct ; on peut en ajouter un par son chemin |
 | Ports & domaines | les ports trouvés dans la config (`.env`, scripts, Compose), en écoute ou libres, **Libérer** ; les domaines locaux liés |
 | Déploiement | les cibles de déploiement du projet et **Synchroniser le .env** avec le serveur |
 | Vercel | si le dossier est lié à Vercel : déploiements, variables, domaines |
-| Fichiers | l'arborescence du projet, avec l'aperçu du fichier cliqué (les scripts sont dans la vue d'ensemble) |
+| Fichiers | l'arborescence du projet, avec ce que Git a vu changer, l'aperçu du fichier cliqué et la recherche (les scripts sont dans la vue d'ensemble) |
 
 Ce que DevForge a **trouvé** seul (une base, un domaine, un port) est marqué *trouvé* ; ce que tu as lié à la main, *ajouté*. **Retirer du projet** masque un élément ; **Réafficher** le remet.
 
@@ -82,6 +83,23 @@ Dans l'onglet **Fichiers**, un clic sur un fichier l'ouvre à côté de l'arbre 
 **Ouvrir dans** *ton IDE* (à côté de **Copier**) ouvre le fichier dans l'[IDE](/devforge/dev/ide/) du projet. Avec VS Code, Cursor, Windsurf, Antigravity et Zed, il s'ouvre dans la fenêtre de ce projet (ouverte au besoin), même si l'IDE était sur un autre projet.
 
 Un fichier binaire (archive, exécutable, document Office) ou trop gros (plus de 1 Mo de texte, 10 Mo d'image, 30 Mo de PDF) le dit au lieu de s'afficher. Rien n'est lancé : le fichier est seulement lu.
+
+### Les changements depuis le dernier commit
+
+Dans un dépôt Git, l'arbre de l'onglet **Fichiers** montre ce qui a changé depuis le dernier commit, comme VS Code :
+
+| Marque | Sens |
+|---|---|
+| **M**, en orange | modifié |
+| **A**, en vert | nouveau (ajouté, ou pas encore suivi par Git) |
+| **D**, en rouge et barré | supprimé : le fichier reste dans l'arbre pour voir ce qu'il contenait |
+| un point orange sur un dossier | il contient au moins un changement |
+
+**Modifiés seulement · n**, en haut de l'arbre, le réduit aux fichiers changés, tous les dossiers ouverts ; un clic ouvre un fichier sur ses changements.
+
+Dans l'aperçu d'un fichier changé, **Fichier** et **Changements** alternent : **Changements** montre le diff depuis le dernier commit (les changements indexés compris), avec les numéros de l'ancienne et de la nouvelle ligne, les ajouts en vert, les retraits en rouge. Un fichier nouveau s'affiche en entier, en ajout ; un fichier supprimé s'ouvre directement sur ses changements.
+
+Pour un projet rangé dans un sous-dossier d'un dépôt (un projet de groupe), seuls ses propres fichiers comptent. Hors d'un dépôt Git, l'arbre reste tel quel.
 
 ### Rechercher dans le projet
 

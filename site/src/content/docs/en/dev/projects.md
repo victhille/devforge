@@ -59,12 +59,13 @@ Tabs only show when they make sense for the project:
 | Docker | the Compose project of the folder (or its parent): services, state, start / stop |
 | Variables | the `.env` files and their keys, see [Env variables](/devforge/en/system/env-files/) |
 | Packages | when the project has a `package.json`, a `composer.json` or another language's dependencies (Python, Rust, Go…): versions, vulnerabilities, updates; see [Packages](/devforge/en/dev/packages/) |
+| Tests | when the project has a test tool (Vitest, Jest, Playwright, PHPUnit, pytest, Go, Cargo): run them, see each test and its failures; see [Tests](/devforge/en/dev/tests/) |
 | Database | the linked database, explored in place (see below); **Link a connection…** |
 | Logs | the log files found (`storage/logs`, `var/log`, `logs`…), followed live; you can add one by its path |
 | Ports & domains | the ports found in the config (`.env`, scripts, Compose), listening or free, **Free**; the linked local domains |
 | Deploy | the project's deploy targets and **Sync the .env** with the server |
 | Vercel | if the folder is linked to Vercel: deployments, variables, domains |
-| Files | the project tree, with a preview of the file clicked (the scripts are on the overview) |
+| Files | the project tree, with what Git saw change, a preview of the file clicked and the search (the scripts are on the overview) |
 
 What DevForge **found** by itself (a database, a domain, a port) is marked *found*; what you linked by hand, *added*. **Remove from the project** hides an item; **Show again** brings it back.
 
@@ -82,6 +83,23 @@ In the **Files** tab, clicking a file opens it next to the tree:
 **Open in** *your IDE* (next to **Copy**) opens the file in the project's [IDE](/devforge/en/dev/ide/). With VS Code, Cursor, Windsurf, Antigravity and Zed, it opens in that project's window (opened if needed), even when the IDE was on another project.
 
 A binary file (archive, program, Office document) or one too big (over 1 MB of text, 10 MB of image, 30 MB of PDF) says so instead. Nothing runs: the file is only read.
+
+### Changes since the last commit
+
+In a Git repository, the **Files** tab's tree shows what changed since the last commit, as VS Code does:
+
+| Mark | Meaning |
+|---|---|
+| **M**, orange | modified |
+| **A**, green | new (added, or not tracked by Git yet) |
+| **D**, red and struck through | deleted: the file stays in the tree to see what it held |
+| an orange dot on a folder | it holds at least one change |
+
+**Modified only · n**, at the top of the tree, reduces it to the changed files, every folder open; a click opens a file on its changes.
+
+In a changed file's preview, **File** and **Changes** switch: **Changes** shows the diff since the last commit (staged changes included), with the old and new line numbers, additions in green, removals in red. A new file shows whole, as added; a deleted file opens straight on its changes.
+
+For a project kept in a sub-folder of a repository (a group's project), only its own files count. Outside a Git repository, the tree stays as it is.
 
 ### Searching the project
 
