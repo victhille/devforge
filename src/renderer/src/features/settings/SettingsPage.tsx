@@ -147,6 +147,10 @@ export default function SettingsPage() {
               <SettingRow label={s.terminalSuggest} hint={s.terminalSuggestHint}>
                 <Switch checked={settings.terminalSuggest !== false} onChange={v => set('terminalSuggest', v)} label={s.terminalSuggest} />
               </SettingRow>
+              <SettingRow label={s.ciAlerts} hint={s.ciAlertsHint}>
+                <Segmented<'favorites' | 'all' | 'off'> label={s.ciAlerts} value={settings.ciAlerts ?? 'favorites'} onChange={v => set('ciAlerts', v)}
+                  items={[{ value: 'favorites', label: s.ciAlertsFavorites }, { value: 'all', label: s.ciAlertsAll }, { value: 'off', label: s.ciAlertsOff }]} />
+              </SettingRow>
               <SettingRow label={s.minimizeToTray} hint={s.minimizeToTrayHint}>
                 <Switch checked={settings.minimizeToTray} onChange={v => set('minimizeToTray', v)} label={s.minimizeToTray} />
               </SettingRow>

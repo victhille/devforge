@@ -30,6 +30,9 @@ export interface GithubStatus {
   releases: GithubRelease[]
 }
 
+/** v3.8: per project id, its workflows whose last finished run failed */
+export type CiStates = Record<string, { failing: string[] }>
+
 export interface GithubAPI {
   /** The GitHub repository of a project (origin), null when it is not on GitHub */
   repo: (projectPath: string) => Promise<GithubRepo | null>
@@ -37,6 +40,10 @@ export interface GithubAPI {
   status: (projectPath: string) => Promise<GithubStatus>
   /** Runs again the failed jobs of a run */
   rerun: (projectPath: string, runId: number) => Promise<void>
+  /** v3.8: the CI watch: what fails now, a check at once, its news */
+  ciStates: () => Promise<CiStates>
+  checkCi: () => Promise<CiStates>
+  onCiStates: (cb: (s: CiStates) => void) => () => void
   /** Saved token (encrypted), checked first; null removes it */
   saveToken: (token: string | null) => Promise<{ login: string | null }>
   hasToken: () => Promise<boolean>

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { DevForgeAPI, LogLine, CommandResult, SSHSessionStatus } from '@shared/types'
+import type { DevForgeAPI, LogLine, CommandResult, SSHSessionStatus, CiStates } from '@shared/types'
 
 /** ipcRenderer.invoke bound to a channel */
 const invoke = <T extends (...args: never[]) => Promise<unknown>>(channel: string) =>
@@ -336,7 +336,14 @@ const api: DevForgeAPI = {
     status:    invoke('github:status'),
     rerun:     invoke('github:rerun'),
     saveToken: invoke('github:save-token'),
-    hasToken:  invoke('github:has-token')
+    hasToken:  invoke('github:has-token'),
+    ciStates:  invoke('github:ci-states'),
+    checkCi:   invoke('github:check-ci'),
+    onCiStates: (cb) => {
+      const listener = (_e: Electron.IpcRendererEvent, s: CiStates) => cb(s)
+      ipcRenderer.on('github:ci-states', listener)
+      return () => ipcRenderer.removeListener('github:ci-states', listener)
+    }
   },
 
   setup: {

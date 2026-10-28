@@ -8,7 +8,7 @@ import IconButton from '@renderer/components/ui/IconButton'
 import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
 import ProjectIcon from './ProjectIcon'
 import ScriptsMenu from './ScriptsMenu'
-import { TasksChip } from './ProjectCard'
+import { CiDot, TasksChip } from './ProjectCard'
 import type { PreferredIde } from '@renderer/lib/ide'
 
 const OPEN_KEY = 'projects-groups-folded'
@@ -38,6 +38,8 @@ interface Props {
   /** v3.8: its open tasks, and the way to them */
   openTasks?: number
   onOpenTasks?: () => void
+  /** v3.8: its GitHub workflows failing now */
+  ciFailing?: string[]
 }
 
 /** One project of the group: its stack, its Git state, its own IDE, terminal and scripts */
@@ -74,7 +76,7 @@ function SubRow({ sub, ideLabel, onOpenIde, onTerminal, onRunScript }: { sub: Su
 
 /** v3.5: a folder holding several projects (back + front), unfolded on its card */
 export default function GroupCard(props: Props) {
-  const { project, gitStatus, ide, onTerminal, onRunScript, onToggleFavorite, onDetail, onRemove, index = 0, folder, openTasks, onOpenTasks } = props
+  const { project, gitStatus, ide, onTerminal, onRunScript, onToggleFavorite, onDetail, onRemove, index = 0, folder, openTasks, onOpenTasks, ciFailing } = props
   const { t } = useI18n()
   const subs = project.subprojects ?? []
   const extras = project.extras ?? []
@@ -100,7 +102,7 @@ export default function GroupCard(props: Props) {
       <div className="flex items-center gap-3">
         <ProjectIcon framework="group" size="lg" />
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-[15px] font-semibold text-fg">{project.name}</h2>
+          <h2 className="flex items-center gap-2 truncate text-[15px] font-semibold text-fg">{project.name}<CiDot failing={ciFailing} /></h2>
           <div className="truncate font-mono text-[11.5px] text-fg-muted" title={project.path}>{project.path}</div>
         </div>
         <IconButton title={t.projects.favorite} onClick={onToggleFavorite} className={cn(project.favorite && 'text-warning hover:text-warning')}>

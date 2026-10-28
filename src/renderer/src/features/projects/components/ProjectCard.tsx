@@ -47,6 +47,14 @@ function FavoriteButton({ active, onClick, title }: { active: boolean; onClick: 
   )
 }
 
+/** v3.8: a red dot while a GitHub workflow of the project is failing */
+export function CiDot({ failing }: { failing?: string[] }) {
+  const { t } = useI18n()
+  if (!failing?.length) return null
+  const label = t.projects.ciFailing.replace('{workflows}', failing.join(', '))
+  return <span role="img" aria-label={label} title={label} data-testid="ci-dot" className="size-2 shrink-0 rounded-full bg-danger ring-2 ring-danger/25" />
+}
+
 /** v3.8: the project's open tasks; a click opens its Notes tab */
 export function TasksChip({ count, onClick }: { count?: number; onClick?: () => void }) {
   const { t } = useI18n()
@@ -82,10 +90,12 @@ interface SavedProps {
   /** v3.8: its open tasks, and the way to them */
   openTasks?: number
   onOpenTasks?: () => void
+  /** v3.8: its GitHub workflows failing now */
+  ciFailing?: string[]
 }
 
 export function ProjectCard(props: SavedProps) {
-  const { project, layout, gitStatus, scripts = {}, ideLabel, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript, index = 0, folder, openTasks, onOpenTasks } = props
+  const { project, layout, gitStatus, scripts = {}, ideLabel, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript, index = 0, folder, openTasks, onOpenTasks, ciFailing } = props
   const { t } = useI18n()
   const label = FRAMEWORK_LABEL[project.framework] ?? project.framework
 
@@ -100,7 +110,7 @@ export function ProjectCard(props: SavedProps) {
         <div className="flex items-center gap-3">
           <ProjectIcon framework={project.framework} size="lg" />
           <div className="min-w-0 flex-1">
-            <h2 className="truncate text-[15px] font-semibold text-fg">{project.name}</h2>
+            <h2 className="flex items-center gap-2 truncate text-[15px] font-semibold text-fg">{project.name}<CiDot failing={ciFailing} /></h2>
             <div className="truncate font-mono text-[11.5px] text-fg-muted" title={project.path}>{project.path}</div>
           </div>
           <FavoriteButton active={project.favorite} onClick={onToggleFavorite} title={t.projects.favorite} />
@@ -134,7 +144,7 @@ export function ProjectCard(props: SavedProps) {
       <FavoriteButton active={project.favorite} onClick={onToggleFavorite} title={t.projects.favorite} />
       <ProjectIcon framework={project.framework} />
       <button onClick={onDetail} className="flex min-w-0 flex-1 flex-col items-start text-left">
-        <span className="truncate font-medium text-fg group-hover:text-accent">{project.name}</span>
+        <span className="flex items-center gap-2 truncate font-medium text-fg group-hover:text-accent">{project.name}<CiDot failing={ciFailing} /></span>
         <span className="flex w-full items-center gap-2 truncate font-mono text-xs text-fg-muted">
           <span className="truncate">{project.path}</span>
           <GitBadge status={gitStatus} />

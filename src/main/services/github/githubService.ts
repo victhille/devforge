@@ -14,7 +14,8 @@ import { getProjectPaths } from '../projects/projectStorage'
  * in, else one saved here, encrypted by the OS. It never reaches the window.
  */
 
-const API = 'https://api.github.com'
+/** Tests only (never in the installed app): a local stand-in for GitHub's API */
+const API = !app.isPackaged && process.env.DEVFORGE_TEST_GITHUB_API ? process.env.DEVFORGE_TEST_GITHUB_API : 'https://api.github.com'
 
 /** "https://github.com/o/r(.git)", "git@github.com:o/r(.git)", "ssh://git@github.com/o/r" → { owner, repo } */
 export function parseGithubUrl(url: string): GithubRepo | null {
@@ -46,6 +47,7 @@ export const hasToken = () => savedToken() !== null
 
 /** Saved token first (the user chose it), else GitHub CLI's */
 async function token(): Promise<{ value: string; auth: 'gh' | 'token' }> {
+  if (!app.isPackaged && process.env.DEVFORGE_TEST_GITHUB_TOKEN) return { value: process.env.DEVFORGE_TEST_GITHUB_TOKEN, auth: 'token' }
   const saved = savedToken()
   if (saved) return { value: saved, auth: 'token' }
   const r = await runFile('gh', ['auth', 'token'], { timeout: 8000 })
@@ -120,6 +122,16 @@ export async function status(projectPath: string): Promise<GithubStatus> {
     api<RawRelease[]>(`${base}/releases?per_page=5`, { token: tok.value })
   ])
   return { repo, auth: tok.auth, runs: runs.workflow_runs.map(toRun), pulls: pulls.map(toPull), releases: releases.map(toRelease) }
+}
+
+/** v3.8: a project's latest workflow runs (the CI watch); null when it is not on GitHub or there is no token */
+export async function latestRuns(projectPath: string): Promise<GithubRun[] | null> {
+  const repo = await repoOf(projectPath)
+  if (!repo) return null
+  const tok = await token().catch(() => null)
+  if (!tok) return null
+  const r = await api<{ workflow_runs: RawRun[] }>(`/repos/${repo.owner}/${repo.repo}/actions/runs?per_page=30`, { token: tok.value })
+  return r.workflow_runs.map(toRun)
 }
 
 export async function rerunFailed(projectPath: string, runId: number): Promise<void> {

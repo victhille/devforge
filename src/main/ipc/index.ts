@@ -57,7 +57,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerVpnHandlers(mainWindow)
   registerVpsOpsHandlers(mainWindow)
   registerBackupsHandlers(mainWindow)
-  registerGithubHandlers()
+  registerGithubHandlers(mainWindow)
   registerSetupHandlers()
   registerSymfonyHandlers(mainWindow)
   registerLauncherHandlers()

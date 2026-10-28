@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FolderPlus, FolderSearch, LayoutList, LayoutGrid, Plus, Search, FolderOpen, TriangleAlert } from 'lucide-react'
-import type { DetectedProject, Framework, SubProject } from '@shared/types'
+import type { CiStates, DetectedProject, Framework, SubProject } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useConsole } from '@renderer/app/ConsoleContext'
 import { usePreferredIde } from '@renderer/lib/ide'
@@ -31,6 +31,12 @@ export default function ProjectsPage() {
   /** v3.8: open tasks per project */
   const [openTasks, setOpenTasks] = useState<Record<string, number>>({})
   useEffect(() => { window.devforge.notes.counts().then(setOpenTasks).catch(() => {}) }, [])
+  /** v3.8: the GitHub workflows failing now, per project */
+  const [ci, setCi] = useState<CiStates>({})
+  useEffect(() => {
+    window.devforge.github.ciStates().then(setCi).catch(() => {})
+    return window.devforge.github.onCiStates(setCi)
+  }, [])
   const {
     projects, gitStatuses, scripts,
     open, openTerminal, toggleFavorite, remove, importDetected
@@ -197,6 +203,7 @@ export default function ProjectsPage() {
                 folder={many ? folderName(placeOf(p.path) ?? '') || null : null}
                 openTasks={openTasks[p.id]}
                 onOpenTasks={() => navigate(`/project/${p.id}?tab=notes`)}
+                ciFailing={ci[p.id]?.failing}
               />
             ) : (
               <ProjectCard
@@ -217,6 +224,7 @@ export default function ProjectsPage() {
                 onRunScript={s => runScript(p.path, s, p.packageManager, p.name)}
                 openTasks={openTasks[p.id]}
                 onOpenTasks={() => navigate(`/project/${p.id}?tab=notes`)}
+                ciFailing={ci[p.id]?.failing}
               />
             ))}
           </div>

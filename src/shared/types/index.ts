@@ -172,6 +172,8 @@ export interface AppSettings {
   customIdes?: CustomIde[]
   /** v3.5: the greyed rest of a terminal line (on unless turned off) */
   terminalSuggest?: boolean
+  /** v3.8: GitHub CI alerts: favourite projects (default), all of them, or none */
+  ciAlerts?: 'favorites' | 'all' | 'off'
   theme: Theme
   defaultTerminal: DefaultTerminal
   language: AppLanguage
