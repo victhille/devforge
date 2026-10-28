@@ -40,7 +40,7 @@ function CodeView({ text, name }: { text: string; name: string }) {
  * source one click away), images and PDFs as such, other text in a fixed
  * font, in colours (v3.5.3). The project's IDE opens it.
  */
-export default function FilePreview({ file, ide: own, onClose }: { file: FileEntry; ide?: DefaultIDE; onClose: () => void }) {
+export default function FilePreview({ file, root, ide: own, onClose }: { file: FileEntry; root?: string; ide?: DefaultIDE; onClose: () => void }) {
   const { t } = useI18n()
   const f = t.files
   const toast = useToast()
@@ -60,7 +60,7 @@ export default function FilePreview({ file, ide: own, onClose }: { file: FileEnt
   const text = preview && (preview.kind === 'markdown' || preview.kind === 'text') ? preview.text : null
 
   async function openInIde() {
-    try { await ide.openFile(file.path, own) }
+    try { await ide.openFile(file.path, own, root) }
     catch (err) { toast.show({ tone: 'error', title: String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') }) }
   }
 

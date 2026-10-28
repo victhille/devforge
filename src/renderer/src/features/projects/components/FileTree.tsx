@@ -139,7 +139,7 @@ export default function FileTree({ rootPath, ide }: { rootPath: string; ide?: De
         </div>
         {!file && root.length > 0 && <p className="shrink-0 border-t border-line-subtle px-3 py-2 text-2xs text-fg-muted">{f.pickFile}</p>}
       </div>
-      {file && <FilePreview file={file} ide={ide} onClose={() => setFile(null)} />}
+      {file && <FilePreview file={file} root={rootPath} ide={ide} onClose={() => setFile(null)} />}
     </div>
   )
 }

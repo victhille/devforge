@@ -19,8 +19,8 @@ export interface PreferredIde {
   pick: (own?: DefaultIDE) => DefaultIDE
   labelFor: (own?: DefaultIDE) => string | null
   open: (path: string, own?: DefaultIDE) => Promise<void>
-  /** v3.5.3: a project's file */
-  openFile: (path: string, own?: DefaultIDE) => Promise<void>
+  /** v3.5.3: a project's file, in the window of the project at `root` */
+  openFile: (path: string, own?: DefaultIDE, root?: string) => Promise<void>
 }
 
 /** The IDE chosen in Settings, read when the page shows (a change in Settings applies on the way back) */
@@ -37,7 +37,7 @@ export function usePreferredIde(): PreferredIde {
   const pick = useCallback((own?: DefaultIDE) => own && (own === 'none' || IDE_LABEL[own] || list.some(i => i.id === own)) ? own : ide, [ide, list])
   const labelFor = useCallback((own?: DefaultIDE) => nameOf(pick(own)), [nameOf, pick])
   const open = useCallback((path: string, own?: DefaultIDE) => window.devforge.openInIDE(path, pick(own)), [pick])
-  const openFile = useCallback((path: string, own?: DefaultIDE) => window.devforge.openFileInIDE(path, pick(own)), [pick])
+  const openFile = useCallback((path: string, own?: DefaultIDE, root?: string) => window.devforge.openFileInIDE(path, pick(own), root), [pick])
   return { ide, label: nameOf(ide), list, pick, labelFor, open, openFile }
 }
 

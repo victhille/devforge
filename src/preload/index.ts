@@ -224,7 +224,7 @@ const api: DevForgeAPI = {
   selectFile:       ()             => ipcRenderer.invoke('select-file'),
   openDirectory:    (path)         => ipcRenderer.invoke('open-directory', path),
   openInIDE:        (path, ide)    => ipcRenderer.invoke('open-in-ide', path, ide),
-  openFileInIDE:    (path, ide)    => ipcRenderer.invoke('open-file-in-ide', path, ide),
+  openFileInIDE:    (path, ide, root) => ipcRenderer.invoke('open-file-in-ide', path, ide, root),
   listIdes:         (fresh)        => ipcRenderer.invoke('ide:list', fresh === true),
   tryIde:           (ide)          => ipcRenderer.invoke('ide:try', ide),
   selectProgram:    ()             => ipcRenderer.invoke('select-program'),

@@ -37,7 +37,7 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
 
   // v3.5: the catalog's IDEs and those added by hand
   ipcMain.handle('open-in-ide', async (_event, dirPath: string, ide: string) => openInIde(dirPath, String(ide ?? '')))
-  ipcMain.handle('open-file-in-ide', async (_event, filePath: string, ide: string) => openFileInIde(filePath, String(ide ?? '')))
+  ipcMain.handle('open-file-in-ide', async (_event, filePath: string, ide: string, root?: string) => openFileInIde(filePath, String(ide ?? ''), typeof root === 'string' ? root : undefined))
   ipcMain.handle('ide:list', async (_event, fresh: boolean) => listIdes(fresh === true))
   ipcMain.handle('ide:try', async (_event, ide: CustomIde) => tryIde(ide, app.getPath('home')))
 

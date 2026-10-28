@@ -79,7 +79,7 @@ In the **Files** tab, clicking a file opens it next to the tree:
 | PDF | the pages drawn (the first 20, then **Show the next pages**) |
 | Text and code (`Dockerfile`, `.env`, `.ts`, `.vue`, `.py`, `.yaml`…) | in colours as in an IDE (the language told by the extension), with **Copy the content** |
 
-**Open in** *your IDE* (next to **Copy**) opens the file in the project's [IDE](/devforge/en/dev/ide/).
+**Open in** *your IDE* (next to **Copy**) opens the file in the project's [IDE](/devforge/en/dev/ide/). With VS Code, Cursor, Windsurf, Antigravity and Zed, it opens in that project's window (opened if needed), even when the IDE was on another project.
 
 A binary file (archive, program, Office document) or one too big (over 1 MB of text, 10 MB of image, 30 MB of PDF) says so instead. Nothing runs: the file is only read.
 

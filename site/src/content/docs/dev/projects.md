@@ -79,7 +79,7 @@ Dans l'onglet **Fichiers**, un clic sur un fichier l'ouvre à côté de l'arbre 
 | PDF | les pages dessinées (les 20 premières, puis **Afficher les pages suivantes**) |
 | Texte et code (`Dockerfile`, `.env`, `.ts`, `.vue`, `.py`, `.yaml`…) | en couleurs comme dans un IDE (le langage reconnu à l'extension), avec **Copier le contenu** |
 
-**Ouvrir dans** *ton IDE* (à côté de **Copier**) ouvre le fichier dans l'[IDE](/devforge/dev/ide/) du projet.
+**Ouvrir dans** *ton IDE* (à côté de **Copier**) ouvre le fichier dans l'[IDE](/devforge/dev/ide/) du projet. Avec VS Code, Cursor, Windsurf, Antigravity et Zed, il s'ouvre dans la fenêtre de ce projet (ouverte au besoin), même si l'IDE était sur un autre projet.
 
 Un fichier binaire (archive, exécutable, document Office) ou trop gros (plus de 1 Mo de texte, 10 Mo d'image, 30 Mo de PDF) le dit au lieu de s'afficher. Rien n'est lancé : le fichier est seulement lu.
 
