@@ -43,10 +43,12 @@ Options:
 | Option | Symfony | Next.js | Laravel |
 |---|---|---|---|
 | API | `/api/health` route, mode picked in the workshop | `/api/health` route | `routes/api.php` and Sanctum |
-| Users and login | User entity (MakerBundle) | Auth.js | Laravel Fortify |
+| Users and login | contract pages and API, signed token | contract pages and API, Prisma | Fortify, contract pages and API, Sanctum |
 | Docker for the app | FrankenPHP in `compose.yaml` | Node Dockerfile and `app` service | Laravel Sail |
 | Tests | PHPUnit and a first test | Vitest and a first test | PHPUnit, two tests |
 | GitHub Actions CI | checks and tests on every push | lint, tests and build | install and tests |
+
+**Users and login** gives sign-in, sign-up and dashboard pages, plus one authentication API shared by the three: see [Authentication](/devforge/en/dev/authentication/). With no database chosen, the option takes **SQLite** (no Docker).
 
 If PHP lacks the needed extensions, DevForge lists them and offers **Enable in php.ini** (a `php.ini.devforge-bak` copy is kept).
 
@@ -54,6 +56,10 @@ If PHP lacks the needed extensions, DevForge lists them and offers **Enable in p
 
 - **Git repository and first commit**.
 - **Create the repository on GitHub**, private or public, with the name you want (`name` or `account/name`). [GitHub CLI](https://cli.github.com) must be signed in (`gh auth login`).
+- **DevForge welcome page** (checked by default): replaces the framework's page with one in DevForge's colors showing what is set up (address, database, branch); with authentication, **Sign in** and **Create an account** at the top right. To replace it, edit the file it names (`app/page.tsx`, `src/App.tsx`, `resources/views/welcome.blade.php`…).
+- **Sign-in and sign-up** (React and Vue in TypeScript): the pages and the client of the [authentication API](/devforge/en/dev/authentication/), with the **server address** Vite sends `/api` to.
 - **Open in VS Code at the end**.
 
-The **summary** lists exactly what will run. **Create Project** starts; the console shows each command, with **Cancel**. At the end: **Open Folder**, **Open in VS Code**, **Open the project**.
+The **summary** lists exactly what will run. **Create Project** starts; the console shows each command, with **Cancel**. The console resizes (drag its top edge, double-click for full screen), shows the current step and groups repeated warnings. At the end, the project's page opens; **Open Folder** and **Open in VS Code** stay in the console.
+
+On every creation, DevForge installs missing dependencies, writes `.gitignore` before the first commit (never `node_modules` or `vendor` in Git) and names the branch `main`.

@@ -43,10 +43,12 @@ Options :
 | Option | Symfony | Next.js | Laravel |
 |---|---|---|---|
 | API | route `/api/health`, mode choisi dans l'atelier | route `/api/health` | `routes/api.php` et Sanctum |
-| Utilisateurs et connexion | entité User (MakerBundle) | Auth.js | Laravel Fortify |
+| Utilisateurs et connexion | pages et API du contrat, jeton signé | pages et API du contrat, Prisma | Fortify, pages et API du contrat, Sanctum |
 | Docker pour l'app | FrankenPHP dans `compose.yaml` | Dockerfile Node et service `app` | Laravel Sail |
 | Tests | PHPUnit et un premier test | Vitest et un premier test | PHPUnit, deux tests |
 | CI GitHub Actions | vérifications et tests à chaque push | lint, tests et build | installation et tests |
+
+**Utilisateurs et connexion** donne des pages de connexion, d'inscription et un tableau de bord, plus une API d'authentification commune aux trois : voir [Authentification](/devforge/dev/authentication/). Sans base choisie, l'option prend **SQLite** (pas de Docker).
 
 Si PHP n'a pas les extensions nécessaires, DevForge les liste et propose **Activer dans php.ini** (une copie `php.ini.devforge-bak` est gardée).
 
@@ -54,6 +56,10 @@ Si PHP n'a pas les extensions nécessaires, DevForge les liste et propose **Acti
 
 - **Dépôt Git et premier commit**.
 - **Créer le dépôt sur GitHub**, privé ou public, avec le nom de ton choix (`nom` ou `compte/nom`). Il faut [GitHub CLI](https://cli.github.com) connecté (`gh auth login`).
+- **Page d'accueil DevForge** (cochée par défaut) : remplace la page du framework par une page aux couleurs de DevForge qui montre ce qui est installé (adresse, base, branche) ; avec l'authentification, **Se connecter** et **Créer un compte** en haut à droite. Pour la remplacer, modifie le fichier qu'elle indique (`app/page.tsx`, `src/App.tsx`, `resources/views/welcome.blade.php`…).
+- **Connexion et inscription** (React et Vue en TypeScript) : les pages et le client de l'[API d'authentification](/devforge/dev/authentication/), avec l'**adresse du serveur** à qui Vite renvoie `/api`.
 - **Ouvrir dans VS Code à la fin**.
 
-Le **récapitulatif** liste exactement ce qui va être lancé. **Créer le projet** démarre ; la console montre chaque commande, avec **Annuler**. À la fin : **Ouvrir le dossier**, **Ouvrir dans VS Code**, **Ouvrir le projet**.
+Le **récapitulatif** liste exactement ce qui va être lancé. **Créer le projet** démarre ; la console montre chaque commande, avec **Annuler**. La console se règle en hauteur (tire son bord supérieur, double-clic pour le plein écran), montre l'étape en cours et regroupe les avertissements répétés. À la fin, la fiche du projet s'ouvre ; **Ouvrir le dossier** et **Ouvrir dans VS Code** restent dans la console.
+
+À chaque création, DevForge installe les dépendances qui manquent, écrit le `.gitignore` avant le premier commit (jamais de `node_modules` ni de `vendor` dans Git) et nomme la branche `main`.
