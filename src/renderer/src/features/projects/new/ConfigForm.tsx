@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ArrowLeft, Folder } from 'lucide-react'
-import type { Framework, PackageManager, ProjectCreationOptions, AppSettings } from '@shared/types'
+import type { Framework, PackageManager, ProjectCreationOptions, AppSettings, UserTemplate } from '@shared/types'
 import { PROJECT_TEMPLATES } from '@shared/data/projectTemplates'
 import { folderName, projectFolders } from '@shared/lib/projectFolders'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -12,6 +12,7 @@ import FrameworkIcon from '@renderer/components/ui/FrameworkIcon'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Field, Input } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
+import ProjectIcon from '../components/ProjectIcon'
 
 interface FormState {
   name:           string
@@ -31,20 +32,24 @@ const PM_FRAMEWORKS: Framework[] = ['react', 'nextjs', 'vue', 'nodejs']
 interface Props {
   framework: Framework
   settings:  AppSettings | null
+  /** v3.8: one of the user's templates, in place of the framework's starter */
+  userTemplate?: UserTemplate | null
   onBack:    () => void
   onSubmit:  (opts: ProjectCreationOptions) => void
 }
 
 /** Step 2: name, destination and options. */
-export default function ConfigForm({ framework, settings, onBack, onSubmit }: Props) {
+export default function ConfigForm({ framework, settings, userTemplate, onBack, onSubmit }: Props) {
   const { t } = useI18n()
-  const template = PROJECT_TEMPLATES.find(tpl => tpl.id === framework)!
-  const defaults = Object.fromEntries(template.options.map(o => [o.id, o.default])) as Partial<FormState>
+  const template = PROJECT_TEMPLATES.find(tpl => tpl.id === framework)
+  // A user's template: only whether to install its dependencies
+  const templateOptions = userTemplate ? [{ id: 'installDeps', default: true }] : template?.options ?? []
+  const defaults = Object.fromEntries(templateOptions.map(o => [o.id, o.default])) as Partial<FormState>
 
   const [form, setForm] = useState<FormState>({
     name:           '',
     destination:    settings?.defaultProjectsDir ?? '',
-    packageManager: settings?.defaultPackageManager ?? 'npm',
+    packageManager: userTemplate?.packageManager ?? settings?.defaultPackageManager ?? 'npm',
     typescript:     defaults.typescript  ?? false,
     eslint:         defaults.eslint      ?? false,
     initGit:        defaults.initGit     ?? false,
@@ -74,7 +79,7 @@ export default function ConfigForm({ framework, settings, onBack, onSubmit }: Pr
 
   function submit() {
     if (!validate()) return
-    onSubmit({ ...form, name: form.name.trim(), destination: form.destination.trim(), framework })
+    onSubmit({ ...form, name: form.name.trim(), destination: form.destination.trim(), framework, ...(userTemplate ? { template: userTemplate.id } : {}) })
   }
 
   // Git and VS Code are chosen on the last step
@@ -82,7 +87,7 @@ export default function ConfigForm({ framework, settings, onBack, onSubmit }: Pr
     { id: 'typescript',  label: t.newProject.optTypescript },
     { id: 'eslint',      label: t.newProject.optEslint },
     { id: 'installDeps', label: t.newProject.optInstall }
-  ].filter(o => template.options.some(opt => opt.id === o.id)) as { id: BoolOption; label: string }[]
+  ].filter(o => templateOptions.some(opt => opt.id === o.id)) as { id: BoolOption; label: string }[]
 
   // v3.5: the projects folders, one click each
   const folders = settings ? projectFolders(settings) : []
@@ -97,8 +102,8 @@ export default function ConfigForm({ framework, settings, onBack, onSubmit }: Pr
         <Button variant="ghost" size="sm" onClick={onBack} className="mt-1"><ArrowLeft size={14} /> {t.newProject.back}</Button>
       </div>
       <PageHeader
-        icon={<FrameworkIcon name={template.iconName} size={20} style={{ color: template.color }} />}
-        title={t.newProject.configTitle.replace('{name}', template.name)}
+        icon={userTemplate || !template ? <ProjectIcon framework={framework} /> : <FrameworkIcon name={template.iconName} size={20} style={{ color: template.color }} />}
+        title={userTemplate ? t.templates.fromTemplate.replace('{name}', userTemplate.name) : t.newProject.configTitle.replace('{name}', template?.name ?? framework)}
         subtitle={t.newProject.configSubtitle}
       />
 

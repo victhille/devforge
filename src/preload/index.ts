@@ -420,6 +420,14 @@ const api: DevForgeAPI = {
   activity: {
     get: invoke('activity:get')
   },
+  templates: {
+    list:    invoke('templates:list'),
+    preview: invoke('templates:preview'),
+    save:    invoke('templates:save'),
+    refresh: invoke('templates:refresh'),
+    rename:  invoke('templates:rename'),
+    remove:  invoke('templates:remove')
+  },
   notes: {
     get:    invoke('notes:get'),
     save:   invoke('notes:save'),

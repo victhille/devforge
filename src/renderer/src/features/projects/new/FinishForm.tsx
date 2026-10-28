@@ -17,12 +17,14 @@ interface Props {
   options: ProjectCreationOptions
   stack: Pick<ProjectSetup, 'database' | 'dbName' | 'dbPort' | 'appPort' | 'features'> | null
   libraries: number
+  /** v3.8: created from this template of the user */
+  templateName?: string
   onBack: () => void
   onSubmit: (setup: ProjectSetup) => void
 }
 
 /** Last step: Git, GitHub, VS Code, then the summary of every command */
-export default function FinishForm({ options, stack, libraries, onBack, onSubmit }: Props) {
+export default function FinishForm({ options, stack, libraries, templateName, onBack, onSubmit }: Props) {
   const { t, lang } = useI18n()
   const s = t.newProject.setup
   const [git, setGit] = useState(true)
@@ -32,7 +34,7 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
   const [openVSCode, setOpenVSCode] = useState(true)
   const [welcome, setWelcome] = useState(true)
   // v3.4: a React or Vue front (TypeScript) can be the contract's client
-  const spa = (options.framework === 'react' || options.framework === 'vue') && options.typescript
+  const spa = !options.template && (options.framework === 'react' || options.framework === 'vue') && options.typescript
   const [spaAuth, setSpaAuth] = useState(false)
   const [apiUrl, setApiUrl] = useState(DEFAULT_API_URL)
   const apiOk = !spaAuth || API_URL_RE.test(apiUrl)
@@ -59,7 +61,7 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
   const setup: ProjectSetup = {
     database: stack?.database ?? 'none', dbName: stack?.dbName ?? '', dbPort: stack?.dbPort ?? 0, appPort: stack?.appPort, features: stack?.features ?? [],
     git: git || github, github: github ? { repo, private: isPrivate } : null, openVSCode,
-    welcome: WELCOME_FRAMEWORKS.includes(options.framework) && welcome,
+    welcome: !options.template && WELCOME_FRAMEWORKS.includes(options.framework) && welcome,
     ...(spa && spaAuth ? { features: ['auth'], apiUrl } : {})
   }
   const steps = planSetup({ ...options, setup }, { password: '••••', secret: '••••', composeName: '', lang: lang === 'en' ? 'en' : 'fr' })
@@ -91,7 +93,7 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
               </Field>
             </div>
           )}
-          {WELCOME_FRAMEWORKS.includes(options.framework) && (
+          {!options.template && WELCOME_FRAMEWORKS.includes(options.framework) && (
             <Checkbox checked={welcome} onChange={setWelcome} className="items-start">
               <span className="flex flex-col">
                 <span>{s.welcome}</span>
@@ -121,7 +123,7 @@ export default function FinishForm({ options, stack, libraries, onBack, onSubmit
           <CardTitle>{s.recapTitle}</CardTitle>
           <ol aria-label={s.recapTitle} tabIndex={0} className="flex max-h-[420px] flex-col gap-2 overflow-y-auto rounded-xl bg-canvas p-3 text-sm">
             <li className="flex flex-col">
-              <span className="text-fg">{s.recapBase.replace('{name}', template?.name ?? options.framework)}</span>
+              <span className="text-fg">{templateName ? t.templates.recapCopy.replace('{name}', templateName) : s.recapBase.replace('{name}', template?.name ?? options.framework)}</span>
               {libraries > 0 && <span className="text-fg-muted">{s.recapLibs.replace('{n}', String(libraries))}</span>}
             </li>
             {steps.map((step, i) => (

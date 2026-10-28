@@ -63,3 +63,22 @@ If PHP lacks the needed extensions, DevForge lists them and offers **Enable in p
 The **summary** lists exactly what will run. **Create Project** starts; the console shows each command, with **Cancel**. The console resizes (drag its top edge, double-click for full screen), shows the current step and groups repeated warnings. At the end, the project's page opens; **Open Folder** and **Open in VS Code** stay in the console.
 
 On every creation, DevForge installs missing dependencies, writes `.gitignore` before the first commit (never `node_modules` or `vendor` in Git) and names the branch `main`.
+
+## My templates
+
+A project you often start from (your usual Node API, your Symfony with its bundles) can become a **template**.
+
+**Save**: on the [project's page](/devforge/en/dev/projects/), the **Save as template** button (top right). Give it a name and a description, then check what is **left out**: one folder or file name per line, `*` allowed (`*.log`), or a path (`var/cache`). Proposed: `node_modules`, `vendor`, `.git`, `dist`, `build`, caches and virtual environments. DevForge shows what will be copied (number of files, size) before saving.
+
+Never secrets: a `.env` or `.env.*` file is never copied, even if it is not in the list; `.env.example` is.
+
+**Create from a template**: in **New Project**, the **My templates** category comes first. Pick a template, name the project, then the **Git, GitHub and summary** step. On creation:
+
+- the template is copied as it is;
+- the **project's name is replaced** where it named the old one: `package.json` (and `package-lock.json`), `composer.json`, `pyproject.toml`, `Cargo.toml` and the `README`'s title;
+- dependencies are installed (`npm install` or your manager's, `composer install`), unless you unchecked **Install dependencies**;
+- a **new Git history** starts (the template does not carry the original `.git`), then GitHub and the editor if you checked them.
+
+**Settings › Templates** lists your templates: **Update** copies the original project again (with the same list of what is left out), the pencil renames, the bin deletes. Projects already created do not change.
+
+Templates are kept in DevForge's data (one archive per template, in the `templates` folder), backed up with it before a migration. They are not part of the profile export.

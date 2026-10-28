@@ -5,6 +5,7 @@ import { commandRunner } from '../system/commandRunner'
 import { detectTool } from '../system/environmentDetector'
 import { runSetup } from './projectSetup'
 import { packageName } from '@shared/data/projectLibraries'
+import { extractTemplate } from './userTemplates'
 
 type LogCb = (log: LogLine) => void
 type ResultCb = (result: CommandResult) => void
@@ -241,6 +242,25 @@ function createEmptyProject(
   return 'init'
 }
 
+// ─── One of the user's templates (v3.8) ───────────────────────────────────────
+
+function createFromTemplate(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
+  const projectPath = join(options.destination, options.name)
+  const fr = (options.lang ?? 'fr') === 'fr'
+  mkdirSync(projectPath, { recursive: true })
+  info(onLog, 'init', text(options).made(projectPath))
+  extractTemplate(options.template!, projectPath, options.name)
+    .then(n => {
+      info(onLog, 'init', fr ? `Modèle copié : ${n} fichier(s), le nom du projet remplacé` : `Template copied: ${n} file(s), the project's name replaced`)
+      onResult({ taskId: 'init', exitCode: 0, status: 'success' })
+    })
+    .catch(err => {
+      onLog({ taskId: 'init', type: 'error', text: String(err instanceof Error ? err.message : err), timestamp: new Date().toISOString() })
+      onResult({ taskId: 'init', exitCode: 1, status: 'failed' })
+    })
+  return 'init'
+}
+
 // ─── Git init ─────────────────────────────────────────────────────────────────
 
 export function initGit(projectPath: string, onLog: LogCb, onResult: ResultCb): string {
@@ -325,6 +345,7 @@ export function createProject(
     else onResult(result)
   }
   const wrappedResult = withLibraryInstall(options, taskId, onLog, onResult, afterLibs)
+  if (options.template) return createFromTemplate(options, onLog, wrappedResult)
 
   switch (options.framework) {
     case 'react':

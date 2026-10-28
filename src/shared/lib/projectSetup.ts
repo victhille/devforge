@@ -31,7 +31,7 @@ export interface PlanContext {
   lang: 'fr' | 'en'
 }
 
-type Opts = Pick<ProjectCreationOptions, 'name' | 'framework' | 'packageManager' | 'typescript' | 'eslint' | 'libraries' | 'devLibraries'> & { setup: ProjectSetup }
+type Opts = Pick<ProjectCreationOptions, 'name' | 'framework' | 'packageManager' | 'typescript' | 'eslint' | 'libraries' | 'devLibraries'> & { setup: ProjectSetup; template?: string; installDeps?: boolean }
 
 const LABELS = {
   fr: {
@@ -42,7 +42,7 @@ const LABELS = {
     sanctum: 'API (Sanctum)', fortify: 'Laravel Fortify', fortifyInstall: 'Connexion et inscription',
     sail: 'Laravel Sail', sailInstall: 'Conteneurs Sail', sailInitScript: 'Base « testing » de Sail retirée (illisible hors WSL)', sailStart: 'Démarrage de Sail (construction de l\'image)',
     gitInit: 'Dépôt Git', gitAdd: 'Fichiers suivis', gitCommit: 'Premier commit', github: 'Dépôt GitHub', vscode: 'Ouverture dans VS Code',
-    install: 'Installation des dépendances', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Configuration de Tailwind CSS',
+    install: 'Installation des dépendances', composerInstall: 'Dépendances PHP (Composer)', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Configuration de Tailwind CSS',
     spaAuth: 'Connexion, inscription et client de l\'API', spaMain: 'Pages d\'authentification montées', spaProxy: 'Proxy /api vers le serveur',
     sfAuthDeps: 'Twig et CSRF', sfAuthFiles: 'Entité User, sécurité, pages et API du contrat', sfMigration: 'Migration de la table user',
     authViews: 'Pages de connexion (Blade)', fortifyViews: 'Vues de Fortify', fortifyHome: 'Après connexion : /dashboard', authRoutes: 'Routes du tableau de bord et de l\'API',
@@ -58,7 +58,7 @@ const LABELS = {
     sanctum: 'API (Sanctum)', fortify: 'Laravel Fortify', fortifyInstall: 'Login and registration',
     sail: 'Laravel Sail', sailInstall: 'Sail containers', sailInitScript: 'Sail\'s "testing" database removed (unreadable outside WSL)', sailStart: 'Starting Sail (building the image)',
     gitInit: 'Git repository', gitAdd: 'Tracked files', gitCommit: 'First commit', github: 'GitHub repository', vscode: 'Opening in VS Code',
-    install: 'Installing dependencies', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Tailwind CSS setup',
+    install: 'Installing dependencies', composerInstall: 'PHP dependencies (Composer)', tailwindDeps: 'Tailwind CSS (plugin)', tailwind: 'Tailwind CSS setup',
     spaAuth: 'Sign-in, sign-up and the API client', spaMain: 'Authentication pages mounted', spaProxy: '/api proxied to the server',
     sfAuthDeps: 'Twig and CSRF', sfAuthFiles: 'User entity, security, pages and the contract\'s API', sfMigration: 'Migration of the user table',
     authViews: 'Sign-in pages (Blade)', fortifyViews: 'Fortify\'s views', fortifyHome: 'After sign-in: /dashboard', authRoutes: 'Dashboard and API routes',
@@ -471,7 +471,35 @@ export function withAuthDatabase(s: ProjectSetup, fw: Framework): ProjectSetup {
 }
 
 /** Every step after the framework's creation, in order */
+/** v3.8: a project from one of the user's templates: its dependencies, then Git, GitHub and the IDE */
+function templateSteps(o: Opts, ctx: PlanContext): SetupStep[] {
+  const l = LABELS[ctx.lang], steps: SetupStep[] = []
+  if (o.installDeps !== false) {
+    steps.push({ kind: 'run', label: l.install, exe: o.packageManager, args: ['install'], skipIf: 'node_modules', onlyIf: 'package.json' })
+    steps.push({ kind: 'run', label: l.composerInstall, exe: 'composer', args: ['install'], skipIf: 'vendor', onlyIf: 'composer.json', optional: true })
+  }
+  return [...steps, ...lastSteps(o, ctx)]
+}
+
+/** Git, GitHub and the IDE: every plan ends with them */
+function lastSteps(o: Opts, ctx: PlanContext): SetupStep[] {
+  const s = o.setup, l = LABELS[ctx.lang], steps: SetupStep[] = []
+  if (s.git || s.github) {
+    const lines = ignoreLines(o.framework)
+    if (lines.length) steps.push({ kind: 'ignore', label: l.ignore, lines })
+    steps.push({ kind: 'run', label: l.gitInit, exe: 'git', args: ['init', '-b', 'main'], skipIf: '.git' })
+    steps.push({ kind: 'run', label: l.gitAdd, exe: 'git', args: ['add', '-A'] })
+    steps.push({ kind: 'run', label: l.gitCommit, exe: 'git', args: ['commit', '-m', '"chore: initial commit (DevForge)"'], optional: true })
+  }
+  if (s.github) {
+    steps.push({ kind: 'run', label: l.github, exe: 'gh', args: ['repo', 'create', s.github.repo, s.github.private ? '--private' : '--public', '--source', '.', '--push'], optional: true })
+  }
+  if (s.openVSCode) steps.push({ kind: 'run', label: l.vscode, exe: 'code', args: ['.'], optional: true })
+  return steps
+}
+
 export function planSetup(input: Opts, ctx: PlanContext): SetupStep[] {
+  if (input.template) return templateSteps(input, ctx)
   const o = { ...input, setup: withAuthDatabase(input.setup, input.framework) }
   const s = o.setup, l = LABELS[ctx.lang], steps: SetupStep[] = commonSteps(o, ctx)
   if (SETUP_FRAMEWORKS.includes(o.framework)) {
@@ -519,18 +547,7 @@ export function planSetup(input: Opts, ctx: PlanContext): SetupStep[] {
     const tailwind = o.framework === 'nextjs' || !!o.devLibraries?.some(p => packageName(p) === 'tailwindcss')
     steps.push({ kind: 'write', label: l.welcome, files: welcomeFiles({ name: o.name, framework: o.framework, setup: s, tailwind, lang: ctx.lang }, o.typescript) })
   }
-  if (s.git || s.github) {
-    const lines = ignoreLines(o.framework)
-    if (lines.length) steps.push({ kind: 'ignore', label: l.ignore, lines })
-    steps.push({ kind: 'run', label: l.gitInit, exe: 'git', args: ['init', '-b', 'main'], skipIf: '.git' })
-    steps.push({ kind: 'run', label: l.gitAdd, exe: 'git', args: ['add', '-A'] })
-    steps.push({ kind: 'run', label: l.gitCommit, exe: 'git', args: ['commit', '-m', '"chore: initial commit (DevForge)"'], optional: true })
-  }
-  if (s.github) {
-    steps.push({ kind: 'run', label: l.github, exe: 'gh', args: ['repo', 'create', s.github.repo, s.github.private ? '--private' : '--public', '--source', '.', '--push'], optional: true })
-  }
-  if (s.openVSCode) steps.push({ kind: 'run', label: l.vscode, exe: 'code', args: ['.'], optional: true })
-  return steps
+  return [...steps, ...lastSteps(o, ctx)]
 }
 
 /** One line per step for the summary: the command, or what is written */

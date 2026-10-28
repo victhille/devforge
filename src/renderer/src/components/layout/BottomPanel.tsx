@@ -213,7 +213,7 @@ export default function BottomPanel() {
       </div>
 
       {/* Log output */}
-      <div className="flex-1 overflow-y-auto px-4 py-2.5 font-mono text-[11.5px] leading-[1.7]">
+      <div role="log" tabIndex={0} aria-label={t.console.output} className="flex-1 overflow-y-auto px-4 py-2.5 font-mono text-[11.5px] leading-[1.7]">
         {logs.map((log, i) => <Line key={i} log={log} />)}
         <div ref={logEndRef} />
       </div>

@@ -2,8 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties, type Rea
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft, Bot, Code2, Container, Database, ExternalLink, FileKey2, FolderOpen, GitBranch, Globe, Play, Rocket, ScrollText,
-  Star, Terminal, Trash2, Wifi, X, XCircle, Maximize2
-} from 'lucide-react'
+  Star, Terminal, Trash2, Wifi, X, XCircle, Maximize2, LayoutTemplate } from 'lucide-react'
 import type { DbConnection, DefaultIDE, DockerOverview, GitRepoDetails, LinkKind, ListeningPort, LocalDomain, ProjectHub, TestRunnerInfo } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -21,6 +20,7 @@ import CommitModal from '@renderer/features/git/CommitModal'
 import { ComposeDetail } from '@renderer/features/docker/ComposeDetail'
 import ProjectEnvEditor from '@renderer/features/envfiles/ProjectEnvEditor'
 import ProjectIcon from './components/ProjectIcon'
+import SaveTemplateDialog from './SaveTemplateDialog'
 import FileTree from './components/FileTree'
 import VercelPanel from './VercelPanel'
 import EnvSyncPanel from './EnvSyncPanel'
@@ -107,6 +107,7 @@ export default function ProjectDetailPage() {
   const toast = useToast()
   const { runScript } = useConsole()
   const { setOpen: openForgy } = useAssistant()
+  const [savingTemplate, setSavingTemplate] = useState(false)
 
   const tab: Tab = TABS.includes(params.get('tab') as Tab) ? params.get('tab') as Tab : 'overview'
   const setTab = (next: Tab) => setParams(next === 'overview' ? {} : { tab: next }, { replace: true })
@@ -519,10 +520,13 @@ export default function ProjectDetailPage() {
           <IconButton title={h.favorite} onClick={toggleFavorite} className={cn(p.favorite && 'text-warning hover:text-warning')}><Star size={15} fill={p.favorite ? 'currentColor' : 'none'} /></IconButton>
           {ide.labelFor(p.ide) && <IconButton title={`${h.openIde} · ${ide.labelFor(p.ide)}`} onClick={() => ide.open(p.path, p.ide)}><Code2 size={15} /></IconButton>}
           <IconButton title={h.openTerminal} onClick={() => window.devforge.openTerminal(p.path)}><Terminal size={15} /></IconButton>
+          <IconButton title={t.templates.save} onClick={() => setSavingTemplate(true)}><LayoutTemplate size={15} /></IconButton>
           <IconButton title={h.remove} tone="danger" onClick={remove}><Trash2 size={15} /></IconButton>
         </div>
         <Button variant="secondary" onClick={() => openForgy(true)} className="border-forgy/30 text-forgy"><Bot size={15} /> {h.askForgy}</Button>
       </header>
+
+      {savingTemplate && <SaveTemplateDialog project={p} onClose={() => setSavingTemplate(false)} />}
 
       {/* Tabs, underlined */}
       <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-line">

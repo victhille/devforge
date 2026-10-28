@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { Framework, ProjectCreationOptions, AppSettings, ProjectSetup } from '@shared/types'
+import type { Framework, ProjectCreationOptions, AppSettings, ProjectSetup, UserTemplate } from '@shared/types'
 import { JS_FRAMEWORKS } from '@shared/data/projectLibraries'
 import { SETUP_FRAMEWORKS } from '@shared/lib/projectSetup'
 import { useConsole } from '@renderer/app/ConsoleContext'
@@ -24,9 +24,12 @@ export default function NewProjectPage() {
   const [pending,   setPending]   = useState<ProjectCreationOptions | null>(null)
   const [stack,     setStack]     = useState<Stack | null>(null)
   const [settings,  setSettings]  = useState<AppSettings | null>(null)
+  const [templates, setTemplates] = useState<UserTemplate[]>([])
+  const [userTemplate, setUserTemplate] = useState<UserTemplate | null>(null)
 
   useEffect(() => {
     window.devforge.getSettings().then(setSettings)
+    window.devforge.templates.list().then(setTemplates).catch(() => {})
   }, [])
 
   const hasStack = (fw: Framework) => SETUP_FRAMEWORKS.includes(fw)
@@ -40,11 +43,13 @@ export default function NewProjectPage() {
 
   function handleConfig(options: ProjectCreationOptions) {
     setPending({ ...options, libraries: [], devLibraries: [] })
+    // A template of the user: copied as it is, straight to Git and GitHub
+    if (options.template) { setStep('finish'); return }
     setStep(hasStack(options.framework) ? 'stack' : hasLibs(options.framework) ? 'libraries' : 'finish')
   }
 
   if (step === 'configure' && framework) {
-    return <ConfigForm framework={framework} settings={settings} onBack={() => setStep('select')} onSubmit={handleConfig} />
+    return <ConfigForm framework={framework} settings={settings} userTemplate={userTemplate} onBack={() => setStep('select')} onSubmit={handleConfig} />
   }
 
   if (step === 'stack' && framework && pending) {
@@ -70,11 +75,12 @@ export default function NewProjectPage() {
   }
 
   if (step === 'finish' && framework && pending) {
-    const back: Step = hasLibs(framework) ? 'libraries' : hasStack(framework) ? 'stack' : 'configure'
+    const back: Step = userTemplate ? 'configure' : hasLibs(framework) ? 'libraries' : hasStack(framework) ? 'stack' : 'configure'
     return (
       <FinishForm
         options={pending}
-        stack={hasStack(framework) ? stack : null}
+        stack={!userTemplate && hasStack(framework) ? stack : null}
+        templateName={userTemplate?.name}
         libraries={(pending.libraries?.length ?? 0) + (pending.devLibraries?.length ?? 0)}
         onBack={() => setStep(back)}
         onSubmit={launch}
@@ -82,5 +88,8 @@ export default function NewProjectPage() {
     )
   }
 
-  return <TechSelector onSelect={fw => { setFramework(fw); setStack(null); setStep('configure') }} />
+  return (
+    <TechSelector templates={templates} onSelect={fw => { setFramework(fw); setUserTemplate(null); setStack(null); setStep('configure') }}
+      onTemplate={tpl => { setFramework(tpl.framework); setUserTemplate(tpl); setStack(null); setStep('configure') }} />
+  )
 }

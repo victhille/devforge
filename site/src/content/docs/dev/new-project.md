@@ -63,3 +63,22 @@ Si PHP n'a pas les extensions nécessaires, DevForge les liste et propose **Acti
 Le **récapitulatif** liste exactement ce qui va être lancé. **Créer le projet** démarre ; la console montre chaque commande, avec **Annuler**. La console se règle en hauteur (tire son bord supérieur, double-clic pour le plein écran), montre l'étape en cours et regroupe les avertissements répétés. À la fin, la fiche du projet s'ouvre ; **Ouvrir le dossier** et **Ouvrir dans VS Code** restent dans la console.
 
 À chaque création, DevForge installe les dépendances qui manquent, écrit le `.gitignore` avant le premier commit (jamais de `node_modules` ni de `vendor` dans Git) et nomme la branche `main`.
+
+## Mes modèles
+
+Un projet que tu reprends souvent (ton API Node habituelle, ton Symfony avec ses bundles) peut devenir un **modèle**.
+
+**Enregistrer** : sur la [fiche du projet](/devforge/dev/projects/), le bouton **Enregistrer comme modèle** (en haut à droite). Donne-lui un nom et une description, puis vérifie ce qui est **laissé de côté** : un nom de dossier ou de fichier par ligne, `*` accepté (`*.log`), ou un chemin (`var/cache`). Sont proposés : `node_modules`, `vendor`, `.git`, `dist`, `build`, les caches et les environnements virtuels. DevForge montre ce qui sera copié (nombre de fichiers, taille) avant d'enregistrer.
+
+Jamais de secrets : un fichier `.env` ou `.env.*` n'est jamais copié, même s'il n'est pas dans la liste ; `.env.example` l'est.
+
+**Créer depuis un modèle** : dans **Nouveau projet**, la catégorie **Mes modèles** vient en premier. Choisis un modèle, donne un nom au projet, puis l'étape **Git, GitHub et récapitulatif**. À la création :
+
+- le modèle est copié tel quel ;
+- le **nom du projet est remplacé** là où il nommait l'ancien : `package.json` (et `package-lock.json`), `composer.json`, `pyproject.toml`, `Cargo.toml` et le titre du `README` ;
+- les dépendances s'installent (`npm install` ou celui de ton gestionnaire, `composer install`), sauf si tu as décoché **Installer les dépendances** ;
+- un **nouvel historique Git** commence (le modèle n'emporte pas le `.git` d'origine), puis GitHub et l'éditeur si tu les as cochés.
+
+**Paramètres › Modèles** liste tes modèles : **Mettre à jour** copie de nouveau le projet d'origine (avec la même liste de ce qui est laissé de côté), le crayon renomme, la corbeille supprime. Les projets déjà créés ne changent pas.
+
+Les modèles sont rangés dans les données de DevForge (une archive par modèle, dans le dossier `templates`), sauvegardés avec elles avant une migration. Ils ne font pas partie de l'export du profil.

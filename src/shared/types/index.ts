@@ -84,6 +84,8 @@ export interface ProjectCreationOptions {
   setup?: ProjectSetup
   /** v3.3.1: the interface's language, for the creation's messages (French when absent) */
   lang?: 'fr' | 'en'
+  /** v3.8: one of the user's templates (its id), copied in place of the framework's starter */
+  template?: string
 }
 
 // ─── Environment ─────────────────────────────────────────────────────────────
@@ -322,6 +324,7 @@ export * from './database'
 export * from './tests'
 export * from './notes'
 export * from './activity'
+export * from './templates'
 export * from './logs'
 export * from './webhooks'
 export * from './suggest'
@@ -370,6 +373,7 @@ import type { PackagesAPI } from './packages'
 import type { TestsAPI } from './tests'
 import type { NotesAPI } from './notes'
 import type { ActivityAPI } from './activity'
+import type { TemplatesAPI } from './templates'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -526,6 +530,8 @@ export interface DevForgeAPI {
   notes: NotesAPI
   /** v3.8: commits across projects */
   activity: ActivityAPI
+  /** v3.8: the user's project templates */
+  templates: TemplatesAPI
   dictation: DictationAPI
 
   // Git

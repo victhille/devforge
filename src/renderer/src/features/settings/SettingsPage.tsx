@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Check, Database, Info, Palette, Plug, RefreshCw, Search, Server, SlidersHorizontal, Bot, type LucideIcon } from 'lucide-react'
+import { Check, Database, Info, Palette, Plug, RefreshCw, Search, Server, SlidersHorizontal, Bot, type LucideIcon, LayoutTemplate } from 'lucide-react'
 import type { AppSettings, PackageManager, Theme, AppLanguage, MotionSetting, Density } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -18,12 +18,14 @@ import ReleaseNotes from './ReleaseNotes'
 import LauncherSettings from './LauncherSettings'
 import ProjectFolders from './ProjectFolders'
 import IdeSettings from './IdeSettings'
+import TemplatesSettings from './TemplatesSettings'
 import { projectFolders } from '@shared/lib/projectFolders'
 import { Segmented, SettingRow, SettingsCard } from './parts'
 
-type Section = 'general' | 'connections' | 'appearance' | 'forgy' | 'servers' | 'data' | 'updates' | 'about'
+type Section = 'general' | 'templates' | 'connections' | 'appearance' | 'forgy' | 'servers' | 'data' | 'updates' | 'about'
 const SECTIONS: { id: Section; icon: LucideIcon; words: string }[] = [
   { id: 'general', icon: SlidersHorizontal, words: 'dossier folder projets projects paquets package npm pnpm yarn éditeur editor ide vs code windows démarrer start barre tray lanceur launcher raccourci shortcut raycast' },
+  { id: 'templates', icon: LayoutTemplate, words: 'modèles templates projet project copier copy nouveau new' },
   { id: 'connections', icon: Plug, words: 'connexions connections comptes accounts github gh jeton token git identité identity nom e-mail clé key anthropic vercel docker serveur server vps ssh base database' },
   { id: 'appearance', icon: Palette, words: 'thème theme sombre dark clair light langue language anglais english français animations motion densité density compact compacte' },
   { id: 'forgy', icon: Bot, words: 'assistant clé key api modèle model effort budget actions widget raccourci shortcut promène walk boulon' },
@@ -157,6 +159,7 @@ export default function SettingsPage() {
             </SettingsCard>
           )}
           {section === 'general' && <LauncherSettings settings={settings} update={update} />}
+          {section === 'templates' && <TemplatesSettings />}
 
           {section === 'appearance' && (
             <SettingsCard title={s.nav.appearance} hint={s.appearanceHint}>
