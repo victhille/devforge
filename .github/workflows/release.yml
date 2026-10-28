@@ -36,8 +36,14 @@ jobs:
           v=$(node -p "require('./package.json').version")
           [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME but package.json says $v"; exit 1; }
 
-      # No `npm run check` here: `npm run release` ran it on this very commit before
-      # tagging, and the CI checks it too (with the e2e). The installer is built below.
+      # Personal words: the CI skips the release commit, whose changelogs hold new
+      # text (the summaries shown in the app and on the site). Nothing is built if one is found.
+      - run: node scripts/check-personal.mjs
+        env:
+          PERSONAL_PATTERNS: ${{ secrets.PERSONAL_PATTERNS }}
+
+      # No `npm run check` here: `npm run release` ran it before tagging, and the CI
+      # ran it with the e2e on the commit before (the same code). The installer is built below.
       - run: npm run build
 
       - name: Build installer
