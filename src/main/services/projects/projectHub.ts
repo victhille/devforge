@@ -5,6 +5,7 @@ import type { LinkKind, Project, ProjectHub } from '@shared/types'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { loadProjects } from './projectStorage'
 import { findManifestDirs } from '../packages/npmPackages'
+import { listOtherManifests } from '../packages/otherPackages'
 import { composeConfig, composeDirFor, composeName } from '../docker/composeProjects'
 import { readEnvProject } from '../envfiles/envFiles'
 import { listDbConnections } from '../database/dbStorage'
@@ -116,7 +117,11 @@ export async function getProjectHub(projectId: string): Promise<ProjectHub> {
     vercel: readLink(p.path),
     github: await repoOf(p.path).catch(() => null),
     deployTargets: listTargets().filter(t => t.projectPath && resolve(t.projectPath).toLowerCase() === resolve(p.path).toLowerCase()).map(t => ({ id: t.id, name: t.name })),
-    manifests: [...new Set([...findManifestDirs(p.path), ...findManifestDirs(p.path, 'composer.json')].map(d => relative(p.path, d).split(sep).join('/')))],
+    // v3.5.3: Python, Rust, Go… too, so the Packages tab shows for them
+    manifests: [...new Set([
+      ...[...findManifestDirs(p.path), ...findManifestDirs(p.path, 'composer.json')].map(d => relative(p.path, d).split(sep).join('/')),
+      ...listOtherManifests(p.path).map(m => m.dir)
+    ])],
     hidden: { databases: links.hide.databases, logs: links.hide.logs, domains: links.hide.domains }
   }
 }

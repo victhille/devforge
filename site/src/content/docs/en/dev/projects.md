@@ -58,7 +58,7 @@ Tabs only show when they make sense for the project:
 | Terminal | a built-in terminal opened in the project folder |
 | Docker | the Compose project of the folder (or its parent): services, state, start / stop |
 | Variables | the `.env` files and their keys, see [Env variables](/devforge/en/system/env-files/) |
-| Packages | when the project has a `package.json` or a `composer.json`: versions, vulnerabilities, updates; see [Packages](/devforge/en/dev/packages/) |
+| Packages | when the project has a `package.json`, a `composer.json` or another language's dependencies (Python, Rust, Go…): versions, vulnerabilities, updates; see [Packages](/devforge/en/dev/packages/) |
 | Database | the linked database, explored in place (see below); **Link a connection…** |
 | Logs | the log files found (`storage/logs`, `var/log`, `logs`…), followed live; you can add one by its path |
 | Ports & domains | the ports found in the config (`.env`, scripts, Compose), listening or free, **Free**; the linked local domains |
@@ -77,7 +77,9 @@ In the **Files** tab, clicking a file opens it next to the tree:
 | Markdown (`.md`) | formatted: headings, lists, tables, code; **Show source** shows the raw text |
 | Images (`.png`, `.jpg`, `.svg`, `.webp`…) | the image, on a checkerboard for transparency |
 | PDF | the pages drawn (the first 20, then **Show the next pages**) |
-| Text and code (`Dockerfile`, `.env`, `.ts`, `.yaml`…) | the text in a fixed font, with **Copy the content** |
+| Text and code (`Dockerfile`, `.env`, `.ts`, `.vue`, `.py`, `.yaml`…) | in colours as in an IDE (the language told by the extension), with **Copy the content** |
+
+**Open in** *your IDE* (next to **Copy**) opens the file in the project's [IDE](/devforge/en/dev/ide/).
 
 A binary file (archive, program, Office document) or one too big (over 1 MB of text, 10 MB of image, 30 MB of PDF) says so instead. Nothing runs: the file is only read.
 

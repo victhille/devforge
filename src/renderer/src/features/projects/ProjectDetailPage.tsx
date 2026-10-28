@@ -479,7 +479,7 @@ export default function ProjectDetailPage() {
     terminal: null,
 
     // The scripts are on the overview: here, the whole width for the tree and the preview
-    files: <Card className="h-[640px] overflow-hidden"><FileTree rootPath={p.path} /></Card>
+    files: <Card className="h-[640px] overflow-hidden"><FileTree rootPath={p.path} ide={p.ide} /></Card>
   }
 
   return (

@@ -13,7 +13,7 @@ import { runFile } from '../lib/exec'
 import type { CustomIde, FileEntry, FilePreview } from '@shared/types'
 import { PREVIEW_LIMIT, imageMime, looksBinary, previewKind } from '@shared/lib/filePreview'
 import { assertSafeDir, assertWebUrl, isInsideProject } from '../lib/safe'
-import { listIdes, openInIde, tryIde } from '../services/system/ides'
+import { listIdes, openFileInIde, openInIde, tryIde } from '../services/system/ides'
 
 export function registerSystemHandlers(mainWindow: BrowserWindow): void {
   // ─── Environment ─────────────────────────────────────────────────────────────
@@ -37,6 +37,7 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
 
   // v3.5: the catalog's IDEs and those added by hand
   ipcMain.handle('open-in-ide', async (_event, dirPath: string, ide: string) => openInIde(dirPath, String(ide ?? '')))
+  ipcMain.handle('open-file-in-ide', async (_event, filePath: string, ide: string) => openFileInIde(filePath, String(ide ?? '')))
   ipcMain.handle('ide:list', async (_event, fresh: boolean) => listIdes(fresh === true))
   ipcMain.handle('ide:try', async (_event, ide: CustomIde) => tryIde(ide, app.getPath('home')))
 

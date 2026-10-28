@@ -10,7 +10,8 @@ function rootOf(projectId: unknown): string {
   return p.path
 }
 
-const fileOf = (v: unknown): ManifestFile => v === 'composer.json' ? 'composer.json' : 'package.json'
+/** A manifest's file name (never a path): package.json unless another is named */
+const fileOf = (v: unknown): ManifestFile => typeof v === 'string' && /^[\w.-]+$/.test(v) && !v.startsWith('.') ? v : 'package.json'
 
 const updatesOf = (v: unknown): PackageUpdate[] => (Array.isArray(v) ? v : []).flatMap(u =>
   u && typeof u.name === 'string' && (u.target === 'compatible' || u.target === 'latest') ? [{ name: u.name, dev: !!u.dev, target: u.target }] : [])

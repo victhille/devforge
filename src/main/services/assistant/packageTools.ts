@@ -3,6 +3,7 @@ import { fitsRange, rangeFloor, updateLevel } from '@shared/lib/packages'
 import { auditFor, latestFor, projectManifests, updateFor } from '../packages/projectPackages'
 import type { PackagesBackup } from '../packages/npmPackages'
 import { ToolError } from './assistantTools'
+import { UPDATE_HINT } from '@shared/lib/manifests'
 
 /**
  * Forgy and a project's packages (v3.3 lot 4): `project_packages` tells what
@@ -28,7 +29,7 @@ export async function packagesReport(p: Project, withAudit: unknown): Promise<st
     }
     parts.push(`${label(m)} (${m.manager}${m.toolMissing ? ', Composer NOT installed on this PC' : ''}): ${m.packages.length} packages, ${lines.length} to look at`)
     parts.push(...lines.slice(0, 40), ...(lines.length > 40 ? [`… and ${lines.length - 40} more`] : []))
-    if (withAudit === true && !m.toolMissing) {
+    if (withAudit === true && !m.toolMissing && !m.readOnly) {
       const a = await auditFor(p.path, m.dir, m.file).catch(() => null)
       parts.push(!a ? 'Vulnerabilities: audit unavailable (no lockfile or not installed)'
         : a.total === 0 ? 'Vulnerabilities: none'
@@ -65,6 +66,7 @@ export async function updatePackagesPlan(p: Project, rawNames: unknown, to: unkn
   const target = to === 'latest' ? 'latest' : 'compatible'
   const m = pickManifest(await projectManifests(p.path), names, manifestRef)
   if (m.toolMissing) throw new ToolError('Composer is not installed on this PC: the update cannot run (getcomposer.org)')
+  if (m.readOnly) throw new ToolError(`DevForge does not update ${m.manager} packages (${label(m)}): suggest the user runs ${UPDATE_HINT[m.manager] ?? 'the update'} in the project's terminal`)
   const unknown = names.filter(n => !m.packages.some(x => x.name === n))
   if (unknown.length) throw new ToolError(`Not declared in ${label(m)}: ${unknown.join(', ')}`)
   const latest = await latestFor(p.path, m.dir, m.file, names)

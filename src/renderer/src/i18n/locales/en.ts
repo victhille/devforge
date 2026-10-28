@@ -1024,6 +1024,7 @@ const en = {
     formatted: "Show formatted",
     source: "Show source",
     copy: "Copy the content",
+    openInIde: "Open in {ide}",
     closePreview: "Close the preview",
     binary: "Binary file: no preview.",
     tooBig: "File too big to preview.",
@@ -1098,6 +1099,8 @@ const en = {
 
   // ── SSH ───────────────────────────────────────────────────────────────────
   packages: {
+    readOnlyHint: "Versions compared only: to update them, in the project's terminal:",
+    copyCommand: "Copy the command",
     filter: 'Package filter',
     filters: { outdated: 'Outdated', major: 'Major', all: 'All' } as Record<string, string>,
     none: 'No package.json nor composer.json in this project',

@@ -81,7 +81,7 @@ function SubPanel({ group, sub, scripts, ide, onIde }: { group: Project; sub: Su
             </div>)}
         {tab === 'workshop' && workshop?.(sub.path)}
         {tab === 'env' && <ProjectEnvEditor projectPath={sub.path} onEnvChange={() => {}} />}
-        {tab === 'files' && <div className="h-[480px] overflow-hidden rounded-[10px] border border-line"><FileTree rootPath={sub.path} /></div>}
+        {tab === 'files' && <div className="h-[480px] overflow-hidden rounded-[10px] border border-line"><FileTree rootPath={sub.path} ide={own} /></div>}
       </div>
     </Card>
   )

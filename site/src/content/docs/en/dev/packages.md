@@ -1,11 +1,11 @@
 ---
 title: Packages
-description: "The Packages tab of a project's page, for npm and Composer: outdated versions, vulnerabilities, chosen updates rolled back if they fail."
+description: "The Packages tab of a project's page: npm and Composer (outdated versions, vulnerabilities, updates rolled back if they fail), and the versions of Python, Rust, Go, Ruby, Dart, .NET and Java projects."
 ---
 
 The **Packages** tab of a [project's page](/devforge/en/dev/projects/) shows the project's dependencies, what is outdated or vulnerable, and updates them when you decide to. Nothing updates on its own.
 
-It shows when the project has a `package.json` (npm, pnpm, yarn) or a `composer.json` (Symfony, Laravel, PHP).
+It shows when the project has a `package.json` (npm, pnpm, yarn), a `composer.json` (Symfony, Laravel, PHP), or the dependency file of [another language](#other-languages).
 
 ## One card per manifest
 
@@ -55,6 +55,24 @@ A development dependency stays one.
 :::note[Automatic rollback]
 Before each update, the manifest and the lockfile are saved in DevForge's folder (`backups/packages/`). If a command fails, they are put back as they were. Run an install if `node_modules` or `vendor` changed in the meantime.
 :::
+
+## Other languages
+
+These languages' dependencies get a card too, with the same columns and filters:
+
+| Language | Files read | Installed version read from | Latest version |
+|---|---|---|---|
+| Python | `requirements*.txt`, `pyproject.toml` (PEP 621, Poetry), `Pipfile` | `poetry.lock`, `uv.lock`, `Pipfile.lock`, or the virtual environment (`.venv`, `venv`, `env`) | PyPI |
+| Rust | `Cargo.toml` | `Cargo.lock` | crates.io |
+| Go | `go.mod` (direct modules) | `go.mod` | proxy.golang.org |
+| Ruby | `Gemfile` | `Gemfile.lock` | RubyGems |
+| Dart, Flutter | `pubspec.yaml` | `pubspec.lock` | pub.dev |
+| .NET | `*.csproj`, `*.fsproj`, `*.vbproj` | the file itself | NuGet |
+| Java, Kotlin | `pom.xml`, `build.gradle(.kts)` | the file itself | Maven Central |
+
+These cards **only compare**: no audit nor update button. A line at the top of the card gives the command that updates them (`pip install -U -r requirements.txt`, `poetry update`, `cargo update`, `go get -u ./...`, `bundle update`, `dart pub upgrade`…), with **Copy the command**, to run in the project's terminal.
+
+A `requirements-dev.txt` (or `-test`, `-lint`) and a `pyproject.toml`'s optional groups count as *dev* dependencies. A `pyproject.toml` declaring no dependency (tool settings only) gets no card.
 
 ## Composer
 

@@ -58,7 +58,7 @@ Les onglets n'apparaissent que s'ils ont un sens pour ce projet :
 | Terminal | un terminal intégré ouvert dans le dossier du projet |
 | Docker | le projet Compose du dossier (ou du dossier parent) : services, état, démarrer / arrêter |
 | Variables | les fichiers `.env` et leurs clés, voir [Variables .env](/devforge/system/env-files/) |
-| Paquets | si le projet a un `package.json` ou un `composer.json` : versions, vulnérabilités, mises à jour ; voir [Paquets](/devforge/dev/packages/) |
+| Paquets | si le projet a un `package.json`, un `composer.json` ou les dépendances d'un autre langage (Python, Rust, Go…) : versions, vulnérabilités, mises à jour ; voir [Paquets](/devforge/dev/packages/) |
 | Base de données | la base liée, explorée sur place (voir plus bas) ; **Lier une connexion…** |
 | Logs | les fichiers de log trouvés (`storage/logs`, `var/log`, `logs`…), suivis en direct ; on peut en ajouter un par son chemin |
 | Ports & domaines | les ports trouvés dans la config (`.env`, scripts, Compose), en écoute ou libres, **Libérer** ; les domaines locaux liés |
@@ -77,7 +77,9 @@ Dans l'onglet **Fichiers**, un clic sur un fichier l'ouvre à côté de l'arbre 
 | Markdown (`.md`) | mis en forme : titres, listes, tableaux, code ; **Voir le source** montre le texte brut |
 | Images (`.png`, `.jpg`, `.svg`, `.webp`…) | l'image, sur un damier pour la transparence |
 | PDF | les pages dessinées (les 20 premières, puis **Afficher les pages suivantes**) |
-| Texte et code (`Dockerfile`, `.env`, `.ts`, `.yaml`…) | le texte en police fixe, avec **Copier le contenu** |
+| Texte et code (`Dockerfile`, `.env`, `.ts`, `.vue`, `.py`, `.yaml`…) | en couleurs comme dans un IDE (le langage reconnu à l'extension), avec **Copier le contenu** |
+
+**Ouvrir dans** *ton IDE* (à côté de **Copier**) ouvre le fichier dans l'[IDE](/devforge/dev/ide/) du projet.
 
 Un fichier binaire (archive, exécutable, document Office) ou trop gros (plus de 1 Mo de texte, 10 Mo d'image, 30 Mo de PDF) le dit au lieu de s'afficher. Rien n'est lancé : le fichier est seulement lu.
 

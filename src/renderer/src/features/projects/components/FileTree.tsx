@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ChevronDown, ChevronRight, File, Folder, FolderOpen, RefreshCw } from 'lucide-react'
-import type { FileEntry } from '@shared/types'
+import type { DefaultIDE, FileEntry } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { formatSize } from '@renderer/lib/format'
 import { cn } from '@renderer/lib/cn'
@@ -92,7 +92,7 @@ function TreeNode({ entry, depth, dirs, expanded, onToggle, selected, onSelect, 
 // ─── Tree ─────────────────────────────────────────────────────────────────────
 
 /** Lazy-loaded directory tree rooted at `rootPath`; a file opens beside it (v3.5.1). */
-export default function FileTree({ rootPath }: { rootPath: string }) {
+export default function FileTree({ rootPath, ide }: { rootPath: string; ide?: DefaultIDE }) {
   const { t } = useI18n()
   const f = t.files
   const [file,     setFile]     = useState<FileEntry | null>(null)
@@ -139,7 +139,7 @@ export default function FileTree({ rootPath }: { rootPath: string }) {
         </div>
         {!file && root.length > 0 && <p className="shrink-0 border-t border-line-subtle px-3 py-2 text-2xs text-fg-muted">{f.pickFile}</p>}
       </div>
-      {file && <FilePreview file={file} onClose={() => setFile(null)} />}
+      {file && <FilePreview file={file} ide={ide} onClose={() => setFile(null)} />}
     </div>
   )
 }

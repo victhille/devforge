@@ -5,6 +5,8 @@ import type { AuditSummary, PackageInfo, PackageManifest, PackageUpdate, UpdateL
 /** A card's key: a folder can hold both a package.json and a composer.json */
 const keyOf = (m: PackageManifest) => `${m.dir}|${m.file}`
 import { fitsRange, rangeFloor, updateLevel } from '@shared/lib/packages'
+import { REGISTRY_PAGE, UPDATE_HINT } from '@shared/lib/manifests'
+import CopyButton from '@renderer/components/ui/CopyButton'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
@@ -30,7 +32,8 @@ function planOf(p: PackageInfo, latest: string | null): { level: UpdateLevel; up
 
 /**
  * A project's packages (v3.3 lot 2): one card per package.json, what is
- * behind, what is vulnerable, and the update the user chooses.
+ * behind, what is vulnerable, and the update the user chooses. v3.5.3: the
+ * other languages' files too, compared only, with the command that updates them.
  */
 export default function PackagesPanel({ projectId }: { projectId: string }) {
   const { t } = useI18n()
@@ -116,15 +119,26 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
                 <div className="truncate font-mono text-sm text-fg">{label}</div>
                 <div className="text-xs text-fg-muted">{m.name ?? '—'} · {m.manager} · {k.count.replace('{n}', String(m.packages.length))}</div>
               </div>
-              {audit === 'busy' ? <Spinner />
+              {m.readOnly ? null
+                : audit === 'busy' ? <Spinner />
                 : audit === undefined ? <Button size="sm" variant="ghost" onClick={() => runAudit(m)}><ShieldAlert size={13} /> {k.audit}</Button>
                 : audit === null ? <span className="text-xs text-fg-muted">{k.auditUnavailable}</span>
                 : audit.total === 0 ? <Badge color="success"><ShieldCheck size={12} /> {k.auditClean}</Badge>
                 : <Badge color={audit.bySeverity.critical || audit.bySeverity.high ? 'danger' : 'warning'}><ShieldAlert size={12} /> {k.auditFound.replace('{n}', String(audit.total))}</Badge>}
               <Button size="sm" variant="ghost" onClick={() => loadLatest(m)} disabled={!!running}><RefreshCw size={13} /> {t.common.refresh}</Button>
-              <Button size="sm" variant="secondary" disabled={!compatible.length || !!running || m.toolMissing} loading={running === key}
-                onClick={() => apply(m, compatible)}><ArrowUpCircle size={13} /> {k.updateCompatible.replace('{n}', String(compatible.length))}</Button>
+              {!m.readOnly && (
+                <Button size="sm" variant="secondary" disabled={!compatible.length || !!running || m.toolMissing} loading={running === key}
+                  onClick={() => apply(m, compatible)}><ArrowUpCircle size={13} /> {k.updateCompatible.replace('{n}', String(compatible.length))}</Button>
+              )}
             </header>
+
+            {m.readOnly && UPDATE_HINT[m.manager] && (
+              <div className="flex flex-wrap items-center gap-2 border-b border-line-subtle bg-elevated px-[18px] py-2 text-xs text-fg-secondary">
+                {k.readOnlyHint}
+                <code className="rounded bg-canvas px-1.5 py-0.5 font-mono text-fg">{UPDATE_HINT[m.manager]}</code>
+                <CopyButton text={UPDATE_HINT[m.manager]!} title={k.copyCommand} />
+              </div>
+            )}
 
             {m.toolMissing && (
               <div role="status" className="flex flex-wrap items-center gap-2 border-b border-line-subtle bg-warning-soft px-[18px] py-2.5 text-sm text-warning">
@@ -154,13 +168,15 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
                     return (
                       <tr key={rowKey} className="border-b border-line-subtle last:border-0 hover:bg-elevated">
                         <td className="px-3 py-1.5">
-                          {r.update && <input type="checkbox" className="size-3.5 accent-accent" aria-label={k.selectOne.replace('{name}', r.p.name)} checked={selected.has(rowKey)}
+                          {r.update && !m.readOnly && <input type="checkbox" className="size-3.5 accent-accent" aria-label={k.selectOne.replace('{name}', r.p.name)} checked={selected.has(rowKey)}
                             onChange={e => setSelected(s => { const n = new Set(s); if (e.target.checked) n.add(rowKey); else n.delete(rowKey); return n })} />}
                         </td>
                         <td className="px-3 py-1.5">
-                          <button onClick={() => window.devforge.openExternal(m.file === 'composer.json' ? `https://packagist.org/packages/${r.p.name}` : `https://www.npmjs.com/package/${r.p.name}`)} className="inline-flex items-center gap-1 font-mono text-fg hover:text-accent">
-                            {r.p.name} <ExternalLink size={11} className="text-fg-muted" />
-                          </button>
+                          {REGISTRY_PAGE[m.manager] ? (
+                            <button onClick={() => window.devforge.openExternal(REGISTRY_PAGE[m.manager]!(r.p.name))} className="inline-flex items-center gap-1 font-mono text-fg hover:text-accent">
+                              {r.p.name} <ExternalLink size={11} className="text-fg-muted" />
+                            </button>
+                          ) : <span className="font-mono text-fg">{r.p.name}</span>}
                           {r.p.dev && <span className="ml-2 rounded bg-elevated px-1.5 font-mono text-[10.5px] text-fg-muted">dev</span>}
                         </td>
                         <td className="px-3 py-1.5 font-mono text-xs text-fg-secondary">{r.p.wanted}</td>
@@ -173,7 +189,7 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
                           </span>
                         </td>
                         <td className="px-3 py-1.5 text-right">
-                          {r.update && (
+                          {r.update && !m.readOnly && (
                             <Button size="sm" variant={r.level === 'major' ? 'ghost' : 'secondary'} disabled={!!running || m.toolMissing} onClick={() => apply(m, [r.update!])}>
                               {r.update.target === 'compatible' ? k.update : k.updateTo.replace('{v}', r.latest ?? '')}
                             </Button>

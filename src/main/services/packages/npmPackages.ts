@@ -75,7 +75,7 @@ export function listManifests(root: string): PackageManifest[] {
 }
 
 /** A manifest folder given by the window: inside the project, holding that manifest, and safe for a shell */
-export function manifestDir(root: string, dir: string, file: 'package.json' | 'composer.json' = 'package.json'): string {
+export function manifestDir(root: string, dir: string, file: string = 'package.json'): string {
   const full = resolve(root, dir || '.')
   const rel = relative(resolve(root), full)
   if (rel.startsWith('..') || resolve(rel) === rel) throw new Error('Invalid folder')

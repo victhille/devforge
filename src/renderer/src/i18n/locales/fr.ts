@@ -1017,6 +1017,7 @@ const fr = {
     formatted: "Voir la mise en forme",
     source: "Voir le source",
     copy: "Copier le contenu",
+    openInIde: "Ouvrir dans {ide}",
     closePreview: "Fermer l'aperçu",
     binary: "Fichier binaire : pas d'aperçu.",
     tooBig: "Fichier trop gros pour l'aperçu.",
@@ -1090,6 +1091,8 @@ const fr = {
   },
 
   packages: {
+    readOnlyHint: "Versions comparées seulement : pour les mettre à jour, dans le terminal du projet :",
+    copyCommand: "Copier la commande",
     filter: 'Filtre des paquets',
     filters: { outdated: 'En retard', major: 'Majeures', all: 'Tous' } as Record<string, string>,
     none: 'Aucun package.json ni composer.json dans ce projet',

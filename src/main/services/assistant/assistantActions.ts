@@ -50,7 +50,7 @@ export type UndoSpec =
   | { type: 'stop-process'; key: string }
   | { type: 'n8n-active'; connectionId: string; workflowId: string; active: boolean }
   | { type: 'vercel-promote'; projectId: string; deploymentId: string }
-  | { type: 'packages-restore'; path: string; dir: string; file: 'package.json' | 'composer.json'; store: string; files: string[] }
+  | { type: 'packages-restore'; path: string; dir: string; file: string; store: string; files: string[] }
 
 const project = { type: 'string', description: 'Project name or path from list_projects' } as const
 

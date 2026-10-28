@@ -1,6 +1,8 @@
 // ─── A project's packages: npm, pnpm, yarn (v3.3 lot 2), Composer (lot 3) ─────
 
 export type PackageManagerKind = 'npm' | 'pnpm' | 'yarn' | 'composer'
+  // v3.5.3: read only (versions and latest ones; DevForge does not update them)
+  | 'pip' | 'poetry' | 'uv' | 'pipenv' | 'cargo' | 'go' | 'bundler' | 'pub' | 'nuget' | 'maven' | 'gradle'
 
 /** How far the installed version is from the latest one */
 export type UpdateLevel = 'current' | 'patch' | 'minor' | 'major' | 'unknown'
@@ -17,13 +19,16 @@ export interface PackageInfo {
 export interface PackageManifest {
   /** Folder of the manifest, relative to the project ("" for its root) */
   dir: string
-  file: 'package.json' | 'composer.json'
+  /** package.json, composer.json; v3.5.3: requirements.txt, pyproject.toml, Cargo.toml, go.mod, App.csproj… */
+  file: string
   /** The manifest's own "name" */
   name: string | null
   manager: PackageManagerKind
   packages: PackageInfo[]
   /** Composer is not installed on this PC (and the project does not run on Sail) */
   toolMissing?: boolean
+  /** v3.5.3: listed and compared only; no audit nor update in DevForge (the command to run is shown) */
+  readOnly?: boolean
 }
 
 export type ManifestFile = PackageManifest['file']

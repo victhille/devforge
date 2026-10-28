@@ -1,10 +1,10 @@
-import { existsSync, readdirSync } from 'fs'
+import { existsSync, readdirSync, statSync } from 'fs'
 import { dirname } from 'path'
 import { spawn } from 'child_process'
 import type { CustomIde } from '@shared/types'
 import { IDE_CATALOG, ideArgs, type IdeEntry, type IdeInfo } from '@shared/data/ides'
 import { loadSettings } from '../settings/settingsService'
-import { assertSafeDir, findExecutable } from '../../lib/safe'
+import { assertSafeDir, findExecutable, isInsideProject } from '../../lib/safe'
 
 /**
  * v3.5 lot 3: finds the IDEs on this PC and opens a folder with one: an IDE
@@ -86,6 +86,25 @@ export async function openInIde(dirPath: string, ideId: string): Promise<void> {
   const program = await programOf(ide)
   if (!program) throw new Error(`${ide.name} was not found on this PC`)
   return start(program, (ide.args ?? ['{dir}']).map(a => a.split('{dir}').join(dir)))
+}
+
+/**
+ * v3.5.3: one file of a saved project, in an IDE. A catalog IDE gets the file
+ * alone (no folder flag); one added by hand gets its arguments, {dir} being the file.
+ */
+export async function openFileInIde(filePath: string, ideId: string): Promise<void> {
+  if (typeof filePath !== 'string' || !isInsideProject(filePath) || !existsSync(filePath) || !statSync(filePath).isFile()) throw new Error('Not a file of a saved project')
+  if (!ideId || ideId === 'none') return
+  const custom = customIdes().find(c => c.id === ideId)
+  if (custom) {
+    assertProgram(custom)
+    return start(custom.path, ideArgs(custom.args, filePath))
+  }
+  const ide = IDE_CATALOG.find(i => i.id === ideId)
+  if (!ide) throw new Error(`Unknown IDE: ${ideId}`)
+  const program = await programOf(ide)
+  if (!program) throw new Error(`${ide.name} was not found on this PC`)
+  return start(program, [filePath])
 }
 
 /** "Try" in Settings: the IDE being added opens the projects folder (or the home folder) */

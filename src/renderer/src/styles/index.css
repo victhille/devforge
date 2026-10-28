@@ -5,6 +5,13 @@
 /* ─── Theme variables (dark by default) ────────────────────────────────────── */
 
 :root {
+  /* Code colours (file previews), one set per theme */
+  --syntax-keyword: #C792EA;
+  --syntax-string:  #A5D6A7;
+  --syntax-number:  #F7B267;
+  --syntax-title:   #82AAFF;
+  --syntax-tag:     #F07178;
+  --syntax-attr:    #FFCB6B;
   --bg-base:        #0D0F13;
   --bg-surface:     #161A21;
   --bg-elevated:    #1D222B;
@@ -45,6 +52,12 @@
 }
 
 [data-theme='light'] {
+  --syntax-keyword: #8B3FC7;
+  --syntax-string:  #2E7D32;
+  --syntax-number:  #B35A00;
+  --syntax-title:   #1F5FC4;
+  --syntax-tag:     #C62839;
+  --syntax-attr:    #8A6100;
   --bg-base:        #F0F2F5;
   --bg-surface:     #FFFFFF;
   --bg-elevated:    #F7F8FB;
@@ -83,6 +96,12 @@
 
 @media (prefers-color-scheme: light) {
   :root[data-theme='system'] {
+    --syntax-keyword: #8B3FC7;
+    --syntax-string:  #2E7D32;
+    --syntax-number:  #B35A00;
+    --syntax-title:   #1F5FC4;
+    --syntax-tag:     #C62839;
+    --syntax-attr:    #8A6100;
     --bg-base:        #F0F2F5;
     --bg-surface:     #FFFFFF;
     --bg-elevated:    #F7F8FB;
@@ -246,3 +265,15 @@
   :root:not([data-motion=full]) *, :root:not([data-motion=full]) *::before, :root:not([data-motion=full]) *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 :root[data-motion=reduced] *, :root[data-motion=reduced] *::before, :root[data-motion=reduced] *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+
+/* ─── Code in file previews (highlight.js classes, v3.5.3) ─────────────────── */
+.df-code .hljs-comment, .df-code .hljs-quote { color: var(--color-fg-muted); font-style: italic; }
+.df-code .hljs-keyword, .df-code .hljs-selector-tag, .df-code .hljs-meta .hljs-keyword, .df-code .hljs-doctag { color: var(--syntax-keyword); }
+.df-code .hljs-string, .df-code .hljs-regexp, .df-code .hljs-template-tag, .df-code .hljs-addition { color: var(--syntax-string); }
+.df-code .hljs-number, .df-code .hljs-literal, .df-code .hljs-symbol, .df-code .hljs-bullet { color: var(--syntax-number); }
+.df-code .hljs-title, .df-code .hljs-title.function_, .df-code .hljs-built_in, .df-code .hljs-section, .df-code .hljs-type { color: var(--syntax-title); }
+.df-code .hljs-name, .df-code .hljs-selector-class, .df-code .hljs-selector-id, .df-code .hljs-deletion { color: var(--syntax-tag); }
+.df-code .hljs-attr, .df-code .hljs-attribute, .df-code .hljs-variable, .df-code .hljs-template-variable, .df-code .hljs-params, .df-code .hljs-property { color: var(--syntax-attr); }
+.df-code .hljs-meta { color: var(--color-fg-muted); }
+.df-code .hljs-emphasis { font-style: italic; }
+.df-code .hljs-strong { font-weight: 600; }

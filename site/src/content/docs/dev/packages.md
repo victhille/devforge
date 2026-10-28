@@ -1,11 +1,11 @@
 ---
 title: Paquets
-description: "L'onglet Paquets de la fiche projet, pour npm et Composer : versions en retard, vulnérabilités, mises à jour choisies avec retour en arrière si elles échouent."
+description: "L'onglet Paquets de la fiche projet : npm et Composer (versions en retard, vulnérabilités, mises à jour avec retour en arrière), et les versions des projets Python, Rust, Go, Ruby, Dart, .NET et Java."
 ---
 
 L'onglet **Paquets** de la [fiche projet](/devforge/dev/projects/) montre les dépendances du projet, ce qui est en retard ou vulnérable, et les met à jour quand tu le décides. Rien ne se met à jour tout seul.
 
-Il apparaît quand le projet a un `package.json` (npm, pnpm, yarn) ou un `composer.json` (Symfony, Laravel, PHP).
+Il apparaît quand le projet a un `package.json` (npm, pnpm, yarn), un `composer.json` (Symfony, Laravel, PHP), ou le fichier de dépendances d'un [autre langage](#les-autres-langages).
 
 ## Une carte par manifeste
 
@@ -55,6 +55,24 @@ Une dépendance de développement le reste.
 :::note[Retour en arrière automatique]
 Avant chaque mise à jour, le manifeste et le fichier de verrouillage sont sauvegardés dans le dossier de DevForge (`backups/packages/`). Si une commande échoue, ils sont remis comme avant. Lance une installation si `node_modules` ou `vendor` a changé entre-temps.
 :::
+
+## Les autres langages
+
+Les dépendances de ces langages ont aussi leur carte, avec les mêmes colonnes et les mêmes filtres :
+
+| Langage | Fichiers lus | Version installée lue dans | Dernière version |
+|---|---|---|---|
+| Python | `requirements*.txt`, `pyproject.toml` (PEP 621, Poetry), `Pipfile` | `poetry.lock`, `uv.lock`, `Pipfile.lock`, ou l'environnement virtuel (`.venv`, `venv`, `env`) | PyPI |
+| Rust | `Cargo.toml` | `Cargo.lock` | crates.io |
+| Go | `go.mod` (modules directs) | `go.mod` | proxy.golang.org |
+| Ruby | `Gemfile` | `Gemfile.lock` | RubyGems |
+| Dart, Flutter | `pubspec.yaml` | `pubspec.lock` | pub.dev |
+| .NET | `*.csproj`, `*.fsproj`, `*.vbproj` | le fichier lui-même | NuGet |
+| Java, Kotlin | `pom.xml`, `build.gradle(.kts)` | le fichier lui-même | Maven Central |
+
+Ces cartes **comparent seulement** : pas d'audit ni de bouton de mise à jour. Une ligne en haut de la carte donne la commande qui les met à jour (`pip install -U -r requirements.txt`, `poetry update`, `cargo update`, `go get -u ./...`, `bundle update`, `dart pub upgrade`…), avec **Copier la commande**, à lancer dans le terminal du projet.
+
+Un `requirements-dev.txt` (ou `-test`, `-lint`) et les groupes optionnels d'un `pyproject.toml` comptent comme dépendances *dev*. Un `pyproject.toml` qui ne déclare aucune dépendance (réglages d'outils seulement) n'a pas de carte.
 
 ## Composer
 
