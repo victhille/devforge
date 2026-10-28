@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { ArrowRight, Check, ChevronLeft, ChevronRight, KeyRound, Link2, Pencil, Plus, RotateCcw, Trash2, TextCursorInput, Undo2 } from 'lucide-react'
+import { ArrowRight, Check, ChevronLeft, ChevronRight, KeyRound, Link2, Pencil, Plus, RotateCcw, Trash2, TextCursorInput, Undo2, Upload } from 'lucide-react'
 import type { DbBrowseResult, DbColumnInfo, DbConnection, DbForeignKey, DbTableDetails, DbTableRef, DbTableStat } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
@@ -16,6 +16,7 @@ import Button from '@renderer/components/ui/Button'
 import ResultGrid, { type GridSort } from './ResultGrid'
 import { ColumnDialog, DropColumnDialog, DropTableDialog, RenameTableDialog } from './TableDialogs'
 import { ApplyRowsDialog, useRowChanges } from './RowChanges'
+import { ExportMenu, ImportDialog } from './TableTransfer'
 import { useToast } from '@renderer/app/ToastContext'
 
 const PAGE_SIZES = [25, 50, 100, 250, 500]
@@ -40,6 +41,7 @@ export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableR
   const [columns, setColumns] = useState<DbColumnInfo[] | null>(null)
   const [reload, setReload] = useState(0)
   const [applying, setApplying] = useState(false)
+  const [importing, setImporting] = useState(false)
 
   // Another table: back to its first page, natural order
   useEffect(() => { setPage(0); setSort(null) }, [table.name, table.schema])
@@ -95,6 +97,8 @@ export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableR
   // The row tools: add, delete the checked ones, apply or drop what is pending
   const tools = !result.error && columns && (
     <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line-subtle px-3 py-1.5 text-xs">
+      <ExportMenu conn={conn} table={table} />
+      {columns.length > 0 && <Button size="sm" variant="ghost" onClick={() => setImporting(true)}><Upload size={13} /> {d.importCsv}</Button>}
       {rows.editable ? (
         <>
           <Button size="sm" variant="ghost" onClick={rows.addRow}><Plus size={13} /> {d.rowAdd}</Button>
@@ -119,6 +123,10 @@ export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableR
       {empty
         ? <div className="flex flex-col"><div className="border-b border-line-subtle px-3 py-1.5 text-xs">{pager}</div><p className="p-6 text-sm text-fg-muted">{d.emptyTable}</p></div>
         : <ResultGrid result={grid} rowOffset={page * limit} sort={sort} onSort={pending ? undefined : s => { setSort(s); setPage(0) }} toolbar={pager} editing={rows.editing} />}
+      {importing && columns && (
+        <ImportDialog conn={conn} table={table} columns={columns.map(c => c.name)} onClose={() => setImporting(false)}
+          onDone={n => { setImporting(false); toast.show({ tone: 'success', title: d.imported.replace('{n}', String(n)) }); setReload(r => r + 1) }} />
+      )}
       {applying && (
         <ApplyRowsDialog conn={conn} table={table} changes={rows.changes} onClose={() => setApplying(false)}
           onDone={n => { setApplying(false); toast.show({ tone: 'success', title: d.rowApplied.replace('{n}', String(n)) }); setReload(r => r + 1) }} />

@@ -115,6 +115,23 @@ export interface DbBrowseResult extends DbQueryResult {
   total: number | null
 }
 
+/** v3.6: a table's export formats ("sql-create": the CREATE TABLE first) */
+export type ExportFormat = 'csv' | 'json' | 'sql' | 'sql-create'
+
+/** v3.6: a CSV picked for import (the file itself stays in the main process) */
+export interface CsvPreview {
+  token: string
+  name: string
+  separator: ',' | ';' | '\t' | '|'
+  encoding: string
+  headers: string[]
+  /** The first 10 rows */
+  sample: string[][]
+  total: number
+  /** Each CSV column → its table column, or null (left out) */
+  mapping: (string | null)[]
+}
+
 /** A database found on a server, ready to be added in one click */
 export interface DetectedDatabase {
   /** Opaque key: credentials stay in the main process */
@@ -147,6 +164,14 @@ export interface DatabaseAPI {
   details: (id: string, table: DbTableRef) => Promise<DbTableDetails>
   /** One page of a table's rows */
   browse: (id: string, table: DbTableRef, opts: DbBrowseOptions) => Promise<DbBrowseResult>
+  /** v3.6: the whole table into a file the user picks; null when cancelled */
+  exportTable: (id: string, table: DbTableRef, format: ExportFormat) => Promise<{ path: string; rows: number } | null>
+  /** v3.6: a query's result saved as it is */
+  saveResult: (name: string, content: string, ext: 'csv' | 'json') => Promise<string | null>
+  /** v3.6: a CSV picked and read; error TOO_BIG (over 50 MB) or EMPTY */
+  pickCsv: (id: string, table: DbTableRef) => Promise<CsvPreview | { error: string } | null>
+  /** v3.6: the picked CSV inserted, in one transaction; `line` is the CSV line that failed */
+  importCsv: (id: string, table: DbTableRef, token: string, mapping: (string | null)[], emptyIsNull: boolean) => Promise<{ inserted: number; error?: string; line?: number }>
   /** v3.6: rows changed, in one transaction (all or none) */
   applyRows: (id: string, table: DbTableRef, changes: RowChange[]) => Promise<{ affected: number; error?: string }>
   /** Look for databases on a server (Docker containers + native services) */

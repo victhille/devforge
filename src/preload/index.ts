@@ -107,6 +107,10 @@ const api: DevForgeAPI = {
     details:  invoke('db:details'),
     browse:   invoke('db:browse'),
     applyRows: invoke('db:apply-rows'),
+    exportTable: invoke('db:export'),
+    saveResult: invoke('db:save-result'),
+    pickCsv: invoke('db:pick-csv'),
+    importCsv: invoke('db:import-csv'),
     detectRemote: invoke('db:detect-remote'),
     detectLocal:  invoke('db:detect-local'),
     addDetected:  invoke('db:add-detected')

@@ -19,13 +19,13 @@ const TIMEOUT_MS = 15_000
 
 // ─── Drivers ──────────────────────────────────────────────────────────────────
 
-interface Driver {
+export interface Driver {
   version(): Promise<string>
   schema(): Promise<DbTable[]>
   query(sql: string): Promise<Omit<DbQueryResult, 'durationMs'>>
   /** Parameterized catalog query, rows as objects */
   raw: Raw
-  /** v3.6: statements with their parameters, all or none (rolled back at the first error); rows affected */
+  /** v3.6: statements with their parameters, all or none (rolled back at the first error, which carries its `statementIndex`); rows affected */
   transaction(statements: RowStatement[]): Promise<number>
   close(): Promise<void>
   /** Called once if the server drops the connection (restart, container stopped…) */
@@ -93,8 +93,8 @@ async function mysqlDriver(c: DbConnection): Promise<Driver> {
       await conn.beginTransaction()
       try {
         let n = 0
-        for (const s of statements) {
-          const [r] = await conn.query({ sql: s.sql, values: s.params, timeout: 60_000 })
+        for (const [i, s] of statements.entries()) {
+          const [r] = await conn.query({ sql: s.sql, values: s.params, timeout: 60_000 }).catch(err => { throw Object.assign(err, { statementIndex: i }) })
           n += (r as { affectedRows?: number }).affectedRows ?? 0
         }
         await conn.commit()
@@ -143,7 +143,7 @@ async function postgresDriver(c: DbConnection): Promise<Driver> {
       await client.query('BEGIN')
       try {
         let n = 0
-        for (const s of statements) n += (await client.query(s.sql, s.params)).rowCount ?? 0
+        for (const [i, s] of statements.entries()) n += (await client.query(s.sql, s.params).catch(err => { throw Object.assign(err, { statementIndex: i }) })).rowCount ?? 0
         await client.query('COMMIT')
         return n
       } catch (err) { await client.query('ROLLBACK').catch(() => {}); throw err }
@@ -201,9 +201,10 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
       db.run('BEGIN')
       try {
         let n = 0
-        for (const s of statements) {
+        for (const [i, s] of statements.entries()) {
           // sql.js takes 1/0 for booleans
-          db.run(s.sql, s.params.map(v => (typeof v === 'boolean' ? Number(v) : v)))
+          try { db.run(s.sql, s.params.map(v => (typeof v === 'boolean' ? Number(v) : v))) }
+          catch (err) { throw Object.assign(err as Error, { statementIndex: i }) }
           n += db.getRowsModified()
         }
         db.run('COMMIT')
@@ -317,7 +318,7 @@ function unreachableHint(err: Error & { code?: string }, c: DbConnection): Error
 
 const open$ = new Map<string, Promise<Driver>>()
 
-function driverFor(id: string): Promise<Driver> {
+export function driverFor(id: string): Promise<Driver> {
   let d = open$.get(id)
   if (!d) {
     const c = getDbConnection(id)
@@ -366,7 +367,7 @@ export async function dbQuery(id: string, sql: string): Promise<DbQueryResult> {
 
 // ─── Explorer (overview, table details, paged rows) ───────────────────────────
 
-function connOf(id: string): DbConnection {
+export function connOf(id: string): DbConnection {
   const c = getDbConnection(id)
   if (!c) throw new Error('Unknown connection')
   return c

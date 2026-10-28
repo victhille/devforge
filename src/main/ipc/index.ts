@@ -68,7 +68,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerVercelHandlers()
   registerDictationHandlers()
   registerDomainHandlers()
-  registerDatabaseHandlers()
+  registerDatabaseHandlers(mainWindow)
   registerLogHandlers(mainWindow)
   registerWebhookHandlers(mainWindow)
   registerSuggestHandlers()

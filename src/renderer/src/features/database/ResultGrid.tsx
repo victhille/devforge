@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
-import { ArrowDown, ArrowUp, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, Save, X } from 'lucide-react'
+import IconButton from '@renderer/components/ui/IconButton'
 import type { DbQueryResult } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -20,6 +21,9 @@ function CopyAs({ result }: { result: DbQueryResult }) {
         ))}
       </span>
       <CopyButton text={formatResult(result, format)} title={t.database.copyFormat.replace('{f}', format.toUpperCase())} />
+      {/* v3.6: the same, into a file */}
+      <IconButton size="sm" title={t.database.saveFormat.replace('{f}', format.toUpperCase())}
+        onClick={() => { void window.devforge.db.saveResult('result', formatResult(result, format), format) }}><Save size={13} /></IconButton>
     </span>
   )
 }
