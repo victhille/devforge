@@ -15,7 +15,8 @@ describe('sidebar menu', () => {
   it('finds the group of a route, detail pages included', () => {
     expect(groupOf('/git')).toBe('groupDev')
     expect(groupOf('/vps/abc')).toBe('groupServers')
-    expect(groupOf('/docker')).toBe('groupDev')
+    expect(groupOf('/docker')).toBe('groupOnline')
+    expect(groupOf('/activity')).toBe('groupDev')
     expect(groupOf('/vpn')).toBe('groupOnline')
     expect(groupOf('/logs')).toBe('groupData')
     expect(groupOf('/')).toBeNull()

@@ -17,6 +17,7 @@ Home greets you according to the time of day and sums up what is running: contai
 | Git | repositories with changes or commits to push, **Fetch all** |
 | Ports | dev ports listening |
 | Activity | your latest actions (commit, Compose, deployment, Forgy's actions…) |
+| Commits | your commits of the week and the branches to push (see [Activity](/devforge/en/dev/activity/)) |
 | VPS health, VPS services, Backups, n8n, VPN | a summary of each server page |
 
 **Customize** lets you drag widgets (or <kbd>Alt</kbd> + <kbd>↑</kbd> <kbd>↓</kbd> on their handle), make them full or half width, remove or add some. **Defaults** brings back the original layout.
@@ -31,9 +32,9 @@ The left menu starts with **Home** and your **favorites**, then lists every page
 
 | Group | Pages |
 |---|---|
-| Development | [Projects](/devforge/en/dev/projects/), [New Project](/devforge/en/dev/new-project/), [Git](/devforge/en/dev/git/), [Launcher](/devforge/en/dev/stacks/), [Docker](/devforge/en/dev/docker/) |
+| Development | [Projects](/devforge/en/dev/projects/), [New Project](/devforge/en/dev/new-project/), [Git](/devforge/en/dev/git/), [Activity](/devforge/en/dev/activity/), [Launcher](/devforge/en/dev/stacks/) |
 | Servers | [SSH / VPS](/devforge/en/servers/ssh/), [Health](/devforge/en/servers/health/), [Services](/devforge/en/servers/services/), [Backups](/devforge/en/servers/backups/), [Monitoring](/devforge/en/servers/monitoring/) |
-| Going live | [Deploy](/devforge/en/online/deploy/), [n8n](/devforge/en/online/n8n/), [VPN](/devforge/en/online/vpn/), [Status page](/devforge/en/online/status-page/) |
+| Going live | [Deploy](/devforge/en/online/deploy/), [Docker](/devforge/en/dev/docker/), [n8n](/devforge/en/online/n8n/), [VPN](/devforge/en/online/vpn/), [Status page](/devforge/en/online/status-page/) |
 | Data & API | [Database](/devforge/en/data/database/), [API Tester](/devforge/en/data/api-tester/), [Webhooks](/devforge/en/data/webhooks/), [Log viewer](/devforge/en/data/logs/) |
 | System | [Environment](/devforge/en/system/environment/), [Ports](/devforge/en/system/ports/), [Env variables](/devforge/en/system/env-files/), [Local domains](/devforge/en/system/domains/), [Disk cleaner](/devforge/en/system/cleaner/) |
 | Tools | [Toolbox, Snippets, Text Diff, Generator, Docs](/devforge/en/tools/utilities/) |

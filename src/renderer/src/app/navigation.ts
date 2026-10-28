@@ -2,7 +2,7 @@ import type { ComponentType } from 'react'
 import {
   Home, FolderOpen, Plus, Monitor, Terminal, Settings, Wifi, BookOpen,
   Wrench, Send, Code, Columns, Key, GitBranch, HardDrive, FileKey2, Rocket, Container, UploadCloud, Activity, Globe, Database, ScrollText, Webhook,
-  Code2, Server, Cpu, Workflow, ShieldCheck, AppWindow, HeartPulse, HardDriveDownload, RadioTower, type LucideIcon
+  Code2, Server, Cpu, Workflow, BarChart3, ShieldCheck, AppWindow, HeartPulse, HardDriveDownload, RadioTower, type LucideIcon
 } from 'lucide-react'
 import type { Translations } from '@renderer/i18n/translations'
 
@@ -37,6 +37,7 @@ export const PAGES: NavPage[] = [
   // Main
   { path: '/projects',    labelKey: 'projects',    icon: FolderOpen, section: 'sectionMain',  load: () => import('@renderer/features/projects/ProjectsPage'), docs: 'dev/projects' },
   { path: '/git',         labelKey: 'git',         icon: GitBranch,  section: 'sectionMain',  load: () => import('@renderer/features/git/GitDashboardPage'), keywords: ['pull', 'push', 'fetch', 'commit', 'branch', 'repo'], docs: 'dev/git' },
+  { path: '/activity',    labelKey: 'activityPage', icon: BarChart3, section: 'sectionMain', load: () => import('@renderer/features/git/ActivityPage'), keywords: ['commits', 'activité', 'semaine', 'statistiques', 'stats', 'branches', 'pousser'], docs: 'dev/activity' },
   { path: '/stacks',      labelKey: 'stacks',      icon: Rocket,     section: 'sectionMain',  load: () => import('@renderer/features/stacks/StacksPage'), keywords: ['start', 'démarrer', 'dev server', 'launch', 'lancer', 'stack'], docs: 'dev/stacks' },
   { path: '/new-project', labelKey: 'newProject',  icon: Plus,       section: 'sectionMain',  load: () => import('@renderer/features/projects/new/NewProjectPage'), keywords: ['create', 'créer', 'react', 'vue', 'next', 'symfony'], docs: 'dev/new-project' },
 
@@ -111,9 +112,9 @@ export type GroupKey = 'groupDev' | 'groupServers' | 'groupOnline' | 'groupData'
 
 /** Five pages at most per group: a group stays readable at a glance */
 export const MENU_GROUPS: { key: GroupKey; icon: LucideIcon; paths: string[] }[] = [
-  { key: 'groupDev',     icon: Code2,       paths: ['/projects', '/new-project', '/git', '/stacks', '/docker'] },
+  { key: 'groupDev',     icon: Code2,       paths: ['/projects', '/new-project', '/git', '/activity', '/stacks'] },
   { key: 'groupServers', icon: Server,      paths: ['/ssh', '/health', '/services', '/backups', '/monitor'] },
-  { key: 'groupOnline',  icon: UploadCloud, paths: ['/deploy', '/n8n', '/vpn', '/status'] },
+  { key: 'groupOnline',  icon: UploadCloud, paths: ['/deploy', '/docker', '/n8n', '/vpn', '/status'] },
   { key: 'groupData',    icon: Database,    paths: ['/database', '/api-tester', '/webhooks', '/logs'] },
   { key: 'groupSystem',  icon: Cpu,         paths: ['/environment', '/ports', '/env-files', '/domains', '/cleaner'] },
   { key: 'groupTools',   icon: Wrench,      paths: ['/toolbox', '/snippets', '/diff', '/generator', '/docs'] }

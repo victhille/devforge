@@ -415,6 +415,9 @@ const api: DevForgeAPI = {
     setAuthKeys: invoke('nextjs:set-auth-keys')
   },
 
+  activity: {
+    get: invoke('activity:get')
+  },
   notes: {
     get:    invoke('notes:get'),
     save:   invoke('notes:save'),

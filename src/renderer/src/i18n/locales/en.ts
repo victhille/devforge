@@ -18,6 +18,7 @@ const en = {
     diff:           'Text Diff',
     generator:      'Generator',
     git: 'Git',
+    activityPage: 'Activity',
     cleaner: 'Disk cleaner',
     sectionSystem: 'System',
     sectionServers: 'Servers',
@@ -144,7 +145,8 @@ const en = {
         services: "VPS services",
         backups: "Backups",
         n8n: "n8n",
-        vpn: "VPN"
+        vpn: "VPN",
+        commits: "Commits"
       }
     },
     greetingMorning: 'Good morning',
@@ -1015,6 +1017,31 @@ const en = {
     }
   },
 
+  activity: {
+    title: "Activity",
+    subtitle: "The commits of all your projects, read from Git on this PC.",
+    author: "Commit author",
+    mine: "Me",
+    everyone: "Everyone",
+    perWeek: "Commits per week",
+    perWeekTotal: "{weeks} weeks · {n} commits",
+    chartLabel: "Commits per week over 12 weeks, {n} in all",
+    weekOf: "Week of {date}",
+    legend: "Projects",
+    others: "others",
+    mostActive: "Most active this month",
+    noneActive: "No commit in the last 30 days.",
+    commits: "{n} commit(s)",
+    asleep: "Asleep",
+    noneAsleep: "No project without a commit for 3 months.",
+    since: "since {date}",
+    branches: "Branches to follow",
+    noneToFollow: "Nothing to push or pull.",
+    toPush: "{n} to push",
+    toPull: "{n} to pull",
+    thisWeek: "commits this week",
+    seeAll: "Activity",
+  },
   notes: {
     tasks: "Tasks",
     open: "{n} to do",

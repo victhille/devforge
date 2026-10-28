@@ -1,5 +1,5 @@
 /** Widgets the Home page can show */
-export const WIDGET_IDS = ['active-project', 'docker', 'vps', 'git', 'ports', 'activity', 'health', 'services', 'backups', 'n8n', 'vpn'] as const
+export const WIDGET_IDS = ['active-project', 'docker', 'vps', 'git', 'ports', 'activity', 'health', 'services', 'backups', 'n8n', 'vpn', 'commits'] as const
 export type WidgetId = (typeof WIDGET_IDS)[number]
 
 export interface HomeWidget {

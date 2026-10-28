@@ -321,6 +321,7 @@ export * from './domains'
 export * from './database'
 export * from './tests'
 export * from './notes'
+export * from './activity'
 export * from './logs'
 export * from './webhooks'
 export * from './suggest'
@@ -368,6 +369,7 @@ import type { ConnectionsAPI } from './connections'
 import type { PackagesAPI } from './packages'
 import type { TestsAPI } from './tests'
 import type { NotesAPI } from './notes'
+import type { ActivityAPI } from './activity'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -522,6 +524,8 @@ export interface DevForgeAPI {
   tests: TestsAPI
   /** v3.8: a project's tasks and notes */
   notes: NotesAPI
+  /** v3.8: commits across projects */
+  activity: ActivityAPI
   dictation: DictationAPI
 
   // Git
