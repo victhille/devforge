@@ -20,6 +20,7 @@ import { listPlans, runNow as backupRunNow } from '../backups/backupsService'
 import { rerunFailed, status as githubStatus } from '../github/githubService'
 import { sshServer } from './vpsTools'
 import { updatePackagesPlan } from './packageTools'
+import { taskPlan, undoNotes, type NotesUndo } from './notesTools'
 import { restoreAndInstall } from '../packages/projectPackages'
 import { BrowserWindow } from 'electron'
 
@@ -51,6 +52,7 @@ export type UndoSpec =
   | { type: 'n8n-active'; connectionId: string; workflowId: string; active: boolean }
   | { type: 'vercel-promote'; projectId: string; deploymentId: string }
   | { type: 'packages-restore'; path: string; dir: string; file: string; store: string; files: string[] }
+  | NotesUndo
 
 const project = { type: 'string', description: 'Project name or path from list_projects' } as const
 
@@ -71,6 +73,7 @@ export const ACTION_TOOLS: Anthropic.Beta.BetaTool[] = [
   { name: 'backup_now', description: 'Run the VPS nightly backup now (databases and volumes set in DevForge). Needs the user\'s approval.', input_schema: { type: 'object', properties: { server: { type: 'string' } } } },
   { name: 'github_rerun', description: 'Re-run the failed jobs of a GitHub Actions run of a project (run id from github_status). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project, run: { type: 'integer', description: 'Run id from github_status' } }, required: ['project', 'run'] } },
   { name: 'env_add', description: 'Add a NEW key to a .env file of a project (existing keys are never changed). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project, key: { type: 'string' }, value: { type: 'string' }, file: { type: 'string', description: 'Default .env' } }, required: ['project', 'key', 'value'] } },
+  { name: 'notes_task', description: 'Add a task to a project\'s list in DevForge, or check one / reopen one (its id from project_notes). Needs the user\'s approval; can be undone.', input_schema: { type: 'object', properties: { project, action: { type: 'string', enum: ['add', 'done', 'reopen'] }, text: { type: 'string', description: 'The new task (add)' }, task: { type: 'string', description: 'The task id (done, reopen)' } }, required: ['project', 'action'] } },
   { name: 'update_packages', description: 'Update packages of a project (npm, pnpm, yarn, Composer; pip in the project\'s virtual environment, Poetry, uv, Pipenv, Cargo, Go, Bundler, pub — from project_packages; not .NET nor Java). to: "compatible" (default) stays within the declared range; "latest" moves to the latest version and rewrites the range (major versions may break). Needs the user\'s approval; can be undone (files put back, then reinstall).', input_schema: { type: 'object', properties: { project, packages: { type: 'array', items: { type: 'string' }, description: 'Package names, as declared' }, to: { type: 'string', enum: ['compatible', 'latest'] }, manifest: { type: 'string', description: 'Which manifest when several declare them: "package.json", "apps/web/package.json", "composer.json", "api/requirements.txt", "Cargo.toml"…' } }, required: ['project', 'packages'] } }
 ]
 
@@ -382,6 +385,7 @@ export async function planAction(name: string, input: Record<string, unknown>): 
     case 'free_port': return freePortPlan(input.port)
     case 'run_script': return scriptPlan(findProject(input.project), str(input.script, 'script'))
     case 'env_add': return envPlan(findProject(input.project), str(input.key, 'key'), input.value, input.file)
+    case 'notes_task': return { ...taskPlan(findProject(input.project), input.action, input.text, input.task), reversible: true, safe: true }
     case 'update_packages': {
       // Changes the dependencies and reaches the registry: never without a click
       const plan = await updatePackagesPlan(findProject(input.project), input.packages, input.to, input.manifest)
@@ -456,6 +460,7 @@ async function runUndo(u: UndoSpec): Promise<string> {
     case 'stop-process': await processManager.stop(u.key); return 'Stopped'
     case 'n8n-active': { const w = await n8nSetActive(u.connectionId, u.workflowId, u.active); return `${w.name} ${w.active ? 'active' : 'inactive'} again` }
     case 'vercel-promote': await vercelPromote(u.projectId, u.deploymentId); return 'Production points back to the previous deployment'
+    case 'task-remove': case 'task-done': return undoNotes(u)
     case 'packages-restore': {
       if (!(await restoreAndInstall(u.path, u.dir, u.file, { store: u.store, files: u.files }))) throw new Error('Files put back, but the install failed: run it from the Packages tab')
       return `${u.file === 'composer.json' ? 'composer.json and composer.lock' : u.file === 'package.json' ? 'package.json and the lockfile' : `${u.file} and its lockfile`} put back, dependencies reinstalled`

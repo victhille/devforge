@@ -30,6 +30,7 @@ import { registerDictationHandlers } from './dictation'
 import { registerDomainHandlers } from './domains'
 import { registerDatabaseHandlers } from './database'
 import { registerTestsHandlers } from './tests'
+import { registerNotesHandlers } from './notes'
 import { registerLogHandlers } from './logs'
 import { registerWebhookHandlers } from './webhooks'
 import { registerSuggestHandlers } from './suggest'
@@ -71,6 +72,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerDomainHandlers()
   registerDatabaseHandlers(mainWindow)
   registerTestsHandlers(mainWindow)
+  registerNotesHandlers()
   registerLogHandlers(mainWindow)
   registerWebhookHandlers(mainWindow)
   registerSuggestHandlers()

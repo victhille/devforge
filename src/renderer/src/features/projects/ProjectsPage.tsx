@@ -28,6 +28,9 @@ export default function ProjectsPage() {
   const { t } = useI18n()
   const { runScript } = useConsole()
   const ide = usePreferredIde()
+  /** v3.8: open tasks per project */
+  const [openTasks, setOpenTasks] = useState<Record<string, number>>({})
+  useEffect(() => { window.devforge.notes.counts().then(setOpenTasks).catch(() => {}) }, [])
   const {
     projects, gitStatuses, scripts,
     open, openTerminal, toggleFavorite, remove, importDetected
@@ -192,6 +195,8 @@ export default function ProjectsPage() {
                 onDetail={() => navigate(`/project/${p.id}`)}
                 onRemove={() => remove(p.id)}
                 folder={many ? folderName(placeOf(p.path) ?? '') || null : null}
+                openTasks={openTasks[p.id]}
+                onOpenTasks={() => navigate(`/project/${p.id}?tab=notes`)}
               />
             ) : (
               <ProjectCard
@@ -210,6 +215,8 @@ export default function ProjectsPage() {
                 onDetail={() => navigate(`/project/${p.id}`)}
                 onRemove={() => remove(p.id)}
                 onRunScript={s => runScript(p.path, s, p.packageManager, p.name)}
+                openTasks={openTasks[p.id]}
+                onOpenTasks={() => navigate(`/project/${p.id}?tab=notes`)}
               />
             ))}
           </div>

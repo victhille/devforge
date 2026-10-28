@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { Code2, Folder, FolderOpen, GitBranch, Plus, Star, Terminal, Trash2 } from 'lucide-react'
+import { ListTodo, Code2, Folder, FolderOpen, GitBranch, Plus, Star, Terminal, Trash2 } from 'lucide-react'
 import type { DetectedProject, GitStatus, Project } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -47,6 +47,18 @@ function FavoriteButton({ active, onClick, title }: { active: boolean; onClick: 
   )
 }
 
+/** v3.8: the project's open tasks; a click opens its Notes tab */
+export function TasksChip({ count, onClick }: { count?: number; onClick?: () => void }) {
+  const { t } = useI18n()
+  if (!count) return null
+  return (
+    <button onClick={e => { e.stopPropagation(); onClick?.() }} data-testid="tasks-chip"
+      className="inline-flex items-center gap-1 rounded-md border border-warning/40 bg-warning-soft px-2 py-0.5 font-mono text-[11px] text-warning hover:border-warning">
+      <ListTodo size={11} aria-hidden /> {t.notes.toDo.replace('{n}', String(count))}
+    </button>
+  )
+}
+
 // ─── Saved project ────────────────────────────────────────────────────────────
 
 interface SavedProps {
@@ -67,10 +79,13 @@ interface SavedProps {
   index?: number
   /** v3.5: the name of its projects folder, shown when there are several */
   folder?: string | null
+  /** v3.8: its open tasks, and the way to them */
+  openTasks?: number
+  onOpenTasks?: () => void
 }
 
 export function ProjectCard(props: SavedProps) {
-  const { project, layout, gitStatus, scripts = {}, ideLabel, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript, index = 0, folder } = props
+  const { project, layout, gitStatus, scripts = {}, ideLabel, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript, index = 0, folder, openTasks, onOpenTasks } = props
   const { t } = useI18n()
   const label = FRAMEWORK_LABEL[project.framework] ?? project.framework
 
@@ -95,6 +110,7 @@ export function ProjectCard(props: SavedProps) {
             <span key={tag} className="rounded-md border border-line bg-elevated px-2 py-0.5 font-mono text-[11px] text-fg-secondary">{tag}</span>
           ))}
           <FolderTag name={folder} />
+          <TasksChip count={openTasks} onClick={onOpenTasks} />
         </div>
         {project.missing && <div className="text-xs font-medium text-warning">{t.hub.missing}</div>}
         {git && (
@@ -124,6 +140,7 @@ export function ProjectCard(props: SavedProps) {
           <GitBadge status={gitStatus} />
         </span>
       </button>
+      <TasksChip count={openTasks} onClick={onOpenTasks} />
       {project.missing && <span className="shrink-0 text-xs font-medium text-warning">{t.hub.missing}</span>}
       <FolderTag name={folder} />
       <Badge>{label}</Badge>

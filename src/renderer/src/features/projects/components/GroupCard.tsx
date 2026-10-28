@@ -8,6 +8,7 @@ import IconButton from '@renderer/components/ui/IconButton'
 import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
 import ProjectIcon from './ProjectIcon'
 import ScriptsMenu from './ScriptsMenu'
+import { TasksChip } from './ProjectCard'
 import type { PreferredIde } from '@renderer/lib/ide'
 
 const OPEN_KEY = 'projects-groups-folded'
@@ -34,6 +35,9 @@ interface Props {
   index?: number
   /** The name of its projects folder, shown when there are several */
   folder?: string | null
+  /** v3.8: its open tasks, and the way to them */
+  openTasks?: number
+  onOpenTasks?: () => void
 }
 
 /** One project of the group: its stack, its Git state, its own IDE, terminal and scripts */
@@ -70,7 +74,7 @@ function SubRow({ sub, ideLabel, onOpenIde, onTerminal, onRunScript }: { sub: Su
 
 /** v3.5: a folder holding several projects (back + front), unfolded on its card */
 export default function GroupCard(props: Props) {
-  const { project, gitStatus, ide, onTerminal, onRunScript, onToggleFavorite, onDetail, onRemove, index = 0, folder } = props
+  const { project, gitStatus, ide, onTerminal, onRunScript, onToggleFavorite, onDetail, onRemove, index = 0, folder, openTasks, onOpenTasks } = props
   const { t } = useI18n()
   const subs = project.subprojects ?? []
   const extras = project.extras ?? []
@@ -110,6 +114,7 @@ export default function GroupCard(props: Props) {
         <span className="rounded-full bg-accent-soft px-2.5 py-0.5 font-mono text-[11px] text-accent">{t.projects.groupCount.replace('{n}', String(subs.length))}</span>
         {stacks.map(s => <span key={s} className="rounded-md border border-line bg-elevated px-2 py-0.5 font-mono text-[11px] text-fg-secondary">{s}</span>)}
         {folder && <span className="px-1.5 text-[11px] text-fg-muted">{folder}</span>}
+        <TasksChip count={openTasks} onClick={onOpenTasks} />
       </div>
       {project.missing && <div className="text-xs font-medium text-warning">{t.hub.missing}</div>}
       {folded

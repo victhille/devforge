@@ -20,7 +20,7 @@ export function wipeData(dataDir: string): string[] {
 export const EXPORTED = [
   'settings.json', 'projects.json', 'ssh-connections.json', 'databases.json', 'deploy.json', 'stacks.json',
   'domains.json', 'monitors.json', 'watch.json', 'n8n.json', 'backups.json', 'status.json', 'vpn.json',
-  'active-project.json', 'project-links.json', 'assistant/config.json', 'doc-commands.json'
+  'active-project.json', 'project-links.json', 'assistant/config.json', 'doc-commands.json', 'project-notes.json'
 ]
 
 /** Encrypted values, passwords, tokens and keys: never in an export */

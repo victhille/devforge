@@ -267,7 +267,7 @@ const en = {
     installFirst: 'The dependencies are not installed (no node_modules): the script would fail. Install them first?',
     missing: 'Folder not found',
     missingConfirm: '{count} project(s) whose folder no longer exists: {names}. Remove them from DevForge?',
-    tabs: { overview: 'Overview', git: 'Git', docker: 'Docker', env: 'Variables', packages: 'Packages', database: 'Database', logs: 'Logs', ports: 'Ports & domains', deploy: 'Deploy', vercel: 'Vercel', github: 'GitHub', symfony: 'Symfony', nextjs: 'Next.js', laravel: 'Laravel', terminal: 'Terminal', files: 'Files', tests: 'Tests' },
+    tabs: { overview: 'Overview', git: 'Git', docker: 'Docker', env: 'Variables', packages: 'Packages', database: 'Database', logs: 'Logs', ports: 'Ports & domains', deploy: 'Deploy', vercel: 'Vercel', github: 'GitHub', symfony: 'Symfony', nextjs: 'Next.js', laravel: 'Laravel', terminal: 'Terminal', files: 'Files', tests: 'Tests', notes: 'Notes' },
     see: 'See',
     auto: 'found',
     manual: 'added',
@@ -1014,6 +1014,22 @@ const en = {
     }
   },
 
+  notes: {
+    tasks: "Tasks",
+    open: "{n} to do",
+    toDo: "{n} to do",
+    hideDone: "Hide done ones",
+    addPlaceholder: "Add a task… (Enter)",
+    editTask: "Edit the task",
+    doneOn: "done on {date}",
+    remove: "Delete the task",
+    notes: "Notes",
+    view: "Notes view",
+    edit: "Edit",
+    preview: "Preview",
+    empty: "No notes. \"Edit\" to write some, in Markdown.",
+    notesPlaceholder: "Notes in Markdown: # title, - list, **bold**, `code`…",
+  },
   tests: {
     expected: "Expected",
     received: "Received",

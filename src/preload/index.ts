@@ -408,6 +408,11 @@ const api: DevForgeAPI = {
     setAuthKeys: invoke('nextjs:set-auth-keys')
   },
 
+  notes: {
+    get:    invoke('notes:get'),
+    save:   invoke('notes:save'),
+    counts: invoke('notes:counts')
+  },
   tests: {
     detect: invoke('tests:detect'),
     run:    invoke('tests:run'),

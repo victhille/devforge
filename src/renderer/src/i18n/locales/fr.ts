@@ -264,7 +264,7 @@ const fr = {
     installFirst: 'Les dépendances ne sont pas installées (pas de node_modules) : le script échouerait. Les installer d\'abord ?',
     missing: 'Dossier introuvable',
     missingConfirm: '{count} projet(s) dont le dossier n\'existe plus : {names}. Les retirer de DevForge ?',
-    tabs: { overview: "Vue d'ensemble", git: 'Git', docker: 'Docker', env: 'Variables', packages: 'Paquets', database: 'Base de données', logs: 'Logs', ports: 'Ports & domaines', deploy: 'Déploiement', vercel: 'Vercel', github: 'GitHub', symfony: 'Symfony', nextjs: 'Next.js', laravel: 'Laravel', terminal: 'Terminal', files: 'Fichiers', tests: 'Tests' },
+    tabs: { overview: "Vue d'ensemble", git: 'Git', docker: 'Docker', env: 'Variables', packages: 'Paquets', database: 'Base de données', logs: 'Logs', ports: 'Ports & domaines', deploy: 'Déploiement', vercel: 'Vercel', github: 'GitHub', symfony: 'Symfony', nextjs: 'Next.js', laravel: 'Laravel', terminal: 'Terminal', files: 'Fichiers', tests: 'Tests', notes: 'Notes' },
     see: 'Voir',
     auto: 'trouvé',
     manual: 'ajouté',
@@ -1007,6 +1007,22 @@ const fr = {
     }
   },
 
+  notes: {
+    tasks: "Tâches",
+    open: "{n} à faire",
+    toDo: "{n} à faire",
+    hideDone: "Masquer les faites",
+    addPlaceholder: "Ajouter une tâche… (Entrée)",
+    editTask: "Modifier la tâche",
+    doneOn: "fait le {date}",
+    remove: "Supprimer la tâche",
+    notes: "Notes",
+    view: "Affichage des notes",
+    edit: "Éditer",
+    preview: "Aperçu",
+    empty: "Aucune note. « Éditer » pour en écrire une, en Markdown.",
+    notesPlaceholder: "Notes en Markdown : # titre, - liste, **gras**, `code`…",
+  },
   tests: {
     expected: "Attendu",
     received: "Reçu",

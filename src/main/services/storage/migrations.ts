@@ -28,7 +28,7 @@ export const DATA_ENTRIES = [
   'settings.json', 'projects.json', 'ssh-connections.json', 'known_hosts.json', 'databases.json',
   'deploy.json', 'stacks.json', 'domains.json', 'monitors.json', 'assistant', 'env-backups',
   'project-links.json', 'active-project.json', 'watch.json', 'history', 'n8n.json', 'vercel.json',
-  'github.json', 'backups.json', 'status.json', 'vpn.json', 'terminal-history.json', 'hosts', 'doc-commands.json'
+  'github.json', 'backups.json', 'status.json', 'vpn.json', 'terminal-history.json', 'hosts', 'doc-commands.json', 'project-notes.json'
 ]
 
 const MANIFEST = 'storage.json'

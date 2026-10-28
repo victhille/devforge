@@ -32,12 +32,13 @@ import TerminalTabs from '@renderer/features/terminal/TerminalTabs'
 import DbExplorer from '@renderer/features/database/DbExplorer'
 import PackagesPanel from './PackagesPanel'
 import TestsPanel from './TestsPanel'
+import NotesPanel from './NotesPanel'
 import GroupProjects from './GroupProjects'
 import IdeSelect from './components/IdeSelect'
 import { usePreferredIde } from '@renderer/lib/ide'
 
-type Tab = 'overview' | 'git' | 'github' | 'symfony' | 'nextjs' | 'laravel' | 'terminal' | 'docker' | 'env' | 'packages' | 'tests' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
-const TABS: Tab[] = ['overview', 'git', 'github', 'symfony', 'nextjs', 'laravel', 'terminal', 'docker', 'env', 'packages', 'tests', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
+type Tab = 'overview' | 'git' | 'github' | 'symfony' | 'nextjs' | 'laravel' | 'terminal' | 'docker' | 'env' | 'packages' | 'tests' | 'notes' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
+const TABS: Tab[] = ['overview', 'git', 'github', 'symfony', 'nextjs', 'laravel', 'terminal', 'docker', 'env', 'packages', 'tests', 'notes', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
 
 const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const fileName = (p: string) => p.split(/[\\/]/).pop() ?? p
@@ -127,6 +128,8 @@ export default function ProjectDetailPage() {
   const [newLog, setNewLog] = useState('')
   /** v3.7: the project's test tools (no tool, no Tests tab) */
   const [testRunners, setTestRunners] = useState<TestRunnerInfo[]>([])
+  /** v3.8: its open tasks, on the Notes tab */
+  const [openTasks, setOpenTasks] = useState(0)
   // The terminal stays once opened: its shells survive a trip to another tab
   const [termOpened, setTermOpened] = useState(tab === 'terminal')
   useEffect(() => { if (tab === 'terminal') setTermOpened(true) }, [tab])
@@ -159,6 +162,10 @@ export default function ProjectDetailPage() {
     if (!projectPath) return
     window.devforge.tests.detect(projectPath).then(setTestRunners).catch(() => setTestRunners([]))
   }, [projectPath])
+  useEffect(() => {
+    if (!id) return
+    window.devforge.notes.counts().then(c => setOpenTasks(c[id] ?? 0)).catch(() => {})
+  }, [id])
 
   const compose = useMemo(() => docker?.compose.find(c => (hub?.composeDir && c.dir === hub.composeDir) || c.name === hub?.composeName) ?? null, [docker, hub])
 
@@ -209,6 +216,7 @@ export default function ProjectDetailPage() {
   const unlinkedDbs = connections.filter(c => !hub.databases.some(d => d.id === c.id))
   const unlinkedDomains = domains.filter(d => !hub.domains.some(x => x.id === d.id))
   const counts: Partial<Record<Tab, number>> = {
+    notes: openTasks,
     database: hub.databases.length, logs: hub.logs.length, ports: hub.ports.length + hub.domains.length,
     deploy: hub.deployTargets.length, env: hub.envFiles.length, git: git?.changes || undefined
   }
@@ -371,6 +379,7 @@ export default function ProjectDetailPage() {
     env: <ProjectEnvEditor projectPath={p.path} onEnvChange={() => {}} />,
 
     packages: <PackagesPanel projectId={p.id} />,
+    notes: <NotesPanel projectId={p.id} onCount={setOpenTasks} />,
     tests: <TestsPanel path={p.path} runners={testRunners} projectName={p.name}
       onOpen={(file, line) => setParams({ tab: 'files', open: file, line: String(line) }, { replace: true })} />,
 
