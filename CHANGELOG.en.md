@@ -2,6 +2,16 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [3.5.3](https://github.com/victhille/devforge/compare/v3.5.2...v3.5.3) — 2026-10-28
+
+> File code in colours as in an IDE, a button to open the file in your IDE, and the Packages tab for Python, Rust, Go, Ruby, Dart, .NET and Java projects.
+
+### New features
+
+- **projets**: Code en couleurs, fichier ouvert dans l'IDE, paquets des autres langages (v3.5.3) ([bd9b3d4](https://github.com/victhille/devforge/commit/bd9b3d438c461cb663e61b428ba1723deb1eba11))
+
+_1 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [3.5.2](https://github.com/victhille/devforge/compare/v3.5.1...v3.5.2) — 2026-10-28
 
 > Previews of .md files written on Windows no longer crash, clicking a group's card opens its page, and the Files tab gives all its room to the tree and the preview.

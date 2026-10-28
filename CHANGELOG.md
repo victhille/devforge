@@ -2,6 +2,16 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [3.5.3](https://github.com/victhille/devforge/compare/v3.5.2...v3.5.3) — 2026-10-28
+
+> Le code des fichiers en couleurs comme dans un IDE, un bouton pour ouvrir le fichier dans ton IDE, et l'onglet Paquets pour les projets Python, Rust, Go, Ruby, Dart, .NET et Java.
+
+### Nouveautés
+
+- **projets** : Code en couleurs, fichier ouvert dans l'IDE, paquets des autres langages (v3.5.3) ([bd9b3d4](https://github.com/victhille/devforge/commit/bd9b3d438c461cb663e61b428ba1723deb1eba11))
+
+_1 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [3.5.2](https://github.com/victhille/devforge/compare/v3.5.1...v3.5.2) — 2026-10-28
 
 > L'aperçu des fichiers .md écrits sous Windows ne plante plus, un clic sur une carte groupe ouvre sa fiche, et l'onglet Fichiers laisse toute la place à l'arbre et à l'aperçu.
