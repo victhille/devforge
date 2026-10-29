@@ -91,7 +91,7 @@ export function ComposeDetail({ p, containers, busy, onAction, onContainer }: {
   }, [runningIds])
 
   return (
-    <>
+    <div className="flex min-w-0 flex-col gap-4">
       <Card className="overflow-hidden rounded-[14px]">
         <div className="flex flex-wrap items-center gap-2.5 border-b border-line-subtle px-[18px] py-4">
           <div className="min-w-[200px] flex-1">
@@ -168,7 +168,7 @@ export function ComposeDetail({ p, containers, busy, onAction, onContainer }: {
       {containers.length > 0 && (
         <LogsCard title={d.logsOf.replace('{name}', shown ? serviceName(shown) : d.allServices)} start={startLogs} stop={stopLogs} />
       )}
-    </>
+    </div>
   )
 }
 
