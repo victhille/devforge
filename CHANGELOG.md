@@ -2,6 +2,25 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [3.8.0](https://github.com/victhille/devforge/compare/v3.7.0...v3.8.0) — 2026-10-29
+
+> Tâches et notes par projet, alertes du CI GitHub, page Activité, schéma de la base en plein écran et tes propres modèles de projet.
+
+### Nouveautés
+
+- **projects** : Mes modèles de projet, enregistrés depuis la fiche et proposés dans Nouveau projet (v3.8 lot 5) ([99e56c7](https://github.com/victhille/devforge/commit/99e56c77854adffe9eec74ff6a64ddf2059b6770))
+- **database** : Schéma de la base en plein écran, déplaçable, mini-carte et export PNG/SVG (v3.8 lot 4) ([1939082](https://github.com/victhille/devforge/commit/193908209d8af0725083a704274df36577981dae))
+- **git** : Page Activité, commits par semaine de tous les projets et widget Commits (v3.8 lot 3) ([036334e](https://github.com/victhille/devforge/commit/036334ed3d7f69189678408906979438fab74a2f))
+- **github** : Alertes du CI GitHub, notification et point rouge sur la carte (v3.8 lot 2) ([8e4cd38](https://github.com/victhille/devforge/commit/8e4cd380e057250f7323bff42eeb4a7ed65d95f5))
+- **notes** : Tâches et notes par projet, comptées sur la carte, lues par Forgy (v3.8 lot 1) ([2acd98a](https://github.com/victhille/devforge/commit/2acd98ad41848fc4aedbd1579383944000197476))
+
+### Corrections
+
+- **forgy** : Outil project_notes en fin de liste (cache des prompts) ([b31386e](https://github.com/victhille/devforge/commit/b31386ed63adb494febe90eb51ff4406fa7d81eb))
+- **v3.8** : Lien de la page Activité et import inutilisé ([320b14a](https://github.com/victhille/devforge/commit/320b14ac1e54149457a788cdbfa6cde9a1256878))
+
+_5 changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._
+
 ## [3.7.0](https://github.com/victhille/devforge/compare/v3.6.0...v3.7.0) — 2026-10-28
 
 > Un onglet Tests dans la fiche projet (Vitest, Jest, Playwright, PHPUnit, pytest, Go, Cargo) : chaque test, ses échecs avec attendu et reçu, relancer, demander à Forgy ; et l'arbre des fichiers montre ce qui a changé depuis le dernier commit, avec le diff.
