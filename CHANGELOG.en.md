@@ -2,6 +2,17 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [3.8.1](https://github.com/victhille/devforge/compare/v3.8.0...v3.8.1) — 2026-10-29
+
+> Formatted notes, a smoother database schema, project tabs without scrolling, a lighter app (429 MB), updates with no installer window, and a review of the whole interface.
+
+### Fixes
+
+- **docker**: Espace entre la console et le bloc des services dans l'onglet du projet ([a05470b](https://github.com/victhille/devforge/commit/a05470bbfc49d6dcd907591b66b0b45e6dcb3b12))
+- **v3.8.1**: Schéma, notes mises en forme, onglets du projet, tour de l'appli et ménage du code ([045288a](https://github.com/victhille/devforge/commit/045288a3e41d0ffd1d9612755f62827be3eaf19f))
+
+_1 technical change(s) (tests, CI, repository docs) not listed._
+
 ## [3.8.0](https://github.com/victhille/devforge/compare/v3.7.0...v3.8.0) — 2026-10-29
 
 > Tasks and notes per project, GitHub CI alerts, an Activity page, a full-screen database schema and your own project templates.
