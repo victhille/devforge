@@ -28,12 +28,11 @@ test('pin, reorder and reset the menu favorites', async () => {
   await expect(favs(run)).toHaveText(['Projets', 'Docker', 'Base de données', 'API Tester', 'Déploiement'])
   await expect.poll(() => saved(run)).toEqual(['/projects', '/docker', '/database', '/api-tester', '/deploy'])
 
-  // Unpin Docker: it stays reachable in its group
+  // Unpin Docker: it stays reachable in its group (Going live, open)
   const dockerFav = page.locator('[data-fav]', { has: page.getByRole('link', { name: 'Docker' }) })
   await dockerFav.hover()
   await dockerFav.getByRole('button', { name: 'Retirer des favoris' }).click()
   await expect(favs(run)).toHaveText(['Projets', 'Base de données', 'API Tester', 'Déploiement'])
-  await menu.getByRole('button', { name: 'Développement' }).click()
   await expect(menu.getByRole('link', { name: 'Docker', exact: true })).toBeVisible()
 
   // Keyboard reorder: Deploy goes up one
