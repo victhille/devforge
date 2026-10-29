@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
 import { cn } from '@renderer/lib/cn'
-import TerminalTabs from './TerminalTabs'
+import Spinner from '@renderer/components/ui/Spinner'
+
+// The terminal (xterm, 400 KB) loads on the dock's first opening, not with the app
+const TerminalTabs = lazy(() => import('./TerminalTabs'))
 
 export const TOGGLE_TERMINAL = 'devforge:toggle-terminal'
 const HEIGHT_KEY = 'devforge:terminal-height'
@@ -57,7 +60,9 @@ export default function TerminalDock() {
         className="absolute -top-1 right-0 left-0 z-10 h-2 cursor-row-resize" />
       {/* The shells already open stay where they are; new tabs open in the active project */}
       {/* Closing the last tab closes the dock: the next opening starts afresh */}
-      <TerminalTabs cwd={cwd} className="h-full" onHide={() => setOpen(false)} onEmpty={() => { setOpen(false); setOpened(false) }} />
+      <Suspense fallback={<Spinner className="m-4" />}>
+        <TerminalTabs cwd={cwd} className="h-full" onHide={() => setOpen(false)} onEmpty={() => { setOpen(false); setOpened(false) }} />
+      </Suspense>
     </section>
   )
 }

@@ -7,8 +7,7 @@ import { formatSize } from '@renderer/lib/format'
 import Button from '@renderer/components/ui/Button'
 import { Input } from '@renderer/components/ui/Input'
 import { SettingRow, SettingsCard } from './parts'
-
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+import { errorText } from '@renderer/lib/errors'
 
 /** Data folder, backups (with restore), local log, monitoring history */
 export default function DataSettings({ onCopyReport }: { onCopyReport: () => void }) {
@@ -94,7 +93,7 @@ export default function DataSettings({ onCopyReport }: { onCopyReport: () => voi
           run('wipe', () => window.devforge.data.wipe())
         }}>
           <Input aria-label={s.wipeType.replace('{word}', s.wipeWord)} placeholder={s.wipeType.replace('{word}', s.wipeWord)} value={wipeWord}
-            onChange={e => setWipeWord(e.target.value)} className="w-56" autoComplete="off" spellCheck={false} />
+            onChange={e => setWipeWord(e.target.value)} className="w-72" autoComplete="off" spellCheck={false} />
           <Button type="submit" size="sm" variant="danger" loading={busy === 'wipe'} disabled={wipeWord.trim().toLowerCase() !== s.wipeWord}>
             <Trash2 size={13} /> {s.wipeButton}
           </Button>

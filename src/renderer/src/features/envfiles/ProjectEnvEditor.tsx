@@ -120,9 +120,9 @@ export default function ProjectEnvEditor({ projectPath, title, onEnvChange }: {
       <EnvMatrix env={env} onChange={change} />
 
       <div className="flex flex-wrap items-end gap-2">
-        <Input placeholder="NEW_KEY" value={newKey.key} onChange={ev => setNewKey(k => ({ ...k, key: ev.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_') }))} className="w-56 font-mono" />
-        <Input placeholder={e.value} value={newKey.value} onChange={ev => setNewKey(k => ({ ...k, value: ev.target.value }))} className="min-w-40 flex-1 font-mono" onKeyDown={ev => ev.key === 'Enter' && addKey()} />
-        <Select value={newKey.file} onChange={ev => setNewKey(k => ({ ...k, file: ev.target.value }))} className="w-48 font-mono">
+        <Input placeholder="NEW_KEY" aria-label={e.newKeyLabel} value={newKey.key} onChange={ev => setNewKey(k => ({ ...k, key: ev.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_') }))} className="w-56 font-mono" />
+        <Input placeholder={e.value} aria-label={e.value} value={newKey.value} onChange={ev => setNewKey(k => ({ ...k, value: ev.target.value }))} className="min-w-40 flex-1 font-mono" onKeyDown={ev => ev.key === 'Enter' && addKey()} />
+        <Select aria-label={e.fileLabel} value={newKey.file} onChange={ev => setNewKey(k => ({ ...k, file: ev.target.value }))} className="w-48 font-mono">
           {Array.from(new Set(['.env', ...env.files.map(f => f.name)])).map(n => <option key={n}>{n}</option>)}
         </Select>
         <Button onClick={addKey} disabled={!newKey.key.trim()}><Plus size={14} /> {e.add}</Button>

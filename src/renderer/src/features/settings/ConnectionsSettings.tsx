@@ -12,8 +12,7 @@ import { Input } from '@renderer/components/ui/Input'
 import ConnectionForm from '@renderer/features/ssh/components/ConnectionForm'
 import DbConnectionForm from '@renderer/features/database/DbConnectionForm'
 import { SettingRow, SettingsCard } from './parts'
-
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+import { errorText } from '@renderer/lib/errors'
 
 /** Configured or not, in a few words */
 function State({ on, children }: { on: boolean; children: ReactNode }) {

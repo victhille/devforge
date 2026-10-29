@@ -18,11 +18,9 @@ import SqlPanel from './SqlPanel'
 import { BrowseTab, InfoTab, RelationsTab, StructureTab } from './TableTabs'
 import { CreateTableDialog } from './TableDialogs'
 import SchemaView from './SchemaView'
+import { errorText } from '@renderer/lib/errors'
 
 type Tab = 'overview' | 'browse' | 'structure' | 'relations' | 'info' | 'sql'
-
-const errorText = (err: unknown) =>
-  String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 
 const sameTable = (a: DbTableRef | null, b: DbTableRef | null) => !!a && !!b && a.name === b.name && a.schema === b.schema
 

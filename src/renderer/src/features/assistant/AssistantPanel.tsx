@@ -17,6 +17,7 @@ import Markdown from './Markdown'
 import Mascot from './Mascot'
 import AiLaunchers from './AiLaunchers'
 import ActionCard from './ActionCard'
+import { errorText } from '@renderer/lib/errors'
 
 const SKILL_ICON: Record<string, LucideIcon> = { MessageSquare, Search, Bug, GitCommitHorizontal, ShieldCheck, BookOpen, Database, Container, Globe, Sunrise }
 const MODEL_LABEL: Record<string, string> = {
@@ -148,7 +149,7 @@ export default function AssistantPanel() {
       await window.devforge.assistant.send({ conversationId: id, text: q, projectPath, pageContext: ctx, skill })
     } catch (err) {
       setRunning(false)
-      setItems(list => [...list, { kind: 'notice', tone: 'error', text: String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') }])
+      setItems(list => [...list, { kind: 'notice', tone: 'error', text: errorText(err) }])
     }
   }
 

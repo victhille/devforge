@@ -8,6 +8,7 @@ import Modal from '@renderer/components/ui/Modal'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Field, Input, Select } from '@renderer/components/ui/Input'
 import { CONNECTION_COLORS } from '@renderer/features/ssh/components/ConnectionForm'
+import { errorText } from '@renderer/lib/errors'
 
 const DEFAULT_PORT: Record<DbType, number | undefined> = { mysql: 3306, postgres: 5432, sqlite: undefined }
 
@@ -36,7 +37,7 @@ export default function DbConnectionForm({ initial, onSave, onClose }: Props) {
   async function runTest() {
     setTesting(true)
     try { setTest({ ok: true, text: await window.devforge.db.test(full()) }) }
-    catch (err) { setTest({ ok: false, text: String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') }) }
+    catch (err) { setTest({ ok: false, text: errorText(err) }) }
     finally { setTesting(false) }
   }
 

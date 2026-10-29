@@ -137,7 +137,3 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
     ]
   }
 ]
-
-export function getTemplate(id: Framework): ProjectTemplate | undefined {
-  return PROJECT_TEMPLATES.find(t => t.id === id)
-}

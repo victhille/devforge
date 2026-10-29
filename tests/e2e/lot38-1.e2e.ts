@@ -11,7 +11,7 @@ test.afterEach(async () => {
   await run.close()
 })
 
-test('tasks are added, checked, edited, deleted; notes are written in Markdown; the card counts what is left', async () => {
+test('tasks are added, checked, edited, deleted; notes are formatted text; the card counts what is left', async () => {
   run = await launch({
     seed: dir => {
       const shop = join(dir, 'shop')
@@ -44,22 +44,53 @@ test('tasks are added, checked, edited, deleted; notes are written in Markdown; 
   await tasks.getByRole('listitem').filter({ hasText: 'Corriger' }).getByRole('button', { name: 'Supprimer la tâche' }).click()
   await expect(tasks.getByRole('checkbox')).toHaveCount(1)
 
-  // Notes in Markdown, shown formatted
+  // v3.8.1: formatted text, written as in a word processor
   const notes = page.getByTestId('notes')
-  await notes.getByRole('button', { name: 'Éditer' }).click()
-  await notes.getByRole('textbox', { name: 'Notes' }).fill('# Mise en ligne\n\n- vider le **cache**')
-  await notes.getByRole('button', { name: 'Aperçu' }).click()
-  await expect(notes.getByRole('heading', { name: 'Mise en ligne' })).toBeVisible()
-  await expect(notes.locator('strong')).toHaveText('cache')
+  const editor = notes.getByRole('textbox', { name: 'Notes' })
+  await editor.click()
+  await notes.getByRole('combobox', { name: 'Style du paragraphe' }).selectOption('h1')
+  await page.keyboard.type('Mise en ligne')
+  await page.keyboard.press('Enter')
+  await notes.getByRole('combobox', { name: 'Style du paragraphe' }).selectOption('p')
+  await page.keyboard.type('vider le ')
+  await page.keyboard.press('Control+b')
+  await page.keyboard.type('cache')
+  await page.keyboard.press('Control+b')
+  await page.keyboard.type(' puis ')
+  await notes.getByRole('button', { name: 'Souligné (Ctrl+U)' }).click()
+  await page.keyboard.type('relancer')
+  await expect(notes.getByRole('button', { name: 'Souligné (Ctrl+U)' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(editor.getByRole('heading', { name: 'Mise en ligne', level: 1 })).toBeVisible()
+  await expect(editor.locator('b')).toHaveText('cache')
+  await expect(editor.locator('u')).toHaveText('relancer')
   expect(await settledAxe(page)).toEqual([])
 
   // Kept: after a reload, and counted on the card (1 open task)
   await page.waitForTimeout(800)
   await page.reload()
   await expect(page.getByTestId('notes').getByRole('heading', { name: 'Mise en ligne' })).toBeVisible()
+  await expect(page.getByTestId('notes').locator('u')).toHaveText('relancer')
   await goTo(page, '/projects')
   const chip = page.getByTestId('tasks-chip')
   await expect(chip).toHaveText('1 à faire')
   await chip.click()
   await expect(page).toHaveURL(/\/project\/p\?tab=notes/)
+})
+
+test('notes written in Markdown before v3.8.1 open formatted', async () => {
+  run = await launch({
+    seed: dir => {
+      const shop = join(dir, 'shop')
+      mkdirSync(shop, { recursive: true })
+      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p', name: 'shop', path: shop, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(join(dir, 'project-notes.json'), JSON.stringify({ p: { tasks: [], notes: '# Mise en ligne\n\n- vider le **cache**\n- <script>x</script>', updatedAt: '' } }))
+    }
+  })
+  const { page } = run
+  await goTo(page, '/project/p?tab=notes')
+  const editor = page.getByTestId('notes').getByRole('textbox', { name: 'Notes' })
+  await expect(editor.getByRole('heading', { name: 'Mise en ligne' })).toBeVisible()
+  await expect(editor.locator('li b')).toHaveText('cache')
+  // Text that looked like a tag stays text
+  await expect(editor.locator('li').nth(1)).toHaveText('<script>x</script>')
 })

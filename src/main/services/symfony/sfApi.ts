@@ -9,16 +9,10 @@ import { plural } from './sfEntityWriter'
 
 export const OPERATIONS: SfOperation[] = ['list', 'show', 'create', 'update', 'delete']
 
-/** Fields never sent out by default */
-export const SECRET_FIELDS = ['password', 'plainPassword', 'token', 'resetToken', 'apiToken']
-
 const PLATFORM_CLASS: Record<SfOperation, string> = { list: 'GetCollection', show: 'Get', create: 'Post', update: 'Patch', delete: 'Delete' }
 
 /** URL of an entity's collection: /api/factures, /api/categories */
 export const apiPath = (entity: string) => `/api/${plural(entity.charAt(0).toLowerCase() + entity.slice(1)).replace(/[A-Z]/g, c => `_${c.toLowerCase()}`)}`
-
-/** API Platform's own path rule: snake_case plural (LigneCommande → /api/ligne_commandes) */
-export const platformPath = apiPath
 
 const RESOURCE_LINE = /^[ \t]*#\[ApiResource(\(.*\))?\]\r?\n/m
 const HIDDEN_LINE = /^[ \t]*#\[ApiProperty\(readable: false, writable: false\)\]\r?\n/gm

@@ -7,6 +7,7 @@ import { formatRelative, formatSize } from '@renderer/lib/format'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Dot, Pill, SmallButton, Tile } from './parts'
 import NeedsSetup from '@renderer/components/NeedsSetup'
+import { errorText } from '@renderer/lib/errors'
 
 /**
  * Home widgets about the VPS: they read the server the VPS pages show
@@ -14,7 +15,6 @@ import NeedsSetup from '@renderer/components/NeedsSetup'
  */
 
 const KEY = 'devforge:vps-server'
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 
 /** The server of the VPS pages, else the first one; null when none is saved */
 export function useVpsServer(): SSHConnection | null | undefined {

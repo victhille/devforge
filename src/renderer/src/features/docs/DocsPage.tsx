@@ -14,15 +14,14 @@ import { SectionTitle } from '@renderer/components/ui/Page'
 import { DOCS } from './data'
 import CommandForm from './CommandForm'
 import { techIdFor, withCustom, type Entry } from './withCustom'
-
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+import { errorText } from '@renderer/lib/errors'
 
 function EntryCard({ entry, onEdit, onRemove }: { entry: Entry; onEdit?: () => void; onRemove?: () => void }) {
   const { t } = useI18n()
   return (
     <div className="group flex flex-col gap-1.5 rounded-lg border border-line-subtle bg-surface p-3 transition-colors hover:border-line">
       <div className="flex items-start justify-between gap-2">
-        <code className="font-mono text-sm break-all text-fg">{entry.cmd}</code>
+        <code className="font-mono text-sm break-words text-fg">{entry.cmd}</code>
         <div className="flex shrink-0 items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
           {onEdit && <IconButton size="sm" title={t.docsCustom.edit} onClick={onEdit}><Pencil size={12} /></IconButton>}
           {onRemove && <IconButton size="sm" tone="danger" title={t.docsCustom.remove} onClick={onRemove}><Trash2 size={12} /></IconButton>}
@@ -32,7 +31,7 @@ function EntryCard({ entry, onEdit, onRemove }: { entry: Entry; onEdit?: () => v
       {entry.desc && <span className="text-sm text-fg-secondary">{entry.desc}</span>}
       {entry.example && (
         <div className="flex items-start justify-between gap-2 rounded-md bg-elevated px-2.5 py-1.5">
-          <code className="font-mono text-xs break-all text-accent">{entry.example}</code>
+          <code className="font-mono text-xs break-words text-accent">{entry.example}</code>
           <CopyButton text={entry.example} />
         </div>
       )}

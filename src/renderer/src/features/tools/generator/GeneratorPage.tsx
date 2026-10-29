@@ -13,9 +13,10 @@ import ToolHelp from '@renderer/components/ui/ToolHelp'
 type T = ReturnType<typeof useI18n>['t']['generator']
 
 function Slider({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
+  const { lang } = useI18n()
   return (
     <label className="flex flex-col gap-1.5 text-sm text-fg-muted">
-      <span>{label}: <strong className="text-fg-secondary">{value}</strong></span>
+      <span>{label}{lang === 'fr' ? '\u00a0: ' : ': '}<strong className="text-fg-secondary">{value}</strong></span>
       <input type="range" min={min} max={max} value={value} onChange={e => onChange(Number(e.target.value))} className="w-52 accent-accent" />
     </label>
   )

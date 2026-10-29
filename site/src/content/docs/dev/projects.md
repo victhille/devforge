@@ -52,7 +52,7 @@ Les onglets n'apparaissent que s'ils ont un sens pour ce projet :
 | Onglet | Contenu |
 |---|---|
 | Vue d'ensemble | une tuile par sujet (Git, Docker, variables, base, ports…) avec son résumé et **Voir** |
-| Notes | les tâches à cocher et les notes en Markdown du projet, voir plus bas ; le nombre de tâches à faire s'affiche sur l'onglet |
+| Notes | les tâches à cocher et les notes mises en forme du projet, voir plus bas ; le nombre de tâches à faire s'affiche sur l'onglet |
 | Git | branche, fichiers modifiés, commits à pousser ou à récupérer, dernier commit, **Commit…**, **Pull**, **Push**, **Fetch** |
 | GitHub | si le dépôt est sur GitHub : GitHub Actions (avec **Relancer les échecs**), pull requests ouvertes, versions publiées |
 | Atelier Symfony / Next.js / Laravel | selon le framework, voir plus bas |
@@ -132,7 +132,7 @@ Depuis l'onglet **Déploiement**, **Synchroniser le .env** compare le fichier su
 L'onglet **Notes** garde ce qui concerne le projet, dans les données de DevForge (jamais dans le dossier du projet) :
 
 - **Tâches** : écris-en une et <kbd>Entrée</kbd> l'ajoute. Coche-la quand elle est faite (la date s'affiche), double-clique pour la modifier, glisse-la pour changer l'ordre, la corbeille la supprime. **Masquer les faites** ne garde que ce qui reste.
-- **Notes** : du texte libre en Markdown. **Éditer** pour écrire, **Aperçu** pour le voir mis en forme (titres, listes, code, liens). Tout s'enregistre au fil de la frappe.
+- **Notes** : un texte mis en forme, comme dans un traitement de texte. La barre d'outils donne le style du paragraphe (texte, titres 1 à 3), la taille, le **gras** (<kbd>Ctrl</kbd> <kbd>B</kbd>), l'*italique* (<kbd>Ctrl</kbd> <kbd>I</kbd>), le souligné (<kbd>Ctrl</kbd> <kbd>U</kbd>), le barré, la couleur du texte, le surlignage, les listes à puces ou numérotées, la citation et le bloc de code ; la gomme efface la mise en forme. Un texte collé garde sa mise en forme, nettoyée. Tout s'enregistre au fil de la frappe ; les notes écrites en Markdown avant la v3.8.1 s'ouvrent mises en forme.
 
 Sur la [liste des projets](#la-liste-des-projets), la carte d'un projet montre **n à faire** tant qu'il reste des tâches. Les notes font partie de l'export du profil.
 

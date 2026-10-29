@@ -9,6 +9,7 @@ import { useCommands, type Command } from '@renderer/components/command-palette/
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { applyAppearance } from '@renderer/lib/appearance'
 import { cn } from '@renderer/lib/cn'
+import { errorText } from '@renderer/lib/errors'
 
 /** The launcher's own empty page: any other route is meant for the main window */
 const HERE = '/launcher'
@@ -126,7 +127,7 @@ function LauncherBody() {
       }
     } catch (err) {
       setPending(null)
-      setStatus({ tone: 'error', text: l.failed.replace('{error}', String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')) })
+      setStatus({ tone: 'error', text: l.failed.replace('{error}', errorText(err)) })
     }
   }
 

@@ -8,7 +8,6 @@ import Card from '@renderer/components/ui/Card'
 import { isDbAuthError } from '@shared/lib/projectSetup'
 import { useI18n } from '@renderer/i18n/I18nContext'
 
-export const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 
 /** A workshop panel: title, a line of help, actions on the right */
 export function Section({ title, help, actions, children, className }: { title: string; help?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string }) {

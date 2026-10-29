@@ -42,6 +42,8 @@ test('the schema shows tables and links, hides and adds tables, moves a card, ex
   const canvas = dialog.getByTestId('schema-canvas')
   const card = (name: string) => canvas.locator(`[data-table=".${name}"]`)
   await expect(canvas.locator('[data-table]')).toHaveCount(7)
+  // v3.8.1: over the whole window, never inside the page (whose animation would hold a fixed element)
+  await expect(page.locator('body > [role=dialog]')).toHaveCount(1)
   await expect(card('order_item')).toContainText('product_id')
   // 5 links, each with its arrow head
   await expect(canvas.locator('svg g')).toHaveCount(5)

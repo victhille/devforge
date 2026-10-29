@@ -31,7 +31,7 @@ test('projects of two folders show together, each with its folder; a gone folder
   await goTo(page, '/projects')
   await expect(page.getByText('blog', { exact: true })).toBeVisible()
   await expect(page.getByText('shop', { exact: true })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Détectés dans vos dossiers' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Détectés dans tes dossiers' })).toBeVisible()
   await expect(page.getByRole('status').filter({ hasText: 'Dossier introuvable' })).toContainText('Parti')
   expect(await settledAxe(page)).toEqual([])
 

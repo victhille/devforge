@@ -123,7 +123,7 @@ export default function FinishForm({ options, stack, libraries, templateName, on
           <CardTitle>{s.recapTitle}</CardTitle>
           <ol aria-label={s.recapTitle} tabIndex={0} className="flex max-h-[420px] flex-col gap-2 overflow-y-auto rounded-xl bg-canvas p-3 text-sm">
             <li className="flex flex-col">
-              <span className="text-fg">{templateName ? t.templates.recapCopy.replace('{name}', templateName) : s.recapBase.replace('{name}', template?.name ?? options.framework)}</span>
+              <span className="text-fg">{templateName ? t.templates.recapCopy.replace('{name}', templateName) : s.recapBase.replace('{name}', t.newProject.templateName[options.framework] ?? template?.name ?? options.framework)}</span>
               {libraries > 0 && <span className="text-fg-muted">{s.recapLibs.replace('{n}', String(libraries))}</span>}
             </li>
             {steps.map((step, i) => (

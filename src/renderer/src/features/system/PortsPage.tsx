@@ -11,6 +11,7 @@ import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
+import { errorText } from '@renderer/lib/errors'
 
 // Well-known ports for display hints
 const WELL_KNOWN: Record<number, string> = {
@@ -51,7 +52,7 @@ export default function PortsPage() {
       await window.devforge.freePort(port.port, port.pid)
       toast.show({ tone: 'success', title: p.freed.replace('{port}', String(port.port)) })
     } catch (err) {
-      toast.show({ tone: 'error', title: p.freeFailed.replace('{port}', String(port.port)), description: String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') })
+      toast.show({ tone: 'error', title: p.freeFailed.replace('{port}', String(port.port)), description: errorText(err) })
     } finally {
       setFreeing(null)
       refresh()

@@ -54,7 +54,7 @@ Les alertes arrivent en notification Windows. Voir [Monitoring](/devforge/server
 
 - **Canal** : *Stable* (versions finales) ou *Bêta* (aussi les préversions, plus tôt mais parfois avec des bugs).
 - **Vérifier** cherche tout de suite une nouvelle version ; sinon c'est automatique, 15 s après le démarrage puis toutes les 6 h.
-- Une version prête s'installe au prochain redémarrage, ou avec **Redémarrer et mettre à jour**.
+- Une version prête s'installe au prochain redémarrage, ou avec **Redémarrer et mettre à jour**, sans fenêtre d'installation ; DevForge se relance tout seul.
 - **Montrer « Quoi de neuf » après une mise à jour** : une fenêtre résume la version au premier lancement.
 - **Notes de version** : toutes les versions, filtrables (nouveautés, améliorations, corrections), dans la langue de l'application.
 

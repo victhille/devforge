@@ -88,5 +88,3 @@ export function DiffView({ root, rel }: { root: string; rel: string }) {
     </div>
   )
 }
-
-export const diffCounts = (d: ParsedDiff) => ({ added: d.added, removed: d.removed })

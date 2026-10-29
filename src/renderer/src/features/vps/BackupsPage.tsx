@@ -14,8 +14,8 @@ import { Input } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { ServerSelect, useServerPicker } from './ServerPicker'
 import NeedsSetup from '@renderer/components/NeedsSetup'
+import { errorText } from '@renderer/lib/errors'
 
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 /** Same threshold as the main process' warning */
 const STALE_HOURS = 36
 

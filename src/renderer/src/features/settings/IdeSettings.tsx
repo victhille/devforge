@@ -8,8 +8,8 @@ import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
 import { Field, Input } from '@renderer/components/ui/Input'
 import { SettingRow } from './parts'
+import { errorText } from '@renderer/lib/errors'
 
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const blank = (): CustomIde => ({ id: '', name: '', path: '', args: '{dir}' })
 
 const SELECT = 'h-9 min-w-[220px] rounded-[9px] border border-line bg-canvas px-3 text-[13px] text-fg outline-none focus:border-accent/60'

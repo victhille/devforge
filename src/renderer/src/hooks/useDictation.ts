@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { errorText } from '@renderer/lib/errors'
 
 export type DictationState =
   | { phase: 'idle' }
@@ -6,8 +7,6 @@ export type DictationState =
   | { phase: 'download'; pct: number | null }
   | { phase: 'transcribing' }
   | { phase: 'error'; reason: 'mic' | 'failed'; message?: string }
-
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 
 /**
  * Voice typing: records the microphone, then Whisper (on this PC, in the main

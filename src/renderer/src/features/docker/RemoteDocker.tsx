@@ -11,8 +11,7 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import NeedsSetup from '@renderer/components/NeedsSetup'
-
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+import { errorText } from '@renderer/lib/errors'
 
 /** "app-backend-1" in project "app" → "backend" */
 const shortName = (c: RemoteContainer) => (c.composeProject ? c.name.replace(new RegExp(`^${c.composeProject}[-_]`), '').replace(/[-_]\d+$/, '') : c.name)

@@ -9,6 +9,7 @@ import Mascot, { type MascotMood } from '@renderer/features/assistant/Mascot'
 import Markdown from '@renderer/features/assistant/Markdown'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
 import DictateButton from '@renderer/components/DictateButton'
+import { errorText } from '@renderer/lib/errors'
 
 type Phase = 'idle' | 'thinking' | 'searching' | 'working' | 'happy' | 'sad'
 /** The last question and its answer, as shown on the card */
@@ -20,7 +21,6 @@ const REACTION_MS = 2600
 const BLUR_COLLAPSE_MS = 200
 
 const money = (usd: number) => (usd === 0 ? '0 $' : usd < 0.01 ? `${(usd * 100).toFixed(2)} ¢` : `${usd.toFixed(2)} $`)
-const cleanError = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 
 /** A chip showing `label`, with a native select laid over it (its popup is not clipped by the small window) */
 function ChipSelect({ label, title, disabled, children, value, onChange }: {
@@ -218,7 +218,7 @@ export default function Widget() {
     } catch (err) {
       setRunning(false)
       setPhase('sad')
-      setTurn(tu => tu && { ...tu, notices: [...tu.notices, { tone: 'error', text: cleanError(err) }] })
+      setTurn(tu => tu && { ...tu, notices: [...tu.notices, { tone: 'error', text: errorText(err) }] })
     }
   }
 

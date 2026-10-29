@@ -57,7 +57,7 @@ export default function TechSelector({ onSelect, templates, onTemplate }: { onSe
                   >
                     <FrameworkIcon name={tpl.iconName} size={22} style={{ color: tpl.color }} />
                   </div>
-                  <span className="font-semibold text-fg">{tpl.name}</span>
+                  <span className="font-semibold text-fg">{t.newProject.templateName[tpl.id] ?? tpl.name}</span>
                   <span className="text-sm leading-snug text-fg-secondary">{t.newProject.templateDesc[tpl.id] ?? tpl.description}</span>
                 </button>
               ))}

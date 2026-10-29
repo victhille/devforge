@@ -11,8 +11,7 @@ import Spinner from '@renderer/components/ui/Spinner'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { ServerSelect, useServerPicker } from './ServerPicker'
 import NeedsSetup from '@renderer/components/NeedsSetup'
-
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+import { errorText } from '@renderer/lib/errors'
 
 export default function ServicesPage() {
   const { t } = useI18n()

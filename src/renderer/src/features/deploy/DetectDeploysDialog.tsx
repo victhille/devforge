@@ -8,6 +8,7 @@ import Button from '@renderer/components/ui/Button'
 import Modal from '@renderer/components/ui/Modal'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Select } from '@renderer/components/ui/Input'
+import { errorText } from '@renderer/lib/errors'
 
 interface Props {
   existing: DeployTarget[]
@@ -30,7 +31,7 @@ export default function DetectDeploysDialog({ existing, onClose, onCreated }: Pr
     setScanning(true)
     setFound(null)
     try { setFound(await window.devforge.deploy.detect(id)) }
-    catch (err) { toast.show({ tone: 'error', title: d.scanFailed, description: String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') }) }
+    catch (err) { toast.show({ tone: 'error', title: d.scanFailed, description: errorText(err) }) }
     finally { setScanning(false) }
   }, [toast, d])
 

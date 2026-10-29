@@ -10,6 +10,7 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Select } from '@renderer/components/ui/Input'
 import { useAssistant } from '@renderer/features/assistant/AssistantContext'
+import { errorText } from '@renderer/lib/errors'
 
 const LABEL: Record<TestRunner, string> = { vitest: 'Vitest', jest: 'Jest', playwright: 'Playwright', phpunit: 'PHPUnit', pytest: 'pytest', go: 'Go', cargo: 'Cargo' }
 
@@ -170,7 +171,7 @@ export default function TestsPanel({ path, runners, projectName, onOpen }: {
         ? { ...r, files: prev.files.map(f => r.files.find(x => x.file === f.file) ?? f), totals: prev.totals }
         : r))
     } catch (err) {
-      setError(String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, ''))
+      setError(errorText(err))
     } finally { setRunning(false) }
   }, [path, runner])
 

@@ -12,6 +12,7 @@ import CopyButton from '@renderer/components/ui/CopyButton'
 import Markdown from '@renderer/features/assistant/Markdown'
 import { cn } from '@renderer/lib/cn'
 import { DiffView, TONE } from './GitMarks'
+import { errorText } from '@renderer/lib/errors'
 
 // pdf.js is heavy: loaded with the first PDF only
 const PdfView = lazy(() => import('./PdfView'))
@@ -86,7 +87,7 @@ export default function FilePreview({ file, line, root, ide: own, onClose, chang
 
   async function openInIde() {
     try { await ide.openFile(file.path, own, root, line) }
-    catch (err) { toast.show({ tone: 'error', title: String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') }) }
+    catch (err) { toast.show({ tone: 'error', title: errorText(err) }) }
   }
 
   return (

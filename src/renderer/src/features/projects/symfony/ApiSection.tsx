@@ -6,7 +6,8 @@ import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Checkbox from '@renderer/components/ui/Checkbox'
 import EmptyState from '@renderer/components/ui/EmptyState'
-import { Section, errorText } from './parts'
+import { Section } from './parts'
+import { errorText } from '@renderer/lib/errors'
 
 const OPERATIONS: SfOperation[] = ['list', 'show', 'create', 'update', 'delete']
 const SECRET = ['password', 'plainPassword', 'token', 'resetToken', 'apiToken']

@@ -129,7 +129,7 @@ export default function GitDashboardPage() {
                 </button>
 
                 <div className="flex shrink-0 items-center gap-1.5">
-                  {d.changes > 0 && <Badge color="warning">{d.changes} {g.changes}</Badge>}
+                  {d.changes > 0 && <Badge color="warning">{(d.changes > 1 ? g.changesMany : g.changesOne).replace('{n}', String(d.changes))}</Badge>}
                   {d.ahead > 0  && <Badge color="accent"><ArrowUp size={11} /> {d.ahead}</Badge>}
                   {d.behind > 0 && <Badge color="danger"><ArrowDown size={11} /> {d.behind}</Badge>}
                   {!d.hasUpstream && d.remoteUrl && <Badge>{g.noUpstream}</Badge>}
@@ -146,7 +146,7 @@ export default function GitDashboardPage() {
                   <Button variant="secondary" size="sm" disabled={d.behind === 0} loading={row.busy === 'pull'} onClick={() => act(row, 'pull')}>
                     {row.busy !== 'pull' && <ArrowDown size={13} />} {g.pull}
                   </Button>
-                  <Button variant="secondary" size="sm" disabled={d.ahead === 0 && d.hasUpstream} loading={row.busy === 'push'} onClick={() => act(row, 'push')}>
+                  <Button variant="secondary" size="sm" disabled={!d.remoteUrl || (d.ahead === 0 && d.hasUpstream)} loading={row.busy === 'push'} onClick={() => act(row, 'push')}>
                     {row.busy !== 'push' && <ArrowUp size={13} />} {g.push}
                   </Button>
                   {ide.labelFor(row.project.ide) && <IconButton title={ide.labelFor(row.project.ide)!} onClick={() => ide.open(row.project.path, row.project.ide)}><Code2 size={14} /></IconButton>}

@@ -10,8 +10,8 @@ import Card from '@renderer/components/ui/Card'
 import IconButton from '@renderer/components/ui/IconButton'
 import { Input } from '@renderer/components/ui/Input'
 import Spinner from '@renderer/components/ui/Spinner'
+import { errorText } from '@renderer/lib/errors'
 
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 /** While a run is going, the panel looks again this often */
 const LIVE_MS = 20_000
 

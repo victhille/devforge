@@ -12,6 +12,7 @@ import Switch from '@renderer/components/ui/Switch'
 import { Input } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import Suggestions from '@renderer/components/ui/Suggestions'
+import { errorText } from '@renderer/lib/errors'
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
@@ -42,7 +43,7 @@ export default function DomainsPage() {
       await reload()
       return true
     } catch (err) {
-      toast.show({ tone: 'error', title: d.saveFailed, description: String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') })
+      toast.show({ tone: 'error', title: d.saveFailed, description: errorText(err) })
       return false
     }
   }

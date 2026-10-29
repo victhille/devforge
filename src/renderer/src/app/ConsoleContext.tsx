@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef, ty
 import type { LogLine, CommandResult, ProjectCreationOptions, PackageManager } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { openInPreferredIde } from '@renderer/lib/ide'
+import { errorText } from '@renderer/lib/errors'
 
 interface ConsoleState {
   visible: boolean
@@ -152,7 +153,7 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
       setState(prev => ({ ...prev, taskId }))
       return taskId
     } catch (err) {
-      const text = String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+      const text = errorText(err)
       setState(prev => ({
         ...prev,
         logs: [...prev.logs, { taskId: '', type: 'error', text, timestamp: new Date().toISOString() }],

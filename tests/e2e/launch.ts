@@ -53,3 +53,15 @@ export async function launch(opts: { settings?: Record<string, unknown>; seed?: 
 export async function goTo(page: Page, route: string): Promise<void> {
   await page.evaluate(r => { location.hash = `#${r}` }, route)
 }
+
+/** v3.8.1: a project's tab, on the bar or in its "More" menu when the window is narrow */
+export async function openProjectTab(page: Page, name: string): Promise<void> {
+  // The name, then its count if it has one ("Déploiement 1")
+  const label = new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}( \\d+)?$`)
+  const tab = page.getByRole('tab', { name: label })
+  const more = page.getByRole('button', { name: /^Plus/ })
+  await tab.or(more).first().waitFor()
+  if (await tab.count()) { await tab.click(); return }
+  await more.click()
+  await page.getByRole('menuitem', { name: label }).click()
+}

@@ -4,6 +4,7 @@ import type { AiToolInfo } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
+import { errorText } from '@renderer/lib/errors'
 
 /** Official web apps: they use the user's own subscriptions */
 const WEB_APPS = [
@@ -31,7 +32,7 @@ export default function AiLaunchers({ projectPath }: { projectPath: string | nul
     try {
       await window.devforge.aiTools.launch(tool.id, projectPath)
     } catch (err) {
-      toast.show({ tone: 'error', title: a.launchFailed.replace('{name}', tool.name), description: String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') })
+      toast.show({ tone: 'error', title: a.launchFailed.replace('{name}', tool.name), description: errorText(err) })
     }
   }
 

@@ -6,7 +6,7 @@ import { githubToken, newestIsPrerelease } from '../github/githubService'
 
 /**
  * Updates from the GitHub releases (electron-updater): checked at startup and
- * every 6 hours, downloaded in the background, installed on restart. The beta
+ * every 6 hours, downloaded in the background, installed silently on restart. The beta
  * channel also takes pre-releases (2.0.0-beta.1…).
  * Only in the installed app; a release feed that cannot be read (private
  * repository, offline) leaves the status "unavailable" without bothering the user.
@@ -56,8 +56,9 @@ export async function checkForUpdates(): Promise<UpdateStatus> {
   return status
 }
 
+/** Silent: no installer window; DevForge starts again on the new version */
 export function installUpdate(): void {
-  if (status.state === 'ready') autoUpdater.quitAndInstall()
+  if (status.state === 'ready') autoUpdater.quitAndInstall(true, true)
 }
 
 export function initUpdater(window: BrowserWindow, beta: boolean): void {

@@ -204,6 +204,7 @@ const en = {
 
   // ── Projects ──────────────────────────────────────────────────────────────
   hub: {
+    moreTabs: "More",
     github: {
       connectTitle: "Connect GitHub",
       connectHint: "DevForge uses GitHub CLI's sign-in when there is one. Sign in once in a terminal:",
@@ -372,6 +373,7 @@ const en = {
 
   // ── New Project ───────────────────────────────────────────────────────────
   newProject: {
+    templateName: { empty: 'Empty project' } as Partial<Record<string, string>>,
     templateDesc: {
       react:   'Build UIs with React + Vite',
       nextjs:  'Full-stack React framework',
@@ -1080,6 +1082,7 @@ const en = {
     mine: "Me",
     everyone: "Everyone",
     perWeek: "Commits per week",
+    noCommits: "No commit in these 12 weeks.",
     perWeekTotal: "{weeks} weeks · {n} commits",
     chartLabel: "Commits per week over 12 weeks, {n} in all",
     weekOf: "Week of {date}",
@@ -1108,11 +1111,32 @@ const en = {
     doneOn: "done on {date}",
     remove: "Delete the task",
     notes: "Notes",
-    view: "Notes view",
-    edit: "Edit",
-    preview: "Preview",
-    empty: "No notes. \"Edit\" to write some, in Markdown.",
-    notesPlaceholder: "Notes in Markdown: # title, - list, **bold**, `code`…",
+    editor: {
+      toolbar: "Formatting",
+      block: "Paragraph style",
+      paragraph: "Text",
+      h1: "Heading 1",
+      h2: "Heading 2",
+      h3: "Heading 3",
+      size: "Text size",
+      small: "Small",
+      normal: "Normal",
+      large: "Large",
+      huge: "Huge",
+      bold: "Bold (Ctrl+B)",
+      italic: "Italic (Ctrl+I)",
+      underline: "Underline (Ctrl+U)",
+      strike: "Strikethrough",
+      color: "Text colour",
+      highlight: "Highlight",
+      noColor: "No colour",
+      bullets: "Bulleted list",
+      numbers: "Numbered list",
+      quote: "Quote",
+      code: "Code block",
+      clear: "Clear formatting",
+      placeholder: "Write your notes here…",
+    },
   },
   tests: {
     expected: "Expected",
@@ -2348,7 +2372,8 @@ const en = {
     allCleanHint:    'No uncommitted changes, nothing to push or pull.',
     noRepos:         'No git repository in your projects',
     notRepos:        '{n} project(s) are not git repositories.',
-    changes:         'changes',
+    changesOne:      '{n} change',
+    changesMany:     '{n} changes',
     noUpstream:      'no upstream',
     noRemote:        'no remote',
     fetch:           'Fetch',
@@ -2383,8 +2408,11 @@ const en = {
   },
 
   envFiles: {
+    newKeyLabel: 'New key',
+    fileLabel: 'File to add it to',
     projects:        'Projects',
-    files:           'files',
+    filesOne:        '{n} file',
+    filesMany:       '{n} files',
     noneFound:       'No project has .env files.',
     emptyTitle:      'No .env file here',
     emptyHint:       'Pick a project that has .env, .env.local or .env.example files.',

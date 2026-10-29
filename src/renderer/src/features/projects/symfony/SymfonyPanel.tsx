@@ -11,9 +11,10 @@ import { symfonyKit } from './EntityForm'
 import MigrationsSection from './MigrationsSection'
 import ApiSection from './ApiSection'
 import { DatabaseSection, FixturesSection, PagesSection, RoutesSection, ServerSection } from './ToolSections'
-import { CommandButton, errorText, useSfTasks } from './parts'
+import { CommandButton, useSfTasks } from './parts'
 import { SF_DRAFT_EVENT, takePendingDraft } from './draft'
 import { sfCommandLine } from '@shared/lib/symfonyCommands'
+import { errorText } from '@renderer/lib/errors'
 
 type Part = 'database' | 'entities' | 'migrations' | 'api' | 'pages' | 'fixtures' | 'routes' | 'server'
 const PARTS: Part[] = ['database', 'entities', 'migrations', 'api', 'pages', 'fixtures', 'routes', 'server']

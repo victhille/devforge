@@ -5,7 +5,8 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
 import Checkbox from '@renderer/components/ui/Checkbox'
 import { Input } from '@renderer/components/ui/Input'
-import { Section, errorText } from '../symfony/parts'
+import { Section } from '../symfony/parts'
+import { errorText } from '@renderer/lib/errors'
 
 const PROVIDERS: AuthProvider[] = ['github', 'google', 'credentials']
 const KEYS: Record<'github' | 'google', { id: string; secret: string; console: string }> = {

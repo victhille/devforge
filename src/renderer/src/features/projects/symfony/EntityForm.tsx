@@ -6,7 +6,8 @@ import Button from '@renderer/components/ui/Button'
 import Checkbox from '@renderer/components/ui/Checkbox'
 import IconButton from '@renderer/components/ui/IconButton'
 import { Input, Select } from '@renderer/components/ui/Input'
-import { Section, errorText } from './parts'
+import { Section } from './parts'
+import { errorText } from '@renderer/lib/errors'
 
 const TYPES: SfFieldType[] = ['string', 'text', 'integer', 'float', 'decimal', 'boolean', 'date', 'datetime', 'json']
 const KINDS: SfRelationKind[] = ['ManyToOne', 'OneToMany', 'ManyToMany', 'OneToOne']

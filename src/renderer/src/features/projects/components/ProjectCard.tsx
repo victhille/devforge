@@ -128,10 +128,10 @@ export function ProjectCard(props: SavedProps) {
             <GitBranch size={14} /> {gitStatus!.branch} <span className={git.color}>{git.text}</span>
           </div>
         )}
-        <div className="mt-auto flex items-center gap-1.5 opacity-60 transition-opacity group-hover:opacity-100" onClick={e => e.stopPropagation()}>
+        <div className="mt-auto flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
           {ideLabel && <button onClick={onOpenVSCode} className={cn(action, 'flex-1 border-line bg-elevated text-fg hover:bg-hover')}>{ideLabel}</button>}
           <button onClick={onTerminal} className={cn(action, 'flex-1 border-line bg-elevated text-fg hover:bg-hover')}>{t.projects.terminal}</button>
-          <button onClick={onOpen} className={cn(action, 'flex-1 border-transparent bg-accent-soft font-semibold text-accent hover:bg-accent hover:text-accent-fg')}>{t.projects.open}</button>
+          <button onClick={onOpen} className={cn(action, 'flex-1 border-transparent bg-accent font-semibold text-accent-fg hover:bg-accent-hover')}>{t.projects.open}</button>
           {onRunScript && <ScriptsMenu scripts={scripts} onRun={onRunScript} />}
           {onRemove && <IconButton tone="danger" title={t.projects.remove} onClick={onRemove}><Trash2 size={13} /></IconButton>}
         </div>

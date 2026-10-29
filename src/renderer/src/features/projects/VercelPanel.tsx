@@ -9,8 +9,7 @@ import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import { Input } from '@renderer/components/ui/Input'
 import Spinner from '@renderer/components/ui/Spinner'
-
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+import { errorText } from '@renderer/lib/errors'
 
 const STATE_TONE: Record<string, string> = {
   READY: 'bg-success-soft text-success', ERROR: 'bg-danger-soft text-danger', BUILDING: 'bg-warning-soft text-warning',

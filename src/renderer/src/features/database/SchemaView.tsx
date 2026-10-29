@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { Eye, KeyRound, LayoutTemplate, Maximize2, Minus, Plus, X } from 'lucide-react'
 import type { DbConnection, DbDiagram, DbTableRef } from '@shared/types'
 import {
@@ -11,12 +12,11 @@ import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
+import { errorText } from '@renderer/lib/errors'
 
 /** Over that many tables, the user picks the ones to show */
 const MANY = 60
 const MINI = { w: 200, h: 130 }
-
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 
 interface Saved { pos: Record<string, Point>; shown: string[] | null }
 
@@ -66,6 +66,17 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
     const ro = new ResizeObserver(measure)
     ro.observe(el)
     return () => ro.disconnect()
+  }, [diagram])
+
+  // The wheel zooms the schema only, never scrolls the page under it (a native listener: React's is passive)
+  const zoomAt = useRef<(e: WheelEvent) => void>(() => {})
+  zoomAt.current = e => { const r = viewport.current!.getBoundingClientRect(); zoom(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top) }
+  useEffect(() => {
+    const el = viewport.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => { e.preventDefault(); zoomAt.current(e) }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
   }, [diagram])
 
   const byKey = useMemo(() => new Map((diagram?.tables ?? []).map(tb => [tableKey(tb), tb])), [diagram])
@@ -127,6 +138,8 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
   // Pan the background, move a card by its header
   const down = (e: ReactPointerEvent, key?: string) => {
     if (e.button !== 0) return
+    // No text selection nor native drag (the "no drop" cursor that stops the move)
+    e.preventDefault()
     e.stopPropagation()
     ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
     const p = key ? pos[key] : view
@@ -184,7 +197,8 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
   const label = (tb: DbTableRef) => `${tb.schema && tb.schema !== 'public' ? `${tb.schema}.` : ''}${tb.name}`
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={s.title.replace('{db}', dbName)} className="fixed inset-x-0 top-[42px] bottom-0 z-40 flex flex-col bg-canvas">
+    // On the body: inside a page with a transform (its entry animation), "fixed" would stay in the page
+    createPortal(<div role="dialog" aria-modal="true" aria-label={s.title.replace('{db}', dbName)} className="fixed inset-x-0 top-[42px] bottom-0 z-40 flex flex-col overscroll-contain bg-canvas">
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-line-subtle px-4">
         <h2 className="min-w-0 truncate text-md font-semibold text-fg">{s.title.replace('{db}', dbName)}</h2>
         <span className="hidden items-center gap-3 text-xs text-fg-muted md:flex">
@@ -233,10 +247,9 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
           {diagram && <p className="border-t border-line-subtle px-3 py-2 text-xs text-fg-muted">{s.count.replace('{n}', String(shown.size)).replace('{total}', String(diagram.tables.length))}</p>}
         </aside>
 
-        <div ref={viewport} className="relative min-w-0 flex-1 cursor-grab overflow-hidden bg-canvas active:cursor-grabbing"
+        <div ref={viewport} className="relative min-w-0 flex-1 cursor-grab touch-none overflow-hidden bg-canvas select-none active:cursor-grabbing"
           style={{ backgroundImage: 'radial-gradient(var(--color-line-subtle) 1px, transparent 1px)', backgroundSize: `${20 * view.k}px ${20 * view.k}px`, backgroundPosition: `${view.x}px ${view.y}px` }}
-          onPointerDown={e => down(e)} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
-          onWheel={e => { const r = viewport.current!.getBoundingClientRect(); zoom(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top) }}
+          onPointerDown={e => down(e)} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onDragStart={e => e.preventDefault()}
           data-testid="schema-canvas">
           {error ? <p className="m-6 rounded-lg bg-danger-soft p-3 text-sm text-danger">{s.loadFailed} : {error}</p>
             : !diagram ? <Spinner className="m-6" />
@@ -303,6 +316,6 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
           )}
         </div>
       </div>
-    </div>
+    </div>, document.body)
   )
 }

@@ -13,8 +13,9 @@ import MigrationsSection from '../symfony/MigrationsSection'
 import ApiSection from '../symfony/ApiSection'
 import { FixturesSection, RoutesSection } from '../symfony/ToolSections'
 import { SF_DRAFT_EVENT, takePendingDraft } from '../symfony/draft'
-import { DbAuthHint, RunButton, Section, errorText, useSfTasks } from '../symfony/parts'
+import { DbAuthHint, RunButton, Section, useSfTasks } from '../symfony/parts'
 import AuthSection from './AuthSection'
+import { errorText } from '@renderer/lib/errors'
 
 type Part = 'database' | 'entities' | 'migrations' | 'api' | 'auth' | 'fixtures' | 'routes' | 'server'
 const PARTS: Part[] = ['database', 'entities', 'migrations', 'api', 'auth', 'fixtures', 'routes', 'server']

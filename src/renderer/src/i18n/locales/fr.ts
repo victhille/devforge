@@ -148,18 +148,18 @@ const fr = {
       }
     },
     welcome:        'Bon retour',
-    subtitle:       'Sur quoi travaillez-vous aujourd\'hui ?',
+    subtitle:       'Sur quoi tu travailles aujourd\'hui ?',
     newProject:     'Nouveau projet',
     recentProjects: 'Projets récents',
     noProjects:     'Aucun projet pour l\'instant.',
-    createFirst:    'Créer votre premier projet',
+    createFirst:    'Créer ton premier projet',
     quickActions:   'Actions rapides',
     allProjects:    'Tous les projets',
     stats:          '{n} projet{s} sur {f} framework{sf}',
     openVSCode:     'VS Code',
     open:           'Ouvrir',
     pinnedProjects: 'Projets épinglés',
-    noRecentHint:   'Vos projets récents apparaîtront ici.',
+    noRecentHint:   'Tes projets récents apparaîtront ici.',
     greetingMorning: 'Bonjour',
     greetingEvening: 'Bonsoir',
     statusLine:     '{c} conteneur{s} en ligne · {p} port{sp} en écoute',
@@ -201,6 +201,7 @@ const fr = {
   },
 
   hub: {
+    moreTabs: "Plus",
     github: {
       connectTitle: "Connecter GitHub",
       connectHint: "DevForge utilise la connexion de GitHub CLI quand elle existe. Connecte-la une fois dans un terminal :",
@@ -314,7 +315,7 @@ const fr = {
     ideDefault: 'Par défaut ({ide})',
     projectIde: 'IDE de ce projet',
     subIde: 'IDE de {name}',
-    groupNoScripts: 'Pas de script npm dans ce projet : lancez-le depuis son atelier ou son terminal.',
+    groupNoScripts: 'Pas de script npm dans ce projet : lance-le depuis son atelier ou son terminal.',
     info: 'Projet',
     framework: 'Framework',
     packageManager: 'Gestionnaire de paquets',
@@ -336,9 +337,9 @@ const fr = {
     searchPlaceholder: 'Filtrer…',
     uncommitted:       'modifs en cours',
     rescan:            'Rescanner',
-    yourProjects:      'Vos projets',
+    yourProjects:      'Tes projets',
     detectedIn:        'Détectés dans {dir}',
-    detectedInFolders: 'Détectés dans vos dossiers',
+    detectedInFolders: 'Détectés dans tes dossiers',
     filterGroups:      'Groupes',
     groupCount:        'groupe · {n} projets',
     groupFold:         'Replier le groupe',
@@ -352,7 +353,7 @@ const fr = {
     groupOpen:         'Ouvrir la fiche',
     folderFilter:      'Dossier',
     allFolders:        'Tous les dossiers',
-    folderMissing:     'Dossier introuvable : {dirs}. Changez-le dans Paramètres > Général.',
+    folderMissing:     'Dossier introuvable : {dirs}. Change-le dans Paramètres > Général.',
     detectedHint:      'Pas encore suivis par DevForge.',
     open:              'Ouvrir',
     vsCode:            'VS Code',
@@ -362,12 +363,13 @@ const fr = {
     favorite:          'Favori',
     scripts:           'Scripts',
     noScripts:         'Aucun script trouvé',
-    noProjects:        'Aucun projet trouvé. Créez-en un ou configurez votre dossier de projets dans les paramètres.',
-    noMatch:           'Aucun projet ne correspond à votre recherche.',
+    noProjects:        'Aucun projet trouvé. Crées-en un ou choisis ton dossier de projets dans les paramètres.',
+    noMatch:           'Aucun projet ne correspond à ta recherche.',
     scanning:          'Scan du dossier...'
   },
 
   newProject: {
+    templateName: { empty: 'Projet vide' } as Partial<Record<string, string>>,
     templateDesc: {
       react:   'Interfaces avec React et Vite',
       nextjs:  'Framework React full-stack',
@@ -385,17 +387,17 @@ const fr = {
       openAfter:   'Ouvrir après la création'
     } as Record<string, string>,
     title:          'Nouveau projet',
-    subtitle:       'Choisissez une technologie pour commencer',
+    subtitle:       'Choisis une technologie pour commencer',
     catFrontend:    'Frontend',
     catFullstack:   'Full-Stack',
     catBackend:     'Backend',
     catOther:       'Autre',
     back:           'Retour',
     configTitle:    'Projet {name}',
-    configSubtitle: 'Configurez votre nouveau projet',
+    configSubtitle: 'Configure ton nouveau projet',
     labelName:      'Nom du projet',
     labelDest:      'Destination',
-    destFolders:    'Vos dossiers de projets',
+    destFolders:    'Tes dossiers de projets',
     labelPM:        'Gestionnaire de paquets',
     labelOptions:   'Options',
     browse:         'Parcourir',
@@ -421,7 +423,7 @@ const fr = {
     done:           'Terminé',
     backHome:       'Retour à l\'accueil',
     libTitle:       'Ajouter des librairies',
-    libSubtitle:    'Sélectionnez les paquets à installer avec votre projet',
+    libSubtitle:    'Choisis les paquets à installer avec ton projet',
     libSearch:      'Rechercher des librairies...',
     libCatAll:      'Tout',
     libCatStyling:  'Style',
@@ -528,7 +530,7 @@ const fr = {
     compatStatus:    { ok: 'Compatible', mismatch: 'Mauvaise version', missing: 'Non installé', unknown: 'Contrainte inconnue' },
     title:          'Environnement',
     subtitle:       '{n} / {total} outils détectés',
-    subtitleLoading:'Détection des outils sur votre machine...',
+    subtitleLoading:'Détection des outils sur ce PC…',
     refresh:        'Actualiser',
     detecting:      'Détection des outils...',
     catJS:          'JavaScript',
@@ -1073,6 +1075,7 @@ const fr = {
     mine: "Moi",
     everyone: "Tout le monde",
     perWeek: "Commits par semaine",
+    noCommits: "Aucun commit sur ces 12 semaines.",
     perWeekTotal: "{weeks} semaines · {n} commits",
     chartLabel: "Commits par semaine sur 12 semaines, {n} en tout",
     weekOf: "Semaine du {date}",
@@ -1101,11 +1104,32 @@ const fr = {
     doneOn: "fait le {date}",
     remove: "Supprimer la tâche",
     notes: "Notes",
-    view: "Affichage des notes",
-    edit: "Éditer",
-    preview: "Aperçu",
-    empty: "Aucune note. « Éditer » pour en écrire une, en Markdown.",
-    notesPlaceholder: "Notes en Markdown : # titre, - liste, **gras**, `code`…",
+    editor: {
+      toolbar: "Mise en forme",
+      block: "Style du paragraphe",
+      paragraph: "Texte",
+      h1: "Titre 1",
+      h2: "Titre 2",
+      h3: "Titre 3",
+      size: "Taille du texte",
+      small: "Petit",
+      normal: "Normal",
+      large: "Grand",
+      huge: "Très grand",
+      bold: "Gras (Ctrl+B)",
+      italic: "Italique (Ctrl+I)",
+      underline: "Souligné (Ctrl+U)",
+      strike: "Barré",
+      color: "Couleur du texte",
+      highlight: "Surligner",
+      noColor: "Sans couleur",
+      bullets: "Liste à puces",
+      numbers: "Liste numérotée",
+      quote: "Citation",
+      code: "Bloc de code",
+      clear: "Effacer la mise en forme",
+      placeholder: "Écris tes notes ici…",
+    },
   },
   tests: {
     expected: "Attendu",
@@ -1327,7 +1351,7 @@ const fr = {
     browseKey:      'Parcourir',
     cancel:         'Annuler',
     save:           'Enregistrer',
-    emptyTerminal:  'Sélectionnez une connexion pour ouvrir un terminal',
+    emptyTerminal:  'Choisis une connexion pour ouvrir un terminal',
     connecting:     'Connexion en cours...',
     disconnected:   'Déconnecté'
   },
@@ -2125,7 +2149,7 @@ const fr = {
     newCategoryName: 'Nom de la catégorie',
     suggestions: 'Suggestions',
     found: 'Trouvée sur ce PC : {path}',
-    notFound: "« {program} » n'est pas sur ce PC. Vous pouvez quand même l'enregistrer (pour un serveur distant, par exemple)."
+    notFound: "« {program} » n'est pas sur ce PC. Tu peux quand même l'enregistrer (pour un serveur distant, par exemple)."
   },
 
   // v3.5 lot 4: what each tool is for, how to use it, and its examples
@@ -2137,7 +2161,7 @@ const fr = {
     example: 'Exemple',
     json: {
       what: "Rend lisible un JSON compact (réponse d'API, fichier de config) ou le compacte pour l'envoyer, et dit s'il est invalide.",
-      how: "Collez le JSON à gauche, puis Formater (indenté) ou Minifier (sur une ligne). Le résultat se copie à droite.",
+      how: "Colle le JSON à gauche, puis Formater (indenté) ou Minifier (sur une ligne). Le résultat se copie à droite.",
       sample: "Une réponse d'API"
     },
     base64: {
@@ -2148,47 +2172,47 @@ const fr = {
     },
     jwt: {
       what: "Un JWT est le jeton d'une session (Authorization: Bearer …) : trois parties séparées par des points, dont deux lisibles.",
-      how: "Collez le jeton puis Décoder : vous voyez l'en-tête (algorithme) et le contenu (utilisateur, expiration). La signature n'est pas vérifiée.",
+      how: "Colle le jeton puis Décoder : tu vois l'en-tête (algorithme) et le contenu (utilisateur, expiration). La signature n'est pas vérifiée.",
       sample: 'Un jeton de connexion'
     },
     regex: {
       what: "Une expression régulière décrit un motif de texte : trouver des e-mails, valider une date, extraire des liens.",
-      how: "Écrivez le motif entre les barres, les options à droite (g : toutes les correspondances, i : sans casse), et un texte de test : les correspondances s'allument en direct.",
+      how: "Écris le motif entre les barres, les options à droite (g : toutes les correspondances, i : sans casse), et un texte de test : les correspondances s'allument en direct.",
       patternHint: '\\d{2}/\\d{2}/\\d{4}',
-      textHint: 'Collez ici le texte à tester, par exemple : Livré le 28/10/2026.',
+      textHint: 'Colle ici le texte à tester, par exemple : Livré le 28/10/2026.',
       models: { email: 'E-mail', date: 'Date jj/mm/aaaa', url: 'Lien http(s)', phone: 'Téléphone français' }
     },
     uuid: {
       what: "Un UUID est un identifiant unique au monde, sans serveur pour le distribuer : clés de base, noms de fichiers, identifiants d'objets.",
-      how: "Choisissez combien en générer, puis Générer ; chaque ligne se copie. Il ressemble à : 9b2f6c1e-4d7a-4e3b-9a10-2c5f8e7d6b41",
+      how: "Choisis combien en générer, puis Générer ; chaque ligne se copie. Il ressemble à : 9b2f6c1e-4d7a-4e3b-9a10-2c5f8e7d6b41",
       sample: 'En générer 3'
     },
     hash: {
       what: "Une empreinte (hash) résume un texte en une suite fixe : comparer deux fichiers, vérifier un téléchargement. Elle ne se « décode » pas.",
-      how: "Choisissez l'algorithme (SHA-256 le plus courant), le texte, puis Générer. Le même texte donne toujours la même empreinte.",
+      how: "Choisis l'algorithme (SHA-256 le plus courant), le texte, puis Générer. Le même texte donne toujours la même empreinte.",
       sample: 'Un texte à résumer'
     },
     cron: {
       what: "Une expression cron dit quand une tâche planifiée tourne : sauvegardes, envois d'e-mails, nettoyages.",
-      how: "Cinq champs : minute, heure, jour, mois, jour de la semaine. Tapez-la ou choisissez un exemple : DevForge la traduit et montre les prochaines exécutions."
+      how: "Cinq champs : minute, heure, jour, mois, jour de la semaine. Tape-la ou choisis un exemple : DevForge la traduit et montre les prochaines exécutions."
     },
     timestamp: {
       what: "Un timestamp Unix compte les secondes (ou millisecondes) depuis le 1er janvier 1970 : c'est ainsi que les bases et les API stockent souvent les dates.",
-      how: "Collez un nombre ou une date (ISO, texte) : vous obtenez toutes les écritures, en heure locale et UTC.",
+      how: "Colle un nombre ou une date (ISO, texte) : tu obtiens toutes les écritures, en heure locale et UTC.",
       seconds: 'En secondes',
       millis: 'En millisecondes',
       iso: 'Date ISO'
     },
     url: {
       what: "Une URL ne peut pas contenir d'espaces ni d'accents tels quels : on les encode (%20, %C3%A9). L'outil encode, décode et détaille une adresse.",
-      how: "Collez une adresse ou un morceau, puis Encoder ou Décoder. En dessous : protocole, hôte, chemin et chaque paramètre ?clé=valeur.",
+      how: "Colle une adresse ou un morceau, puis Encoder ou Décoder. En dessous : protocole, hôte, chemin et chaque paramètre ?clé=valeur.",
       sample: 'Une adresse avec paramètres'
     },
     snippets: {
-      what: "Vos bouts de code réutilisables, rangés par langage et étiquettes : une requête SQL, une config, une fonction utile.",
+      what: "Tes bouts de code réutilisables, rangés par langage et étiquettes : une requête SQL, une config, une fonction utile.",
       how: "Nouveau snippet, un titre, le langage, des étiquettes séparées par des virgules, puis Enregistrer. La recherche porte sur le titre, le langage et les étiquettes.",
       exampleTitle: 'Exemple de snippet',
-      exampleHint: "Rien n'est enregistré tant que vous ne partez pas de cet exemple.",
+      exampleHint: "Rien n'est enregistré tant que tu ne pars pas de cet exemple.",
       useExample: 'Partir de cet exemple'
     },
     diff: {
@@ -2198,11 +2222,11 @@ const fr = {
     },
     generator: {
       what: "Génère au hasard ce qu'il ne faut pas inventer soi-même : mots de passe, secrets d'application (APP_KEY, JWT_SECRET), UUID.",
-      how: "Réglez la longueur et les caractères, puis Générer et copiez. Tout est tiré sur ce PC (crypto.getRandomValues), rien n'est envoyé."
+      how: "Règle la longueur et les caractères, puis Générer et copie. Tout est tiré sur ce PC (crypto.getRandomValues), rien n'est envoyé."
     },
     webhooks: {
-      what: "Un webhook est un appel qu'un service (Stripe, GitHub…) envoie à votre application quand un événement arrive. Ici, DevForge les reçoit pour que vous voyiez leur forme.",
-      how: "Démarrer, puis donnez l'adresse au service (via un tunnel s'il est en ligne). Chaque appel s'affiche : en-têtes, corps, et Rejouer vers votre application.",
+      what: "Un webhook est un appel qu'un service (Stripe, GitHub…) envoie à ton application quand un événement arrive. Ici, DevForge les reçoit pour que tu voies leur forme.",
+      how: "Démarrer, puis donne l'adresse au service (via un tunnel s'il est en ligne). Chaque appel s'affiche : en-têtes, corps, et Rejouer vers ton application.",
       sample: 'Un paiement Stripe',
       exampleNote: "Exemple : rien n'a été reçu ni ne sera envoyé (l'adresse se termine par .invalid, elle n'existe pas)."
     }
@@ -2224,7 +2248,7 @@ const fr = {
     status:       'Statut',
     time:         'Temps',
     size:         'Taille',
-    noResponse:   'Envoyez une requête pour voir la réponse',
+    noResponse:   'Envoie une requête pour voir la réponse',
     error:        'Requête échouée',
     tabPreview: "Aperçu",
     previewNote: "Aperçu isolé · scripts désactivés",
@@ -2237,7 +2261,7 @@ const fr = {
     subtitle:     '{n} snippet{s}',
     newSnippet:   'Nouveau snippet',
     search:       'Rechercher des snippets...',
-    noSnippets:   'Aucun snippet. Créez votre premier.',
+    noSnippets:   'Aucun snippet : crée le premier.',
     noMatch:      'Aucun snippet ne correspond.',
     labelTitle:   'Titre',
     labelLang:    'Langage',
@@ -2264,7 +2288,7 @@ const fr = {
     removed:  'supprimé',
     equal:    'inchangé',
     clear:    'Effacer',
-    noInput:  'Collez du texte dans les deux panneaux pour voir le diff'
+    noInput:  'Colle du texte dans les deux panneaux pour voir les différences'
   },
 
   generator: {
@@ -2319,9 +2343,9 @@ const fr = {
     subjectPlaceholder:  'description courte',
     bodyPlaceholder:     'Détails (optionnel)',
     title:           'Tableau de bord Git',
-    subtitle:        'L\'état de tous les dépôts de vos projets en un coup d\'œil',
+    subtitle:        'L\'état de tous les dépôts de tes projets en un coup d\'œil',
     refresh:         'Actualiser',
-    fetchAll:        'Tout fetch',
+    fetchAll:        'Tout récupérer (fetch)',
     fetchAllDone:    'Tous les dépôts sont à jour du remote',
     statRepos:       'Dépôts',
     statChanges:     'Avec modifications',
@@ -2331,9 +2355,10 @@ const fr = {
     filterAll:       'Tous',
     allClean:        'Tout est propre',
     allCleanHint:    'Aucune modification non commitée, rien à pousser ni à récupérer.',
-    noRepos:         'Aucun dépôt git dans vos projets',
+    noRepos:         'Aucun dépôt Git dans tes projets',
     notRepos:        '{n} projet(s) ne sont pas des dépôts git.',
-    changes:         'modifs',
+    changesOne:      '{n} modif',
+    changesMany:     '{n} modifs',
     noUpstream:      'pas d\'upstream',
     noRemote:        'pas de remote',
     fetch:           'Fetch',
@@ -2345,7 +2370,7 @@ const fr = {
 
   cleaner: {
     title:            'Nettoyage disque',
-    subtitle:         'Libérez de la place en supprimant les dossiers que vos outils savent regénérer',
+    subtitle:         'Libère de la place en supprimant les dossiers que tes outils savent régénérer',
     browse:           'Parcourir',
     scan:             'Analyser',
     reclaimable:      'récupérables dans {n} dossiers',
@@ -2359,7 +2384,7 @@ const fr = {
     selectOld:        'Projets inactifs depuis {n} j',
     selectNone:       'Vider',
     old:              'inactif',
-    emptyTitle:       'Choisissez un dossier et lancez l\'analyse',
+    emptyTitle:       'Choisis un dossier et lance l\'analyse',
     emptyHint:        'node_modules, vendor, target, dist, .next, caches… sont listés avec leur taille. Rien n\'est supprimé sans confirmation.',
     confirmTitle:     'Supprimer définitivement ?',
     confirmText:      '{n} dossiers ({size}) vont être supprimés définitivement. Ils se regénèrent avec npm install, composer install, cargo build…',
@@ -2368,11 +2393,14 @@ const fr = {
   },
 
   envFiles: {
+    newKeyLabel: 'Nouvelle clé',
+    fileLabel: 'Fichier où l\'ajouter',
     projects:        'Projets',
-    files:           'fichiers',
+    filesOne:        '{n} fichier',
+    filesMany:       '{n} fichiers',
     noneFound:       'Aucun projet n\'a de fichier .env.',
     emptyTitle:      'Aucun fichier .env ici',
-    emptyHint:       'Choisissez un projet qui a des fichiers .env, .env.local ou .env.example.',
+    emptyHint:       'Choisis un projet qui a des fichiers .env, .env.local ou .env.example.',
     key:             'Clé',
     template:        'modèle',
     missing:         'manquante',
@@ -2397,7 +2425,7 @@ const fr = {
 
   stacks: {
     title:              'Lanceur de stack',
-    subtitle:           'Démarrez tout votre environnement de dev en un clic',
+    subtitle:           'Démarre tout ton environnement de dev en un clic',
     newStack:           'Nouvelle stack',
     newTitle:           'Nouvelle stack',
     editTitle:          'Modifier la stack',
@@ -2406,7 +2434,7 @@ const fr = {
     namePlaceholder:    'Mon SaaS (front + API)',
     color:              'Couleur',
     steps:              'Étapes',
-    noSteps:            'Ajoutez des commandes, VS Code ou des URLs, ou choisissez un projet ci-dessous.',
+    noSteps:            'Ajoute des commandes, VS Code ou des adresses, ou choisis un projet ci-dessous.',
     labelPlaceholder:   'Libellé',
     folder:             'Dossier',
     delay:              'Délai avant ouverture (ms)',
@@ -2421,7 +2449,7 @@ const fr = {
     startFailed:        'Impossible de démarrer la stack',
     deleteConfirm:      'Supprimer la stack « {name} » ? Les processus en cours seront arrêtés.',
     emptyTitle:         'Aucune stack pour l\'instant',
-    emptyHint:          'Une stack regroupe ce que vous lancez chaque jour : front, API, Docker, VS Code, le navigateur…',
+    emptyHint:          'Une stack regroupe ce que tu lances chaque jour : front, API, Docker, VS Code, le navigateur…',
     status:             { running: 'en cours', exited: 'terminé', stopped: 'arrêté', failed: 'échec' }
   },
 
@@ -2469,7 +2497,7 @@ const fr = {
 
   deploy: {
     detectTitle:    'Détecter sur un serveur',
-    detectHint:     'Analyse en lecture seule de /var/www, /srv, /opt et du home : dépôts git et apps PM2. Reliés à vos projets locaux via leur remote git.',
+    detectHint:     'Analyse en lecture seule de /var/www, /srv, /opt et du home : dépôts git et apps PM2. Reliés à tes projets locaux par leur remote Git.',
     scan:           'Analyser',
     scanFailed:     'Échec de l\'analyse',
     nothingFound:   'Aucun dépôt git trouvé sur ce serveur.',
@@ -2477,7 +2505,7 @@ const fr = {
     createTarget:   'Créer la cible',
     created:        'Créée',
     title:          'Déploiement',
-    subtitle:       'Déployez sur vos serveurs en SSH en un clic',
+    subtitle:       'Déploie sur tes serveurs en SSH en un clic',
     newTarget:      'Nouvelle cible',
     newTitle:       'Nouvelle cible de déploiement',
     editTitle:      'Modifier la cible',
@@ -2498,7 +2526,7 @@ const fr = {
     failure:        '{name} : échec du déploiement',
     missingServer:  'serveur introuvable',
     deleteConfirm:  'Supprimer la cible « {name} » et son historique ?',
-    needServer:     'Ajoutez d\'abord un serveur SSH',
+    needServer:     'Ajoute d\'abord un serveur SSH',
     needServerHint: 'Les déploiements passent par les connexions SSH configurées dans SSH / VPS.',
     emptyTitle:     'Aucune cible de déploiement',
     emptyHint:      'Une cible = un serveur, un dossier et un script (git pull, build, redémarrage…).'
@@ -2534,9 +2562,9 @@ const fr = {
   },
 
   monitor: {
-    suggestions:     'Trouvées dans vos projets',
+    suggestions:     'Trouvées dans tes projets',
     title:           'Monitoring',
-    subtitle:        'Soyez prévenu quand un site ou une API tombe',
+    subtitle:        'Sois prévenu quand un site ou une API tombe',
     subtitleOk:      'Toutes les URLs surveillées répondent',
     subtitleDown:    '{n} URL(s) hors ligne',
     add:             'Ajouter une URL',
@@ -2553,7 +2581,7 @@ const fr = {
     resume:          'Reprendre',
     since:           'depuis',
     emptyTitle:      'Rien n\'est surveillé pour l\'instant',
-    emptyHint:       'Ajoutez vos sites et API : DevForge les vérifie en arrière-plan et envoie une notification Windows quand l\'un tombe ou revient.',
+    emptyHint:       'Ajoute tes sites et API : DevForge les vérifie en arrière-plan et envoie une notification Windows quand l\'un tombe ou revient.',
     backgroundHint:  'Les vérifications continuent tant que DevForge est ouvert ou réduit dans la barre système.'
   },
 
@@ -2573,9 +2601,9 @@ const fr = {
     domain:        'Domaine',
     add:           'Ajouter',
     saveFailed:    'Impossible d\'enregistrer le domaine',
-    suggestions:   'Détectés dans vos projets',
+    suggestions:   'Détectés dans tes projets',
     emptyTitle:    'Aucun domaine local',
-    emptyHint:     'Associez un domaine .test à un port local. Les domaines .localhost marchent sans toucher au fichier hosts.'
+    emptyHint:     'Associe un domaine .test à un port local. Les domaines .localhost marchent sans toucher au fichier hosts.'
   },
 
   database: {
@@ -2648,12 +2676,12 @@ const fr = {
     copyFormat: "Copier en {f}",
     detectTitle:       'Détecter des bases',
     onServer:          'Sur un serveur (SSH)',
-    inProjects:        'Dans vos projets (.env)',
+    inProjects:        'Dans tes projets (.env)',
     scan:              'Analyser',
     scanHint:          'Cherche les conteneurs Docker PostgreSQL / MySQL / MariaDB (identifiants lus dans leur config) et les services natifs. La connexion passe par un tunnel SSH : rien à ouvrir sur le serveur.',
     scanFailed:        'Échec de l\'analyse',
     nothingOnServer:   'Aucune base trouvée sur ce serveur.',
-    nothingInProjects: 'Aucune configuration de base trouvée dans les .env de vos projets.',
+    nothingInProjects: 'Aucune configuration de base trouvée dans les .env de tes projets.',
     noPassword:        'sans mot de passe',
     add:               'Ajouter',
     added:             'Ajoutée',
@@ -2680,11 +2708,11 @@ const fr = {
     shortcut:        'Ctrl + Entrée',
     sqlPlaceholder:  'SELECT * FROM users LIMIT 10;',
     limitHint:       'Résultats limités à 1000 lignes',
-    noResult:        'Lancez une requête ou cliquez sur une table.',
+    noResult:        'Lance une requête ou clique sur une table.',
     rows:            '{n} lignes',
     truncated:       'tronqué',
     affected:        '{n} ligne(s) modifiée(s)',
-    emptyTitle:      'Choisissez ou ajoutez une base',
+    emptyTitle:      'Choisis ou ajoute une base',
     emptyHint:       'PostgreSQL, MySQL / MariaDB et SQLite. Les mots de passe sont chiffrés par l\'OS.',
     tabOverview: "Base",
     newQuery: "Nouvelle requête",
@@ -2751,7 +2779,7 @@ const fr = {
   },
 
   logs: {
-    suggestions: 'Fichiers de log trouvés dans vos projets',
+    suggestions: 'Fichiers de log trouvés dans tes projets',
     open:       'Ouvrir un fichier de log',
     openFailed: 'Impossible d\'ouvrir le fichier',
     search:     'Filtrer les lignes…',
@@ -2761,7 +2789,7 @@ const fr = {
     pause:      'Pause',
     resume:     'Suivre',
     noLines:    'Aucune ligne ne correspond aux filtres.',
-    emptyTitle: 'Suivez un fichier de log en direct',
+    emptyTitle: 'Suis un fichier de log en direct',
     emptyHint:  'Laravel, Symfony, nginx, pm2, logs JSON (pino, winston)… Les lignes sont colorées par niveau et le fichier est suivi au fil de l\'eau.'
   },
 
@@ -2773,9 +2801,9 @@ const fr = {
     response:      'Réponse',
     responseTitle: 'Réponse envoyée aux appelants',
     clear:         'Vider',
-    tunnelHint:    'Accessible uniquement depuis cet ordinateur. Pour recevoir les webhooks Stripe / GitHub, exposez-le :',
+    tunnelHint:    'Accessible uniquement depuis cet ordinateur. Pour recevoir les webhooks Stripe / GitHub, expose-le :',
     waiting:       'En attente de requêtes…',
-    notStarted:    'Démarrez le serveur pour capturer les requêtes.',
+    notStarted:    'Démarre le serveur pour capturer les requêtes.',
     headers:       'Headers',
     body:          'Body',
     noBody:        'Pas de body',
@@ -2783,8 +2811,8 @@ const fr = {
     replay:        'Rejouer',
     send:          'Envoyer',
     replayHint:    'Renvoie la même méthode, les mêmes headers et le même body. Sans chemin, le chemin capturé est réutilisé.',
-    emptyTitle:    'Inspectez les webhooks entrants',
-    emptyHint:     'Pointez un service vers l\'URL locale (ou un tunnel) : chaque requête apparaît ici avec ses headers et son body.'
+    emptyTitle:    'Inspecte les webhooks entrants',
+    emptyHint:     'Pointe un service vers l\'adresse locale (ou un tunnel) : chaque requête apparaît ici avec ses en-têtes et son corps.'
   }
 } as const
 

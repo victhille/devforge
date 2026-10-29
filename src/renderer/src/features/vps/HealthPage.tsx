@@ -12,8 +12,8 @@ import Spinner from '@renderer/components/ui/Spinner'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { ServerSelect, useServerPicker } from './ServerPicker'
 import NeedsSetup from '@renderer/components/NeedsSetup'
+import { errorText } from '@renderer/lib/errors'
 
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const ORDER: Record<HealthLevel, number> = { bad: 0, warn: 1, unknown: 2, ok: 3 }
 /** `uptime -p` answers in English: "up 2 weeks, 2 days" → "en marche depuis 2 semaines, 2 jours" */
 const UNITS_FR: Record<string, string> = { year: 'an', years: 'ans', month: 'mois', months: 'mois', week: 'semaine', weeks: 'semaines', day: 'jour', days: 'jours', hour: 'heure', hours: 'heures', minute: 'minute', minutes: 'minutes' }

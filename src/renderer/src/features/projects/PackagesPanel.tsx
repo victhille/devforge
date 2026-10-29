@@ -16,8 +16,7 @@ import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import Spinner from '@renderer/components/ui/Spinner'
 import EmptyState from '@renderer/components/ui/EmptyState'
-
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+import { errorText } from '@renderer/lib/errors'
 
 type Filter = 'all' | 'outdated' | 'major'
 

@@ -52,7 +52,7 @@ Tabs only show when they make sense for the project:
 | Tab | Content |
 |---|---|
 | Overview | one tile per topic (Git, Docker, variables, database, ports…) with its summary and **See** |
-| Notes | the project's tasks to check off and its Markdown notes, see below; the number of open tasks shows on the tab |
+| Notes | the project's tasks to check off and its formatted notes, see below; the number of open tasks shows on the tab |
 | Git | branch, changed files, commits to push or pull, last commit, **Commit…**, **Pull**, **Push**, **Fetch** |
 | GitHub | if the repository is on GitHub: GitHub Actions (with **Re-run failed jobs**), open pull requests, releases |
 | Symfony / Next.js / Laravel workshop | depending on the framework, see below |
@@ -132,7 +132,7 @@ From the **Deploy** tab, **Sync the .env** compares the file on this PC and the 
 The **Notes** tab keeps what is about the project, in DevForge's data (never in the project's folder):
 
 - **Tasks**: type one and <kbd>Enter</kbd> adds it. Check it when done (the date shows), double-click to edit it, drag it to reorder, the bin deletes it. **Hide done ones** keeps only what is left.
-- **Notes**: free Markdown text. **Edit** to write, **Preview** to see it formatted (headings, lists, code, links). Everything is saved as you type.
+- **Notes**: formatted text, as in a word processor. The toolbar sets the paragraph style (text, headings 1 to 3), the size, **bold** (<kbd>Ctrl</kbd> <kbd>B</kbd>), *italic* (<kbd>Ctrl</kbd> <kbd>I</kbd>), underline (<kbd>Ctrl</kbd> <kbd>U</kbd>), strikethrough, the text colour, highlighting, bulleted or numbered lists, quotes and code blocks; the eraser clears the formatting. Pasted text keeps its formatting, cleaned. Everything is saved as you type; notes written in Markdown before v3.8.1 open formatted.
 
 On the [project list](#the-project-list), a project's card shows **n to do** while tasks remain. Notes are part of the profile export.
 

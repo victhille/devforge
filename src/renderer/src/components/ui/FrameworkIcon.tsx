@@ -100,7 +100,7 @@ export const FRAMEWORK_LABEL: Record<string, string> = {
   docker:     'Docker',
   html:       'HTML / CSS',
   empty:      'Empty',
-  unknown:    'Unknown',
+  unknown:    '—',
   group:      'Group'
 }
 

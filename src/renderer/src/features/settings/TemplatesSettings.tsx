@@ -9,8 +9,7 @@ import IconButton from '@renderer/components/ui/IconButton'
 import { Input } from '@renderer/components/ui/Input'
 import ProjectIcon from '@renderer/features/projects/components/ProjectIcon'
 import { SettingsCard } from './parts'
-
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+import { errorText } from '@renderer/lib/errors'
 
 /** v3.8 lot 5: Settings › Templates: rename, update from the project, delete */
 export default function TemplatesSettings() {

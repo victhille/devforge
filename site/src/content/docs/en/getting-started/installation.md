@@ -34,7 +34,7 @@ Everything stays on your PC, in DevForge's data folder (`%APPDATA%\DevForge`): s
 ## Automatic updates
 
 - DevForge reads the GitHub releases **15 seconds after it starts**, then **every 6 hours**.
-- A new version downloads in the background. It installs **on the next restart**, or right away with **Restart and update**.
+- A new version downloads in the background. It installs **on the next restart**, or right away with **Restart and update**: no installer window, DevForge closes and starts again on the new version.
 - The menu also shows an **Update (vX.Y.Z)** button once a version is ready.
 - After the update, a **What's new** window sums up the version (can be turned off).
 

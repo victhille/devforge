@@ -58,25 +58,25 @@ export default function ActivityPage() {
           <h1 className="text-[26px] font-semibold tracking-tight text-fg">{k.title}</h1>
           <p className="mt-1 text-[13px] text-fg-secondary">{k.subtitle}</p>
         </div>
-        <Button variant="secondary" size="sm" loading={loading} onClick={() => load(true)}>{!loading && <RefreshCw size={13} />} {t.common.refresh}</Button>
-      </header>
-
-      <div className="flex flex-wrap items-center gap-1.5">
-        {folders.length > 1 && ['all', ...folders].map(dir => (
-          <button key={dir} aria-pressed={place === dir} onClick={() => setPlace(dir)} title={dir === 'all' ? undefined : dir}
-            className={cn('h-[30px] rounded-full border px-3 text-[12.5px] font-medium', place === dir ? 'border-accent/40 bg-active text-fg' : 'border-line bg-surface text-fg-secondary hover:text-fg')}>
-            {dir === 'all' ? t.projects.allFolders : folderName(dir)}
-          </button>
-        ))}
         {data?.me && (
-          <span role="group" aria-label={k.author} className="ml-auto flex rounded-full border border-line p-0.5 text-xs">
+          <span role="group" aria-label={k.author} className="flex rounded-full border border-line p-0.5 text-xs">
             {[true, false].map(v => (
               <button key={String(v)} aria-pressed={mine === v} onClick={() => setMine(v)} title={v ? data.me ?? undefined : undefined}
                 className={cn('rounded-full px-3 py-1', mine === v ? 'bg-active text-fg' : 'text-fg-secondary hover:text-fg')}>{v ? k.mine : k.everyone}</button>
             ))}
           </span>
         )}
-      </div>
+        <Button variant="secondary" size="sm" loading={loading} onClick={() => load(true)}>{!loading && <RefreshCw size={13} />} {t.common.refresh}</Button>
+      </header>
+
+      {folders.length > 1 && <div className="flex flex-wrap items-center gap-1.5">
+        {['all', ...folders].map(dir => (
+          <button key={dir} aria-pressed={place === dir} onClick={() => setPlace(dir)} title={dir === 'all' ? undefined : dir}
+            className={cn('h-[30px] rounded-full border px-3 text-[12.5px] font-medium', place === dir ? 'border-accent/40 bg-active text-fg' : 'border-line bg-surface text-fg-secondary hover:text-fg')}>
+            {dir === 'all' ? t.projects.allFolders : folderName(dir)}
+          </button>
+        ))}
+      </div>}
 
       {!data ? <Spinner className="m-6" /> : (
         <>
@@ -85,7 +85,8 @@ export default function ActivityPage() {
               <h2 className="text-md font-semibold text-fg">{k.perWeek}</h2>
               <span className="text-xs text-fg-muted">{k.perWeekTotal.replace('{weeks}', String(WEEKS)).replace('{n}', String(total))}</span>
             </div>
-            <div className="flex h-[200px] items-end gap-2" role="img" aria-label={k.chartLabel.replace('{n}', String(total))} data-testid="activity-chart">
+            <div className="relative flex h-[200px] items-end gap-2" role="img" aria-label={k.chartLabel.replace('{n}', String(total))} data-testid="activity-chart">
+              {total === 0 && <p className="absolute inset-x-0 top-1/3 text-center text-sm text-fg-muted">{k.noCommits}</p>}
               {weeks.map(w => {
                 const others = w.total - top.reduce((n, id) => n + (w.byProject[id] ?? 0), 0)
                 const parts = [...top.map((id, i) => ({ n: w.byProject[id] ?? 0, color: COLORS[i] })), { n: others, color: OTHERS }].filter(x => x.n > 0)

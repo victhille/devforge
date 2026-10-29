@@ -8,8 +8,7 @@ import Button from '@renderer/components/ui/Button'
 import Checkbox from '@renderer/components/ui/Checkbox'
 import Modal from '@renderer/components/ui/Modal'
 import { Input, Select } from '@renderer/components/ui/Input'
-
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+import { errorText } from '@renderer/lib/errors'
 
 const STATUS_STYLE: Record<EnvSyncKey['status'], string> = {
   same: 'bg-active text-fg-muted',

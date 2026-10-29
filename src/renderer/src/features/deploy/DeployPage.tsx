@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { CheckCircle2, ChevronDown, ChevronRight, Pencil, Plus, Rocket, Search, Server, Trash2, UploadCloud, XCircle } from 'lucide-react'
 import type { DeployRun, DeployTarget, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -116,6 +117,7 @@ function TargetCard({ target, connection, onEdit, onDelete }: {
 
 export default function DeployPage() {
   const { t } = useI18n()
+  const navigate = useNavigate()
   const d = t.deploy
   const [targets, setTargets] = useState<DeployTarget[]>([])
   const [connections, setConnections] = useState<SSHConnection[]>([])
@@ -143,7 +145,8 @@ export default function DeployPage() {
       />
 
       {connections.length === 0 ? (
-        <EmptyState icon={<Server size={32} />} title={d.needServer} description={d.needServerHint} />
+        <EmptyState icon={<Server size={32} />} title={d.needServer} description={d.needServerHint}
+          action={<Button onClick={() => navigate('/ssh')}><Plus size={14} /> {t.ssh.addServer}</Button>} />
       ) : targets.length === 0 ? (
         <EmptyState icon={<UploadCloud size={32} />} title={d.emptyTitle} description={d.emptyHint}
           action={

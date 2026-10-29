@@ -9,6 +9,7 @@ import Modal from '@renderer/components/ui/Modal'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Select } from '@renderer/components/ui/Input'
 import { SectionTitle } from '@renderer/components/ui/Page'
+import { errorText } from '@renderer/lib/errors'
 
 const SOURCE_ICON = { docker: Container, native: Server, env: FileKey2 }
 
@@ -64,7 +65,7 @@ export default function DetectDialog({ initialServer, onClose, onAdded }: Props)
     setScanning(true)
     setRemote(null)
     try { setRemote(await window.devforge.db.detectRemote(id)) }
-    catch (err) { toast.show({ tone: 'error', title: x.scanFailed, description: String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') }) }
+    catch (err) { toast.show({ tone: 'error', title: x.scanFailed, description: errorText(err) }) }
     finally { setScanning(false) }
   }, [toast, x])
 

@@ -54,7 +54,7 @@ Alerts arrive as Windows notifications. See [Monitoring](/devforge/en/servers/mo
 
 - **Channel**: *Stable* (final versions) or *Beta* (pre-releases too, earlier but sometimes with bugs).
 - **Check** looks for a new version right away; otherwise it is automatic, 15 s after startup then every 6 h.
-- A ready version installs on the next restart, or with **Restart and update**.
+- A ready version installs on the next restart, or with **Restart and update**, with no installer window; DevForge starts again by itself.
 - **Show "What's new" after an update**: a window sums up the version on first launch.
 - **Release notes**: every version, filterable (new, improvements, fixes), in the app's language.
 

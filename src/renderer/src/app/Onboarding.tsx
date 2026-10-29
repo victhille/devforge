@@ -9,6 +9,7 @@ import { Input } from '@renderer/components/ui/Input'
 import Spinner from '@renderer/components/ui/Spinner'
 import Mascot from '@renderer/features/assistant/Mascot'
 import { Segmented } from '@renderer/features/settings/parts'
+import { errorText } from '@renderer/lib/errors'
 
 const STEPS = 5
 
@@ -96,7 +97,7 @@ export default function Onboarding() {
       if (ghToken.trim()) { await window.devforge.github.saveToken(ghToken.trim()); setGhToken('') }
       setStep(3)
     } catch (err) {
-      const code = String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+      const code = errorText(err)
       setAccountsError(errors[code] ?? code)
     }
   }

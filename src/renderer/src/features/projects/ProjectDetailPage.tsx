@@ -21,6 +21,7 @@ import { ComposeDetail } from '@renderer/features/docker/ComposeDetail'
 import ProjectEnvEditor from '@renderer/features/envfiles/ProjectEnvEditor'
 import ProjectIcon from './components/ProjectIcon'
 import SaveTemplateDialog from './SaveTemplateDialog'
+import TabBar from './components/TabBar'
 import FileTree from './components/FileTree'
 import VercelPanel from './VercelPanel'
 import EnvSyncPanel from './EnvSyncPanel'
@@ -36,11 +37,11 @@ import NotesPanel from './NotesPanel'
 import GroupProjects from './GroupProjects'
 import IdeSelect from './components/IdeSelect'
 import { usePreferredIde } from '@renderer/lib/ide'
+import { errorText } from '@renderer/lib/errors'
 
 type Tab = 'overview' | 'git' | 'github' | 'symfony' | 'nextjs' | 'laravel' | 'terminal' | 'docker' | 'env' | 'packages' | 'tests' | 'notes' | 'database' | 'logs' | 'ports' | 'deploy' | 'vercel' | 'files'
 const TABS: Tab[] = ['overview', 'git', 'github', 'symfony', 'nextjs', 'laravel', 'terminal', 'docker', 'env', 'packages', 'tests', 'notes', 'database', 'logs', 'ports', 'deploy', 'vercel', 'files']
 
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const fileName = (p: string) => p.split(/[\\/]/).pop() ?? p
 
 // ─── Small pieces ─────────────────────────────────────────────────────────────
@@ -528,17 +529,10 @@ export default function ProjectDetailPage() {
 
       {savingTemplate && <SaveTemplateDialog project={p} onClose={() => setSavingTemplate(false)} />}
 
-      {/* Tabs, underlined */}
-      <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-line">
-        {TABS.filter(x => (x !== 'vercel' || hub.vercel) && (x !== 'github' || hub.github) && (x !== 'packages' || hub.manifests.length > 0) && (x !== 'tests' || testRunners.length > 0) && (x !== 'symfony' && x !== 'nextjs' && x !== 'laravel' || p.framework === x)).map(x => (
-          <button key={x} role="tab" aria-selected={tab === x} onClick={() => setTab(x)}
-            className={cn('flex h-9 shrink-0 items-center gap-1.5 border-b-2 px-3 text-base font-medium transition-colors',
-              tab === x ? 'border-accent text-fg' : 'border-transparent text-fg-secondary hover:text-fg')}>
-            {h.tabs[x]}
-            {!!counts[x] && <span className="rounded-full bg-elevated px-1.5 font-mono text-[10.5px] text-fg-muted">{counts[x]}</span>}
-          </button>
-        ))}
-      </div>
+      {/* Tabs, underlined; those that do not fit go in "More" */}
+      <TabBar<Tab> active={tab} onSelect={setTab} moreLabel={h.moreTabs}
+        items={TABS.filter(x => (x !== 'vercel' || hub.vercel) && (x !== 'github' || hub.github) && (x !== 'packages' || hub.manifests.length > 0) && (x !== 'tests' || testRunners.length > 0) && (x !== 'symfony' && x !== 'nextjs' && x !== 'laravel' || p.framework === x))
+          .map(x => ({ id: x, label: h.tabs[x], count: counts[x] }))} />
 
       {tab !== 'terminal' && <div key={tab} className="df-rise">{content[tab]}</div>}
       {termOpened && (

@@ -114,9 +114,9 @@ export default function ProjectsPage() {
 
   const subtitle = t.projects.subtitle
     .replace('{n}', String(projects.length))
-    .replace('{s}', '')
+    .replace('{s}', projects.length > 1 ? 's' : '')
     .replace('{d}', newDetected.length > 0
-      ? t.projects.detectedSuffix.replace('{n}', String(newDetected.length)).replace('{s}', '')
+      ? t.projects.detectedSuffix.replace('{n}', String(newDetected.length)).replace('{s}', newDetected.length > 1 ? 's' : '')
       : '')
 
   return (

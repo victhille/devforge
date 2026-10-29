@@ -4,6 +4,7 @@ import type { AssistantActionStatus } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
+import { errorText } from '@renderer/lib/errors'
 
 export interface ActionView {
   id: string
@@ -13,8 +14,6 @@ export interface ActionView {
   status: AssistantActionStatus
   output?: string
 }
-
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 
 /**
  * An action Forgy proposes: what will happen, then Approve / Refuse. Nothing

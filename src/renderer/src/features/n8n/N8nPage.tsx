@@ -12,8 +12,8 @@ import Spinner from '@renderer/components/ui/Spinner'
 import { Input, Select } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import NeedsSetup from '@renderer/components/NeedsSetup'
+import { errorText } from '@renderer/lib/errors'
 
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const KEY = 'devforge:n8n-server'
 
 /** The n8n logo's three linked nodes, drawn in the app's ink */

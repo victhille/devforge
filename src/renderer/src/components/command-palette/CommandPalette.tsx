@@ -4,6 +4,7 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
 import { useCommands, scoreCommand, type Command } from './useCommands'
+import { errorText } from '@renderer/lib/errors'
 
 const MAX_RESULTS = 60
 
@@ -78,7 +79,7 @@ export default function CommandPalette() {
     // An action says when it is done, or why it failed
     if (r instanceof Promise) {
       r.then(() => toast.show({ tone: 'success', title: t.palette.done.replace('{title}', cmd.title) }))
-        .catch(err => toast.show({ tone: 'error', title: t.palette.failed.replace('{title}', cmd.title), description: String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') }))
+        .catch(err => toast.show({ tone: 'error', title: t.palette.failed.replace('{title}', cmd.title), description: errorText(err) }))
     }
   }
 

@@ -8,7 +8,8 @@ import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Input, Select } from '@renderer/components/ui/Input'
-import { CommandButton, DbAuthHint, Section, errorText } from './parts'
+import { CommandButton, DbAuthHint, Section } from './parts'
+import { errorText } from '@renderer/lib/errors'
 
 type Exec = (command: SfCommand, arg?: string) => void
 

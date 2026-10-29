@@ -17,8 +17,8 @@ import { Input, Select, Textarea } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { ServerSelect, useServerPicker } from '@renderer/features/vps/ServerPicker'
 import NeedsSetup from '@renderer/components/NeedsSetup'
+import { errorText } from '@renderer/lib/errors'
 
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 const DAYS = 90
 const TEST_ID = 'devforge-test'
 const day = (offset: number) => new Date(Date.now() - offset * 86_400_000).toISOString().slice(0, 10)

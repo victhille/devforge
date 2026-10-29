@@ -14,8 +14,8 @@ import Spinner from '@renderer/components/ui/Spinner'
 import { Input, Select } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import NeedsSetup from '@renderer/components/NeedsSetup'
+import { errorText } from '@renderer/lib/errors'
 
-const errorText = (err: unknown) => String(err instanceof Error ? err.message : err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 /** Shared with the other VPS pages (Services, Health, Backups) */
 const KEY = 'devforge:vps-server'
 /** Clients refresh while the page is open: transfers and last handshakes move */

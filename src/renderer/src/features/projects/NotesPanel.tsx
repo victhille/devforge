@@ -6,7 +6,7 @@ import { cn } from '@renderer/lib/cn'
 import Card from '@renderer/components/ui/Card'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
-import Markdown from '@renderer/features/assistant/Markdown'
+import RichNotes from './RichNotes'
 
 /** The notes are saved this long after the last key */
 const SAVE_DELAY = 600
@@ -22,14 +22,13 @@ export default function NotesPanel({ projectId, onCount }: { projectId: string; 
   const [draft, setDraft] = useState('')
   const [hideDone, setHideDone] = useState(false)
   const [editing, setEditing] = useState<string | null>(null)
-  const [preview, setPreview] = useState(true)
   const [dragged, setDragged] = useState<string | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout>>()
   const latest = useRef<ProjectNotes | null>(null)
 
   useEffect(() => {
     let alive = true
-    window.devforge.notes.get(projectId).then(n => { if (alive) { setData(n); latest.current = n; setPreview(!!n.notes.trim()) } }).catch(() => {})
+    window.devforge.notes.get(projectId).then(n => { if (alive) { setData(n); latest.current = n } }).catch(() => {})
     return () => { alive = false }
   }, [projectId])
 
@@ -108,17 +107,8 @@ export default function NotesPanel({ projectId, onCount }: { projectId: string; 
       <Card className="min-w-[320px] flex-[1.2_1_460px] overflow-hidden" data-testid="notes">
         <div className="flex items-center gap-2 border-b border-line-subtle px-4 py-3">
           <h2 className="text-md font-semibold text-fg">{k.notes}</h2>
-          <span role="group" aria-label={k.view} className="ml-auto flex rounded-full border border-line p-0.5 text-xs">
-            {[false, true].map(v => (
-              <button key={String(v)} aria-pressed={preview === v} onClick={() => setPreview(v)}
-                className={cn('rounded-full px-3 py-1', preview === v ? 'bg-active text-fg' : 'text-fg-secondary hover:text-fg')}>{v ? k.preview : k.edit}</button>
-            ))}
-          </span>
         </div>
-        {preview
-          ? <div className="min-h-[220px] px-5 py-4">{data.notes.trim() ? <Markdown text={data.notes} asDocument /> : <p className="text-sm text-fg-muted">{k.empty}</p>}</div>
-          : <textarea value={data.notes} onChange={e => change({ ...data, notes: e.target.value }, SAVE_DELAY)} aria-label={k.notes} placeholder={k.notesPlaceholder} spellCheck
-              className="block min-h-[320px] w-full resize-y bg-canvas px-5 py-4 font-mono text-[12.5px] leading-relaxed text-fg outline-none placeholder:text-fg-muted" />}
+        <RichNotes key={projectId} value={data.notes} onChange={html => change({ ...latest.current ?? data, notes: html }, SAVE_DELAY)} />
       </Card>
     </div>
   )

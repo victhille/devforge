@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { execFileSync } from 'child_process'
 import { mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import { goTo, launch, type Launched } from './launch'
+import { goTo, openProjectTab, launch, type Launched } from './launch'
 
 /** v2.1 lot 4: .env sync panel, GitHub tab (no network call: the repo here has no GitHub origin) */
 let run: Launched
@@ -28,10 +28,9 @@ test('the deploy tab opens the .env sync of a target; no GitHub tab without a Gi
   })
   const { page } = run
   await goTo(page, '/project/p1')
-  await expect(page.getByRole('tab', { name: 'Déploiement' })).toBeVisible()
+  await expect(page.getByRole('tab', { name: 'Vue d\'ensemble' })).toBeVisible()
   await expect(page.getByRole('tab', { name: 'GitHub' })).toHaveCount(0)
-
-  await page.getByRole('tab', { name: 'Déploiement' }).click()
+  await openProjectTab(page, 'Déploiement')
   await page.getByRole('button', { name: 'Synchroniser le .env' }).click()
   await expect(page.getByRole('combobox', { name: 'Fichier sur ce PC' })).toHaveValue('.env')
   await expect(page.getByRole('combobox', { name: 'Fichier sur ce PC' }).locator('option')).toHaveText(['.env', '.env.production'])

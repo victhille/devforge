@@ -94,7 +94,7 @@ export default function WebhooksPage() {
         )}
         <div className="ml-auto flex items-center gap-2">
           <Button size="sm" variant="ghost" onClick={() => setEditingResponse(true)}>
-            {w.response}: <span className="font-mono">{status?.response.status}</span>
+            {w.response}{lang === 'fr' ? '\u00a0: ' : ': '}<span className="font-mono">{status?.response.status}</span>
           </Button>
           <Button size="sm" variant="ghost" onClick={async () => { await window.devforge.webhooks.clear(); setRequests([]); setSelected(null) }}>
             <Eraser size={13} /> {w.clear}

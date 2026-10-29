@@ -1,4 +1,5 @@
 import type { Project } from '@shared/types'
+import { notesToText } from '@shared/lib/notesFormat'
 import { addTask, getNotes, removeTask, setTaskDone } from '../notes/projectNotes'
 import { ToolError } from './assistantTools'
 
@@ -17,7 +18,7 @@ export function notesText(p: Project): string {
     ...open.map(t => `- [ ] ${t.text} (id ${t.id})`),
     ...done.slice(-10).map(t => `- [x] ${t.text}${t.doneAt ? ` (done ${t.doneAt.slice(0, 10)})` : ''}`),
     '',
-    n.notes.trim() ? `Notes (Markdown):\n${n.notes.slice(0, 6000)}` : 'No notes.'
+    n.notes.trim() ? `Notes:\n${notesToText(n.notes).slice(0, 6000)}` : 'No notes.'
   ].join('\n')
 }
 

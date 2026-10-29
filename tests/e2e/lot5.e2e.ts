@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import { goTo, launch, type Launched } from './launch'
+import { goTo, openProjectTab, launch, type Launched } from './launch'
 
 /** n8n page and the Vercel tab, without a real server or account */
 let run: Launched
@@ -46,7 +46,7 @@ test('n8n offers an install on a saved server, and a Vercel-linked project gets 
   await expect(page.getByRole('combobox')).toHaveValue(/.+/)
 
   await goTo(page, '/project/p1')
-  await page.getByRole('tab', { name: 'Vercel' }).click()
+  await openProjectTab(page, 'Vercel')
   await expect(page.getByRole('heading', { name: 'Connecter Vercel' })).toBeVisible()
   await expect(page.getByPlaceholder("Jeton d'accès Vercel")).toBeVisible()
 })

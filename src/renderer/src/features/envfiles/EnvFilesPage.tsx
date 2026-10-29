@@ -51,7 +51,7 @@ export default function EnvFilesPage() {
                 <ProjectIcon framework={p.framework} size="sm" />
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate font-medium text-fg">{p.name}</span>
-                  <span className="text-2xs text-fg-muted">{envs[p.path].files.length} {e.files}</span>
+                  <span className="text-2xs text-fg-muted">{(envs[p.path].files.length > 1 ? e.filesMany : e.filesOne).replace('{n}', String(envs[p.path].files.length))}</span>
                 </span>
                 {m > 0 && <Badge color="danger">{m}</Badge>}
               </button>

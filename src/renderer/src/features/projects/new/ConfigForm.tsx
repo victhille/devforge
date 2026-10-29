@@ -103,7 +103,7 @@ export default function ConfigForm({ framework, settings, userTemplate, onBack, 
       </div>
       <PageHeader
         icon={userTemplate || !template ? <ProjectIcon framework={framework} /> : <FrameworkIcon name={template.iconName} size={20} style={{ color: template.color }} />}
-        title={userTemplate ? t.templates.fromTemplate.replace('{name}', userTemplate.name) : t.newProject.configTitle.replace('{name}', template?.name ?? framework)}
+        title={userTemplate ? t.templates.fromTemplate.replace('{name}', userTemplate.name) : t.newProject.configTitle.replace('{name}', t.newProject.templateName[framework] ?? template?.name ?? framework)}
         subtitle={t.newProject.configSubtitle}
       />
 

@@ -39,7 +39,7 @@ export const DIFF_EXAMPLE = {
 }
 
 export const SNIPPET_EXAMPLE = {
-  title: 'fetch JSON with a timeout',
+  title: 'Lire du JSON avec un délai',
   language: 'TypeScript',
   tags: ['fetch', 'http'],
   code: `export async function getJson<T>(url: string, ms = 5000): Promise<T> {

@@ -171,7 +171,7 @@ export default function ApiTesterPage() {
 
       <div className="flex min-h-0 flex-1 flex-wrap items-stretch gap-4">
         {/* Request config */}
-        <Card className="df-rise flex min-h-0 max-w-[380px] flex-[1_1_300px] flex-col rounded-[14px]" style={{ '--i': 2 } as CSSProperties}>
+        <Card className="df-rise flex min-h-0 max-w-[440px] flex-[1_1_360px] flex-col rounded-[14px]" style={{ '--i': 2 } as CSSProperties}>
           <div className="flex gap-1 border-b border-line-subtle px-2.5" role="tablist">
             <button role="tab" aria-selected={reqTab === 'headers'} className={tabClass(reqTab === 'headers')} onClick={() => setReqTab('headers')}>
               {t.apiTester.tabHeaders} · {headers.filter(h => h.key).length}
