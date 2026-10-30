@@ -5,6 +5,12 @@ import type { DevForgeAPI, LogLine, CommandResult, SSHSessionStatus, CiStates } 
 const invoke = <T extends (...args: never[]) => Promise<unknown>>(channel: string) =>
   ((...args: unknown[]) => ipcRenderer.invoke(channel, ...args)) as unknown as T
 
+/** A server out of reach comes back as `{ offline }` (no stack in the main console): the page gets it as an error */
+const online = <T>(v: T | { offline: string }): T => {
+  if (v && typeof v === 'object' && 'offline' in v) throw new Error(v.offline)
+  return v as T
+}
+
 /** Subscribe to a main → renderer event, returns the unsubscribe function */
 const on = <T>(channel: string) => (cb: (payload: T) => void) => {
   const listener = (_e: Electron.IpcRendererEvent, payload: T) => cb(payload)
@@ -311,9 +317,9 @@ const api: DevForgeAPI = {
   },
 
   vpsOps: {
-    services:    invoke('vps:services'),
+    services:    (id: string) => ipcRenderer.invoke('vps:services', id).then(online),
     openService: invoke('vps:open-service'),
-    health:      invoke('vps:health'),
+    health:      (id: string) => ipcRenderer.invoke('vps:health', id).then(online),
     fixCommand:  invoke('vps:fix-command'),
     runFix:      invoke('vps:run-fix'),
     onFixLog:    on('vps:fix-log')

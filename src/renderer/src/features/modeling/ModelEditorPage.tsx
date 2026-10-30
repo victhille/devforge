@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { AlertTriangle, ArrowLeft, Check, Maximize2, Minus, Plus, Redo2, Spline, StickyNote, Trash2, Undo2, X } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, Maximize2, Minus, Plus, Redo2, StickyNote, Trash2, Undo2, X } from 'lucide-react'
 import type { Cardinality, McdAttribute, McdModel, McdType, ModelFile } from '@shared/types'
 import {
   associationBox, bounds, CARDINALITIES, checkMcd, entityBox, HEADER, legLine, MCD_TYPES, mcdSvg, nextCard, noteBox, ROW, uid, type Box, type Point
@@ -19,9 +19,11 @@ import MldView from './MldView'
 import MpdView from './MpdView'
 import DiagramEditor from './DiagramEditor'
 import { isDiagramKind } from '@shared/lib/uml'
+import { dragPart, dropZone, Handles, partAt, TARGET_RING, Wire } from './connect'
 
 type Sel = { kind: 'entity' | 'association' | 'link' | 'note'; id: string } | null
-type Tool = 'select' | 'link'
+/** A line pulled from a part's point: where it starts, where the pointer is, the part it would link */
+type Pull = { from: string; a: Point; b: Point; target: string | null }
 const MINI = { w: 180, h: 110 }
 const SAVE_DELAY = 500
 
@@ -57,15 +59,14 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
   const [mcd, setMcd] = useState<McdModel | null>(null)
   const [error, setError] = useState('')
   const [sel, setSel] = useState<Sel>(null)
-  const [tool, setTool] = useState<Tool>('select')
-  const [linkFrom, setLinkFrom] = useState<string | null>(null)
+  const [pull, setPull] = useState<Pull | null>(null)
   const [saveState, setSaveState] = useState<'saved' | 'saving' | 'failed'>('saved')
   const [view, setView] = useState({ x: 60, y: 60, k: 1 })
   const [size, setSize] = useState({ w: 800, h: 600 })
   const viewport = useRef<HTMLDivElement>(null)
   const history = useRef<{ past: McdModel[]; future: McdModel[]; mergeKey: string | null; at: number }>({ past: [], future: [], mergeKey: null, at: 0 })
   const [, setHistoryTick] = useState(0)
-  const drag = useRef<{ kind: 'pan' | 'move'; sel?: Sel; sx: number; sy: number; ox: number; oy: number; moved: boolean; before?: McdModel } | null>(null)
+  const drag = useRef<{ kind: 'pan' | 'move' | 'pull'; sel?: Sel; sx: number; sy: number; ox: number; oy: number; moved: boolean; before?: McdModel } | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pending = useRef<McdModel | null>(null)
   /** The view was moved by hand: no more fitting on its own */
@@ -196,34 +197,80 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
   }
 
   // ── Adding, linking, removing ──────────────────────────────────────────────
-  const addEntity = (at?: Point) => {
-    const id = uid('e')
-    const p = at ?? spot()
-    const n = (mcd?.entities.length ?? 0) + 1
-    change(x => ({ ...x, entities: [...x.entities, { id, name: `${e.entityName}_${n}`.toUpperCase(), x: p.x, y: p.y, attributes: [{ id: uid('a'), name: `id_${e.entityName.toLowerCase()}_${n}`, type: 'int', identifier: true }] }] }))
-    setSel({ kind: 'entity', id }); setTool('select')
+  /** A new entity, its top left corner at `p` (`centered`: its middle there) */
+  const newEntity = (x: McdModel, p: Point, centered = false) => {
+    const n = x.entities.length + 1
+    const ent = { id: uid('e'), name: `${e.entityName}_${n}`.toUpperCase(), x: p.x, y: p.y, attributes: [{ id: uid('a'), name: `id_${e.entityName.toLowerCase()}_${n}`, type: 'int' as const, identifier: true }] }
+    if (centered) { const b = entityBox(ent); ent.x = Math.round(p.x - b.w / 2); ent.y = Math.round(p.y - b.h / 2) }
+    return ent
   }
-  const addAssociation = () => {
-    const id = uid('s')
-    const p = spot()
-    change(x => ({ ...x, associations: [...x.associations, { id, name: e.associationName.toUpperCase(), x: p.x, y: p.y, attributes: [] }] }))
-    setSel({ kind: 'association', id }); setTool('select')
+  const newAssociation = (p: Point, centered = false) => {
+    const asso = { id: uid('s'), name: e.associationName.toUpperCase(), x: p.x, y: p.y, attributes: [] }
+    if (centered) { const b = associationBox(asso); asso.x = Math.round(p.x - b.w / 2); asso.y = Math.round(p.y - b.h / 2) }
+    return asso
   }
-  const addNote = () => {
+  const addEntity = (at?: Point, centered = false) => {
+    if (!mcd) return
+    const ent = newEntity(mcd, at ?? spot(), centered)
+    change(x => ({ ...x, entities: [...x.entities, ent] }))
+    setSel({ kind: 'entity', id: ent.id })
+  }
+  const addAssociation = (at?: Point) => {
+    const asso = newAssociation(at ?? spot(), !!at)
+    change(x => ({ ...x, associations: [...x.associations, asso] }))
+    setSel({ kind: 'association', id: asso.id })
+  }
+  const addNote = (at?: Point) => {
     const id = uid('t')
-    const p = spot()
+    const p = at ? { x: at.x - 90, y: at.y - 30 } : spot()
     change(x => ({ ...x, notes: [...x.notes, { id, x: p.x, y: p.y, text: e.noteText }] }))
-    setSel({ kind: 'note', id }); setTool('select')
+    setSel({ kind: 'note', id })
   }
-  /** Link mode: an entity then an association (or the other way round) */
-  const pickForLink = (id: string, kind: 'entity' | 'association') => {
-    if (!linkFrom) { setLinkFrom(id); return }
-    const fromIsEntity = mcd?.entities.some(x => x.id === linkFrom)
-    if ((kind === 'entity') === fromIsEntity) { setLinkFrom(id); return }
-    const entity = kind === 'entity' ? id : linkFrom, association = kind === 'association' ? id : linkFrom
-    const lid = uid('l')
-    change(x => ({ ...x, links: [...x.links, { id: lid, entity, association, card: '0,n' }] }))
-    setLinkFrom(null); setTool('select'); setSel({ kind: 'link', id: lid })
+  /** A palette part let go on the canvas */
+  const dropped = (type: string, cx: number, cy: number) => {
+    const p = toWorld(cx, cy)
+    if (type === 'entity') addEntity(p, true)
+    else if (type === 'association') addAssociation(p)
+    else if (type === 'note') addNote(p)
+  }
+
+  /**
+   * A line let go: an entity and an association get a leg; two entities get
+   * an association between them; let go on the background, a new entity is
+   * made there, joined the same way.
+   */
+  const connect = (from: string, to: string | null, at: Point) => {
+    if (!mcd) return
+    const isEntity = (id: string) => mcd.entities.some(x => x.id === id)
+    const leg = (entity: string, association: string) => ({ id: uid('l'), entity, association, card: '0,n' as Cardinality })
+    const centerOf = (id: string) => { const b = boxes.get(id)!; return { x: b.x + b.w / 2, y: b.y + b.h / 2 } }
+    if (to && isEntity(from) !== isEntity(to)) {
+      const l = isEntity(from) ? leg(from, to) : leg(to, from)
+      change(x => ({ ...x, links: [...x.links, l] }))
+      setSel({ kind: 'link', id: l.id })
+      return
+    }
+    if (to && !isEntity(from)) return
+    if (to) {
+      const a = centerOf(from), b = centerOf(to)
+      const asso = newAssociation({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, true)
+      change(x => ({ ...x, associations: [...x.associations, asso], links: [...x.links, leg(from, asso.id), leg(to, asso.id)] }))
+      setSel({ kind: 'association', id: asso.id })
+      return
+    }
+    // The background: only when pulled clear of the part, a mere slip makes nothing
+    const b = boxes.get(from)!
+    if (at.x > b.x - 40 && at.x < b.x + b.w + 40 && at.y > b.y - 40 && at.y < b.y + b.h + 40) return
+    const ent = newEntity(mcd, at, true)
+    if (isEntity(from)) {
+      const a = centerOf(from)
+      const asso = newAssociation({ x: (a.x + at.x) / 2, y: (a.y + at.y) / 2 }, true)
+      change(x => ({ ...x, entities: [...x.entities, ent], associations: [...x.associations, asso], links: [...x.links, leg(from, asso.id), leg(ent.id, asso.id)] }))
+      setSel({ kind: 'association', id: asso.id })
+    } else {
+      change(x => ({ ...x, entities: [...x.entities, ent], links: [...x.links, leg(ent.id, from)] }))
+      setSel({ kind: 'entity', id: ent.id })
+    }
   }
   const removeSel = () => {
     if (!sel) return
@@ -237,7 +284,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
     setSel(null)
   }
 
-  // Keyboard: delete, undo / redo, Escape leaves the link mode
+  // Keyboard: delete, undo / redo, Escape drops the line being pulled
   const keys = useRef<(ev: KeyboardEvent) => void>(() => {})
   keys.current = ev => {
     if (isTyping(ev.target)) return
@@ -245,7 +292,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
     if (mod && ev.key.toLowerCase() === 'z') { ev.preventDefault(); if (ev.shiftKey) redo(); else undo() }
     else if (mod && ev.key.toLowerCase() === 'y') { ev.preventDefault(); redo() }
     else if ((ev.key === 'Delete' || ev.key === 'Backspace') && sel) { ev.preventDefault(); removeSel() }
-    else if (ev.key === 'Escape') { setTool('select'); setLinkFrom(null) }
+    else if (ev.key === 'Escape') { if (drag.current?.kind === 'pull') drag.current = null; setPull(null) }
   }
   useEffect(() => {
     const on = (ev: KeyboardEvent) => keys.current(ev)
@@ -253,23 +300,39 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
     return () => window.removeEventListener('keydown', on)
   }, [])
 
-  // ── Pointer: pan the background, move a part ───────────────────────────────
+  // ── Pointer: pan the background, move a part, pull a line from a part's point ──
   const down = (ev: ReactPointerEvent, target?: Sel) => {
     if (ev.button !== 0) return
     ev.preventDefault()
     ev.stopPropagation()
-    if (target && tool === 'link' && (target.kind === 'entity' || target.kind === 'association')) { pickForLink(target.id, target.kind); return }
     ;(ev.currentTarget as Element).setPointerCapture(ev.pointerId)
-    if (target) setSel(target)
-    else if (tool === 'select') setSel(null)
+    setSel(target ?? null)
     const b = target ? boxes.get(target.id) : null
     drag.current = { kind: target ? 'move' : 'pan', sel: target ?? null, sx: ev.clientX, sy: ev.clientY, ox: b ? b.x : view.x, oy: b ? b.y : view.y, moved: false, before: mcd ?? undefined }
   }
+  const startPull = (ev: ReactPointerEvent, target: Sel & object, from: Point) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    ;(ev.currentTarget as Element).setPointerCapture(ev.pointerId)
+    setSel(target)
+    drag.current = { kind: 'pull', sel: target, sx: ev.clientX, sy: ev.clientY, ox: 0, oy: 0, moved: false }
+    setPull({ from: target.id, a: from, b: from, target: null })
+  }
+  /** What a pulled line can be let go on */
+  const linkable = useMemo(() => [
+    ...(mcd?.entities ?? []).map(x => ({ id: x.id, box: boxes.get(x.id)! })),
+    ...(mcd?.associations ?? []).map(x => ({ id: x.id, box: boxes.get(x.id)! }))
+  ], [mcd, boxes])
   const move = (ev: ReactPointerEvent) => {
     const d = drag.current
     if (!d) return
     const dx = ev.clientX - d.sx, dy = ev.clientY - d.sy
     if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true
+    if (d.kind === 'pull') {
+      const p = toWorld(ev.clientX, ev.clientY)
+      setPull(cur => cur && ({ ...cur, b: p, target: partAt(p, linkable, cur.from)?.id ?? null }))
+      return
+    }
     if (d.kind === 'pan') { if (d.moved) touched.current = true; setView(v => ({ ...v, x: d.ox + dx, y: d.oy + dy })); return }
     if (!d.moved || !d.sel) return
     const id = d.sel.id, x = Math.round(d.ox + dx / view.k), y = Math.round(d.oy + dy / view.k)
@@ -281,10 +344,14 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
       notes: cur.notes.map(n => (n.id === id ? { ...n, x, y } : n))
     }))
   }
-  const up = () => {
+  const up = (ev: ReactPointerEvent) => {
     const d = drag.current
     drag.current = null
     if (d?.kind === 'move' && d.moved) change(x => x, null, d.before)
+    if (d?.kind === 'pull' && pull) {
+      setPull(null)
+      if (d.moved && ev.type === 'pointerup') connect(pull.from, pull.target, toWorld(ev.clientX, ev.clientY))
+    }
   }
 
   async function exportAs(ext: 'png' | 'svg') {
@@ -359,11 +426,10 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
           {/* Palette */}
           <aside aria-label={e.palette} className="flex w-[180px] shrink-0 flex-col gap-2 border-r border-line-subtle p-3">
             <p className="font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{e.palette}</p>
-            <PaletteButton onClick={() => addEntity()} label={e.addEntity} icon={<svg width="18" height="14" aria-hidden><rect x="1" y="1" width="16" height="12" rx="2" fill="none" stroke="var(--syntax-keyword)" strokeWidth="1.5" /><path d="M1 5h16" stroke="var(--syntax-keyword)" strokeWidth="1.5" /></svg>} />
-            <PaletteButton onClick={addAssociation} label={e.addAssociation} icon={<svg width="18" height="14" aria-hidden><ellipse cx="9" cy="7" rx="8" ry="5.5" fill="none" stroke="var(--syntax-keyword)" strokeWidth="1.5" /></svg>} />
-            <PaletteButton onClick={() => { setTool(v => (v === 'link' ? 'select' : 'link')); setLinkFrom(null) }} label={e.addLink} pressed={tool === 'link'} icon={<Spline size={15} className="text-fg-secondary" />} />
-            <PaletteButton onClick={addNote} label={e.addNote} icon={<StickyNote size={15} className="text-[var(--syntax-attr)]" />} />
-            {tool === 'link' && <p role="status" className="rounded-lg bg-accent-soft p-2 text-xs text-fg">{linkFrom ? e.linkSecond.replace('{name}', nameOf(linkFrom)) : e.linkFirst}</p>}
+            <PaletteButton onClick={() => addEntity()} drag="entity" label={e.addEntity} icon={<svg width="18" height="14" aria-hidden><rect x="1" y="1" width="16" height="12" rx="2" fill="none" stroke="var(--syntax-keyword)" strokeWidth="1.5" /><path d="M1 5h16" stroke="var(--syntax-keyword)" strokeWidth="1.5" /></svg>} />
+            <PaletteButton onClick={() => addAssociation()} drag="association" label={e.addAssociation} icon={<svg width="18" height="14" aria-hidden><ellipse cx="9" cy="7" rx="8" ry="5.5" fill="none" stroke="var(--syntax-keyword)" strokeWidth="1.5" /></svg>} />
+            <PaletteButton onClick={() => addNote()} drag="note" label={e.addNote} icon={<StickyNote size={15} className="text-[var(--syntax-attr)]" />} />
+            <p className="rounded-lg bg-accent-soft p-2 text-xs leading-snug text-fg">{e.linkHint}</p>
             {mcd.entities.length > 0 && <p className="mt-2 font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{e.entities}</p>}
             <ul className="flex min-h-0 flex-col gap-0.5 overflow-y-auto">
               {mcd.entities.map(x => (
@@ -378,9 +444,9 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
 
           {/* Canvas */}
           <div ref={viewport} data-testid="mcd-canvas"
-            className={cn('relative min-w-0 flex-1 touch-none overflow-hidden bg-canvas select-none', tool === 'link' ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing')}
+            className={cn('relative min-w-0 flex-1 touch-none overflow-hidden bg-canvas select-none', pull ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing')}
             style={{ backgroundImage: 'radial-gradient(var(--color-line-subtle) 1px, transparent 1px)', backgroundSize: `${20 * view.k}px ${20 * view.k}px`, backgroundPosition: `${view.x}px ${view.y}px` }}
-            onPointerDown={ev => down(ev)} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onDragStart={ev => ev.preventDefault()}
+            onPointerDown={ev => down(ev)} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onDragStart={ev => ev.preventDefault()} {...dropZone(dropped)}
             onDoubleClick={ev => { if (ev.target === ev.currentTarget) addEntity(toWorld(ev.clientX, ev.clientY)) }}>
             {!all.w && <p className="pointer-events-none absolute inset-x-0 top-1/3 mx-auto max-w-sm text-center text-sm text-fg-secondary">{e.empty}</p>}
             <div className="absolute top-0 left-0 origin-top-left" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})` }}>
@@ -395,29 +461,35 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
               </svg>
               {mcd.entities.map(x => {
                 const b = boxes.get(x.id)!
-                const on = sel?.id === x.id || linkFrom === x.id
+                const on = sel?.id === x.id
                 return (
-                  <div key={x.id} data-entity={x.name} onPointerDown={ev => down(ev, { kind: 'entity', id: x.id })}
-                    className={cn('absolute cursor-move overflow-hidden rounded-md border-[1.5px] bg-surface font-mono', on ? 'border-accent shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_25%,transparent)]' : 'border-[var(--syntax-keyword)]')}
-                    style={{ left: b.x, top: b.y, width: b.w, height: b.h }}>
-                    <div className={cn('flex items-center justify-center border-b-[1.5px] px-2 text-[13px] font-bold tracking-wide text-fg', on ? 'border-accent' : 'border-[var(--syntax-keyword)]')} style={{ height: HEADER }}>{x.name.toUpperCase() || '—'}</div>
-                    <div className="pt-1">
-                      {x.attributes.map(a => (
-                        <div key={a.id} className={cn('truncate px-3 text-[12px] text-fg', a.identifier && 'underline')} style={{ height: ROW, lineHeight: `${ROW}px` }}>{a.name || '—'}</div>
-                      ))}
+                  <div key={x.id} className="group contents">
+                    <div data-entity={x.name} onPointerDown={ev => down(ev, { kind: 'entity', id: x.id })}
+                      className={cn('absolute cursor-move overflow-hidden rounded-md border-[1.5px] bg-surface font-mono', on ? 'border-accent shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_25%,transparent)]' : 'border-[var(--syntax-keyword)]', pull?.target === x.id && TARGET_RING)}
+                      style={{ left: b.x, top: b.y, width: b.w, height: b.h }}>
+                      <div className={cn('flex items-center justify-center border-b-[1.5px] px-2 text-[13px] font-bold tracking-wide text-fg', on ? 'border-accent' : 'border-[var(--syntax-keyword)]')} style={{ height: HEADER }}>{x.name.toUpperCase() || '—'}</div>
+                      <div className="pt-1">
+                        {x.attributes.map(a => (
+                          <div key={a.id} className={cn('truncate px-3 text-[12px] text-fg', a.identifier && 'underline')} style={{ height: ROW, lineHeight: `${ROW}px` }}>{a.name || '—'}</div>
+                        ))}
+                      </div>
                     </div>
+                    {(!pull || pull.from === x.id) && <Handles box={b} k={view.k} name={x.name} shown={pull?.from === x.id} onPull={(ev, p) => startPull(ev, { kind: 'entity', id: x.id }, p)} />}
                   </div>
                 )
               })}
               {mcd.associations.map(x => {
                 const b = boxes.get(x.id)!
-                const on = sel?.id === x.id || linkFrom === x.id
+                const on = sel?.id === x.id
                 return (
-                  <div key={x.id} data-association={x.name} onPointerDown={ev => down(ev, { kind: 'association', id: x.id })}
-                    className={cn('absolute flex cursor-move flex-col items-center justify-center rounded-[50%] border-[1.5px] bg-surface font-mono', on ? 'border-accent' : 'border-[var(--syntax-keyword)]')}
-                    style={{ left: b.x, top: b.y, width: b.w, height: b.h }}>
-                    <span className="text-[12px] font-bold tracking-wide text-fg">{x.name.toUpperCase() || '—'}</span>
-                    {x.attributes.map(a => <span key={a.id} className="text-[11px] leading-4 text-fg-secondary">{a.name}</span>)}
+                  <div key={x.id} className="group contents">
+                    <div data-association={x.name} onPointerDown={ev => down(ev, { kind: 'association', id: x.id })}
+                      className={cn('absolute flex cursor-move flex-col items-center justify-center rounded-[50%] border-[1.5px] bg-surface font-mono', on ? 'border-accent' : 'border-[var(--syntax-keyword)]', pull?.target === x.id && TARGET_RING)}
+                      style={{ left: b.x, top: b.y, width: b.w, height: b.h }}>
+                      <span className="text-[12px] font-bold tracking-wide text-fg">{x.name.toUpperCase() || '—'}</span>
+                      {x.attributes.map(a => <span key={a.id} className="text-[11px] leading-4 text-fg-secondary">{a.name}</span>)}
+                    </div>
+                    {(!pull || pull.from === x.id) && <Handles box={b} k={view.k} name={x.name} shown={pull?.from === x.id} onPull={(ev, p) => startPull(ev, { kind: 'association', id: x.id }, p)} />}
                   </div>
                 )
               })}
@@ -442,6 +514,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
                     style={{ left: p.label.x, top: p.label.y }}>{l.card}</button>
                 )
               })}
+              {pull && <Wire from={pull.a} to={pull.b} ok={!!pull.target} />}
             </div>
 
             {all.w > 0 && (
@@ -565,10 +638,10 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
   )
 }
 
-function PaletteButton({ label, icon, onClick, pressed }: { label: string; icon: ReactNode; onClick: () => void; pressed?: boolean }) {
+function PaletteButton({ label, icon, onClick, pressed, drag }: { label: string; icon: ReactNode; onClick: () => void; pressed?: boolean; drag?: string }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={pressed}
-      className={cn('flex h-9 items-center gap-2.5 rounded-lg border px-2.5 text-[12.5px] font-medium transition-colors',
+    <button type="button" onClick={onClick} aria-pressed={pressed} draggable={!!drag} onDragStart={drag ? dragPart(drag) : undefined}
+      className={cn('flex h-9 items-center gap-2.5 rounded-lg border px-2.5 text-[12.5px] font-medium transition-colors', drag && 'cursor-grab active:cursor-grabbing',
         pressed ? 'border-accent bg-accent-soft text-fg' : 'border-line bg-elevated text-fg-secondary hover:border-fg-disabled hover:text-fg')}>
       {icon}{label}
     </button>

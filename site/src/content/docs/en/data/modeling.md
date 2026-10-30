@@ -20,9 +20,9 @@ An MCD describes the data the Merise way: **entities** (CUSTOMER, ORDER…) with
 
 | Action | How |
 |---|---|
-| Add an entity | **Entity** in the palette, or double-click the background |
-| Add an association | **Association** in the palette |
-| Link | **Link**, then an entity and an association (Esc to stop) |
+| Add an entity | drag **Entity** from the palette onto the canvas (or click it), or double-click the background |
+| Add an association | drag **Association** from the palette (or click it) |
+| Link | hover a part: four points show up; pull one onto another part. Entity → association: a leg; entity → entity: an association between them, with both legs; let go on empty space: a new linked entity there (Esc cancels) |
 | Change a cardinality | click it: 0,1 → 1,1 → 0,n → 1,n |
 | Move | drag a part; dragging the background moves the view |
 | Zoom | the wheel, or − / +; **Fit** shows everything |
@@ -63,7 +63,7 @@ On the right, **the naming for the MPD**: tables in `snake_case`, `UPPER CASE` o
 
 The MLD's tables with their types for the chosen **engine** (PostgreSQL, MySQL or SQLite), drawn like a [database schema](/devforge/en/data/database/): primary keys 🔑, foreign keys in colour with their arrow, `!` for a column that cannot be empty. The starting engine is the project's (its `.env`, its compose file), PostgreSQL otherwise.
 
-A click on a table touches it up on the right: its name, each column (name, type, length, decimals, *Empty*, *Unique*) and its **indexes**. A column changed by hand is marked ✎; ↺ brings it back to what the MCD gives. A foreign key takes the type of the key it points at.
+A click on a table touches it up on the right: its name, each column (name, type, length, decimals, *Empty*, *Unique*) and its **indexes**. A column changed by hand is marked ✎; ↺ brings it back to what the MCD gives. A foreign key takes the type of the key it points at. To add one, pull a table's point (left or right) onto the table it points at: the column (`categorie_id`…) is added, and kept when the MPD is updated.
 
 When the MCD changes, the MPD says so: **Update** makes the tables again from the MCD, keeping the hand changes, the indexes and where each table is. **Rearrange** places the tables again; zoom, Fit, the minimap, undo / redo and the PNG / SVG export work as in the MCD.
 
@@ -115,7 +115,7 @@ Five other kinds of models are drawn on the same canvas, each with its palette:
 | **Flowchart** | start, step, decision, input / output, end | arrow (labelled *yes*, *no*…) |
 | **Architecture** | client, gateway, service, database, queue, external | link (labelled *HTTPS*, *SQL*…) |
 
-A palette part is added in the middle of the screen; a link is drawn by picking its type, then the part it starts from and the one it ends at (Esc to stop). A link is picked by its dot: the panel changes its type, its label, its direction. A **note** can go anywhere.
+A palette part is dragged onto the canvas, where it is let go (a click puts it in the middle of the screen). A link is pulled from one of the points that show up when hovering a part, onto another; it takes the **type of new links** chosen in the palette. Let go on empty space, it makes a linked part there (a step after a step, a use case after an actor, a service…). In a sequence, the message lands on the lifeline it points at, at the height where it is let go. A link is picked by its dot: the panel changes its type, its label, its direction. A **note** can go anywhere.
 
 - **Classes**: the panel takes the attributes and the methods, one per line (`- id : int`, `+ total() : float`); an enumeration, its values.
 - **Sequence**: participants stand side by side, each message goes below the previous one; dragging its dot up or down changes its order.

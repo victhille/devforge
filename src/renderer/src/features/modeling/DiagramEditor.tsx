@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import type { DiagramEdgeType, DiagramKind, DiagramModel, DiagramNode, DiagramNodeType, ModelFile, NoteTask } from '@shared/types'
 import { noteBox, uid, type Box, type Point } from '@shared/lib/mcd'
-import { caseLinks, diagramBounds, diagramShapes, diagramSvg, EDGE_TYPES, edgeLine, nextMessageY, NODE_TYPES, nodeBox } from '@shared/lib/uml'
+import { caseLinks, diagramBounds, diagramShapes, diagramSvg, EDGE_TYPES, edgeLine, lifelineEnd, NODE_TYPES, nodeBox } from '@shared/lib/uml'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { errorText } from '@renderer/lib/errors'
@@ -16,9 +16,20 @@ import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import { diagramColors, LIVE_DIAGRAM, saveDrawing } from './colors'
 import { fill, KIND_TONE } from './model'
+import { dragPart, dropZone, Handles, partAt, TARGET_RING, Wire } from './connect'
 
 type Sel = { kind: 'node' | 'edge' | 'note'; id: string } | null
+/** A line pulled from a part's point: where it starts, where the pointer is, the part it would link */
+type Pull = { from: string; a: Point; b: Point; target: string | null }
 const SAVE_DELAY = 500
+const NOTE = 'note'
+
+/** A line let go on empty space makes this part there, linked (none: nothing is made) */
+const FOLLOW: Partial<Record<DiagramNodeType, DiagramNodeType>> = {
+  actor: 'case', case: 'case', class: 'class', interface: 'class', enum: 'class',
+  start: 'step', step: 'step', decision: 'step', io: 'step',
+  client: 'gateway', gateway: 'service', service: 'service', database: 'service', queue: 'service', external: 'service'
+}
 
 const ICONS: Record<DiagramNodeType, ReactNode> = {
   actor: <User size={15} />, case: <Circle size={15} />, system: <SquareDashed size={15} />, class: <BoxIcon size={15} />, interface: <Component size={15} />, enum: <List size={15} />,
@@ -46,15 +57,15 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
   const [dg, setDg] = useState<DiagramModel | null>(null)
   const [error, setError] = useState('')
   const [sel, setSel] = useState<Sel>(null)
-  const [tool, setTool] = useState<DiagramEdgeType | null>(null)
-  const [linkFrom, setLinkFrom] = useState<string | null>(null)
+  const [edgeType, setEdgeType] = useState<DiagramEdgeType>(EDGE_TYPES[kind][0])
+  const [pull, setPull] = useState<Pull | null>(null)
   const [saveState, setSaveState] = useState<'saved' | 'saving' | 'failed'>('saved')
   const [view, setView] = useState({ x: 60, y: 60, k: 1 })
   const [size, setSize] = useState({ w: 800, h: 600 })
   const viewport = useRef<HTMLDivElement>(null)
   const history = useRef<{ past: DiagramModel[]; future: DiagramModel[]; mergeKey: string | null; at: number }>({ past: [], future: [], mergeKey: null, at: 0 })
   const [, setHistoryTick] = useState(0)
-  const drag = useRef<{ kind: 'pan' | 'move' | 'message' | 'resize'; id?: string; carried?: string[]; sx: number; sy: number; ox: number; oy: number; moved: boolean; before?: DiagramModel; start?: DiagramModel } | null>(null)
+  const drag = useRef<{ kind: 'pan' | 'move' | 'message' | 'resize' | 'pull'; id?: string; carried?: string[]; sx: number; sy: number; ox: number; oy: number; moved: boolean; before?: DiagramModel; start?: DiagramModel } | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pending = useRef<DiagramModel | null>(null)
   const touched = useRef(false)
@@ -176,32 +187,86 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
     return c
   }
 
-  const addNode = (type: DiagramNodeType) => {
-    const id = uid('n')
-    const p = spot(type)
-    const node: DiagramNode = {
-      id, type, name: g.defaults[type], x: p.x, y: p.y,
-      ...(type === 'system' ? { w: 420, h: 340, x: p.x - 140, y: p.y - 120 } : {}),
+  /** A new part; `at`: its middle there (a sequence's participants stay in their row) */
+  const makeNode = (type: DiagramNodeType, at?: Point): DiagramNode => {
+    const base: DiagramNode = {
+      id: uid('n'), type, name: g.defaults[type], x: 0, y: 0,
+      ...(type === 'system' ? { w: 420, h: 340 } : {}),
       ...(type === 'class' || type === 'interface' ? { attributes: [], methods: [] } : {}),
       ...(type === 'enum' ? { attributes: [] } : {})
     }
+    if (!at) {
+      const p = spot(type)
+      return { ...base, x: type === 'system' ? p.x - 140 : p.x, y: type === 'system' ? p.y - 120 : p.y }
+    }
+    const b = nodeBox(base)
+    return { ...base, x: Math.round(at.x - b.w / 2), y: kind === 'sequence' ? (dg?.nodes[0]?.y ?? 0) : Math.round(at.y - b.h / 2) }
+  }
+  const addNode = (type: DiagramNodeType, at?: Point) => {
+    const node = makeNode(type, at)
     // A system goes behind what is already there
     change(x => ({ ...x, nodes: type === 'system' ? [node, ...x.nodes] : [...x.nodes, node] }))
-    setSel({ kind: 'node', id }); setTool(null)
+    setSel({ kind: 'node', id: node.id })
   }
-  const addNote = () => {
+  const addNote = (at?: Point) => {
     const id = uid('t')
-    const p = spot('step')
+    const p = at ? { x: at.x - 90, y: at.y - 30 } : spot('step')
     change(x => ({ ...x, notes: [...x.notes, { id, x: p.x, y: p.y, text: e.noteText }] }))
-    setSel({ kind: 'note', id }); setTool(null)
+    setSel({ kind: 'note', id })
   }
-  const pickForLink = (id: string) => {
-    if (!tool || !dg) return
-    if (!linkFrom) { setLinkFrom(id); return }
+  const toWorld = (clientX: number, clientY: number): Point => {
+    const r = viewport.current!.getBoundingClientRect()
+    return { x: Math.round((clientX - r.left - view.x) / view.k), y: Math.round((clientY - r.top - view.y) / view.k) }
+  }
+  /** A palette part let go on the canvas */
+  const dropped = (type: string, cx: number, cy: number) => {
+    const p = toWorld(cx, cy)
+    if (type === NOTE) addNote(p)
+    else if ((NODE_TYPES[kind] as string[]).includes(type)) addNode(type as DiagramNodeType, p)
+  }
+
+  /** What a pulled line can be let go on: the parts (a sequence's whole lifelines), not the systems */
+  const linkable = useMemo(() => {
+    if (!dg) return []
+    const end = kind === 'sequence' ? lifelineEnd(dg) : 0
+    return dg.nodes.filter(n => n.type !== 'system').map(n => {
+      const b = nodeBox(n)
+      return { id: n.id, box: kind === 'sequence' ? { ...b, h: Math.max(b.h, end - b.y) } : b }
+    })
+  }, [dg, kind])
+
+  /**
+   * A line let go: on a part, a link of the chosen type (a message at the
+   * height it was let go); on empty space, a new part there, linked.
+   */
+  const connect = (from: string, to: string | null, at: Point) => {
+    if (!dg) return
+    const source = dg.nodes.find(n => n.id === from)
+    if (!source) return
+    if (kind === 'sequence') {
+      if (!to) return
+      const b = nodeBox(source)
+      const top = Math.max(...dg.nodes.filter(n => n.type === 'participant' || n.type === 'actor').map(n => n.y + nodeBox(n).h))
+      // A message to itself only when let go below the head, on its own lifeline
+      if (to === from && at.y < b.y + b.h) return
+      const eid = uid('l')
+      change(x => ({ ...x, edges: [...x.edges, { id: eid, type: edgeType, from, to, y: Math.max(top + 24, at.y) }] }))
+      setSel({ kind: 'edge', id: eid })
+      return
+    }
+    if (to) {
+      const eid = uid('l')
+      change(x => ({ ...x, edges: [...x.edges, { id: eid, type: edgeType, from, to }] }))
+      setSel({ kind: 'edge', id: eid })
+      return
+    }
+    const next = FOLLOW[source.type]
+    const b = nodeBox(source)
+    if (!next || (at.x > b.x - 40 && at.x < b.x + b.w + 40 && at.y > b.y - 40 && at.y < b.y + b.h + 40)) return
+    const node = makeNode(next, at)
     const eid = uid('l')
-    const type = tool
-    change(x => ({ ...x, edges: [...x.edges, { id: eid, type, from: linkFrom, to: id, ...(kind === 'sequence' ? { y: nextMessageY(x) } : {}) }] }))
-    setLinkFrom(null); setTool(null); setSel({ kind: 'edge', id: eid })
+    change(x => ({ ...x, nodes: [...x.nodes, node], edges: [...x.edges, { id: eid, type: edgeType, from, to: node.id }] }))
+    setSel({ kind: 'node', id: node.id })
   }
   const removeSel = () => {
     if (!sel) return
@@ -221,7 +286,7 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
     if (mod && ev.key.toLowerCase() === 'z') { ev.preventDefault(); if (ev.shiftKey) redo(); else undo() }
     else if (mod && ev.key.toLowerCase() === 'y') { ev.preventDefault(); redo() }
     else if ((ev.key === 'Delete' || ev.key === 'Backspace') && sel) { ev.preventDefault(); removeSel() }
-    else if (ev.key === 'Escape') { setTool(null); setLinkFrom(null) }
+    else if (ev.key === 'Escape') { if (drag.current?.kind === 'pull') drag.current = null; setPull(null) }
   }
   useEffect(() => {
     const on = (ev: KeyboardEvent) => keys.current(ev)
@@ -234,7 +299,6 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
     if (ev.button !== 0 || !dg) return
     ev.preventDefault()
     ev.stopPropagation()
-    if (target?.kind === 'node' && tool) { pickForLink(target.id); return }
     ;(ev.currentTarget as Element).setPointerCapture(ev.pointerId)
     setSel(target ?? null)
     const node = target?.kind === 'node' ? dg.nodes.find(n => n.id === target.id) : undefined
@@ -248,11 +312,24 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
     const origin = mode === 'resize' && node ? { x: node.w ?? 420, y: node.h ?? 340 } : mode === 'message' && edge ? { x: 0, y: edge.y ?? 0 } : node ?? note ?? view
     drag.current = { kind: target ? mode : 'pan', id: target?.id, carried, sx: ev.clientX, sy: ev.clientY, ox: origin.x, oy: origin.y, moved: false, before: dg, start: dg }
   }
+  const startPull = (ev: ReactPointerEvent, id: string, from: Point) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    ;(ev.currentTarget as Element).setPointerCapture(ev.pointerId)
+    setSel({ kind: 'node', id })
+    drag.current = { kind: 'pull', id, sx: ev.clientX, sy: ev.clientY, ox: 0, oy: 0, moved: false }
+    setPull({ from: id, a: from, b: from, target: null })
+  }
   const move = (ev: ReactPointerEvent) => {
     const d = drag.current
     if (!d) return
     const dx = ev.clientX - d.sx, dy = ev.clientY - d.sy
     if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true
+    if (d.kind === 'pull') {
+      const p = toWorld(ev.clientX, ev.clientY)
+      setPull(cur => cur && ({ ...cur, b: p, target: partAt(p, linkable, kind === 'sequence' ? undefined : cur.from)?.id ?? null }))
+      return
+    }
     if (d.kind === 'pan') { if (d.moved) touched.current = true; setView(v => ({ ...v, x: d.ox + dx, y: d.oy + dy })); return }
     if (!d.moved || !d.start) return
     const kx = dx / view.k, ky = dy / view.k
@@ -268,9 +345,13 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
     })
     setDg(cur => cur && ({ ...cur, nodes: shift(cur.nodes, start.nodes), notes: shift(cur.notes, start.notes) }))
   }
-  const up = () => {
+  const up = (ev: ReactPointerEvent) => {
     const d = drag.current
     drag.current = null
+    if (d?.kind === 'pull') {
+      if (pull) { setPull(null); if (d.moved && ev.type === 'pointerup') connect(pull.from, pull.target, toWorld(ev.clientX, ev.clientY)) }
+      return
+    }
     if (d && d.kind !== 'pan' && d.moved) change(x => x, null, d.before)
   }
 
@@ -311,6 +392,11 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
   const selNote = sel?.kind === 'note' ? dg.notes.find(n => n.id === sel.id) : undefined
   const cases = dg.nodes.filter(n => n.type === 'case').length
   const ring = 'shadow-[0_0_0_2px_var(--color-accent)]'
+  /** In a sequence the pulled line ends on the lifeline it points at, at the pointer's height */
+  const wireEnd = (p: Pull): Point => {
+    const t = kind === 'sequence' && p.target ? linkable.find(x => x.id === p.target) : undefined
+    return t ? { x: t.box.x + t.box.w / 2, y: p.b.y } : p.b
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col p-4">
@@ -339,28 +425,32 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
         <div className="flex min-h-0 flex-1">
           <aside aria-label={e.palette} className="flex w-[180px] shrink-0 flex-col gap-2 overflow-y-auto border-r border-line-subtle p-3">
             <p className="font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{e.palette}</p>
-            {NODE_TYPES[kind].map(type => <PaletteButton key={type} onClick={() => addNode(type)} label={g.nodes[type]} icon={ICONS[type]} />)}
-            <PaletteButton onClick={addNote} label={e.addNote} icon={<StickyNote size={15} className="text-[var(--syntax-attr)]" />} />
-            <p className="mt-2 font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{g.edgesTitle}</p>
-            {EDGE_TYPES[kind].map(type => (
-              <PaletteButton key={type} pressed={tool === type} onClick={() => { setTool(v => (v === type ? null : type)); setLinkFrom(null) }}
-                label={type === 'include' || type === 'extend' ? `«${g.edges[type]}»` : g.edges[type]} icon={<MoveRight size={15} />} />
-            ))}
-            {tool && <p role="status" className="rounded-lg bg-accent-soft p-2 text-xs text-fg">{linkFrom ? fill(g.linkSecond, { type: g.edges[tool], name: nameOf(linkFrom) }) : fill(g.linkFirst, { type: g.edges[tool] })}</p>}
+            {NODE_TYPES[kind].map(type => <PaletteButton key={type} onClick={() => addNode(type)} drag={type} label={g.nodes[type]} icon={ICONS[type]} />)}
+            <PaletteButton onClick={() => addNote()} drag={NOTE} label={e.addNote} icon={<StickyNote size={15} className="text-[var(--syntax-attr)]" />} />
+            {EDGE_TYPES[kind].length > 1 && <>
+              <p className="mt-2 font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{g.edgesTitle}</p>
+              <div role="radiogroup" aria-label={g.edgesTitle} className="flex flex-col gap-2">
+                {EDGE_TYPES[kind].map(type => (
+                  <PaletteButton key={type} radio pressed={edgeType === type} onClick={() => setEdgeType(type)}
+                    label={type === 'include' || type === 'extend' ? `«${g.edges[type]}»` : g.edges[type]} icon={<MoveRight size={15} />} />
+                ))}
+              </div>
+            </>}
+            <p className="rounded-lg bg-accent-soft p-2 text-xs leading-snug text-fg">{kind === 'sequence' ? g.sequenceHint : g.linkHint}</p>
             <p className="mt-auto pt-2 text-xs leading-snug text-fg-muted">{g.paletteHint}</p>
           </aside>
 
           <div ref={viewport} data-testid="diagram-canvas"
-            className={cn('relative min-w-0 flex-1 touch-none overflow-hidden bg-canvas select-none', tool ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing')}
+            className={cn('relative min-w-0 flex-1 touch-none overflow-hidden bg-canvas select-none', pull ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing')}
             style={{ backgroundImage: 'radial-gradient(var(--color-line-subtle) 1px, transparent 1px)', backgroundSize: `${20 * view.k}px ${20 * view.k}px`, backgroundPosition: `${view.x}px ${view.y}px` }}
-            onPointerDown={ev => down(ev)} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onDragStart={ev => ev.preventDefault()}>
+            onPointerDown={ev => down(ev)} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onDragStart={ev => ev.preventDefault()} {...dropZone(dropped)}>
             {!all.w && <p className="pointer-events-none absolute inset-x-0 top-1/3 mx-auto max-w-sm text-center text-sm text-fg-secondary">{g.empty[kind]}</p>}
             <div className="absolute top-0 left-0 origin-top-left" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})` }}>
               <svg className="pointer-events-none absolute top-0 left-0 overflow-visible font-sans" width="1" height="1" aria-hidden dangerouslySetInnerHTML={{ __html: shapes }} />
               {/* What the pointer takes: each part's box (a system's title bar and its corner), each link's dot */}
               {dg.nodes.map(n => {
                 const b = nodeBox(n)
-                const on = sel?.id === n.id || linkFrom === n.id
+                const on = sel?.id === n.id
                 if (n.type === 'system') return (
                   <div key={n.id}>
                     <div data-node={n.name} onPointerDown={ev => down(ev, { kind: 'node', id: n.id })}
@@ -370,8 +460,14 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
                   </div>
                 )
                 return (
-                  <div key={n.id} data-node={n.name} onPointerDown={ev => down(ev, { kind: 'node', id: n.id })}
-                    className={cn('absolute cursor-move rounded-md', on && ring, n.type === 'case' && 'rounded-[50%]')} style={{ left: b.x, top: b.y, width: b.w, height: b.h }} />
+                  <div key={n.id} className="group contents">
+                    <div data-node={n.name} onPointerDown={ev => down(ev, { kind: 'node', id: n.id })}
+                      className={cn('absolute cursor-move rounded-md', on && ring, n.type === 'case' && 'rounded-[50%]', pull?.target === n.id && TARGET_RING)} style={{ left: b.x, top: b.y, width: b.w, height: b.h }} />
+                    {(!pull || pull.from === n.id) && (
+                      <Handles box={b} k={view.k} name={n.name} shown={pull?.from === n.id} sides={kind === 'sequence' ? ['left', 'right'] : undefined}
+                        onPull={(ev, p) => startPull(ev, n.id, p)} />
+                    )}
+                  </div>
                 )
               })}
               {dg.notes.map(n => {
@@ -390,6 +486,7 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
                     style={{ left: line.handle.x, top: line.handle.y }} />
                 )
               })}
+              {pull && <Wire from={pull.a} to={wireEnd(pull)} ok={!!pull.target} />}
             </div>
           </div>
 
@@ -497,10 +594,11 @@ function NodePanel({ node, kind, dg, onEdit, onRemove }: { node: DiagramNode; ki
   </>
 }
 
-function PaletteButton({ label, icon, onClick, pressed }: { label: string; icon: ReactNode; onClick: () => void; pressed?: boolean }) {
+function PaletteButton({ label, icon, onClick, pressed, drag, radio }: { label: string; icon: ReactNode; onClick: () => void; pressed?: boolean; drag?: string; radio?: boolean }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={pressed}
-      className={cn('flex h-9 shrink-0 items-center gap-2.5 rounded-lg border px-2.5 text-[12.5px] font-medium transition-colors',
+    <button type="button" onClick={onClick} role={radio ? 'radio' : undefined} aria-checked={radio ? !!pressed : undefined} aria-pressed={radio ? undefined : pressed}
+      draggable={!!drag} onDragStart={drag ? dragPart(drag) : undefined}
+      className={cn('flex h-9 shrink-0 items-center gap-2.5 rounded-lg border px-2.5 text-[12.5px] font-medium transition-colors', drag && 'cursor-grab active:cursor-grabbing',
         pressed ? 'border-accent bg-accent-soft text-fg' : 'border-line bg-elevated text-fg-secondary hover:border-fg-disabled hover:text-fg')}>
       <span className="text-fg-secondary">{icon}</span>{label}
     </button>

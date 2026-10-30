@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
+import { pullLink } from './pull'
 import { samples } from '../diagrams'
 
 /** v3.9 lot 5: the diagrams — a use case drawn and turned into tasks, a class, a sequence, the others from the list */
@@ -45,14 +46,11 @@ test('a use case drawn, its scenario, its tasks in Notes; a class and a sequence
   await palette.getByRole('button', { name: 'Cas', exact: true }).click()
   await panel.getByLabel('Nom', { exact: true }).fill('Payer')
 
-  // An association, then an include: the case says who and what
-  await palette.getByRole('button', { name: 'Association', exact: true }).click()
-  await expect(palette.getByRole('status')).toContainText('Clique le départ du lien Association')
-  await page.locator('[data-node="Client"]').click()
-  await page.locator('[data-node="Passer une commande"]').click()
-  await palette.getByRole('button', { name: '«include»' }).click()
-  await page.locator('[data-node="Passer une commande"]').click()
-  await page.locator('[data-node="Payer"]').click()
+  // An association, then an include, pulled from the parts' points: the case says who and what
+  await expect(palette.getByRole('radio', { name: 'Association' })).toHaveAttribute('aria-checked', 'true')
+  await pullLink(page, 'Client', page.locator('[data-node="Passer une commande"]'))
+  await palette.getByRole('radio', { name: '«include»' }).click()
+  await pullLink(page, 'Passer une commande', page.locator('[data-node="Payer"]'), 'bottom')
   await expect(panel).toContainText('include')
   await page.locator('[data-node="Passer une commande"]').click()
   await expect(panel).toContainText('Acteur : Client · inclut Payer')
@@ -95,9 +93,8 @@ test('a use case drawn, its scenario, its tasks in Notes; a class and a sequence
   await panel.getByLabel('Nom', { exact: true }).fill('Front')
   await palette.getByRole('button', { name: 'Participant', exact: true }).click()
   await panel.getByLabel('Nom', { exact: true }).fill('API')
-  await palette.getByRole('button', { name: 'Message', exact: true }).click()
-  await page.locator('[data-node="Front"]').click()
-  await page.locator('[data-node="API"]').click()
+  // Pulled onto API's lifeline, below its head: the message sits there
+  await pullLink(page, 'Front', page.locator('[data-node="API"]'), 'right', { x: 40, y: 140 })
   await panel.getByLabel('Libellé').fill('POST /commandes')
   await expect(canvas).toContainText('POST /commandes')
   await expect.poll(() => {

@@ -18,6 +18,7 @@ import { saveDrawing, schemaColors } from './colors'
 import ModelTabs from './ModelTabs'
 import { fill, siblings, useLinkedDb, useSiblings } from './model'
 import LinkedPanel, { ScriptDialog } from './LinkedDb'
+import { Handles, partAt, TARGET_RING, Wire } from './connect'
 
 const MINI = { w: 180, h: 110 }
 const SAVE_DELAY = 500
@@ -58,7 +59,8 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
   const viewport = useRef<HTMLDivElement>(null)
   const history = useRef<{ past: MpdModel[]; future: MpdModel[]; mergeKey: string | null; at: number }>({ past: [], future: [], mergeKey: null, at: 0 })
   const [, setHistoryTick] = useState(0)
-  const drag = useRef<{ kind: 'pan' | 'move'; id?: string; sx: number; sy: number; ox: number; oy: number; moved: boolean; before?: MpdModel } | null>(null)
+  const [pull, setPull] = useState<{ from: string; a: Point; b: Point; target: string | null } | null>(null)
+  const drag = useRef<{ kind: 'pan' | 'move' | 'pull'; id?: string; sx: number; sy: number; ox: number; oy: number; moved: boolean; before?: MpdModel } | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pending = useRef<MpdModel | null>(null)
   const touched = useRef(false)
@@ -208,7 +210,7 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
     const mod = ev.ctrlKey || ev.metaKey
     if (mod && ev.key.toLowerCase() === 'z') { ev.preventDefault(); if (ev.shiftKey) redo(); else undo() }
     else if (mod && ev.key.toLowerCase() === 'y') { ev.preventDefault(); redo() }
-    else if (ev.key === 'Escape') setSel(null)
+    else if (ev.key === 'Escape') { if (drag.current?.kind === 'pull') drag.current = null; setPull(null); setSel(null) }
   }
   useEffect(() => {
     const on = (ev: KeyboardEvent) => keys.current(ev)
@@ -226,20 +228,58 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
     const b = id ? boxes.get(id) : null
     drag.current = { kind: id ? 'move' : 'pan', id, sx: ev.clientX, sy: ev.clientY, ox: b ? b.x : view.x, oy: b ? b.y : view.y, moved: false, before: mpd ?? undefined }
   }
+  const toWorld = (clientX: number, clientY: number): Point => {
+    const r = viewport.current!.getBoundingClientRect()
+    return { x: (clientX - r.left - view.x) / view.k, y: (clientY - r.top - view.y) / view.k }
+  }
+  // A line pulled from a table's point onto another: a foreign key to it
+  const startPull = (ev: ReactPointerEvent, id: string, from: Point) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    ;(ev.currentTarget as Element).setPointerCapture(ev.pointerId)
+    setSel(id)
+    drag.current = { kind: 'pull', id, sx: ev.clientX, sy: ev.clientY, ox: 0, oy: 0, moved: false }
+    setPull({ from: id, a: from, b: from, target: null })
+  }
+  const linkable = useMemo(() => [...boxes].map(([id, box]) => ({ id, box })), [boxes])
+  const addForeignKey = (from: string, to: string) => {
+    const source = mpd?.tables.find(x => x.id === from), target = mpd?.tables.find(x => x.id === to)
+    if (!source || !target) return
+    const pks = target.columns.filter(c => c.pk)
+    if (!pks.length) { toast.show({ tone: 'error', title: fill(p.fkNoPk, { name: target.name }) }); return }
+    const taken = new Set(source.columns.map(c => c.name.toLowerCase()))
+    const cols: MpdColumn[] = pks.map(pk => {
+      let name = pk.name.toLowerCase() === 'id' || taken.has(pk.name.toLowerCase()) ? `${target.name}_${pk.name}` : pk.name
+      for (let i = 2; taken.has(name.toLowerCase()); i++) name = `${target.name}_${pk.name}_${i}`
+      taken.add(name.toLowerCase())
+      return { id: uid('c'), name, type: pk.type, length: pk.length, scale: pk.scale, nullable: true, ref: { table: to, column: pk.id } }
+    })
+    editTable(from, tb => ({ ...tb, columns: [...tb.columns, ...cols] }))
+    toast.show({ tone: 'success', title: fill(p.fkAdded, { name: `${source.name}.${cols.map(c => c.name).join(', ')}` }) })
+  }
   const move = (ev: ReactPointerEvent) => {
     const d = drag.current
     if (!d) return
     const dx = ev.clientX - d.sx, dy = ev.clientY - d.sy
     if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true
+    if (d.kind === 'pull') {
+      const pt = toWorld(ev.clientX, ev.clientY)
+      setPull(cur => cur && ({ ...cur, b: pt, target: partAt(pt, linkable, cur.from)?.id ?? null }))
+      return
+    }
     if (d.kind === 'pan') { if (d.moved) touched.current = true; setView(v => ({ ...v, x: d.ox + dx, y: d.oy + dy })); return }
     if (!d.moved) return
     const x = Math.round(d.ox + dx / view.k), y = Math.round(d.oy + dy / view.k)
     setMpd(cur => cur && ({ ...cur, tables: cur.tables.map(tb => (tb.id === d.id ? { ...tb, x, y } : tb)) }))
   }
-  const up = () => {
+  const up = (ev: ReactPointerEvent) => {
     const d = drag.current
     drag.current = null
     if (d?.kind === 'move' && d.moved) change(x => x, null, d.before)
+    if (d?.kind === 'pull' && pull) {
+      setPull(null)
+      if (d.moved && ev.type === 'pointerup' && pull.target) addForeignKey(pull.from, pull.target)
+    }
   }
 
   // ── SQL ────────────────────────────────────────────────────────────────────
@@ -392,8 +432,9 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
                   const b = boxes.get(tb.id)!
                   const on = sel === tb.id
                   return (
-                    <div key={tb.id} data-table={tb.name}
-                      className={cn('absolute overflow-hidden rounded-[10px] border bg-surface shadow-sm', on ? 'border-accent shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_25%,transparent)]' : 'border-line')}
+                    <div key={tb.id} className="group contents">
+                    <div data-table={tb.name}
+                      className={cn('absolute overflow-hidden rounded-[10px] border bg-surface shadow-sm', on ? 'border-accent shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_25%,transparent)]' : 'border-line', pull?.target === tb.id && TARGET_RING)}
                       style={{ left: b.x, top: b.y, width: b.w, height: b.h }} onPointerDown={ev => down(ev, tb.id)}>
                       <div className="flex cursor-move items-center gap-2 border-b border-line bg-elevated px-3" style={{ height: HEADER }}>
                         <span className="truncate font-mono text-[13px] font-semibold text-fg">{tb.name || '—'}</span>
@@ -407,8 +448,11 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
                         </div>
                       ))}
                     </div>
+                    {(!pull || pull.from === tb.id) && <Handles box={b} k={view.k} name={tb.name} shown={pull?.from === tb.id} sides={['left', 'right']} onPull={(ev, pt) => startPull(ev, tb.id, pt)} />}
+                    </div>
                   )
                 })}
+                {pull && <Wire from={pull.a} to={pull.b} ok={!!pull.target} />}
               </div>
 
               {boxes.size > 0 && (

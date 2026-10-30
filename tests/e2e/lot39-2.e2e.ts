@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
+import { pullLink } from './pull'
 
 /** v3.9 lot 2: the Modeling page and the MCD editor, saved in the project's conception/ folder */
 let run: Launched
@@ -49,13 +50,8 @@ test('an MCD drawn, checked and saved in the project, then found again in the li
   await palette.getByRole('button', { name: 'Association', exact: true }).click()
   await panel.getByLabel('Nom', { exact: true }).fill('Passer')
 
-  // Two legs: an entity, then the association
-  for (const name of ['CLIENT', 'COMMANDE']) {
-    await palette.getByRole('button', { name: 'Lien', exact: true }).click()
-    await expect(palette.getByRole('status')).toContainText('Clique une entité')
-    await page.locator(`[data-entity="${name === 'CLIENT' ? 'Client' : 'Commande'}"]`).click()
-    await page.locator('[data-association="Passer"]').click()
-  }
+  // Two legs: a line pulled from each entity's point onto the association
+  for (const name of ['Client', 'Commande']) await pullLink(page, name, page.locator('[data-association="Passer"]'))
   // A click on a cardinality: the next one
   const leg = page.getByRole('button', { name: 'Cardinalité de Commande dans Passer : 0,n' })
   await leg.click()

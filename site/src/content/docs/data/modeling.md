@@ -20,9 +20,9 @@ Un MCD décrit les données à la manière de Merise : des **entités** (CLIENT,
 
 | Action | Comment |
 |---|---|
-| Ajouter une entité | **Entité** dans la palette, ou double-clic sur le fond |
-| Ajouter une association | **Association** dans la palette |
-| Relier | **Lien**, puis une entité et une association (Échap pour arrêter) |
+| Ajouter une entité | glisser **Entité** de la palette sur le canevas (ou un clic dessus), ou double-clic sur le fond |
+| Ajouter une association | glisser **Association** de la palette (ou un clic dessus) |
+| Relier | survoler un élément : quatre points apparaissent ; tirer un point jusqu'à un autre élément. Entité → association : une patte ; entité → entité : une association entre elles, avec ses deux pattes ; lâché dans le vide : une nouvelle entité reliée là (Échap annule) |
 | Changer une cardinalité | un clic dessus : 0,1 → 1,1 → 0,n → 1,n |
 | Déplacer | glisser un élément ; glisser le fond déplace la vue |
 | Zoomer | la molette, ou − / + ; **Ajuster** montre tout |
@@ -63,7 +63,7 @@ Sous le schéma, **les règles appliquées**, une par ligne :
 
 Les tables du MLD avec leurs types pour le **moteur** choisi (PostgreSQL, MySQL ou SQLite), dessinées comme le [schéma d'une base](/devforge/data/database/) : les clés primaires 🔑, les clés étrangères en couleur avec leur flèche, `!` pour une colonne qui ne peut pas être vide. Le moteur de départ est celui du projet (son `.env`, son fichier compose), PostgreSQL sinon.
 
-Un clic sur une table la retouche à droite : son nom, chaque colonne (nom, type, longueur, décimales, *Vide*, *Unique*) et ses **index**. Une colonne retouchée est marquée ✎ ; ↺ la ramène à ce que donne le MCD. Une clé étrangère prend le type de la clé qu'elle désigne.
+Un clic sur une table la retouche à droite : son nom, chaque colonne (nom, type, longueur, décimales, *Vide*, *Unique*) et ses **index**. Une colonne retouchée est marquée ✎ ; ↺ la ramène à ce que donne le MCD. Une clé étrangère prend le type de la clé qu'elle désigne. Pour en ajouter une, tirer un point d'une table (à gauche ou à droite) jusqu'à la table visée : la colonne (`categorie_id`…) s'ajoute, gardée quand le MPD est mis à jour.
 
 Quand le MCD change, le MPD le signale : **Mettre à jour** refait les tables d'après le MCD en gardant les retouches, les index et la place de chaque table. **Réorganiser** replace les tables ; zoom, Ajuster, mini-carte, annuler / rétablir et l'export PNG / SVG marchent comme dans le MCD.
 
@@ -115,7 +115,7 @@ Cinq autres sortes de modèles se dessinent sur le même canevas, chacune avec s
 | **Logigramme** | début, étape, décision, entrée / sortie, fin | flèche (libellée *oui*, *non*…) |
 | **Architecture** | client, passerelle, service, base, file, externe | lien (libellé *HTTPS*, *SQL*…) |
 
-Un élément de la palette s'ajoute au milieu de l'écran ; un lien se trace en choisissant son type, puis l'élément de départ et celui d'arrivée (Échap pour arrêter). Un lien se choisit par sa pastille : le panneau change son type, son libellé, son sens. Une **note** s'ajoute partout.
+Un élément de la palette se glisse sur le canevas, là où on le lâche (un clic le pose au milieu de l'écran). Un lien se tire depuis un des points qui apparaissent au survol d'un élément, jusqu'à un autre ; il prend le **type des nouveaux liens** choisi dans la palette. Lâché dans le vide, il crée là un élément relié (une étape après une étape, un cas après un acteur, un service…). Dans une séquence, le message se pose sur la ligne de vie visée, à la hauteur où on le lâche. Un lien se choisit par sa pastille : le panneau change son type, son libellé, son sens. Une **note** s'ajoute partout.
 
 - **Classes** : le panneau prend les attributs et les méthodes, un par ligne (`- id : int`, `+ total() : float`) ; une énumération, ses valeurs.
 - **Séquence** : les participants se rangent côte à côte, chaque message se place sous le précédent ; glisser sa pastille vers le haut ou le bas change son ordre.
