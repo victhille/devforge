@@ -13,7 +13,9 @@ import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import { mcdColors } from './colors'
-import { KIND_TONE } from './ModelingPage'
+import ModelTabs, { useSiblings, type ModelTab } from './ModelTabs'
+import MldView from './MldView'
+import MpdView from './MpdView'
 
 type Sel = { kind: 'entity' | 'association' | 'link' | 'note'; id: string } | null
 type Tool = 'select' | 'link'
@@ -22,20 +24,29 @@ const SAVE_DELAY = 500
 
 const isTyping = (t: EventTarget | null) => t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement
 
+/** A model's page: its MCD, MLD, MPD or SQL, picked by the tab (an MPD opens on itself) */
+export default function ModelEditorPage() {
+  const [params] = useSearchParams()
+  const projectPath = params.get('project') ?? ''
+  const file = params.get('file') ?? ''
+  const tab = (params.get('tab') ?? (file.endsWith('.mpd.json') ? 'mpd' : 'mcd')) as ModelTab
+  if (tab === 'mld') return <MldView key={file} projectPath={projectPath} file={file} />
+  if (tab === 'mpd' || tab === 'sql') return <MpdView key={file} projectPath={projectPath} file={file} tab={tab} />
+  return <McdEditor key={file} projectPath={projectPath} file={file} />
+}
+
 /**
  * v3.9 lot 2: the MCD editor. Entities, associations, the legs between them and
  * their cardinalities, notes; the same canvas as the schema (pan, zoom, fit,
  * minimap). Saved in the project's conception/ folder as it changes.
  */
-export default function ModelEditorPage() {
+function McdEditor({ projectPath, file }: { projectPath: string; file: string }) {
   const { t } = useI18n()
   const m = t.modeling
   const e = m.editor
   const toast = useToast()
   const navigate = useNavigate()
-  const [params] = useSearchParams()
-  const projectPath = params.get('project') ?? ''
-  const file = params.get('file') ?? ''
+  const found = useSiblings(projectPath, file)
 
   const [model, setModel] = useState<ModelFile | null>(null)
   const [mcd, setMcd] = useState<McdModel | null>(null)
@@ -319,7 +330,7 @@ export default function ModelEditorPage() {
         <header className="flex h-[52px] shrink-0 items-center gap-2 border-b border-line-subtle px-3">
           <Button variant="secondary" size="sm" onClick={() => { void flush(); navigate('/modeling') }}><ArrowLeft size={13} /> {m.title}</Button>
           <h1 className="min-w-0 truncate text-md font-semibold text-fg">{model.name}</h1>
-          <span className={cn('rounded-[5px] px-1.5 py-0.5 font-mono text-[11px] font-semibold', KIND_TONE.mcd)}>{m.kindTag.mcd}</span>
+          <ModelTabs projectPath={projectPath} file={file} tab="mcd" hasMcd hasMpd={!!found?.mpd} before={() => { void flush() }} />
           <span className="flex-1" />
           <span role="status" className={cn('hidden truncate text-xs md:block', saveState === 'failed' ? 'text-danger' : 'text-fg-muted')}>
             {saveState === 'saving' ? e.saving : saveState === 'failed' ? e.saveFailed : e.saved.replace('{file}', `conception/${file}`)}

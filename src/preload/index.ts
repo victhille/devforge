@@ -434,7 +434,9 @@ const api: DevForgeAPI = {
     create: invoke('modeling:create'),
     save:   invoke('modeling:save'),
     rename: invoke('modeling:rename'),
-    remove: invoke('modeling:remove')
+    remove: invoke('modeling:remove'),
+    engine: invoke('modeling:engine'),
+    writeSql: invoke('modeling:write-sql')
   },
   notes: {
     get:    invoke('notes:get'),

@@ -1,4 +1,5 @@
 import type { McdColors } from '@shared/lib/mcd'
+import type { SvgColors } from '@shared/lib/schemaLayout'
 
 /** The theme's colors, for an MCD drawn as an image (export, thumbnails) */
 export function mcdColors(): McdColors {
@@ -11,4 +12,32 @@ export function mcdColors(): McdColors {
   }
 }
 
+/** The theme's colors for an MPD drawn as an image: the database schema's */
+export function schemaColors(): SvgColors {
+  const css = getComputedStyle(document.documentElement)
+  const v = (name: string) => css.getPropertyValue(name).trim() || '#888'
+  return {
+    canvas: v('--color-canvas'), card: v('--color-surface'), header: v('--color-elevated'), line: v('--color-line'),
+    text: v('--color-fg'), muted: v('--color-fg-muted'), key: v('--color-warning'), link: v('--color-accent')
+  }
+}
+
 export const svgUrl = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+
+/** An SVG saved where the user picks, as itself or as a PNG twice its size; null when cancelled */
+export async function saveDrawing(svg: string, name: string, ext: 'png' | 'svg'): Promise<string | null> {
+  let content = svg
+  if (ext === 'png') {
+    const img = new Image()
+    img.src = svgUrl(svg)
+    await img.decode()
+    const canvas = document.createElement('canvas')
+    canvas.width = img.width * 2
+    canvas.height = img.height * 2
+    const ctx = canvas.getContext('2d')!
+    ctx.scale(2, 2)
+    ctx.drawImage(img, 0, 0)
+    content = canvas.toDataURL('image/png')
+  }
+  return window.devforge.db.saveImage(name, content, ext)
+}

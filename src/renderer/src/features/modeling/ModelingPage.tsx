@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronRight, Pencil, Plus, Shapes, Trash2 } from 'lucide-react'
 import type { ModelKind, ModelSummary, Project } from '@shared/types'
 import { checkMcd, mcdSvg } from '@shared/lib/mcd'
+import { DEFAULT_NAMING, mcdHash, mpdDiagram, toMld } from '@shared/lib/mpd'
+import { diagramSvg } from '@shared/lib/schemaLayout'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
@@ -18,7 +20,8 @@ import Modal from '@renderer/components/ui/Modal'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Field, Input } from '@renderer/components/ui/Input'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
-import { mcdColors, svgUrl } from './colors'
+import { mcdColors, schemaColors, svgUrl } from './colors'
+import { modelUrl, siblings, type ModelTab } from './ModelTabs'
 
 /** The colour of each kind's tag, the same everywhere */
 export const KIND_TONE: Record<ModelKind, string> = {
@@ -34,8 +37,6 @@ export const KIND_TONE: Record<ModelKind, string> = {
 /** The kinds that can be made today; the others come with the next lots */
 const READY: ModelKind[] = ['mcd']
 const KINDS: ModelKind[] = ['mcd', 'mpd', 'usecase', 'class', 'sequence', 'flow', 'architecture']
-
-export const modelUrl = (projectPath: string, file: string) => `/model?project=${encodeURIComponent(projectPath)}&file=${encodeURIComponent(file)}`
 
 /**
  * v3.9 lot 2: the Modeling page. A project's models (files of its conception/
@@ -68,9 +69,34 @@ export default function ModelingPage() {
   useEffect(() => { load() }, [load])
 
   const colors = useMemo(() => mcdColors(), [])
+  const tableColors = useMemo(() => schemaColors(), [])
   const mcds = (models ?? []).filter(x => x.kind === 'mcd')
   const mcd = mcds[0]
   const issues = mcd?.mcd ? checkMcd(mcd.mcd).filter(i => i.level === 'error').length : 0
+  // The chain follows the latest MCD and its MPD (else the latest MPD alone)
+  const mpd = (models ?? []).find(x => x.kind === 'mpd' && (!mcd || x.file === siblings(mcd.file).mpd)) ?? (mcd ? undefined : (models ?? []).find(x => x.kind === 'mpd'))
+  const relations = mcd?.mcd ? toMld(mcd.mcd).relations.length : 0
+  const mpdStale = !!(mcd?.mcd && mpd?.mpd && mpd.mpd.sourceHash !== mcdHash(mcd.mcd, mcd.naming ?? DEFAULT_NAMING))
+  const sqlStale = !!(mpd?.sqlAt && mpd.updatedAt > mpd.sqlAt)
+
+  /** Each step of the chain: its state, and where a click leads (null: not yet) */
+  const steps = (['mcd', 'mld', 'mpd', 'sql', 'base'] as const).map(step => {
+    const go = (file: string, tab: ModelTab) => () => project && navigate(modelUrl(project.path, file, tab))
+    switch (step) {
+      case 'mcd': return { step, ready: true, text: !mcd ? m.noMcd : m.mcdCount.replace('{e}', String(mcd.mcd?.entities.length ?? 0)).replace('{a}', String(mcd.mcd?.associations.length ?? 0)),
+        state: mcd ? (issues ? { warn: true, text: m.toFix.replace('{n}', String(issues)) } : { warn: false, text: m.upToDate }) : null,
+        onClick: mcd ? go(mcd.file, 'mcd') : () => setCreating('mcd') }
+      case 'mld': return { step, ready: !!mcd, text: mcd ? m.relCount.replace('{n}', String(relations)) : m.noMcd, state: null, onClick: mcd ? go(mcd.file, 'mld') : null }
+      case 'mpd': return { step, ready: !!mcd || !!mpd,
+        text: mpd?.mpd ? m.tableCount.replace('{n}', String(mpd.mpd.tables.length)).replace('{engine}', m.mpd.engines[mpd.mpd.engine]) : m.noMpd,
+        state: mpd ? (mpdStale ? { warn: true, text: m.stale } : { warn: false, text: m.upToDate }) : null,
+        onClick: mpd ? go(mpd.file, 'mpd') : mcd ? go(mcd.file, 'mld') : null }
+      case 'sql': return { step, ready: !!mpd, text: mpd ? `conception/${siblings(mpd.file).sql}` : m.noSql,
+        state: mpd ? (!mpd.sqlAt ? { muted: true, warn: false, text: m.noSql } : sqlStale ? { warn: true, text: m.stale } : { warn: false, text: m.sqlWritten }) : null,
+        onClick: mpd ? go(mpd.file, 'sql') : null }
+      default: return { step, ready: false, text: m.soon, state: null, onClick: null }
+    }
+  })
 
   async function remove(model: ModelSummary) {
     if (!project || !window.confirm(m.removeConfirm.replace('{name}', model.name))) return
@@ -102,23 +128,20 @@ export default function ModelingPage() {
       <section aria-label={m.chain} className="flex flex-col gap-2.5">
         <SectionTitle>{m.chain}</SectionTitle>
         <Card className="flex items-stretch p-1">
-          {(['mcd', 'mld', 'mpd', 'sql', 'base'] as const).map((step, i) => {
-            const ready = step === 'mcd'
+          {steps.map(({ step, ready, text, state, onClick }, i) => {
             const body = (
               <>
-                <span className={cn('self-start rounded-[5px] px-1.5 py-0.5 font-mono text-[11px] font-semibold', ready ? KIND_TONE.mcd : 'bg-elevated text-fg-muted')}>{m.chainTag[step]}</span>
+                <span className={cn('self-start rounded-[5px] px-1.5 py-0.5 font-mono text-[11px] font-semibold', !ready ? 'bg-elevated text-fg-muted' : step === 'mcd' ? KIND_TONE.mcd : KIND_TONE.mpd)}>{m.chainTag[step]}</span>
                 <span className="font-semibold text-fg">{m.chainName[step]}</span>
-                <span className="truncate text-sm text-fg-secondary">
-                  {!ready ? m.soon : !mcd ? m.noMcd : m.mcdCount.replace('{e}', String(mcd.mcd?.entities.length ?? 0)).replace('{a}', String(mcd.mcd?.associations.length ?? 0))}
-                </span>
-                {ready && mcd && <span className={cn('text-sm', issues ? 'text-warning' : 'text-success')}>{issues ? m.toFix.replace('{n}', String(issues)) : m.upToDate}</span>}
+                <span className="truncate text-sm text-fg-secondary">{text}</span>
+                {state && <span className={cn('text-sm', state.warn ? 'text-warning' : 'muted' in state ? 'text-fg-muted' : 'text-success')}>{state.text}</span>}
               </>
             )
             return (
               <div key={step} className="flex min-w-0 flex-1 items-center">
                 {i > 0 && <ChevronRight size={16} className="shrink-0 text-fg-disabled" aria-hidden />}
-                {ready && project
-                  ? <button type="button" onClick={() => mcd ? navigate(modelUrl(project.path, mcd.file)) : setCreating('mcd')}
+                {onClick && project
+                  ? <button type="button" onClick={onClick} data-step={step}
                       className="flex min-w-0 flex-1 flex-col gap-1 rounded-lg px-3.5 py-3 text-left transition-colors hover:bg-hover">{body}</button>
                   : <div className="flex min-w-0 flex-1 flex-col gap-1 px-3.5 py-3">{body}</div>}
               </div>
@@ -140,6 +163,8 @@ export default function ModelingPage() {
                     className="block overflow-hidden rounded-lg border border-line-subtle bg-canvas">
                     {x.mcd && (x.mcd.entities.length || x.mcd.associations.length)
                       ? <img src={svgUrl(mcdSvg(x.mcd, colors, 16))} alt="" className="h-[96px] w-full object-contain" />
+                      : x.mpd?.tables.length
+                      ? <img src={svgUrl((({ diagram, positions }) => diagramSvg(diagram.tables, positions, diagram.links, tableColors))(mpdDiagram(x.mpd)))} alt="" className="h-[96px] w-full object-contain" />
                       : <span className="flex h-[96px] items-center justify-center text-sm text-fg-muted">{m.emptyModel}</span>}
                   </button>
                   <div className="flex items-center gap-2">
@@ -149,7 +174,8 @@ export default function ModelingPage() {
                     <IconButton size="sm" tone="danger" title={m.remove} onClick={() => remove(x)} className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"><Trash2 size={13} /></IconButton>
                   </div>
                   <span className="text-sm text-fg-secondary">
-                    {x.mcd ? m.mcdCount.replace('{e}', String(x.mcd.entities.length)).replace('{a}', String(x.mcd.associations.length)) : m.kindName[x.kind]}
+                    {x.mcd ? m.mcdCount.replace('{e}', String(x.mcd.entities.length)).replace('{a}', String(x.mcd.associations.length))
+                      : x.mpd ? m.tableCount.replace('{n}', String(x.mpd.tables.length)).replace('{engine}', m.mpd.engines[x.mpd.engine]) : m.kindName[x.kind]}
                     {' · '}{formatRelative(x.updatedAt, lang)}
                   </span>
                   <span className="truncate font-mono text-xs text-fg-muted">conception/{x.file}</span>

@@ -1,4 +1,5 @@
 import type { Cardinality, McdAssociation, McdAttribute, McdEntity, McdLink, McdModel, McdType, ModelFile, ModelKind, ModelNote } from '../types/modeling'
+import { cleanMpd, cleanNaming } from './mpd'
 
 /** v3.9 lot 2: the MCD (Merise) — sizes, the lines between boxes, the checks, the SVG drawing, the file */
 
@@ -151,7 +152,8 @@ export function cleanModelFile(v: unknown): ModelFile {
   const kind = MODEL_KINDS.includes(f.kind as ModelKind) ? f.kind as ModelKind : 'mcd'
   return {
     v: 1, kind, name: str(f.name, 120) || 'Modèle', updatedAt: str(f.updatedAt, 40) || new Date().toISOString(),
-    ...(kind === 'mcd' ? { mcd: cleanMcd(f.mcd) } : {})
+    ...(kind === 'mcd' ? { mcd: cleanMcd(f.mcd), ...(f.naming ? { naming: cleanNaming(f.naming) } : {}) } : {}),
+    ...(kind === 'mpd' ? { mpd: cleanMpd(f.mpd) } : {})
   }
 }
 
