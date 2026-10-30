@@ -1,5 +1,6 @@
 import type { Cardinality, McdAssociation, McdAttribute, McdEntity, McdLink, McdModel, McdType, ModelFile, ModelKind, ModelNote } from '../types/modeling'
 import { cleanMpd, cleanNaming } from './mpd'
+import { cleanDiagram, isDiagramKind } from './uml'
 
 /** v3.9 lot 2: the MCD (Merise) — sizes, the lines between boxes, the checks, the SVG drawing, the file */
 
@@ -153,7 +154,8 @@ export function cleanModelFile(v: unknown): ModelFile {
   return {
     v: 1, kind, name: str(f.name, 120) || 'Modèle', updatedAt: str(f.updatedAt, 40) || new Date().toISOString(),
     ...(kind === 'mcd' ? { mcd: cleanMcd(f.mcd), ...(f.naming ? { naming: cleanNaming(f.naming) } : {}) } : {}),
-    ...(kind === 'mpd' ? { mpd: cleanMpd(f.mpd) } : {})
+    ...(kind === 'mpd' ? { mpd: cleanMpd(f.mpd) } : {}),
+    ...(isDiagramKind(kind) ? { diagram: cleanDiagram(f.diagram, kind) } : {})
   }
 }
 

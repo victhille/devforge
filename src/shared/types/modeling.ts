@@ -142,6 +142,53 @@ export interface MpdDiff {
 /** One line of a catch-up script: a statement, or a note for what is done by hand */
 export interface ScriptLine { sql: string; comment?: boolean; danger?: boolean }
 
+/** v3.9 lot 5: the diagrams drawn on the same canvas (UML, flowcharts, architecture) */
+export type DiagramKind = 'usecase' | 'class' | 'sequence' | 'flow' | 'architecture'
+export type DiagramNodeType =
+  | 'actor' | 'case' | 'system'
+  | 'class' | 'interface' | 'enum'
+  | 'participant'
+  | 'start' | 'end' | 'step' | 'decision' | 'io'
+  | 'service' | 'database' | 'queue' | 'client' | 'gateway' | 'external'
+export type DiagramEdgeType =
+  | 'association' | 'include' | 'extend' | 'generalization'
+  | 'inheritance' | 'implementation' | 'composition' | 'aggregation' | 'dependency'
+  | 'message' | 'return'
+  | 'flow' | 'link'
+
+export interface DiagramNode {
+  id: string
+  type: DiagramNodeType
+  name: string
+  x: number
+  y: number
+  /** A system's size (the others are sized by their text) */
+  w?: number
+  h?: number
+  /** A class's attributes, an enum's values */
+  attributes?: string[]
+  /** A class's methods */
+  methods?: string[]
+  /** A use case's scenario, one step per line */
+  steps?: string[]
+}
+
+export interface DiagramEdge {
+  id: string
+  type: DiagramEdgeType
+  from: string
+  to: string
+  label?: string
+  /** A sequence message's height: the order of the messages */
+  y?: number
+}
+
+export interface DiagramModel {
+  nodes: DiagramNode[]
+  edges: DiagramEdge[]
+  notes: ModelNote[]
+}
+
 /** A model file in the project's conception/ folder */
 export interface ModelFile {
   v: 1
@@ -152,6 +199,8 @@ export interface ModelFile {
   /** An MCD's naming for its MPD (lot 3) */
   naming?: MldNaming
   mpd?: MpdModel
+  /** A diagram (lot 5) */
+  diagram?: DiagramModel
 }
 
 /** A model in the list: its file name, and enough to draw its thumbnail */
@@ -164,6 +213,7 @@ export interface ModelSummary {
   mcd?: McdModel
   naming?: MldNaming
   mpd?: MpdModel
+  diagram?: DiagramModel
   /** An MPD's SQL script (conception/<name>.sql): when it was written */
   sqlAt?: string
 }

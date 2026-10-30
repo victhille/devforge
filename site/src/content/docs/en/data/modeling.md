@@ -1,6 +1,6 @@
 ---
 title: Modeling
-description: Design your database and your app before coding — an MCD (Merise) drawn in DevForge, its MLD, its MPD and the SQL script, saved in the project and versioned with Git.
+description: Design your database and your app before coding — MCD (Merise), MLD, MPD and SQL tied to the real database, and UML diagrams, flowcharts and architecture, saved in the project.
 ---
 
 The **Modeling** page (*Data & API* menu) is for designing before coding. Models are kept **per project**: they are files of the project's `conception/` folder (`shop.mcd.json`…), so versioned with Git like the rest of the code.
@@ -10,7 +10,7 @@ The **Modeling** page (*Data & API* menu) is for designing before coding. Models
 - **The project picker**, top right: the active project by default.
 - **The project's chain**: MCD → MLD → MPD → SQL → linked database, with the state of each (*Up to date*, *▲ To update*, *Not written yet*). A click opens the step. The linked database tells how many differences part it from the MPD.
 - **The project's models**: a preview, the kind, the date, the file. A click opens the model; rename and delete on hover. Renaming an MCD renames its MPD and its script too.
-- **Create a model**: an **MCD**, or **From a database** (see below); the MPD is made from the MCD (UML diagrams follow).
+- **Create a model**: an **MCD**, **From a database** (see below), or a **diagram** (use cases, classes, sequence, flowchart, architecture); the MPD is made from the MCD.
 
 At the top of the editor, the **MCD · MLD · MPD · SQL** tabs go from one step of the same model to the next.
 
@@ -102,3 +102,27 @@ The other way: the MPD takes the database's tables, columns, types and keys. Wha
 - an `id` primary key becomes the identifier `id_<table>`; the MPD's naming is guessed (`client_id` or `id_client`, `snake_case`…).
 
 The imported MPD is the database as it is: no difference to begin with.
+
+## The diagrams
+
+Five other kinds of models are drawn on the same canvas, each with its palette:
+
+| Diagram | Parts | Links |
+|---|---|---|
+| **Use cases** | actor, use case, system | association, «include», «extend», generalization |
+| **Classes** | class, interface, enumeration | association, inheritance, implementation, composition, aggregation, dependency |
+| **Sequence** | actor, participant | message, return |
+| **Flowchart** | start, step, decision, input / output, end | arrow (labelled *yes*, *no*…) |
+| **Architecture** | client, gateway, service, database, queue, external | link (labelled *HTTPS*, *SQL*…) |
+
+A palette part is added in the middle of the screen; a link is drawn by picking its type, then the part it starts from and the one it ends at (Esc to stop). A link is picked by its dot: the panel changes its type, its label, its direction. A **note** can go anywhere.
+
+- **Classes**: the panel takes the attributes and the methods, one per line (`- id : int`, `+ total() : float`); an enumeration, its values.
+- **Sequence**: participants stand side by side, each message goes below the previous one; dragging its dot up or down changes its order.
+- **Use cases**: a system holds use cases (moving it takes them along, its corner resizes it); a use case's panel tells its actor, what it includes, what extends it, and holds its **scenario**, one step per line.
+
+As for the MCD: saved as it changes in `conception/` (`customer-journey.usecase.json`…), undo / redo, zoom, Fit, PNG and SVG export; a preview in the models list.
+
+### Make the tasks in Notes
+
+In a use case diagram, **Make the tasks in Notes** adds one task per use case to the project's [Notes](/devforge/en/dev/projects/) tab (*Use case “Place an order” (Customer)*). A task already there is not added twice.

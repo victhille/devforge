@@ -6,6 +6,7 @@ import { checkMcd, mcdSvg } from '@shared/lib/mcd'
 import { DEFAULT_NAMING, mcdHash, mpdDiagram, toMld } from '@shared/lib/mpd'
 import { diagramSvg } from '@shared/lib/schemaLayout'
 import { diffMpd, importDb } from '@shared/lib/mpdDb'
+import { diagramSvg as umlSvg, isDiagramKind } from '@shared/lib/uml'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
@@ -21,11 +22,11 @@ import Modal from '@renderer/components/ui/Modal'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Field, Input } from '@renderer/components/ui/Input'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
-import { mcdColors, schemaColors, svgUrl } from './colors'
+import { diagramColors, mcdColors, schemaColors, svgUrl } from './colors'
 import { fill, KIND_TONE, modelUrl, siblings, useLinkedDb, type ModelTab } from './model'
 
 /** The kinds that can be made today; the others come with the next lots */
-const READY: ModelKind[] = ['mcd', 'mpd']
+const READY: ModelKind[] = ['mcd', 'mpd', 'usecase', 'class', 'sequence', 'flow', 'architecture']
 const KINDS: ModelKind[] = ['mcd', 'mpd', 'usecase', 'class', 'sequence', 'flow', 'architecture']
 
 /**
@@ -60,6 +61,7 @@ export default function ModelingPage() {
 
   const colors = useMemo(() => mcdColors(), [])
   const tableColors = useMemo(() => schemaColors(), [])
+  const drawColors = useMemo(() => diagramColors(), [])
   const mcds = (models ?? []).filter(x => x.kind === 'mcd')
   const mcd = mcds[0]
   const issues = mcd?.mcd ? checkMcd(mcd.mcd).filter(i => i.level === 'error').length : 0
@@ -162,6 +164,8 @@ export default function ModelingPage() {
                     className="block overflow-hidden rounded-lg border border-line-subtle bg-canvas">
                     {x.mcd && (x.mcd.entities.length || x.mcd.associations.length)
                       ? <img src={svgUrl(mcdSvg(x.mcd, colors, 16))} alt="" className="h-[96px] w-full object-contain" />
+                      : x.diagram && isDiagramKind(x.kind) && (x.diagram.nodes.length || x.diagram.notes.length)
+                      ? <img src={svgUrl(umlSvg(x.kind, x.diagram, drawColors, 16))} alt="" className="h-[96px] w-full object-contain" />
                       : x.mpd?.tables.length
                       ? <img src={svgUrl((({ diagram, positions }) => diagramSvg(diagram.tables, positions, diagram.links, tableColors))(mpdDiagram(x.mpd)))} alt="" className="h-[96px] w-full object-contain" />
                       : <span className="flex h-[96px] items-center justify-center text-sm text-fg-muted">{m.emptyModel}</span>}
@@ -174,6 +178,7 @@ export default function ModelingPage() {
                   </div>
                   <span className="text-sm text-fg-secondary">
                     {x.mcd ? m.mcdCount.replace('{e}', String(x.mcd.entities.length)).replace('{a}', String(x.mcd.associations.length))
+                      : x.diagram ? `${m.kindName[x.kind]} · ${m.diagram.count.replace('{n}', String(x.diagram.nodes.length))}`
                       : x.mpd ? m.tableCount.replace('{n}', String(x.mpd.tables.length)).replace('{engine}', m.mpd.engines[x.mpd.engine]) : m.kindName[x.kind]}
                     {' · '}{formatRelative(x.updatedAt, lang)}
                   </span>

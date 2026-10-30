@@ -1,6 +1,6 @@
 ---
 title: Modélisation
-description: Concevoir sa base et son appli avant de coder — un MCD (Merise) dessiné dans DevForge, son MLD, son MPD et le script SQL, enregistrés dans le projet et versionnés avec Git.
+description: Concevoir sa base et son appli avant de coder — MCD (Merise), MLD, MPD et SQL liés à la vraie base, et diagrammes UML, logigrammes et architecture, enregistrés dans le projet.
 ---
 
 La page **Modélisation** (menu *Données & API*) sert à concevoir avant de coder. Les modèles sont rangés **par projet** : ce sont des fichiers du dossier `conception/` du projet (`boutique.mcd.json`…), donc versionnés avec Git comme le reste du code.
@@ -10,7 +10,7 @@ La page **Modélisation** (menu *Données & API*) sert à concevoir avant de cod
 - **Le sélecteur de projet**, en haut à droite : le projet actif par défaut.
 - **La chaîne du projet** : MCD → MLD → MPD → SQL → base liée, avec l'état de chacun (*À jour*, *▲ À mettre à jour*, *Pas encore écrit*). Un clic ouvre l'étape. La base liée dit combien de différences la séparent du MPD.
 - **Les modèles du projet** : un aperçu, le type, la date, le fichier. Un clic ouvre le modèle ; renommer et supprimer au survol. Renommer un MCD renomme aussi son MPD et son script.
-- **Créer un modèle** : un **MCD**, ou **Depuis une base** (voir plus bas) ; le MPD se génère depuis le MCD (les diagrammes UML suivent).
+- **Créer un modèle** : un **MCD**, **Depuis une base** (voir plus bas), ou un **diagramme** (cas d'utilisation, classes, séquence, logigramme, architecture) ; le MPD se génère depuis le MCD.
 
 En haut de l'éditeur, les onglets **MCD · MLD · MPD · SQL** passent d'une étape à l'autre du même modèle.
 
@@ -102,3 +102,27 @@ L'autre sens : le MPD reprend les tables, colonnes, types et clés de la base. C
 - une clé primaire `id` devient l'identifiant `id_<table>` ; le nommage du MPD est deviné (`client_id` ou `id_client`, `snake_case`…).
 
 Le MPD importé est la base telle quelle : aucune différence au départ.
+
+## Les diagrammes
+
+Cinq autres sortes de modèles se dessinent sur le même canevas, chacune avec sa palette :
+
+| Diagramme | Éléments | Liens |
+|---|---|---|
+| **Cas d'utilisation** | acteur, cas, système | association, «include», «extend», généralisation |
+| **Classes** | classe, interface, énumération | association, héritage, implémentation, composition, agrégation, dépendance |
+| **Séquence** | acteur, participant | message, retour |
+| **Logigramme** | début, étape, décision, entrée / sortie, fin | flèche (libellée *oui*, *non*…) |
+| **Architecture** | client, passerelle, service, base, file, externe | lien (libellé *HTTPS*, *SQL*…) |
+
+Un élément de la palette s'ajoute au milieu de l'écran ; un lien se trace en choisissant son type, puis l'élément de départ et celui d'arrivée (Échap pour arrêter). Un lien se choisit par sa pastille : le panneau change son type, son libellé, son sens. Une **note** s'ajoute partout.
+
+- **Classes** : le panneau prend les attributs et les méthodes, un par ligne (`- id : int`, `+ total() : float`) ; une énumération, ses valeurs.
+- **Séquence** : les participants se rangent côte à côte, chaque message se place sous le précédent ; glisser sa pastille vers le haut ou le bas change son ordre.
+- **Cas d'utilisation** : un système contient des cas (le déplacer les emmène, son coin le redimensionne) ; le panneau d'un cas dit son acteur, ce qu'il inclut, ce qui l'étend, et tient son **scénario**, une étape par ligne.
+
+Comme le MCD : enregistrement au fil des changements dans `conception/` (`parcours-client.usecase.json`…), annuler / rétablir, zoom, Ajuster, export PNG et SVG ; un aperçu dans la liste des modèles.
+
+### Créer les tâches dans Notes
+
+Dans un diagramme de cas d'utilisation, **Créer les tâches dans Notes** ajoute une tâche par cas dans l'onglet [Notes](/devforge/dev/projects/) du projet (*Cas « Passer une commande » (Client)*). Une tâche déjà là n'est pas ajoutée deux fois.

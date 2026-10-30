@@ -684,6 +684,65 @@ const en = {
       },
       noMcd:      'No linked MCD: this MPD is not updated.'
     },
+    diagram: {
+      nodes: {
+        actor: 'Actor', case: 'Use case', system: 'System', class: 'Class', interface: 'Interface', enum: 'Enumeration',
+        participant: 'Participant', start: 'Start', end: 'End', step: 'Step', decision: 'Decision', io: 'Input / output',
+        service: 'Service', database: 'Database', queue: 'Queue', client: 'Client', gateway: 'Gateway', external: 'External'
+      },
+      defaults: {
+        actor: 'User', case: 'New use case', system: 'System', class: 'Class', interface: 'Interface', enum: 'Status',
+        participant: 'Service', start: 'Start', end: 'End', step: 'Step', decision: 'Condition?', io: 'Input',
+        service: 'API', database: 'Database', queue: 'Queue', client: 'Browser', gateway: 'Gateway', external: 'External service'
+      },
+      edges: {
+        association: 'Association', include: 'include', extend: 'extend', generalization: 'Generalization',
+        inheritance: 'Inheritance', implementation: 'Implementation', composition: 'Composition', aggregation: 'Aggregation', dependency: 'Dependency',
+        message: 'Message', return: 'Return', flow: 'Arrow', link: 'Link'
+      },
+      edgesTitle: 'Links',
+      linkFirst:  'Click where the {type} link starts, then where it ends (Esc to stop).',
+      linkSecond: '{type} from {name} to… (click where it ends)',
+      empty: {
+        usecase: 'Actors, the use cases they start, the system holding them. Add them from the palette.',
+        class: 'Classes, their attributes and methods, and what links them.',
+        sequence: 'Participants side by side, then the messages they exchange, top to bottom.',
+        flow: 'A start, steps and decisions, an end.',
+        architecture: 'The system’s clients, services, databases and queues, and their links.'
+      },
+      paletteHint: 'Delete: removes what is chosen. A link is chosen by its dot.',
+      panel:      'Chosen part',
+      name:       'Name',
+      attributes: 'Attributes (one per line)',
+      values:     'Values (one per line)',
+      methods:    'Methods (one per line)',
+      width:      'Width',
+      height:     'Height',
+      edgeType:   'Link type',
+      label:      'Label',
+      from:       'From {name} to {to}',
+      swap:       'Reverse',
+      remove:     'Delete',
+      scenario:   'Scenario',
+      addStep:    'Step',
+      stepLabel:  'Step {n}',
+      removeStep: 'Remove step {n}',
+      caseActors: 'Actor: {names}',
+      caseIncludes: 'includes {names}',
+      caseExtended: 'extended by {names}',
+      noActor:    'No actor linked',
+      messageHint:'Drag a message’s dot up or down to change its order.',
+      nothing:    'Pick a part to change it.',
+      count:      '{n} part(s)',
+      tasks:      'Make the tasks in Notes',
+      tasksHint:  'One task per use case, in the project’s Notes tab',
+      taskText:   'Use case “{name}”{actors}',
+      tasksDone:  '{n} task(s) added to Notes',
+      tasksNone:  'The tasks of these use cases are already in Notes',
+      tasksFailed:'Could not add',
+      tasksEmpty: 'No use case yet',
+      noProject:  'This model is in no saved project'
+    },
     linked: {
       label:      'Linked database',
       none:       'No linked database',

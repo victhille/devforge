@@ -679,6 +679,65 @@ const fr = {
       },
       noMcd:      'Pas de MCD lié : ce MPD ne se met pas à jour.'
     },
+    diagram: {
+      nodes: {
+        actor: 'Acteur', case: 'Cas', system: 'Système', class: 'Classe', interface: 'Interface', enum: 'Énumération',
+        participant: 'Participant', start: 'Début', end: 'Fin', step: 'Étape', decision: 'Décision', io: 'Entrée / sortie',
+        service: 'Service', database: 'Base', queue: 'File', client: 'Client', gateway: 'Passerelle', external: 'Externe'
+      },
+      defaults: {
+        actor: 'Utilisateur', case: 'Nouveau cas', system: 'Système', class: 'Classe', interface: 'Interface', enum: 'Statut',
+        participant: 'Service', start: 'Début', end: 'Fin', step: 'Étape', decision: 'Condition ?', io: 'Saisie',
+        service: 'API', database: 'Base', queue: 'File', client: 'Navigateur', gateway: 'Passerelle', external: 'Service externe'
+      },
+      edges: {
+        association: 'Association', include: 'include', extend: 'extend', generalization: 'Généralisation',
+        inheritance: 'Héritage', implementation: 'Implémentation', composition: 'Composition', aggregation: 'Agrégation', dependency: 'Dépendance',
+        message: 'Message', return: 'Retour', flow: 'Flèche', link: 'Lien'
+      },
+      edgesTitle: 'Liens',
+      linkFirst:  'Clique le départ du lien {type}, puis l’arrivée (Échap pour arrêter).',
+      linkSecond: '{type} depuis {name} vers… (clique l’arrivée)',
+      empty: {
+        usecase: 'Des acteurs, les cas qu’ils déclenchent, le système qui les contient. Ajoute-les depuis la palette.',
+        class: 'Des classes, leurs attributs et méthodes, et ce qui les relie.',
+        sequence: 'Des participants côte à côte, puis les messages qu’ils s’échangent, de haut en bas.',
+        flow: 'Un début, des étapes et des décisions, une fin.',
+        architecture: 'Les clients, services, bases et files du système, et leurs liens.'
+      },
+      paletteHint: 'Suppr : retire ce qui est choisi. Un lien se choisit par sa pastille.',
+      panel:      'Élément choisi',
+      name:       'Nom',
+      attributes: 'Attributs (un par ligne)',
+      values:     'Valeurs (une par ligne)',
+      methods:    'Méthodes (une par ligne)',
+      width:      'Largeur',
+      height:     'Hauteur',
+      edgeType:   'Type du lien',
+      label:      'Libellé',
+      from:       'De {name} vers {to}',
+      swap:       'Inverser le sens',
+      remove:     'Supprimer',
+      scenario:   'Scénario',
+      addStep:    'Étape',
+      stepLabel:  'Étape {n}',
+      removeStep: 'Retirer l’étape {n}',
+      caseActors: 'Acteur : {names}',
+      caseIncludes: 'inclut {names}',
+      caseExtended: 'étendu par {names}',
+      noActor:    'Aucun acteur relié',
+      messageHint:'Glisse la pastille d’un message vers le haut ou le bas pour changer son ordre.',
+      nothing:    'Choisis un élément pour le modifier.',
+      count:      '{n} élément(s)',
+      tasks:      'Créer les tâches dans Notes',
+      tasksHint:  'Une tâche par cas, dans l’onglet Notes du projet',
+      taskText:   'Cas « {name} »{actors}',
+      tasksDone:  '{n} tâche(s) ajoutée(s) dans Notes',
+      tasksNone:  'Les tâches de ces cas sont déjà dans Notes',
+      tasksFailed:'Ajout impossible',
+      tasksEmpty: 'Pas encore de cas d’utilisation',
+      noProject:  'Ce modèle n’est dans aucun projet enregistré'
+    },
     linked: {
       label:      'Base liée',
       none:       'Aucune base liée',

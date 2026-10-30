@@ -3,6 +3,7 @@ import { join, resolve } from 'path'
 import type { ModelFile, ModelKind, ModelSummary, SqlEngine } from '@shared/types'
 import { cleanModelFile, emptyMcd, MODEL_FILE_RE, MODEL_KINDS, modelFileName } from '@shared/lib/mcd'
 import { loadProjects } from '../projects/projectStorage'
+import { emptyDiagram, isDiagramKind } from '@shared/lib/uml'
 import { parseEnv } from '../envfiles/envFiles'
 import { fromEnv } from '../database/dbDetect'
 
@@ -43,7 +44,7 @@ export function listModels(projectPath: string): ModelSummary[] {
       const m = cleanModelFile(JSON.parse(readFileSync(join(dir, file), 'utf-8')))
       const sql = join(dir, sqlName(file))
       out.push({
-        file, kind: m.kind, name: m.name, updatedAt: m.updatedAt, ...(m.mcd ? { mcd: m.mcd } : {}), ...(m.naming ? { naming: m.naming } : {}), ...(m.mpd ? { mpd: m.mpd } : {}),
+        file, kind: m.kind, name: m.name, updatedAt: m.updatedAt, ...(m.mcd ? { mcd: m.mcd } : {}), ...(m.naming ? { naming: m.naming } : {}), ...(m.mpd ? { mpd: m.mpd } : {}), ...(m.diagram ? { diagram: m.diagram } : {}),
         ...(m.kind === 'mpd' && existsSync(sql) ? { sqlAt: statSync(sql).mtime.toISOString() } : {})
       })
     } catch { /* not ours, or broken: left out */ }
@@ -70,7 +71,7 @@ export function createModel(projectPath: string, kind: ModelKind, name: string):
   mkdirSync(dir, { recursive: true })
   const clean = name.trim().slice(0, 120) || 'Modèle'
   const file = freeName(dir, clean, kind)
-  writeModel(join(dir, file), { v: 1, kind, name: clean, updatedAt: new Date().toISOString(), ...(kind === 'mcd' ? { mcd: emptyMcd() } : {}) })
+  writeModel(join(dir, file), { v: 1, kind, name: clean, updatedAt: new Date().toISOString(), ...(kind === 'mcd' ? { mcd: emptyMcd() } : {}), ...(isDiagramKind(kind) ? { diagram: emptyDiagram() } : {}) })
   return file
 }
 

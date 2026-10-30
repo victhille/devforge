@@ -1,5 +1,6 @@
 import type { McdColors } from '@shared/lib/mcd'
 import type { SvgColors } from '@shared/lib/schemaLayout'
+import type { DiagramColors } from '@shared/lib/uml'
 
 /** The theme's colors, for an MCD drawn as an image (export, thumbnails) */
 export function mcdColors(): McdColors {
@@ -22,7 +23,18 @@ export function schemaColors(): SvgColors {
   }
 }
 
-export const svgUrl = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+/** A diagram's colours: the theme's CSS variables on the canvas, their values in a picture */
+export const LIVE_DIAGRAM: DiagramColors = {
+  canvas: 'var(--color-canvas)', card: 'var(--color-surface)', line: 'var(--color-fg-muted)', text: 'var(--color-fg)', muted: 'var(--color-fg-muted)',
+  accent: 'var(--syntax-keyword)', actor: 'var(--syntax-attr)', system: 'var(--color-accent)', note: 'rgba(255,203,107,.16)', noteText: 'var(--color-fg)'
+}
+export function diagramColors(): DiagramColors {
+  const css = getComputedStyle(document.documentElement)
+  const resolve = (v: string) => v.replace(/var\((--[\w-]+)\)/g, (_, name: string) => css.getPropertyValue(name).trim() || '#888')
+  return Object.fromEntries(Object.entries(LIVE_DIAGRAM).map(([k, v]) => [k, resolve(v)])) as unknown as DiagramColors
+}
+
+export const svgUrl =(svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 
 /** An SVG saved where the user picks, as itself or as a PNG twice its size; null when cancelled */
 export async function saveDrawing(svg: string, name: string, ext: 'png' | 'svg'): Promise<string | null> {

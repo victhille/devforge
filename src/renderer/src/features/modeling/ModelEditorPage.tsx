@@ -17,6 +17,8 @@ import ModelTabs from './ModelTabs'
 import { useSiblings, type ModelTab } from './model'
 import MldView from './MldView'
 import MpdView from './MpdView'
+import DiagramEditor from './DiagramEditor'
+import { isDiagramKind } from '@shared/lib/uml'
 
 type Sel = { kind: 'entity' | 'association' | 'link' | 'note'; id: string } | null
 type Tool = 'select' | 'link'
@@ -30,6 +32,8 @@ export default function ModelEditorPage() {
   const [params] = useSearchParams()
   const projectPath = params.get('project') ?? ''
   const file = params.get('file') ?? ''
+  const kind = file.split('.').slice(-2)[0]
+  if (isDiagramKind(kind)) return <DiagramEditor key={file} projectPath={projectPath} file={file} kind={kind} />
   const tab = (params.get('tab') ?? (file.endsWith('.mpd.json') ? 'mpd' : 'mcd')) as ModelTab
   if (tab === 'mld') return <MldView key={file} projectPath={projectPath} file={file} />
   if (tab === 'mpd' || tab === 'sql') return <MpdView key={file} projectPath={projectPath} file={file} tab={tab} />
