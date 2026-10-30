@@ -5,6 +5,8 @@ description: Create a React, Next.js, Vue, Node.js, Symfony, Laravel or empty pr
 
 **New Project** creates a ready-to-run project, step by step. Everything shows live in a console; nothing goes to GitHub without your consent.
 
+After the technology, every screen has the same frame: at the top, **the steps** — those done in green with their value (*1 · Framework: Symfony*, *2 · Name: shop*), a click goes back to one; the current one highlighted; those to come outlined. At the bottom, always in the same place: **Back** on the left, a hint in the middle, **Continue** (or **Create Project**) on the right.
+
 ## 1. Technology
 
 | Category | Choices |
@@ -15,6 +17,8 @@ description: Create a React, Next.js, Vue, Node.js, Symfony, Laravel or empty pr
 | Other | Empty Project |
 
 ## 2. The project
+
+Two cards side by side: **Name and folder**, then **Tools**.
 
 - **Project name**: letters, numbers, hyphens and underscores.
 - **Destination**: your first projects folder by default; with several folders, each is one click away under the field.
@@ -27,7 +31,7 @@ For JavaScript projects, pick packages to install right away, sorted by category
 
 ## 4. Database and options
 
-For **Symfony**, **Next.js** and **Laravel**, everything can be ready at creation:
+For **Symfony**, **Next.js** and **Laravel**, everything can be ready at creation, on one screen: the engines as cards, then the options as cards to tick, a title and a sentence each.
 
 | Database | Detail |
 |---|---|
@@ -55,12 +59,19 @@ If PHP lacks the needed extensions, DevForge lists them and offers **Enable in p
 ## 5. Git, GitHub and summary
 
 - **Git repository and first commit**.
-- **Create the repository on GitHub**, private or public, with the name you want (`name` or `account/name`). [GitHub CLI](https://cli.github.com) must be signed in (`gh auth login`).
+- **Create the repository on GitHub**, **Private** or **Public**. The name offered is `account/name`, the account being your `gh` sign-in; you can change it. [GitHub CLI](https://cli.github.com) must be signed in (`gh auth login`).
 - **DevForge welcome page** (checked by default): replaces the framework's page with one in DevForge's colors showing what is set up (address, database, branch); with authentication, **Sign in** and **Create an account** at the top right. To replace it, edit the file it names (`app/page.tsx`, `src/App.tsx`, `resources/views/welcome.blade.php`…).
 - **Sign-in and sign-up** (React and Vue in TypeScript): the pages and the client of the [authentication API](/devforge/en/dev/authentication/), with the **server address** Vite sends `/api` to.
 - **Open in VS Code at the end**.
+- **Open the project at the end and make it the active one**: unchecked, you stay on the page with an **Open the project** button.
 
-The **summary** lists exactly what will run. **Create Project** starts; the console shows each command, with **Cancel**. The console resizes (drag its top edge, double-click for full screen), shows the current step and groups repeated warnings. At the end, the project's page opens; **Open Folder** and **Open in VS Code** stay in the console.
+The **summary** shows, like a console, exactly what will run (`$ composer create-project…`), with the estimated time.
+
+### While it is created
+
+**Create Project** stays on the page: a card tells how far it is (*Creating · 5 of 8 steps*), the time elapsed, a bar, and each step done, running or to come. The console starts minimized; **Show the log** opens it with each command and **Cancel**. It resizes (drag its top edge, double-click for full screen) and groups repeated warnings.
+
+The creation goes on if you change pages: a **ring** next to the help button, top right, shows its progress; a click brings back the card and the log. On a failure, the card says so and **Back** returns to the steps.
 
 On every creation, DevForge installs missing dependencies, writes `.gitignore` before the first commit (never `node_modules` or `vendor` in Git) and names the branch `main`.
 

@@ -15,6 +15,7 @@ import { backupsText, githubText, vpsHealthText, vpsServicesText } from './vpsTo
 import { packagesReport } from './packageTools'
 import { notesText } from './notesTools'
 import { workshopDraft, workshopModelsText } from './workshopTools'
+import { modelText, modelsText } from './modelingTools'
 
 /**
  * Read-only tools the assistant can call. Every path stays inside a saved
@@ -271,7 +272,9 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   { name: 'workshop_models', description: 'Models of a project with a DevForge workshop: Symfony (Doctrine entities), Laravel (Eloquent models) or Next.js (Prisma models). Fields with types, relations with their other side, database state, and the SQL of each pending migration (explain it before it is applied).', input_schema: { type: 'object', properties: { project }, required: ['project'] } },
   { name: 'workshop_model_draft', description: 'Fill the New model form of the workshop of the project (Symfony, Laravel or Next.js): a new model, or fields and relations added to an existing one. Writes nothing: the user checks the form and clicks. Field types: string, text, integer, float, decimal, boolean, date, datetime, json. Relation kinds, seen from this entity: ManyToOne (belongs to one), OneToMany (has many; needs inverse), ManyToMany, OneToOne.', input_schema: { type: 'object', properties: { project, entity: { type: 'string', description: 'PascalCase, e.g. Facture' }, fields: { type: 'array', items: { type: 'object', properties: { name: { type: 'string', description: 'camelCase' }, type: { type: 'string' }, required: { type: 'boolean' }, unique: { type: 'boolean' }, length: { type: 'integer' } }, required: ['name', 'type'] } }, relations: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, kind: { type: 'string' }, target: { type: 'string', description: 'Existing entity' }, inverse: { type: 'string', description: 'Property on the other side, e.g. factures' }, required: { type: 'boolean' } }, required: ['name', 'kind', 'target'] } } }, required: ['project', 'entity'] } },
   { name: 'project_packages', description: 'Packages of a project (package.json: npm, pnpm, yarn; composer.json; Python: requirements*.txt, pyproject.toml, Pipfile; Cargo.toml; go.mod; Gemfile; pubspec.yaml; .csproj; pom.xml; build.gradle): what is behind the latest version or not installed, and whether the update stays within the declared range. audit: true also lists known vulnerabilities (slower).', input_schema: { type: 'object', properties: { project, audit: { type: 'boolean', description: 'Also run the audit (npm/pnpm/yarn audit, composer audit, pip-audit, cargo audit, govulncheck, bundle-audit)' } }, required: ['project'] } },
-  { name: 'project_notes', description: 'The tasks (open and done, with their ids) and the Markdown notes the user keeps for a project in DevForge. Use it for "what is left to do on this project".', input_schema: { type: 'object', properties: { project }, required: ['project'] } }
+  { name: 'project_notes', description: 'The tasks (open and done, with their ids) and the Markdown notes the user keeps for a project in DevForge. Use it for "what is left to do on this project".', input_schema: { type: 'object', properties: { project }, required: ['project'] } },
+  { name: 'project_models', description: 'The models a project keeps on the Modeling page (conception/ folder): MCD, MPD (with its engine and linked database), use case, class, sequence, flowchart and architecture diagrams.', input_schema: { type: 'object', properties: { project }, required: ['project'] } },
+  { name: 'read_model', description: 'One model as text: an MCD with its entities, associations and cardinalities, its MLD and the Merise rules applied; an MPD with its tables, its check and its SQL; a diagram with its parts, links (a sequence in order) and use case scenarios.', input_schema: { type: 'object', properties: { project, file: { type: 'string', description: 'From project_models, e.g. boutique.mcd.json' } }, required: ['project', 'file'] } }
 ].map(t => ({ ...t, eager_input_streaming: true }) as Anthropic.Beta.BetaTool)
 
 /** Short label shown in the conversation while the tool runs */
@@ -289,7 +292,8 @@ export function describeTool(name: string, input: Record<string, unknown>): stri
     case 'vercel_deployments': case 'github_status': case 'workshop_models': return p
     case 'workshop_model_draft': return `${str(input.entity) ?? ''} — ${p}`
     case 'project_packages': return p
-    case 'project_notes': return p
+    case 'project_notes': case 'project_models': return p
+    case 'read_model': return `${p}/${str(input.file) ?? ''}`
     case 'vps_health': case 'vps_services': case 'backups_status': return str(input.server) ?? 'VPS'
     default: return ''
   }
@@ -321,6 +325,8 @@ export async function runTool(name: string, input: unknown): Promise<string> {
     case 'workshop_model_draft': return workshopDraft(findProject(i.project), i)
     case 'project_packages': return packagesReport(findProject(i.project), i.audit)
     case 'project_notes': return notesText(findProject(i.project))
+    case 'project_models': return modelsText(findProject(i.project))
+    case 'read_model': return modelText(findProject(i.project), i.file)
     default: throw new ToolError(`Unknown tool ${name}`)
   }
 }

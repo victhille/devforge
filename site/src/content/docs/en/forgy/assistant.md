@@ -69,7 +69,7 @@ The **Morning check of the VPS** goes through the server's health, backups, serv
 
 ### Reading tools
 
-To answer, Forgy can read: the list of projects, a project's tree and files, a code search, Git state and diff, Docker state and a container's logs, database connections and structure, n8n workflows and executions, Vercel deployments, the server's health, services and backups, GitHub state, the workshop models (it can pre-fill the workshop form, without writing anything), and a project's npm and Composer [packages](/devforge/en/dev/packages/): the outdated or uninstalled ones, and vulnerabilities on request.
+To answer, Forgy can read: the list of projects, a project's tree and files, a code search, Git state and diff, Docker state and a container's logs, database connections and structure, n8n workflows and executions, Vercel deployments, the server's health, services and backups, GitHub state, the workshop models (it can pre-fill the workshop form, without writing anything), a project's npm and Composer [packages](/devforge/en/dev/packages/) (the outdated or uninstalled ones, vulnerabilities on request), its tasks and notes, and the [Modeling page's models](/devforge/en/data/modeling/): an MCD with its MLD and the rules applied, an MPD with its SQL, a diagram with its parts, links and use case scenarios.
 
 | Guardrail | Rule |
 |---|---|

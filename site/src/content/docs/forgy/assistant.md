@@ -69,7 +69,7 @@ Le **Point du matin sur le VPS** enchaîne la santé du serveur, les sauvegardes
 
 ### Outils de lecture
 
-Pour répondre, Forgy peut lire : la liste des projets, l'arborescence et les fichiers d'un projet, une recherche dans le code, l'état et le diff Git, l'état Docker et les logs d'un conteneur, les connexions et la structure des bases, les workflows et exécutions n8n, les déploiements Vercel, la santé, les services et les sauvegardes du serveur, l'état GitHub, les modèles des ateliers (il peut préremplir le formulaire de l'atelier, sans rien écrire), et les [paquets](/devforge/dev/packages/) npm et Composer d'un projet : ceux en retard ou non installés, et les vulnérabilités sur demande.
+Pour répondre, Forgy peut lire : la liste des projets, l'arborescence et les fichiers d'un projet, une recherche dans le code, l'état et le diff Git, l'état Docker et les logs d'un conteneur, les connexions et la structure des bases, les workflows et exécutions n8n, les déploiements Vercel, la santé, les services et les sauvegardes du serveur, l'état GitHub, les modèles des ateliers (il peut préremplir le formulaire de l'atelier, sans rien écrire), les [paquets](/devforge/dev/packages/) npm et Composer d'un projet (ceux en retard ou non installés, les vulnérabilités sur demande), ses tâches et notes, et les [modèles de la page Modélisation](/devforge/data/modeling/) : un MCD avec son MLD et les règles appliquées, un MPD avec son SQL, un diagramme avec ses éléments, ses liens et les scénarios des cas.
 
 | Garde-fou | Règle |
 |---|---|

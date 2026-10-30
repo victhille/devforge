@@ -183,11 +183,12 @@ function createSymfonyProject(
   const symfonyTool = detectTool('symfony_cli')
 
   if (symfonyTool?.status === 'detected') {
-    // DevForge makes the repository itself (branch main, its .gitignore first): the CLI's would be on master
-    const noGit = options.setup?.git || options.setup?.github ? ['--no-git'] : []
+    // DevForge makes the repository itself (branch main, its .gitignore first): the CLI's would be on master.
+    // The CLI refuses --webapp without Git, so then the skeleton, as with Composer: the next steps add what is needed
+    const ownGit = options.setup?.git || options.setup?.github
     return commandRunner.run({
       executable: 'symfony',
-      args: ['new', name, '--webapp', ...noGit],
+      args: ['new', name, ...(ownGit ? ['--no-git'] : ['--webapp'])],
       cwd: destination,
       onLog,
       onResult
