@@ -11,3 +11,6 @@ playwright-report/
 
 # Personal words checked by scripts/check-personal.mjs (never committed)
 .personal-patterns
+
+# Models drawn on DevForge itself (Modeling page): kept local
+conception/
