@@ -2,6 +2,19 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [3.9.0](https://github.com/victhille/devforge/compare/v3.8.1...v3.9.0) — 2026-10-30
+
+> Modélisation : MCD, MLD, MPD et SQL, base liée, diagrammes UML, logigrammes et architecture, liens tirés à la souris
+
+### Nouveautés
+
+- **v3.9** : Liens tirés depuis les points des blocs, palette glissable ([f406ab1](https://github.com/victhille/devforge/commit/f406ab1d50589fc4d2d496208e5bc50cdb4e65ba))
+- **v3.9** : Doc, Forgy lit les modèles, création Symfony réparée ([5855801](https://github.com/victhille/devforge/commit/58558018be4f291cd03db61ad2d2ae05c7b6f945))
+- **v3.9** : Diagrammes UML, logigrammes et architecture ([d7b6d97](https://github.com/victhille/devforge/commit/d7b6d974b175503f3ec9fe04cac35691550d83ed))
+- **v3.9** : Base liée au MPD, script de rattrapage et import depuis une base ([69a40c9](https://github.com/victhille/devforge/commit/69a40c902f613b9176c71e99d89342f11a90cb4b))
+- **v3.9** : MLD et MPD générés du MCD, script SQL par moteur ([c161382](https://github.com/victhille/devforge/commit/c161382a3f34a6c32ec98adc58d1aeca69286e32))
+- **v3.9** : Nouveau projet comme la maquette et page Modélisation avec éditeur MCD ([44b2786](https://github.com/victhille/devforge/commit/44b2786676754e7abab85fb2ba7ba3920e9182c0))
+
 ## [3.8.1](https://github.com/victhille/devforge/compare/v3.8.0...v3.8.1) — 2026-10-29
 
 > Notes mises en forme, schéma de la base plus fluide, onglets du projet sans défilement, application plus légère (429 Mo), mise à jour sans fenêtre d'installation, et une revue de toute l'interface.
