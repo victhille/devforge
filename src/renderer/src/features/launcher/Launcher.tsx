@@ -43,7 +43,7 @@ function Forwarder() {
 /** The palette's commands run scripts through the console: here it is the main window's */
 function ConsoleBridge({ children }: { children: ReactNode }) {
   const value = useMemo<ConsoleContextValue>(() => ({
-    visible: false, minimized: false, label: '', taskId: null, logs: [], result: null, projectPath: null, isCreation: false, projectId: null,
+    visible: false, minimized: false, label: '', taskId: null, logs: [], result: null, projectPath: null, isCreation: false, projectId: null, openOnDone: false, creation: null,
     startCreation: async () => {},
     runScript: async (projectPath, script, pm, name) => { await toMain({ kind: 'script', projectPath, script, pm, name }) },
     runTask: async () => '',

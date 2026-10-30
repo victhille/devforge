@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft, Check, Search } from 'lucide-react'
+import { Check, Search } from 'lucide-react'
 import type { Framework } from '@shared/types'
 import { PROJECT_LIBRARIES, type LibraryCategory } from '@shared/data/projectLibraries'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -7,7 +7,7 @@ import { libraryDescription } from '@shared/data/projectLibraries.fr'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import { Input } from '@renderer/components/ui/Input'
-import { PageHeader } from '@renderer/components/ui/Page'
+import { WizardFooter, WizardHeader, type WizardStep } from './WizardFrame'
 
 type NewProjectT = ReturnType<typeof useI18n>['t']['newProject']
 
@@ -30,12 +30,13 @@ const CAT_LABEL_KEY: Record<LibraryCategory, keyof NewProjectT> = {
 
 interface Props {
   framework: Framework
+  steps:     WizardStep[]
   onBack:    () => void
   onSubmit:  (packages: string[], devPackages: string[]) => void
 }
 
 /** Step 3 (JS only): pick extra libraries to install. */
-export default function LibrarySelector({ framework, onBack, onSubmit }: Props) {
+export default function LibrarySelector({ framework, steps, onBack, onSubmit }: Props) {
   const { t, lang } = useI18n()
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [search,   setSearch]   = useState('')
@@ -76,11 +77,8 @@ export default function LibrarySelector({ framework, onBack, onSubmit }: Props) 
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex shrink-0 flex-col gap-4 border-b border-line-subtle px-8 pt-6 pb-4">
-        <div>
-          <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft size={14} /> {t.newProject.back}</Button>
-        </div>
-        <PageHeader title={t.newProject.libTitle} subtitle={t.newProject.libSubtitle} />
+      <div className="flex shrink-0 flex-col gap-4 border-b border-line-subtle px-8 pt-7 pb-4">
+        <WizardHeader steps={steps} subtitle={t.newProject.libSubtitle} />
         <div className="relative">
           <Search size={13} className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-fg-muted" />
           <Input
@@ -131,10 +129,10 @@ export default function LibrarySelector({ framework, onBack, onSubmit }: Props) 
         )}
       </div>
 
-      <div className="flex shrink-0 justify-end gap-2 border-t border-line-subtle bg-surface px-8 py-3">
+      <WizardFooter onBack={onBack} className="shrink-0 border-t border-line-subtle bg-surface px-8 py-3">
         <Button variant="ghost" onClick={() => onSubmit([], [])}>{t.newProject.libSkip}</Button>
         <Button size="lg" onClick={create}>{createLabel}</Button>
-      </div>
+      </WizardFooter>
     </div>
   )
 }

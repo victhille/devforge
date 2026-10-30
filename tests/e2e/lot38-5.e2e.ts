@@ -49,10 +49,11 @@ test('a project saved as a template gives a renamed new project, without .env, n
   await goTo(page, '/new-project')
   const mine = page.getByRole('region', { name: 'Mes modèles' })
   await mine.getByRole('button', { name: /API Node/ }).click()
-  await expect(page.getByRole('heading', { name: 'Nouveau projet depuis « API Node »' })).toBeVisible()
+  await expect(page.getByText('Nouveau projet depuis « API Node »')).toBeVisible()
+  await expect(page.getByRole('list', { name: 'Étapes' })).toContainText('1 · Framework : API Node')
   await page.getByLabel('Nom du projet').fill('my-shop')
   await page.getByRole('checkbox', { name: 'Installer les dépendances' }).uncheck({ force: true })
-  await page.getByRole('button', { name: 'Suivant →' }).click()
+  await page.getByRole('button', { name: 'Continuer' }).click()
 
   // Straight to Git: no database, no libraries, no welcome page
   const recap = page.getByRole('list', { name: 'Récapitulatif · ce qui va être lancé' })

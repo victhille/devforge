@@ -48,7 +48,7 @@ export default defineConfig({
           'online/deploy', 'online/n8n', 'online/vpn', 'online/status-page'
         ]),
         group('Données & API', 'Data & API', [
-          'data/database', 'data/api-tester', 'data/webhooks', 'data/logs'
+          'data/database', 'data/modeling', 'data/api-tester', 'data/webhooks', 'data/logs'
         ]),
         group('Système', 'System', [
           'system/environment', 'system/ports', 'system/env-files', 'system/domains', 'system/cleaner'

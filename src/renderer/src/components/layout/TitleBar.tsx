@@ -8,6 +8,7 @@ import { useAssistant } from '@renderer/features/assistant/AssistantContext'
 import Mascot from '@renderer/features/assistant/Mascot'
 import { TOGGLE_TERMINAL } from '@renderer/features/terminal/TerminalDock'
 import UpdateButton from './UpdateButton'
+import CreationBadge from '@renderer/features/projects/new/CreationBadge'
 import { docsOf } from '@renderer/app/navigation'
 import { docsUrl, openDocs } from '@renderer/lib/docs'
 
@@ -67,6 +68,9 @@ export default function TitleBar() {
         <span className="flex-1 text-left">{t.palette.search}…</span>
         <kbd className="rounded border border-line bg-elevated px-1.5 font-mono text-2xs">Ctrl K</kbd>
       </button>
+
+      {/* v3.9: a project being created, from any page */}
+      <CreationBadge />
 
       {/* The documentation of this page, on the site (F1) */}
       {docsUrl(docsOf(pathname, search), lang) && (

@@ -32,6 +32,7 @@ import { registerDatabaseHandlers } from './database'
 import { registerTestsHandlers } from './tests'
 import { registerNotesHandlers } from './notes'
 import { registerTemplateHandlers } from './templates'
+import { registerModelingHandlers } from './modeling'
 import { registerLogHandlers } from './logs'
 import { registerWebhookHandlers } from './webhooks'
 import { registerSuggestHandlers } from './suggest'
@@ -75,6 +76,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerTestsHandlers(mainWindow)
   registerNotesHandlers()
   registerTemplateHandlers()
+  registerModelingHandlers()
   registerLogHandlers(mainWindow)
   registerWebhookHandlers(mainWindow)
   registerSuggestHandlers()

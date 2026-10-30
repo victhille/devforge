@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, ArrowLeft, Check } from 'lucide-react'
+import { AlertTriangle, Check } from 'lucide-react'
 import type { Framework, PhpStatus, ProjectSetup, SetupDatabase, SetupFeature } from '@shared/types'
 import { DB_NAME_RE, DEFAULT_DB_PORT, SETUP_FEATURES } from '@shared/lib/projectSetup'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -8,7 +8,7 @@ import Button from '@renderer/components/ui/Button'
 import Card, { CardTitle } from '@renderer/components/ui/Card'
 import Checkbox from '@renderer/components/ui/Checkbox'
 import { Field, Input } from '@renderer/components/ui/Input'
-import { Page, PageHeader } from '@renderer/components/ui/Page'
+import WizardFrame, { type WizardStep } from './WizardFrame'
 
 type Stack = Pick<ProjectSetup, 'database' | 'dbName' | 'dbPort' | 'appPort' | 'features'>
 
@@ -17,6 +17,7 @@ interface Props {
   projectName: string
   /** Choices made before going back */
   initial: Stack | null
+  steps: WizardStep[]
   onBack: () => void
   onSubmit: (stack: Stack) => void
 }
@@ -24,7 +25,7 @@ interface Props {
 const DATABASES: SetupDatabase[] = ['postgres', 'mysql', 'sqlite', 'none']
 
 /** Step 3 (Symfony, Next.js): database and options */
-export default function StackForm({ framework, projectName, initial, onBack, onSubmit }: Props) {
+export default function StackForm({ framework, projectName, initial, steps, onBack, onSubmit }: Props) {
   const { t } = useI18n()
   const s = t.newProject.setup
   const [database, setDatabase] = useState<SetupDatabase>(initial?.database ?? 'postgres')
@@ -97,10 +98,13 @@ export default function StackForm({ framework, projectName, initial, onBack, onS
   ]
 
   return (
-    <Page className="max-w-5xl">
-      <div><Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft size={14} /> {t.newProject.back}</Button></div>
-      <PageHeader title={s.title} subtitle={s.subtitle} />
-
+    <WizardFrame
+      steps={steps}
+      subtitle={s.subtitle}
+      onBack={onBack}
+      hint={s.cmdHint}
+      footer={<Button size="lg" onClick={submit}>{t.newProject.continue}</Button>}
+    >
       {phpProblem && php && (
         <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4">
           <AlertTriangle size={18} className="shrink-0 text-warning" />
@@ -117,9 +121,9 @@ export default function StackForm({ framework, projectName, initial, onBack, onS
       {phpNote && !phpProblem && <p role="status" className="text-sm text-success">{phpNote}</p>}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="flex flex-col gap-4 p-5">
+        <Card className="flex flex-col gap-3.5 p-5">
           <CardTitle>{s.dbTitle}</CardTitle>
-          <div role="radiogroup" aria-label={s.dbTitle} className="grid grid-cols-2 gap-2">
+          <div role="radiogroup" aria-label={s.dbTitle} className="grid grid-cols-2 gap-2.5 xl:grid-cols-4">
             {DATABASES.map(db => (
               <button
                 key={db}
@@ -128,23 +132,23 @@ export default function StackForm({ framework, projectName, initial, onBack, onS
                 aria-checked={database === db}
                 onClick={() => { setDatabase(db); setError('') }}
                 className={cn(
-                  'flex flex-col items-start gap-0.5 rounded-xl border-2 p-3 text-left transition-colors',
-                  database === db ? 'border-accent bg-accent-soft' : 'border-line-subtle bg-surface hover:border-line'
+                  'flex flex-col items-start gap-0.5 rounded-xl border-2 bg-canvas p-3 text-left transition-colors',
+                  database === db ? 'border-accent' : 'border-line hover:border-fg-disabled'
                 )}
               >
                 <span className="font-semibold text-fg">{s.db[db].name}</span>
-                <span className="text-sm text-fg-secondary">{s.db[db].desc}</span>
+                <span className="text-xs text-fg-secondary">{s.db[db].desc}</span>
               </button>
             ))}
           </div>
           {server && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5">
               <Field label={s.dbName} error={error}>
-                <Input value={dbName} onChange={e => { setDbName(e.target.value); setError('') }} spellCheck={false} invalid={!!error} />
+                <Input value={dbName} onChange={e => { setDbName(e.target.value); setError('') }} className="font-mono" spellCheck={false} invalid={!!error} />
               </Field>
               <Field label={s.dbPort} hint={s.dbPortHint}>
                 <Input
-                  type="number" min={1} max={65535}
+                  type="number" min={1} max={65535} className="font-mono"
                   value={ports[database as 'postgres' | 'mysql']}
                   onChange={e => setPorts(p => ({ ...p, [database]: Number(e.target.value) }))}
                 />
@@ -152,9 +156,9 @@ export default function StackForm({ framework, projectName, initial, onBack, onS
             </div>
           )}
           {willDo.length > 0 && (
-            <div className="flex flex-col gap-1 rounded-xl bg-canvas p-3 text-sm">
-              <span className="text-fg-muted">{s.willDo}</span>
-              {willDo.map(line => <span key={line} className="flex items-center gap-2 text-fg-secondary"><Check size={12} className="text-success" />{line}</span>)}
+            <div className="flex flex-col gap-1.5 rounded-[10px] border border-line-subtle bg-console p-3 text-sm">
+              <span className="text-xs text-fg-muted">{s.willDo}</span>
+              {willDo.map(line => <span key={line} className="flex items-center gap-2 text-fg"><Check size={12} className="shrink-0 text-success" />{line}</span>)}
             </div>
           )}
         </Card>
@@ -162,9 +166,10 @@ export default function StackForm({ framework, projectName, initial, onBack, onS
         <Card className="flex flex-col gap-3 p-5">
           <CardTitle>{s.featTitle}</CardTitle>
           {SETUP_FEATURES.map(f => (
-            <Checkbox key={f} checked={features.includes(f)} onChange={on => toggle(f, on)} className="items-start rounded-lg p-1.5">
-              <span className="flex flex-col">
-                <span className="font-medium text-fg">{s.feat[f]}</span>
+            <Checkbox key={f} checked={features.includes(f)} onChange={on => toggle(f, on)}
+              className={cn('items-start gap-3 rounded-xl border bg-canvas p-3 transition-colors', features.includes(f) ? 'border-accent/50' : 'border-line hover:border-fg-disabled')}>
+              <span className="-mt-0.5 flex flex-col">
+                <span className="font-semibold text-fg">{s.feat[f]}</span>
                 <span className="text-sm text-fg-secondary">{desc(f)}</span>
               </span>
             </Checkbox>
@@ -172,12 +177,6 @@ export default function StackForm({ framework, projectName, initial, onBack, onS
           {authSqlite && <p role="status" className="rounded-xl bg-accent-soft p-3 text-sm text-fg">{s.authSqlite}</p>}
         </Card>
       </div>
-
-      <div className="flex items-center justify-end gap-3">
-        <span className="mr-auto text-sm text-fg-muted">{s.cmdHint}</span>
-        <Button variant="ghost" onClick={onBack}>{t.newProject.cancel}</Button>
-        <Button size="lg" onClick={submit}>{t.newProject.next}</Button>
-      </div>
-    </Page>
+    </WizardFrame>
   )
 }

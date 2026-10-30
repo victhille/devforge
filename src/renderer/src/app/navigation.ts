@@ -2,7 +2,7 @@ import type { ComponentType } from 'react'
 import {
   Home, FolderOpen, Plus, Monitor, Terminal, Settings, Wifi, BookOpen,
   Wrench, Send, Code, Columns, Key, GitBranch, HardDrive, FileKey2, Rocket, Container, UploadCloud, Activity, Globe, Database, ScrollText, Webhook,
-  Code2, Server, Cpu, Workflow, BarChart3, ShieldCheck, AppWindow, HeartPulse, HardDriveDownload, RadioTower, type LucideIcon
+  Code2, Server, Cpu, Workflow, BarChart3, ShieldCheck, AppWindow, HeartPulse, HardDriveDownload, RadioTower, Shapes, type LucideIcon
 } from 'lucide-react'
 import type { Translations } from '@renderer/i18n/translations'
 
@@ -65,6 +65,7 @@ export const PAGES: NavPage[] = [
   { path: '/api-tester',  labelKey: 'apiTester',   icon: Send,       section: 'sectionUtils', load: () => import('@renderer/features/tools/api-tester/ApiTesterPage'), keywords: ['http', 'rest', 'postman', 'fetch'], docs: 'data/api-tester' },
   { path: '/webhooks',    labelKey: 'webhooks',    icon: Webhook,    section: 'sectionUtils', load: () => import('@renderer/features/webhooks/WebhooksPage'), keywords: ['webhook', 'stripe', 'github', 'callback', 'requestbin'], docs: 'data/webhooks' },
   { path: '/database',    labelKey: 'database',    icon: Database,   section: 'sectionUtils', load: () => import('@renderer/features/database/DatabasePage'), keywords: ['sql', 'mysql', 'postgres', 'sqlite', 'bdd', 'db', 'query'], docs: 'data/database' },
+  { path: '/modeling',    labelKey: 'modeling',    icon: Shapes,     section: 'sectionUtils', load: () => import('@renderer/features/modeling/ModelingPage'), keywords: ['mcd', 'mld', 'mpd', 'merise', 'uml', 'diagramme', 'diagram', 'conception', 'modèle', "cas d'utilisation", 'use case'], docs: 'data/modeling' },
   { path: '/logs',        labelKey: 'logs',        icon: ScrollText, section: 'sectionUtils', load: () => import('@renderer/features/logs/LogsPage'), keywords: ['tail', 'log', 'laravel.log', 'nginx', 'error'], docs: 'data/logs' },
   { path: '/snippets',    labelKey: 'snippets',    icon: Code,       section: 'sectionUtils', load: () => import('@renderer/features/tools/snippets/SnippetsPage'), docs: 'tools/utilities' },
   { path: '/diff',        labelKey: 'diff',        icon: Columns,    section: 'sectionUtils', load: () => import('@renderer/features/tools/diff/DiffPage'), keywords: ['compare', 'comparer'], docs: 'tools/utilities' },
@@ -76,6 +77,7 @@ export const PAGES: NavPage[] = [
 
   // Routed only (detail pages)
   { path: '/project',     route: '/project/:id',          labelKey: 'projects', icon: FolderOpen, load: () => import('@renderer/features/projects/ProjectDetailPage'), docs: 'dev/projects' },
+  { path: '/model',       route: '/model',                labelKey: 'modeling', icon: Shapes,     load: () => import('@renderer/features/modeling/ModelEditorPage'), docs: 'data/modeling' },
   { path: '/vps',         route: '/vps/:connectionId',    labelKey: 'ssh',      icon: Terminal,   load: () => import('@renderer/features/ssh/vps/VPSDashboardPage'), docs: 'servers/ssh' }
 ]
 
@@ -115,7 +117,7 @@ export const MENU_GROUPS: { key: GroupKey; icon: LucideIcon; paths: string[] }[]
   { key: 'groupDev',     icon: Code2,       paths: ['/projects', '/new-project', '/git', '/activity', '/stacks'] },
   { key: 'groupServers', icon: Server,      paths: ['/ssh', '/health', '/services', '/backups', '/monitor'] },
   { key: 'groupOnline',  icon: UploadCloud, paths: ['/deploy', '/docker', '/n8n', '/vpn', '/status'] },
-  { key: 'groupData',    icon: Database,    paths: ['/database', '/api-tester', '/webhooks', '/logs'] },
+  { key: 'groupData',    icon: Database,    paths: ['/database', '/modeling', '/api-tester', '/webhooks', '/logs'] },
   { key: 'groupSystem',  icon: Cpu,         paths: ['/environment', '/ports', '/env-files', '/domains', '/cleaner'] },
   { key: 'groupTools',   icon: Wrench,      paths: ['/toolbox', '/snippets', '/diff', '/generator', '/docs'] }
 ]

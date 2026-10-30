@@ -1,18 +1,16 @@
 import { useState } from 'react'
-import { ArrowLeft, Folder } from 'lucide-react'
+import { Folder } from 'lucide-react'
 import type { Framework, PackageManager, ProjectCreationOptions, AppSettings, UserTemplate } from '@shared/types'
 import { PROJECT_TEMPLATES } from '@shared/data/projectTemplates'
 import { folderName, projectFolders } from '@shared/lib/projectFolders'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
-import Card from '@renderer/components/ui/Card'
+import Card, { CardTitle } from '@renderer/components/ui/Card'
 import Checkbox from '@renderer/components/ui/Checkbox'
-import FrameworkIcon from '@renderer/components/ui/FrameworkIcon'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Field, Input } from '@renderer/components/ui/Input'
-import { Page, PageHeader } from '@renderer/components/ui/Page'
-import ProjectIcon from '../components/ProjectIcon'
+import WizardFrame, { type WizardStep } from './WizardFrame'
 
 interface FormState {
   name:           string
@@ -34,19 +32,25 @@ interface Props {
   settings:  AppSettings | null
   /** v3.8: one of the user's templates, in place of the framework's starter */
   userTemplate?: UserTemplate | null
+  /** What was typed before coming back to this step */
+  initial?:  ProjectCreationOptions | null
+  steps:     WizardStep[]
   onBack:    () => void
   onSubmit:  (opts: ProjectCreationOptions) => void
 }
 
 /** Step 2: name, destination and options. */
-export default function ConfigForm({ framework, settings, userTemplate, onBack, onSubmit }: Props) {
+export default function ConfigForm({ framework, settings, userTemplate, initial, steps, onBack, onSubmit }: Props) {
   const { t } = useI18n()
   const template = PROJECT_TEMPLATES.find(tpl => tpl.id === framework)
   // A user's template: only whether to install its dependencies
   const templateOptions = userTemplate ? [{ id: 'installDeps', default: true }] : template?.options ?? []
   const defaults = Object.fromEntries(templateOptions.map(o => [o.id, o.default])) as Partial<FormState>
 
-  const [form, setForm] = useState<FormState>({
+  const [form, setForm] = useState<FormState>(initial ? {
+    name: initial.name, destination: initial.destination, packageManager: initial.packageManager,
+    typescript: initial.typescript, eslint: initial.eslint, initGit: initial.initGit, installDeps: initial.installDeps, openAfter: initial.openAfter
+  } : {
     name:           '',
     destination:    settings?.defaultProjectsDir ?? '',
     packageManager: userTemplate?.packageManager ?? settings?.defaultPackageManager ?? 'npm',
@@ -97,17 +101,17 @@ export default function ConfigForm({ framework, settings, userTemplate, onBack, 
   const preview = form.destination && form.name ? `${form.destination.replace(/[/\\]$/, '')}${sep}${form.name}` : null
 
   return (
-    <Page className="max-w-2xl">
-      <div className="flex items-start gap-3">
-        <Button variant="ghost" size="sm" onClick={onBack} className="mt-1"><ArrowLeft size={14} /> {t.newProject.back}</Button>
-      </div>
-      <PageHeader
-        icon={userTemplate || !template ? <ProjectIcon framework={framework} /> : <FrameworkIcon name={template.iconName} size={20} style={{ color: template.color }} />}
-        title={userTemplate ? t.templates.fromTemplate.replace('{name}', userTemplate.name) : t.newProject.configTitle.replace('{name}', t.newProject.templateName[framework] ?? template?.name ?? framework)}
-        subtitle={t.newProject.configSubtitle}
-      />
-
-      <Card className="flex flex-col gap-5 p-6">
+    <WizardFrame
+      steps={steps}
+      subtitle={userTemplate ? t.templates.fromTemplate.replace('{name}', userTemplate.name) : t.newProject.wizardSubtitle.replace('{name}', t.newProject.templateName[framework] ?? template?.name ?? framework)}
+      onBack={onBack}
+      hint={t.newProject.configSubtitle}
+      footer={<Button size="lg" onClick={submit}>{t.newProject.continue}</Button>}
+    >
+      {/* Two cards side by side, like the other steps: the name and folder, then the tools */}
+      <div className={cn('grid items-start gap-4', (PM_FRAMEWORKS.includes(framework) || options.length > 0) && 'lg:grid-cols-2')}>
+      <Card className="flex flex-col gap-5 p-5">
+        <CardTitle>{t.newProject.cardName}</CardTitle>
         <Field label={t.newProject.labelName} error={errors.name}>
           <Input value={form.name} onChange={e => set('name', e.target.value)} placeholder="my-project" spellCheck={false} invalid={!!errors.name} autoFocus />
         </Field>
@@ -139,7 +143,11 @@ export default function ConfigForm({ framework, settings, userTemplate, onBack, 
             </div>
           )}
         </Field>
+      </Card>
 
+      {(PM_FRAMEWORKS.includes(framework) || options.length > 0) && (
+      <Card className="flex flex-col gap-5 p-5">
+        <CardTitle>{t.newProject.cardTools}</CardTitle>
         {PM_FRAMEWORKS.includes(framework) && (
           <Field label={t.newProject.labelPM}>
             <Tabs<PackageManager>
@@ -161,11 +169,8 @@ export default function ConfigForm({ framework, settings, userTemplate, onBack, 
           </div>
         )}
       </Card>
-
-      <div className="flex justify-end gap-2">
-        <Button variant="ghost" onClick={onBack}>{t.newProject.cancel}</Button>
-        <Button size="lg" onClick={submit}>{t.newProject.next}</Button>
+      )}
       </div>
-    </Page>
+    </WizardFrame>
   )
 }

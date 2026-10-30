@@ -25,7 +25,7 @@ test('New project speaks French: templates, options, libraries', async () => {
   await page.getByRole('button', { name: /React/ }).first().click()
   await expect(page.getByRole('checkbox', { name: 'Installer les dépendances' })).toBeVisible()
   await page.getByLabel('Nom du projet').fill('vitrine')
-  await page.getByRole('button', { name: 'Suivant →' }).click()
+  await page.getByRole('button', { name: 'Continuer' }).click()
   await expect(page.getByText('Framework CSS à base de classes utilitaires')).toBeVisible()
 })
 

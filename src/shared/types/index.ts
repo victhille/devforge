@@ -325,6 +325,7 @@ export * from './tests'
 export * from './notes'
 export * from './activity'
 export * from './templates'
+export * from './modeling'
 export * from './logs'
 export * from './webhooks'
 export * from './suggest'
@@ -374,6 +375,7 @@ import type { TestsAPI } from './tests'
 import type { NotesAPI } from './notes'
 import type { ActivityAPI } from './activity'
 import type { TemplatesAPI } from './templates'
+import type { ModelingAPI } from './modeling'
 import type { DockerAPI } from './docker'
 import type { DeployAPI } from './deploy'
 import type { MonitorAPI } from './monitor'
@@ -532,6 +534,8 @@ export interface DevForgeAPI {
   activity: ActivityAPI
   /** v3.8: the user's project templates */
   templates: TemplatesAPI
+  /** v3.9: the project's models (MCD, MPD, UML…), in its conception/ folder */
+  modeling: ModelingAPI
   dictation: DictationAPI
 
   // Git

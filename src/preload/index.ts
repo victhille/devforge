@@ -428,6 +428,14 @@ const api: DevForgeAPI = {
     rename:  invoke('templates:rename'),
     remove:  invoke('templates:remove')
   },
+  modeling: {
+    list:   invoke('modeling:list'),
+    read:   invoke('modeling:read'),
+    create: invoke('modeling:create'),
+    save:   invoke('modeling:save'),
+    rename: invoke('modeling:rename'),
+    remove: invoke('modeling:remove')
+  },
   notes: {
     get:    invoke('notes:get'),
     save:   invoke('notes:save'),

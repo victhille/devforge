@@ -66,7 +66,7 @@ function Line({ log }: { log: LogLine }) {
 export default function BottomPanel() {
   const { t } = useI18n()
   const {
-    visible, minimized, label, logs, result, isCreation, taskId, projectId,
+    visible, minimized, label, logs, result, isCreation, taskId, projectId, openOnDone,
     cancelTask, hide, setMinimized, openFolder, openVSCode
   } = useConsole()
 
@@ -78,18 +78,20 @@ export default function BottomPanel() {
   const [copied, setCopied] = useState(false)
   const running = visible && result === null && taskId !== null
 
+  // Follows the last line: only the log scrolls (scrollIntoView also scrolled the panel itself, cutting its header in half)
   useEffect(() => {
-    if (!minimized) logEndRef.current?.scrollIntoView({ block: 'end' })
-  }, [logs, minimized])
+    const log = logEndRef.current?.parentElement
+    if (visible && !minimized && log) log.scrollTop = log.scrollHeight
+  }, [logs, minimized, visible])
 
   // A project just created: straight to its page
   const shownProject = useRef<string | null>(null)
   useEffect(() => {
-    if (isCreation && result?.status === 'success' && projectId && shownProject.current !== projectId) {
+    if (isCreation && openOnDone && result?.status === 'success' && projectId && shownProject.current !== projectId) {
       shownProject.current = projectId
       navigate(`/project/${projectId}`)
     }
-  }, [isCreation, result, projectId, navigate])
+  }, [isCreation, openOnDone, result, projectId, navigate])
 
   // The step being run, from the last "▸ [i/n]" line
   const step = useMemo(() => {
