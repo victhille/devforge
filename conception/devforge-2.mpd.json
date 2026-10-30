@@ -1,0 +1,1775 @@
+{
+  "v": 1,
+  "kind": "mpd",
+  "name": "devforge",
+  "updatedAt": "2026-10-30T05:40:53.984Z",
+  "mpd": {
+    "engine": "postgres",
+    "naming": {
+      "tables": "snake",
+      "pk": "id",
+      "fk": "table_id",
+      "join": "tables"
+    },
+    "tables": [
+      {
+        "id": "t-e1",
+        "name": "access_log",
+        "x": 1159,
+        "y": 1427,
+        "columns": [
+          {
+            "id": "c-a2",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a2"
+          },
+          {
+            "id": "c-a3",
+            "name": "action",
+            "type": "varchar",
+            "length": 30,
+            "from": "a3",
+            "edited": true
+          },
+          {
+            "id": "c-a4",
+            "name": "created_at",
+            "type": "datetime",
+            "from": "a4",
+            "edited": true
+          },
+          {
+            "id": "c-l4u:a3v",
+            "name": "user_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l4u:a3v",
+            "edited": true
+          },
+          {
+            "id": "c-l4r:a3v",
+            "name": "target_user_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l4r:a3v",
+            "edited": true
+          },
+          {
+            "id": "c-l4o:a6",
+            "name": "access_request_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e5",
+              "column": "c-a6"
+            },
+            "from": "l4o:a6"
+          }
+        ],
+        "indexes": [],
+        "from": "e1"
+      },
+      {
+        "id": "t-e5",
+        "name": "access_request",
+        "x": 710,
+        "y": 1426,
+        "columns": [
+          {
+            "id": "c-a6",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a6"
+          },
+          {
+            "id": "c-a7",
+            "name": "reason",
+            "type": "text",
+            "from": "a7",
+            "edited": true
+          },
+          {
+            "id": "c-a8",
+            "name": "status",
+            "type": "varchar",
+            "length": 20,
+            "from": "a8",
+            "edited": true
+          },
+          {
+            "id": "c-a9",
+            "name": "review_comment",
+            "type": "text",
+            "nullable": true,
+            "from": "a9"
+          },
+          {
+            "id": "c-aa",
+            "name": "reviewed_at",
+            "type": "datetime",
+            "nullable": true,
+            "from": "aa"
+          },
+          {
+            "id": "c-ab",
+            "name": "expires_at",
+            "type": "datetime",
+            "nullable": true,
+            "from": "ab"
+          },
+          {
+            "id": "c-ac",
+            "name": "created_at",
+            "type": "datetime",
+            "from": "ac",
+            "edited": true
+          },
+          {
+            "id": "c-l50:a3v",
+            "name": "requester_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l50:a3v",
+            "edited": true
+          },
+          {
+            "id": "c-l4x:a3v",
+            "name": "target_user_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l4x:a3v",
+            "edited": true
+          },
+          {
+            "id": "c-l53:a3v",
+            "name": "reviewed_by_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l53:a3v",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e5"
+      },
+      {
+        "id": "t-ed",
+        "name": "app_setting",
+        "x": 710,
+        "y": 2144,
+        "columns": [
+          {
+            "id": "c-ae",
+            "name": "key",
+            "type": "varchar",
+            "length": 100,
+            "pk": true,
+            "from": "ae",
+            "edited": true
+          },
+          {
+            "id": "c-af",
+            "name": "value",
+            "type": "varchar",
+            "length": 255,
+            "from": "af",
+            "edited": true
+          },
+          {
+            "id": "c-ag",
+            "name": "description",
+            "type": "varchar",
+            "length": 255,
+            "from": "ag",
+            "edited": true
+          },
+          {
+            "id": "c-ah",
+            "name": "editable_by",
+            "type": "varchar",
+            "length": 30,
+            "from": "ah",
+            "edited": true
+          },
+          {
+            "id": "c-ai",
+            "name": "updated_at",
+            "type": "datetime",
+            "nullable": true,
+            "from": "ai"
+          },
+          {
+            "id": "c-l56:a3v",
+            "name": "updated_by_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l56:a3v",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "ed"
+      },
+      {
+        "id": "t-ej",
+        "name": "approval",
+        "x": 1601,
+        "y": 970,
+        "columns": [
+          {
+            "id": "c-ak",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "ak"
+          },
+          {
+            "id": "c-al",
+            "name": "step_order",
+            "type": "smallint",
+            "from": "al",
+            "edited": true
+          },
+          {
+            "id": "c-am",
+            "name": "approver_type",
+            "type": "varchar",
+            "length": 15,
+            "from": "am",
+            "edited": true
+          },
+          {
+            "id": "c-an",
+            "name": "decision",
+            "type": "varchar",
+            "length": 15,
+            "from": "an",
+            "edited": true
+          },
+          {
+            "id": "c-ao",
+            "name": "comment",
+            "type": "text",
+            "nullable": true,
+            "from": "ao"
+          },
+          {
+            "id": "c-ap",
+            "name": "decided_at",
+            "type": "datetime",
+            "nullable": true,
+            "from": "ap"
+          },
+          {
+            "id": "c-aq",
+            "name": "created_at",
+            "type": "datetime",
+            "from": "aq",
+            "edited": true
+          },
+          {
+            "id": "c-l59:a16",
+            "name": "attendance_record_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e15",
+              "column": "c-a16"
+            },
+            "from": "l59:a16"
+          },
+          {
+            "id": "c-l5c:a3v",
+            "name": "approver_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l5c:a3v",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "ej"
+      },
+      {
+        "id": "t-er",
+        "name": "approval_workflow",
+        "x": 0,
+        "y": 2437,
+        "columns": [
+          {
+            "id": "c-as",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "as"
+          },
+          {
+            "id": "c-at",
+            "name": "requester_profile",
+            "type": "varchar",
+            "length": 15,
+            "from": "at",
+            "edited": true
+          },
+          {
+            "id": "c-au",
+            "name": "record_type",
+            "type": "varchar",
+            "length": 20,
+            "nullable": true,
+            "from": "au"
+          },
+          {
+            "id": "c-av",
+            "name": "reason",
+            "type": "varchar",
+            "length": 50,
+            "nullable": true,
+            "from": "av"
+          },
+          {
+            "id": "c-aw",
+            "name": "label",
+            "type": "varchar",
+            "length": 100,
+            "from": "aw",
+            "edited": true
+          },
+          {
+            "id": "c-ax",
+            "name": "is_active",
+            "type": "bool",
+            "from": "ax",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "er"
+      },
+      {
+        "id": "t-ey",
+        "name": "approval_workflow_step",
+        "x": 382,
+        "y": 2426,
+        "columns": [
+          {
+            "id": "c-az",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "az"
+          },
+          {
+            "id": "c-a10",
+            "name": "step_order",
+            "type": "smallint",
+            "from": "a10",
+            "edited": true
+          },
+          {
+            "id": "c-a11",
+            "name": "approver_type",
+            "type": "varchar",
+            "length": 15,
+            "from": "a11",
+            "edited": true
+          },
+          {
+            "id": "c-a12",
+            "name": "step_condition",
+            "type": "varchar",
+            "length": 15,
+            "from": "a12",
+            "edited": true
+          },
+          {
+            "id": "c-a13",
+            "name": "threshold",
+            "type": "smallint",
+            "nullable": true,
+            "from": "a13",
+            "edited": true
+          },
+          {
+            "id": "c-a14",
+            "name": "label",
+            "type": "varchar",
+            "length": 100,
+            "from": "a14",
+            "edited": true
+          },
+          {
+            "id": "c-l5f:as",
+            "name": "workflow_id",
+            "type": "int",
+            "ref": {
+              "table": "t-er",
+              "column": "c-as"
+            },
+            "from": "l5f:as",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "ey"
+      },
+      {
+        "id": "t-e15",
+        "name": "attendance_record",
+        "x": 1159,
+        "y": 489,
+        "columns": [
+          {
+            "id": "c-a16",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a16"
+          },
+          {
+            "id": "c-a17",
+            "name": "record_type",
+            "type": "varchar",
+            "length": 20,
+            "from": "a17",
+            "edited": true
+          },
+          {
+            "id": "c-a18",
+            "name": "start_date",
+            "type": "date",
+            "from": "a18",
+            "edited": true
+          },
+          {
+            "id": "c-a19",
+            "name": "end_date",
+            "type": "date",
+            "nullable": true,
+            "from": "a19"
+          },
+          {
+            "id": "c-a1a",
+            "name": "start_half_day",
+            "type": "bool",
+            "from": "a1a",
+            "edited": true
+          },
+          {
+            "id": "c-a1b",
+            "name": "end_half_day",
+            "type": "bool",
+            "from": "a1b",
+            "edited": true
+          },
+          {
+            "id": "c-a1c",
+            "name": "minutes_late",
+            "type": "smallint",
+            "nullable": true,
+            "from": "a1c",
+            "edited": true
+          },
+          {
+            "id": "c-a1d",
+            "name": "reason",
+            "type": "varchar",
+            "length": 50,
+            "nullable": true,
+            "from": "a1d"
+          },
+          {
+            "id": "c-a1e",
+            "name": "comment",
+            "type": "text",
+            "nullable": true,
+            "from": "a1e"
+          },
+          {
+            "id": "c-a1f",
+            "name": "proof_file",
+            "type": "varchar",
+            "length": 255,
+            "nullable": true,
+            "from": "a1f"
+          },
+          {
+            "id": "c-a1g",
+            "name": "over_quota",
+            "type": "bool",
+            "from": "a1g",
+            "edited": true
+          },
+          {
+            "id": "c-a1h",
+            "name": "requested_event_type",
+            "type": "varchar",
+            "length": 15,
+            "nullable": true,
+            "from": "a1h"
+          },
+          {
+            "id": "c-a1i",
+            "name": "requested_time",
+            "type": "datetime",
+            "nullable": true,
+            "from": "a1i"
+          },
+          {
+            "id": "c-a1j",
+            "name": "justified_at",
+            "type": "datetime",
+            "nullable": true,
+            "from": "a1j"
+          },
+          {
+            "id": "c-a1k",
+            "name": "status",
+            "type": "varchar",
+            "length": 15,
+            "from": "a1k",
+            "edited": true
+          },
+          {
+            "id": "c-a1l",
+            "name": "created_at",
+            "type": "datetime",
+            "from": "a1l",
+            "edited": true
+          },
+          {
+            "id": "c-a1m",
+            "name": "updated_at",
+            "type": "datetime",
+            "from": "a1m",
+            "edited": true
+          },
+          {
+            "id": "c-l5i:a3v",
+            "name": "user_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l5i:a3v"
+          },
+          {
+            "id": "c-l5l:a1u",
+            "name": "clock_event_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e1t",
+              "column": "c-a1u"
+            },
+            "from": "l5l:a1u"
+          },
+          {
+            "id": "c-l5o:a3v",
+            "name": "declared_by_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l5o:a3v",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e15"
+      },
+      {
+        "id": "t-e1n",
+        "name": "break_schedule",
+        "x": 1159,
+        "y": 1217,
+        "columns": [
+          {
+            "id": "c-a1o",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a1o"
+          },
+          {
+            "id": "c-a1p",
+            "name": "break_start",
+            "type": "time",
+            "from": "a1p",
+            "edited": true
+          },
+          {
+            "id": "c-a1q",
+            "name": "break_end",
+            "type": "time",
+            "from": "a1q",
+            "edited": true
+          },
+          {
+            "id": "c-a1r",
+            "name": "label",
+            "type": "varchar",
+            "length": 50,
+            "from": "a1r",
+            "edited": true
+          },
+          {
+            "id": "c-a1s",
+            "name": "is_paid",
+            "type": "bool",
+            "from": "a1s",
+            "edited": true
+          },
+          {
+            "id": "c-l5r:a4i",
+            "name": "schedule_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e4h",
+              "column": "c-a4i"
+            },
+            "from": "l5r:a4i",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e1n"
+      },
+      {
+        "id": "t-e1t",
+        "name": "clock_event",
+        "x": 710,
+        "y": 0,
+        "columns": [
+          {
+            "id": "c-a1u",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a1u"
+          },
+          {
+            "id": "c-a1v",
+            "name": "event_type",
+            "type": "varchar",
+            "length": 15,
+            "from": "a1v",
+            "edited": true
+          },
+          {
+            "id": "c-a1w",
+            "name": "event_time",
+            "type": "datetime",
+            "from": "a1w",
+            "edited": true
+          },
+          {
+            "id": "c-a1x",
+            "name": "source",
+            "type": "varchar",
+            "length": 10,
+            "from": "a1x",
+            "edited": true
+          },
+          {
+            "id": "c-a1y",
+            "name": "network_type",
+            "type": "varchar",
+            "length": 10,
+            "nullable": true,
+            "from": "a1y"
+          },
+          {
+            "id": "c-a1z",
+            "name": "ip_address",
+            "type": "varchar",
+            "length": 45,
+            "nullable": true,
+            "from": "a1z"
+          },
+          {
+            "id": "c-a20",
+            "name": "created_at",
+            "type": "datetime",
+            "from": "a20",
+            "edited": true
+          },
+          {
+            "id": "c-a21",
+            "name": "updated_at",
+            "type": "datetime",
+            "from": "a21",
+            "edited": true
+          },
+          {
+            "id": "c-l60:a3v",
+            "name": "user_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l60:a3v",
+            "edited": true
+          },
+          {
+            "id": "c-l5u:a3p",
+            "name": "network_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e3o",
+              "column": "c-a3p"
+            },
+            "from": "l5u:a3p",
+            "edited": true
+          },
+          {
+            "id": "c-l63:a3l",
+            "name": "site_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e3k",
+              "column": "c-a3l"
+            },
+            "from": "l63:a3l"
+          },
+          {
+            "id": "c-l5x:a3v",
+            "name": "updated_by_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l5x:a3v",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e1t"
+      },
+      {
+        "id": "t-e22",
+        "name": "contract",
+        "x": 710,
+        "y": 432,
+        "columns": [
+          {
+            "id": "c-a23",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a23"
+          },
+          {
+            "id": "c-a24",
+            "name": "type",
+            "type": "varchar",
+            "length": 20,
+            "from": "a24",
+            "edited": true
+          },
+          {
+            "id": "c-a25",
+            "name": "time_mode",
+            "type": "varchar",
+            "length": 10,
+            "from": "a25",
+            "edited": true
+          },
+          {
+            "id": "c-a26",
+            "name": "weekly_hours",
+            "type": "decimal",
+            "length": 4,
+            "scale": 2,
+            "nullable": true,
+            "from": "a26",
+            "edited": true
+          },
+          {
+            "id": "c-a27",
+            "name": "yearly_days",
+            "type": "smallint",
+            "nullable": true,
+            "from": "a27",
+            "edited": true
+          },
+          {
+            "id": "c-a28",
+            "name": "start_date",
+            "type": "date",
+            "from": "a28",
+            "edited": true
+          },
+          {
+            "id": "c-a29",
+            "name": "end_date",
+            "type": "date",
+            "nullable": true,
+            "from": "a29"
+          },
+          {
+            "id": "c-l66:a3v",
+            "name": "user_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l66:a3v"
+          }
+        ],
+        "indexes": [],
+        "from": "e22"
+      },
+      {
+        "id": "t-e2a",
+        "name": "department",
+        "x": 0,
+        "y": 1214,
+        "columns": [
+          {
+            "id": "c-a2b",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a2b"
+          },
+          {
+            "id": "c-a2c",
+            "name": "label",
+            "type": "varchar",
+            "length": 50,
+            "from": "a2c",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e2a"
+      },
+      {
+        "id": "t-e2d",
+        "name": "doctrine_migration_versions",
+        "x": 0,
+        "y": 2730,
+        "columns": [
+          {
+            "id": "c-a2e",
+            "name": "version",
+            "type": "varchar",
+            "length": 191,
+            "pk": true,
+            "from": "a2e",
+            "edited": true
+          },
+          {
+            "id": "c-a2f",
+            "name": "executed_at",
+            "type": "datetime",
+            "nullable": true,
+            "from": "a2f"
+          },
+          {
+            "id": "c-a2g",
+            "name": "execution_time",
+            "type": "int",
+            "nullable": true,
+            "from": "a2g"
+          }
+        ],
+        "indexes": [],
+        "from": "e2d"
+      },
+      {
+        "id": "t-e2h",
+        "name": "hierarchy_level",
+        "x": 0,
+        "y": 1336,
+        "columns": [
+          {
+            "id": "c-a2i",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a2i"
+          },
+          {
+            "id": "c-a2j",
+            "name": "rank",
+            "type": "smallint",
+            "from": "a2j",
+            "edited": true
+          },
+          {
+            "id": "c-a2k",
+            "name": "label",
+            "type": "varchar",
+            "length": 100,
+            "from": "a2k",
+            "edited": true
+          },
+          {
+            "id": "c-a2l",
+            "name": "view_profile",
+            "type": "varchar",
+            "length": 20,
+            "from": "a2l",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e2h"
+      },
+      {
+        "id": "t-e2m",
+        "name": "leave_adjustment",
+        "x": 1159,
+        "y": 1007,
+        "columns": [
+          {
+            "id": "c-a2n",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a2n"
+          },
+          {
+            "id": "c-a2o",
+            "name": "days",
+            "type": "decimal",
+            "length": 5,
+            "scale": 2,
+            "from": "a2o",
+            "edited": true
+          },
+          {
+            "id": "c-a2p",
+            "name": "comment",
+            "type": "text",
+            "from": "a2p",
+            "edited": true
+          },
+          {
+            "id": "c-a2q",
+            "name": "created_at",
+            "type": "datetime",
+            "from": "a2q",
+            "edited": true
+          },
+          {
+            "id": "c-l69:a2s",
+            "name": "leave_balance_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e2r",
+              "column": "c-a2s"
+            },
+            "from": "l69:a2s"
+          },
+          {
+            "id": "c-l6c:a3v",
+            "name": "created_by_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l6c:a3v",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e2m"
+      },
+      {
+        "id": "t-e2r",
+        "name": "leave_balance",
+        "x": 710,
+        "y": 686,
+        "columns": [
+          {
+            "id": "c-a2s",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a2s"
+          },
+          {
+            "id": "c-a2t",
+            "name": "reason",
+            "type": "varchar",
+            "length": 20,
+            "from": "a2t",
+            "edited": true
+          },
+          {
+            "id": "c-a2u",
+            "name": "period_start",
+            "type": "date",
+            "from": "a2u",
+            "edited": true
+          },
+          {
+            "id": "c-a2v",
+            "name": "period_end",
+            "type": "date",
+            "from": "a2v",
+            "edited": true
+          },
+          {
+            "id": "c-a2w",
+            "name": "acquired",
+            "type": "decimal",
+            "length": 5,
+            "scale": 2,
+            "from": "a2w",
+            "edited": true
+          },
+          {
+            "id": "c-a2x",
+            "name": "taken",
+            "type": "decimal",
+            "length": 5,
+            "scale": 2,
+            "from": "a2x",
+            "edited": true
+          },
+          {
+            "id": "c-a2y",
+            "name": "adjusted",
+            "type": "decimal",
+            "length": 5,
+            "scale": 2,
+            "from": "a2y",
+            "edited": true
+          },
+          {
+            "id": "c-l6f:a3v",
+            "name": "user_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l6f:a3v"
+          }
+        ],
+        "indexes": [],
+        "from": "e2r"
+      },
+      {
+        "id": "t-e2z",
+        "name": "public_holiday",
+        "x": 306,
+        "y": 2730,
+        "columns": [
+          {
+            "id": "c-a30",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a30"
+          },
+          {
+            "id": "c-a31",
+            "name": "date",
+            "type": "date",
+            "from": "a31",
+            "edited": true
+          },
+          {
+            "id": "c-a32",
+            "name": "label",
+            "type": "varchar",
+            "length": 100,
+            "from": "a32",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e2z"
+      },
+      {
+        "id": "t-e33",
+        "name": "remote_work_policy",
+        "x": 710,
+        "y": 1150,
+        "columns": [
+          {
+            "id": "c-a34",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a34"
+          },
+          {
+            "id": "c-a35",
+            "name": "max_days",
+            "type": "smallint",
+            "from": "a35",
+            "edited": true
+          },
+          {
+            "id": "c-a36",
+            "name": "period",
+            "type": "varchar",
+            "length": 10,
+            "from": "a36",
+            "edited": true
+          },
+          {
+            "id": "c-a37",
+            "name": "valid_from",
+            "type": "date",
+            "from": "a37",
+            "edited": true
+          },
+          {
+            "id": "c-a38",
+            "name": "created_at",
+            "type": "datetime",
+            "from": "a38",
+            "edited": true
+          },
+          {
+            "id": "c-l6l:a2b",
+            "name": "department_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e2a",
+              "column": "c-a2b"
+            },
+            "from": "l6l:a2b"
+          },
+          {
+            "id": "c-l6i:a3v",
+            "name": "set_by_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l6i:a3v",
+            "edited": true
+          },
+          {
+            "id": "c-l6o:a3v",
+            "name": "approved_by_hr_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l6o:a3v",
+            "edited": true
+          },
+          {
+            "id": "c-a39",
+            "name": "reason",
+            "type": "text",
+            "nullable": true,
+            "from": "a39"
+          }
+        ],
+        "indexes": [],
+        "from": "e33"
+      },
+      {
+        "id": "t-e3a",
+        "name": "role",
+        "x": 0,
+        "y": 1502,
+        "columns": [
+          {
+            "id": "c-a3b",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a3b"
+          },
+          {
+            "id": "c-a3c",
+            "name": "label",
+            "type": "varchar",
+            "length": 100,
+            "from": "a3c",
+            "edited": true
+          },
+          {
+            "id": "c-a3d",
+            "name": "value",
+            "type": "varchar",
+            "length": 50,
+            "from": "a3d",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e3a"
+      },
+      {
+        "id": "t-e3e",
+        "name": "setting_change",
+        "x": 710,
+        "y": 1724,
+        "columns": [
+          {
+            "id": "c-a3f",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a3f"
+          },
+          {
+            "id": "c-a3g",
+            "name": "setting_key",
+            "type": "varchar",
+            "length": 100,
+            "from": "a3g",
+            "edited": true
+          },
+          {
+            "id": "c-a3h",
+            "name": "old_value",
+            "type": "varchar",
+            "length": 255,
+            "from": "a3h",
+            "edited": true
+          },
+          {
+            "id": "c-a3i",
+            "name": "new_value",
+            "type": "varchar",
+            "length": 255,
+            "from": "a3i",
+            "edited": true
+          },
+          {
+            "id": "c-a3j",
+            "name": "changed_at",
+            "type": "datetime",
+            "from": "a3j",
+            "edited": true
+          },
+          {
+            "id": "c-l6r:a3v",
+            "name": "changed_by_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l6r:a3v",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e3e"
+      },
+      {
+        "id": "t-e3k",
+        "name": "site",
+        "x": 0,
+        "y": 370,
+        "columns": [
+          {
+            "id": "c-a3l",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a3l"
+          },
+          {
+            "id": "c-a3m",
+            "name": "label",
+            "type": "varchar",
+            "length": 100,
+            "from": "a3m",
+            "edited": true
+          },
+          {
+            "id": "c-a3n",
+            "name": "address",
+            "type": "varchar",
+            "length": 255,
+            "nullable": true,
+            "from": "a3n"
+          }
+        ],
+        "indexes": [],
+        "from": "e3k"
+      },
+      {
+        "id": "t-e3o",
+        "name": "site_network",
+        "x": 348,
+        "y": 506,
+        "columns": [
+          {
+            "id": "c-a3p",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a3p"
+          },
+          {
+            "id": "c-a3q",
+            "name": "cidr",
+            "type": "varchar",
+            "length": 50,
+            "from": "a3q",
+            "edited": true
+          },
+          {
+            "id": "c-a3r",
+            "name": "type",
+            "type": "varchar",
+            "length": 10,
+            "from": "a3r",
+            "edited": true
+          },
+          {
+            "id": "c-a3s",
+            "name": "label",
+            "type": "varchar",
+            "length": 100,
+            "from": "a3s",
+            "edited": true
+          },
+          {
+            "id": "c-a3t",
+            "name": "is_active",
+            "type": "bool",
+            "from": "a3t",
+            "edited": true
+          },
+          {
+            "id": "c-l6u:a3l",
+            "name": "site_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e3k",
+              "column": "c-a3l"
+            },
+            "from": "l6u:a3l"
+          }
+        ],
+        "indexes": [],
+        "from": "e3o"
+      },
+      {
+        "id": "t-e3u",
+        "name": "user",
+        "x": 348,
+        "y": 1114,
+        "columns": [
+          {
+            "id": "c-a3v",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a3v"
+          },
+          {
+            "id": "c-a3w",
+            "name": "username",
+            "type": "varchar",
+            "length": 180,
+            "from": "a3w",
+            "edited": true
+          },
+          {
+            "id": "c-a3x",
+            "name": "firstname",
+            "type": "varchar",
+            "length": 100,
+            "from": "a3x",
+            "edited": true
+          },
+          {
+            "id": "c-a3y",
+            "name": "lastname",
+            "type": "varchar",
+            "length": 100,
+            "from": "a3y",
+            "edited": true
+          },
+          {
+            "id": "c-a3z",
+            "name": "is_active",
+            "type": "bool",
+            "from": "a3z",
+            "edited": true
+          },
+          {
+            "id": "c-a40",
+            "name": "created_at",
+            "type": "datetime",
+            "from": "a40",
+            "edited": true
+          },
+          {
+            "id": "c-a41",
+            "name": "updated_at",
+            "type": "datetime",
+            "from": "a41",
+            "edited": true
+          },
+          {
+            "id": "c-l7c:a3b",
+            "name": "role_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3a",
+              "column": "c-a3b"
+            },
+            "from": "l7c:a3b"
+          },
+          {
+            "id": "c-l76:a2b",
+            "name": "department_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e2a",
+              "column": "c-a2b"
+            },
+            "from": "l76:a2b"
+          },
+          {
+            "id": "c-l6x:a2i",
+            "name": "level_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e2h",
+              "column": "c-a2i"
+            },
+            "from": "l6x:a2i",
+            "edited": true
+          },
+          {
+            "id": "c-l70:a3v",
+            "name": "manager_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l70:a3v",
+            "edited": true
+          },
+          {
+            "id": "c-l73:a3v",
+            "name": "hr_referent_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l73:a3v",
+            "edited": true
+          },
+          {
+            "id": "c-l79:a3v",
+            "name": "created_by_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l79:a3v",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e3u"
+      },
+      {
+        "id": "t-e42",
+        "name": "user_assignment",
+        "x": 710,
+        "y": 1934,
+        "columns": [
+          {
+            "id": "c-a43",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a43"
+          },
+          {
+            "id": "c-a44",
+            "name": "start_date",
+            "type": "date",
+            "from": "a44",
+            "edited": true
+          },
+          {
+            "id": "c-a45",
+            "name": "end_date",
+            "type": "date",
+            "nullable": true,
+            "from": "a45"
+          },
+          {
+            "id": "c-l7i:a3v",
+            "name": "user_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l7i:a3v",
+            "edited": true
+          },
+          {
+            "id": "c-l7l:a2b",
+            "name": "department_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e2a",
+              "column": "c-a2b"
+            },
+            "from": "l7l:a2b"
+          },
+          {
+            "id": "c-l7f:a3v",
+            "name": "manager_id",
+            "type": "int",
+            "nullable": true,
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l7f:a3v",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e42"
+      },
+      {
+        "id": "t-e46",
+        "name": "user_contact",
+        "x": 550,
+        "y": 2730,
+        "columns": [
+          {
+            "id": "c-a47",
+            "name": "email",
+            "type": "varchar",
+            "length": 180,
+            "from": "a47",
+            "edited": true
+          },
+          {
+            "id": "c-a48",
+            "name": "phone_number",
+            "type": "varchar",
+            "length": 30,
+            "nullable": true,
+            "from": "a48"
+          },
+          {
+            "id": "c-a49",
+            "name": "user_id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "a49",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e46"
+      },
+      {
+        "id": "t-e4a",
+        "name": "user_credential",
+        "x": 822,
+        "y": 2730,
+        "columns": [
+          {
+            "id": "c-a4b",
+            "name": "password_hash",
+            "type": "varchar",
+            "length": 255,
+            "from": "a4b",
+            "edited": true
+          },
+          {
+            "id": "c-a4c",
+            "name": "token",
+            "type": "varchar",
+            "length": 255,
+            "nullable": true,
+            "from": "a4c"
+          },
+          {
+            "id": "c-a4d",
+            "name": "created_at",
+            "type": "datetime",
+            "from": "a4d",
+            "edited": true
+          },
+          {
+            "id": "c-a4e",
+            "name": "updated_at",
+            "type": "datetime",
+            "from": "a4e",
+            "edited": true
+          },
+          {
+            "id": "c-a4f",
+            "name": "user_id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "a4f",
+            "edited": true
+          },
+          {
+            "id": "c-a4g",
+            "name": "token_expires_at",
+            "type": "datetime",
+            "nullable": true,
+            "from": "a4g"
+          }
+        ],
+        "indexes": [],
+        "from": "e4a"
+      },
+      {
+        "id": "t-e4h",
+        "name": "work_schedule",
+        "x": 710,
+        "y": 940,
+        "columns": [
+          {
+            "id": "c-a4i",
+            "name": "id",
+            "type": "int",
+            "pk": true,
+            "auto": true,
+            "from": "a4i"
+          },
+          {
+            "id": "c-a4j",
+            "name": "day_of_week",
+            "type": "smallint",
+            "from": "a4j",
+            "edited": true
+          },
+          {
+            "id": "c-a4k",
+            "name": "start_time",
+            "type": "time",
+            "from": "a4k",
+            "edited": true
+          },
+          {
+            "id": "c-a4l",
+            "name": "end_time",
+            "type": "time",
+            "from": "a4l",
+            "edited": true
+          },
+          {
+            "id": "c-l7r:a3v",
+            "name": "user_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l7r:a3v",
+            "edited": true
+          },
+          {
+            "id": "c-l7o:a3v",
+            "name": "managed_by_id",
+            "type": "int",
+            "ref": {
+              "table": "t-e3u",
+              "column": "c-a3v"
+            },
+            "from": "l7o:a3v",
+            "edited": true
+          }
+        ],
+        "indexes": [],
+        "from": "e4h"
+      }
+    ],
+    "source": "devforge-2.mcd.json",
+    "sourceHash": "zcmn9w",
+    "connection": "468bd1c2-8e9d-45e2-8b85-4464276642d3"
+  }
+}

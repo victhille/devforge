@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight, Pencil, Plus, Shapes, Trash2 } from 'lucide-react'
-import type { ModelKind, ModelSummary, Project } from '@shared/types'
+import type { DbConnection, ModelKind, ModelSummary, Project } from '@shared/types'
 import { checkMcd, mcdSvg } from '@shared/lib/mcd'
 import { DEFAULT_NAMING, mcdHash, mpdDiagram, toMld } from '@shared/lib/mpd'
 import { diagramSvg } from '@shared/lib/schemaLayout'
+import { diffMpd, importDb } from '@shared/lib/mpdDb'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
@@ -21,21 +22,10 @@ import Spinner from '@renderer/components/ui/Spinner'
 import { Field, Input } from '@renderer/components/ui/Input'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
 import { mcdColors, schemaColors, svgUrl } from './colors'
-import { modelUrl, siblings, type ModelTab } from './ModelTabs'
-
-/** The colour of each kind's tag, the same everywhere */
-export const KIND_TONE: Record<ModelKind, string> = {
-  mcd: 'bg-[color-mix(in_srgb,var(--syntax-keyword)_16%,transparent)] text-[var(--syntax-keyword)]',
-  mpd: 'bg-accent-soft text-accent',
-  usecase: 'bg-success/15 text-success',
-  class: 'bg-[color-mix(in_srgb,var(--syntax-number)_16%,transparent)] text-[var(--syntax-number)]',
-  sequence: 'bg-[color-mix(in_srgb,var(--syntax-tag)_16%,transparent)] text-[var(--syntax-tag)]',
-  flow: 'bg-[color-mix(in_srgb,var(--syntax-attr)_16%,transparent)] text-[var(--syntax-attr)]',
-  architecture: 'bg-elevated text-fg-secondary'
-}
+import { fill, KIND_TONE, modelUrl, siblings, useLinkedDb, type ModelTab } from './model'
 
 /** The kinds that can be made today; the others come with the next lots */
-const READY: ModelKind[] = ['mcd']
+const READY: ModelKind[] = ['mcd', 'mpd']
 const KINDS: ModelKind[] = ['mcd', 'mpd', 'usecase', 'class', 'sequence', 'flow', 'architecture']
 
 /**
@@ -78,6 +68,11 @@ export default function ModelingPage() {
   const relations = mcd?.mcd ? toMld(mcd.mcd).relations.length : 0
   const mpdStale = !!(mcd?.mcd && mpd?.mpd && mpd.mpd.sourceHash !== mcdHash(mcd.mcd, mcd.naming ?? DEFAULT_NAMING))
   const sqlStale = !!(mpd?.sqlAt && mpd.updatedAt > mpd.sqlAt)
+  // The linked database: read when the page opens, to say how far it is from the MPD
+  const linked = useLinkedDb(mpd?.mpd?.connection)
+  const [connections, setConnections] = useState<DbConnection[]>([])
+  useEffect(() => { window.devforge.db.list().then(setConnections).catch(() => {}) }, [])
+  const linkedDiffs = mpd?.mpd && linked.diagram ? diffMpd(mpd.mpd, linked.diagram).length : null
 
   /** Each step of the chain: its state, and where a click leads (null: not yet) */
   const steps = (['mcd', 'mld', 'mpd', 'sql', 'base'] as const).map(step => {
@@ -94,7 +89,11 @@ export default function ModelingPage() {
       case 'sql': return { step, ready: !!mpd, text: mpd ? `conception/${siblings(mpd.file).sql}` : m.noSql,
         state: mpd ? (!mpd.sqlAt ? { muted: true, warn: false, text: m.noSql } : sqlStale ? { warn: true, text: m.stale } : { warn: false, text: m.sqlWritten }) : null,
         onClick: mpd ? go(mpd.file, 'sql') : null }
-      default: return { step, ready: false, text: m.soon, state: null, onClick: null }
+      default: return { step, ready: !!mpd?.mpd?.connection, text: mpd?.mpd?.connection ? (connections.find(c => c.id === mpd.mpd?.connection)?.name ?? m.linked.label) : m.linked.none,
+        state: !mpd?.mpd?.connection ? null : linked.error ? { warn: true, text: fill(m.linked.unreachable, { error: '' }).replace(/[ :]+$/, '') }
+          : linkedDiffs === null ? { muted: true, warn: false, text: m.linked.loading }
+          : linkedDiffs ? { warn: true, text: fill(m.linked.count, { n: linkedDiffs }) } : { warn: false, text: m.upToDate },
+        onClick: mpd ? go(mpd.file, 'mpd') : null }
     }
   })
 
@@ -200,8 +199,8 @@ export default function ModelingPage() {
                     <span className={cn('rounded-[5px] px-1.5 py-0.5 font-mono text-[11px] font-semibold', KIND_TONE[kind])}>{m.kindTag[kind]}</span>
                     {!ready && <span className="ml-auto text-xs text-fg-muted">{m.soon}</span>}
                   </span>
-                  <span className="font-semibold text-fg">{m.kindName[kind]}</span>
-                  <span className="text-sm text-fg-secondary">{m.kindHint[kind]}</span>
+                  <span className="font-semibold text-fg">{kind === 'mpd' ? m.linked.importTile : m.kindName[kind]}</span>
+                  <span className="text-sm text-fg-secondary">{kind === 'mpd' ? m.linked.importTileHint : m.kindHint[kind]}</span>
                 </button>
               </li>
             )
@@ -209,7 +208,10 @@ export default function ModelingPage() {
         </ul>
       </section>
 
-      {creating && project && (
+      {creating === 'mpd' && project && (
+        <ImportDialog project={project} onClose={() => setCreating(null)} onDone={file => navigate(modelUrl(project.path, file, 'mpd'))} />
+      )}
+      {creating && creating !== 'mpd' && project && (
         <NameDialog title={m.newTitle.replace('{kind}', m.kindName[creating])} initial={project.name} submit={m.createButton} onClose={() => setCreating(null)}
           onSubmit={async name => {
             const file = await window.devforge.modeling.create(project.path, creating, name)
@@ -241,6 +243,58 @@ function NameDialog({ title, initial, submit, onClose, onSubmit }: { title: stri
       <Field label={t.modeling.name} error={error || undefined}>
         <Input value={name} autoFocus onChange={e => { setName(e.target.value); setError('') }} onKeyDown={e => { if (e.key === 'Enter') go() }} />
       </Field>
+    </Modal>
+  )
+}
+
+/**
+ * v3.9 lot 4: a database read into the project: its MPD, and the MCD worked
+ * out from it, both in conception/; the MPD stays linked to the connection.
+ */
+function ImportDialog({ project, onClose, onDone }: { project: Project; onClose: () => void; onDone: (file: string) => void }) {
+  const { t } = useI18n()
+  const l = t.modeling.linked
+  const [connections, setConnections] = useState<DbConnection[] | null>(null)
+  const [conn, setConn] = useState('')
+  const [name, setName] = useState(project.name)
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  useEffect(() => {
+    window.devforge.db.list().then(list => { setConnections(list); if (list[0]) setConn(list[0].id) }).catch(() => setConnections([]))
+  }, [])
+
+  async function go() {
+    const c = connections?.find(x => x.id === conn)
+    if (!c || !name.trim()) return
+    setBusy(true)
+    try {
+      const diagram = await window.devforge.db.diagram(c.id)
+      const mcdFile = await window.devforge.modeling.create(project.path, 'mcd', name.trim())
+      const { mcd, naming, mpd } = importDb(diagram, c.type, mcdFile)
+      await window.devforge.modeling.save(project.path, mcdFile, { v: 1, kind: 'mcd', name: name.trim(), updatedAt: '', mcd, naming })
+      const mpdFile = siblings(mcdFile).mpd
+      await window.devforge.modeling.save(project.path, mpdFile, { v: 1, kind: 'mpd', name: name.trim(), updatedAt: '', mpd: { ...mpd, connection: c.id } })
+      onDone(mpdFile)
+    } catch (err) { setError(errorText(err)); setBusy(false) }
+  }
+
+  return (
+    <Modal title={l.importTitle} onClose={onClose}
+      footer={<><Button variant="ghost" onClick={onClose}>{t.common.cancel}</Button><Button onClick={go} disabled={busy || !conn || !name.trim()}>{l.importButton}</Button></>}>
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-fg-secondary">{l.importHint}</p>
+        {!connections ? <Spinner /> : !connections.length ? <p className="text-sm text-fg-muted">{l.importNone}</p> : (
+          <Field label={l.importConnection}>
+            <select value={conn} onChange={e => setConn(e.target.value)}
+              className="h-9 rounded-lg border border-line bg-surface px-2.5 text-sm text-fg outline-none focus:border-accent">
+              {connections.map(c => <option key={c.id} value={c.id}>{c.name} · {t.modeling.mpd.engines[c.type]}</option>)}
+            </select>
+          </Field>
+        )}
+        <Field label={t.modeling.name} error={error ? `${l.importFailed} : ${error}` : undefined}>
+          <Input value={name} onChange={e => { setName(e.target.value); setError('') }} />
+        </Field>
+      </div>
     </Modal>
   )
 }

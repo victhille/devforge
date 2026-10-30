@@ -1,0 +1,1723 @@
+{
+  "v": 1,
+  "kind": "mcd",
+  "name": "devforge",
+  "updatedAt": "2026-10-30T05:40:53.979Z",
+  "mcd": {
+    "entities": [
+      {
+        "id": "e1",
+        "name": "ACCESS_LOG",
+        "x": 1347,
+        "y": 1108,
+        "attributes": [
+          {
+            "id": "a2",
+            "name": "id_access_log",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a3",
+            "name": "action",
+            "type": "varchar",
+            "length": 30
+          },
+          {
+            "id": "a4",
+            "name": "created_at",
+            "type": "datetime"
+          }
+        ]
+      },
+      {
+        "id": "e5",
+        "name": "ACCESS_REQUEST",
+        "x": 877,
+        "y": 377,
+        "attributes": [
+          {
+            "id": "a6",
+            "name": "id_access_request",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a7",
+            "name": "reason",
+            "type": "text"
+          },
+          {
+            "id": "a8",
+            "name": "status",
+            "type": "varchar",
+            "length": 20
+          },
+          {
+            "id": "a9",
+            "name": "review_comment",
+            "type": "text"
+          },
+          {
+            "id": "aa",
+            "name": "reviewed_at",
+            "type": "datetime"
+          },
+          {
+            "id": "ab",
+            "name": "expires_at",
+            "type": "datetime"
+          },
+          {
+            "id": "ac",
+            "name": "created_at",
+            "type": "datetime"
+          }
+        ]
+      },
+      {
+        "id": "ed",
+        "name": "APP_SETTING",
+        "x": 877,
+        "y": 675,
+        "attributes": [
+          {
+            "id": "ae",
+            "name": "key",
+            "type": "varchar",
+            "length": 100,
+            "identifier": true
+          },
+          {
+            "id": "af",
+            "name": "value",
+            "type": "varchar",
+            "length": 255
+          },
+          {
+            "id": "ag",
+            "name": "description",
+            "type": "varchar",
+            "length": 255
+          },
+          {
+            "id": "ah",
+            "name": "editable_by",
+            "type": "varchar",
+            "length": 30
+          },
+          {
+            "id": "ai",
+            "name": "updated_at",
+            "type": "datetime"
+          }
+        ]
+      },
+      {
+        "id": "ej",
+        "name": "APPROVAL",
+        "x": 1817,
+        "y": 1118,
+        "attributes": [
+          {
+            "id": "ak",
+            "name": "id_approval",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "al",
+            "name": "step_order",
+            "type": "int"
+          },
+          {
+            "id": "am",
+            "name": "approver_type",
+            "type": "varchar",
+            "length": 15
+          },
+          {
+            "id": "an",
+            "name": "decision",
+            "type": "varchar",
+            "length": 15
+          },
+          {
+            "id": "ao",
+            "name": "comment",
+            "type": "text"
+          },
+          {
+            "id": "ap",
+            "name": "decided_at",
+            "type": "datetime"
+          },
+          {
+            "id": "aq",
+            "name": "created_at",
+            "type": "datetime"
+          }
+        ]
+      },
+      {
+        "id": "er",
+        "name": "APPROVAL_WORKFLOW",
+        "x": 0,
+        "y": 2736,
+        "attributes": [
+          {
+            "id": "as",
+            "name": "id_approval_workflow",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "at",
+            "name": "requester_profile",
+            "type": "varchar",
+            "length": 15
+          },
+          {
+            "id": "au",
+            "name": "record_type",
+            "type": "varchar",
+            "length": 20
+          },
+          {
+            "id": "av",
+            "name": "reason",
+            "type": "varchar",
+            "length": 50
+          },
+          {
+            "id": "aw",
+            "name": "label",
+            "type": "varchar",
+            "length": 100
+          },
+          {
+            "id": "ax",
+            "name": "is_active",
+            "type": "bool"
+          }
+        ]
+      },
+      {
+        "id": "ey",
+        "name": "APPROVAL_WORKFLOW_STEP",
+        "x": 449,
+        "y": 2725,
+        "attributes": [
+          {
+            "id": "az",
+            "name": "id_approval_workflow_step",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a10",
+            "name": "step_order",
+            "type": "int"
+          },
+          {
+            "id": "a11",
+            "name": "approver_type",
+            "type": "varchar",
+            "length": 15
+          },
+          {
+            "id": "a12",
+            "name": "step_condition",
+            "type": "varchar",
+            "length": 15
+          },
+          {
+            "id": "a13",
+            "name": "threshold",
+            "type": "int"
+          },
+          {
+            "id": "a14",
+            "name": "label",
+            "type": "varchar",
+            "length": 100
+          }
+        ]
+      },
+      {
+        "id": "e15",
+        "name": "ATTENDANCE_RECORD",
+        "x": 1347,
+        "y": 590,
+        "attributes": [
+          {
+            "id": "a16",
+            "name": "id_attendance_record",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a17",
+            "name": "record_type",
+            "type": "varchar",
+            "length": 20
+          },
+          {
+            "id": "a18",
+            "name": "start_date",
+            "type": "date"
+          },
+          {
+            "id": "a19",
+            "name": "end_date",
+            "type": "date"
+          },
+          {
+            "id": "a1a",
+            "name": "start_half_day",
+            "type": "bool"
+          },
+          {
+            "id": "a1b",
+            "name": "end_half_day",
+            "type": "bool"
+          },
+          {
+            "id": "a1c",
+            "name": "minutes_late",
+            "type": "int"
+          },
+          {
+            "id": "a1d",
+            "name": "reason",
+            "type": "varchar",
+            "length": 50
+          },
+          {
+            "id": "a1e",
+            "name": "comment",
+            "type": "text"
+          },
+          {
+            "id": "a1f",
+            "name": "proof_file",
+            "type": "varchar",
+            "length": 255
+          },
+          {
+            "id": "a1g",
+            "name": "over_quota",
+            "type": "bool"
+          },
+          {
+            "id": "a1h",
+            "name": "requested_event_type",
+            "type": "varchar",
+            "length": 15
+          },
+          {
+            "id": "a1i",
+            "name": "requested_time",
+            "type": "datetime"
+          },
+          {
+            "id": "a1j",
+            "name": "justified_at",
+            "type": "datetime"
+          },
+          {
+            "id": "a1k",
+            "name": "status",
+            "type": "varchar",
+            "length": 15
+          },
+          {
+            "id": "a1l",
+            "name": "created_at",
+            "type": "datetime"
+          },
+          {
+            "id": "a1m",
+            "name": "updated_at",
+            "type": "datetime"
+          }
+        ]
+      },
+      {
+        "id": "e1n",
+        "name": "BREAK_SCHEDULE",
+        "x": 1347,
+        "y": 1528,
+        "attributes": [
+          {
+            "id": "a1o",
+            "name": "id_break_schedule",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a1p",
+            "name": "break_start",
+            "type": "time"
+          },
+          {
+            "id": "a1q",
+            "name": "break_end",
+            "type": "time"
+          },
+          {
+            "id": "a1r",
+            "name": "label",
+            "type": "varchar",
+            "length": 50
+          },
+          {
+            "id": "a1s",
+            "name": "is_paid",
+            "type": "bool"
+          }
+        ]
+      },
+      {
+        "id": "e1t",
+        "name": "CLOCK_EVENT",
+        "x": 877,
+        "y": 0,
+        "attributes": [
+          {
+            "id": "a1u",
+            "name": "id_clock_event",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a1v",
+            "name": "event_type",
+            "type": "varchar",
+            "length": 15
+          },
+          {
+            "id": "a1w",
+            "name": "event_time",
+            "type": "datetime"
+          },
+          {
+            "id": "a1x",
+            "name": "source",
+            "type": "varchar",
+            "length": 10
+          },
+          {
+            "id": "a1y",
+            "name": "network_type",
+            "type": "varchar",
+            "length": 10
+          },
+          {
+            "id": "a1z",
+            "name": "ip_address",
+            "type": "varchar",
+            "length": 45
+          },
+          {
+            "id": "a20",
+            "name": "created_at",
+            "type": "datetime"
+          },
+          {
+            "id": "a21",
+            "name": "updated_at",
+            "type": "datetime"
+          }
+        ]
+      },
+      {
+        "id": "e22",
+        "name": "CONTRACT",
+        "x": 877,
+        "y": 1139,
+        "attributes": [
+          {
+            "id": "a23",
+            "name": "id_contract",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a24",
+            "name": "type",
+            "type": "varchar",
+            "length": 20
+          },
+          {
+            "id": "a25",
+            "name": "time_mode",
+            "type": "varchar",
+            "length": 10
+          },
+          {
+            "id": "a26",
+            "name": "weekly_hours",
+            "type": "decimal"
+          },
+          {
+            "id": "a27",
+            "name": "yearly_days",
+            "type": "int"
+          },
+          {
+            "id": "a28",
+            "name": "start_date",
+            "type": "date"
+          },
+          {
+            "id": "a29",
+            "name": "end_date",
+            "type": "date"
+          }
+        ]
+      },
+      {
+        "id": "e2a",
+        "name": "DEPARTMENT",
+        "x": 0,
+        "y": 1413,
+        "attributes": [
+          {
+            "id": "a2b",
+            "name": "id_department",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a2c",
+            "name": "label",
+            "type": "varchar",
+            "length": 50
+          }
+        ]
+      },
+      {
+        "id": "e2d",
+        "name": "DOCTRINE_MIGRATION_VERSIONS",
+        "x": 0,
+        "y": 3029,
+        "attributes": [
+          {
+            "id": "a2e",
+            "name": "version",
+            "type": "varchar",
+            "length": 191,
+            "identifier": true
+          },
+          {
+            "id": "a2f",
+            "name": "executed_at",
+            "type": "datetime"
+          },
+          {
+            "id": "a2g",
+            "name": "execution_time",
+            "type": "int"
+          }
+        ]
+      },
+      {
+        "id": "e2h",
+        "name": "HIERARCHY_LEVEL",
+        "x": 0,
+        "y": 1535,
+        "attributes": [
+          {
+            "id": "a2i",
+            "name": "id_hierarchy_level",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a2j",
+            "name": "rank",
+            "type": "int"
+          },
+          {
+            "id": "a2k",
+            "name": "label",
+            "type": "varchar",
+            "length": 100
+          },
+          {
+            "id": "a2l",
+            "name": "view_profile",
+            "type": "varchar",
+            "length": 20
+          }
+        ]
+      },
+      {
+        "id": "e2m",
+        "name": "LEAVE_ADJUSTMENT",
+        "x": 1347,
+        "y": 1318,
+        "attributes": [
+          {
+            "id": "a2n",
+            "name": "id_leave_adjustment",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a2o",
+            "name": "days",
+            "type": "decimal"
+          },
+          {
+            "id": "a2p",
+            "name": "comment",
+            "type": "text"
+          },
+          {
+            "id": "a2q",
+            "name": "created_at",
+            "type": "datetime"
+          }
+        ]
+      },
+      {
+        "id": "e2r",
+        "name": "LEAVE_BALANCE",
+        "x": 877,
+        "y": 885,
+        "attributes": [
+          {
+            "id": "a2s",
+            "name": "id_leave_balance",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a2t",
+            "name": "reason",
+            "type": "varchar",
+            "length": 20
+          },
+          {
+            "id": "a2u",
+            "name": "period_start",
+            "type": "date"
+          },
+          {
+            "id": "a2v",
+            "name": "period_end",
+            "type": "date"
+          },
+          {
+            "id": "a2w",
+            "name": "acquired",
+            "type": "decimal"
+          },
+          {
+            "id": "a2x",
+            "name": "taken",
+            "type": "decimal"
+          },
+          {
+            "id": "a2y",
+            "name": "adjusted",
+            "type": "decimal"
+          }
+        ]
+      },
+      {
+        "id": "e2z",
+        "name": "PUBLIC_HOLIDAY",
+        "x": 393,
+        "y": 3029,
+        "attributes": [
+          {
+            "id": "a30",
+            "name": "id_public_holiday",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a31",
+            "name": "date",
+            "type": "date"
+          },
+          {
+            "id": "a32",
+            "name": "label",
+            "type": "varchar",
+            "length": 100
+          }
+        ]
+      },
+      {
+        "id": "e33",
+        "name": "REMOTE_WORK_POLICY",
+        "x": 877,
+        "y": 1603,
+        "attributes": [
+          {
+            "id": "a34",
+            "name": "id_remote_work_policy",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a35",
+            "name": "max_days",
+            "type": "int"
+          },
+          {
+            "id": "a36",
+            "name": "period",
+            "type": "varchar",
+            "length": 10
+          },
+          {
+            "id": "a37",
+            "name": "valid_from",
+            "type": "date"
+          },
+          {
+            "id": "a38",
+            "name": "created_at",
+            "type": "datetime"
+          },
+          {
+            "id": "a39",
+            "name": "reason",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "id": "e3a",
+        "name": "ROLE",
+        "x": 0,
+        "y": 1701,
+        "attributes": [
+          {
+            "id": "a3b",
+            "name": "id_role",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a3c",
+            "name": "label",
+            "type": "varchar",
+            "length": 100
+          },
+          {
+            "id": "a3d",
+            "name": "value",
+            "type": "varchar",
+            "length": 50
+          }
+        ]
+      },
+      {
+        "id": "e3e",
+        "name": "SETTING_CHANGE",
+        "x": 877,
+        "y": 1879,
+        "attributes": [
+          {
+            "id": "a3f",
+            "name": "id_setting_change",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a3g",
+            "name": "setting_key",
+            "type": "varchar",
+            "length": 100
+          },
+          {
+            "id": "a3h",
+            "name": "old_value",
+            "type": "varchar",
+            "length": 255
+          },
+          {
+            "id": "a3i",
+            "name": "new_value",
+            "type": "varchar",
+            "length": 255
+          },
+          {
+            "id": "a3j",
+            "name": "changed_at",
+            "type": "datetime"
+          }
+        ]
+      },
+      {
+        "id": "e3k",
+        "name": "SITE",
+        "x": 0,
+        "y": 405,
+        "attributes": [
+          {
+            "id": "a3l",
+            "name": "id_site",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a3m",
+            "name": "label",
+            "type": "varchar",
+            "length": 100
+          },
+          {
+            "id": "a3n",
+            "name": "address",
+            "type": "varchar",
+            "length": 255
+          }
+        ]
+      },
+      {
+        "id": "e3o",
+        "name": "SITE_NETWORK",
+        "x": 415,
+        "y": 575,
+        "attributes": [
+          {
+            "id": "a3p",
+            "name": "id_site_network",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a3q",
+            "name": "cidr",
+            "type": "varchar",
+            "length": 50
+          },
+          {
+            "id": "a3r",
+            "name": "type",
+            "type": "varchar",
+            "length": 10
+          },
+          {
+            "id": "a3s",
+            "name": "label",
+            "type": "varchar",
+            "length": 100
+          },
+          {
+            "id": "a3t",
+            "name": "is_active",
+            "type": "bool"
+          }
+        ]
+      },
+      {
+        "id": "e3u",
+        "name": "USER",
+        "x": 415,
+        "y": 1276,
+        "attributes": [
+          {
+            "id": "a3v",
+            "name": "id_user",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a3w",
+            "name": "username",
+            "type": "varchar",
+            "length": 180
+          },
+          {
+            "id": "a3x",
+            "name": "firstname",
+            "type": "varchar",
+            "length": 100
+          },
+          {
+            "id": "a3y",
+            "name": "lastname",
+            "type": "varchar",
+            "length": 100
+          },
+          {
+            "id": "a3z",
+            "name": "is_active",
+            "type": "bool"
+          },
+          {
+            "id": "a40",
+            "name": "created_at",
+            "type": "datetime"
+          },
+          {
+            "id": "a41",
+            "name": "updated_at",
+            "type": "datetime"
+          }
+        ]
+      },
+      {
+        "id": "e42",
+        "name": "USER_ASSIGNMENT",
+        "x": 877,
+        "y": 2089,
+        "attributes": [
+          {
+            "id": "a43",
+            "name": "id_user_assignment",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a44",
+            "name": "start_date",
+            "type": "date"
+          },
+          {
+            "id": "a45",
+            "name": "end_date",
+            "type": "date"
+          }
+        ]
+      },
+      {
+        "id": "e46",
+        "name": "USER_CONTACT",
+        "x": 877,
+        "y": 2299,
+        "attributes": [
+          {
+            "id": "a47",
+            "name": "email",
+            "type": "varchar",
+            "length": 180
+          },
+          {
+            "id": "a48",
+            "name": "phone_number",
+            "type": "varchar",
+            "length": 30
+          },
+          {
+            "id": "a49",
+            "name": "user_id",
+            "type": "int",
+            "identifier": true
+          }
+        ]
+      },
+      {
+        "id": "e4a",
+        "name": "USER_CREDENTIAL",
+        "x": 877,
+        "y": 2443,
+        "attributes": [
+          {
+            "id": "a4b",
+            "name": "password_hash",
+            "type": "varchar",
+            "length": 255
+          },
+          {
+            "id": "a4c",
+            "name": "token",
+            "type": "varchar",
+            "length": 255
+          },
+          {
+            "id": "a4d",
+            "name": "created_at",
+            "type": "datetime"
+          },
+          {
+            "id": "a4e",
+            "name": "updated_at",
+            "type": "datetime"
+          },
+          {
+            "id": "a4f",
+            "name": "user_id",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a4g",
+            "name": "token_expires_at",
+            "type": "datetime"
+          }
+        ]
+      },
+      {
+        "id": "e4h",
+        "name": "WORK_SCHEDULE",
+        "x": 877,
+        "y": 1393,
+        "attributes": [
+          {
+            "id": "a4i",
+            "name": "id_work_schedule",
+            "type": "int",
+            "identifier": true
+          },
+          {
+            "id": "a4j",
+            "name": "day_of_week",
+            "type": "int"
+          },
+          {
+            "id": "a4k",
+            "name": "start_time",
+            "type": "time"
+          },
+          {
+            "id": "a4l",
+            "name": "end_time",
+            "type": "time"
+          }
+        ]
+      }
+    ],
+    "associations": [
+      {
+        "id": "s4m",
+        "name": "ACCESS_LOG_ACCESS_REQUEST",
+        "x": 1152,
+        "y": 783,
+        "attributes": []
+      },
+      {
+        "id": "s4p",
+        "name": "ACCESS_LOG_USER",
+        "x": 921,
+        "y": 1232,
+        "attributes": []
+      },
+      {
+        "id": "s4s",
+        "name": "ACCESS_LOG_USER",
+        "x": 921,
+        "y": 1232,
+        "attributes": []
+      },
+      {
+        "id": "s4v",
+        "name": "ACCESS_REQUEST_USER",
+        "x": 686,
+        "y": 867,
+        "attributes": []
+      },
+      {
+        "id": "s4y",
+        "name": "ACCESS_REQUEST_USER",
+        "x": 686,
+        "y": 867,
+        "attributes": []
+      },
+      {
+        "id": "s51",
+        "name": "ACCESS_REQUEST_USER",
+        "x": 686,
+        "y": 867,
+        "attributes": []
+      },
+      {
+        "id": "s54",
+        "name": "APP_SETTING_USER",
+        "x": 686,
+        "y": 1016,
+        "attributes": []
+      },
+      {
+        "id": "s57",
+        "name": "APPROVAL_ATTENDANCE_RECORD",
+        "x": 1622,
+        "y": 894,
+        "attributes": []
+      },
+      {
+        "id": "s5a",
+        "name": "APPROVAL_USER",
+        "x": 1156,
+        "y": 1237,
+        "attributes": []
+      },
+      {
+        "id": "s5d",
+        "name": "APPROVAL_WORKFLOW_STEP_APPROVAL_WORKFLOW",
+        "x": 265,
+        "y": 2771,
+        "attributes": []
+      },
+      {
+        "id": "s5g",
+        "name": "ATTENDANCE_RECORD_USER",
+        "x": 921,
+        "y": 973,
+        "attributes": []
+      },
+      {
+        "id": "s5j",
+        "name": "ATTENDANCE_RECORD_CLOCK_EVENT",
+        "x": 1152,
+        "y": 335,
+        "attributes": []
+      },
+      {
+        "id": "s5m",
+        "name": "ATTENDANCE_RECORD_USER",
+        "x": 921,
+        "y": 973,
+        "attributes": []
+      },
+      {
+        "id": "s5p",
+        "name": "BREAK_SCHEDULE_WORK_SCHEDULE",
+        "x": 1152,
+        "y": 1501,
+        "attributes": []
+      },
+      {
+        "id": "s5s",
+        "name": "CLOCK_EVENT_SITE_NETWORK",
+        "x": 686,
+        "y": 328,
+        "attributes": []
+      },
+      {
+        "id": "s5v",
+        "name": "CLOCK_EVENT_USER",
+        "x": 686,
+        "y": 678,
+        "attributes": []
+      },
+      {
+        "id": "s5y",
+        "name": "CLOCK_EVENT_USER",
+        "x": 686,
+        "y": 678,
+        "attributes": []
+      },
+      {
+        "id": "s61",
+        "name": "CLOCK_EVENT_SITE",
+        "x": 479,
+        "y": 243,
+        "attributes": []
+      },
+      {
+        "id": "s64",
+        "name": "CONTRACT_USER",
+        "x": 686,
+        "y": 1248,
+        "attributes": []
+      },
+      {
+        "id": "s67",
+        "name": "LEAVE_ADJUSTMENT_LEAVE_BALANCE",
+        "x": 1152,
+        "y": 1142,
+        "attributes": []
+      },
+      {
+        "id": "s6a",
+        "name": "LEAVE_ADJUSTMENT_USER",
+        "x": 921,
+        "y": 1337,
+        "attributes": []
+      },
+      {
+        "id": "s6d",
+        "name": "LEAVE_BALANCE_USER",
+        "x": 686,
+        "y": 1121,
+        "attributes": []
+      },
+      {
+        "id": "s6g",
+        "name": "REMOTE_WORK_POLICY_USER",
+        "x": 686,
+        "y": 1480,
+        "attributes": []
+      },
+      {
+        "id": "s6j",
+        "name": "REMOTE_WORK_POLICY_DEPARTMENT",
+        "x": 479,
+        "y": 1548,
+        "attributes": []
+      },
+      {
+        "id": "s6m",
+        "name": "REMOTE_WORK_POLICY_USER",
+        "x": 686,
+        "y": 1480,
+        "attributes": []
+      },
+      {
+        "id": "s6p",
+        "name": "SETTING_CHANGE_USER",
+        "x": 686,
+        "y": 1618,
+        "attributes": []
+      },
+      {
+        "id": "s6s",
+        "name": "SITE_NETWORK_SITE",
+        "x": 248,
+        "y": 530,
+        "attributes": []
+      },
+      {
+        "id": "s6v",
+        "name": "USER_HIERARCHY_LEVEL",
+        "x": 248,
+        "y": 1446,
+        "attributes": []
+      },
+      {
+        "id": "s6y",
+        "name": "USER_USER",
+        "x": 455,
+        "y": 1316,
+        "attributes": []
+      },
+      {
+        "id": "s71",
+        "name": "USER_USER",
+        "x": 455,
+        "y": 1316,
+        "attributes": []
+      },
+      {
+        "id": "s74",
+        "name": "USER_DEPARTMENT",
+        "x": 248,
+        "y": 1385,
+        "attributes": []
+      },
+      {
+        "id": "s77",
+        "name": "USER_USER",
+        "x": 455,
+        "y": 1316,
+        "attributes": []
+      },
+      {
+        "id": "s7a",
+        "name": "USER_ROLE",
+        "x": 248,
+        "y": 1529,
+        "attributes": []
+      },
+      {
+        "id": "s7d",
+        "name": "USER_ASSIGNMENT_USER",
+        "x": 686,
+        "y": 1723,
+        "attributes": []
+      },
+      {
+        "id": "s7g",
+        "name": "USER_ASSIGNMENT_USER",
+        "x": 686,
+        "y": 1723,
+        "attributes": []
+      },
+      {
+        "id": "s7j",
+        "name": "USER_ASSIGNMENT_DEPARTMENT",
+        "x": 479,
+        "y": 1791,
+        "attributes": []
+      },
+      {
+        "id": "s7m",
+        "name": "WORK_SCHEDULE_USER",
+        "x": 686,
+        "y": 1375,
+        "attributes": []
+      },
+      {
+        "id": "s7p",
+        "name": "WORK_SCHEDULE_USER",
+        "x": 686,
+        "y": 1375,
+        "attributes": []
+      }
+    ],
+    "links": [
+      {
+        "id": "l4n",
+        "entity": "e1",
+        "association": "s4m",
+        "card": "0,1"
+      },
+      {
+        "id": "l4o",
+        "entity": "e5",
+        "association": "s4m",
+        "card": "0,n"
+      },
+      {
+        "id": "l4q",
+        "entity": "e1",
+        "association": "s4p",
+        "card": "1,1"
+      },
+      {
+        "id": "l4r",
+        "entity": "e3u",
+        "association": "s4p",
+        "card": "0,n"
+      },
+      {
+        "id": "l4t",
+        "entity": "e1",
+        "association": "s4s",
+        "card": "1,1"
+      },
+      {
+        "id": "l4u",
+        "entity": "e3u",
+        "association": "s4s",
+        "card": "0,n"
+      },
+      {
+        "id": "l4w",
+        "entity": "e5",
+        "association": "s4v",
+        "card": "1,1"
+      },
+      {
+        "id": "l4x",
+        "entity": "e3u",
+        "association": "s4v",
+        "card": "0,n"
+      },
+      {
+        "id": "l4z",
+        "entity": "e5",
+        "association": "s4y",
+        "card": "1,1"
+      },
+      {
+        "id": "l50",
+        "entity": "e3u",
+        "association": "s4y",
+        "card": "0,n"
+      },
+      {
+        "id": "l52",
+        "entity": "e5",
+        "association": "s51",
+        "card": "0,1"
+      },
+      {
+        "id": "l53",
+        "entity": "e3u",
+        "association": "s51",
+        "card": "0,n"
+      },
+      {
+        "id": "l55",
+        "entity": "ed",
+        "association": "s54",
+        "card": "0,1"
+      },
+      {
+        "id": "l56",
+        "entity": "e3u",
+        "association": "s54",
+        "card": "0,n"
+      },
+      {
+        "id": "l58",
+        "entity": "ej",
+        "association": "s57",
+        "card": "1,1"
+      },
+      {
+        "id": "l59",
+        "entity": "e15",
+        "association": "s57",
+        "card": "0,n"
+      },
+      {
+        "id": "l5b",
+        "entity": "ej",
+        "association": "s5a",
+        "card": "1,1"
+      },
+      {
+        "id": "l5c",
+        "entity": "e3u",
+        "association": "s5a",
+        "card": "0,n"
+      },
+      {
+        "id": "l5e",
+        "entity": "ey",
+        "association": "s5d",
+        "card": "1,1"
+      },
+      {
+        "id": "l5f",
+        "entity": "er",
+        "association": "s5d",
+        "card": "0,n"
+      },
+      {
+        "id": "l5h",
+        "entity": "e15",
+        "association": "s5g",
+        "card": "1,1"
+      },
+      {
+        "id": "l5i",
+        "entity": "e3u",
+        "association": "s5g",
+        "card": "0,n"
+      },
+      {
+        "id": "l5k",
+        "entity": "e15",
+        "association": "s5j",
+        "card": "0,1"
+      },
+      {
+        "id": "l5l",
+        "entity": "e1t",
+        "association": "s5j",
+        "card": "0,n"
+      },
+      {
+        "id": "l5n",
+        "entity": "e15",
+        "association": "s5m",
+        "card": "0,1"
+      },
+      {
+        "id": "l5o",
+        "entity": "e3u",
+        "association": "s5m",
+        "card": "0,n"
+      },
+      {
+        "id": "l5q",
+        "entity": "e1n",
+        "association": "s5p",
+        "card": "1,1"
+      },
+      {
+        "id": "l5r",
+        "entity": "e4h",
+        "association": "s5p",
+        "card": "0,n"
+      },
+      {
+        "id": "l5t",
+        "entity": "e1t",
+        "association": "s5s",
+        "card": "0,1"
+      },
+      {
+        "id": "l5u",
+        "entity": "e3o",
+        "association": "s5s",
+        "card": "0,n"
+      },
+      {
+        "id": "l5w",
+        "entity": "e1t",
+        "association": "s5v",
+        "card": "0,1"
+      },
+      {
+        "id": "l5x",
+        "entity": "e3u",
+        "association": "s5v",
+        "card": "0,n"
+      },
+      {
+        "id": "l5z",
+        "entity": "e1t",
+        "association": "s5y",
+        "card": "1,1"
+      },
+      {
+        "id": "l60",
+        "entity": "e3u",
+        "association": "s5y",
+        "card": "0,n"
+      },
+      {
+        "id": "l62",
+        "entity": "e1t",
+        "association": "s61",
+        "card": "0,1"
+      },
+      {
+        "id": "l63",
+        "entity": "e3k",
+        "association": "s61",
+        "card": "0,n"
+      },
+      {
+        "id": "l65",
+        "entity": "e22",
+        "association": "s64",
+        "card": "1,1"
+      },
+      {
+        "id": "l66",
+        "entity": "e3u",
+        "association": "s64",
+        "card": "0,n"
+      },
+      {
+        "id": "l68",
+        "entity": "e2m",
+        "association": "s67",
+        "card": "1,1"
+      },
+      {
+        "id": "l69",
+        "entity": "e2r",
+        "association": "s67",
+        "card": "0,n"
+      },
+      {
+        "id": "l6b",
+        "entity": "e2m",
+        "association": "s6a",
+        "card": "1,1"
+      },
+      {
+        "id": "l6c",
+        "entity": "e3u",
+        "association": "s6a",
+        "card": "0,n"
+      },
+      {
+        "id": "l6e",
+        "entity": "e2r",
+        "association": "s6d",
+        "card": "1,1"
+      },
+      {
+        "id": "l6f",
+        "entity": "e3u",
+        "association": "s6d",
+        "card": "0,n"
+      },
+      {
+        "id": "l6h",
+        "entity": "e33",
+        "association": "s6g",
+        "card": "1,1"
+      },
+      {
+        "id": "l6i",
+        "entity": "e3u",
+        "association": "s6g",
+        "card": "0,n"
+      },
+      {
+        "id": "l6k",
+        "entity": "e33",
+        "association": "s6j",
+        "card": "1,1"
+      },
+      {
+        "id": "l6l",
+        "entity": "e2a",
+        "association": "s6j",
+        "card": "0,n"
+      },
+      {
+        "id": "l6n",
+        "entity": "e33",
+        "association": "s6m",
+        "card": "0,1"
+      },
+      {
+        "id": "l6o",
+        "entity": "e3u",
+        "association": "s6m",
+        "card": "0,n"
+      },
+      {
+        "id": "l6q",
+        "entity": "e3e",
+        "association": "s6p",
+        "card": "1,1"
+      },
+      {
+        "id": "l6r",
+        "entity": "e3u",
+        "association": "s6p",
+        "card": "0,n"
+      },
+      {
+        "id": "l6t",
+        "entity": "e3o",
+        "association": "s6s",
+        "card": "0,1"
+      },
+      {
+        "id": "l6u",
+        "entity": "e3k",
+        "association": "s6s",
+        "card": "0,n"
+      },
+      {
+        "id": "l6w",
+        "entity": "e3u",
+        "association": "s6v",
+        "card": "1,1"
+      },
+      {
+        "id": "l6x",
+        "entity": "e2h",
+        "association": "s6v",
+        "card": "0,n"
+      },
+      {
+        "id": "l6z",
+        "entity": "e3u",
+        "association": "s6y",
+        "card": "0,1"
+      },
+      {
+        "id": "l70",
+        "entity": "e3u",
+        "association": "s6y",
+        "card": "0,n"
+      },
+      {
+        "id": "l72",
+        "entity": "e3u",
+        "association": "s71",
+        "card": "0,1"
+      },
+      {
+        "id": "l73",
+        "entity": "e3u",
+        "association": "s71",
+        "card": "0,n"
+      },
+      {
+        "id": "l75",
+        "entity": "e3u",
+        "association": "s74",
+        "card": "0,1"
+      },
+      {
+        "id": "l76",
+        "entity": "e2a",
+        "association": "s74",
+        "card": "0,n"
+      },
+      {
+        "id": "l78",
+        "entity": "e3u",
+        "association": "s77",
+        "card": "0,1"
+      },
+      {
+        "id": "l79",
+        "entity": "e3u",
+        "association": "s77",
+        "card": "0,n"
+      },
+      {
+        "id": "l7b",
+        "entity": "e3u",
+        "association": "s7a",
+        "card": "1,1"
+      },
+      {
+        "id": "l7c",
+        "entity": "e3a",
+        "association": "s7a",
+        "card": "0,n"
+      },
+      {
+        "id": "l7e",
+        "entity": "e42",
+        "association": "s7d",
+        "card": "0,1"
+      },
+      {
+        "id": "l7f",
+        "entity": "e3u",
+        "association": "s7d",
+        "card": "0,n"
+      },
+      {
+        "id": "l7h",
+        "entity": "e42",
+        "association": "s7g",
+        "card": "1,1"
+      },
+      {
+        "id": "l7i",
+        "entity": "e3u",
+        "association": "s7g",
+        "card": "0,n"
+      },
+      {
+        "id": "l7k",
+        "entity": "e42",
+        "association": "s7j",
+        "card": "0,1"
+      },
+      {
+        "id": "l7l",
+        "entity": "e2a",
+        "association": "s7j",
+        "card": "0,n"
+      },
+      {
+        "id": "l7n",
+        "entity": "e4h",
+        "association": "s7m",
+        "card": "1,1"
+      },
+      {
+        "id": "l7o",
+        "entity": "e3u",
+        "association": "s7m",
+        "card": "0,n"
+      },
+      {
+        "id": "l7q",
+        "entity": "e4h",
+        "association": "s7p",
+        "card": "1,1"
+      },
+      {
+        "id": "l7r",
+        "entity": "e3u",
+        "association": "s7p",
+        "card": "0,n"
+      }
+    ],
+    "notes": []
+  },
+  "naming": {
+    "tables": "snake",
+    "pk": "id",
+    "fk": "table_id",
+    "join": "tables"
+  }
+}

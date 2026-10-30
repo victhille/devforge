@@ -8,9 +8,9 @@ La page **Modélisation** (menu *Données & API*) sert à concevoir avant de cod
 ## La page
 
 - **Le sélecteur de projet**, en haut à droite : le projet actif par défaut.
-- **La chaîne du projet** : MCD → MLD → MPD → SQL → base liée, avec l'état de chacun (*À jour*, *▲ À mettre à jour*, *Pas encore écrit*). Un clic ouvre l'étape. La base liée arrive avec la prochaine version.
+- **La chaîne du projet** : MCD → MLD → MPD → SQL → base liée, avec l'état de chacun (*À jour*, *▲ À mettre à jour*, *Pas encore écrit*). Un clic ouvre l'étape. La base liée dit combien de différences la séparent du MPD.
 - **Les modèles du projet** : un aperçu, le type, la date, le fichier. Un clic ouvre le modèle ; renommer et supprimer au survol. Renommer un MCD renomme aussi son MPD et son script.
-- **Créer un modèle** : un **MCD** pour l'instant ; le MPD se génère depuis le MCD (les diagrammes UML et l'import depuis une base suivent).
+- **Créer un modèle** : un **MCD**, ou **Depuis une base** (voir plus bas) ; le MPD se génère depuis le MCD (les diagrammes UML suivent).
 
 En haut de l'éditeur, les onglets **MCD · MLD · MPD · SQL** passent d'une étape à l'autre du même modèle.
 
@@ -74,3 +74,31 @@ Quand le MCD change, le MPD le signale : **Mettre à jour** refait les tables d'
 L'onglet **SQL** montre le script `CREATE TABLE` du MPD pour son moteur : les tables désignées d'abord, les clés primaires (numérotées par la base quand c'est un entier seul), les clés étrangères, les index ; un cycle de clés se termine par des `ALTER TABLE`. Un nom réservé (`user`, `order`…) est mis entre guillemets. Changer de moteur réécrit les types.
 
 **Écrire boutique.sql** l'enregistre dans `conception/` à côté du modèle ; la page dit quand le fichier écrit est plus ancien que le MPD. **Copier** le prend pour le coller ailleurs.
+
+## La base liée
+
+Sous le MPD, **Base liée** choisit une connexion de la page [Base de données](/devforge/data/database/) du même moteur ; quand le `.env` du projet décrit une base déjà enregistrée, DevForge propose **Lier à …**. Le lien est gardé dans le MPD.
+
+DevForge lit alors la base et liste ce qui diffère : `+` ce qui manque dans la base (une table, une colonne, une clé étrangère), `−` ce qui n'est que dans la base (en rouge : le rattraper supprime des données), `~` ce qui diffère (un type, *vide* ou non, la clé primaire). Une table absente de la base est marquée sur le dessin. La chaîne de la page Modélisation montre aussi *▲ 3 différence(s)* ou *À jour*. **Relire la base** relit après un changement fait ailleurs.
+
+### Voir le script
+
+**Voir le script** montre ce qui amène la base au MPD : les `CREATE TABLE` d'abord, puis les colonnes ajoutées, les types et les *vide* changés, les clés étrangères, et en dernier, en rouge, les `DROP`. Ce qu'un moteur ne sait pas faire seul reste en commentaire (SQLite ne change pas un type ; une clé primaire différente est à reprendre à la main).
+
+- **Sauvegarder d'abord** exporte en SQL (structure et lignes) chaque table qu'une suppression touche ;
+- **Appliquer** est possible une fois la case *J'ai compris* cochée quand des données seraient perdues ; tout le script passe ou rien (PostgreSQL, SQLite) — MySQL valide chaque changement de structure tout de suite ;
+- dans un **projet Symfony**, **Créer une migration Doctrine** écrit plutôt `migrations/VersionAAAAMMJJHHMMSS.php` avec ces instructions : versionnée, et jouée partout par `doctrine:migrations:migrate`.
+
+### Prendre la base dans le MPD
+
+L'autre sens : le MPD reprend les tables, colonnes, types et clés de la base. Ce qui correspond par le nom garde son lien avec le MCD et sa place ; ce que la base change est marqué comme retouché, donc gardé quand le MPD est mis à jour depuis le MCD.
+
+## Importer depuis une base
+
+**Créer un modèle → Depuis une base** lit une connexion et crée deux fichiers : son **MPD** (lié à la connexion) et le **MCD** qui s'en déduit :
+
+- une table dont la clé est faite de clés étrangères vers deux tables ou plus redevient une **association**, ses autres colonnes ses attributs ;
+- toute autre clé étrangère devient une association entre ses deux tables, **1,1** (ou **0,1** si elle peut être vide) côté table qui la porte, **0,n** de l'autre ;
+- une clé primaire `id` devient l'identifiant `id_<table>` ; le nommage du MPD est deviné (`client_id` ou `id_client`, `snake_case`…).
+
+Le MPD importé est la base telle quelle : aucune différence au départ.

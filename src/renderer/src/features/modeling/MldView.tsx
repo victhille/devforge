@@ -10,10 +10,8 @@ import { errorText } from '@renderer/lib/errors'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Spinner from '@renderer/components/ui/Spinner'
-import ModelTabs, { modelUrl, siblings, useSiblings } from './ModelTabs'
-
-/** "{a} and {b}" filled in */
-export const fill = (tpl: string, vars: Record<string, string | number>) => tpl.replace(/\{(\w+)\}/g, (all, k: string) => (k in vars ? String(vars[k]) : all))
+import ModelTabs from './ModelTabs'
+import { fill, modelUrl, siblings, useSiblings } from './model'
 
 /** A relation as text: the primary key between underscores, foreign keys after a # */
 const relationText = (r: MldRelation) => `${r.name.toUpperCase()} (${r.columns.map(c => `${c.fk ? '#' : ''}${c.pk ? `_${c.name}_` : c.name}`).join(', ')})`

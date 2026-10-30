@@ -8,9 +8,9 @@ The **Modeling** page (*Data & API* menu) is for designing before coding. Models
 ## The page
 
 - **The project picker**, top right: the active project by default.
-- **The project's chain**: MCD → MLD → MPD → SQL → linked database, with the state of each (*Up to date*, *▲ To update*, *Not written yet*). A click opens the step. The linked database comes with the next version.
+- **The project's chain**: MCD → MLD → MPD → SQL → linked database, with the state of each (*Up to date*, *▲ To update*, *Not written yet*). A click opens the step. The linked database tells how many differences part it from the MPD.
 - **The project's models**: a preview, the kind, the date, the file. A click opens the model; rename and delete on hover. Renaming an MCD renames its MPD and its script too.
-- **Create a model**: an **MCD** for now; the MPD is made from the MCD (UML diagrams and the import from a database follow).
+- **Create a model**: an **MCD**, or **From a database** (see below); the MPD is made from the MCD (UML diagrams follow).
 
 At the top of the editor, the **MCD · MLD · MPD · SQL** tabs go from one step of the same model to the next.
 
@@ -74,3 +74,31 @@ When the MCD changes, the MPD says so: **Update** makes the tables again from th
 The **SQL** tab shows the MPD's `CREATE TABLE` script for its engine: the tables pointed at first, the primary keys (numbered by the database when a lone integer), the foreign keys, the indexes; a cycle of keys ends with `ALTER TABLE`. A reserved name (`user`, `order`…) is quoted. Another engine rewrites the types.
 
 **Write shop.sql** saves it in `conception/` next to the model; the page tells when the written file is older than the MPD. **Copy** takes it to paste elsewhere.
+
+## The linked database
+
+Below the MPD, **Linked database** picks a connection of the same engine from the [Database](/devforge/en/data/database/) page; when the project's `.env` describes a database already saved, DevForge offers **Link to …**. The link is kept in the MPD.
+
+DevForge then reads the database and lists what differs: `+` what the database is missing (a table, a column, a foreign key), `−` what is only in the database (in red: catching up deletes data), `~` what differs (a type, *empty* or not, the primary key). A table missing from the database is marked on the drawing. The Modeling page's chain shows *▲ 3 difference(s)* or *Up to date* too. **Read the database again** after a change made elsewhere.
+
+### See the script
+
+**See the script** shows what brings the database to the MPD: the `CREATE TABLE` first, then the columns added, the types and *empty* changed, the foreign keys, and last, in red, the `DROP`. What an engine cannot do alone stays as a comment (SQLite does not change a type; a different primary key is to do by hand).
+
+- **Back up first** exports as SQL (structure and rows) each table a drop touches;
+- **Apply** is possible once the *Understood* box is ticked when data would be lost; the whole script runs or nothing (PostgreSQL, SQLite) — MySQL commits each structure change at once;
+- in a **Symfony project**, **Make a Doctrine migration** writes `migrations/VersionYYYYMMDDHHMMSS.php` with these statements instead: versioned, and run everywhere by `doctrine:migrations:migrate`.
+
+### Take the database into the MPD
+
+The other way: the MPD takes the database's tables, columns, types and keys. What matches by name keeps its tie to the MCD and its place; what the database changes is marked as changed by hand, so kept when the MPD is updated from the MCD.
+
+## Import from a database
+
+**Create a model → From a database** reads a connection and makes two files: its **MPD** (linked to the connection) and the **MCD** worked out from it:
+
+- a table whose key is made of foreign keys to two tables or more becomes an **association** again, its other columns its attributes;
+- any other foreign key becomes an association between its two tables, **1,1** (or **0,1** when it can be empty) on the side of the table holding it, **0,n** on the other;
+- an `id` primary key becomes the identifier `id_<table>`; the MPD's naming is guessed (`client_id` or `id_client`, `snake_case`…).
+
+The imported MPD is the database as it is: no difference to begin with.

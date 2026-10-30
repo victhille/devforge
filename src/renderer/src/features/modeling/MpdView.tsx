@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, Check, Copy, FileCode2, KeyRound, LayoutTemplate, Maximize2, Minus, Plus, Redo2, RefreshCw, RotateCcw, Trash2, Undo2 } from 'lucide-react'
-import type { ModelFile, MpdColumn, MpdModel, MpdTable, MpdType, SqlEngine } from '@shared/types'
+import type { DbConnection, ModelFile, MpdColumn, MpdModel, MpdTable, MpdType, SqlEngine } from '@shared/types'
+import { adoptDb, diffMpd } from '@shared/lib/mpdDb'
 import { uid } from '@shared/lib/mcd'
 import { checkMpd, DEFAULT_NAMING, generateMpd, mcdHash, MPD_TYPES, mpdDiagram, mpdSql, placeNew, SQL_ENGINES, sqlType, syncForeignKeys } from '@shared/lib/mpd'
 import { arrowHead, boxSize, bounds, diagramSvg, HEADER, linkPath, ROW, type Box, type Point } from '@shared/lib/schemaLayout'
@@ -14,8 +15,9 @@ import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import { saveDrawing, schemaColors } from './colors'
-import ModelTabs, { siblings, useSiblings } from './ModelTabs'
-import { fill } from './MldView'
+import ModelTabs from './ModelTabs'
+import { fill, siblings, useLinkedDb, useSiblings } from './model'
+import LinkedPanel, { ScriptDialog } from './LinkedDb'
 
 const MINI = { w: 180, h: 110 }
 const SAVE_DELAY = 500
@@ -133,6 +135,25 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
   const mcd = found?.mcd?.mcd
   const stale = !!(mpd && mcd && mpd.sourceHash !== mcdHash(mcd, found?.mcd?.naming ?? DEFAULT_NAMING))
   const update = () => { if (mcd) change(x => generateMpd(mcd, found?.mcd?.naming ?? DEFAULT_NAMING, x.engine, x, sib.mcd)) }
+
+  // ── The linked database (lot 4) ────────────────────────────────────────────
+  const [connections, setConnections] = useState<DbConnection[]>([])
+  const [projectDb, setProjectDb] = useState<{ database?: string; port?: number } | null>(null)
+  const [symfony, setSymfony] = useState(false)
+  const [scriptOpen, setScriptOpen] = useState(false)
+  useEffect(() => {
+    window.devforge.db.list().then(setConnections).catch(() => setConnections([]))
+    window.devforge.modeling.projectDb(projectPath).then(setProjectDb).catch(() => setProjectDb(null))
+    window.devforge.getProjects().then(list => setSymfony(list.some(x => x.path === projectPath && x.framework === 'symfony'))).catch(() => {})
+  }, [projectPath])
+  const linked = useLinkedDb(mpd?.connection)
+  const linkedConn = connections.find(c => c.id === mpd?.connection)
+  const diffs = useMemo(() => (mpd && linked.diagram && linkedConn ? diffMpd(mpd, linked.diagram) : null), [mpd, linked.diagram, linkedConn])
+  const suggested = mpd && projectDb?.database
+    ? connections.find(c => c.type === mpd.engine && c.database === projectDb.database && (!projectDb.port || !c.port || c.port === projectDb.port))
+    : undefined
+  const missing = new Set((diffs ?? []).filter(d => d.kind === 'tableMissing').map(d => d.table.toLowerCase()))
+  const changedCols = new Set((diffs ?? []).filter(d => d.column && d.kind !== 'columnExtra').map(d => `${d.table}.${d.column}`.toLowerCase()))
   /** A column back to what the MCD gives (when the MPD is up to date, nothing else moves) */
   const resetColumn = (tid: string, cid: string) => {
     if (!mcd) return
@@ -345,6 +366,7 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
           </div>
         ) : (
           <div className="flex min-h-0 flex-1">
+            <div className="flex min-w-0 flex-1 flex-col">
             <div ref={viewport} data-testid="mpd-canvas"
               className="relative min-w-0 flex-1 cursor-grab touch-none overflow-hidden bg-canvas select-none active:cursor-grabbing"
               style={{ backgroundImage: 'radial-gradient(var(--color-line-subtle) 1px, transparent 1px)', backgroundSize: `${20 * view.k}px ${20 * view.k}px`, backgroundPosition: `${view.x}px ${view.y}px` }}
@@ -375,11 +397,12 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
                       style={{ left: b.x, top: b.y, width: b.w, height: b.h }} onPointerDown={ev => down(ev, tb.id)}>
                       <div className="flex cursor-move items-center gap-2 border-b border-line bg-elevated px-3" style={{ height: HEADER }}>
                         <span className="truncate font-mono text-[13px] font-semibold text-fg">{tb.name || '—'}</span>
+                        {missing.has(tb.name.toLowerCase()) && <span className="ml-auto shrink-0 rounded bg-warning-soft px-1.5 font-sans text-[10.5px] text-warning">{t.modeling.linked.missingBadge}</span>}
                       </div>
                       {tb.columns.map(c => (
                         <div key={c.id} className="flex items-center gap-1.5 px-3 font-mono text-[11.5px]" style={{ height: ROW }}>
                           {c.pk ? <KeyRound size={10} className="shrink-0 text-warning" /> : <span className="w-[10px] shrink-0" />}
-                          <span className={cn('truncate', c.ref ? 'text-accent' : c.pk ? 'text-fg' : 'text-fg-secondary')}>{c.name}</span>
+                          <span className={cn('truncate', changedCols.has(`${tb.name}.${c.name}`.toLowerCase()) ? 'text-warning underline decoration-dotted' : c.ref ? 'text-accent' : c.pk ? 'text-fg' : 'text-fg-secondary')}>{c.name}</span>
                           <span className="ml-auto shrink-0 pl-2 text-[11px] text-fg-muted">{sqlType(c, mpd.engine)}{c.nullable && !c.pk ? '' : ' !'}</span>
                         </div>
                       ))}
@@ -406,6 +429,10 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
                 </svg>
               )}
             </div>
+            <LinkedPanel mpd={mpd} connections={connections} suggested={suggested} diagram={linked.diagram} loading={linked.loading} error={linked.error} diffs={diffs}
+              onLink={id => change(x => ({ ...x, connection: id }))} onRefresh={linked.refresh} onScript={() => setScriptOpen(true)}
+              onAdopt={() => { if (linked.diagram && window.confirm(fill(t.modeling.linked.adoptConfirm, { name: linkedConn?.name ?? '' }))) { change(x => adoptDb(x, linked.diagram!)); toast.show({ tone: 'success', title: t.modeling.linked.adopted }) } }} />
+            </div>
 
             <aside aria-label={selTable ? p.table : p.check} className="flex w-[340px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-line-subtle p-4">
               {selTable ? (
@@ -429,6 +456,10 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
           </div>
         )}
       </div>
+      {scriptOpen && linkedConn && linked.diagram && diffs && (
+        <ScriptDialog mpd={mpd} conn={linkedConn} diagram={linked.diagram} diffs={diffs} projectPath={projectPath} symfony={symfony}
+          onDone={() => { setScriptOpen(false); linked.refresh() }} onClose={() => setScriptOpen(false)} />
+      )}
     </div>
   )
 }

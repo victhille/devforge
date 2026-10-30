@@ -1,31 +1,7 @@
-import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { ModelSummary } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
-
-export type ModelTab = 'mcd' | 'mld' | 'mpd' | 'sql'
-
-export const modelUrl = (projectPath: string, file: string, tab?: ModelTab) =>
-  `/model?project=${encodeURIComponent(projectPath)}&file=${encodeURIComponent(file)}${tab ? `&tab=${tab}` : ''}`
-
-/** An MCD, its MPD and its SQL share a base name: boutique.mcd.json, boutique.mpd.json, boutique.sql */
-export function siblings(file: string) {
-  const base = file.replace(/\.[a-z]+\.json$/, '')
-  return { base, mcd: `${base}.mcd.json`, mpd: `${base}.mpd.json`, sql: `${base}.sql` }
-}
-
-/** The model's MCD and MPD as the project lists them (either may be missing) */
-export function useSiblings(projectPath: string, file: string, tick = 0) {
-  const [found, setFound] = useState<{ mcd?: ModelSummary; mpd?: ModelSummary } | null>(null)
-  useEffect(() => {
-    const s = siblings(file)
-    window.devforge.modeling.list(projectPath)
-      .then(list => setFound({ mcd: list.find(x => x.file === s.mcd), mpd: list.find(x => x.file === s.mpd) }))
-      .catch(() => setFound({}))
-  }, [projectPath, file, tick])
-  return found
-}
+import { modelUrl, siblings, type ModelTab } from './model'
 
 /**
  * v3.9 lot 3: the steps of one model, MCD → MLD → MPD → SQL, in the editor's bar.

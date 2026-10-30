@@ -14,7 +14,7 @@ import { fromEnv } from '../database/dbDetect'
 
 const FOLDER = 'conception'
 
-function projectDir(projectPath: string): string {
+export function projectDir(projectPath: string): string {
   const wanted = resolve(projectPath).toLowerCase()
   const p = loadProjects().find(x => resolve(x.path).toLowerCase() === wanted)
   if (!p || !existsSync(p.path)) throw new Error('Unknown project')
@@ -127,15 +127,24 @@ export function writeSql(projectPath: string, file: string, sql: string): string
 
 /** The engine the project's database runs on, read from its .env files; PostgreSQL when they say nothing */
 export function projectEngine(projectPath: string): SqlEngine {
+  return projectDatabase(projectPath).engine
+}
+
+/** v3.9 lot 4: the project's database as its files describe it: the engine, and its name and port when they say */
+export function projectDatabase(projectPath: string): { engine: SqlEngine; database?: string; port?: number } {
   const dir = projectDir(projectPath)
   const env: Record<string, string> = {}
   for (const name of ['.env', '.env.local', 'backend/.env', 'api/.env']) {
     try { Object.assign(env, parseEnv(readFileSync(join(dir, name), 'utf-8'))) } catch { /* no such file */ }
   }
   const url = env.DATABASE_URL ?? env.DB_URL ?? ''
-  if (/^(sqlite|file:)/i.test(url) || /sqlite/i.test(env.DB_CONNECTION ?? '')) return 'sqlite'
+  if (/^(sqlite|file:)/i.test(url) || /sqlite/i.test(env.DB_CONNECTION ?? '')) return { engine: 'sqlite' }
   const db = fromEnv(env)
-  if (db) return db.type
+  if (db) return { engine: db.type, ...(db.database ? { database: db.database } : {}), port: db.port }
+  return { engine: composeEngine(dir) }
+}
+
+function composeEngine(dir: string): SqlEngine {
   for (const name of ['compose.yaml', 'compose.yml', 'docker-compose.yml', 'docker-compose.yaml']) {
     try {
       const yml = readFileSync(join(dir, name), 'utf-8')

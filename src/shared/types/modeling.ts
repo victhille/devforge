@@ -122,7 +122,25 @@ export interface MpdModel {
   /** The MCD file it was made from, and that MCD's fingerprint then (to tell when it changed) */
   source?: string
   sourceHash?: string
+  /** v3.9 lot 4: the database connection it is compared with (its id) */
+  connection?: string
 }
+
+/** v3.9 lot 4: one difference between the MPD and its database */
+export type MpdDiffKind = 'tableMissing' | 'tableExtra' | 'columnMissing' | 'columnExtra' | 'type' | 'nullable' | 'pk' | 'fkMissing' | 'fkExtra'
+export interface MpdDiff {
+  kind: MpdDiffKind
+  table: string
+  column?: string
+  /** What the MPD says, and what the database has */
+  mpd?: string
+  db?: string
+  /** Data would be lost (a table or a column dropped) */
+  danger?: boolean
+}
+
+/** One line of a catch-up script: a statement, or a note for what is done by hand */
+export interface ScriptLine { sql: string; comment?: boolean; danger?: boolean }
 
 /** A model file in the project's conception/ folder */
 export interface ModelFile {
@@ -164,4 +182,10 @@ export interface ModelingAPI {
   engine: (projectPath: string) => Promise<SqlEngine>
   /** The SQL script next to an MPD (boutique.mpd.json → conception/boutique.sql); resolves with its path */
   writeSql: (projectPath: string, file: string, sql: string) => Promise<string>
+  /** v3.9 lot 4: the project's database as its files say (to suggest the connection to link) */
+  projectDb: (projectPath: string) => Promise<{ engine: SqlEngine; database?: string; port?: number }>
+  /** A catch-up script run on a connection, all or none where the engine allows it */
+  apply: (connectionId: string, statements: string[]) => Promise<{ ok: true } | { ok: false; error: string; index: number }>
+  /** The same statements as a Doctrine migration (Symfony); resolves with its path */
+  doctrine: (projectPath: string, statements: string[], description: string) => Promise<string>
 }
