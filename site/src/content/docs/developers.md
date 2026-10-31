@@ -3,7 +3,7 @@ title: Développeurs
 description: Compiler DevForge, comprendre son architecture, sortir une version et contribuer.
 ---
 
-DevForge est open source, sous [licence MIT](https://github.com/victhille/devforge/blob/main/LICENSE). Il est écrit avec Electron, React 18, TypeScript et Tailwind CSS.
+DevForge est open source, sous [licence GPL-3.0](https://github.com/victhille/devforge/blob/main/LICENSE) ; le nom et le logo sont réservés ([TRADEMARKS.md](https://github.com/victhille/devforge/blob/main/TRADEMARKS.md)). Il est écrit avec Electron, React 18, TypeScript et Tailwind CSS.
 
 ## Compiler
 

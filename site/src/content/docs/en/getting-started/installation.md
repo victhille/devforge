@@ -3,7 +3,7 @@ title: Installation
 description: Install DevForge on Windows, get past the SmartScreen warning and receive updates.
 ---
 
-DevForge is a desktop application for **Windows 10 and 11 (64-bit)**. It is free, open source (MIT license) and needs no account.
+DevForge is a desktop application for **Windows 10 and 11 (64-bit)**. It is free, open source (GPL-3.0 license) and needs no account.
 
 ## Download
 

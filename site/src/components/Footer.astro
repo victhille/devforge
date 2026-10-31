@@ -12,6 +12,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '')
   {SECTIONS.filter(s => s.id !== 'docs' && s.id !== 'guides').map(s => (
     <a href={`${base}/${en ? 'en/' : ''}${s.path}`}>{en ? s.en : s.fr}</a>
   ))}
-  <a href="https://github.com/victhille/devforge/blob/main/LICENSE">{en ? 'MIT licence' : 'Licence MIT'}</a>
+  <a href="https://github.com/victhille/devforge/blob/main/LICENSE">{en ? 'GPL-3.0 license' : 'Licence GPL-3.0'}</a>
   <span>{en ? 'No cookies, no audience measurement.' : "Ni cookie ni mesure d'audience."}</span>
 </nav>

@@ -33,4 +33,4 @@ L'architecture du code est décrite dans [docs/dev/architecture.md](docs/dev/arc
 
 ## Licence
 
-En contribuant, tu acceptes que ta contribution soit publiée sous la [licence MIT](LICENSE) du projet.
+En contribuant, tu acceptes l'[accord de contribution](CLA.md) (une case à cocher dans la pull request) : ta contribution est publiée sous la [licence GPL-3.0](LICENSE) du projet, et le mainteneur peut la réutiliser sous une autre licence. Tu restes l'auteur de ce que tu apportes.

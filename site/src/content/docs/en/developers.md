@@ -3,7 +3,7 @@ title: Developers
 description: Build DevForge, understand its architecture, ship a release and contribute.
 ---
 
-DevForge is open source, under the [MIT license](https://github.com/victhille/devforge/blob/main/LICENSE). It is built with Electron, React 18, TypeScript and Tailwind CSS.
+DevForge is open source, under the [GPL-3.0 license](https://github.com/victhille/devforge/blob/main/LICENSE); the name and logo are reserved ([TRADEMARKS.md](https://github.com/victhille/devforge/blob/main/TRADEMARKS.md)). It is built with Electron, React 18, TypeScript and Tailwind CSS.
 
 ## Build
 

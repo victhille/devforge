@@ -72,7 +72,7 @@ const fr = {
   faq: {
     title: 'Questions',
     items: [
-      ["C'est vraiment gratuit ?", 'Oui, open source sous licence MIT, sans compte. Seul Forgy, facultatif, utilise ta propre clé Anthropic.'],
+      ["C'est vraiment gratuit ?", 'Oui, open source sous licence GPL-3.0, sans compte. Seul Forgy, facultatif, utilise ta propre clé Anthropic.'],
       ["Pourquoi l'alerte SmartScreen ?", "L'installeur n'est pas signé (un certificat est payant). Clique sur « Informations complémentaires », puis « Exécuter quand même ». Chaque version est construite par GitHub Actions depuis le code public."],
       ['Où vont mes données ?', 'Nulle part : tout reste sur ton PC, et clés, jetons et mots de passe sont chiffrés par Windows.'],
       ['Il me faut un serveur ?', "Non. Projets, Git, Docker, bases et outils marchent en local ; les pages serveur n'apparaissent qu'une fois un serveur ajouté."],
@@ -80,7 +80,7 @@ const fr = {
     ] as [string, string][]
   },
   get: { title: 'Télécharger DevForge', text: 'Windows 10 ou 11, 64 bits. Mises à jour automatiques.', button: 'Télécharger', notes: 'Notes de version' },
-  footer: { made: 'DevForge · open source, sur GitHub', docs: 'Documentation', developers: 'Développeurs', license: 'Licence MIT', privacy: "Ce site n'utilise ni cookie ni mesure d'audience." }
+  footer: { made: 'DevForge · open source, sur GitHub', docs: 'Documentation', developers: 'Développeurs', license: 'Licence GPL-3.0', privacy: "Ce site n'utilise ni cookie ni mesure d'audience." }
 }
 
 type Text = typeof fr
@@ -156,7 +156,7 @@ const en: Text = {
   faq: {
     title: 'Questions',
     items: [
-      ['Is it really free?', 'Yes, open source under the MIT license, no account. Only Forgy, which is optional, uses your own Anthropic key.'],
+      ['Is it really free?', 'Yes, open source under the GPL-3.0 license, no account. Only Forgy, which is optional, uses your own Anthropic key.'],
       ['Why the SmartScreen warning?', 'The installer is not signed (a certificate costs money). Click "More info", then "Run anyway". Every release is built by GitHub Actions from the public code.'],
       ['Where does my data go?', 'Nowhere: everything stays on your PC, and keys, tokens and passwords are encrypted by Windows.'],
       ['Do I need a server?', 'No. Projects, Git, Docker, databases and tools work locally; server pages only show up once a server is added.'],
@@ -164,7 +164,7 @@ const en: Text = {
     ]
   },
   get: { title: 'Download DevForge', text: 'Windows 10 or 11, 64-bit. Automatic updates.', button: 'Download', notes: 'Release notes' },
-  footer: { made: 'DevForge · open source, on GitHub', docs: 'Docs', developers: 'Developers', license: 'MIT license', privacy: 'This site uses no cookies and no analytics.' }
+  footer: { made: 'DevForge · open source, on GitHub', docs: 'Docs', developers: 'Developers', license: 'GPL-3.0 license', privacy: 'This site uses no cookies and no analytics.' }
 }
 
 export const TEXT: Record<Lang, Text> = { fr, en }

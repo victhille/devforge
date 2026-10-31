@@ -2,7 +2,7 @@
   "name": "devforge",
   "version": "3.9.0",
   "description": "Developer Project Launcher",
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "repository": {
     "type": "git",
     "url": "https://github.com/victhille/devforge"

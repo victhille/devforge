@@ -47,4 +47,6 @@ Versions SemVer, commits conventionnels, `npm run release` pour publier : voir [
 
 ## Licence
 
-[MIT](LICENSE).
+[GPL-3.0](LICENSE) depuis la v4.0 : tu peux lire, modifier et redistribuer DevForge, à condition que toute version modifiée reste libre, sous GPL-3.0, avec son code source. Les versions jusqu'à la 3.9 restent sous MIT.
+
+Le nom « DevForge », le logo et Forgy ne sont pas sous cette licence : un fork prend un autre nom, voir [TRADEMARKS.md](TRADEMARKS.md). Les contributions passent par un [accord de contribution](CLA.md).
