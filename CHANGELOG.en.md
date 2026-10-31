@@ -2,6 +2,16 @@
 
 Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.
 
+## [4.0.0](https://github.com/victhille/devforge/compare/v3.9.0...v4.0.0) — 2026-10-31
+
+> Public release: hardened security, an installer you can verify by its checksum, and a move to the GPL-3.0 license.
+
+### New features
+
+- **Security**: Electron 44.10 and up-to-date dependencies; the interface now only gets the microphone (dictation), the clipboard and notifications, can no longer leave the app's pages, and the executable refuses to act as Node or to load modified code ([56bd172](https://github.com/victhille/devforge/commit/56bd172bc50966092da4d72dca546868b963e7b6))
+- **Installer**: its SHA-256 checksum shows under the Download button and in the release notes, to check the downloaded file ([b1dab08](https://github.com/victhille/devforge/commit/b1dab08822fda89f6992ecaff79ad8bbc945e444))
+- **License**: DevForge moves to the GPL-3.0 (versions up to 3.9 stay under MIT); the name and logo are reserved, contributions go through a contributor agreement ([f30ac50](https://github.com/victhille/devforge/commit/f30ac50b721eb52458601b3119067fc044e5edfa))
+
 ## [3.9.0](https://github.com/victhille/devforge/compare/v3.8.1...v3.9.0) — 2026-10-30
 
 > Modeling: MCD, MLD, MPD and SQL, linked database, UML diagrams, flowcharts and architecture, links pulled with the mouse

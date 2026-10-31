@@ -2,6 +2,16 @@
 
 Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [4.0.0](https://github.com/victhille/devforge/compare/v3.9.0...v4.0.0) — 2026-10-31
+
+> Version publique : sécurité renforcée, installeur vérifiable par son empreinte, passage en licence GPL-3.0.
+
+### Nouveautés
+
+- **Sécurité** : Electron 44.10 et dépendances à jour ; l'interface n'obtient plus que le micro (dictée), le presse-papiers et les notifications, ne peut plus quitter les pages de l'app, et l'exécutable refuse de servir de Node ou de charger un code modifié ([56bd172](https://github.com/victhille/devforge/commit/56bd172bc50966092da4d72dca546868b963e7b6))
+- **Installeur** : son empreinte SHA-256 s'affiche sous le bouton Télécharger et dans les notes de version, pour vérifier le fichier téléchargé ([b1dab08](https://github.com/victhille/devforge/commit/b1dab08822fda89f6992ecaff79ad8bbc945e444))
+- **Licence** : DevForge passe sous GPL-3.0 (les versions jusqu'à la 3.9 restent sous MIT) ; le nom et le logo sont réservés, les contributions passent par un accord de contribution ([f30ac50](https://github.com/victhille/devforge/commit/f30ac50b721eb52458601b3119067fc044e5edfa))
+
 ## [3.9.0](https://github.com/victhille/devforge/compare/v3.8.1...v3.9.0) — 2026-10-30
 
 > Modélisation : MCD, MLD, MPD et SQL, base liée, diagrammes UML, logigrammes et architecture, liens tirés à la souris
