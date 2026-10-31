@@ -1,8 +1,25 @@
-# DevForge
+<p align="center"><img src="site/src/assets/logo.svg" width="88" alt="" /></p>
 
-English · [Français](README.md)
+<h1 align="center">DevForge</h1>
 
-**Website and documentation: [victhille.github.io/devforge/en](https://victhille.github.io/devforge/en/)**
+<p align="center"><strong>Your whole Windows dev workshop in one app: projects, Git, Docker, servers, databases and deployments.</strong><br />Free, open source, no account. Your secrets stay on your PC.</p>
+
+<p align="center">
+  <a href="https://victhille.github.io/devforge/en/download/"><strong>Download for Windows</strong></a> ·
+  <a href="https://victhille.github.io/devforge/en/">Website and docs</a> ·
+  <a href="README.md">Français</a>
+</p>
+
+<p align="center">
+
+[![Version](https://img.shields.io/github/v/release/victhille/devforge?label=version)](https://github.com/victhille/devforge/releases/latest)
+[![CI](https://github.com/victhille/devforge/actions/workflows/ci.yml/badge.svg)](https://github.com/victhille/devforge/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/victhille/devforge)](LICENSE)
+![Windows 10 · 11](https://img.shields.io/badge/Windows-10%20%C2%B7%2011-0078D4)
+
+</p>
+
+![DevForge's home screen](site/src/assets/screens/home-en.png)
 
 A Windows desktop app (Electron + React) that brings everyday dev tools together in one place: projects, Git, Docker / Compose, SSH and servers, databases, deployments, monitoring, `.env`, local domains, a toolbox, and Forgy, an AI assistant.
 
@@ -14,7 +31,7 @@ DevForge ships with nothing personal: on first launch you pick your language and
 - **Git and GitHub**: status, branches, commits, pull requests.
 - **Docker**: containers, Compose, a Docker database per project, a server's Docker over SSH.
 - **Servers**: SSH connections, health, services, backups, VPN, n8n, status page.
-- **Databases**: connections, queries, backups.
+- **Databases**: connections, queries, backups, modeling (conceptual and physical models, diagrams) and an API tester.
 - **Deployments**: Vercel and servers.
 - **Forgy** (Ctrl+J): an assistant using your own Anthropic key, read-only tools, controlled cost. See [docs/guide/forgy.md](docs/guide/forgy.md).
 
@@ -22,7 +39,7 @@ DevForge ships with nothing personal: on first launch you pick your language and
 
 Download the `DevForge-Setup-vx.y.z.exe` installer from the [Download page](https://victhille.github.io/devforge/en/download/) or the [releases](https://github.com/victhille/devforge/releases). DevForge then updates itself. [Getting started](https://victhille.github.io/devforge/en/getting-started/installation/) covers the install and every page of the app.
 
-The installer is not signed: Windows SmartScreen may say "Windows protected your PC". Click "More info", then "Run anyway".
+The installer is not signed yet: Windows SmartScreen may say "Windows protected your PC". Click "More info", then "Run anyway". Its SHA-256 checksum is on the Download page and in each version's notes, to [check the file](https://victhille.github.io/devforge/en/download/#check-the-installer).
 
 ## Set up
 

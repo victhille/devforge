@@ -16,4 +16,4 @@ DevForge's code is under the [GPL-3.0](LICENSE). The **"DevForge" name**, the **
 - Utiliser le nom ou le logo d'une façon qui laisse croire à une version officielle ou à un partenariat. · Using the name or logo in a way that suggests an official version or a partnership.
 - Vendre un produit ou un service sous le nom DevForge. · Selling a product or a service under the DevForge name.
 
-Une question : ouvre une discussion sur le dépôt. · A question: open a discussion on the repository.
+Une question : ouvre une issue sur le dépôt. · A question: open an issue on the repository.
