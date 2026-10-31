@@ -40,6 +40,8 @@ jobs:
             node_modules
             ~\AppData\Local\electron\Cache
           key: ${{ steps.deps.outputs.cache-primary-key }}
+      # Known vulnerabilities, Electron included (it ships with the app though it is a devDependency)
+      - run: npm audit --audit-level=high
       - run: npm run typecheck
       - run: npm run lint
       # Personal words (IP, names, private projects) must not come back; the list is a secret, never in the code

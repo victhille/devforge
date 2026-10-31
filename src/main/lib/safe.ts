@@ -49,17 +49,18 @@ export function findExecutable(command: string): Promise<string | null> {
 
 /**
  * Start a GUI program detached. Windows launchers (code.cmd, phpstorm.cmd)
- * need a shell: the program is resolved to its full path first and every
- * argument must have been validated by the caller (assertSafeDir).
- * Resolves false when the program is not installed.
+ * need a shell: the program is resolved to its full path first, and nothing a
+ * shell could interpret gets through, whatever the caller checked. A real
+ * program runs without a shell. Resolves false when the program is not installed.
  */
 export async function launch(command: string, args: string[]): Promise<boolean> {
   const exe = await findExecutable(command)
   if (!exe) return false
-  const win = process.platform === 'win32'
-  const child = win
+  const script = process.platform === 'win32' && /\.(cmd|bat)$/i.test(exe)
+  if (script && [exe, ...args].some(a => CMD_META.test(a))) throw new Error('This program or its arguments contain characters that cannot be passed safely to a shell')
+  const child = script
     ? spawn([exe, ...args].map(a => `"${a}"`).join(' '), { shell: true, detached: true, stdio: 'ignore', windowsHide: true })
-    : spawn(exe, args, { detached: true, stdio: 'ignore' })
+    : spawn(exe, args, { detached: true, stdio: 'ignore', windowsHide: true })
   return new Promise(res => {
     child.once('error', () => res(false))
     child.once('spawn', () => { child.unref(); res(true) })

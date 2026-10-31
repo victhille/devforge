@@ -18,6 +18,7 @@ Seule la dernière version reçoit les correctifs ; DevForge se met à jour tout
 
 - Clés, jetons et mots de passe : chiffrés par Windows (`safeStorage`), jamais renvoyés à l'interface ni écrits dans le journal. · Keys, tokens and passwords: encrypted by Windows, never sent to the interface nor written to the log.
 - Rien n'est envoyé ailleurs que vers les services que tu configures (GitHub, Anthropic, Vercel, tes serveurs). Pas de télémétrie. · Nothing is sent anywhere but to the services you set up. No telemetry.
+- L'interface est isolée : pas d'accès à Node, pas de script en ligne ni de réseau depuis la page (Content-Security-Policy), seulement le micro (dictée), le presse-papiers et les notifications comme permissions, et l'exécutable refuse de servir de Node ou de charger un code modifié (fusibles Electron). · The interface is isolated: no Node access, no inline script nor network from the page (Content-Security-Policy), only the microphone (dictation), the clipboard and notifications as permissions, and the executable refuses to act as Node or to load modified code (Electron fuses).
 - Forgy, l'assistant, ne lit jamais les fichiers de secrets (`.env`, clés) et n'agit qu'après ton clic. · Forgy never reads secret files and acts only after your click.
 
 Voir aussi [docs/dev/architecture.md](docs/dev/architecture.md#secrets). · See also the architecture notes.

@@ -11,7 +11,7 @@ import { closeAllDbs } from './services/database/dbClient'
 import { closeAllTails } from './services/logs/logTail'
 import { stopWebhooks } from './services/webhooks/webhookServer'
 import { applyLoginItem, startedHidden } from './lib/loginItem'
-import { guardNavigation } from './lib/windowGuards'
+import { guardNavigation, guardPermissions } from './lib/windowGuards'
 import { present } from './lib/present'
 import { disposeWidget, initWidget } from './widget'
 import { disposeLauncher, initLauncher } from './launcher'
@@ -164,6 +164,7 @@ function prepareData(): void {
 }
 
 app.whenReady().then(() => {
+  guardPermissions()
   prepareData()
 
   // Apply saved startup settings
