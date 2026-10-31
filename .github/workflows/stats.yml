@@ -1,0 +1,45 @@
+name: Stats
+
+# GitHub keeps 14 days of traffic: once a day, the numbers are added to
+# stats.json in the private repository <owner>/devforge-stats, which the
+# site's /admin page reads. Set up in docs/dev/stats.md (secret STATS_TOKEN).
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: stats
+
+jobs:
+  archive:
+    # Forks have no archive to fill
+    if: github.repository == 'victhille/devforge'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            site/public/admin
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/devforge-stats
+          token: ${{ secrets.STATS_TOKEN }}
+          path: archive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The log stays short: this repository is public, the numbers are not
+      - run: node scripts/stats-archive.mjs "$GITHUB_REPOSITORY" archive/stats.json
+        env:
+          STATS_TOKEN: ${{ secrets.STATS_TOKEN }}
+      - working-directory: archive
+        run: |
+          git config user.name "${{ github.repository_owner }}"
+          git config user.email "${{ github.repository_owner }}@users.noreply.github.com"
+          git add stats.json
+          git diff --cached --quiet || git commit -q -m "stats: $(date -u +%F)"
+          git push -q
