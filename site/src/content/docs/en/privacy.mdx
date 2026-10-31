@@ -67,6 +67,17 @@ See [Forgy](/devforge/en/forgy/assistant/) and [its actions](/devforge/en/forgy/
 
 **Settings › About › Copy report** copies the version, the system and the last lines of the log, secrets masked. **Nothing is sent**: you paste it where you want. Read it first: it may hold server or project names.
 
+## Code signing
+
+The installer is **not signed yet**: Windows shows "Windows protected your PC" on first launch. Meanwhile, each installer's SHA-256 checksum is published so you can [check the file](/devforge/en/download/#check-the-installer).
+
+Signing policy, in force as soon as a certificate is in place:
+
+- Only installers built by GitHub Actions, from a version tag of the [public repository](https://github.com/victhille/devforge), are signed. Nothing is signed from a PC.
+- The source code, build scripts and CI configuration are all in that repository, under the GPL-3.0 license; DevForge contains no proprietary component.
+- Author, reviewer and approver of every signature: [victhille](https://github.com/victhille), the project's maintainer.
+- DevForge transfers no information to other networked systems unless you ask it to (see [What leaves your PC](#what-leaves-your-pc-and-when)).
+
 ## Reporting a vulnerability
 
 Not in a public issue: use GitHub's private reporting (**Security** tab, **Report a vulnerability**). Only the maintainers see it. See [Contributing](/devforge/en/contribute/).

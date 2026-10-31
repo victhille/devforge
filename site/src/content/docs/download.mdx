@@ -21,10 +21,20 @@ Le bouton prend toujours l'installeur de la dernière version publiée sur GitHu
 <Steps>
 
 1. Lance `DevForge-Setup-vX.Y.Z.exe`.
-2. Windows peut afficher **« Windows a protégé votre ordinateur »** : l'installeur n'est pas signé (un certificat de signature est payant). Clique sur **Informations complémentaires**, puis sur **Exécuter quand même**.
+2. Windows peut afficher **« Windows a protégé votre ordinateur »** : l'installeur n'est pas encore signé. Clique sur **Informations complémentaires**, puis sur **Exécuter quand même**.
 3. Choisis le dossier d'installation et termine. DevForge s'ouvre sur l'[écran de bienvenue](/devforge/getting-started/first-launch/).
 
 </Steps>
+
+## Vérifier l'installeur
+
+L'empreinte SHA-256 de l'installeur est affichée sous le bouton et dans les notes de la version sur GitHub. Pour comparer avec le fichier téléchargé, dans PowerShell :
+
+```powershell
+Get-FileHash "$env:USERPROFILE\Downloads\DevForge-Setup-vX.Y.Z.exe"
+```
+
+Les deux suites de chiffres et de lettres doivent être identiques. Si elles diffèrent, le fichier a été modifié ou mal téléchargé : supprime-le et télécharge-le à nouveau.
 
 ## Mises à jour
 

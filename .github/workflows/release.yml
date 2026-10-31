@@ -54,6 +54,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           node scripts/release-notes.mjs "$GITHUB_REF_NAME" > notes.md
+          # The installer's checksum, to compare with Get-FileHash after a download
+          for f in dist/*.exe; do printf '\n**SHA-256** `%s` : `%s`\n' "$(basename "$f")" "$(sha256sum "$f" | cut -d' ' -f1)" >> notes.md; done
           pre=""; case "$GITHUB_REF_NAME" in *-*) pre="--prerelease" ;; esac
           gh release create "$GITHUB_REF_NAME" dist/*.exe dist/*.exe.blockmap dist/latest.yml \
             --title "DevForge ${GITHUB_REF_NAME#v}" --notes-file notes.md $pre

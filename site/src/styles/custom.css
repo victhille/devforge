@@ -176,6 +176,9 @@ mobile-starlight-toc a[aria-current='true'] { color: var(--df-orange); font-weig
 }
 .df-download a.df-button:hover { background: var(--df-ink-hover); color: var(--df-on-ink); }
 .df-download .df-meta { color: var(--sl-color-gray-3); font: 0.85rem var(--sl-font-mono); }
+.df-download .df-sum { flex-basis: 100%; color: var(--sl-color-gray-3); font-size: 0.8rem; }
+.df-download .df-sum[hidden] { display: none; }
+.df-download .df-sum code { font-size: 0.75rem; overflow-wrap: anywhere; user-select: all; }
 
 /* Contribute: three ways in, as cards */
 .df-ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-block: 1.5rem; }

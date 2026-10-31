@@ -21,10 +21,20 @@ The button always takes the installer of the latest version published on GitHub 
 <Steps>
 
 1. Run `DevForge-Setup-vX.Y.Z.exe`.
-2. Windows may show **"Windows protected your PC"**: the installer is not signed (a code-signing certificate costs money). Click **More info**, then **Run anyway**.
+2. Windows may show **"Windows protected your PC"**: the installer is not signed yet. Click **More info**, then **Run anyway**.
 3. Pick the install folder and finish. DevForge opens on the [welcome screen](/devforge/en/getting-started/first-launch/).
 
 </Steps>
+
+## Check the installer
+
+The installer's SHA-256 checksum is shown under the button and in the version's notes on GitHub. To compare it with the downloaded file, in PowerShell:
+
+```powershell
+Get-FileHash "$env:USERPROFILE\Downloads\DevForge-Setup-vX.Y.Z.exe"
+```
+
+Both strings must be the same. If they differ, the file was changed or badly downloaded: delete it and download it again.
 
 ## Updates
 
