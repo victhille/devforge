@@ -1,0 +1,305 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/geist/wght.css';
+@import '@fontsource-variable/geist-mono/wght.css';
+
+/* ─── Theme variables (dark by default) ────────────────────────────────────── */
+
+:root {
+  /* Code colours (file previews), one set per theme */
+  --syntax-keyword: #C792EA;
+  --syntax-string:  #A5D6A7;
+  --syntax-number:  #F7B267;
+  --syntax-title:   #82AAFF;
+  --syntax-tag:     #F07178;
+  --syntax-attr:    #FFCB6B;
+  --bg-base:        #0D0F13;
+  --bg-surface:     #161A21;
+  --bg-elevated:    #1D222B;
+  --bg-hover:       #1A1F27;
+  --bg-active:      #1C2638;
+  --bg-console:     #0A0C10;
+  --bg-sidebar:     #111419;
+  --bg-chrome:      #0A0C10;
+
+  --border:         #262C36;
+  --border-subtle:  #1F242D;
+
+  --text-primary:   #E8ECF2;
+  --text-secondary: #9AA4B2;
+  --text-muted:     #8792A2;
+  --text-disabled:  #3A4250;
+
+  --accent:         #5B9BFF;
+  --accent-hover:   #7EB0FF;
+  --accent-dim:     rgba(91, 155, 255, 0.13);
+  /* Text on an accent background */
+  --accent-fg:      #08111F;
+
+  --success:        #3FCF8E;
+  --success-dim:    rgba(63, 207, 142, 0.11);
+  --warning:        #F5B544;
+  --warning-dim:    rgba(245, 181, 68, 0.11);
+  --danger:         #FF6B6B;
+  --danger-dim:     rgba(255, 107, 107, 0.11);
+  --danger-fg:      #1F0606;
+  --success-fg:     #03140C;
+
+  /* Forgy, the assistant: its orange is kept for everything assistant-related */
+  --forgy:          #FF9A3C;
+  --forgy-dim:      rgba(255, 154, 60, 0.12);
+  /* Text on a Forgy background */
+  --forgy-fg:       #1A0E04;
+
+  --shadow-color:   rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='light'] {
+  --syntax-keyword: #8B3FC7;
+  --syntax-string:  #2E7D32;
+  --syntax-number:  #B35A00;
+  --syntax-title:   #1F5FC4;
+  --syntax-tag:     #C62839;
+  --syntax-attr:    #8A6100;
+  --bg-base:        #F0F2F5;
+  --bg-surface:     #FFFFFF;
+  --bg-elevated:    #F7F8FB;
+  --bg-hover:       #EEF0F4;
+  --bg-active:      #E4E7ED;
+  --bg-console:     #F7F8FB;
+  --bg-sidebar:     #F7F8FB;
+  --bg-chrome:      #FFFFFF;
+
+  --border:         #D1D5DB;
+  --border-subtle:  #E5E7EB;
+
+  --text-primary:   #111827;
+  --text-secondary: #4B5563;
+  --text-muted:     #5D6675;
+  --text-disabled:  #A3AAB5;
+
+  --accent:         #1D4ED8;
+  --accent-hover:   #1E40AF;
+  --accent-dim:     rgba(29, 78, 216, 0.10);
+  --accent-fg:      #FFFFFF;
+
+  --success:        #036A4B;
+  --success-dim:    rgba(3, 106, 75, 0.10);
+  --warning:        #9A4A07;
+  --warning-dim:    rgba(154, 74, 7, 0.10);
+  --danger:         #B91C1C;
+  --danger-dim:     rgba(185, 28, 28, 0.10);
+  --danger-fg:      #FFFFFF;
+  --success-fg:     #FFFFFF;
+
+  --forgy:          #B03B0A;
+  --forgy-dim:      rgba(176, 59, 10, 0.10);
+  --forgy-fg:       #FFFFFF;
+
+  --shadow-color:   rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme='system'] {
+    --syntax-keyword: #8B3FC7;
+    --syntax-string:  #2E7D32;
+    --syntax-number:  #B35A00;
+    --syntax-title:   #1F5FC4;
+    --syntax-tag:     #C62839;
+    --syntax-attr:    #8A6100;
+    --bg-base:        #F0F2F5;
+    --bg-surface:     #FFFFFF;
+    --bg-elevated:    #F7F8FB;
+    --bg-hover:       #EEF0F4;
+    --bg-active:      #E4E7ED;
+    --bg-console:     #F7F8FB;
+    --bg-sidebar:     #F7F8FB;
+    --bg-chrome:      #FFFFFF;
+    --border:         #D1D5DB;
+    --border-subtle:  #E5E7EB;
+    --text-primary:   #111827;
+    --text-secondary: #4B5563;
+    --text-muted:     #5D6675;
+    --text-disabled:  #A3AAB5;
+    --accent:         #1D4ED8;
+    --accent-hover:   #1E40AF;
+    --accent-dim:     rgba(29, 78, 216, 0.10);
+    --accent-fg:      #FFFFFF;
+    --success:        #036A4B;
+    --success-dim:    rgba(3, 106, 75, 0.10);
+    --warning:        #9A4A07;
+    --warning-dim:    rgba(154, 74, 7, 0.10);
+    --danger:         #B91C1C;
+    --danger-dim:     rgba(185, 28, 28, 0.10);
+    --danger-fg:      #FFFFFF;
+    --success-fg:     #FFFFFF;
+    --forgy:          #B03B0A;
+    --forgy-dim:      rgba(176, 59, 10, 0.10);
+    --forgy-fg:       #FFFFFF;
+    --shadow-color:   rgba(0, 0, 0, 0.12);
+  }
+}
+
+/* ─── Tailwind tokens ──────────────────────────────────────────────────────── */
+
+@theme inline {
+  --color-canvas:       var(--bg-base);
+  --color-surface:      var(--bg-surface);
+  --color-elevated:     var(--bg-elevated);
+  --color-hover:        var(--bg-hover);
+  --color-active:       var(--bg-active);
+  --color-console:      var(--bg-console);
+  --color-sidebar:      var(--bg-sidebar);
+  --color-chrome:       var(--bg-chrome);
+
+  --color-line:         var(--border);
+  --color-line-subtle:  var(--border-subtle);
+
+  --color-fg:           var(--text-primary);
+  --color-fg-secondary: var(--text-secondary);
+  --color-fg-muted:     var(--text-muted);
+  --color-fg-disabled:  var(--text-disabled);
+
+  --color-accent:       var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft:  var(--accent-dim);
+  --color-accent-fg:    var(--accent-fg, #FFFFFF);
+  --color-success:      var(--success);
+  --color-success-soft: var(--success-dim);
+  --color-success-fg:   var(--success-fg);
+  --color-warning:      var(--warning);
+  --color-warning-soft: var(--warning-dim);
+  --color-danger:       var(--danger);
+  --color-danger-soft:  var(--danger-dim);
+  --color-danger-fg:    var(--danger-fg);
+  --color-forgy:        var(--forgy);
+  --color-forgy-soft:   var(--forgy-dim);
+  --color-forgy-fg:     var(--forgy-fg);
+
+  --shadow-pop: 0 8px 32px var(--shadow-color);
+}
+
+@theme {
+  --font-sans: 'Geist Variable', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', 'Cascadia Code', 'Consolas', monospace;
+
+  /* Compact desktop scale (base 13px) */
+  --text-2xs: 10px;  --text-2xs--line-height: 1.4;
+  --text-xs:  11px;  --text-xs--line-height: 1.45;
+  --text-sm:  12px;  --text-sm--line-height: 1.5;
+  --text-base: 13px; --text-base--line-height: 1.5;
+  --text-md:  14px;  --text-md--line-height: 1.5;
+  --text-lg:  16px;  --text-lg--line-height: 1.4;
+  --text-xl:  18px;  --text-xl--line-height: 1.35;
+  --text-2xl: 22px;  --text-2xl--line-height: 1.3;
+  --text-3xl: 28px;  --text-3xl--line-height: 1.2;
+  /* v4.3: a page's title (PageHeader), between 2xl and 3xl */
+  --text-page: 26px; --text-page--line-height: 1.2;
+
+  /* v4.3: the terminal stays dark in both themes, its colors in one place (and XTERM_THEME in features/terminal/snapshot.ts) */
+  --color-term:       #090B10;
+  --color-term-block: #0F1218;
+  --color-term-fg:    #D4D4D4;
+  --color-term-dim:   #5A6372;
+
+  /* v4.3: named radii: a control (button, field, small card) and a card */
+  --radius-control: 9px;
+  --radius-card: 14px;
+}
+
+/* ─── Compact density ───────────────────────────────────────────────────────
+   Tailwind's spacing and the text sizes are variables: redefining them makes
+   every page denser at once (paddings, gaps, heights, text). */
+:root[data-density='compact'] {
+  --spacing: 0.21rem;
+  --text-2xs: 9.5px;
+  --text-xs: 10.5px;
+  --text-sm: 11.5px;
+  --text-base: 12px;
+  --text-md: 13px;
+  --text-page: 23px;
+  --text-lg: 15px;
+  --text-xl: 17px;
+  --text-2xl: 20px;
+  --text-3xl: 25px;
+}
+:root[data-density='compact'] body { font-size: 12px; }
+
+/* ─── Base ─────────────────────────────────────────────────────────────────── */
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+
+  ::selection { background: var(--accent-dim); color: var(--text-primary); }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg-active); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+}
+
+/* Electron frameless window drag regions */
+@utility app-drag    { -webkit-app-region: drag; }
+@utility app-no-drag { -webkit-app-region: no-drag; }
+
+/* ─── Motion ───────────────────────────────────────────────────────────────── */
+/* Only transform and opacity move, so the compositor does the work. Everything
+   stops when Windows asks for reduced motion. */
+
+@keyframes df-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes df-ping { from { opacity: .55; transform: scale(1); } 80%, to { opacity: 0; transform: scale(2.6); } }
+@keyframes df-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes df-pop  { from { opacity: 0; transform: translateY(6px) scale(.97); } to { opacity: 1; transform: none; } }
+
+/* Page content and cards appear with a short rise; --i staggers siblings */
+@utility df-rise { animation: df-rise .45s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 60ms); }
+/* A live service dot */
+@utility df-ping { position: relative; &::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: inherit; animation: df-ping 2s ease-out infinite; } }
+/* v4.3: a pale brand color (yellow, light gray…), darkened on the light theme's white (lib/brand.ts) */
+[data-theme='light'] .df-pale { filter: brightness(.62) saturate(1.3); }
+@media (prefers-color-scheme: light) {
+  [data-theme='system'] .df-pale { filter: brightness(.62) saturate(1.3); }
+}
+/* Gauges fill from the left */
+@utility df-grow { transform-origin: left; animation: df-grow .9s cubic-bezier(.2, .7, .2, 1) both; }
+/* Menus, popovers, the widget */
+@utility df-pop { animation: df-pop .22s cubic-bezier(.2, .8, .2, 1) both; }
+/* Three dots while someone is writing */
+@keyframes df-dot { 0%, 100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-2px); } }
+@utility df-typing { & > * { animation: df-dot 1.1s infinite; } & > :nth-child(2) { animation-delay: .18s; } & > :nth-child(3) { animation-delay: .36s; } }
+/* Cards that react to the pointer */
+@utility df-lift { transition: transform .2s, border-color .2s, background-color .2s; &:hover { transform: translateY(-2px); } }
+
+/* Settings → Appearance → Animations: "system" follows Windows, "reduced" / "full" override it */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion=full]) *, :root:not([data-motion=full]) *::before, :root:not([data-motion=full]) *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+:root[data-motion=reduced] *, :root[data-motion=reduced] *::before, :root[data-motion=reduced] *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+
+/* ─── Code in file previews (highlight.js classes, v3.5.3) ─────────────────── */
+.df-code .hljs-comment, .df-code .hljs-quote { color: var(--color-fg-muted); font-style: italic; }
+.df-code .hljs-keyword, .df-code .hljs-selector-tag, .df-code .hljs-meta .hljs-keyword, .df-code .hljs-doctag { color: var(--syntax-keyword); }
+.df-code .hljs-string, .df-code .hljs-regexp, .df-code .hljs-template-tag, .df-code .hljs-addition { color: var(--syntax-string); }
+.df-code .hljs-number, .df-code .hljs-literal, .df-code .hljs-symbol, .df-code .hljs-bullet { color: var(--syntax-number); }
+.df-code .hljs-title, .df-code .hljs-title.function_, .df-code .hljs-built_in, .df-code .hljs-section, .df-code .hljs-type { color: var(--syntax-title); }
+.df-code .hljs-name, .df-code .hljs-selector-class, .df-code .hljs-selector-id, .df-code .hljs-deletion { color: var(--syntax-tag); }
+.df-code .hljs-attr, .df-code .hljs-attribute, .df-code .hljs-variable, .df-code .hljs-template-variable, .df-code .hljs-params, .df-code .hljs-property { color: var(--syntax-attr); }
+.df-code .hljs-meta { color: var(--color-fg-muted); }
+.df-code .hljs-emphasis { font-style: italic; }
+.df-code .hljs-strong { font-weight: 600; }

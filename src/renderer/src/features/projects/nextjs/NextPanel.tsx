@@ -1,0 +1,207 @@
+import { useCallback, useEffect, useState } from 'react'
+import { ExternalLink, RefreshCw } from 'lucide-react'
+import type { NextCommand, NextInspect, SfEntityDraft, SfWriteResult } from '@shared/types'
+import { nextCommandLine } from '@shared/lib/nextCommands'
+import { useI18n } from '@renderer/i18n/I18nContext'
+import { useToast } from '@renderer/app/ToastContext'
+import { cn } from '@renderer/lib/cn'
+import Button from '@renderer/components/ui/Button'
+import IconButton from '@renderer/components/ui/IconButton'
+import Spinner from '@renderer/components/ui/Spinner'
+import EntitiesSection from '../symfony/EntitiesSection'
+import MigrationsSection from '../symfony/MigrationsSection'
+import ApiSection from '../symfony/ApiSection'
+import { FixturesSection, RoutesSection } from '../symfony/ToolSections'
+import { SF_DRAFT_EVENT, takePendingDraft } from '../symfony/draft'
+import { DbAuthHint, RunButton, Section, useSfTasks } from '../symfony/parts'
+import AuthSection from './AuthSection'
+import { errorText } from '@renderer/lib/errors'
+import Notice from '@renderer/components/ui/Notice'
+
+type Part = 'database' | 'entities' | 'migrations' | 'api' | 'auth' | 'fixtures' | 'routes' | 'server'
+const PARTS: Part[] = ['database', 'entities', 'migrations', 'api', 'auth', 'fixtures', 'routes', 'server']
+const DEV_URL = 'http://localhost:3000'
+
+/** The Next.js workshop of a project: Prisma models, migrations, API routes, seed */
+export default function NextPanel({ projectPath }: { projectPath: string }) {
+  const { t } = useI18n()
+  const s = t.symfony
+  const n = t.nextjs
+  const toast = useToast()
+  const [data, setData] = useState<NextInspect | null>(null)
+  const [loadError, setLoadError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [part, setPart] = useState<Part>('entities')
+  const [draft, setDraft] = useState<SfEntityDraft | null>(() => takePendingDraft(projectPath))
+
+  const load = useCallback(() => {
+    setLoading(true)
+    window.devforge.nextjs.inspect(projectPath)
+      .then(d => { setData(d); setLoadError('') })
+      .catch(err => setLoadError(errorText(err)))
+      .finally(() => setLoading(false))
+  }, [projectPath])
+  useEffect(load, [load])
+
+  // A model prepared by Forgy opens in the form
+  useEffect(() => {
+    const onDraft = () => {
+      const d = takePendingDraft(projectPath)
+      if (d) { setDraft(d); setPart('entities') }
+    }
+    window.addEventListener(SF_DRAFT_EVENT, onDraft)
+    return () => window.removeEventListener(SF_DRAFT_EVENT, onDraft)
+  }, [projectPath])
+
+  const { track } = useSfTasks(projectPath, useCallback((line: string) => line, []), useCallback(() => load(), [load]))
+  const pm = data?.status.packageManager ?? 'npm'
+  const line = (command: NextCommand, arg?: string) => nextCommandLine(command, pm, arg)
+  const exec = (command: NextCommand, arg?: string) => track(line(command, arg), () => window.devforge.nextjs.run(projectPath, command, arg))
+  // install:client: the main process adds the driver adapter of the schema's provider
+  const run = (command: NextCommand, label: string, variant?: 'primary' | 'secondary') =>
+    <RunButton label={label} line={line(command, command === 'install:client' ? data?.status.provider ?? '' : undefined)} variant={variant} onRun={() => exec(command)} />
+
+  function written(r: SfWriteResult) {
+    const count = r.created.length + r.changed.length + r.removed.length
+    toast.show({
+      tone: 'success', title: s.written.replace('{n}', String(count)),
+      description: [...r.created.map(f => `+ ${f}`), ...r.changed.map(f => `~ ${f}`), ...r.removed.map(f => `− ${f}`)].join('\n'),
+      action: part === 'entities' || part === 'auth' ? { label: s.prepare, onClick: () => setPart('migrations') } : undefined
+    })
+    load()
+  }
+  /** The undoing migration, written then shown like any pending one: "Apply" runs it */
+  async function revert() {
+    toast.show({ tone: 'info', title: n.revertBusy })
+    try {
+      const r = await window.devforge.nextjs.prepareRevert(projectPath)
+      written(r)
+      if (!r.schemaRestored) toast.show({ tone: 'info', title: n.revertSchemaByHand })
+    } catch (err) {
+      const code = errorText(err)
+      const [key, ...rest] = code.split(':')
+      toast.show({ tone: 'error', title: (n.revertErrors as Record<string, string>)[key]?.replace('{detail}', rest.join(':')) ?? code })
+    }
+  }
+
+  async function write(start: () => Promise<SfWriteResult>) {
+    try { written(await start()) } catch (err) { toast.show({ tone: 'error', title: errorText(err) }) }
+  }
+
+  if (!data) {
+    return loadError ? <p role="alert" className="text-sm text-danger">{loadError}</p> : <div className="flex justify-center p-10"><Spinner /></div>
+  }
+  const st = data.status
+  const dbOk = st.database.reachable
+  const pending = data.migrations.filter(m => !m.executed).length
+  const badge: Partial<Record<Part, string>> = {
+    database: st.prisma ? (dbOk ? '●' : '○') : undefined,
+    entities: String(data.entities.length),
+    migrations: pending ? s.pendingCount.replace('{n}', String(pending)) : undefined
+  }
+
+  return (
+    <div className="@container flex flex-wrap gap-4">
+      <nav aria-label={n.navLabel} className="flex w-full flex-wrap gap-1.5 @min-[700px]:w-[200px] @min-[700px]:shrink-0 @min-[700px]:flex-col @min-[700px]:flex-nowrap @min-[700px]:gap-0.5">
+        {PARTS.map(p => (
+          <button key={p} onClick={() => setPart(p)} aria-current={part === p ? 'page' : undefined}
+            className={cn('flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors',
+              part === p ? 'bg-accent-soft font-semibold text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg')}>
+            <span className="flex-1">{n.parts[p]}</span>
+            {badge[p] && <span className={cn('font-mono text-xs', p === 'migrations' ? 'text-warning' : badge[p] === '●' ? 'text-success' : 'text-fg-muted')}>{badge[p]}</span>}
+          </button>
+        ))}
+        <div className="flex w-full items-center gap-2 px-3 text-xs text-fg-muted @min-[700px]:mt-3">
+          <span className="flex-1 truncate">{st.prismaVersion ? `Prisma ${st.prismaVersion}` : 'Next.js'}</span>
+          <IconButton size="sm" title={s.refresh} onClick={load} disabled={loading}><RefreshCw size={12} className={cn(loading && 'animate-spin')} /></IconButton>
+        </div>
+      </nav>
+
+      <div className="w-full min-w-0 @min-[700px]:w-auto @min-[700px]:flex-1">
+        {part === 'database' && (
+          <Section title={n.dbTitle} help={n.dbHelp}>
+            {!st.prisma ? (
+              <Notice tone="warning" className="text-sm" action={run('install:prisma', n.installPrisma, 'primary')}>{n.noPrisma}</Notice>
+            ) : (
+              <dl className="grid grid-cols-[140px_1fr] items-start gap-x-4 gap-y-3 text-sm">
+                <dt className="text-fg-muted">Prisma</dt>
+                <dd className="text-fg">{n.prismaLine.replace('{version}', String(st.prismaVersion ?? '?')).replace('{provider}', st.provider ?? '?')}</dd>
+                <dt className="text-fg-muted">{s.dbState}</dt>
+                <dd className="flex flex-col items-start gap-2">
+                  <span className={dbOk ? 'text-success' : 'text-warning'}>{dbOk ? s.dbReachable : s.dbUnreachable}</span>
+                  {st.database.error && <code className="font-mono text-xs break-words text-fg-muted">{st.database.error}</code>}
+                  <DbAuthHint error={st.database.error} envFile=".env" />
+                  {!dbOk && st.composeDatabase && run('db:start', s.dbStart)}
+                </dd>
+                <dt className="text-fg-muted">{n.client}</dt>
+                <dd className="flex flex-col items-start gap-2">
+                  {st.client ? <span className="text-success">{n.ok}</span> : <><span className="text-warning">{n.noClient}</span>{run('install:client', n.installClient)}</>}
+                </dd>
+                <dt className="text-fg-muted">{n.lib}</dt>
+                <dd className="flex flex-col items-start gap-2">
+                  {st.libPrisma ? <span className="text-success">{n.libOk}</span> : <>
+                    <span className="text-warning">{n.noLib}</span>
+                    <Button size="sm" disabled={!st.client} onClick={() => write(() => window.devforge.nextjs.writePrismaClient(projectPath))}>{n.writeLib}</Button>
+                  </>}
+                </dd>
+              </dl>
+            )}
+            {st.prisma && (
+              <div className="flex flex-wrap items-center gap-3 border-t border-line-subtle pt-4">
+                {run('prisma:studio', n.studio)}
+                <span className="text-xs text-fg-muted">{n.studioHint}</span>
+              </div>
+            )}
+          </Section>
+        )}
+        {part === 'entities' && (
+          <EntitiesSection key={draft ? JSON.stringify(draft) : 'list'} entities={data.entities} draft={draft} onDraftUsed={() => setDraft(null)} onWritten={written}
+            kit={{
+              write: draft => window.devforge.nextjs.writeModel(projectPath, draft),
+              files: () => ['~ prisma/schema.prisma'],
+              help: n.entityHelp, listHelp: n.entitiesHelp
+            }} />
+        )}
+        {part === 'migrations' && (
+          <MigrationsSection migrations={data.migrations} databaseOk={dbOk} note={n.migrationsNote}
+            prepare={{ named: true, line: name => line('prisma:migrate', name), run: name => exec('prisma:migrate', name) }}
+            apply={{ line: () => line('prisma:deploy'), run: () => exec('prisma:deploy') }}
+            rollback={{
+              label: n.revert, confirm: false,
+              line: () => n.revertLine,
+              run: () => { void revert() }
+            }} />
+        )}
+        {part === 'api' && (
+          <ApiSection entities={data.entities} onWritten={written} serverUrl={null} defaultUrl={DEV_URL}
+            load={() => window.devforge.nextjs.apiConfig(projectPath)} save={config => window.devforge.nextjs.applyApi(projectPath, config)}
+            filesNote={n.jsonFiles}
+            needs={() => st.libPrisma ? null : { text: n.needsLib, button: <Button size="sm" variant="primary" disabled={!st.client} onClick={() => write(() => window.devforge.nextjs.writePrismaClient(projectPath))}>{n.writeLib}</Button> }} />
+        )}
+        {part === 'auth' && (
+          <AuthSection projectPath={projectPath} status={st} version={data} onWritten={written}
+            install={run('install:auth', s.install, 'primary')} />
+        )}
+        {part === 'fixtures' && (
+          <FixturesSection entities={data.entities} ready={st.seedTools} install={run('install:seed', s.install, 'primary')}
+            line={line('seed')} canRun={st.libPrisma && dbOk}
+            onRun={counts => track(n.seedTask, () => window.devforge.nextjs.writeSeed(projectPath, counts))} />
+        )}
+        {part === 'routes' && (
+          <RoutesSection serverUrl={null} defaultUrl={DEV_URL} help={n.routesHelp}
+            load={() => window.devforge.nextjs.routes(projectPath).then(list => list.map(r => ({
+              name: r.file, path: r.path, methods: r.kind === 'page' ? ['GET'] : r.methods, controller: r.file
+            })))} />
+        )}
+        {part === 'server' && (
+          <Section title={n.serverTitle} help={n.serverHelp}>
+            <div className="flex flex-wrap items-start gap-4">
+              {run('dev', n.devStart, 'primary')}
+              <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(DEV_URL)}><ExternalLink size={13} /> {n.openSite}</Button>
+            </div>
+          </Section>
+        )}
+      </div>
+    </div>
+  )
+}
