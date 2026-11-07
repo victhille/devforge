@@ -44,8 +44,8 @@ export default function Tabs<T extends string>({ items, value, onChange, variant
       onKeyDown={onKey}
       className={cn(
         underline
-          ? 'flex min-w-0 items-end gap-4 overflow-x-auto border-b border-line-subtle'
-          : 'inline-flex h-9 w-fit shrink-0 items-center gap-0.5 rounded-control border border-line bg-canvas p-[3px]',
+          ? 'flex min-w-0 items-end gap-4.5 overflow-x-auto border-b border-line-subtle'
+          : 'inline-flex h-9 w-fit shrink-0 items-center gap-0.5 rounded-control border border-line bg-surface p-[3px]',
         className
       )}
     >
@@ -62,10 +62,12 @@ export default function Tabs<T extends string>({ items, value, onChange, variant
             disabled={item.disabled}
             onClick={() => onChange(item.value)}
             className={cn(
-              'inline-flex items-center gap-1.5 font-medium whitespace-nowrap transition-colors disabled:opacity-40',
+              'inline-flex items-center gap-1.5 whitespace-nowrap transition-colors disabled:opacity-40',
+              // Forge: the chosen tab in bold, underlined in orange or raised on the track
+              active ? 'font-semibold' : 'font-medium',
               underline
-                ? cn('-mb-px h-9 border-b-2 px-0.5 text-base', active ? 'border-accent text-fg' : 'border-transparent text-fg-secondary hover:text-fg')
-                : cn('h-full rounded-[7px] px-3 text-sm', active ? 'bg-elevated text-fg shadow-sm' : 'text-fg-secondary hover:text-fg')
+                ? cn('-mb-px h-9.5 border-b-2 px-0.5 text-base', active ? 'border-accent text-fg' : 'border-transparent text-fg-secondary hover:text-fg')
+                : cn('h-full rounded-md px-3 text-sm', active ? 'bg-active text-fg' : 'text-fg-secondary hover:text-fg')
             )}
           >
             {item.icon && <span className={cn(active ? 'text-accent' : 'text-current')}>{item.icon}</span>}

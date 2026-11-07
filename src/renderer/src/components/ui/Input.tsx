@@ -1,9 +1,10 @@
 import { forwardRef, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, type ReactNode } from 'react'
 import { cn } from '@renderer/lib/cn'
 
+/** Forge: on the surface, an orange border and a soft halo when focused */
 const FIELD =
-  'w-full rounded-control border border-line bg-canvas px-3 text-base text-fg placeholder:text-fg-muted ' +
-  'outline-none transition-[border-color,box-shadow] focus:border-accent focus:ring-2 focus:ring-accent/25 focus-visible:outline-none disabled:opacity-50'
+  'w-full rounded-control border border-line bg-surface px-3 text-base text-fg placeholder:text-fg-muted ' +
+  'outline-none transition-[border-color,box-shadow] focus:border-accent focus:ring-3 focus:ring-accent-soft focus-visible:outline-none disabled:opacity-50'
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }>(
   function Input({ className, invalid, ...rest }, ref) {
@@ -35,7 +36,7 @@ interface FieldProps {
 export function Field({ label, hint, error, className, children }: FieldProps) {
   return (
     <label className={cn('flex flex-col gap-1.5', className)}>
-      {label && <span className="text-xs font-medium text-fg-secondary">{label}</span>}
+      {label && <span className="text-sm font-semibold text-fg-secondary">{label}</span>}
       {children}
       {error ? (
         <span className="text-xs text-danger">{error}</span>

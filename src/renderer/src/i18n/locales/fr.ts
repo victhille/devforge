@@ -81,6 +81,7 @@ const fr = {
     hintNavigate:  'naviguer',
     hintRun:       'lancer',
     hintToggle:    'ouvrir / fermer',
+    escKey:        'Échap',
     search:        'Aller à une page, un projet, un script',
     groupActions:  'Actions',
     openN8n:       'Ouvrir n8n',

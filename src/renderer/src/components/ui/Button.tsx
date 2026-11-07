@@ -12,23 +12,23 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode
 }
 
+/** Forge: flat, no shadow; the main action in orange, the others on the surface */
 const VARIANTS: Record<Variant, string> = {
   primary:
-    'bg-accent font-semibold text-accent-fg shadow-sm shadow-accent/20 ring-1 ring-inset ring-white/10 ' +
-    'hover:bg-accent-hover',
+    'bg-accent font-semibold text-accent-fg hover:bg-accent-hover',
   secondary:
-    'bg-elevated text-fg border border-line shadow-sm ' +
-    'hover:bg-hover hover:border-fg-muted/40',
+    'border border-line bg-surface font-semibold text-fg hover:bg-elevated',
   ghost:
-    'bg-transparent text-fg-secondary hover:bg-hover hover:text-fg',
+    'bg-transparent font-medium text-fg-secondary hover:bg-elevated hover:text-fg',
   danger:
-    'bg-danger-soft text-danger border border-danger/20 hover:bg-danger hover:text-danger-fg hover:border-danger'
+    'border border-danger/25 bg-danger-soft font-semibold text-danger hover:border-danger hover:bg-danger hover:text-danger-fg'
 }
 
+/** 30, 36 and 44 px */
 const SIZES: Record<Size, string> = {
-  sm: 'h-8 gap-1.5 rounded-md px-3 text-sm',
-  md: 'h-9 gap-2 rounded-control px-3.5 text-base',
-  lg: 'h-11 gap-2 rounded-lg px-6 text-md'
+  sm: 'h-7.5 gap-1.5 rounded-md px-3 text-sm',
+  md: 'h-9 gap-2 rounded-control px-4 text-base',
+  lg: 'h-11 gap-2 rounded-control px-6 text-md'
 }
 
 const Button = forwardRef<HTMLButtonElement, Props>(function Button(
@@ -41,7 +41,7 @@ const Button = forwardRef<HTMLButtonElement, Props>(function Button(
       {...rest}
       disabled={disabled || loading}
       className={cn(
-        'inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap font-medium',
+        'inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap',
         'transition-[background-color,border-color,color,transform] duration-150 active:translate-y-px',
         'disabled:pointer-events-none disabled:opacity-40',
         VARIANTS[variant],

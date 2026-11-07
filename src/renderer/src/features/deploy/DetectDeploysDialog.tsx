@@ -81,7 +81,7 @@ export default function DetectDeploysDialog({ existing, onClose, onCreated }: Pr
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="flex flex-wrap items-center gap-2">
                   <span className="font-mono text-sm text-fg">{f.remotePath}</span>
-                  <Badge color="accent" className="py-0 text-2xs">{f.preset}</Badge>
+                  <Badge color="accent" mono className="py-0 text-2xs">{f.preset}</Badge>
                   {f.branch && <Badge className="py-0 font-mono text-2xs">{f.branch}</Badge>}
                 </span>
                 <span className="flex items-center gap-1 truncate text-2xs text-fg-muted">

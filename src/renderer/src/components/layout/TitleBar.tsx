@@ -11,9 +11,7 @@ import UpdateButton from './UpdateButton'
 import CreationBadge from '@renderer/features/projects/new/CreationBadge'
 import { docsOf } from '@renderer/app/navigation'
 import { docsUrl, openDocs } from '@renderer/lib/docs'
-
-/** A key or a shortcut shown beside its button */
-const KBD = 'rounded-md border border-line bg-elevated px-1.5 font-mono text-2xs leading-4 whitespace-nowrap text-fg-secondary'
+import Kbd from '@renderer/components/ui/Kbd'
 
 /** A round button of the bar, icon only (help, terminal) */
 const TOOL = 'app-no-drag flex size-[30px] shrink-0 items-center justify-center rounded-lg text-fg-secondary transition-colors hover:bg-elevated hover:text-fg'
@@ -78,7 +76,7 @@ export default function TitleBar() {
       >
         <Search size={14} className="shrink-0" />
         <span className="min-w-0 flex-1 truncate text-left">{t.palette.search}…</span>
-        <kbd className={KBD}>Ctrl K</kbd>
+        <Kbd>Ctrl K</Kbd>
       </button>
 
       {/* v3.9: a project being created, from any page */}
@@ -108,7 +106,7 @@ export default function TitleBar() {
           open ? 'border-forgy/60 bg-forgy-soft' : 'border-forgy/30 bg-forgy-soft hover:border-forgy/60')}
       >
         <Mascot mood={mood} size={22} followCursor={false} /> {t.assistant.mascotName}
-        <kbd className={KBD}>Ctrl J</kbd>
+        <Kbd>Ctrl J</Kbd>
       </button>
 
       <div className="app-no-drag flex h-full items-stretch">
