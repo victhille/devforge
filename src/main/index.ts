@@ -90,7 +90,7 @@ function createWindow(): void {
     minHeight: 600,
     frame: false,
     titleBarStyle: 'hidden',
-    backgroundColor: '#0D0F13',
+    backgroundColor: '#121110',
     icon,
     show: false,
     webPreferences: {

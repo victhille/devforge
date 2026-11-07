@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import initSqlJs from 'sql.js'
-import { goTo, launch, type Launched } from './launch'
+import { goTo, launch, openProjectTab, type Launched } from './launch'
 
 /** Project hub: one page per project, with what belongs to it */
 let run: Launched
@@ -42,7 +42,7 @@ test('a project page gathers its resources and becomes the active project', asyn
   await expect(page.locator('main')).not.toContainText('secret')
 
   // Database tab: the SQLite file inside the project is linked, and shown right here (v3.3 lot 1)
-  await page.getByRole('tab', { name: /Base de données/ }).click()
+  await openProjectTab(page, 'Base de données')
   // The linked connection's card (the explorer below repeats the name once it has loaded)
   await expect(page.getByText('Shop SQLite', { exact: true }).first()).toBeVisible()
   await page.getByRole('table').getByRole('button', { name: 'orders' }).click()

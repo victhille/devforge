@@ -38,8 +38,8 @@ const en = {
     database: 'Database',
     logs: 'Log viewer',
     webhooks: 'Webhooks',
-    collapse: 'Collapse sidebar',
-    expand: 'Expand sidebar',
+    collapse: 'Fold the panel',
+    expand: 'Reopen the panel',
     favorites: 'Favorites',
     update: 'Update (v{v})',
     pin: 'Add to favorites',
@@ -55,7 +55,14 @@ const en = {
     groupOnline: 'Going live',
     groupData: 'Data & API',
     groupSystem: 'System',
-    groupTools: 'Tools'
+    groupTools: 'Tools',
+    mainMenu: 'Main menu',
+    railLabel: 'Menu groups',
+    brandHome: 'DevForge, home',
+    windowMinimize: 'Minimize the window',
+    windowMaximize: 'Maximize the window',
+    windowRestore: 'Restore the window',
+    windowClose: 'Close the window'
   },
 
   palette: {
@@ -75,7 +82,7 @@ const en = {
     hintNavigate:  'navigate',
     hintRun:       'run',
     hintToggle:    'open / close',
-    search:        'Search',
+    search:        'Go to a page, a project, a script',
     groupActions:  'Actions',
     openN8n:       'Open n8n',
     restartN8n:    'Restart n8n',

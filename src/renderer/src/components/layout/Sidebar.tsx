@@ -1,16 +1,20 @@
-import { useCallback, useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
-import { ChevronRight, PanelLeftClose, PanelLeftOpen, RotateCcw, Star, type LucideIcon } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+import { PanelLeftClose, PanelLeftOpen, RotateCcw, Star, type LucideIcon } from 'lucide-react'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
-import { DEFAULT_FAVORITES, HOME, LISTED_PAGES, MENU_GROUPS, groupOf, isListed, type GroupKey, type NavKey } from '@renderer/app/navigation'
+import { DEFAULT_FAVORITES, HOME, LISTED_PAGES, MENU_GROUPS, RAIL, isListed, isOn, panelFor, railOf, type NavKey, type RailKey } from '@renderer/app/navigation'
 import { useHasServer } from '@renderer/hooks/useHasServer'
 import { MAX_FAVORITES } from '@shared/lib/favorites'
 
 const ENTRIES = [HOME, ...LISTED_PAGES]
 const entry = (path: string) => ENTRIES.find(p => p.path === path)!
 const known = (path: string) => path !== '/' && ENTRIES.some(p => p.path === path)
+const SettingsIcon = entry('/settings').icon
+
+/** Ctrl+B stays a key of the field being typed in (bold in a note, a shell shortcut…) */
+const isTyping = (t: EventTarget | null) => t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement || (t instanceof HTMLElement && t.isContentEditable)
 
 /** The pinned pages, saved in the settings */
 function useFavorites() {
@@ -36,9 +40,9 @@ function PinButton({ pinned, full, onToggle }: { pinned: boolean; full: boolean;
       disabled={!pinned && full}
       onClick={e => { e.preventDefault(); e.stopPropagation(); onToggle() }}
       className={cn(
-        'absolute top-1/2 right-1.5 flex size-6 -translate-y-1/2 items-center justify-center rounded-md text-fg-muted opacity-0 transition-opacity',
-        'group-hover/row:opacity-100 focus-visible:opacity-100 hover:bg-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-40',
-        pinned && 'text-warning hover:text-warning'
+        'absolute top-1/2 right-1 flex size-6 -translate-y-1/2 items-center justify-center rounded-md text-fg-muted opacity-0 transition-opacity',
+        'group-hover/row:opacity-100 focus-visible:opacity-100 hover:bg-elevated hover:text-fg disabled:cursor-not-allowed disabled:opacity-40',
+        pinned && 'text-accent hover:text-accent'
       )}
     >
       <Star size={13} strokeWidth={2} fill={pinned ? 'currentColor' : 'none'} />
@@ -46,124 +50,96 @@ function PinButton({ pinned, full, onToggle }: { pinned: boolean; full: boolean;
   )
 }
 
-/** Top-level link: favorites and Settings, with an icon */
-function NavEntry({ to, label, Icon, collapsed }: { to: string; label: string; Icon: LucideIcon; collapsed: boolean }) {
+/** A page of the panel: icon and name, the one on screen in bold with an orange icon */
+function PanelLink({ to, label, Icon, pin }: { to: string; label: string; Icon: LucideIcon; pin?: boolean }) {
+  const { pathname } = useLocation()
+  const on = isOn(pathname, to)
   return (
-    <NavLink
+    <Link
       to={to}
-      end={to === '/'}
-      title={collapsed ? label : undefined}
-      aria-label={label}
-      className={({ isActive }) => cn(
-        'group relative flex h-[34px] shrink-0 items-center rounded-control text-base transition-colors',
-        collapsed ? 'justify-center px-0' : 'gap-2.5 px-2.5',
-        isActive ? 'bg-active font-medium text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg'
+      aria-current={on ? 'page' : undefined}
+      className={cn(
+        'group/link flex h-8 items-center gap-2.5 rounded-lg pl-2 text-base transition-colors',
+        pin ? 'pr-8' : 'pr-2',
+        on ? 'bg-active font-semibold text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg'
       )}
     >
-      {({ isActive }) => (
-        <>
-          <span className={cn('absolute top-2 bottom-2 -left-2.5 w-[3px] rounded-r-full bg-accent transition-opacity', isActive ? 'opacity-100' : 'opacity-0')} />
-          <Icon size={17} strokeWidth={1.8} className={cn('shrink-0 transition-colors', isActive ? 'text-accent' : 'text-fg-muted group-hover:text-fg-secondary')} />
-          {!collapsed && <span className="truncate">{label}</span>}
-        </>
-      )}
-    </NavLink>
+      <Icon size={16} strokeWidth={1.8} className={cn('shrink-0 transition-colors', on ? 'text-accent' : 'text-fg-muted group-hover/link:text-fg-secondary')} />
+      <span className="truncate">{label}</span>
+    </Link>
   )
 }
 
-/** A folding group: header, then its pages without icons */
-function NavGroup({ group, open, collapsed, onToggle, favorites, onPin, hasServer }: {
-  group: (typeof MENU_GROUPS)[number]
-  open: boolean
-  collapsed: boolean
-  onToggle: () => void
-  favorites: string[]
-  onPin: (path: string) => void
-  hasServer: boolean
-}) {
-  const { t } = useI18n()
-  const { pathname } = useLocation()
-  const paths = group.paths.filter(p => isListed(p, hasServer))
-  const waiting = group.paths.length - paths.length
-  const holdsActive = groupOf(pathname) === group.key
-  const label = t.nav[group.key]
-  const Icon = group.icon
-  // The group shows it holds the current page when its list is hidden
-  const marked = holdsActive && (collapsed || !open)
+/** A square of the rail: a group (button) or Settings (link); orange when it holds the page on screen */
+const railItem = (current: boolean, shown: boolean) => cn(
+  'relative flex size-[42px] shrink-0 items-center justify-center rounded-lg transition-colors',
+  current ? 'bg-accent-soft text-accent' : shown ? 'bg-active text-fg' : 'text-fg-muted hover:bg-elevated hover:text-fg'
+)
+/** The orange bar on the left edge of the window, beside the group of the page on screen */
+const RailMark = () => <span aria-hidden className="absolute top-2.5 bottom-2.5 -left-[11px] w-[3px] rounded-r-full bg-accent" />
 
-  return (
-    <div className="flex flex-col gap-0.5">
-      <button
-        onClick={onToggle}
-        aria-expanded={!collapsed && open}
-        title={collapsed ? label : undefined}
-        aria-label={label}
-        className={cn(
-          'group relative flex h-[34px] shrink-0 items-center rounded-control text-base transition-colors',
-          collapsed ? 'justify-center px-0' : 'gap-2.5 px-2.5',
-          marked ? 'bg-active text-fg' : open || holdsActive ? 'text-fg hover:bg-hover' : 'text-fg-secondary hover:bg-hover hover:text-fg'
-        )}
-      >
-        <span className={cn('absolute top-2 bottom-2 -left-2.5 w-[3px] rounded-r-full bg-accent transition-opacity', marked ? 'opacity-100' : 'opacity-0')} />
-        <Icon size={17} strokeWidth={1.8} className={cn('shrink-0', marked ? 'text-accent' : 'text-fg-muted group-hover:text-fg-secondary')} />
-        {!collapsed && (
-          <>
-            <span className="flex-1 truncate text-left">{label}</span>
-            <span className="font-mono text-2xs text-fg-muted">{paths.length}</span>
-            <ChevronRight size={13} strokeWidth={2.2} className={cn('shrink-0 text-fg-muted transition-transform duration-200', open && 'rotate-90')} />
-          </>
-        )}
-      </button>
-
-      {!collapsed && open && (
-        <div className="df-pop mb-1.5 ml-[18px] flex flex-col gap-px border-l border-line pl-2.5">
-          {paths.map(path => {
-            const page = entry(path)
-            const pinned = favorites.includes(path)
-            return (
-              <div key={path} className="group/row relative">
-                <NavLink
-                  to={path}
-                  className={({ isActive }) => cn(
-                    'flex h-[30px] items-center truncate rounded-lg pr-8 pl-2.5 text-sm font-medium transition-colors',
-                    isActive ? 'bg-active text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg'
-                  )}
-                >
-                  {t.nav[page.labelKey as NavKey]}
-                </NavLink>
-                <PinButton pinned={pinned} full={favorites.length >= MAX_FAVORITES} onToggle={() => onPin(path)} />
-              </div>
-            )
-          })}
-          {/* The server pages exist: say where they come from */}
-          {waiting > 0 && (
-            <NavLink to="/settings?section=connections"
-              className="flex h-[26px] items-center truncate rounded-lg px-2.5 text-xs text-fg-muted transition-colors hover:bg-hover hover:text-fg">
-              {t.nav.moreWithServer.replace('{n}', String(waiting))}
-            </NavLink>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
+/**
+ * Forge: an icon rail (Home, the six groups, Settings at the bottom)
+ * and the panel of one group beside it. A group's button shows its pages in
+ * the panel without leaving the page; pressed again, it folds the panel
+ * (Ctrl+B too). Everything comes from app/navigation.ts.
+ */
 export default function Sidebar() {
   const { t } = useI18n()
   const { pathname } = useLocation()
   const [collapsed, setCollapsed] = usePersistentState('devforge:sidebar-collapsed', false)
-  const [openGroup, setOpenGroup] = usePersistentState<GroupKey | null>('devforge:sidebar-group', null)
-  const settings = entry('/settings')
   const [favorites, saveFavorites] = useFavorites()
-  const [dragged, setDragged] = useState<number | null>(null)
   const hasServer = useHasServer()
-  const shown = favorites.filter(p => known(p) && isListed(p, hasServer))
+  const shownFavorites = favorites.filter(p => known(p) && isListed(p, hasServer))
+  const current = railOf(pathname)
+  const [shown, setShown] = useState<RailKey>(() => current ?? 'home')
+  // The rail is one Tab stop; the arrows move inside it
+  const [stop, setStop] = useState<RailKey | null>(null)
+  const rail = useRef<HTMLDivElement>(null)
+  const [dragged, setDragged] = useState<number | null>(null)
   const isDefault = favorites.join() === DEFAULT_FAVORITES.join()
+
+  // The panel follows the page: one opened from elsewhere (palette, a link, back) shows its group,
+  // one picked in the panel keeps it (a favorite stays under Home)
+  // (the favorites are read, not followed: unpinning the page on screen leaves the panel where it is)
+  const favoritesRef = useRef(shownFavorites)
+  useEffect(() => { favoritesRef.current = shownFavorites })
+  useEffect(() => { setShown(s => panelFor(s, pathname, favoritesRef.current)) }, [pathname])
+  // The rail's Tab stop goes back to the group shown
+  useEffect(() => { setStop(null) }, [shown])
+
+  // Ctrl+B folds the panel, like in most editors
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b' && !isTyping(e.target)) {
+        e.preventDefault()
+        setCollapsed(c => !c)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [setCollapsed])
+
+  const pick = (key: RailKey) => {
+    if (collapsed) { setShown(key); setCollapsed(false) }
+    else if (key === shown) setCollapsed(true)
+    else setShown(key)
+  }
+
+  // Up / Down (and Home / End) move between the groups of the rail
+  const onRailKey = (e: ReactKeyboardEvent) => {
+    const buttons = [...(rail.current?.querySelectorAll<HTMLButtonElement>('button') ?? [])]
+    const i = buttons.indexOf(document.activeElement as HTMLButtonElement)
+    const to = e.key === 'ArrowDown' ? i + 1 : e.key === 'ArrowUp' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? buttons.length - 1 : null
+    if (to === null || i < 0) return
+    e.preventDefault()
+    buttons[(to + buttons.length) % buttons.length]?.focus()
+  }
 
   const togglePin = (path: string) => saveFavorites(favorites.includes(path) ? favorites.filter(p => p !== path) : [...favorites, path])
   const move = (from: number, to: number) => {
-    if (to < 0 || to >= shown.length || from === to) return
-    const next = [...shown]
+    if (to < 0 || to >= shownFavorites.length || from === to) return
+    const next = [...shownFavorites]
     next.splice(to, 0, ...next.splice(from, 1))
     // Favorites waiting for a server are kept
     saveFavorites([...next, ...favorites.filter(p => !next.includes(p))])
@@ -174,96 +150,128 @@ export default function Sidebar() {
     const to = i + (e.key === 'ArrowUp' ? -1 : 1)
     move(i, to)
     // Focus follows the moved page
-    requestAnimationFrame(() => document.querySelectorAll<HTMLElement>('[data-fav] a')[Math.max(0, Math.min(to, shown.length - 1))]?.focus())
+    requestAnimationFrame(() => document.querySelectorAll<HTMLElement>('[data-fav] a')[Math.max(0, Math.min(to, shownFavorites.length - 1))]?.focus())
   }
 
-  // Going to a page opens its group, so the current page is always visible (a favorite already is)
-  useEffect(() => {
-    const g = groupOf(pathname)
-    if (g && !favorites.some(p => pathname === p || pathname.startsWith(p + '/'))) setOpenGroup(g)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, setOpenGroup])
-
-  // Ctrl+B toggles the sidebar, like in most editors
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
-        e.preventDefault()
-        setCollapsed(c => !c)
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [setCollapsed])
-
-  const toggleGroup = (key: GroupKey) => {
-    // In the icon rail, a group click unfolds the menu on that group
-    if (collapsed) { setCollapsed(false); setOpenGroup(key) }
-    else setOpenGroup(g => (g === key ? null : key))
-  }
+  const label = (key: RailKey) => (key === 'home' ? t.nav.home : t.nav[key])
+  const group = MENU_GROUPS.find(g => g.key === shown)
+  const paths = group ? group.paths.filter(p => isListed(p, hasServer)) : []
+  const waiting = group ? group.paths.length - paths.length : 0
+  const settingsOn = pathname.startsWith('/settings')
+  const toggleLabel = collapsed ? t.nav.expand : t.nav.collapse
 
   return (
-    <aside
-      className={cn(
-        'flex shrink-0 flex-col overflow-hidden border-r border-line-subtle bg-sidebar transition-[width] duration-200',
-        collapsed ? 'w-[60px]' : 'w-[232px]'
-      )}
-    >
-      <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-x-hidden overflow-y-auto px-2.5 pt-3.5 pb-3">
-        {!collapsed && (
-          <div className="group/head flex items-center justify-between px-2.5 pb-1.5">
-            <span className="truncate font-mono text-2xs font-medium uppercase tracking-widest text-fg-muted">{t.nav.favorites}</span>
-            {!isDefault && (
-              <button type="button" title={t.nav.favoritesReset} aria-label={t.nav.favoritesReset} onClick={() => saveFavorites([...DEFAULT_FAVORITES])}
-                className="flex size-5 items-center justify-center rounded text-fg-muted opacity-0 transition-opacity group-hover/head:opacity-100 focus-visible:opacity-100 hover:text-fg">
-                <RotateCcw size={12} />
-              </button>
-            )}
+    <aside className="flex shrink-0">
+      <nav aria-label={t.nav.mainMenu} className="relative flex min-h-0">
+        {/* The rail: always there, 64 px */}
+        <div className="flex w-[64px] shrink-0 flex-col items-center gap-1.5 border-r border-line-subtle bg-chrome py-3">
+          <div ref={rail} role="toolbar" aria-orientation="vertical" aria-label={t.nav.railLabel} onKeyDown={onRailKey} className="flex flex-col items-center gap-1.5">
+            {RAIL.map(({ key, icon: Icon }) => {
+              const isShown = !collapsed && shown === key
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => pick(key)}
+                  onFocus={() => setStop(key)}
+                  tabIndex={(stop ?? shown) === key ? 0 : -1}
+                  aria-label={label(key)}
+                  aria-pressed={isShown}
+                  aria-controls="nav-panel"
+                  title={label(key)}
+                  className={railItem(current === key, isShown)}
+                >
+                  {current === key && <RailMark />}
+                  <Icon size={18} strokeWidth={1.8} />
+                </button>
+              )
+            })}
           </div>
-        )}
-        <NavEntry to="/" label={t.nav[HOME.labelKey]} Icon={HOME.icon} collapsed={collapsed} />
-        {!collapsed && shown.length === 0 && <p className="px-2.5 py-1 text-xs text-fg-muted">{t.nav.favoritesEmpty}</p>}
-        {shown.map((path, i) => {
-          const page = entry(path)
-          return (
-            <div key={path} data-fav className={cn('group/row relative', dragged === i && 'opacity-40')}
-              title={collapsed ? undefined : t.nav.favoritesMove}
-              draggable={!collapsed}
-              onDragStart={e => { setDragged(i); e.dataTransfer.effectAllowed = 'move' }}
-              onDragOver={e => { if (dragged !== null) e.preventDefault() }}
-              onDrop={e => { e.preventDefault(); if (dragged !== null) move(dragged, i); setDragged(null) }}
-              onDragEnd={() => setDragged(null)}
-              onKeyDown={onFavKey(i)}>
-              <NavEntry to={path} label={t.nav[page.labelKey]} Icon={page.icon} collapsed={collapsed} />
-              {!collapsed && <PinButton pinned full={false} onToggle={() => togglePin(path)} />}
+        </div>
+
+        {/* The panel of the group: 220 px, folds to nothing */}
+        <div id="nav-panel" className={cn('shrink-0 overflow-hidden bg-sidebar transition-[width] duration-200', collapsed ? 'w-0' : 'w-[220px] border-r border-line-subtle')}>
+          {!collapsed && (
+            <div className="flex h-full w-[219px] flex-col gap-4.5 overflow-y-auto px-3 pt-4.5 pb-3">
+              <p className="truncate px-2 font-display text-lg font-bold tracking-tight text-fg">{label(shown)}</p>
+
+              {shown === 'home' ? (
+                <>
+                  <PanelLink to="/" label={t.nav.home} Icon={HOME.icon} />
+                  <div className="flex flex-col gap-0.5">
+                    <div className="group/head flex h-6 items-center justify-between px-2 pb-1">
+                      <span className="truncate text-xs font-semibold tracking-wide text-fg-muted">{t.nav.favorites}</span>
+                      {!isDefault && (
+                        <button type="button" title={t.nav.favoritesReset} aria-label={t.nav.favoritesReset} onClick={() => saveFavorites([...DEFAULT_FAVORITES])}
+                          className="flex size-5 items-center justify-center rounded-md text-fg-muted opacity-0 transition-opacity group-hover/head:opacity-100 focus-visible:opacity-100 hover:text-fg">
+                          <RotateCcw size={12} />
+                        </button>
+                      )}
+                    </div>
+                    {shownFavorites.length === 0 && <p className="px-2 py-1 text-xs text-fg-muted">{t.nav.favoritesEmpty}</p>}
+                    {shownFavorites.map((path, i) => {
+                      const page = entry(path)
+                      return (
+                        <div key={path} data-fav className={cn('group/row relative', dragged === i && 'opacity-40')}
+                          title={t.nav.favoritesMove}
+                          draggable
+                          onDragStart={e => { setDragged(i); e.dataTransfer.effectAllowed = 'move' }}
+                          onDragOver={e => { if (dragged !== null) e.preventDefault() }}
+                          onDrop={e => { e.preventDefault(); if (dragged !== null) move(dragged, i); setDragged(null) }}
+                          onDragEnd={() => setDragged(null)}
+                          onKeyDown={onFavKey(i)}>
+                          <PanelLink to={path} label={t.nav[page.labelKey]} Icon={page.icon} pin />
+                          <PinButton pinned full={false} onToggle={() => togglePin(path)} />
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col gap-0.5">
+                  {paths.map(path => {
+                    const page = entry(path)
+                    return (
+                      <div key={path} className="group/row relative">
+                        <PanelLink to={path} label={t.nav[page.labelKey as NavKey]} Icon={page.icon} pin />
+                        <PinButton pinned={favorites.includes(path)} full={favorites.length >= MAX_FAVORITES} onToggle={() => togglePin(path)} />
+                      </div>
+                    )
+                  })}
+                  {/* The server pages exist: say where they come from */}
+                  {waiting > 0 && (
+                    <Link to="/settings?section=connections"
+                      className="mt-1 flex h-7 items-center truncate rounded-lg px-2 text-xs text-fg-muted transition-colors hover:bg-hover hover:text-fg">
+                      {t.nav.moreWithServer.replace('{n}', String(waiting))}
+                    </Link>
+                  )}
+                </div>
+              )}
+
+              <span className="mt-auto shrink-0 px-2 font-mono text-xs text-fg-muted">v{__APP_VERSION__}</span>
             </div>
-          )
-        })}
-
-        <span className="mx-1 my-3 shrink-0 border-t border-line-subtle" />
-
-        {MENU_GROUPS.map(group => (
-          <NavGroup key={group.key} group={group} open={openGroup === group.key} collapsed={collapsed} onToggle={() => toggleGroup(group.key)} favorites={favorites} onPin={togglePin} hasServer={hasServer} />
-        ))}
-      </nav>
-
-      {/* Settings and the collapse toggle stay pinned at the bottom */}
-      <div className="flex shrink-0 flex-col gap-0.5 border-t border-line-subtle px-2.5 py-2.5 shadow-[0_-12px_16px_-12px_var(--shadow-color)]">
-        <NavEntry to={settings.path} label={t.nav.settings} Icon={settings.icon} collapsed={collapsed} />
-        {!collapsed && <span className="px-2.5 pt-1.5 font-mono text-xs text-fg-muted">v{__APP_VERSION__}</span>}
-        <button
-          onClick={() => setCollapsed(c => !c)}
-          title={`${collapsed ? t.nav.expand : t.nav.collapse} (Ctrl+B)`}
-          aria-label={collapsed ? t.nav.expand : t.nav.collapse}
-          className={cn(
-            'flex h-[34px] items-center rounded-control text-base text-fg-muted transition-colors hover:bg-hover hover:text-fg',
-            collapsed ? 'justify-center' : 'gap-2.5 px-2.5'
           )}
-        >
-          {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-          {!collapsed && <span>{t.nav.collapse}</span>}
-        </button>
-      </div>
+        </div>
+
+        {/* At the foot of the rail, but after the panel for Tab: a group's button, then its pages */}
+        <div className="absolute bottom-3 left-0 flex w-[64px] flex-col items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setCollapsed(c => !c)}
+            aria-label={toggleLabel}
+            aria-expanded={!collapsed}
+            aria-controls="nav-panel"
+            title={`${toggleLabel} (Ctrl+B)`}
+            className={railItem(false, false)}
+          >
+            {collapsed ? <PanelLeftOpen size={18} strokeWidth={1.8} /> : <PanelLeftClose size={18} strokeWidth={1.8} />}
+          </button>
+          <NavLink to="/settings" aria-label={t.nav.settings} title={t.nav.settings} className={railItem(settingsOn, false)}>
+            {settingsOn && <RailMark />}
+            <SettingsIcon size={18} strokeWidth={1.8} />
+          </NavLink>
+        </div>
+      </nav>
     </aside>
   )
 }

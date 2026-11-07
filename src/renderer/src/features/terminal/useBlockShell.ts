@@ -94,7 +94,7 @@ export function useBlockShell(backend: ShellBackend) {
     if (phase.current !== 'ready' || !cmd.trim()) return
     const term = new Terminal({
       theme: XTERM_THEME, cols: size.current.cols, rows: size.current.rows, scrollback: 5000,
-      fontFamily: "'Geist Mono Variable', 'Cascadia Code', Consolas, monospace", fontSize: 12.5, lineHeight: 1.3,
+      fontFamily: "'JetBrains Mono Variable', 'Cascadia Code', Consolas, monospace", fontSize: 12.5, lineHeight: 1.3,
       cursorBlink: true, convertEol: false, allowProposedApi: true
     })
     const block: Block = { id: nextId.current++, cmd, cwd: cwdRef.current, startedAt: Date.now(), endedAt: null, code: null, lines: null }
