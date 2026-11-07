@@ -1,18 +1,33 @@
-## Pourquoi · Why
+<!--
+Écris en français, puis en anglais dans le bloc « English ». Remplace chaque commentaire par ton texte.
+Write in French, then in English inside the "English" block. Replace each comment with your text.
+-->
 
-<!-- Le besoin ou le problème, et l'issue qu'elle règle (« Closes #12 »). · The need or the problem, and the issue it closes ("Closes #12"). -->
+## Pourquoi
 
-## Ce qui change · What changes
+<!-- Le besoin ou le problème. Ajoute « Closes #12 » si la PR règle une issue. -->
 
-<!-- Ce que l'utilisateur voit de différent ; une capture si c'est visible. · What the user sees differently; a screenshot if it shows. -->
+## Ce qui change
+
+<!-- Ce que l'utilisateur voit de différent, en quelques points. Ajoute une capture si ça se voit. -->
+
+<details>
+<summary>English</summary>
+
+### Why
+
+<!-- The need or the problem. Add "Closes #12" if the PR closes an issue. -->
+
+### What changes
+
+<!-- What the user sees differently, in a few points. Add a screenshot if it shows. -->
+
+</details>
 
 ## Vérifié · Checked
 
-- [ ] `npm run check` passe (types, lint, tests, build) · passes
-- [ ] Tests ajoutés ou mis à jour (`tests/main`, `tests/renderer`, `tests/e2e`) · Tests added or updated
-- [ ] Textes de l'interface dans `fr.ts` **et** `en.ts` · UI texts in both locale files
-- [ ] Rien de personnel (IP, serveur, compte, e-mail réels) ; exemples : `203.0.113.10`, `example.com` · Nothing personal
-
-## Accord de contribution · Contributor agreement
-
-- [ ] J'accepte l'[accord de contribution](https://github.com/victhille/devforge/blob/main/CLA.md) pour cette pull request · I agree to the contributor agreement for this pull request
+- [ ] `npm run check` passe : types, lint, tests, build — *passes*
+- [ ] Tests ajoutés ou mis à jour, ou sans objet — *tests added or updated, or not applicable*
+- [ ] Textes de l'interface dans `fr.ts` et `en.ts`, ou aucun texte modifié — *UI texts in both locale files, or none changed*
+- [ ] Rien de personnel : IP, serveur, compte ou e-mail réels (exemples : `203.0.113.10`, `example.com`) — *nothing personal*
+- [ ] J'accepte l'[accord de contribution](https://github.com/victhille/devforge/blob/main/CLA.md) — *I agree to the contributor agreement*
