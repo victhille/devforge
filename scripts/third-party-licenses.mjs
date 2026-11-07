@@ -11,7 +11,7 @@ const pkg = JSON.parse(readFileSync('package.json', 'utf-8'))
 
 // Bundled into the renderer by Vite (devDependencies in package.json, but shipped in the app)
 const RENDERER = [
-  '@xterm/addon-fit', '@xterm/addon-web-links', '@xterm/xterm',
+  '@fontsource-variable/geist', '@fontsource-variable/geist-mono', '@xterm/addon-fit', '@xterm/addon-web-links', '@xterm/xterm',
   'clsx', 'highlight.js', 'lucide-react', 'pdfjs-dist', 'react', 'react-dom', 'react-router-dom', 'tailwind-merge'
 ]
 // Packages whose lock entry has no "license" field (checked in their own package.json)
@@ -49,7 +49,7 @@ Généré par \`npm run licenses\` à partir de \`package-lock.json\` : ne pas m
 **Résumé** : ${summary}.
 
 Points d'attention :
-- **Polices Inter, JetBrains Mono et Bricolage Grotesque** : SIL Open Font License 1.1 (OFL-1.1), redistribuables avec l'application, à ne pas vendre seules.
+- **Polices Geist et Geist Mono** : SIL Open Font License 1.1 (OFL-1.1), redistribuables avec l'application, à ne pas vendre seules.
 - **Apache-2.0** : les fichiers \`NOTICE\` éventuels de ces paquets sont conservés dans leur dossier.
 - **LGPL-3.0** (bibliothèque d'images libvips, via sharp) : compatible avec la GPL-3.0 de DevForge.
 

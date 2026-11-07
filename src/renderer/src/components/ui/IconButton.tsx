@@ -19,7 +19,7 @@ const IconButton = forwardRef<HTMLButtonElement, Props>(function IconButton(
       aria-label={rest['aria-label'] ?? rest.title}
       className={cn(
         'inline-flex shrink-0 items-center justify-center rounded-lg text-fg-muted transition-colors',
-        'hover:bg-elevated hover:text-fg disabled:opacity-40',
+        'hover:bg-hover hover:text-fg disabled:opacity-40',
         size === 'sm' ? 'size-7' : 'size-8',
         tone === 'danger' && 'hover:bg-danger-soft hover:text-danger',
         active && 'bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent',

@@ -179,7 +179,7 @@ export function mcdSvg(m: McdModel, c: McdColors, pad = 24): string {
   const all = bounds([...eb.values(), ...ab.values(), ...m.notes.map(noteBox)])
   const W = Math.ceil(all.w + pad * 2) || 200, H = Math.ceil(all.h + pad * 2) || 120
   const ox = pad - all.x, oy = pad - all.y
-  const font = "font-family=\"Consolas, 'JetBrains Mono Variable', monospace\""
+  const font = "font-family=\"Consolas, 'Geist Mono', monospace\""
   const out: string[] = [`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="100%" height="100%" fill="${c.canvas}"/><g transform="translate(${ox} ${oy})" ${font}>`]
   for (const l of m.links) {
     const e = eb.get(l.entity), a = ab.get(l.association)

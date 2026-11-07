@@ -122,41 +122,8 @@ export const MENU_GROUPS: { key: GroupKey; icon: LucideIcon; paths: string[] }[]
   { key: 'groupTools',   icon: Wrench,      paths: ['/toolbox', '/snippets', '/diff', '/generator', '/docs'] }
 ]
 
-/** The listed page a route belongs to: itself, or the parent of a detail page (/vps/… is SSH, /project/… is Projects, /model is Modeling) */
-export function parentOf(pathname: string): string {
-  if (pathname.startsWith('/vps/')) return '/ssh'
-  if (pathname.startsWith('/project/')) return '/projects'
-  if (pathname === '/model' || pathname.startsWith('/model/')) return '/modeling'
-  return pathname
-}
-
-/** Group holding a route (detail pages count for their parent) */
+/** Group holding a route (detail pages count for their parent: /vps/… is SSH) */
 export function groupOf(pathname: string): GroupKey | null {
-  const path = parentOf(pathname)
+  const path = pathname.startsWith('/vps/') ? '/ssh' : pathname
   return MENU_GROUPS.find(g => g.paths.some(p => path === p || path.startsWith(p + '/')))?.key ?? null
-}
-
-/** An entry of the icon rail, Home or a group (Settings is pinned at the bottom on its own) */
-export type RailKey = 'home' | GroupKey
-
-/** The icon rail, top to bottom; each entry opens its panel (Home: the favorites) */
-export const RAIL: { key: RailKey; icon: LucideIcon }[] = [{ key: 'home', icon: HOME.icon }, ...MENU_GROUPS]
-
-/** The rail entry holding a route: Home for the home page, its group otherwise, none for Settings */
-export function railOf(pathname: string): RailKey | null {
-  return pathname === '/' ? 'home' : groupOf(pathname)
-}
-
-/** Whether a menu link stands for the page on screen (or for the parent of a detail page) */
-export function isOn(pathname: string, to: string): boolean {
-  return to === '/' ? pathname === '/' : parentOf(pathname) === to || pathname.startsWith(to + '/')
-}
-
-/**
- * The panel to show once a page opens: the one already shown when it lists that page
- * (a favorite stays under Home), the page's own group otherwise; Settings changes nothing.
- */
-export function panelFor(shown: RailKey, pathname: string, favorites: string[]): RailKey {
-  const holds = shown === 'home' ? pathname === '/' || favorites.some(p => isOn(pathname, p)) : groupOf(pathname) === shown
-  return holds ? shown : railOf(pathname) ?? shown
 }

@@ -28,7 +28,7 @@ Un projet peut être **actif** : Forgy et le widget de bureau s'y rapportent. Il
 
 ## Le menu
 
-Le menu de gauche est un rail d'icônes : l'**Accueil**, puis six groupes. Un clic sur un groupe affiche ses pages dans le panneau d'à côté, sans quitter la page ouverte ; le groupe de la page ouverte est marqué en orange. Sous l'Accueil, le panneau montre tes **favoris**.
+Le menu de gauche commence par l'**Accueil** et tes **favoris**, puis range toutes les pages en six groupes repliables :
 
 | Groupe | Pages |
 |---|---|
@@ -39,7 +39,7 @@ Le menu de gauche est un rail d'icônes : l'**Accueil**, puis six groupes. Un cl
 | Système | [Environnement](/devforge/system/environment/), [Ports](/devforge/system/ports/), [Variables .env](/devforge/system/env-files/), [Domaines locaux](/devforge/system/domains/), [Nettoyage disque](/devforge/system/cleaner/) |
 | Outils | [Boîte à outils, Snippets, Diff texte, Générateur, Docs](/devforge/tools/utilities/) |
 
-**Paramètres** est épinglé en bas du rail. <kbd>Ctrl</kbd> <kbd>B</kbd> replie ou rouvre le panneau ; un nouveau clic sur le groupe affiché le replie aussi. Au clavier, le rail se parcourt avec les flèches, <kbd>Entrée</kbd> affiche le groupe et <kbd>Tab</kbd> passe à ses pages.
+**Paramètres** est épinglé en bas. <kbd>Ctrl</kbd> <kbd>B</kbd> réduit ou agrandit le menu.
 
 Tant qu'aucun serveur n'est configuré, les pages qui en demandent un (Santé, Services, Sauvegardes, n8n, VPN, Page de statut) sont masquées ; le groupe indique « N de plus avec un serveur ».
 
@@ -102,7 +102,7 @@ Pendant que tu tapes, la **suite probable** de la ligne s'affiche en gris après
 |---|---|
 | <kbd>Ctrl</kbd> <kbd>K</kbd> | palette de commandes |
 | <kbd>Ctrl</kbd> <kbd>J</kbd> | ouvrir / fermer Forgy |
-| <kbd>Ctrl</kbd> <kbd>B</kbd> | replier / rouvrir le panneau du menu |
+| <kbd>Ctrl</kbd> <kbd>B</kbd> | réduire / agrandir le menu |
 | <kbd>F1</kbd> | la documentation de la page affichée |
 | <kbd>Ctrl</kbd> <kbd>`</kbd> | terminal intégré |
 | <kbd>Ctrl</kbd> <kbd>Entrée</kbd> | exécuter la requête SQL |

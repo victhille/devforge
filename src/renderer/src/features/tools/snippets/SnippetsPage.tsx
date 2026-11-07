@@ -97,8 +97,8 @@ export default function SnippetsPage() {
             >
               <span className={cn('truncate font-medium', selected === s.id ? 'text-accent' : 'text-fg')}>{s.title}</span>
               <span className="flex flex-wrap gap-1">
-                <Badge color="accent" mono className="py-0 text-2xs">{s.language}</Badge>
-                {s.tags.slice(0, 2).map(tag => <Badge key={tag} mono className="py-0 text-2xs">{tag}</Badge>)}
+                <Badge color="accent" className="py-0 text-2xs">{s.language}</Badge>
+                {s.tags.slice(0, 2).map(tag => <Badge key={tag} className="py-0 text-2xs">{tag}</Badge>)}
               </span>
             </button>
           ))}
@@ -117,8 +117,8 @@ export default function SnippetsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <Badge>{t.toolHelp.example}</Badge>
               <span className="font-semibold text-fg-secondary">{SNIPPET_EXAMPLE.title}</span>
-              <Badge color="accent" mono className="py-0 text-2xs">{SNIPPET_EXAMPLE.language}</Badge>
-              {SNIPPET_EXAMPLE.tags.map(tag => <Badge key={tag} mono className="py-0 text-2xs">{tag}</Badge>)}
+              <Badge color="accent" className="py-0 text-2xs">{SNIPPET_EXAMPLE.language}</Badge>
+              {SNIPPET_EXAMPLE.tags.map(tag => <Badge key={tag} className="py-0 text-2xs">{tag}</Badge>)}
             </div>
             <pre aria-label={t.toolHelp.snippets.exampleTitle} className="overflow-auto rounded-control bg-surface p-3 font-mono text-sm text-fg-muted">{SNIPPET_EXAMPLE.code}</pre>
             <p className="text-xs text-fg-muted">{t.toolHelp.snippets.exampleHint}</p>
