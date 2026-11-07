@@ -1,0 +1,88 @@
+// ─── Next.js workshop (v2.2 lot 6) ─────────────────────────────────────────────
+
+import type { SfApiConfig, SfEntity, SfEntityDraft, SfMigration, SfWriteResult } from './symfony'
+
+export interface NextStatus {
+  /** prisma is a dependency and prisma/schema.prisma exists */
+  prisma: boolean
+  provider: string | null
+  /** Major version of Prisma (7: driver adapters, generated client folder) */
+  prismaVersion: number | null
+  /** @prisma/client (and the driver adapter with Prisma 7) are installed */
+  client: boolean
+  /** lib/prisma.ts, the client shared by routes and seed */
+  libPrisma: boolean
+  database: { reachable: boolean; error: string | null }
+  /** compose.yaml has a "database" service */
+  composeDatabase: boolean
+  /** tsx and @faker-js/faker, for the seed */
+  seedTools: boolean
+  authjs: boolean
+  packageManager: 'npm' | 'pnpm' | 'yarn'
+  typescript: boolean
+}
+
+export interface NextInspect {
+  status: NextStatus
+  entities: SfEntity[]
+  migrations: SfMigration[]
+}
+
+export interface NextRoute {
+  /** URL path: /api/produits/[id] */
+  path: string
+  /** Exported HTTP handlers of a route.ts; empty for a page */
+  methods: string[]
+  kind: 'page' | 'api'
+  file: string
+}
+
+// ─── Auth.js (v2.3 lot 4) ─────────────────────────────────────────────────────
+
+export type AuthProvider = 'github' | 'google' | 'credentials'
+
+export interface NextAuthStatus {
+  /** next-auth, @auth/prisma-adapter and bcryptjs are installed */
+  installed: boolean
+  /** Auth.js's models in schema.prisma: all there, none, or a User of another shape */
+  models: 'missing' | 'present' | 'conflict'
+  /** auth.ts is DevForge's */
+  configured: boolean
+  /** The providers chosen last time */
+  providers: AuthProvider[]
+  /** Which keys .env.local has; never their values */
+  keys: Record<string, boolean>
+}
+
+/** A migration that undoes the last one, written, not run (v2.3 lot 3) */
+export interface NextRevertResult extends SfWriteResult {
+  /** The migration it undoes */
+  migration: string
+  /** schema.prisma went back to its Git version from before; otherwise it is to be fixed by hand */
+  schemaRestored: boolean
+}
+
+export type NextCommand =
+  | 'db:start' | 'prisma:migrate' | 'prisma:deploy' | 'prisma:generate' | 'prisma:studio'
+  | 'install:prisma' | 'install:client' | 'install:seed' | 'install:auth' | 'seed' | 'dev'
+
+export interface NextjsAPI {
+  inspect: (projectPath: string) => Promise<NextInspect>
+  routes: (projectPath: string) => Promise<NextRoute[]>
+  /** Runs in the console; resolves with the task id */
+  run: (projectPath: string, command: NextCommand, arg?: string) => Promise<string>
+  writeModel: (projectPath: string, draft: SfEntityDraft) => Promise<SfWriteResult>
+  /** lib/prisma.ts: one client for the whole app (and its driver adapter with Prisma 7) */
+  writePrismaClient: (projectPath: string) => Promise<SfWriteResult>
+  apiConfig: (projectPath: string) => Promise<SfApiConfig | null>
+  applyApi: (projectPath: string, config: SfApiConfig) => Promise<SfWriteResult>
+  /** Writes prisma/seed.ts for these counts, then runs it: one console task */
+  writeSeed: (projectPath: string, counts: Record<string, number>) => Promise<string>
+  /** Writes the migration that undoes the last applied one; "Apply" runs it */
+  prepareRevert: (projectPath: string) => Promise<NextRevertResult>
+  authStatus: (projectPath: string) => Promise<NextAuthStatus>
+  /** Models, auth.ts, pages and routes for these providers; AUTH_SECRET if missing */
+  applyAuth: (projectPath: string, providers: AuthProvider[]) => Promise<SfWriteResult>
+  /** Writes these keys to .env.local (AUTH_* only); resolves with the names written */
+  setAuthKeys: (projectPath: string, values: Record<string, string>) => Promise<string[]>
+}

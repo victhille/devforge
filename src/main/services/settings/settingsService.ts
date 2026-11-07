@@ -1,0 +1,92 @@
+import { existsSync, readFileSync, mkdirSync } from 'fs'
+import { join, dirname } from 'path'
+import { app } from 'electron'
+import type { AppSettings } from '@shared/types'
+import { writeJsonFile } from '../../lib/jsonFile'
+import { DEFAULT_FAVORITES, cleanFavorites } from '@shared/lib/favorites'
+import { DEFAULT_WIDGETS, cleanWidgets } from '@shared/lib/homeWidgets'
+import type { HomeWidget } from '@shared/types'
+
+const DEFAULT_SETTINGS: AppSettings = {
+  defaultProjectsDir: '',
+  defaultPackageManager: 'npm',
+  defaultIDE: 'vscode',
+  theme: 'dark',
+  defaultTerminal: 'powershell',
+  language: 'en',
+  startWithWindows: false,
+  minimizeToTray: false,
+  updateChannel: 'stable',
+  motion: 'system',
+  density: 'comfortable',
+  showWhatsNew: true,
+  dictationModel: 'base',
+  onboarded: false,
+  favorites: DEFAULT_FAVORITES,
+  homeWidgets: DEFAULT_WIDGETS,
+  launcherEnabled: true,
+  launcherShortcut: 'CommandOrControl+Alt+Space'
+}
+
+function getSettingsPath(): string {
+  return join(app.getPath('userData'), 'settings.json')
+}
+
+export function loadSettings(): AppSettings {
+  const path = getSettingsPath()
+  if (!existsSync(path)) {
+    // Default dir: user's home / Development; the language of Windows (French, else English)
+    return {
+      ...DEFAULT_SETTINGS,
+      language: /^fr\b/i.test(app.getLocale()) ? 'fr' : 'en',
+      defaultProjectsDir: join(app.getPath('home'), 'Development')
+    }
+  }
+  try {
+    // A settings file from before the first-launch tour: that user is not new
+    const raw = JSON.parse(readFileSync(path, 'utf-8')) as Partial<AppSettings>
+    // Never chosen: a pre-release build (2.1.0-beta.2) follows the beta channel
+    const channel = raw.updateChannel ?? (app.getVersion().includes('-') ? 'beta' : 'stable')
+    const s = { ...DEFAULT_SETTINGS, onboarded: true, ...raw, updateChannel: channel } as AppSettings
+    return { ...s, favorites: cleanFavorites(s.favorites), homeWidgets: cleanWidgets(s.homeWidgets) }
+  } catch {
+    return DEFAULT_SETTINGS
+  }
+}
+
+/**
+ * The language saved by the user, read before Chromium starts (no `getLocale`
+ * there): null on a first install, which keeps the language of Windows.
+ */
+export function savedLanguage(): 'fr' | 'en' | null {
+  try {
+    const { language } = JSON.parse(readFileSync(getSettingsPath(), 'utf-8')) as Partial<AppSettings>
+    return language === 'fr' || language === 'en' ? language : null
+  } catch {
+    return null
+  }
+}
+
+/** Favorites and Home widgets keep the value on disk: a page holding an older copy of the settings cannot undo them */
+export function saveSettings(settings: AppSettings): void {
+  const path = getSettingsPath()
+  mkdirSync(dirname(path), { recursive: true })
+  const disk = loadSettings()
+  writeJsonFile(path, { ...settings, favorites: disk.favorites, homeWidgets: disk.homeWidgets })
+}
+
+export function setHomeWidgets(widgets: unknown): HomeWidget[] {
+  const path = getSettingsPath()
+  mkdirSync(dirname(path), { recursive: true })
+  const homeWidgets = cleanWidgets(widgets)
+  writeJsonFile(path, { ...loadSettings(), homeWidgets })
+  return homeWidgets
+}
+
+export function setFavorites(paths: unknown): string[] {
+  const path = getSettingsPath()
+  mkdirSync(dirname(path), { recursive: true })
+  const favorites = cleanFavorites(paths)
+  writeJsonFile(path, { ...loadSettings(), favorites })
+  return favorites
+}
