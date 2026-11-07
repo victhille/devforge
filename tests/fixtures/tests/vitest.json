@@ -1,0 +1,53 @@
+{
+ "testResults": [
+  {
+   "name": "C:/work/shop/tests/main/zz-sample.test.ts",
+   "message": "",
+   "assertionResults": [
+    {
+     "ancestorTitles": [
+      "cart",
+      "total"
+     ],
+     "title": "adds the items",
+     "status": "passed",
+     "duration": 1.8468000000000302,
+     "failureMessages": []
+    },
+    {
+     "ancestorTitles": [
+      "cart",
+      "total"
+     ],
+     "title": "applies the discount",
+     "status": "failed",
+     "duration": 6.5892999999998665,
+     "failureMessages": [
+      "AssertionError: expected 90 to be 85 // Object.is equality\n    at C:\\work\\shop\\tests\\main\\zz-sample.test.ts:6:51\n    at file:///C:/work/work/shop/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11"
+     ]
+    },
+    {
+     "ancestorTitles": [
+      "cart",
+      "total"
+     ],
+     "title": "compares objects",
+     "status": "failed",
+     "duration": 2.222400000000107,
+     "failureMessages": [
+      "AssertionError: expected { a: 1 } to deeply equal { a: 2 }\n    at C:\\work\\shop\\tests\\main\\zz-sample.test.ts:7:53\n    at file:///C:/work/work/shop/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11"
+     ]
+    },
+    {
+     "ancestorTitles": [
+      "cart",
+      "total"
+     ],
+     "title": "later",
+     "status": "skipped",
+     "failureMessages": []
+    }
+   ]
+  }
+ ]
+}
