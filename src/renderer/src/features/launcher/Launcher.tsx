@@ -9,6 +9,7 @@ import { useCommands, type Command } from '@renderer/components/command-palette/
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { applyAppearance } from '@renderer/lib/appearance'
 import { cn } from '@renderer/lib/cn'
+import Kbd from '@renderer/components/ui/Kbd'
 import { errorText } from '@renderer/lib/errors'
 
 /** The launcher's own empty page: any other route is meant for the main window */
@@ -142,7 +143,7 @@ function LauncherBody() {
   return (
     <div className="flex h-full items-start justify-center p-3">
       <div className="ln-card flex max-h-full w-full flex-col overflow-hidden rounded-2xl">
-        <div className="flex items-center gap-3 border-b border-line-subtle px-4 py-3">
+        <div className="flex items-center gap-3 border-b border-line-subtle px-4.5 py-3.5">
           <span aria-hidden className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent font-bold text-accent-fg">D</span>
           <input
             autoFocus
@@ -158,15 +159,15 @@ function LauncherBody() {
             spellCheck={false}
             className="min-w-0 flex-1 bg-transparent text-lg text-fg outline-none placeholder:text-fg-muted"
           />
-          {shortcut && <kbd className="shrink-0 rounded-md border border-line px-1.5 py-0.5 font-mono text-xs text-fg-secondary">{shortcut.replace(/\+/g, ' + ')}</kbd>}
+          {shortcut && <Kbd className="shrink-0">{shortcut.replace(/\+/g, ' + ')}</Kbd>}
         </div>
 
         <div ref={listRef} id="launcher-results" role="listbox" aria-label={l.results} className="min-h-0 flex-1 overflow-y-auto p-2">
-          {!q.trim() && items.length > 0 && <p className="px-3 pt-1 pb-2 font-mono text-2xs tracking-widest text-fg-secondary uppercase">{l.recent}</p>}
+          {!q.trim() && items.length > 0 && <p className="px-3 pt-1 pb-2 text-xs font-semibold tracking-wide text-fg-muted">{l.recent}</p>}
           {items.length === 0 && <p className="px-3 py-6 text-center text-sm text-fg-secondary">{q.trim() ? l.noResults : l.empty}</p>}
           {items.map((item, i) => {
             const active = i === sel
-            const base = cn('flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left', active ? 'bg-active' : 'hover:bg-hover')
+            const base = cn('flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left', active ? 'bg-accent-soft' : 'hover:bg-elevated')
             const props = { id: `ln-${i}`, role: 'option', 'aria-selected': active, onMouseEnter: () => setSel(i), onClick: () => choose(item), className: base }
             if (item.type === 'answer') {
               const Icon = ANSWER_ICON[item.answer.kind]
@@ -188,7 +189,7 @@ function LauncherBody() {
                 <div key={item.id} {...props}>
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-forgy-soft text-forgy"><Bot size={15} /></span>
                   <span className="min-w-0 flex-1 truncate text-fg">{l.askForgy.replace('{q}', q.trim())}</span>
-                  <kbd className="rounded border border-line px-1 font-mono text-2xs text-fg-secondary">Tab</kbd>
+                  <Kbd>Tab</Kbd>
                 </div>
               )
             }
@@ -209,16 +210,16 @@ function LauncherBody() {
           })}
         </div>
 
-        <div className="flex items-center gap-4 border-t border-line-subtle px-4 py-2 text-xs text-fg-secondary">
+        <div className="flex h-10 items-center gap-4 border-t border-line-subtle px-4.5 text-xs text-fg-secondary">
           {status ? (
             <span role="status" className={cn('flex min-w-0 flex-1 items-center gap-1.5 truncate', status.tone === 'error' ? 'text-danger' : status.tone === 'ok' ? 'text-success' : '')}>
               {status.tone === 'busy' ? <Loader2 size={12} className="animate-spin" /> : status.tone === 'ok' ? <Check size={12} /> : <X size={12} />}{status.text}
             </span>
           ) : (
             <>
-              <span><kbd className="font-mono">↑↓</kbd> {l.hintChoose}</span>
-              <span><kbd className="font-mono">{l.enter}</kbd> {l.hintRun}</span>
-              <span className="ml-auto"><kbd className="font-mono">{l.escape}</kbd> {l.hintClose}</span>
+              <span className="flex items-center gap-1.5"><Kbd>↑↓</Kbd> {l.hintChoose}</span>
+              <span className="flex items-center gap-1.5"><Kbd>{l.enter}</Kbd> {l.hintRun}</span>
+              <span className="ml-auto flex items-center gap-1.5"><Kbd>{l.escape}</Kbd> {l.hintClose}</span>
             </>
           )}
         </div>
