@@ -1,0 +1,159 @@
+{
+  "name": "devforge",
+  "version": "0.1.0",
+  "description": "Developer Project Launcher",
+  "license": "GPL-3.0-only",
+  "author": "victhille",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/victhille/devforge"
+  },
+  "homepage": "https://victhille.github.io/devforge/",
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "start": "electron-vite dev",
+    "dist": "electron-vite build && electron-builder --win --x64",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "eslint .",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "release": "node scripts/release.mjs",
+    "licenses": "node scripts/third-party-licenses.mjs"
+  },
+  "build": {
+    "appId": "com.devforge.app",
+    "productName": "DevForge",
+    "copyright": "Copyright © 2026 victhille",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*",
+      "!node_modules/onnxruntime-web/**",
+      "!node_modules/onnxruntime-node/bin/napi-v*/darwin/**",
+      "!node_modules/onnxruntime-node/bin/napi-v*/linux/**",
+      "!node_modules/onnxruntime-node/bin/napi-v*/win32/arm64/**",
+      "!node_modules/node-pty/prebuilds/darwin-*/**",
+      "!node_modules/node-pty/prebuilds/win32-arm64/**",
+      "!**/node_modules/**/*.{map,d.ts,d.mts,d.cts,md,markdown}",
+      "!**/node_modules/@anthropic-ai/sdk/src/**",
+      "!**/node_modules/sql.js/dist/!(sql-wasm.js|sql-wasm.wasm)",
+      "!**/node_modules/@huggingface/transformers/dist/!(transformers.node.cjs|transformers.node.mjs)",
+      "!**/node_modules/@huggingface/transformers/src/**",
+      "!**/node_modules/@img/sharp-wasm32/**",
+      "!**/node_modules/node-pty/third_party/conpty/*/win10-arm64/**"
+    ],
+    "extraResources": [
+      {
+        "from": "src/renderer/src/assets/icon.png",
+        "to": "icon.png"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "src/renderer/src/assets/icon.png",
+      "artifactName": "${productName}-Setup-v${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DevForge",
+      "include": "build/installer.nsh"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "victhille",
+        "repo": "devforge",
+        "private": false
+      }
+    ],
+    "asarUnpack": [
+      "node_modules/onnxruntime-node/**",
+      "node_modules/sharp/**",
+      "node_modules/@img/**",
+      "node_modules/node-pty/**"
+    ],
+    "npmRebuild": false,
+    "electronFuses": {
+      "runAsNode": false,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true
+    },
+    "electronLanguages": [
+      "fr",
+      "en-US"
+    ]
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.131.0",
+    "@huggingface/transformers": "4.3.0",
+    "electron-updater": "^6.1.7",
+    "mysql2": "3.24.5",
+    "node-pty": "1.1.0",
+    "pg": "8.23.1",
+    "sql.js": "1.14.2",
+    "ssh2": "^1.17.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^20.11.0",
+    "@types/pg": "8.23.1",
+    "@types/react": "^18.2.55",
+    "@types/react-dom": "^18.2.19",
+    "@types/sql.js": "1.4.11",
+    "@types/ssh2": "^1.15.6",
+    "@vitejs/plugin-react": "^4.2.1",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/addon-web-links": "^0.12.0",
+    "@xterm/xterm": "^6.0.0",
+    "axe-core": "4.11.4",
+    "clsx": "^2.1.1",
+    "electron": "^44.10.0",
+    "electron-builder": "26.15.3",
+    "electron-vite": "^5.0.0",
+    "eslint": "10.12.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.13.0",
+    "highlight.js": "11.12.0",
+    "lucide-react": "^1.51.0",
+    "pdfjs-dist": "6.3.289",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^7.18.5",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "8.71.0",
+    "vite": "^6.4.5",
+    "vitest": "4.1.12"
+  },
+  "overrides": {
+    "minimatch@^9": "^11.0.1",
+    "minimatch@^10": "^11.0.1"
+  }
+}

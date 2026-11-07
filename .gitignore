@@ -1,0 +1,23 @@
+node_modules/
+out/
+dist/
+*.log
+.DS_Store
+Thumbs.db
+.claude/settings.local.json
+*.tsbuildinfo
+test-results/
+playwright-report/
+
+# Personal words checked by scripts/check-personal.mjs (never committed)
+.personal-patterns
+
+# Models drawn on DevForge itself (Modeling page): kept local
+conception/
+
+# Roadmaps of the versions before 0.1.0: kept local
+docs/roadmap/
+
+# Local tools: code graph and editor settings
+graphify-out/
+.vscode/
