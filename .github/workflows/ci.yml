@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  # Run by hand on any branch (Actions › CI › Run workflow)
+  workflow_dispatch:
+
+# Read-only token: this workflow only checks the code
+permissions:
+  contents: read
+
+jobs:
+  check:
+    # The release commit only bumps the version and the changelogs: the code was
+    # checked on the push before it (the Release workflow runs on the tag anyway)
+    if: ${{ !(github.event_name == 'push' && startsWith(github.event.head_commit.message, 'chore(release):')) }}
+    # The app targets Windows (paths, hosts file, taskkill): test where it runs
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # npm ci takes 2 to 3 minutes on Windows (583 packages, Electron's download):
+      # the installed packages are kept as long as package-lock.json does not change
+      # The packages, without the app's version (a release changes it, not the packages)
+      - id: lock
+        shell: bash
+        run: echo "key=$(node scripts/deps-key.mjs)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache/restore@v4
+        id: deps
+        with:
+          path: |
+            node_modules
+            ~\AppData\Local\electron\Cache
+          key: deps-${{ runner.os }}-node22-${{ steps.lock.outputs.key }}
+      - if: steps.deps.outputs.cache-hit != 'true'
+        run: npm ci
+      # Saved right away: a failing test later must not lose it
+      - if: steps.deps.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            ~\AppData\Local\electron\Cache
+          key: ${{ steps.deps.outputs.cache-primary-key }}
+      # Known vulnerabilities, Electron included (it ships with the app though it is a devDependency)
+      - run: npm audit --audit-level=high
+      - run: npm run typecheck
+      - run: npm run lint
+      # Personal words (IP, names, private projects) must not come back; the list is a secret, never in the code
+      - run: node scripts/check-personal.mjs
+        env:
+          PERSONAL_PATTERNS: ${{ secrets.PERSONAL_PATTERNS }}
+      - run: npm test
+      - run: npm run build
+      # End-to-end: the built app, each test on a fresh profile
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-results
+          path: test-results/
+          retention-days: 7

@@ -1,0 +1,39 @@
+name: Signaler un problème · Report a bug
+description: Quelque chose ne marche pas comme prévu · Something does not work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci ! En français ou en anglais, comme tu préfères. · Thanks! French or English, as you like.
+        **Faille de sécurité ?** Ne l'écris pas ici : onglet *Security* → *Report a vulnerability*. · **Security issue?** Not here: *Security* tab → *Report a vulnerability*.
+  - type: textarea
+    id: what
+    attributes:
+      label: Que s'est-il passé ? · What happened?
+      description: Ce que tu faisais, ce que tu as vu. · What you were doing, what you saw.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Qu'attendais-tu ? · What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pour le reproduire · How to reproduce
+      placeholder: |
+        1. Ouvrir… · Open…
+        2. Cliquer sur… · Click…
+  - type: textarea
+    id: report
+    attributes:
+      label: Rapport de diagnostic · Diagnostic report
+      description: |
+        Paramètres › À propos › « Copier le rapport » (version, Windows, dernières lignes du journal ; clés et mots de passe déjà masqués). **Relis-le avant de le coller** : il peut contenir des noms de serveurs ou de projets.
+        Settings › About › "Copy report" (version, Windows, last log lines; keys and passwords already masked). **Read it before pasting**: it may contain server or project names.
+      render: text
+    validations:
+      required: true

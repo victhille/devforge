@@ -1,0 +1,26 @@
+name: Proposer une idée · Suggest an idea
+description: Une fonction qui manque, une amélioration · A missing feature, an improvement
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: "Avant d'écrire, un œil sur la [feuille de route](https://github.com/victhille/devforge/tree/main/docs/roadmap) : l'idée y est peut-être déjà. · Before writing, have a look at the [roadmap](https://github.com/victhille/devforge/tree/main/docs/roadmap): the idea may already be there."
+  - type: textarea
+    id: need
+    attributes:
+      label: Le besoin · The need
+      description: Ce que tu veux faire et qui n'est pas possible (ou pénible) aujourd'hui. · What you want to do that is not possible (or painful) today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Ce que tu imagines · What you have in mind
+  - type: dropdown
+    id: help
+    attributes:
+      label: Tu veux t'en occuper ? · Would you like to work on it?
+      options:
+        - Non, juste l'idée · No, just the idea
+        - Oui, avec un peu d'aide · Yes, with some help
+        - Oui · Yes

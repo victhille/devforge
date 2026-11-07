@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://victhille.github.io/devforge/
+    about: Prise en main et une page par fonction · Getting started and a page per feature
+  - name: Faille de sécurité · Security issue
+    url: https://github.com/victhille/devforge/security/advisories/new
+    about: En privé, jamais dans une issue publique · Privately, never in a public issue
