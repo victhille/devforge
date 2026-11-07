@@ -28,7 +28,7 @@ One project can be **active**: Forgy and the desktop widget refer to it. It beco
 
 ## The menu
 
-The left menu starts with **Home** and your **favorites**, then lists every page in six folding groups:
+The left menu is an icon rail: **Home**, then six groups. Clicking a group shows its pages in the panel beside it, without leaving the page on screen; the group of the page on screen is marked in orange. Under Home, the panel shows your **favorites**.
 
 | Group | Pages |
 |---|---|
@@ -39,7 +39,7 @@ The left menu starts with **Home** and your **favorites**, then lists every page
 | System | [Environment](/devforge/en/system/environment/), [Ports](/devforge/en/system/ports/), [Env variables](/devforge/en/system/env-files/), [Local domains](/devforge/en/system/domains/), [Disk cleaner](/devforge/en/system/cleaner/) |
 | Tools | [Toolbox, Snippets, Text Diff, Generator, Docs](/devforge/en/tools/utilities/) |
 
-**Settings** is pinned at the bottom. <kbd>Ctrl</kbd> <kbd>B</kbd> collapses or expands the menu.
+**Settings** is pinned at the bottom of the rail. <kbd>Ctrl</kbd> <kbd>B</kbd> folds or reopens the panel; clicking the group that is already shown folds it too. From the keyboard, the arrows move along the rail, <kbd>Enter</kbd> shows the group and <kbd>Tab</kbd> goes on to its pages.
 
 As long as no server is set up, the pages that need one (Health, Services, Backups, n8n, VPN, Status page) are hidden; the group says "N more with a server".
 
@@ -102,7 +102,7 @@ As you type, the line's **likely rest** shows greyed after the caret, as in the 
 |---|---|
 | <kbd>Ctrl</kbd> <kbd>K</kbd> | command palette |
 | <kbd>Ctrl</kbd> <kbd>J</kbd> | open / close Forgy |
-| <kbd>Ctrl</kbd> <kbd>B</kbd> | collapse / expand the menu |
+| <kbd>Ctrl</kbd> <kbd>B</kbd> | fold / reopen the menu panel |
 | <kbd>F1</kbd> | the documentation of the page on screen |
 | <kbd>Ctrl</kbd> <kbd>`</kbd> | built-in terminal |
 | <kbd>Ctrl</kbd> <kbd>Enter</kbd> | run the SQL query |

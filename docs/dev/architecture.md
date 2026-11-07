@@ -47,26 +47,30 @@ Une page se construit avec les composants de `src/renderer/src/components/ui/` p
 
 | Besoin | Composant |
 |---|---|
-| Un bouton, une icône cliquable | `Button`, `IconButton` |
+| Un bouton, une icône cliquable | `Button` (`primary` orange pour l'action principale, `secondary`, `ghost`, `danger` ; `sm` 30 px, `md` 36 px, `lg` 44 px), `IconButton` (28 ou 32 px) |
+| Un mot ou une valeur dans une pastille | `Badge` (`color`, `dot` ; `mono` pour une valeur technique : framework, version, langage, code HTTP) |
+| Une touche ou un raccourci | `Kbd` |
 | Un message dans la page (conseil, alerte, erreur) | `Notice` (`tone` : neutral, info, success, warning, danger ; `live` s'il arrive après une action, `role` pour en garder un) |
 | Une lecture qui a échoué | `ErrorState` (avec `onRetry`) — jamais un spinner qui tourne sans fin |
-| Une liste vide | `EmptyState` |
+| Une liste vide | `EmptyState` (une ligne dans un cadre pointillé : l'icône, ce qui manque, l'action) |
 | L'état d'un service, d'un conteneur, d'un serveur | `StatusDot` (`on`, `off`, `warn`, `error`, `unknown` ; `live` pour la pulsation) |
 | La sortie d'une commande | `LogBox` |
 | Une question avant une suppression | `await confirmDialog(message, { danger: true })` (`src/renderer/src/app/ConfirmContext.tsx`), jamais `window.confirm` |
 | Des onglets | `Tabs` (`variant` : `segmented` ou `underline`) |
 | Une liste à côté de son contenu | `SplitPane` (la liste passe au-dessus quand la page est étroite) |
 | Le champ de recherche d'une liste | `SearchInput` |
-| Le titre d'une page | `PageHeader` |
+| Le titre d'une page | `PageHeader` (titre en `font-display`, sous-titre, actions à droite) ; `CardTitle` pour une carte (aussi en `font-display`), `SectionTitle` au-dessus d'un groupe de cartes |
 
 Les valeurs viennent du thème (`src/renderer/src/styles/index.css`) :
 
-- couleurs : `bg-surface`, `text-fg-muted`, `bg-danger-soft`… ; sur un fond plein, `text-accent-fg`, `text-danger-fg`, `text-success-fg` ou `text-forgy-fg`, jamais `text-white` ;
-- tailles de texte de l'échelle (`text-2xs` à `text-3xl`, `text-page` pour un titre de page) et espacements Tailwind (`px-4.5` = 18 px) : une valeur en pixels (`text-[13px]`) ne suit pas la densité compacte ;
-- rayons `rounded-control` (bouton, champ) et `rounded-card` (carte) ;
+- couleurs : `bg-surface`, `text-fg-muted`, `bg-danger-soft`… ; sur un fond plein, `text-accent-fg`, `text-danger-fg`, `text-success-fg` ou `text-forgy-fg`, jamais `text-white` ; avec le thème « Forge » (graphite chaud), l'accent est l'orange de Forgy et une information se dit en bleu (`text-info`, `bg-info-soft`) ;
+- polices embarquées dans l'appli (`@fontsource-variable`, rien n'est chargé en ligne) : Inter pour le texte (`font-sans`), JetBrains Mono pour le code, les chemins, les ports et les raccourcis (`font-mono`), Bricolage Grotesque pour les titres (`font-display`) ;
+- tailles de texte de l'échelle 11 / 12 / 13 / 14 / 16 / 20 / 28 / 34 (`text-xs` à `text-xl`, `text-page` pour un titre de page, `text-hero` pour l'accueil, `text-2xs` pour une touche ou un compteur) et espacements Tailwind (`px-4.5` = 18 px) : une valeur en pixels (`text-[13px]`) ne suit pas la densité compacte ;
+- quatre rayons : `rounded-md` 6 px (badge), `rounded-control` 10 px (bouton, champ, comme `rounded-lg`), `rounded-card` 14 px (carte, comme `rounded-xl`), `rounded-window` 18 px (fenêtre) ;
+- le cadre (`components/layout/`) : barre de titre de 44 px, rail d'icônes de 64 px (Accueil, les six groupes, Paramètres en bas) et panneau du groupe de 220 px, replié par Ctrl+B ; il garde sa taille en densité compacte et se construit depuis `app/navigation.ts` (`RAIL`, `MENU_GROUPS`, `railOf`), comme le routeur et la palette ;
 - une couleur de marque trop pâle pour le fond blanc prend `paleClass(couleur)` (`src/renderer/src/lib/brand.ts`), assombrie en thème clair seulement ;
 - le terminal reste sombre dans les deux thèmes : `bg-term`, `text-term-fg`…, et la palette `XTERM_THEME` (`src/renderer/src/features/terminal/snapshot.ts`) ;
-- icônes `lucide-react` : 16 pour un outil d'une barre, 14 dans un bouton à icône (`IconButton`), 13 dans un bouton avec texte ou une ligne, 28 à 32 pour un état vide ;
+- icônes `lucide-react` : 16 pour un outil d'une barre, 14 dans un bouton à icône (`IconButton`), 13 dans un bouton avec texte ou une ligne, 20 dans un état vide (`EmptyState` la ramène à cette taille) ;
 - un menu qui se replie à la main et aussi quand la page est étroite (SSH) : `useNarrow` (`src/renderer/src/hooks/useNarrow.ts`) ; sinon une requête de conteneur suffit (`SplitPane`, menus des Paramètres, de Docker, de Laravel et de Next).
 
 ## Secrets

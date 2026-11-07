@@ -6,8 +6,9 @@ export type NoticeTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
 
 const TONES: Record<NoticeTone, { box: string; icon: LucideIcon; iconTone: string }> = {
   // A plain word from the app (a conversation stopped…): no color of its own
-  neutral: { box: 'bg-active text-fg-secondary', icon: Info, iconTone: 'text-fg-muted' },
-  info: { box: 'bg-accent-soft', icon: Info, iconTone: 'text-accent' },
+  neutral: { box: 'bg-elevated text-fg-secondary', icon: Info, iconTone: 'text-fg-muted' },
+  // Blue, the accent (orange) stays for actions and Forgy
+  info: { box: 'bg-info-soft', icon: Info, iconTone: 'text-info' },
   success: { box: 'bg-success-soft', icon: CheckCircle2, iconTone: 'text-success' },
   warning: { box: 'bg-warning-soft', icon: AlertTriangle, iconTone: 'text-warning' },
   danger: { box: 'bg-danger-soft', icon: AlertCircle, iconTone: 'text-danger' }

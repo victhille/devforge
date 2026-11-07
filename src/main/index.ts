@@ -29,7 +29,9 @@ import { closeAllForwards } from './services/ssh/localForward'
 const isDev = !app.isPackaged
 
 app.setName('DevForge')
-if (process.platform === 'win32') app.setAppUserModelId('DevForge')
+// Same id as build.appId: Windows links the window to the installed shortcut and shows its icon.
+// Dev runs get their own id, so they never take over the installed app's taskbar icon.
+if (process.platform === 'win32') app.setAppUserModelId(isDev ? 'com.devforge.app.dev' : 'com.devforge.app')
 
 // Dates and numbers follow DevForge's language, not Windows' (a change applies at the next start)
 const language = savedLanguage()
@@ -88,7 +90,7 @@ function createWindow(): void {
     minHeight: 600,
     frame: false,
     titleBarStyle: 'hidden',
-    backgroundColor: '#0D0F13',
+    backgroundColor: '#121110',
     icon,
     show: false,
     webPreferences: {

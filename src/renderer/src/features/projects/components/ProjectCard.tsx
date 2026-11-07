@@ -153,7 +153,7 @@ export function ProjectCard(props: SavedProps) {
       <TasksChip count={openTasks} onClick={onOpenTasks} />
       {project.missing && <span className="shrink-0 text-xs font-medium text-warning">{t.hub.missing}</span>}
       <FolderTag name={folder} />
-      <Badge>{label}</Badge>
+      <Badge mono>{label}</Badge>
       <div className="flex shrink-0 items-center gap-2">
         <IconButton title={t.projects.terminal} onClick={onTerminal}><Terminal size={13} /></IconButton>
         {onRunScript && <ScriptsMenu scripts={scripts} onRun={onRunScript} />}
@@ -193,7 +193,7 @@ export function DetectedProjectCard({ project, layout, onImport, onOpen, onTermi
       <Card className="flex flex-col gap-3 border-dashed p-4">
         <div className="flex items-start justify-between">
           <ProjectIcon framework={project.framework} size="lg" />
-          <div className="flex items-center gap-1"><FolderTag name={folder} /><Badge>{label}</Badge></div>
+          <div className="flex items-center gap-1"><FolderTag name={folder} /><Badge mono>{label}</Badge></div>
         </div>
         <div className="flex min-w-0 flex-col gap-1">
           <span className="truncate text-md font-semibold text-fg">{project.name}</span>
@@ -217,7 +217,7 @@ export function DetectedProjectCard({ project, layout, onImport, onOpen, onTermi
         <SubNames project={project} />
       </div>
       <FolderTag name={folder} />
-      <Badge>{label}</Badge>
+      <Badge mono>{label}</Badge>
       <div className="flex shrink-0 items-center gap-2">
         {actions}
         <Button variant="secondary" size="sm" onClick={onImport}><Plus size={12} /> {t.projects.import}</Button>

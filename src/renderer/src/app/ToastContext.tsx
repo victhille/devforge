@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import { CheckCircle2, Info, X, XCircle } from 'lucide-react'
 import { cn } from '@renderer/lib/cn'
+import { useI18n } from '@renderer/i18n/I18nContext'
 
 type Tone = 'success' | 'error' | 'info'
 
@@ -40,6 +41,7 @@ let nextId = 1
 
 /** Small stacked notifications in the bottom-right corner. */
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const { t: tr } = useI18n()
   const [toasts, setToasts] = useState<Toast[]>([])
   const [activity, setActivity] = useState<ActivityEntry[]>(loadActivity)
 
@@ -86,7 +88,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   </button>
                 )}
               </div>
-              <button onClick={() => dismiss(t.id)} aria-label="Close" className="text-fg-muted hover:text-fg">
+              <button onClick={() => dismiss(t.id)} aria-label={tr.common.close} title={tr.common.close} className="rounded-md text-fg-muted hover:text-fg">
                 <X size={14} />
               </button>
             </div>

@@ -37,8 +37,8 @@ const fr = {
     database: 'Base de données',
     logs: 'Logs',
     webhooks: 'Webhooks',
-    collapse: 'Réduire le menu',
-    expand: 'Agrandir le menu',
+    collapse: 'Replier le panneau',
+    expand: 'Rouvrir le panneau',
     favorites: 'Favoris',
     update: 'Mettre à jour (v{v})',
     pin: 'Ajouter aux favoris',
@@ -54,7 +54,14 @@ const fr = {
     groupOnline: 'Mise en ligne',
     groupData: 'Données & API',
     groupSystem: 'Système',
-    groupTools: 'Outils'
+    groupTools: 'Outils',
+    mainMenu: 'Menu principal',
+    railLabel: 'Groupes du menu',
+    brandHome: 'DevForge, accueil',
+    windowMinimize: 'Réduire la fenêtre',
+    windowMaximize: 'Agrandir la fenêtre',
+    windowRestore: 'Restaurer la fenêtre',
+    windowClose: 'Fermer la fenêtre'
   },
 
   palette: {
@@ -74,7 +81,8 @@ const fr = {
     hintNavigate:  'naviguer',
     hintRun:       'lancer',
     hintToggle:    'ouvrir / fermer',
-    search:        'Rechercher',
+    escKey:        'Échap',
+    search:        'Aller à une page, un projet, un script',
     groupActions:  'Actions',
     openN8n:       'Ouvrir n8n',
     restartN8n:    'Redémarrer n8n',

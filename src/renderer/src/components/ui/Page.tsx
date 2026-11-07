@@ -1,9 +1,9 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import { cn } from '@renderer/lib/cn'
 
-/** Scrollable page container with standard padding. */
+/** Scrollable page container with standard padding (Forge: 26 px above, 36 on the sides, 20 between blocks; room for Forgy below) */
 export function Page({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
-  return <div {...rest} className={cn('df-rise mx-auto flex w-full max-w-[1280px] flex-col gap-6 px-8 pt-7 pb-24', className)} />
+  return <div {...rest} className={cn('df-rise mx-auto flex w-full max-w-[1320px] flex-col gap-5 px-9 pt-6.5 pb-24', className)} />
 }
 
 interface HeaderProps {
@@ -14,24 +14,28 @@ interface HeaderProps {
   className?: string
 }
 
-/** Page title row: large title, muted subtitle, actions on the right (the icon is kept for the API, not drawn) */
+/**
+ * Page title row: the title in the display font, the subtitle under it, actions on the right,
+ * aligned on the title's foot (the icon is kept for the API, not drawn)
+ */
 export function PageHeader({ title, subtitle, actions, className }: HeaderProps) {
   return (
-    <header className={cn('flex flex-wrap items-center justify-between gap-3', className)}>
+    <header className={cn('flex flex-wrap items-end justify-between gap-3.5', className)}>
       <div className="min-w-[220px] flex-1">
-        <h1 className="truncate text-page leading-tight font-semibold tracking-[-.02em] text-fg">{title}</h1>
-        {subtitle && <p className="mt-0.5 text-sm text-fg-muted">{subtitle}</p>}
+        <h1 className="truncate font-display text-page font-bold tracking-[-.025em] text-fg">{title}</h1>
+        {subtitle && <p className="mt-1 text-base text-fg-secondary">{subtitle}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
     </header>
   )
 }
 
+/** A group's name above a list of cards (Forge: small capitals in the text font, not the code font) */
 export function SectionTitle({ className, ...rest }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h2
       {...rest}
-      className={cn('font-mono text-2xs font-medium uppercase tracking-widest text-fg-muted', className)}
+      className={cn('text-xs font-semibold uppercase tracking-[.04em] text-fg-muted', className)}
     />
   )
 }

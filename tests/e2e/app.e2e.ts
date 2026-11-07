@@ -29,16 +29,56 @@ test('keeps the data of a 1.x install', async () => {
   expect(JSON.parse(readFileSync(join(run.userData, 'storage.json'), 'utf-8'))).toEqual({ schemaVersion: 1 })
 })
 
-test('sidebar groups unfold and lead to their pages', async () => {
+test('the rail shows a group in the panel, its pages lead there, from the mouse or the keyboard', async () => {
   run = await launch()
   const { page } = run
-  await page.getByRole('button', { name: 'Développement' }).click()
-  await page.getByRole('link', { name: 'Git', exact: true }).click()
+  const menu = page.getByRole('navigation', { name: 'Menu principal' })
+  const rail = (name: string) => menu.getByRole('button', { name, exact: true })
+
+  // A group's button shows its pages beside it, without leaving the page
+  await rail('Développement').click()
+  await expect(rail('Développement')).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.locator('main h1')).toHaveText(/^(Bonjour|Bonsoir)/)
+  await menu.getByRole('link', { name: 'Git', exact: true }).click()
   await expect(page).toHaveURL(/#\/git$/)
   await expect(page.locator('main h1')).toHaveText('Tableau de bord Git')
-  // Favorites stay one click away
-  await page.locator('[data-fav]').getByRole('link', { name: 'Docker' }).click()
+  await expect(menu.getByRole('link', { name: 'Git', exact: true })).toHaveAttribute('aria-current', 'page')
+
+  // The favorites are under Home
+  await rail('Accueil').click()
+  await menu.locator('[data-fav]').getByRole('link', { name: 'Docker' }).click()
   await expect(page.locator('main h1')).toHaveText('Docker')
+
+  // A page opened from elsewhere (palette, a link) brings its group into the panel
+  await goTo(page, '/ports')
+  await expect(rail('Système')).toHaveAttribute('aria-pressed', 'true')
+  await expect(menu.getByRole('link', { name: 'Ports', exact: true })).toHaveAttribute('aria-current', 'page')
+
+  // Keyboard: the rail is one Tab stop, the arrows move in it, Enter shows a group, Tab goes on to its pages
+  await rail('Système').focus()
+  await page.keyboard.press('End')
+  await expect(rail('Outils')).toBeFocused()
+  await page.keyboard.press('ArrowDown')
+  await expect(rail('Accueil')).toBeFocused()
+  await page.keyboard.press('ArrowUp')
+  await page.keyboard.press('Enter')
+  await expect(rail('Outils')).toHaveAttribute('aria-pressed', 'true')
+  await page.keyboard.press('Tab')
+  await expect(menu.getByRole('link', { name: 'Boîte à outils' })).toBeFocused()
+
+  // Ctrl+B folds the panel and keeps it folded; a group's button opens it again
+  await page.locator('main').click()
+  await page.keyboard.press('Control+b')
+  await expect(menu.getByRole('link', { name: 'Boîte à outils' })).toHaveCount(0)
+  await expect(menu.getByRole('button', { name: 'Rouvrir le panneau' })).toHaveAttribute('aria-expanded', 'false')
+  await page.reload()
+  await expect(menu.getByRole('button', { name: 'Rouvrir le panneau' })).toBeVisible()
+  await rail('Données & API').click()
+  await expect(menu.getByRole('link', { name: 'Webhooks' })).toBeVisible()
+  // The title bar's buttons speak French, and the brand leads home
+  await expect(page.getByRole('button', { name: 'Fermer la fenêtre' })).toBeVisible()
+  await page.getByRole('link', { name: 'DevForge, accueil' }).click()
+  await expect(page).toHaveURL(/#\/$/)
 })
 
 test('API Tester shows an HTML answer as a preview', async () => {
