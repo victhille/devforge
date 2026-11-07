@@ -82,6 +82,7 @@ const en = {
     hintNavigate:  'navigate',
     hintRun:       'run',
     hintToggle:    'open / close',
+    escKey:        'Esc',
     search:        'Go to a page, a project, a script',
     groupActions:  'Actions',
     openN8n:       'Open n8n',
