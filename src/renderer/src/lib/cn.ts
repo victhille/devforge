@@ -6,14 +6,15 @@ import { extendTailwindMerge } from 'tailwind-merge'
 const twMerge = extendTailwindMerge({
   extend: {
     theme: {
-      text: ['2xs', 'md', 'page'],
-      radius: ['control', 'card'],
+      text: ['2xs', 'md', 'page', 'hero'],
+      radius: ['control', 'card', 'window'],
+      font: ['display'],
       color: [
         'canvas', 'surface', 'elevated', 'hover', 'active', 'console',
         'line', 'line-subtle', 'fg', 'fg-secondary', 'fg-muted', 'fg-disabled',
         'sidebar', 'chrome',
         'accent', 'accent-hover', 'accent-soft', 'accent-fg',
-        'success', 'success-soft', 'success-fg', 'warning', 'warning-soft', 'danger', 'danger-soft', 'danger-fg',
+        'success', 'success-soft', 'success-fg', 'warning', 'warning-soft', 'danger', 'danger-soft', 'danger-fg', 'info', 'info-soft',
         'forgy', 'forgy-soft', 'forgy-fg',
         'term', 'term-block', 'term-fg', 'term-dim'
       ]
