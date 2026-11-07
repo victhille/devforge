@@ -7,6 +7,8 @@ import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import { Input } from '@renderer/components/ui/Input'
 import Spinner from '@renderer/components/ui/Spinner'
+import Badge from '@renderer/components/ui/Badge'
+import Kbd from '@renderer/components/ui/Kbd'
 import Mascot from '@renderer/features/assistant/Mascot'
 import { Segmented } from '@renderer/features/settings/parts'
 import { errorText } from '@renderer/lib/errors'
@@ -116,9 +118,9 @@ export default function Onboarding() {
   ]
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/55 p-6 backdrop-blur-[3px]">
       <div role="dialog" aria-modal="true" aria-labelledby="onboarding-title"
-        className="df-pop flex max-h-[calc(100vh-48px)] w-[min(680px,100%)] flex-col overflow-hidden rounded-[20px] border border-line bg-elevated shadow-2xl">
+        className="df-pop flex max-h-[calc(100vh-48px)] w-[min(680px,100%)] flex-col overflow-hidden rounded-window border border-line bg-surface shadow-pop">
         <div className="flex items-center gap-3 px-6 pt-5">
           <div role="progressbar" aria-valuemin={1} aria-valuemax={STEPS} aria-valuenow={step + 1} aria-label={o.progress.replace('{n}', String(step + 1)).replace('{t}', String(STEPS))} className="flex flex-1 gap-1.5">
             {Array.from({ length: STEPS }, (_, i) => <span key={i} className={cn('h-1 flex-1 rounded-full transition-colors', i <= step ? 'bg-accent' : 'bg-active')} />)}
@@ -132,7 +134,7 @@ export default function Onboarding() {
               <div className="flex items-center gap-4">
                 <Mascot mood="happy" size={72} followCursor={false} />
                 <div>
-                  <h2 id="onboarding-title" className="text-2xl font-semibold tracking-tight text-fg">{o.welcomeTitle}</h2>
+                  <h2 id="onboarding-title" className="font-display text-2xl font-bold tracking-[-.02em] text-fg">{o.welcomeTitle}</h2>
                   <p className="mt-1 text-sm text-fg-secondary">{o.welcomeText}</p>
                 </div>
               </div>
@@ -142,7 +144,7 @@ export default function Onboarding() {
               </div>
               <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {features.map(f => (
-                  <li key={f.text} className="flex items-start gap-3 rounded-xl border border-line-subtle bg-surface p-3.5 text-base text-fg">
+                  <li key={f.text} className="flex items-start gap-3 rounded-xl border border-line-subtle bg-canvas p-3.5 text-base text-fg">
                     <f.icon size={18} className="mt-0.5 shrink-0 text-accent" aria-hidden />{f.text}
                   </li>
                 ))}
@@ -156,7 +158,7 @@ export default function Onboarding() {
           {step === 1 && (
             <>
               <div>
-                <h2 id="onboarding-title" className="text-xl font-semibold text-fg">{o.projectsTitle}</h2>
+                <h2 id="onboarding-title" className="font-display text-xl font-bold tracking-[-.015em] text-fg">{o.projectsTitle}</h2>
                 <p className="mt-1 text-sm text-fg-secondary">{o.projectsText}</p>
               </div>
               <div className="flex gap-2">
@@ -182,7 +184,7 @@ export default function Onboarding() {
                           <span className="block truncate text-base font-medium text-fg">{p.name}</span>
                           <span className="block truncate font-mono text-xs text-fg-muted">{p.path}</span>
                         </span>
-                        <span className="rounded-full bg-active px-2 py-0.5 font-mono text-2xs text-fg-secondary">{p.framework}</span>
+                        <Badge mono>{p.framework}</Badge>
                       </label>
                     ))}
                   </div>
@@ -194,11 +196,11 @@ export default function Onboarding() {
           {step === 2 && (
             <>
               <div>
-                <h2 id="onboarding-title" className="text-xl font-semibold text-fg">{o.accountsTitle}</h2>
+                <h2 id="onboarding-title" className="font-display text-xl font-bold tracking-[-.015em] text-fg">{o.accountsTitle}</h2>
                 <p className="mt-1 text-sm text-fg-secondary">{o.accountsText}</p>
               </div>
               {added > 0 && <p className="flex items-center gap-2 text-sm text-success"><Check size={15} /> {o.added.replace('{n}', String(added))}</p>}
-              <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-surface p-4">
+              <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-canvas p-4">
                 <span className="text-base font-medium text-fg">{t.settings.connections.gitIdentity}</span>
                 <div className="flex flex-wrap gap-2">
                   <Input aria-label={t.settings.connections.gitName} placeholder={t.settings.connections.gitName} value={identity.name} onChange={e => setIdentity(i => ({ ...i, name: e.target.value }))} className="flex-[1_1_160px]" />
@@ -206,7 +208,7 @@ export default function Onboarding() {
                 </div>
                 <p className="text-xs text-fg-muted">{t.settings.connections.gitIdentityHint}</p>
               </div>
-              <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-surface p-4">
+              <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-canvas p-4">
                 <span className="text-base font-medium text-fg">GitHub</span>
                 {accounts?.github.cli
                   ? <p className="flex items-center gap-2 text-sm text-success"><Check size={15} /> {t.settings.connections.githubCli.replace('{login}', accounts.github.cli)}</p>
@@ -225,11 +227,11 @@ export default function Onboarding() {
               <div className="flex items-center gap-4">
                 <Mascot mood="listening" size={60} followCursor={false} />
                 <div>
-                  <h2 id="onboarding-title" className="text-xl font-semibold text-fg">{o.forgyTitle}</h2>
+                  <h2 id="onboarding-title" className="font-display text-xl font-bold tracking-[-.015em] text-fg">{o.forgyTitle}</h2>
                   <p className="mt-1 text-sm text-fg-secondary">{o.forgyText}</p>
                 </div>
               </div>
-              <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-surface p-4">
+              <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-canvas p-4">
                 <label htmlFor="onboarding-key" className="text-base font-medium text-fg">{t.assistant.apiKey}</label>
                 <div className="flex gap-2">
                   <Input id="onboarding-key" type="password" value={key} onChange={e => setKey(e.target.value)} placeholder={t.assistant.apiKeyPlaceholder} className="font-mono" autoComplete="off" />
@@ -246,15 +248,15 @@ export default function Onboarding() {
               <div className="flex items-center gap-4">
                 <Mascot mood="happy" size={64} followCursor={false} />
                 <div>
-                  <h2 id="onboarding-title" className="text-xl font-semibold text-fg">{o.doneTitle}</h2>
+                  <h2 id="onboarding-title" className="font-display text-xl font-bold tracking-[-.015em] text-fg">{o.doneTitle}</h2>
                   <p className="mt-1 text-sm text-fg-secondary">{keySaved ? o.doneWithKey : o.doneNoKey}</p>
                 </div>
               </div>
               <ul className="flex flex-col gap-2 text-base text-fg">
                 {[[o.tipPalette, 'Ctrl K'], [o.tipForgy, 'Ctrl J'], [o.tipSettings, '']].map(([text, kbd]) => (
-                  <li key={text} className="flex items-center gap-3 rounded-xl border border-line-subtle bg-surface px-3.5 py-3">
+                  <li key={text} className="flex items-center gap-3 rounded-xl border border-line-subtle bg-canvas px-3.5 py-3">
                     <span className="flex-1">{text}</span>
-                    {kbd && <kbd className="rounded-md border border-line bg-canvas px-2 py-0.5 font-mono text-xs text-fg-secondary">{kbd}</kbd>}
+                    {kbd && <Kbd>{kbd}</Kbd>}
                   </li>
                 ))}
               </ul>

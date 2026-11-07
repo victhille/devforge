@@ -2,6 +2,7 @@ import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react'
 import { cn } from '@renderer/lib/cn'
 import Card from '@renderer/components/ui/Card'
 import StatusDot from '@renderer/components/ui/StatusDot'
+import Badge, { type BadgeColor } from '@renderer/components/ui/Badge'
 
 // ─── Building blocks ──────────────────────────────────────────────────────────
 
@@ -12,7 +13,7 @@ export function Tile({ i, title, aside, className, children }: { i: number; titl
   return (
     <Card className={cn('df-rise df-lift flex min-w-0 flex-col gap-3 rounded-card p-4.5 hover:border-line', className)} style={{ '--i': i } as CSSProperties}>
       <div className="flex items-center justify-between gap-3">
-        <h2 className="truncate text-md font-semibold text-fg">{title}</h2>
+        <h2 className="truncate font-display text-md font-bold tracking-[-.01em] text-fg">{title}</h2>
         {aside}
       </div>
       {children}
@@ -20,14 +21,10 @@ export function Tile({ i, title, aside, className, children }: { i: number; titl
   )
 }
 
+/** A state in a card (online, up to date, changed): a badge */
 export function Pill({ tone, children }: { tone: 'success' | 'warning' | 'accent' | 'muted'; children: ReactNode }) {
-  const tones = {
-    success: 'bg-success-soft text-success',
-    warning: 'bg-warning-soft text-warning',
-    accent: 'bg-accent-soft text-accent',
-    muted: 'bg-elevated text-fg-muted'
-  }
-  return <span className={cn('shrink-0 rounded-full px-2 py-0.5 font-mono text-xs font-medium', tones[tone])}>{children}</span>
+  const colors: Record<typeof tone, BadgeColor> = { success: 'success', warning: 'warning', accent: 'accent', muted: 'default' }
+  return <Badge color={colors[tone]} className="shrink-0">{children}</Badge>
 }
 
 export function Dot({ live, delay = 0 }: { live: boolean; delay?: number }) {
@@ -43,7 +40,7 @@ export function Gauge({ label, pct, i }: { label: string; pct: number; i: number
         <span className="text-fg-secondary">{label}</span>
         <span className="font-mono text-fg">{Math.round(pct)} %</span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-line">
+      <div className="h-1.5 overflow-hidden rounded-full bg-active">
         <div
           className={cn('df-grow h-full rounded-full', pct >= 80 ? 'bg-warning' : 'bg-accent')}
           style={{ width: `${Math.min(100, pct)}%`, animationDelay: `${i * 0.15}s` }}
@@ -57,8 +54,8 @@ export const SmallButton = ({ danger, className, ...rest }: ButtonHTMLAttributes
   <button
     {...rest}
     className={cn(
-      'h-8 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50',
-      danger ? 'border-danger/30 bg-danger-soft text-danger hover:bg-danger hover:text-danger-fg' : 'border-line bg-elevated text-fg hover:bg-hover',
+      'h-7.5 rounded-md border px-3 text-sm font-semibold transition-colors disabled:opacity-50',
+      danger ? 'border-danger/25 bg-danger-soft text-danger hover:border-danger hover:bg-danger hover:text-danger-fg' : 'border-line bg-surface text-fg hover:bg-elevated',
       className
     )}
   />

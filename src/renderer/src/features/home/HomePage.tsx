@@ -70,9 +70,9 @@ function DockerTile({ docker, reload, i }: { docker: DockerOverview | null; relo
       title={`Docker · ${project.name}`}
       aside={<Pill tone={running ? 'success' : 'muted'}>{t.home.composeOnline.replace('{r}', String(project.running)).replace('{t}', String(project.total))}</Pill>}
     >
-      <div className="flex flex-col gap-2 text-base">
+      <div className="flex flex-col text-base">
         {services.map((s, n) => (
-          <div key={s.name} className="flex items-center gap-2.5">
+          <div key={s.name} className="flex min-h-9 items-center gap-2.5 border-b border-line-subtle last:border-b-0">
             <Dot live={s.live} delay={n * 0.4} />
             <span className="flex-1 truncate text-fg">{s.name}</span>
             {s.port && <span className="font-mono text-xs text-fg-muted">:{s.port}</span>}
@@ -162,9 +162,9 @@ function GitTile({ repos, onFetchAll, fetching, i }: { repos: { project: Project
   return (
     <Tile i={i} title="Git">
       {!repos ? <Spinner /> : shown.length === 0 ? <p className="text-sm text-fg-muted">{t.home.noRepos}</p> : (
-        <div className="flex flex-col gap-2.5 text-base">
+        <div className="flex flex-col text-base">
           {shown.map(({ project, details }) => (
-            <button key={project.id} onClick={() => navigate('/git')} className="flex items-center gap-2.5 text-left">
+            <button key={project.id} onClick={() => navigate('/git')} className="flex min-h-9 items-center gap-2.5 border-b border-line-subtle text-left last:border-b-0 hover:text-accent">
               <span className="flex-1 truncate text-fg">{project.name}</span>
               <span className="font-mono text-xs text-fg-secondary">{details.branch}</span>
               {details.ahead > 0 ? <Pill tone="accent">{t.home.ahead.replace('{n}', String(details.ahead))}</Pill>
@@ -191,7 +191,7 @@ function PortsTile({ ports, i }: { ports: ListeningPort[] | null; i: number }) {
       {!ports ? <Spinner /> : ports.length === 0 ? <p className="text-sm text-fg-muted">{t.home.portsNone}</p> : (
         <div className="flex flex-wrap gap-2">
           {ports.slice(0, 12).map(p => (
-            <button key={p.port} onClick={() => navigate('/ports')} className="rounded-lg border border-line bg-elevated px-2.5 py-1.5 font-mono text-xs text-fg transition-colors hover:bg-hover">
+            <button key={p.port} onClick={() => navigate('/ports')} className="h-6.5 rounded-full border border-line bg-surface px-2.5 font-mono text-xs text-fg-secondary transition-colors hover:border-fg-muted hover:text-fg">
               {p.port} · {p.processName.replace(/\.exe$/i, '')}
             </button>
           ))}
@@ -217,7 +217,7 @@ function ActiveProjectCard({ projects, repos }: { projects: Project[]; repos: { 
     <label className="flex items-center">
       <span className="sr-only">{h.choose}</span>
       <select value={active?.id ?? ''} onChange={e => setActive(e.target.value || null)}
-        className="h-8 max-w-[200px] rounded-lg border border-line bg-elevated px-2.5 text-sm text-fg-secondary outline-none">
+        className="h-7.5 max-w-[200px] rounded-md border border-line bg-surface px-2.5 text-sm text-fg-secondary outline-none focus-visible:border-accent">
         <option value="">{h.choose}</option>
         {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
       </select>
@@ -230,8 +230,8 @@ function ActiveProjectCard({ projects, repos }: { projects: Project[]; repos: { 
         <>
           <ProjectIcon framework={active.framework} size="lg" />
           <div className="min-w-0 flex-1">
-            <div className="font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{h.activeTitle}</div>
-            <button onClick={() => navigate(`/project/${active.id}`)} className="block max-w-full truncate text-left text-lg font-semibold text-fg hover:text-accent">{active.name}</button>
+            <div className="text-xs font-semibold tracking-[.04em] text-fg-muted uppercase">{h.activeTitle}</div>
+            <button onClick={() => navigate(`/project/${active.id}`)} className="block max-w-full truncate text-left font-display text-lg font-bold tracking-[-.01em] text-fg hover:text-accent">{active.name}</button>
             <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-fg-muted">
               {details?.branch && <span>{details.branch}</span>}
               {!!details?.changes && <span className="text-warning">{h.gitChanges.replace('{n}', String(details.changes))}</span>}
@@ -281,7 +281,7 @@ function Onboarding() {
     <Card className="df-rise flex flex-col items-center gap-5 px-8 py-10 text-center">
       <div className="flex size-16 items-center justify-center rounded-2xl bg-accent-soft text-accent"><Layers size={32} /></div>
       <div>
-        <h3 className="text-lg font-semibold text-fg">{t.home.noProjects}</h3>
+        <h3 className="font-display text-lg font-bold text-fg">{t.home.noProjects}</h3>
         <p className="mt-1 text-fg-secondary">{t.home.noRecentHint}</p>
       </div>
       <Button size="lg" onClick={() => navigate('/new-project')}>{t.home.createFirst}</Button>
@@ -361,7 +361,7 @@ function WidgetBar({ widgets, onAdd, onReset, onDone }: { widgets: HomeWidget[];
       <label className="flex items-center">
         <span className="sr-only">{w.add}</span>
         <select value="" disabled={!missing.length} onChange={e => { if (e.target.value) onAdd(e.target.value as WidgetId) }}
-          className="h-9 rounded-control border border-line bg-canvas px-3 text-sm text-fg outline-none disabled:opacity-50">
+          className="h-9 rounded-control border border-line bg-surface px-3 text-sm text-fg outline-none focus-visible:border-accent disabled:opacity-50">
           <option value="">{missing.length ? `+ ${w.add}` : w.allShown}</option>
           {missing.map(id => <option key={id} value={id}>{w.names[id]}</option>)}
         </select>
@@ -451,14 +451,14 @@ export default function HomePage() {
   const places: Partial<Record<WidgetId, MasonryPlace>> = Object.fromEntries(visible.map((w, k) => [w.id, placed[k]]))
 
   return (
-    <Page className="max-w-[1180px] gap-6 px-8 pt-7">
-      <header className="df-rise flex flex-wrap items-end justify-between gap-4">
+    <Page>
+      <header className="df-rise flex flex-wrap items-end justify-between gap-3.5">
         <div className="min-w-0">
-          <div className="font-mono text-xs font-medium uppercase tracking-[.04em] text-fg-muted">
+          <p className="text-sm text-fg-muted first-letter:uppercase">
             {now.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </div>
-          <h1 className="mt-1.5 mb-1 text-[30px] leading-tight font-semibold tracking-[-.02em] text-fg">{name ? `${greeting} ${name}` : greeting}</h1>
-          <p className="text-md text-fg-secondary">{docker ? `${summary[0].toUpperCase()}${summary.slice(1)}.` : t.home.subtitle}</p>
+          </p>
+          <h1 className="mt-1 font-display text-hero font-bold tracking-[-.025em] text-fg">{name ? `${greeting} ${name}` : greeting}</h1>
+          <p className="mt-1 text-base text-fg-secondary">{docker ? `${summary[0].toUpperCase()}${summary.slice(1)}.` : t.home.subtitle}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {!editing && <Button variant="ghost" onClick={() => setEditing(true)}><LayoutDashboard size={15} /> {t.home.widgets.customize}</Button>}

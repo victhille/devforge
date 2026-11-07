@@ -201,12 +201,12 @@ export default function AssistantPanel() {
   const shownChips = showAllSkills ? chips : chips.slice(0, 3)
 
   return (
-    <aside className="flex w-[380px] shrink-0 flex-col border-l border-line-subtle bg-sidebar">
+    <aside className="flex w-[420px] shrink-0 flex-col border-l border-line-subtle bg-sidebar">
       {/* Header: Forgy, what he is doing, with which model */}
       <div className="flex shrink-0 items-center gap-3 border-b border-line-subtle p-4">
         <Mascot mood={mood} size={60} />
         <div className="min-w-0 flex-1">
-          <div className="text-md font-semibold text-fg">{a.mascotName}</div>
+          <div className="font-display text-lg font-bold tracking-[-.01em] text-fg">{a.mascotName}</div>
           <div className="truncate text-sm text-fg-secondary">
             {[a.moods[mood], modelShown && (MODEL_LABEL[modelShown] ?? modelShown), effortLabel?.toLowerCase()].filter(Boolean).join(' · ')}
           </div>
@@ -224,7 +224,7 @@ export default function AssistantPanel() {
       {usage && (
         <div className="flex shrink-0 items-center gap-2.5 border-b border-line-subtle px-4 py-2.5 font-mono text-xs text-fg-secondary" title={a.costHint}>
           <span>{conversation ? `${money(conversation.cost)} · ` : ''}{money(usage.spent)}{usage.budget > 0 ? ` / ${usage.budget} $` : ''}</span>
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-line">
+          <div className="h-1 flex-1 overflow-hidden rounded-full bg-active">
             <div className="df-grow h-full rounded-full bg-forgy" style={{ width: `${spentPct}%` }} />
           </div>
           <span>{new Date().toLocaleDateString(l === 'fr' ? 'fr-FR' : 'en-GB', { month: 'short' })}</span>
@@ -256,7 +256,7 @@ export default function AssistantPanel() {
           <button onClick={() => setHistory(null)} className="mb-2 flex items-center gap-1 px-2 text-xs text-fg-muted hover:text-fg"><ChevronLeft size={12} /> {a.back}</button>
           {history.length === 0 && <p className="p-4 text-center text-sm text-fg-muted">{a.noHistory}</p>}
           {history.map(h => (
-            <div key={h.id} className={cn('group flex items-center gap-2 rounded-lg px-2.5 py-2 hover:bg-hover', h.id === conversation?.id && 'bg-active')}>
+            <div key={h.id} className={cn('group flex items-center gap-2 rounded-lg px-2.5 py-2 hover:bg-elevated', h.id === conversation?.id && 'bg-active')}>
               <button onClick={() => load(h.id)} className="flex min-w-0 flex-1 flex-col text-left">
                 <span className="truncate text-sm text-fg">{h.title}</span>
                 <span className="text-2xs text-fg-muted">{h.projectName ? `${h.projectName} · ` : ''}{formatRelative(h.updatedAt, lang)}</span>
@@ -287,11 +287,12 @@ export default function AssistantPanel() {
                   {item.context.length > 0 && (
                     <span className="flex items-center gap-1 text-2xs text-fg-muted"><FileText size={10} /> {item.context.join(' · ')}</span>
                   )}
-                  <div className="max-w-[85%] rounded-[12px_12px_4px_12px] bg-active px-3 py-[9px] whitespace-pre-wrap text-fg">{item.text}</div>
+                  {/* A pinched corner on the speaker's side, as in the mock-up: no theme radius for it */}
+                  <div className="max-w-[85%] rounded-[14px_14px_4px_14px] bg-elevated px-3 py-2.5 whitespace-pre-wrap text-fg">{item.text}</div>
                 </div>
               )
               if (item.kind === 'assistant') return (
-                <div key={i} className="df-rise max-w-[92%] rounded-[12px_12px_12px_4px] border border-line-subtle bg-surface px-3 py-2.5">
+                <div key={i} className="df-rise max-w-[92%] rounded-[4px_14px_14px_14px] border border-line-subtle bg-surface px-3 py-2.5">
                   <Markdown text={item.text} />
                 </div>
               )
@@ -326,21 +327,21 @@ export default function AssistantPanel() {
                 const Icon = SKILL_ICON[s.icon] ?? MessageSquare
                 return (
                   <button key={s.id} onClick={() => pickSkill(s)} title={s.description[l]}
-                    className={cn('flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors',
-                      skillId === s.id ? 'border-forgy/50 bg-forgy-soft text-forgy' : 'border-line bg-surface text-fg-secondary hover:bg-hover hover:text-fg')}>
+                    className={cn('flex h-7.5 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors',
+                      skillId === s.id ? 'border-forgy/50 bg-forgy-soft font-semibold text-forgy' : 'border-line bg-surface text-fg-secondary hover:border-fg-muted hover:text-fg')}>
                     <Icon size={12} /> {s.label[l]}
                   </button>
                 )
               })}
               {chips.length > 3 && (
-                <button onClick={() => setShowAllSkills(v => !v)} className="h-7 rounded-full px-2 text-xs text-fg-muted hover:text-fg">
+                <button onClick={() => setShowAllSkills(v => !v)} className="h-7.5 rounded-full px-2 text-xs text-fg-muted hover:text-fg">
                   {showAllSkills ? '−' : `+${chips.length - 3}`}
                 </button>
               )}
             </div>
 
             <div className="flex flex-wrap items-center gap-1.5">
-              <label className="relative flex h-[26px] items-center rounded-lg border border-line bg-elevated pr-1 pl-2.5 text-xs text-fg-secondary">
+              <label className="relative flex h-7 items-center rounded-md border border-line bg-surface pr-1 pl-2.5 text-xs text-fg-secondary focus-within:border-accent">
                 <span className="sr-only">{a.noProject}</span>
                 <select value={projectPath ?? ''} onChange={e => setProjectPath(e.target.value || null)}
                   className="max-w-[170px] cursor-pointer appearance-none truncate bg-transparent pr-4 outline-none">
@@ -351,14 +352,14 @@ export default function AssistantPanel() {
               </label>
               {pageContext && (
                 <button onClick={() => setAttachPage(v => !v)} title={attachPage ? a.detachPage : a.attachPage}
-                  className={cn('flex h-[26px] max-w-[180px] items-center gap-1 rounded-lg border px-2.5 text-xs transition-colors',
+                  className={cn('flex h-7 max-w-[180px] items-center gap-1 rounded-md border px-2.5 text-xs transition-colors',
                     attachPage ? 'border-accent/40 bg-accent-soft text-accent' : 'border-line text-fg-muted line-through')}>
                   <Paperclip size={11} className="shrink-0" /> <span className="truncate">{pageContext.label}</span>
                 </button>
               )}
             </div>
 
-            <div className="flex items-end gap-2 rounded-xl border border-line bg-canvas py-1.5 pr-1.5 pl-3 focus-within:border-forgy/50" title={a.footer}>
+            <div className="flex items-end gap-2 rounded-xl border border-line bg-surface py-1.5 pr-1.5 pl-3 transition-[border-color,box-shadow] focus-within:border-accent focus-within:ring-3 focus-within:ring-accent-soft" title={a.footer}>
               <textarea
                 ref={inputRef}
                 value={input}
@@ -377,7 +378,7 @@ export default function AssistantPanel() {
               />
               {running ? (
                 <button title={a.stop} aria-label={a.stop} onClick={() => idRef.current && window.devforge.assistant.stop(idRef.current)}
-                  className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-line bg-elevated text-fg hover:bg-hover"><Square size={13} /></button>
+                  className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-fg hover:bg-elevated"><Square size={13} /></button>
               ) : (
                 <button title={a.send} aria-label={a.send} disabled={!input.trim()} onClick={() => send()}
                   className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-forgy text-forgy-fg transition-[transform,opacity] active:scale-95 disabled:opacity-40"><ArrowUp size={16} strokeWidth={2.4} /></button>
