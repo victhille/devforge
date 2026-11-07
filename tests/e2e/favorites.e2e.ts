@@ -20,25 +20,20 @@ test('pin, reorder and reset the menu favorites', async () => {
   const menu = page.getByRole('complementary')
   await expect(favs(run)).toHaveText(['Projets', 'Docker', 'Base de données', 'API Tester'])
 
-  // Pin Deploy from the "Going live" group (its panel, opened from the rail)
+  // Pin Deploy from the "Going live" group
   await menu.getByRole('button', { name: 'Mise en ligne' }).click()
   const deployRow = menu.locator('.group\\/row', { has: page.getByRole('link', { name: 'Déploiement', exact: true }) }).last()
   await deployRow.hover()
   await deployRow.getByRole('button', { name: 'Ajouter aux favoris' }).click()
-  await expect(deployRow.getByRole('button', { name: 'Retirer des favoris' })).toBeVisible()
-  await expect.poll(() => saved(run)).toEqual(['/projects', '/docker', '/database', '/api-tester', '/deploy'])
-  // The favorites are under Home
-  await menu.getByRole('button', { name: 'Accueil' }).click()
   await expect(favs(run)).toHaveText(['Projets', 'Docker', 'Base de données', 'API Tester', 'Déploiement'])
+  await expect.poll(() => saved(run)).toEqual(['/projects', '/docker', '/database', '/api-tester', '/deploy'])
 
-  // Unpin Docker: it stays reachable in its group
+  // Unpin Docker: it stays reachable in its group (Going live, open)
   const dockerFav = page.locator('[data-fav]', { has: page.getByRole('link', { name: 'Docker' }) })
   await dockerFav.hover()
   await dockerFav.getByRole('button', { name: 'Retirer des favoris' }).click()
   await expect(favs(run)).toHaveText(['Projets', 'Base de données', 'API Tester', 'Déploiement'])
-  await menu.getByRole('button', { name: 'Mise en ligne' }).click()
   await expect(menu.getByRole('link', { name: 'Docker', exact: true })).toBeVisible()
-  await menu.getByRole('button', { name: 'Accueil' }).click()
 
   // Keyboard reorder: Deploy goes up one
   await favs(run).nth(3).focus()

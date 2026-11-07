@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { writeFileSync } from 'fs'
 import { join } from 'path'
-import { goTo, launch, openProjectTab, type Launched } from './launch'
+import { goTo, launch, type Launched } from './launch'
 import { seedVitestProject } from './fakeVitest'
 import { settledAxeIssues as settledAxe } from './axe'
 
@@ -51,7 +51,7 @@ test('a failure shows expected and received, opens at its line, reruns alone onc
 
   // Fixed: "run the failures again" runs that file only, and it passes
   writeFileSync(join(shop, 'fixed'), '')
-  await openProjectTab(page, 'Tests')
+  await page.getByRole('tab', { name: 'Tests' }).click()
   await page.getByRole('button', { name: 'Relancer les échecs (1)' }).click()
   await expect(page.getByTestId('test-failure')).toHaveCount(0, { timeout: 30_000 })
   await expect(page.getByText('Échoués', { exact: true }).locator('..')).toContainText('0')

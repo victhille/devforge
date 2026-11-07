@@ -17,7 +17,7 @@ export default function SearchInput({ value, onChange, placeholder, autoFocus, c
   const { t } = useI18n()
   const field = useRef<HTMLInputElement>(null)
   return (
-    <div className={cn('flex h-9 min-w-0 items-center gap-2 rounded-control border border-line bg-surface px-3 text-fg-muted transition-[border-color,box-shadow] focus-within:border-accent focus-within:ring-3 focus-within:ring-accent-soft', className)}>
+    <div className={cn('flex h-9 min-w-0 items-center gap-2 rounded-control border border-line bg-canvas px-2.5 text-fg-muted transition-[border-color,box-shadow] focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/25', className)}>
       {/* The label names the field only (the clear button stays outside it) */}
       <label className="flex min-w-0 flex-1 items-center gap-2">
         <Search size={14} aria-hidden className="shrink-0" />

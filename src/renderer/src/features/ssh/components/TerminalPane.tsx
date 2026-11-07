@@ -30,7 +30,7 @@ export default function TerminalPane({ sessionId, status, error, active }: Props
 
     const term = new Terminal({
       theme: XTERM_THEME,
-      fontFamily: "'JetBrains Mono Variable', 'Cascadia Code', 'Fira Code', 'Consolas', monospace",
+      fontFamily: "'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace",
       fontSize: 13,
       lineHeight: 1.4,
       cursorBlink: true,

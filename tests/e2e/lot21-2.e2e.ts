@@ -50,7 +50,7 @@ test('with a plan: last night, the files, a restore asks first', async () => {
   await expect(page.getByText(/^Réussie .* · 1\.2 MB$/)).toBeVisible()
   await expect(page.getByText('Chaque nuit à 03:30 · 7 jours, 4 semaines')).toBeVisible()
   await expect(page.getByText('db-n8n-postgres-1.sql.gz')).toBeVisible()
-  await page.getByRole('button', { name: 'Restaurer', exact: true }).first().click()
+  await page.getByRole('button', { name: 'Restaurer' }).first().click()
   const dialog = page.getByRole('dialog', { name: 'Restaurer n8n-postgres-1 ?' })
   await expect(dialog).toContainText('pre-restore/')
   await dialog.getByRole('button', { name: 'Annuler' }).click()

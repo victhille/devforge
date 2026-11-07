@@ -208,7 +208,7 @@ export function diagramSvg(tables: DbDiagramTable[], positions: Record<string, P
   const m = 30
   const vb = `${all.x - m} ${all.y - m} ${all.w + m * 2 + 50} ${all.h + m * 2}`
   const parts: string[] = [
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${Math.ceil(all.w + m * 2 + 50)}" height="${Math.ceil(all.h + m * 2)}" font-family="JetBrains Mono Variable, Consolas, monospace">`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${Math.ceil(all.w + m * 2 + 50)}" height="${Math.ceil(all.h + m * 2)}" font-family="Geist Mono, Consolas, monospace">`,
     `<rect x="${all.x - m}" y="${all.y - m}" width="${all.w + m * 2 + 50}" height="${all.h + m * 2}" fill="${c.canvas}"/>`
   ]
   for (const l of links) {

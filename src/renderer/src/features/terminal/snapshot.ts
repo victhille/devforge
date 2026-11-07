@@ -4,20 +4,19 @@ import type { IBufferCell, Terminal } from '@xterm/xterm'
 export interface Seg { text: string; fg?: string; bold?: boolean }
 export type Line = Seg[]
 
-/** Warm graphite and Forgy's orange cursor, like --color-term in styles/index.css */
 export const XTERM_THEME = {
-  background:  '#0B0A09',
-  foreground:  '#E8E2DA',
-  cursor:      '#FF7A33',
-  selectionBackground: 'rgba(255,122,51,0.3)',
-  black:       '#2A2622', brightBlack:   '#6B635B',
+  background:  '#090B10',
+  foreground:  '#D4D4D4',
+  cursor:      '#4F8EF7',
+  selectionBackground: 'rgba(79,142,247,0.3)',
+  black:       '#1E2435', brightBlack:   '#4A5068',
   red:         '#F7615A', brightRed:     '#FF7875',
   green:       '#3DD68C', brightGreen:   '#5EF9A8',
   yellow:      '#F5A623', brightYellow:  '#FFD666',
   blue:        '#4F8EF7', brightBlue:    '#74AAFF',
   magenta:     '#A78BFA', brightMagenta: '#C4B5FD',
   cyan:        '#38BDF8', brightCyan:    '#7DD3FC',
-  white:       '#D9D2C9', brightWhite:   '#F2EEE9'
+  white:       '#CBD5E1', brightWhite:   '#F1F5F9'
 }
 
 const BASE16 = [
