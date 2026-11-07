@@ -1,0 +1,23 @@
+---
+/**
+ * Starlight's header, with a second row: the site's sections. The pages that are not
+ * documentation (What's new, the comparison, privacy, contributing) live here, not in
+ * the sidebar, which keeps the documentation only.
+ */
+import Default from '@astrojs/starlight/components/Header.astro'
+import { SECTIONS, sectionOf } from './sections'
+
+const { lang, id } = Astro.locals.starlightRoute
+const en = lang === 'en'
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+const current = sectionOf(id)
+---
+
+<div class="df-head">
+  <div class="df-head-main"><Default /></div>
+  <nav class="df-tabs print:hidden" aria-label={en ? 'Sections' : 'Rubriques'}>
+    {SECTIONS.map(s => (
+      <a href={`${base}/${en ? 'en/' : ''}${s.path}`} aria-current={s.id === current ? 'page' : undefined}>{en ? s.en : s.fr}</a>
+    ))}
+  </nav>
+</div>

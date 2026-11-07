@@ -1,0 +1,45 @@
+<!doctype html>
+<!--
+  The audience of DevForge, for its owner only. No link leads here and search
+  engines are told to stay away, but that is not the lock: the numbers are read
+  from GitHub with the visitor's own token, and GitHub gives the traffic and the
+  private archive only to the owner. See docs/dev/stats.md.
+-->
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https://avatars.githubusercontent.com; connect-src https://api.github.com; base-uri 'none'; form-action 'none'" />
+  <title>Statistiques · DevForge</title>
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./admin.css" />
+  <script type="module" src="./admin.js"></script>
+</head>
+<body>
+  <main id="app">
+    <header class="top">
+      <h1>Statistiques</h1>
+      <div id="who" class="who"></div>
+    </header>
+
+    <section id="login" class="card login" hidden>
+      <h2>Connexion</h2>
+      <p>Colle un jeton GitHub du compte propriétaire du dépôt. Il ne sert qu'à lire GitHub depuis ce navigateur : il n'est envoyé nulle part ailleurs.</p>
+      <form id="login-form">
+        <label for="token">Jeton GitHub</label>
+        <input id="token" type="password" autocomplete="off" spellcheck="false" required />
+        <label class="check"><input id="remember" type="checkbox" /> Rester connecté sur ce navigateur</label>
+        <button type="submit">Se connecter</button>
+      </form>
+      <p id="login-error" class="error" role="alert"></p>
+      <p class="hint">Jeton à grain fin, en lecture seule, limité aux dépôts devforge et devforge-stats : Administration, Contents et Metadata en lecture. La marche à suivre est dans docs/dev/stats.md.</p>
+    </section>
+
+    <p id="status" class="status" role="status"></p>
+    <div id="stats" hidden></div>
+  </main>
+  <div id="tip" class="tip" hidden></div>
+</body>
+</html>

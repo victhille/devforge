@@ -1,0 +1,84 @@
+---
+/**
+ * The release notes of every published version, read from GitHub when the
+ * site is built (the site workflow also rebuilds on each release). Each note
+ * holds the French text, then the English one in a « English » <details>.
+ */
+import { marked } from 'marked'
+
+interface Props { lang: 'fr' | 'en' }
+const { lang } = Astro.props
+const fr = lang === 'fr'
+const repo = 'https://github.com/victhille/devforge'
+const t = fr
+  ? { latest: 'dernière version', download: 'Télécharger', github: 'Voir sur GitHub', earlier: 'Versions précédentes', detail: 'Le détail', unavailable: "Les notes de version n'ont pas pu être lues : elles sont toutes sur GitHub.", older: 'Les versions plus anciennes sont dans le', changelog: 'journal des versions', changelogUrl: `${repo}/blob/main/CHANGELOG.md` }
+  : { latest: 'latest version', download: 'Download', github: 'See on GitHub', earlier: 'Earlier versions', detail: 'Details', unavailable: 'The release notes could not be read: they are all on GitHub.', older: 'Older versions are in the', changelog: 'changelog', changelogUrl: `${repo}/blob/main/CHANGELOG.en.md` }
+
+interface Release { tag_name: string; html_url: string; published_at: string; draft: boolean; prerelease: boolean; body: string | null; assets: { name: string; browser_download_url: string }[] }
+
+async function releases(): Promise<Release[] | null> {
+  const headers: Record<string, string> = { Accept: 'application/vnd.github+json' }
+  if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
+  try {
+    const res = await fetch('https://api.github.com/repos/victhille/devforge/releases?per_page=30', { headers })
+    if (!res.ok) return null
+    return ((await res.json()) as Release[]).filter(r => !r.draft && !r.prerelease)
+  } catch { return null }
+}
+
+/** The note in this language: its summary (the quote) and the rest */
+function note(body: string): { summary: string; rest: string } {
+  const [frPart, enPart = ''] = body.split(/<details>\s*<summary>English<\/summary>/)
+  const text = (fr ? frPart : enPart.replace(/<\/details>\s*$/, '')) || frPart
+  const lines = text.trim().split('\n')
+  const summary = lines.filter(l => l.startsWith('>')).map(l => l.replace(/^>\s?/, '')).join(' ').trim()
+  const rest = lines.filter(l => !l.startsWith('>')).join('\n').trim()
+    // Section titles are h3 in the notes: one level down under a version's heading
+    .replace(/^### /gm, '#### ')
+  return { summary, rest }
+}
+
+const date = (iso: string) => new Date(iso).toLocaleDateString(fr ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+const list = await releases()
+const [latest, ...earlier] = list ?? []
+const latestNote = latest && note(latest.body ?? '')
+const exe = latest?.assets.find(a => /^DevForge-Setup-v.+\.exe$/.test(a.name))
+---
+
+{!latest ? (
+  <p class="df-releases-error">{t.unavailable} <a href={`${repo}/releases`}>{repo.replace('https://', '')}/releases</a></p>
+) : (
+  <div class="df-releases not-content">
+    <article class="df-release-latest">
+      <div class="df-release-head">
+        <h2 id={latest.tag_name}>{latest.tag_name}</h2>
+        <span class="df-badge">{t.latest}</span>
+        <span class="df-date">{date(latest.published_at)}</span>
+      </div>
+      {latestNote!.summary && <p class="df-summary">{latestNote!.summary}</p>}
+      <div class="df-release-body" set:html={marked.parse(latestNote!.rest)} />
+      <div class="df-release-actions">
+        <a class="df-button" href={exe?.browser_download_url ?? latest.html_url}>{t.download} {latest.tag_name}</a>
+        <a href={latest.html_url}>{t.github} →</a>
+      </div>
+    </article>
+
+    {earlier.length > 0 && <h2 class="df-earlier">{t.earlier}</h2>}
+    {earlier.map(r => {
+      const n = note(r.body ?? '')
+      return (
+        <article class="df-release">
+          <div class="df-release-side">
+            <h3 id={r.tag_name}><a href={r.html_url}>{r.tag_name}</a></h3>
+            <span class="df-date">{date(r.published_at)}</span>
+          </div>
+          <div class="df-release-main">
+            {n.summary && <p>{n.summary}</p>}
+            {n.rest && <details><summary>{t.detail}</summary><div class="df-release-body" set:html={marked.parse(n.rest)} /></details>}
+          </div>
+        </article>
+      )
+    })}
+    <p class="df-older">{t.older} <a href={t.changelogUrl}>{t.changelog}</a>.</p>
+  </div>
+)}

@@ -1,0 +1,25 @@
+---
+/** Header links: Starlight's own (GitHub) plus the download button of the home page */
+import Default from '@astrojs/starlight/components/SocialIcons.astro'
+
+const en = Astro.currentLocale === 'en'
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+---
+
+<Default />
+<a class="df-header-download" href={`${base}/${en ? 'en/' : ''}download/`}>{en ? 'Download' : 'Télécharger'}</a>
+
+<style>
+	.df-header-download {
+		margin-inline-start: 0.75rem;
+		padding: 0.45rem 0.9rem;
+		border-radius: 8px;
+		background: var(--df-ink);
+		color: var(--df-on-ink);
+		font-size: var(--sl-text-sm);
+		font-weight: 600;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+	.df-header-download:hover { background: var(--df-ink-hover); color: var(--df-on-ink); }
+</style>

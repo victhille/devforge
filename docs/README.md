@@ -1,0 +1,19 @@
+# Documentation de DevForge
+
+La présentation, l'installation et la compilation sont dans le [README](../README.md) ; pour contribuer, voir [CONTRIBUTING](../CONTRIBUTING.md). La documentation pour les utilisateurs est sur le [site](https://victhille.github.io/devforge/), dont les sources sont dans [`site/`](../site/).
+
+## Utiliser DevForge
+
+| Page | Contenu |
+|---|---|
+| [guide/forgy.md](guide/forgy.md) | Forgy, l'assistant IA : réglages, tâches, outils, actions, coût, widget de bureau, dictée |
+
+## Développer DevForge
+
+| Page | Contenu |
+|---|---|
+| [dev/architecture.md](dev/architecture.md) | Organisation du code, IPC, données, secrets, tests |
+| [dev/portage.md](dev/portage.md) | Étude : ce qu'il faut pour DevForge sur macOS et Linux |
+| [dev/versions.md](dev/versions.md) | Numéros de version, messages de commit, sortir une release, mises à jour automatiques |
+
+Les versions sont décrites dans le [CHANGELOG](../CHANGELOG.md) ([English](../CHANGELOG.en.md)).
