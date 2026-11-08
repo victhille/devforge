@@ -43,7 +43,7 @@ Databases are looked for in the `.env` and `compose.yaml` of **each** project of
 
 ![A Next.js project's page](../../../../assets/screens/project-en.png)
 
-Click a project to open its page. At the top: the name, the path (click to open the folder), and the buttons **Favorite**, **Open in the IDE**, **Open a terminal**, **Save as template** (see [My templates](/devforge/en/dev/new-project/#my-templates)), **Remove from DevForge** and **Ask Forgy** (Forgy opens with this project in context). Opening a project's page makes it **active**.
+Click a project to open its page. At the top: the name with **Active project** and the number of changed files, then a line with the path (click to open the folder), the framework, the package manager and the branch. On the right: the star (**Add to favorites**), the button of your [IDE](/devforge/en/dev/ide/), **Run dev** (runs the `dev` script in the Terminal tab), **Ask Forgy** (Forgy opens with this project in context) and the **⋯** menu (**Other actions**): **Open a terminal**, **Save as template** (see [My templates](/devforge/en/dev/new-project/#my-templates)) and **Remove from DevForge**. Opening a project's page makes it **active**.
 
 The overview's **Project** tile has an **IDE of this project** choice: *Default* follows Settings, or another IDE found on this PC that this project keeps (see [IDE](/devforge/en/dev/ide/)).
 
@@ -51,28 +51,33 @@ Tabs only show when they make sense for the project:
 
 | Tab | Content |
 |---|---|
-| Overview | one tile per topic (Git, Docker, variables, database, ports…) with its summary and **See** |
+| Overview | one tile per topic with its summary and **See**: Git, **Scripts** (one click runs one), Tests (the last run), Docker, Database, Variables, Ports and domains, Deployment (with **Deploy**), Logs, Project |
+| Files & Git | the project tree with what Git saw change, the preview or diff of the file clicked, the search; above, the branch with **Fetch**, **Pull** and **Push**; below, the commit of the ticked files (**Commit** or **Commit & push**) |
 | Notes | the project's tasks to check off and its formatted notes, see below; the number of open tasks shows on the tab |
-| Git | branch, changed files, commits to push or pull, last commit, **Commit…**, **Pull**, **Push**, **Fetch** |
 | GitHub | if the repository is on GitHub: GitHub Actions (with **Re-run failed jobs**), open pull requests, releases |
 | Symfony / Next.js / Laravel workshop | depending on the framework, see below |
-| Terminal | a built-in terminal opened in the project folder |
+| Terminal | terminals in tabs opened in the project folder (see below) and, next to them, **The project's scripts**: each runs in its own tab, and its state (running, port, time) stays shown with **Stop** |
 | Docker | the Compose project of the folder (or its parent): services, state, start / stop |
 | Variables | the `.env` files and their keys, see [Env variables](/devforge/en/system/env-files/) |
 | Packages | when the project has a `package.json`, a `composer.json` or another language's dependencies (Python, Rust, Go…): versions, vulnerabilities, updates; see [Packages](/devforge/en/dev/packages/) |
-| Tests | when the project has a test tool (Vitest, Jest, Playwright, PHPUnit, pytest, Go, Cargo): run them, see each test and its failures; see [Tests](/devforge/en/dev/tests/) |
+| Tests | when the project has a test tool (Vitest, Jest, Playwright, PHPUnit, pytest, Go, Cargo): run them, the totals, the files on the left and the detail on the right, **Run this test again** on a failure; see [Tests](/devforge/en/dev/tests/) |
 | Database | the linked database, explored in place (see below); **Link a connection…** |
 | Logs | the log files found (`storage/logs`, `var/log`, `logs`…), followed live; you can add one by its path |
 | Ports & domains | the ports found in the config (`.env`, scripts, Compose), listening or free, **Free**; the linked local domains |
 | Deploy | the project's deploy targets and **Sync the .env** with the server |
 | Vercel | if the folder is linked to Vercel: deployments, variables, domains |
-| Files | the project tree, with what Git saw change, a preview of the file clicked and the search (the scripts are on the overview) |
 
 What DevForge **found** by itself (a database, a domain, a port) is marked *found*; what you linked by hand, *added*. **Remove from the project** hides an item; **Show again** brings it back.
 
+An old link to the Git tab opens **Files & Git**.
+
+### The project's terminal
+
+Each command and its output make a block, under the previous one. A failed block offers **Explain with Forgy** and **Copy the output**. The **Shortcuts**, under the scripts: <kbd>→</kbd> or <kbd>End</kbd> accepts the suggestion, <kbd>↑</kbd> brings back the previous command, <kbd>Ctrl</kbd> <kbd>R</kbd> searches the history, <kbd>Ctrl</kbd> <kbd>L</kbd> clears the blocks, <kbd>Ctrl</kbd> <kbd>&#96;</kbd> opens the terminal at the bottom of the screen.
+
 ### File previews
 
-In the **Files** tab, clicking a file opens it next to the tree:
+In the **Files & Git** tab, clicking a file opens it next to the tree:
 
 | File | Preview |
 |---|---|
@@ -87,7 +92,7 @@ A binary file (archive, program, Office document) or one too big (over 1 MB of t
 
 ### Changes since the last commit
 
-In a Git repository, the **Files** tab's tree shows what changed since the last commit, as VS Code does:
+In a Git repository, the **Files & Git** tab's tree shows what changed since the last commit, as VS Code does:
 
 | Mark | Meaning |
 |---|---|
@@ -104,7 +109,7 @@ For a project kept in a sub-folder of a repository (a group's project), only its
 
 ### Searching the project
 
-At the top of the **Files** tab, **Search the project** looks for a text in every file of the project, 300 ms after the last key:
+At the top of the **Files & Git** tab, **Search the project** looks for a text in every file of the project, 300 ms after the last key:
 
 - three buttons in the field: **Match case**, **Whole word**, **Regular expression**;
 - under the field, a file filter: `*.ts` (the name), `src/**` (the path), `!*.test.ts` (leave out), comma-separated;

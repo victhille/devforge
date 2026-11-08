@@ -20,7 +20,7 @@ Merge commits are not counted.
 
 - **Most active this month**: the projects with the most commits in the last 30 days, with the lines added and removed.
 - **Asleep**: no commit for 3 months, with the date of the last one. A folder that is not a Git repository does not show there.
-- **Branches to follow**: commits not pushed yet (↑) or to pull (↓), project by project. A click opens the project's Git tab.
+- **Branches to follow**: commits not pushed yet (↑) or to pull (↓), project by project. A click opens the project's **Files & Git** tab.
 
 A click on a project opens its [page](/devforge/en/dev/projects/).
 

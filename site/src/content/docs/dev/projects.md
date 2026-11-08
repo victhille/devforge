@@ -43,36 +43,41 @@ Les bases de données sont cherchées dans le `.env` et le `compose.yaml` de **c
 
 ![La fiche d'un projet Next.js](../../../assets/screens/project-fr.png)
 
-Clique sur un projet pour ouvrir sa fiche. En haut : le nom, le chemin (cliquer ouvre le dossier), et les boutons **Favori**, **Ouvrir dans l'IDE**, **Ouvrir un terminal**, **Enregistrer comme modèle** (voir [Mes modèles](/devforge/dev/new-project/#mes-modèles)), **Retirer de DevForge** et **Demander à Forgy** (Forgy s'ouvre avec ce projet en contexte). Ouvrir une fiche rend le projet **actif**.
+Clique sur un projet pour ouvrir sa fiche. En haut : le nom avec **Projet actif** et le nombre de fichiers modifiés, puis une ligne avec le chemin (cliquer ouvre le dossier), le framework, le gestionnaire de paquets et la branche. À droite : l'étoile (**Ajouter aux favoris**), le bouton de ton [IDE](/devforge/dev/ide/), **Lancer dev** (lance le script `dev` dans l'onglet Terminal), **Demander à Forgy** (Forgy s'ouvre avec ce projet en contexte) et le menu **⋯** (**Autres actions**) : **Ouvrir un terminal**, **Enregistrer comme modèle** (voir [Mes modèles](/devforge/dev/new-project/#mes-modèles)) et **Retirer de DevForge**. Ouvrir une fiche rend le projet **actif**.
 
-La tuile **Projet** de la vue d'ensemble a un choix **IDE de ce projet** : *Par défaut* suit les Paramètres, ou un autre IDE trouvé sur ce PC, que ce projet gardera (voir [IDE](/devforge/dev/ide/)).
+La tuile **Projet** de la vue d'ensemble (le chemin, le gestionnaire de paquets) a un choix **IDE de ce projet** : *Par défaut* suit les Paramètres, ou un autre IDE trouvé sur ce PC, que ce projet gardera (voir [IDE](/devforge/dev/ide/)).
 
 Les onglets n'apparaissent que s'ils ont un sens pour ce projet :
 
 | Onglet | Contenu |
 |---|---|
-| Vue d'ensemble | une tuile par sujet (Git, Docker, variables, base, ports…) avec son résumé et **Voir** |
+| Vue d'ensemble | une tuile par sujet avec son résumé et **Voir** : Git, **Scripts** (à lancer d'un clic), Tests (le dernier passage), Docker, Base de données, Variables, Ports et domaines, Déploiement (avec **Déployer**), Logs, Projet |
+| Fichiers et Git | l'arborescence du projet avec ce que Git a vu changer, l'aperçu ou le diff du fichier cliqué, la recherche ; au-dessus, la branche avec **Fetch**, **Pull** et **Push** ; dessous, le commit des fichiers cochés (**Commit** ou **Commit & push**) |
 | Notes | les tâches à cocher et les notes mises en forme du projet, voir plus bas ; le nombre de tâches à faire s'affiche sur l'onglet |
-| Git | branche, fichiers modifiés, commits à pousser ou à récupérer, dernier commit, **Commit…**, **Pull**, **Push**, **Fetch** |
 | GitHub | si le dépôt est sur GitHub : GitHub Actions (avec **Relancer les échecs**), pull requests ouvertes, versions publiées |
 | Atelier Symfony / Next.js / Laravel | selon le framework, voir plus bas |
-| Terminal | un terminal intégré ouvert dans le dossier du projet |
+| Terminal | des terminaux en onglets ouverts dans le dossier du projet (voir plus bas) et, à côté, les **Scripts du projet** : chacun se lance dans son onglet, et son état (en cours, port, durée) reste affiché avec **Arrêter** |
 | Docker | le projet Compose du dossier (ou du dossier parent) : services, état, démarrer / arrêter |
 | Variables | les fichiers `.env` et leurs clés, voir [Variables .env](/devforge/system/env-files/) |
 | Paquets | si le projet a un `package.json`, un `composer.json` ou les dépendances d'un autre langage (Python, Rust, Go…) : versions, vulnérabilités, mises à jour ; voir [Paquets](/devforge/dev/packages/) |
-| Tests | si le projet a un outil de test (Vitest, Jest, Playwright, PHPUnit, pytest, Go, Cargo) : les lancer, voir chaque test et ses échecs ; voir [Tests](/devforge/dev/tests/) |
+| Tests | si le projet a un outil de test (Vitest, Jest, Playwright, PHPUnit, pytest, Go, Cargo) : les lancer, les totaux, les fichiers à gauche et le détail à droite, **Relancer ce test** sur un échec ; voir [Tests](/devforge/dev/tests/) |
 | Base de données | la base liée, explorée sur place (voir plus bas) ; **Lier une connexion…** |
 | Logs | les fichiers de log trouvés (`storage/logs`, `var/log`, `logs`…), suivis en direct ; on peut en ajouter un par son chemin |
 | Ports & domaines | les ports trouvés dans la config (`.env`, scripts, Compose), en écoute ou libres, **Libérer** ; les domaines locaux liés |
 | Déploiement | les cibles de déploiement du projet et **Synchroniser le .env** avec le serveur |
 | Vercel | si le dossier est lié à Vercel : déploiements, variables, domaines |
-| Fichiers | l'arborescence du projet, avec ce que Git a vu changer, l'aperçu du fichier cliqué et la recherche (les scripts sont dans la vue d'ensemble) |
 
 Ce que DevForge a **trouvé** seul (une base, un domaine, un port) est marqué *trouvé* ; ce que tu as lié à la main, *ajouté*. **Retirer du projet** masque un élément ; **Réafficher** le remet.
 
+Un ancien lien vers l'onglet Git ouvre **Fichiers et Git**.
+
+### Le terminal du projet
+
+Chaque commande et sa sortie forment un bloc, sous le précédent. Un bloc en échec propose **Expliquer avec Forgy** et **Copier la sortie**. Les **Raccourcis**, sous les scripts : <kbd>→</kbd> ou <kbd>Fin</kbd> accepte la suggestion, <kbd>↑</kbd> rappelle la commande précédente, <kbd>Ctrl</kbd> <kbd>R</kbd> cherche dans l'historique, <kbd>Ctrl</kbd> <kbd>L</kbd> efface les blocs, <kbd>Ctrl</kbd> <kbd>&#96;</kbd> ouvre le terminal en bas de l'écran.
+
 ### L'aperçu des fichiers
 
-Dans l'onglet **Fichiers**, un clic sur un fichier l'ouvre à côté de l'arbre :
+Dans l'onglet **Fichiers et Git**, un clic sur un fichier l'ouvre à côté de l'arbre :
 
 | Fichier | Aperçu |
 |---|---|
@@ -87,7 +92,7 @@ Un fichier binaire (archive, exécutable, document Office) ou trop gros (plus de
 
 ### Les changements depuis le dernier commit
 
-Dans un dépôt Git, l'arbre de l'onglet **Fichiers** montre ce qui a changé depuis le dernier commit, comme VS Code :
+Dans un dépôt Git, l'arbre de l'onglet **Fichiers et Git** montre ce qui a changé depuis le dernier commit, comme VS Code :
 
 | Marque | Sens |
 |---|---|
@@ -104,7 +109,7 @@ Pour un projet rangé dans un sous-dossier d'un dépôt (un projet de groupe), s
 
 ### Rechercher dans le projet
 
-En haut de l'onglet **Fichiers**, **Rechercher dans le projet** cherche un texte dans tous les fichiers du projet, 300 ms après la dernière touche :
+En haut de l'onglet **Fichiers et Git**, **Rechercher dans le projet** cherche un texte dans tous les fichiers du projet, 300 ms après la dernière touche :
 
 - trois boutons dans le champ : **Respecter la casse**, **Mot entier**, **Expression régulière** ;
 - sous le champ, un filtre de fichiers : `*.ts` (le nom), `src/**` (le chemin), `!*.test.ts` (exclure), séparés par des virgules ;
