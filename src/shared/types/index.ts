@@ -325,7 +325,7 @@ export interface ListeningPort {
 export * from './git'
 
 /** v4.2: the data the windows keep and read again when the main process says it changed */
-export type DataTopic = 'projects' | 'db-connections' | 'models'
+export type DataTopic = 'projects' | 'db-connections' | 'models' | 'notes'
 export * from './cleaner'
 export * from './envfiles'
 export * from './versions'

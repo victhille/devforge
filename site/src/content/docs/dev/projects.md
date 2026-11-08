@@ -53,7 +53,7 @@ Les onglets n'apparaissent que s'ils ont un sens pour ce projet :
 |---|---|
 | Vue d'ensemble | une tuile par sujet avec son résumé et **Voir** : Git, **Scripts** (à lancer d'un clic), Tests (le dernier passage), Docker, Base de données, Variables, Ports et domaines, Déploiement (avec **Déployer**), Logs, Projet |
 | Fichiers et Git | l'arborescence du projet avec ce que Git a vu changer, l'aperçu ou le diff du fichier cliqué, la recherche ; au-dessus, la branche avec **Fetch**, **Pull** et **Push** ; dessous, le commit des fichiers cochés (**Commit** ou **Commit & push**) |
-| Notes | les tâches à cocher et les notes mises en forme du projet, voir plus bas ; le nombre de tâches à faire s'affiche sur l'onglet |
+| Notes | les notes du projet, des fichiers de son dossier (`.devforge/notes`) ; leurs cases à cocher sont ses tâches, voir plus bas ; le nombre de tâches à faire s'affiche sur l'onglet |
 | GitHub | si le dépôt est sur GitHub : GitHub Actions (avec **Relancer les échecs**), pull requests ouvertes, versions publiées |
 | Atelier Symfony / Next.js / Laravel | selon le framework, voir plus bas |
 | Terminal | des terminaux en onglets ouverts dans le dossier du projet (voir plus bas) et, à côté, les **Scripts du projet** : chacun se lance dans son onglet, et son état (en cours, port, durée) reste affiché avec **Arrêter** |
@@ -134,14 +134,17 @@ Depuis l'onglet **Déploiement**, **Synchroniser le .env** compare le fichier su
 
 ### Les notes et les tâches
 
-L'onglet **Notes** garde ce qui concerne le projet, dans les données de DevForge (jamais dans le dossier du projet) :
+L'onglet **Notes** garde les notes du projet **dans son dossier**, un fichier par note dans `.devforge/notes` : elles suivent Git (commits, branches, l'équipe qui clone le dépôt) et se lisent sur GitHub.
 
-- **Tâches** : écris-en une et <kbd>Entrée</kbd> l'ajoute. Coche-la quand elle est faite (la date s'affiche), double-clique pour la modifier, glisse-la pour changer l'ordre, la corbeille la supprime. **Masquer les faites** ne garde que ce qui reste.
-- **Notes** : un texte mis en forme, comme dans un traitement de texte. La barre d'outils donne le style du paragraphe (texte, titres 1 à 3), la taille, le **gras** (<kbd>Ctrl</kbd> <kbd>B</kbd>), l'*italique* (<kbd>Ctrl</kbd> <kbd>I</kbd>), le souligné (<kbd>Ctrl</kbd> <kbd>U</kbd>), le barré, la couleur du texte, le surlignage, les listes à puces ou numérotées, la citation et le bloc de code ; la gomme efface la mise en forme. Un texte collé garde sa mise en forme, nettoyée. Tout s'enregistre au fil de la frappe ; les notes écrites en Markdown s'ouvrent mises en forme.
+- **Nouvelle note** en crée une (« Sans titre ») et l'ouvre : écris son titre en tête de la carte, <kbd>Entrée</kbd> passe au texte. La liste, à gauche, montre d'abord les notes épinglées (l'épingle de la carte), puis les dernières modifiées. La corbeille supprime la note et son fichier, après confirmation.
+- La barre d'outils donne le **gras** (<kbd>Ctrl</kbd> <kbd>B</kbd>), l'*italique* (<kbd>Ctrl</kbd> <kbd>I</kbd>), le titre, la liste à cocher et le code (en ligne sur une sélection, en bloc sinon). Un texte collé garde sa mise en forme, nettoyée. Tout s'enregistre au fil de la frappe : « Enregistré · il y a 2 min » le confirme.
+- **Les tâches** sont les cases des listes à cocher : un clic sur la case, ou <kbd>Ctrl</kbd> <kbd>Entrée</kbd> sur la ligne, la coche ; la ligne passe alors en barré.
 
-Sur la [liste des projets](#la-liste-des-projets), la carte d'un projet montre **n à faire** tant qu'il reste des tâches. Les notes font partie de l'export du profil.
+Un fichier écrit à la main dans `.devforge/notes` (son nom en minuscules, chiffres et tirets, en `.md`) s'ouvre aussi : son premier titre `#` le nomme et ses `- [ ]` deviennent des cases. Les notes des versions d'avant, gardées dans les données de DevForge, passent dans le dossier du projet la première fois qu'elles s'ouvrent : les tâches dans une note « Tâches » épinglée (les faites cochées), le texte dans une note « Notes ».
 
-Forgy les lit (« qu'est-ce qui reste à faire sur ce projet ? ») et peut ajouter, cocher ou décocher une tâche : une action que tu valides, annulable (voir [Actions de Forgy](/devforge/forgy/actions/)).
+Sur la [liste des projets](#la-liste-des-projets), la carte d'un projet montre **n à faire** tant qu'il reste des cases à cocher, comme l'onglet. Les notes voyagent avec le projet, plus avec l'export du profil.
+
+Forgy les lit (« qu'est-ce qui reste à faire sur ce projet ? ») et peut ajouter une tâche (à la fin de la note « Tâches »), en cocher, décocher ou retirer une : une action que tu valides, annulable (voir [Actions de Forgy](/devforge/forgy/actions/)).
 
 ### Les alertes du CI GitHub
 

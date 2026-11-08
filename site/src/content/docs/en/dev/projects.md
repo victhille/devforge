@@ -53,7 +53,7 @@ Tabs only show when they make sense for the project:
 |---|---|
 | Overview | one tile per topic with its summary and **See**: Git, **Scripts** (one click runs one), Tests (the last run), Docker, Database, Variables, Ports and domains, Deployment (with **Deploy**), Logs, Project |
 | Files & Git | the project tree with what Git saw change, the preview or diff of the file clicked, the search; above, the branch with **Fetch**, **Pull** and **Push**; below, the commit of the ticked files (**Commit** or **Commit & push**) |
-| Notes | the project's tasks to check off and its formatted notes, see below; the number of open tasks shows on the tab |
+| Notes | the project's notes, files of its folder (`.devforge/notes`); their checkboxes are its tasks, see below; the number of open tasks shows on the tab |
 | GitHub | if the repository is on GitHub: GitHub Actions (with **Re-run failed jobs**), open pull requests, releases |
 | Symfony / Next.js / Laravel workshop | depending on the framework, see below |
 | Terminal | terminals in tabs opened in the project folder (see below) and, next to them, **The project's scripts**: each runs in its own tab, and its state (running, port, time) stays shown with **Stop** |
@@ -134,14 +134,17 @@ From the **Deploy** tab, **Sync the .env** compares the file on this PC and the 
 
 ### Notes and tasks
 
-The **Notes** tab keeps what is about the project, in DevForge's data (never in the project's folder):
+The **Notes** tab keeps the project's notes **in its folder**, one file per note in `.devforge/notes`: they follow Git (commits, branches, the team that clones the repository) and read well on GitHub.
 
-- **Tasks**: type one and <kbd>Enter</kbd> adds it. Check it when done (the date shows), double-click to edit it, drag it to reorder, the bin deletes it. **Hide done ones** keeps only what is left.
-- **Notes**: formatted text, as in a word processor. The toolbar sets the paragraph style (text, headings 1 to 3), the size, **bold** (<kbd>Ctrl</kbd> <kbd>B</kbd>), *italic* (<kbd>Ctrl</kbd> <kbd>I</kbd>), underline (<kbd>Ctrl</kbd> <kbd>U</kbd>), strikethrough, the text colour, highlighting, bulleted or numbered lists, quotes and code blocks; the eraser clears the formatting. Pasted text keeps its formatting, cleaned. Everything is saved as you type; notes written in Markdown open formatted.
+- **New note** makes one ("Untitled") and opens it: type its title at the top of the card, <kbd>Enter</kbd> moves on to the text. The list, on the left, shows the pinned notes first (the card's pin), then the last changed. The bin deletes the note and its file, after a confirmation.
+- The toolbar gives **bold** (<kbd>Ctrl</kbd> <kbd>B</kbd>), *italic* (<kbd>Ctrl</kbd> <kbd>I</kbd>), heading, checklist and code (inline on a selection, a block otherwise). Pasted text keeps its formatting, cleaned. Everything is saved as you type: "Saved · 2 min ago" confirms it.
+- **Tasks** are the boxes of the checklists: a click on the box, or <kbd>Ctrl</kbd> <kbd>Enter</kbd> on the line, checks it; the line is then struck through.
 
-On the [project list](#the-project-list), a project's card shows **n to do** while tasks remain. Notes are part of the profile export.
+A file written by hand in `.devforge/notes` (its name in lower-case letters, digits and dashes, ending in `.md`) opens too: its first `#` heading names it and its `- [ ]` become boxes. Notes from earlier versions, kept in DevForge's data, move into the project's folder the first time they open: the tasks into a pinned "Tasks" note (done ones checked), the text into a "Notes" note.
 
-Forgy reads them ("what is left to do on this project?") and can add, check or uncheck a task: an action you confirm, which can be undone (see [Forgy's actions](/devforge/en/forgy/actions/)).
+On the [project list](#the-project-list), a project's card shows **n to do** while boxes are left to check, as the tab does. Notes travel with the project, no longer with the profile export.
+
+Forgy reads them ("what is left to do on this project?") and can add a task (at the end of the "Tasks" note), check, uncheck or remove one: an action you confirm, which can be undone (see [Forgy's actions](/devforge/en/forgy/actions/)).
 
 ### GitHub CI alerts
 

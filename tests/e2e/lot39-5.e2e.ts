@@ -68,8 +68,10 @@ test('a use case drawn, its scenario, its tasks in Notes; a class and a sequence
   await expect(page.getByText('2 tâche(s) ajoutée(s) dans Notes')).toBeVisible()
   await page.getByRole('button', { name: 'Créer les tâches dans Notes' }).click()
   await expect(page.getByText('Les tâches de ces cas sont déjà dans Notes')).toBeVisible()
-  const tasks = await page.evaluate(() => window.devforge.notes.get('s').then(n => n.tasks.map(t => t.text)))
-  expect(tasks).toEqual(['Cas « Passer une commande » (Client)', 'Cas « Payer »'])
+  // Boxes of the project's « Tâches » note, a file of the project
+  const tasks = readFileSync(join(project, '.devforge', 'notes', 'taches.md'), 'utf-8')
+  expect(tasks).toContain('title: Tâches\npinned: true\n')
+  expect([...tasks.matchAll(/<li data-checked="false">(.*)<\/li>/g)].map(m => m[1])).toEqual(['Cas « Passer une commande » (Client)', 'Cas « Payer »'])
 
   // A class with its members
   await page.getByRole('button', { name: 'Modélisation' }).click()

@@ -458,9 +458,12 @@ const api: DevForgeAPI = {
     onProgress: on('modeling:progress')
   },
   notes: {
-    get:    invoke('notes:get'),
-    save:   invoke('notes:save'),
-    counts: invoke('notes:counts')
+    list:     invoke('notes:list'),
+    read:     invoke('notes:read'),
+    save:     invoke('notes:save'),
+    remove:   invoke('notes:remove'),
+    addTasks: invoke('notes:add-tasks'),
+    counts:   invoke('notes:counts')
   },
   tests: {
     detect: invoke('tests:detect'),

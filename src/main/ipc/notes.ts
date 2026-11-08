@@ -1,10 +1,13 @@
 import { ipcMain } from 'electron'
-import type { ProjectNotes } from '@shared/types'
-import { getNotes, openCounts, saveNotes } from '../services/notes/projectNotes'
+import type { NoteInput } from '@shared/types'
+import { addTasksById, listNotes, openCounts, readNote, removeNote, saveNote } from '../services/notes/projectNotes'
 
-/** v3.8: each project's tasks and notes */
+/** A project's notes, files of the project: the window names the project and the note, never a path */
 export function registerNotesHandlers(): void {
-  ipcMain.handle('notes:get', (_e, projectId: unknown) => getNotes(String(projectId ?? '')))
-  ipcMain.handle('notes:save', (_e, projectId: unknown, notes: ProjectNotes) => saveNotes(String(projectId ?? ''), notes))
+  ipcMain.handle('notes:list', (_e, projectId: unknown) => listNotes(projectId))
+  ipcMain.handle('notes:read', (_e, projectId: unknown, id: unknown) => readNote(projectId, id))
+  ipcMain.handle('notes:save', (_e, projectId: unknown, note: NoteInput) => saveNote(projectId, note))
+  ipcMain.handle('notes:remove', (_e, projectId: unknown, id: unknown) => removeNote(projectId, id))
+  ipcMain.handle('notes:add-tasks', (_e, projectId: unknown, texts: unknown) => addTasksById(projectId, texts))
   ipcMain.handle('notes:counts', () => openCounts())
 }

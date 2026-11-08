@@ -12,6 +12,7 @@ import Tabs from '@renderer/components/ui/Tabs'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
 import SearchInput from '@renderer/components/ui/SearchInput'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
+import { useNoteCounts } from '@renderer/hooks/useLiveData'
 import { ProjectCard, DetectedProjectCard, type CardLayout } from './components/ProjectCard'
 import GroupCard from './components/GroupCard'
 import { useProjects, sortProjects, frameworkFilters, hideGroupMembers } from './hooks/useProjects'
@@ -21,6 +22,7 @@ import { confirmDialog } from '@renderer/app/ConfirmContext'
 
 
 const VIEW_KEY = 'projects-view'
+const NO_COUNTS: Record<string, number> = {}
 
 function readView(): CardLayout {
   try { return localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'grid' } catch { return 'grid' }
@@ -33,9 +35,8 @@ export default function ProjectsPage() {
   const ide = usePreferredIde()
   // The active project's card stands out (its Open button in orange)
   const { active } = useActiveProject()
-  /** v3.8: open tasks per project */
-  const [openTasks, setOpenTasks] = useState<Record<string, number>>({})
-  useEffect(() => { window.devforge.notes.counts().then(setOpenTasks).catch(() => {}) }, [])
+  /** The boxes left to check in each project's notes */
+  const openTasks = useNoteCounts().data ?? NO_COUNTS
   /** v3.8: the GitHub workflows failing now, per project */
   const [ci, setCi] = useState<CiStates>({})
   useEffect(() => {

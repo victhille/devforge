@@ -26,7 +26,7 @@ Forgy peut aussi **agir**. Chaque action s'affiche en **carte** dans le panneau 
 | Sauvegarde | lance tout de suite la sauvegarde de nuit du serveur | non | non |
 | GitHub Actions | relance les jobs en échec d'un run | non | non |
 | Modèle | crée un [modèle](/devforge/data/modeling/) dans `conception/`, montré sur la carte : un MCD depuis la base liée au projet (avec son MPD lié) ou depuis ce que tu as décrit (entités, attributs, associations, cardinalités) ; un MPD depuis ses tables (colonnes, types, clés, clés étrangères), sur le moteur du projet ; un diagramme (cas d'utilisation, classes, séquence, flux, architecture) depuis ses éléments et leurs liens, mis en page tout seul | oui (fichiers supprimés) | non |
-| Tâche | ajoute une tâche aux [notes d'un projet](/devforge/dev/projects/#les-notes-et-les-tâches), la coche ou la décoche | oui (supprimée, ou état d'avant) | oui |
+| Tâche | ajoute une tâche (une case) aux [notes d'un projet](/devforge/dev/projects/#les-notes-et-les-tâches), la coche, la décoche ou la retire | oui (retirée, remise, ou état d'avant) | oui |
 | Paquets | met à jour des [paquets](/devforge/dev/packages/) npm, pnpm, yarn, Composer, Python (pip dans l'environnement virtuel, Poetry, uv, Pipenv), Cargo, Go, Bundler ou pub, dans leur intervalle ou vers la dernière version (une majeure est signalée sur la carte) | oui : manifeste et verrouillage remis, puis réinstallation | non |
 
 ## Toujours demander, ou Auto

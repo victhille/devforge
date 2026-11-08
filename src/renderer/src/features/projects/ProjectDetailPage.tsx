@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft, Code2, Container, Database, ExternalLink, FileKey2, FolderOpen, GitBranch, Globe, Play, Rocket, ScrollText,
   Star, Terminal, Trash2, X, XCircle, Maximize2, LayoutTemplate, Bot, FlaskConical, CloudUpload } from 'lucide-react'
-import { NO_CONNECTIONS, useDbConnections } from '@renderer/hooks/useLiveData'
+import { NO_CONNECTIONS, useDbConnections, useNoteCounts } from '@renderer/hooks/useLiveData'
 import type { DefaultIDE, DockerOverview, GitRepoDetails, LinkKind, ListeningPort, LocalDomain, ProjectHub, TestRun, TestRunnerInfo } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -148,8 +148,8 @@ export default function ProjectDetailPage() {
   const [testRunners, setTestRunners] = useState<TestRunnerInfo[]>([])
   /** The last test run, on the overview */
   const [testRun, setTestRun] = useState<TestRun | null>(null)
-  /** v3.8: its open tasks, on the Notes tab */
-  const [openTasks, setOpenTasks] = useState(0)
+  /** The boxes left to check in its notes, on the Notes tab */
+  const noteCounts = useNoteCounts().data
   // The terminal stays once opened: its shells survive a trip to another tab
   const [termOpened, setTermOpened] = useState(tab === 'terminal')
   useEffect(() => { if (tab === 'terminal') setTermOpened(true) }, [tab])
@@ -189,10 +189,6 @@ export default function ProjectDetailPage() {
     if (!projectPath || !firstRunner) return
     window.devforge.tests.last(projectPath, firstRunner).then(r => setTestRun(r ?? null)).catch(() => setTestRun(null))
   }, [projectPath, firstRunner, tab])
-  useEffect(() => {
-    if (!id) return
-    window.devforge.notes.counts().then(c => setOpenTasks(c[id] ?? 0)).catch(() => {})
-  }, [id])
 
   const compose = useMemo(() => docker?.compose.find(c => (hub?.composeDir && c.dir === hub.composeDir) || c.name === hub?.composeName) ?? null, [docker, hub])
 
@@ -245,7 +241,7 @@ export default function ProjectDetailPage() {
   const unlinkedDbs = connections.filter(c => !hub.databases.some(d => d.id === c.id))
   const unlinkedDomains = domains.filter(d => !hub.domains.some(x => x.id === d.id))
   const counts: Partial<Record<Tab, number>> = {
-    notes: openTasks,
+    notes: noteCounts?.[p.id] ?? 0,
     database: hub.databases.length, logs: hub.logs.length, ports: hub.ports.length + hub.domains.length,
     deploy: hub.deployTargets.length, env: hub.envFiles.length, files: git?.changes || undefined
   }
@@ -461,7 +457,7 @@ export default function ProjectDetailPage() {
     env: <ProjectEnvEditor projectPath={p.path} onEnvChange={() => {}} />,
 
     packages: <PackagesPanel projectId={p.id} />,
-    notes: <NotesPanel projectId={p.id} onCount={setOpenTasks} />,
+    notes: <NotesPanel key={p.id} projectId={p.id} projectPath={p.path} />,
     tests: <TestsPanel path={p.path} runners={testRunners} projectName={p.name}
       onOpen={(file, line) => setParams({ tab: 'files', open: file, line: String(line) }, { replace: true })} />,
 
