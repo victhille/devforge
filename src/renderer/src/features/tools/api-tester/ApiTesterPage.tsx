@@ -144,7 +144,7 @@ export default function ApiTesterPage() {
 
   return (
     <Page className="h-full max-w-none gap-4 px-7 pt-6">
-      <PageHeader className="df-rise" title={t.apiTester.title} />
+      <PageHeader className="df-rise" crumb={t.nav.groupData} title={t.apiTester.title} />
 
       {/* Request bar: method and URL in one field */}
       <div className="df-rise flex shrink-0 flex-wrap gap-2" style={{ '--i': 1 } as CSSProperties}>

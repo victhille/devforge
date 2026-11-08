@@ -143,7 +143,7 @@ export default function GeneratorPage() {
 
   return (
     <Page className="max-w-4xl">
-      <PageHeader title={t.generator.title} subtitle={t.generator.subtitle} />
+      <PageHeader crumb={t.nav.groupTools} title={t.generator.title} subtitle={t.generator.subtitle} />
       <ToolHelp id="generator" what={t.toolHelp.generator.what} how={t.toolHelp.generator.how} />
       <PasswordSection t={t.generator} />
       <SecretSection   t={t.generator} />

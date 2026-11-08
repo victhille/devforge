@@ -36,7 +36,7 @@ export default function EnvMatrix({ env, onChange }: Props) {
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="border-b border-line-subtle">
-            <th className="sticky left-0 bg-surface px-4 py-2.5 text-left text-2xs font-semibold uppercase tracking-wider text-fg-muted">
+            <th className="sticky left-0 h-8.5 bg-surface px-3.5 text-left text-xs font-semibold whitespace-nowrap text-fg-muted">
               <span className="flex items-center gap-2">
                 {e.key} ({keys.length})
                 <IconButton size="sm" title={revealed ? e.hide : e.reveal} onClick={() => setRevealed(r => !r)}>
@@ -45,7 +45,7 @@ export default function EnvMatrix({ env, onChange }: Props) {
               </span>
             </th>
             {env.files.map(f => (
-              <th key={f.name} className="px-4 py-2.5 text-left font-mono text-xs font-semibold text-fg-secondary">
+              <th key={f.name} className="h-8.5 px-3.5 text-left font-mono text-xs font-semibold whitespace-nowrap text-fg-muted">
                 {f.name} {isExample(f.name) && <Badge className="ml-1 font-sans">{e.template}</Badge>}
               </th>
             ))}
@@ -54,14 +54,14 @@ export default function EnvMatrix({ env, onChange }: Props) {
         <tbody>
           {keys.map(key => (
             <tr key={key} className="group border-b border-line-subtle last:border-0 hover:bg-elevated/60">
-              <td className="sticky left-0 bg-surface px-4 py-2 font-mono text-xs font-medium text-fg group-hover:bg-elevated">{key}</td>
+              <td className="sticky left-0 bg-surface px-3.5 py-2 font-mono text-xs font-medium text-fg group-hover:bg-elevated">{key}</td>
               {env.files.map(f => {
                 const has = key in f.values
                 // Only .env must contain every template key; .env.local etc. are overrides
                 const missing = !has && f.name === '.env' && !!example && key in example.values
                 const isEditing = editing?.file === f.name && editing.key === key
                 return (
-                  <td key={f.name} className="px-4 py-1.5 align-middle">
+                  <td key={f.name} className="px-3.5 py-1.5 align-middle">
                     {isEditing ? (
                       <div className="flex items-center gap-1">
                         <Input

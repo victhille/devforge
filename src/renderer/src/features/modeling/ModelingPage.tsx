@@ -91,12 +91,13 @@ export default function ModelingPage() {
   })
 
   if (projects && !projects.length) {
-    return <Page><PageHeader title={m.title} subtitle={m.subtitle} /><EmptyState icon={<Shapes size={22} />} title={m.noProject} description={m.noProjectHint} /></Page>
+    return <Page><PageHeader crumb={t.nav.groupData} title={m.title} subtitle={m.subtitle} /><EmptyState icon={<Shapes size={22} />} title={m.noProject} description={m.noProjectHint} /></Page>
   }
 
   return (
     <Page className="gap-6">
       <PageHeader
+        crumb={t.nav.groupData}
         title={m.title}
         subtitle={m.subtitle}
         actions={<>

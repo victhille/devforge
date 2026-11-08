@@ -9,7 +9,7 @@ export function SettingsCard({ title, hint, icon, children, className }: { title
       <div className="flex items-center gap-3.5 px-5 pt-4.5 pb-3.5">
         {icon}
         <div className="min-w-0 flex-1">
-          <h2 className="text-base font-semibold text-fg">{title}</h2>
+          <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{title}</h2>
           {hint && <p className="mt-1 text-sm text-fg-secondary">{hint}</p>}
         </div>
       </div>

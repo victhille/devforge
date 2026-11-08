@@ -99,7 +99,8 @@ export default function ProjectEnvEditor({ projectPath, title, onEnvChange }: {
     <div className="flex flex-col gap-5">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          {title && <h1 className="text-page leading-tight font-semibold tracking-[-.02em] text-fg">{title}</h1>}
+          {title && <p className="mb-1 text-sm text-fg-muted">{t.nav.groupSystem} / {t.nav.envFiles}</p>}
+          {title && <h1 className="truncate font-display text-page font-bold tracking-[-.025em] text-fg">{title}</h1>}
           <p className="mt-0.5 font-mono text-xs text-fg-muted">{projectPath}</p>
           {backup?.savedAt && <p className="mt-0.5 text-xs text-fg-muted">{e.lastBackup.replace('{when}', formatRelative(backup.savedAt, lang))}</p>}
         </div>

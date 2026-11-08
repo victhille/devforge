@@ -9,6 +9,7 @@ import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
+import { Table, Td, Th } from '@renderer/components/ui/Table'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { errorText } from '@renderer/lib/errors'
@@ -22,7 +23,6 @@ const WELL_KNOWN: Record<number, string> = {
   27017: 'MongoDB', 9229: 'Node Debug'
 }
 
-const TH = 'px-4.5 py-2.5 text-left font-mono text-xs font-medium uppercase tracking-wider text-fg-muted'
 
 export default function PortsPage() {
   const { t } = useI18n()
@@ -65,6 +65,7 @@ export default function PortsPage() {
   return (
     <Page>
       <PageHeader
+        crumb={t.nav.groupSystem}
         title={p.title}
         subtitle={loading && ports.length === 0 ? p.scanning : p.subtitle.replace('{n}', String(shown.length))}
         actions={
@@ -83,19 +84,19 @@ export default function PortsPage() {
         <EmptyState icon={<Wifi size={32} />} title={p.noResults} />
       ) : (
         <Card className="df-rise overflow-hidden" style={{ '--i': 1 } as CSSProperties}>
-          <table className="w-full border-collapse text-base">
+          <Table>
             <thead>
               <tr>
-                <th className={TH}>{p.port}</th>
-                <th className={TH}>{p.process}</th>
-                <th className={TH}>{p.pid}</th>
-                <th />
+                <Th>{p.port}</Th>
+                <Th>{p.process}</Th>
+                <Th>{p.pid}</Th>
+                <Th><span className="sr-only">{p.free}</span></Th>
               </tr>
             </thead>
             <tbody>
               {shown.map(port => (
-                <tr key={`${port.port}:${port.pid}`} className="group border-t border-line-subtle transition-colors hover:bg-hover">
-                  <td className="px-4.5 py-3">
+                <tr key={`${port.port}:${port.pid}`} className="group">
+                  <Td>
                     <div className="flex items-center gap-2">
                       <button onClick={() => window.devforge.openExternal(`http://localhost:${port.port}`)}
                         className="inline-flex items-center gap-1 rounded-lg border border-line bg-elevated px-2.5 py-1 font-mono text-xs font-medium text-fg hover:text-accent">
@@ -103,10 +104,10 @@ export default function PortsPage() {
                       </button>
                       {WELL_KNOWN[port.port] && <span className="font-mono text-xs text-fg-muted">{WELL_KNOWN[port.port]}</span>}
                     </div>
-                  </td>
-                  <td className="px-4.5 py-3 font-medium text-fg">{port.processName ? processLabel(port.processName) : '—'}</td>
-                  <td className="px-4.5 py-3 font-mono text-xs text-fg-muted">{port.pid ?? '—'}</td>
-                  <td className="px-4.5 py-3 text-right">
+                  </Td>
+                  <Td className="font-medium text-fg">{port.processName ? processLabel(port.processName) : '—'}</Td>
+                  <Td className="font-mono text-xs text-fg-muted">{port.pid ?? '—'}</Td>
+                  <Td align="right">
                     {port.pid !== null && port.pid > 4 && (
                       <button onClick={() => free(port)} disabled={freeing === port.port}
                         className={cn('inline-flex h-7 items-center gap-1.5 rounded-lg border border-danger/30 bg-danger-soft px-2.5 text-xs font-medium text-danger transition-[opacity,background-color] hover:bg-danger hover:text-danger-fg',
@@ -114,11 +115,11 @@ export default function PortsPage() {
                         <XCircle size={12} /> {p.free}
                       </button>
                     )}
-                  </td>
+                  </Td>
                 </tr>
               ))}
             </tbody>
-          </table>
+          </Table>
         </Card>
       )}
     </Page>

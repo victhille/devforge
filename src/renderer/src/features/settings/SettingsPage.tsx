@@ -38,10 +38,10 @@ const SECTIONS: { id: Section; icon: LucideIcon; words: string }[] = [
 ]
 
 /** Small previews of the three themes */
-const THEMES: { id: Theme; bg: string; side: string; card: string; ink: string; line: string }[] = [
-  { id: 'dark', bg: '#0D0F13', side: '#0A0C10', card: '#161A21', ink: '#E8ECF2', line: '#2B323D' },
-  { id: 'light', bg: '#F6F7F9', side: '#ECEEF2', card: '#FFFFFF', ink: '#1A1F27', line: '#C9D1DC' },
-  { id: 'system', bg: 'linear-gradient(90deg,#0D0F13 50%,#F6F7F9 50%)', side: '#0A0C10', card: '#2B323D', ink: '#9AA4B2', line: '#2B323D' }
+const THEMES: { id: Theme; bg: string; side: string; card: string; ink: string; line: string; accent: string }[] = [
+  { id: 'dark', bg: '#121110', side: '#151311', card: '#1A1816', ink: '#F2EEE9', line: '#2E2A26', accent: '#FF7A33' },
+  { id: 'light', bg: '#F7F4F0', side: '#FBF9F6', card: '#FFFFFF', ink: '#1E1A16', line: '#E4DED6', accent: '#B53C0B' },
+  { id: 'system', bg: 'linear-gradient(90deg,#121110 50%,#F7F4F0 50%)', side: '#151311', card: '#2E2A26', ink: '#B5ADA4', line: '#2E2A26', accent: '#FF7A33' }
 ]
 
 export default function SettingsPage() {
@@ -107,7 +107,7 @@ export default function SettingsPage() {
     <Page className="gap-5.5">
       <div className="df-rise flex flex-wrap items-end gap-3">
         <div className="min-w-[220px] flex-1">
-          <h1 className="text-page font-semibold tracking-tight text-fg">{s.title}</h1>
+          <h1 className="font-display text-page font-bold tracking-[-.025em] text-fg">{s.title}</h1>
           <p className="mt-1 text-base text-fg-secondary">{s.subtitle}</p>
         </div>
         <span aria-live="polite" className={cn('flex h-[30px] items-center gap-1.5 rounded-full bg-success-soft px-3 text-xs font-medium text-success transition-opacity duration-300', savedVisible ? 'opacity-100' : 'opacity-0')}>
@@ -174,7 +174,7 @@ export default function SettingsPage() {
                             <div className="flex w-[26%] flex-col gap-[5px] px-1.5 py-2" style={{ background: th.side }}>
                               <span className="h-[5px] rounded-[3px]" style={{ background: th.line }} />
                               <span className="h-[5px] w-[70%] rounded-[3px]" style={{ background: th.line }} />
-                              <span className="h-[5px] w-[80%] rounded-[3px] bg-[#5B9BFF]" />
+                              <span className="h-[5px] w-[80%] rounded-[3px]" style={{ background: th.accent }} />
                             </div>
                             <div className="flex flex-1 flex-col gap-1.5 p-2.5">
                               <span className="h-[7px] w-1/2 rounded-[3px]" style={{ background: th.ink }} />
