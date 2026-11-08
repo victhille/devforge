@@ -262,6 +262,14 @@
 }
 :root[data-density='compact'] body { font-size: 12px; }
 
+/* ─── Screens at the mock-up's measures ────────────────────────────────────
+   The project page and the new project wizard follow the mock-up's pixels: one
+   spacing unit is 4 px inside them (the app's root is 13 px, where 0.25rem gives
+   3.25 px), so the shared components (buttons, badges, tabs) come out at their
+   intended sizes there. The compact density keeps its ratio. */
+.df-mockup { --spacing: 4px; }
+:root[data-density='compact'] .df-mockup { --spacing: 3.36px; }
+
 /* ─── Base ─────────────────────────────────────────────────────────────────── */
 
 @layer base {

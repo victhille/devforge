@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowUp, GitCommitHorizontal, Sparkles } from 'lucide-react'
-import type { FileChangeStatus, GitFileChange, Project } from '@shared/types'
+import type { Project } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
-import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Checkbox from '@renderer/components/ui/Checkbox'
@@ -10,14 +9,7 @@ import Modal from '@renderer/components/ui/Modal'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Input, Textarea } from '@renderer/components/ui/Input'
 import { COMMIT_TYPES, formatCommit, suggestCommit, type CommitType } from './commitMessage'
-
-const STATUS_LETTER: Record<FileChangeStatus, { letter: string; className: string }> = {
-  added:     { letter: 'A', className: 'text-success' },
-  untracked: { letter: 'U', className: 'text-success' },
-  modified:  { letter: 'M', className: 'text-warning' },
-  deleted:   { letter: 'D', className: 'text-danger' },
-  renamed:   { letter: 'R', className: 'text-accent' }
-}
+import { STATUS_LETTER, useCommit } from './useCommit'
 
 interface Props {
   project: Project
@@ -29,23 +21,11 @@ interface Props {
 export default function CommitModal({ project, canPush, onClose, onDone }: Props) {
   const { t } = useI18n()
   const g = t.gitDash
-  const toast = useToast()
-  const [changes, setChanges] = useState<GitFileChange[] | null>(null)
-  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const { changes, selected, setSelected, toggle, chosen, busy, commit: send } = useCommit(project.path, onDone)
   const [type, setType] = useState<CommitType>('feat')
   const [scope, setScope] = useState('')
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
-  const [busy, setBusy] = useState<'commit' | 'push' | null>(null)
-
-  useEffect(() => {
-    window.devforge.git.changes(project.path).then(list => {
-      setChanges(list)
-      setSelected(new Set(list.map(c => c.path)))
-    })
-  }, [project.path])
-
-  const chosen = useMemo(() => (changes ?? []).filter(c => selected.has(c.path)), [changes, selected])
 
   /** Re-suggest whenever the selection changes */
   function applySuggestion() {
@@ -59,33 +39,7 @@ export default function CommitModal({ project, canPush, onClose, onDone }: Props
   const message = formatCommit({ type, scope, subject }, body)
   const header = message.split('\n')[0]
 
-  async function commit(push: boolean) {
-    setBusy(push ? 'push' : 'commit')
-    try {
-      const r = await window.devforge.git.commit(project.path, message, chosen.map(c => c.path))
-      if (!r.ok) {
-        toast.show({ tone: 'error', title: g.commitFailed, description: r.output })
-        return
-      }
-      if (push) {
-        const p = await window.devforge.git.push(project.path)
-        toast.show(p.ok
-          ? { tone: 'success', title: g.committedPushed }
-          : { tone: 'error', title: g.committedPushFailed, description: p.output })
-      } else {
-        toast.show({ tone: 'success', title: g.committed, description: header })
-      }
-      onDone()
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  const toggle = (path: string, on: boolean) => setSelected(prev => {
-    const next = new Set(prev)
-    if (on) next.add(path); else next.delete(path)
-    return next
-  })
+  const commit = (push: boolean) => send(message, push)
 
   return (
     <Modal

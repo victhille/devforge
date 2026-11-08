@@ -68,10 +68,10 @@ export default function TabBar<T extends string>({ items, active, onSelect, more
   const tab = (t: TabItem<T>, inMeasure = false) => (
     <button key={t.id} role={inMeasure ? undefined : 'tab'} aria-selected={inMeasure ? undefined : active === t.id} tabIndex={inMeasure ? -1 : undefined}
       onClick={inMeasure ? undefined : () => onSelect(t.id)}
-      className={cn('flex h-9.5 shrink-0 items-center gap-1.5 border-b-2 px-3 text-base whitespace-nowrap transition-colors',
+      className={cn('flex h-9.5 shrink-0 items-center gap-1.5 border-b-2 px-0.5 text-base whitespace-nowrap transition-colors',
         active === t.id ? 'border-accent font-semibold text-fg' : 'border-transparent font-medium text-fg-secondary hover:text-fg')}>
       {t.label}
-      {!!t.count && <span className="rounded-full bg-elevated px-1.5 font-mono text-2xs text-fg-secondary">{t.count}</span>}
+      {!!t.count && <span className="rounded-full bg-elevated px-1.5 font-mono text-[10.5px] text-fg-secondary">{t.count}</span>}
     </button>
   )
 
@@ -79,14 +79,14 @@ export default function TabBar<T extends string>({ items, active, onSelect, more
     <div className="relative">
       {/* The copy is wider than the page: held in a box of no size, so the page never scrolls sideways */}
       <div aria-hidden className="pointer-events-none invisible absolute inset-x-0 top-0 h-0 overflow-hidden">
-        <div ref={measure} className="flex w-max gap-1">{items.map(t => tab(t, true))}</div>
+        <div ref={measure} className="flex w-max gap-4.5">{items.map(t => tab(t, true))}</div>
       </div>
-      <div ref={bar} className="flex items-end gap-1 border-b border-line">
-        <div role="tablist" className="flex min-w-0 gap-1 overflow-hidden">{shown.map(t => tab(t))}</div>
+      <div ref={bar} className="flex items-end gap-4.5 border-b border-line-subtle">
+        <div role="tablist" className="flex min-w-0 gap-4.5 overflow-hidden">{shown.map(t => tab(t))}</div>
         {hidden.length > 0 && (
           <div ref={menu} className="relative shrink-0">
             <button aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(v => !v)}
-              className={cn('flex h-9.5 items-center gap-1 border-b-2 border-transparent px-3 text-base font-medium whitespace-nowrap', open ? 'text-fg' : 'text-fg-secondary hover:text-fg')}>
+              className={cn('flex h-9.5 items-center gap-1 border-b-2 border-transparent px-0.5 text-base font-medium whitespace-nowrap', open ? 'text-fg' : 'text-fg-secondary hover:text-fg')}>
               {moreLabel} <span className="rounded-full bg-elevated px-1.5 font-mono text-2xs text-fg-secondary">{hidden.length}</span>
               <ChevronDown size={14} className={cn('transition-transform', open && 'rotate-180')} />
             </button>

@@ -57,10 +57,12 @@ function CodeView({ text, name, line }: { text: string; name: string; line?: num
  * source one click away), images and PDFs as such, other text in a fixed
  * font, in colours (v3.5.3). The project's IDE opens it.
  */
-export default function FilePreview({ file, line, root, ide: own, onClose, change, rel, startOnChanges }: {
+export default function FilePreview({ file, line, root, ide: own, onClose, change, rel, startOnChanges, stats }: {
   file: FileEntry; line?: number; root?: string; ide?: DefaultIDE; onClose: () => void
   /** v3.7: what Git says of this file, its path in the project; the changes shown first */
   change?: FileChangeStatus; rel?: string; startOnChanges?: boolean
+  /** Lines added and removed since the last commit */
+  stats?: { add: number | null; del: number | null }
 }) {
   const { t } = useI18n()
   const f = t.files
@@ -91,9 +93,12 @@ export default function FilePreview({ file, line, root, ide: own, onClose, chang
   }
 
   return (
-    <section aria-label={f.previewOf.replace('{name}', file.name)} className="flex min-h-0 min-w-0 flex-1 flex-col border-l border-line-subtle">
-      <header className="flex h-10 shrink-0 items-center gap-2 border-b border-line-subtle px-3">
-        <span className="truncate font-mono text-sm font-medium text-fg" title={file.path}>{file.name}</span>
+    <section aria-label={f.previewOf.replace('{name}', file.name)} className="flex min-h-0 min-w-0 flex-1 flex-col">
+      {/* As in the mock-up: the file's path in the project, its changes counted */}
+      <header className="flex min-h-12 shrink-0 flex-wrap items-center gap-2 border-b border-line-subtle px-4 py-2">
+        <span className="min-w-0 truncate font-mono text-sm font-semibold text-fg" title={file.path}>{rel || file.name}</span>
+        {stats?.add != null && stats.add > 0 && <span className="shrink-0 font-mono text-xs text-success">+{stats.add}</span>}
+        {stats?.del != null && stats.del > 0 && <span className="shrink-0 font-mono text-xs text-danger">−{stats.del}</span>}
         {preview && preview.size > 0 && <span className="shrink-0 font-mono text-2xs text-fg-muted">{formatSize(preview.size)}</span>}
         {change && <span className={cn('shrink-0 font-mono text-2xs', TONE[change].replace('line-through', ''))}>{f.gitStatus[change]}</span>}
         <span className="ml-auto flex items-center gap-1">

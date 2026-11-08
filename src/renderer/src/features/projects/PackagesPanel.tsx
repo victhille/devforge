@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ArrowUpCircle, ExternalLink, Package, RefreshCw, ShieldAlert, ShieldCheck } from 'lucide-react'
+import { ArrowUpCircle, ExternalLink, Package, RefreshCw, Search, ShieldAlert, ShieldCheck } from 'lucide-react'
 import type { AuditSummary, PackageInfo, PackageManagerKind, PackageManifest, PackageUpdate, UpdateLevel } from '@shared/types'
 
 /** A card's key: a folder can hold both a package.json and a composer.json */
@@ -56,6 +56,8 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
   const [latest, setLatest] = useState<Record<string, Record<string, string | null>>>({})
   const [audits, setAudits] = useState<Record<string, AuditSummary | null | 'busy'>>({})
   const [filter, setFilter] = useState<Filter>('outdated')
+  /** A word of a package's name: the tables keep those that hold it */
+  const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [running, setRunning] = useState<string | null>(null)
   const [log, setLog] = useState<string[]>([])
@@ -106,20 +108,35 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
   if (!manifests) return <Spinner />
   if (!manifests.length) return <EmptyState icon={<Package size={28} />} title={k.none} />
 
+  // How many packages each filter keeps, over every file
+  const all = manifests.flatMap(m => m.packages.map(p => planOf(m.manager, p, latest[keyOf(m)]?.[p.name] ?? null)))
+  const counts: Record<Filter, number> = { outdated: all.filter(r => !!r.update).length, major: all.filter(r => r.level === 'major').length, all: all.length }
+  const q = query.trim().toLowerCase()
+
   return (
     <div className="flex flex-col gap-5">
-      <div role="radiogroup" aria-label={k.filter} className="flex gap-1 self-start rounded-lg border border-line p-0.5">
-        {(['outdated', 'major', 'all'] as Filter[]).map(f => (
-          <button key={f} role="radio" aria-checked={filter === f} onClick={() => setFilter(f)}
-            className={cn('rounded-md px-3 py-1 text-sm', filter === f ? 'bg-active text-fg' : 'text-fg-secondary hover:text-fg')}>{k.filters[f]}</button>
-        ))}
+      <div className="flex flex-wrap items-center gap-2.5">
+        <label className="flex h-9 w-full items-center gap-2 rounded-control border border-line bg-surface px-3 focus-within:border-accent sm:w-[280px]">
+          <Search size={14} aria-hidden className="shrink-0 text-fg-muted" />
+          <span className="sr-only">{k.search}</span>
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder={k.search}
+            className="min-w-0 flex-1 bg-transparent text-base text-fg outline-none placeholder:text-fg-muted" />
+        </label>
+        <div role="radiogroup" aria-label={k.filter} className="flex gap-0.5 rounded-control border border-line bg-surface p-0.5">
+          {(['outdated', 'major', 'all'] as Filter[]).map(f => (
+            <button key={f} role="radio" aria-checked={filter === f} onClick={() => setFilter(f)}
+              className={cn('flex h-7 items-center gap-1.5 rounded-md px-3 text-sm', filter === f ? 'bg-active font-semibold text-fg' : 'text-fg-secondary hover:text-fg')}>
+              {k.filters[f]} <span aria-hidden className="font-mono text-[10.5px] text-fg-muted">{counts[f]}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {manifests.map(m => {
         const key = keyOf(m)
         const versions = latest[key]
         const rows = m.packages.map(p => ({ p, latest: versions?.[p.name] ?? null, ...planOf(m.manager, p, versions?.[p.name] ?? null) }))
-        const shown = rows.filter(r => filter === 'all' || (filter === 'major' ? r.level === 'major' : !!r.update))
+        const shown = rows.filter(r => (filter === 'all' || (filter === 'major' ? r.level === 'major' : !!r.update)) && (!q || r.p.name.toLowerCase().includes(q)))
         const compatible = rows.flatMap(r => r.update?.target === 'compatible' ? [r.update] : [])
         const picked = rows.flatMap(r => r.update && selected.has(`${key}:${r.p.name}`) ? [r.update] : [])
         const audit = audits[key]
@@ -170,15 +187,16 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
             {versions && shown.length === 0 && <p className="px-4.5 py-4 text-sm text-fg-muted">{filter === 'all' ? k.empty : k.allCurrent}</p>}
             {versions && shown.length > 0 && (
               <table className="w-full border-collapse text-sm">
-                <thead className="border-b border-line-subtle text-left text-2xs uppercase tracking-wider text-fg-muted">
-                  <tr>
-                    <th className="w-8 px-3 py-2"><span className="sr-only">{k.select}</span></th>
-                    <th className="px-3 py-2">{k.colName}</th>
-                    <th className="px-3 py-2">{k.colWanted}</th>
-                    <th className="px-3 py-2">{k.colInstalled}</th>
-                    <th className="px-3 py-2">{k.colLatest}</th>
-                    <th className="px-3 py-2">{k.colState}</th>
-                    <th className="px-3 py-2 text-right"><span className="sr-only">{k.colAction}</span></th>
+                <thead className="border-b border-line-subtle text-left text-[11.5px] font-semibold text-fg-muted">
+                  <tr className="h-8.5">
+                    <th className="w-8 px-3.5"><span className="sr-only">{k.select}</span></th>
+                    <th className="px-3.5">{k.colName}</th>
+                    <th className="px-3.5">{k.colWanted}</th>
+                    <th className="px-3.5">{k.colInstalled}</th>
+                    <th className="px-3.5">{k.colLatest}</th>
+                    <th className="px-3.5">{k.colType}</th>
+                    <th className="px-3.5">{k.colState}</th>
+                    <th className="px-3.5 text-right"><span className="sr-only">{k.colAction}</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -186,29 +204,29 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
                     const rowKey = `${key}:${r.p.name}`
                     const vuln = audit && audit !== 'busy' ? audit.packages[r.p.name] : undefined
                     return (
-                      <tr key={rowKey} className="border-b border-line-subtle last:border-0 hover:bg-elevated">
-                        <td className="px-3 py-1.5">
+                      <tr key={rowKey} className="h-10.5 border-b border-line-subtle last:border-0 hover:bg-elevated">
+                        <td className="px-3.5">
                           {r.update && !m.readOnly && <input type="checkbox" className="size-3.5 accent-accent" aria-label={k.selectOne.replace('{name}', r.p.name)} checked={selected.has(rowKey)}
                             onChange={e => setSelected(s => { const n = new Set(s); if (e.target.checked) n.add(rowKey); else n.delete(rowKey); return n })} />}
                         </td>
-                        <td className="px-3 py-1.5">
+                        <td className="px-3.5">
                           {REGISTRY_PAGE[m.manager] ? (
                             <button onClick={() => window.devforge.openExternal(REGISTRY_PAGE[m.manager]!(r.p.name))} className="inline-flex items-center gap-1 font-mono text-fg hover:text-accent">
                               {r.p.name} <ExternalLink size={11} className="text-fg-muted" />
                             </button>
                           ) : <span className="font-mono text-fg">{r.p.name}</span>}
-                          {r.p.dev && <span className="ml-2 rounded bg-elevated px-1.5 font-mono text-2xs text-fg-muted">dev</span>}
                         </td>
-                        <td className="px-3 py-1.5 font-mono text-xs text-fg-secondary">{r.p.wanted}</td>
-                        <td className="px-3 py-1.5 font-mono text-xs">{r.p.installed ?? <span className="text-warning">{k.notInstalled}</span>}</td>
-                        <td className="px-3 py-1.5 font-mono text-xs text-fg-secondary">{r.latest ?? '—'}</td>
-                        <td className="px-3 py-1.5">
+                        <td className="px-3.5 font-mono text-xs text-fg-secondary">{r.p.wanted}</td>
+                        <td className="px-3.5 font-mono text-xs">{r.p.installed ?? <span className="text-warning">{k.notInstalled}</span>}</td>
+                        <td className="px-3.5 font-mono text-xs text-fg-secondary">{r.latest ?? '—'}</td>
+                        <td className="px-3.5 text-sm text-fg-secondary">{r.p.dev ? k.typeDev : k.typeDep}</td>
+                        <td className="px-3.5">
                           <span className="flex flex-wrap gap-1">
                             <Badge color={LEVEL_COLOR[r.level]}>{k.levels[r.level]}</Badge>
                             {vuln && <Badge color={SEVERITY_COLOR[vuln]}><ShieldAlert size={11} /> {k.severities[vuln]}</Badge>}
                           </span>
                         </td>
-                        <td className="px-3 py-1.5 text-right">
+                        <td className="px-3.5 text-right">
                           {r.update && !m.readOnly && (
                             <Button size="sm" variant={r.level === 'major' ? 'ghost' : 'secondary'} disabled={!!running || m.toolMissing} onClick={() => apply(m, [r.update!])}>
                               {r.update.target === 'compatible' ? k.update : k.updateTo.replace('{v}', r.latest ?? '')}

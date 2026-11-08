@@ -70,16 +70,16 @@ export function DiffView({ root, rel }: { root: string; rel: string }) {
   if (diff.binary) return <p className="p-4 text-sm text-fg-muted">{f.diffBinary}</p>
   if (!diff.hunks.length) return <p className="p-4 text-sm text-fg-muted">{f.diffNone}</p>
   return (
-    <div className="min-w-max py-2 font-mono text-xs leading-relaxed" data-testid="diff-view">
+    // The mock-up's diff: on the terminal's background, one column of line numbers
+    <div className="min-h-full min-w-max bg-term py-2 font-mono text-sm leading-[1.75] text-term-fg" data-testid="diff-view">
       {diff.hunks.map((h, i) => (
         <div key={i}>
-          <div className="px-3 py-1 text-fg-muted">{h.header}</div>
+          <div className="px-3 py-1 text-xs text-term-dim">{h.header}</div>
           {h.lines.map((l, j) => (
             <div key={j} data-kind={l.kind}
-              className={cn('flex whitespace-pre', l.kind === 'add' && 'bg-success-soft text-fg', l.kind === 'del' && 'bg-danger-soft text-fg', l.kind === 'context' && 'text-fg-secondary')}>
-              <span className="w-10 shrink-0 pr-2 text-right text-fg-muted select-none">{l.oldNo ?? ''}</span>
-              <span className="w-10 shrink-0 pr-2 text-right text-fg-muted select-none">{l.newNo ?? ''}</span>
-              <span className={cn('w-4 shrink-0 select-none', l.kind === 'add' && 'text-success', l.kind === 'del' && 'text-danger')}>{l.kind === 'add' ? '+' : l.kind === 'del' ? '−' : ' '}</span>
+              className={cn('flex whitespace-pre', l.kind === 'add' && 'bg-success/12', l.kind === 'del' && 'bg-danger/12')}>
+              <span className="w-10 shrink-0 pr-2 text-right text-term-dim select-none">{l.newNo ?? l.oldNo ?? ''}</span>
+              <span className={cn('w-4.5 shrink-0 text-center select-none', l.kind === 'add' && 'text-success', l.kind === 'del' && 'text-danger')}>{l.kind === 'add' ? '+' : l.kind === 'del' ? '−' : ' '}</span>
               <span className="pr-4">{l.text}</span>
             </div>
           ))}

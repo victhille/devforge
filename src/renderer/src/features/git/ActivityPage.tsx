@@ -140,7 +140,7 @@ export default function ActivityPage() {
                 <ul className="flex flex-col gap-1.5 text-sm">
                   {toFollow(projects).map(p => (
                     <li key={p.id} className="flex items-center gap-3">
-                      <button onClick={() => navigate(`/project/${p.id}?tab=git`)} className="min-w-0 flex-1 truncate text-left text-fg hover:text-accent">
+                      <button onClick={() => navigate(`/project/${p.id}?tab=files`)} className="min-w-0 flex-1 truncate text-left text-fg hover:text-accent">
                         {p.name} · <span className="font-mono text-xs text-fg-secondary">{p.branch}</span>
                       </button>
                       {p.ahead > 0 && <span className="flex items-center gap-0.5 font-mono text-xs text-accent"><ArrowUp size={11} />{k.toPush.replace('{n}', String(p.ahead))}</span>}

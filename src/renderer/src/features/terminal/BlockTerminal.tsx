@@ -38,15 +38,31 @@ interface Props {
   snippetLanguage: string
   onRestart: () => void
   className?: string
+  /** A command run once the shell is ready (a script sent from the project page) */
+  autoRun?: string
+  /** The page drives the tab: run a command again, stop the one that runs */
+  onControl?: (control: { run: (cmd: string) => void; interrupt: () => void }) => void
+  /** When the command that runs started, null when the shell waits */
+  onBusy?: (since: number | null) => void
 }
 
-export default function BlockTerminal({ backend, shellLabel, snippetLanguage, onRestart, className }: Props) {
+export default function BlockTerminal({ backend, shellLabel, snippetLanguage, onRestart, className, autoRun, onControl, onBusy }: Props) {
   const { t } = useI18n()
   const s = t.terminal
   const toast = useToast()
   const { ask } = useAssistant()
   const shell = useBlockShell(backend)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // A script sent from the project page runs as soon as the shell is ready, once
+  const ran = useRef(false)
+  const { state, run, interrupt, blocks } = shell
+  useEffect(() => {
+    if (autoRun && !ran.current && state === 'ready') { ran.current = true; run(autoRun) }
+  }, [autoRun, state, run])
+  useEffect(() => { onControl?.({ run, interrupt }) }, [onControl, run, interrupt])
+  const since = state === 'running' ? blocks.find(b => b.endedAt === null)?.startedAt ?? null : null
+  useEffect(() => { onBusy?.(since) }, [onBusy, since])
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set())
 
   // Follows the output, unless the user scrolled up to read
@@ -65,9 +81,9 @@ export default function BlockTerminal({ backend, shellLabel, snippetLanguage, on
     <div className={cn('flex min-h-0 flex-col bg-term', className)}>
       <div ref={scrollRef} role="log" aria-label={s.blocksLabel} tabIndex={0}
         onScroll={e => { const el = e.currentTarget; stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 40 }}
-        className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3">
-        {shell.state === 'starting' && <p className="flex items-center gap-2 text-sm text-fg-secondary"><Spinner /> {s.starting.replace('{shell}', shellLabel)}</p>}
-        {shell.blocks.length === 0 && shell.state === 'ready' && <p className="text-sm text-fg-secondary">{s.empty}</p>}
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        {shell.state === 'starting' && <p className="flex items-center gap-2 px-4 py-3 text-sm text-fg-secondary"><Spinner /> {s.starting.replace('{shell}', shellLabel)}</p>}
+        {shell.blocks.length === 0 && shell.state === 'ready' && <p className="px-4 py-3 text-sm text-fg-secondary">{s.empty}</p>}
         {shell.blocks.map(b => b.endedAt === null
           ? <LiveBlock key={b.id} block={b} term={shell.live} onKeys={shell.send} onResize={shell.resize} onStop={shell.interrupt} />
           : (
@@ -79,7 +95,7 @@ export default function BlockTerminal({ backend, shellLabel, snippetLanguage, on
               onSnippet={() => { saveSnippet(b.cmd.slice(0, 60), b.cmd, snippetLanguage); toast.show({ tone: 'success', title: s.snippetSaved }) }} />
           ))}
         {shell.state === 'exited' && (
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line-subtle p-3 text-sm text-fg-secondary">
+          <div className="m-3 flex flex-wrap items-center gap-3 rounded-xl border border-line-subtle p-3 text-sm text-fg-secondary">
             <span className="flex-1">{s.exited.replace('{shell}', shellLabel)}</span>
             <Button size="sm" variant="secondary" onClick={onRestart}><RotateCcw size={13} /> {s.restart}</Button>
           </div>
@@ -102,15 +118,16 @@ function DoneBlock({ block: b, collapsed, onToggle, onCopy, onRerun, rerunDisabl
   const lines = b.lines ?? []
   const shown = all ? lines : lines.slice(-SHOWN_LINES)
   return (
-    <article aria-label={b.cmd} className={cn('overflow-hidden rounded-xl border bg-term-block', failed ? 'border-danger/50' : 'border-line-subtle')}>
-      <header className="flex items-center gap-2 border-b border-line-subtle px-3 py-1.5">
+    <article aria-label={b.cmd} className={cn('border-b border-white/[.06]', failed && 'bg-danger/[.05]')}>
+      <header className="group flex items-center gap-2 px-3 py-2">
         <IconButton size="sm" title={collapsed ? s.expand : s.collapse} onClick={onToggle}>{collapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}</IconButton>
         <span role="img" aria-label={b.code === null ? s.codeUnknown : failed ? s.codeFailed.replace('{code}', String(b.code)) : s.codeOk}
           className={cn('flex size-4 items-center justify-center', failed ? 'text-danger' : b.code === 0 ? 'text-success' : 'text-fg-secondary')}>
           {failed ? <X size={13} /> : b.code === 0 ? <Check size={13} /> : '–'}
         </span>
-        <code className="min-w-0 flex-1 truncate font-mono text-sm text-fg" title={b.cmd}>{b.cmd}</code>
-        <span className="shrink-0 font-mono text-xs text-fg-secondary">
+        <span aria-hidden className="font-mono text-[12.5px] text-accent">›</span>
+        <code className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-term-fg" title={b.cmd}>{b.cmd}</code>
+        <span className={cn('shrink-0 font-mono text-xs', failed ? 'text-danger' : 'text-term-dim')}>
           {failed ? `${s.code} ${b.code} · ` : ''}{duration((b.endedAt ?? b.startedAt) - b.startedAt)} · {new Date(b.startedAt).toLocaleTimeString().slice(0, 5)}
         </span>
         <IconButton size="sm" title={s.copy} onClick={onCopy}><Copy size={13} /></IconButton>
@@ -121,22 +138,28 @@ function DoneBlock({ block: b, collapsed, onToggle, onCopy, onRerun, rerunDisabl
       {!collapsed && lines.length > 0 && (
         <>
           {!all && lines.length > SHOWN_LINES && (
-            <button onClick={() => setAll(true)} className="w-full border-b border-line-subtle px-3 py-1 text-left text-xs text-accent hover:underline">
+            <button onClick={() => setAll(true)} className="w-full px-4 py-1 text-left text-xs text-accent hover:underline">
               {s.showAll.replace('{n}', String(lines.length))}
             </button>
           )}
-          <pre className="max-h-[480px] overflow-auto px-3 py-2 font-mono text-sm leading-[1.45] whitespace-pre-wrap break-words text-term-fg">
+          <pre className="max-h-[480px] overflow-auto px-4 pb-2.5 font-mono text-[12.5px] leading-[1.6] whitespace-pre-wrap break-words text-term-fg">
             {shown.map((l, i) => (
               <div key={i}>{l.length ? l.map((seg, j) => <span key={j} style={{ color: seg.fg, fontWeight: seg.bold ? 600 : undefined }}>{seg.text}</span>) : ' '}</div>
             ))}
           </pre>
         </>
       )}
+      {/* A failure: Forgy reads it, or the output is copied */}
       {failed && !collapsed && (
-        <div className="flex items-center gap-2 border-t border-forgy/20 bg-forgy-soft px-3 py-1.5 text-xs">
-          <Bot size={13} className="text-forgy" />
-          <span className="flex-1 text-fg-secondary">{s.failedHint}</span>
-          <button onClick={onExplain} className="font-medium text-forgy hover:underline">{s.explain}</button>
+        <div className="flex flex-wrap gap-2 px-4 pb-3">
+          <button type="button" onClick={onExplain} title={s.failedHint}
+            className="inline-flex h-7.5 items-center gap-1.5 rounded-md bg-accent-soft px-3 text-sm font-semibold text-accent hover:bg-accent/20">
+            <Bot size={13} aria-hidden /> {s.explain}
+          </button>
+          <button type="button" onClick={onCopy}
+            className="inline-flex h-7.5 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-term-dim hover:bg-white/5 hover:text-term-fg">
+            <Copy size={13} aria-hidden /> {s.copy}
+          </button>
         </div>
       )}
     </article>
@@ -173,11 +196,12 @@ function LiveBlock({ block: b, term, onKeys, onResize, onStop }: {
   }, [term, onKeys, onResize])
 
   return (
-    <article aria-label={b.cmd} aria-busy="true" className="overflow-hidden rounded-xl border border-accent/50 bg-term-block">
-      <header className="flex items-center gap-2 border-b border-line-subtle px-3 py-1.5">
+    <article aria-label={b.cmd} aria-busy="true" className="border-b border-white/[.06]">
+      <header className="flex items-center gap-2 px-3 py-2">
         <Spinner />
-        <code className="min-w-0 flex-1 truncate font-mono text-sm text-fg">{b.cmd}</code>
-        <span className="font-mono text-xs text-fg-secondary">{s.running} · {duration(elapsed)}</span>
+        <span aria-hidden className="font-mono text-[12.5px] text-accent">›</span>
+        <code className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-term-fg">{b.cmd}</code>
+        <span className="font-mono text-xs text-term-dim">{s.running} · {duration(elapsed)}</span>
         <Button size="sm" variant="ghost" onClick={onStop}><Square size={11} /> {s.stop}</Button>
       </header>
       <div ref={host} className="h-[340px] px-2 py-1" />
@@ -251,6 +275,7 @@ function InputBar({ shell, historyKey, shellLabel, onAsk }: {
 
   function onKey(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'r' && e.ctrlKey) { e.preventDefault(); setSearching(v => !v); setPick(0); return }
+    if (e.key.toLowerCase() === 'l' && e.ctrlKey) { e.preventDefault(); shell.clear(); return }
     if (searching) {
       if (e.key === 'Escape') { e.preventDefault(); setSearching(false) }
       else if (e.key === 'ArrowUp') { e.preventDefault(); setPick(p => Math.min(p + 1, matches.length - 1)) }

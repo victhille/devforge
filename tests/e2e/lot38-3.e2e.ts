@@ -75,5 +75,5 @@ test('commits per week, the most active, those asleep and the branches to push; 
 
   // A project opens its page
   await page.getByTestId('to-follow').getByRole('button', { name: /shop/ }).click()
-  await expect(page).toHaveURL(/\/project\/s\?tab=git/)
+  await expect(page).toHaveURL(/\/project\/s\?tab=files/)
 })

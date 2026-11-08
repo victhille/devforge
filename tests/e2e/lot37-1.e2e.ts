@@ -32,19 +32,20 @@ test('the Tests tab runs the tools, shows each test by file, keeps the last run'
   await page.getByRole('button', { name: 'Lancer les tests (Vitest)' }).click()
   const files = page.getByTestId('test-files')
   await expect(files).toBeVisible({ timeout: 30_000 })
-  await expect(page.getByText('Réussis', { exact: true }).locator('..')).toContainText('3')
-  await expect(page.getByText('Échoués', { exact: true }).locator('..')).toContainText('1')
-  await expect(page.getByText('Ignorés', { exact: true }).locator('..')).toContainText('1')
+  const totals = page.getByTestId('test-totals')
+  await expect(totals).toContainText('3 réussi(s)')
+  await expect(totals).toContainText('1 échec(s)')
+  await expect(totals).toContainText('1 ignoré(s)')
 
-  // The failed file is open, the other folded
+  // The failed file is shown on the right, its tests listed; the other file waits in the list
+  const detail = page.getByTestId('test-detail')
   const cart = files.getByTestId('test-file').filter({ hasText: 'src/cart.test.ts' })
-  await expect(cart).toContainText('cart › applies the discount')
   await expect(cart).toContainText('1 échoué(s) · 1 ignoré(s) · 3 test(s)')
+  await expect(detail).toContainText('cart › applies the discount')
   const format = files.getByTestId('test-file').filter({ hasText: 'src/format.test.ts' })
-  await expect(format).not.toContainText('formats a price')
-  // The file's own row (its rerun button holds the name too)
+  await expect(detail).not.toContainText('formats a price')
   await format.getByRole('button', { name: /^src\/format\.test\.ts/ }).click()
-  await expect(format).toContainText('formats a price')
+  await expect(detail).toContainText('formats a price')
 
   // The command's output
   await page.getByText(/^Sortie de la commande/).click()

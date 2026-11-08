@@ -38,7 +38,8 @@ test('a project page gathers its resources and becomes the active project', asyn
   await expect(page.getByText('Projet actif', { exact: true })).toBeVisible()
 
   // Overview: env file (key count, never the values), port from .env
-  await expect(page.getByText('.env · 2 clé(s)')).toBeVisible()
+  const envCard = page.getByRole('region', { name: 'Variables' })
+  await expect(envCard.getByRole('listitem').filter({ hasText: '.env' })).toContainText('2 clé(s)')
   await expect(page.locator('main')).not.toContainText('secret')
 
   // Database tab: the SQLite file inside the project is linked, and shown right here (v3.3 lot 1)
