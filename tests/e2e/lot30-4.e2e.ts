@@ -15,6 +15,8 @@ test.afterEach(async () => {
 test('export without secrets, erase everything, import the setup back', async () => {
   let shop = ''
   run = await launch({
+    // No fade-ins: on a slow machine axe could measure the danger zone half-faded
+    settings: { motion: 'reduced' },
     // export.json is not part of the data: erasing leaves it, the import reads it back
     env: { DEVFORGE_TEST_EXPORT_PATH: '{userData}/export.json', DEVFORGE_TEST_IMPORT_PATH: '{userData}/export.json', DEVFORGE_TEST_NO_RELAUNCH: '1', GIT_CONFIG_GLOBAL: '{userData}/gitconfig' },
     seed: dir => {
