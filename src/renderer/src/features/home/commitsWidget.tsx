@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, ArrowUp } from 'lucide-react'
+import { ArrowRight, ArrowUp, GitCommitHorizontal } from 'lucide-react'
 import type { ActivityData } from '@shared/types'
 import { commitsByWeek, toFollow } from '@shared/lib/activity'
 import { useI18n } from '@renderer/i18n/I18nContext'
-import Spinner from '@renderer/components/ui/Spinner'
-import { Tile } from './parts'
-import Button from '@renderer/components/ui/Button'
+import { ROW, Tile, TileLink, TileLoading } from './parts'
 
 /** v3.8 lot 3: this week's commits (mine) and the branches to push; the Activity page has the rest */
 export function CommitsWidget({ i }: { i: number }) {
@@ -23,27 +21,27 @@ export function CommitsWidget({ i }: { i: number }) {
   const nameOf = (id: string) => data?.projects.find(p => p.id === id)?.name ?? id
 
   return (
-    <Tile i={i} title={t.home.widgets.names.commits} aside={<Button size="sm" variant="secondary" className="px-3.5" onClick={() => navigate('/activity')}>{k.seeAll} <ArrowRight size={13} /></Button>}>
-      {!data ? <Spinner /> : (
+    <Tile i={i} icon={GitCommitHorizontal} title={t.home.widgets.names.commits} aside={<TileLink onClick={() => navigate('/activity')}>{k.seeAll} <ArrowRight size={14} aria-hidden /></TileLink>}>
+      {!data ? <TileLoading /> : (
         <div className="flex flex-col gap-3" data-testid="commits-widget">
           <div className="flex items-end gap-4">
             <div>
-              <div className="text-3xl leading-none font-semibold text-fg">{week.total}</div>
-              <div className="mt-1 text-xs text-fg-muted">{k.thisWeek}</div>
+              <div className="font-display text-3xl leading-none font-bold tracking-[-.02em] text-fg">{week.total}</div>
+              <div className="mt-1 text-sm text-fg-muted">{k.thisWeek}</div>
             </div>
             <div className="flex h-10 flex-1 items-end gap-[3px]" aria-hidden>
               {weeks.map(w => <div key={w.start} className="flex-1 rounded-t-[2px] bg-accent/70" style={{ height: `${Math.max(2, (w.total / max) * 40)}px`, opacity: w.total ? 1 : 0.25 }} />)}
             </div>
           </div>
           {week.total > 0 && (
-            <p className="truncate text-xs text-fg-secondary">
+            <p className="truncate text-sm text-fg-secondary">
               {Object.entries(week.byProject).sort((a, b) => b[1] - a[1]).map(([id, n]) => `${nameOf(id)} ${n}`).join(' · ')}
             </p>
           )}
           {push.length > 0 && (
-            <ul className="flex flex-col gap-1 text-sm">
+            <ul className="flex flex-col text-base">
               {push.slice(0, 3).map(p => (
-                <li key={p.id} className="flex items-center gap-2">
+                <li key={p.id} className={ROW}>
                   <span className="min-w-0 flex-1 truncate text-fg">{p.name}</span>
                   <span className="flex items-center gap-0.5 font-mono text-xs text-accent"><ArrowUp size={11} />{k.toPush.replace('{n}', String(p.ahead))}</span>
                 </li>
