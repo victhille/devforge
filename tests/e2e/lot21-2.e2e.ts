@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import { writeFileSync } from 'fs'
 import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
+import { settledAxeIssues } from './axe'
 
 /** v2.1 lot 2: nightly backups (canned server outputs, no real VPS) */
 let run: Launched
@@ -46,10 +47,13 @@ test('with a plan: last night, the files, a restore asks first', async () => {
   run = await launch({ settings: { onboarded: true }, seed: seed(true), env: { DEVFORGE_TEST_VPS: '{userData}/vps.json' } })
   const { page } = run
   await goTo(page, '/backups')
-  await expect(page.getByRole('heading', { name: 'Dernière sauvegarde' })).toBeVisible()
-  await expect(page.getByText(/^Réussie .* · 1\.2 MB$/)).toBeVisible()
-  await expect(page.getByText('Chaque nuit à 03:30 · 7 jours, 4 semaines')).toBeVisible()
-  await expect(page.getByText('db-n8n-postgres-1.sql.gz')).toBeVisible()
+  // As in the mock-up: the last one and the next one counted, the content of each file
+  await expect(page.getByText('Dernière sauvegarde', { exact: true })).toBeVisible()
+  await expect(page.getByText(/ · réussie$/)).toBeVisible()
+  await expect(page.getByText('Prochaine', { exact: true }).locator('..')).toContainText('03:30')
+  await expect(page.getByRole('button', { name: 'Planification' })).toBeVisible()
+  await expect(page.getByText('Base n8n-postgres-1')).toBeVisible()
+  expect(await settledAxeIssues(page)).toEqual([])
   await page.getByRole('button', { name: 'Restaurer', exact: true }).first().click()
   const dialog = page.getByRole('dialog', { name: 'Restaurer n8n-postgres-1 ?' })
   await expect(dialog).toContainText('pre-restore/')

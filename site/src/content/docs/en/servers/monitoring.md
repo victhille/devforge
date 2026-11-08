@@ -16,9 +16,19 @@ The **Monitoring** page watches your sites and APIs, and the state of your serve
 | Check every | 30 s, 1 min, 5 min, 15 min or 1 h |
 | Expected text | optional: the page must contain it to count as up |
 
-At the top, four counts: the **watched** URLs, those **down**, their **uptime** over the last checks and the **incidents of the last 30 days**, with how long they lasted in all. An incident starts when a URL stops answering and ends when it answers again.
+At the top, three counts: the **watched** URLs, their **uptime** over the last checks and the **incidents of the last 30 days**, with how long they lasted in all. An incident starts when a URL stops answering and ends when it answers again.
 
-DevForge checks each URL in the background and sends a **Windows notification** when one goes down or comes back. Each URL shows its state and since when, its last 24 hours and its response time. **Check now**, **Pause** / **Resume**, **Edit**, **Delete**.
+DevForge checks each URL in the background and sends a **Windows notification** when one goes down or comes back. The table shows for each URL:
+
+| Column | Content |
+|---|---|
+| Target | the name, and the expected text or the host |
+| State | *online*, *down*, *paused* or *waiting*, and since when |
+| Response | the response time of the last check, or its error |
+| Last 24 h | one bar an hour: green when every check answered, amber when one failed, red when none answered |
+| 30 days | the uptime over 30 days, from how long the incidents lasted |
+
+At the end of the row: **Check now**, **Pause** / **Resume**, **Edit**, **Delete** and **Details**, which unfolds the availability per half hour and the response time of the last 24 hours.
 
 **Found in your projects** suggests URLs spotted in your projects.
 
