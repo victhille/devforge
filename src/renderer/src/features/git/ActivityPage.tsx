@@ -12,7 +12,7 @@ import Spinner from '@renderer/components/ui/Spinner'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 
 /** The bars' colours: the most active projects, then "others" */
-const COLORS = ['var(--color-accent)', 'var(--color-success)', 'var(--color-warning)', 'var(--syntax-keyword)']
+const COLORS = ['var(--color-accent)', 'var(--color-success)', 'var(--color-warning)', 'var(--color-info)']
 const OTHERS = 'var(--color-fg-muted)'
 
 /**

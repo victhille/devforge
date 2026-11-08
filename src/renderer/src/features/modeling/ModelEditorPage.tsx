@@ -364,9 +364,9 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
                 return (
                   <div key={x.id} className="group contents">
                     <div data-entity={x.name} data-picked={on || undefined} onPointerDown={ev => down(ev, { kind: 'entity', id: x.id })}
-                      className={cn('absolute cursor-move overflow-hidden rounded-md border-[1.5px] bg-surface font-mono', on ? 'border-accent shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_25%,transparent)]' : 'border-[var(--syntax-keyword)]', pull?.target === x.id && TARGET_RING)}
+                      className={cn('absolute cursor-move overflow-hidden rounded-md border-[1.5px] bg-surface font-mono', on ? 'border-accent shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_25%,transparent)]' : 'border-[var(--diagram-violet)]', pull?.target === x.id && TARGET_RING)}
                       style={{ left: b.x, top: b.y, width: b.w, height: b.h }}>
-                      <div className={cn('flex items-center justify-center border-b-[1.5px] px-2 text-base font-bold tracking-wide text-fg', on ? 'border-accent' : 'border-[var(--syntax-keyword)]')} style={{ height: HEADER }}>{x.name.toUpperCase() || '—'}</div>
+                      <div className={cn('flex items-center justify-center border-b-[1.5px] px-2 text-base font-bold tracking-wide text-fg', on ? 'border-accent' : 'border-[var(--diagram-violet)]')} style={{ height: HEADER }}>{x.name.toUpperCase() || '—'}</div>
                       <div className="pt-1">
                         {x.attributes.map(a => (
                           <div key={a.id} className={cn('truncate px-3 text-sm text-fg', a.identifier && 'underline')} style={{ height: ROW, lineHeight: `${ROW}px` }}>{a.name || '—'}</div>
@@ -383,7 +383,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
                 return (
                   <div key={x.id} className="group contents">
                     <div data-association={x.name} data-picked={on || undefined} onPointerDown={ev => down(ev, { kind: 'association', id: x.id })}
-                      className={cn('absolute flex cursor-move flex-col items-center justify-center rounded-[50%] border-[1.5px] bg-surface font-mono', on ? 'border-accent' : 'border-[var(--syntax-keyword)]', pull?.target === x.id && TARGET_RING)}
+                      className={cn('absolute flex cursor-move flex-col items-center justify-center rounded-[50%] border-[1.5px] bg-surface font-mono', on ? 'border-accent' : 'border-[var(--diagram-violet)]', pull?.target === x.id && TARGET_RING)}
                       style={{ left: b.x, top: b.y, width: b.w, height: b.h }}>
                       <span className="text-sm font-bold tracking-wide text-fg">{x.name.toUpperCase() || '—'}</span>
                       {x.attributes.map(a => <span key={a.id} className="text-xs leading-4 text-fg-secondary">{a.name}</span>)}
@@ -396,7 +396,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
                 const b = boxes.get(x.id)!
                 return (
                   <div key={x.id} onPointerDown={ev => down(ev, { kind: 'note', id: x.id })}
-                    className={cn('absolute cursor-move rounded-md bg-[color-mix(in_srgb,var(--syntax-attr)_16%,transparent)] px-2.5 py-2 text-sm leading-[17px] whitespace-pre-wrap text-fg', (sel?.id === x.id || multi.includes(x.id)) && 'ring-2 ring-accent')}
+                    className={cn('absolute cursor-move rounded-md bg-[color-mix(in_srgb,var(--diagram-yellow)_16%,transparent)] px-2.5 py-2 text-sm leading-[17px] whitespace-pre-wrap text-fg', (sel?.id === x.id || multi.includes(x.id)) && 'ring-2 ring-accent')}
                     style={{ left: b.x, top: b.y, width: b.w, minHeight: b.h }}>{x.text}</div>
                 )
               })}
@@ -409,7 +409,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
                   <button key={l.id} type="button" title={e.cardHint} aria-label={e.cardLabel.replace('{entity}', nameOf(l.entity)).replace('{association}', nameOf(l.association)).replace('{card}', l.card)}
                     onPointerDown={ev => { ev.stopPropagation(); setSel({ kind: 'link', id: l.id }) }}
                     onClick={() => change(x => ({ ...x, links: x.links.map(k => (k.id === l.id ? { ...k, card: nextCard(k.card) } : k)) }))}
-                    className={cn('absolute -translate-x-1/2 -translate-y-1/2 rounded px-1 font-mono text-sm font-semibold text-[var(--syntax-keyword)] hover:bg-hover', sel?.id === l.id && 'bg-active ring-1 ring-accent')}
+                    className={cn('absolute -translate-x-1/2 -translate-y-1/2 rounded px-1 font-mono text-sm font-semibold text-[var(--diagram-violet)] hover:bg-hover', sel?.id === l.id && 'bg-active ring-1 ring-accent')}
                     style={{ left: p.label.x, top: p.label.y }}>{l.card}</button>
                 )
               })}
@@ -418,12 +418,12 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
             <ZoneRect box={zone} />
 
             <CanvasBar tool={tool} onTool={setTool}>
-              <BarItem onClick={() => addEntity()} drag="entity" label={e.addEntity} icon={<svg width="18" height="14" aria-hidden><rect x="1" y="1" width="16" height="12" rx="2" fill="none" stroke="var(--syntax-keyword)" strokeWidth="1.5" /><path d="M1 5h16" stroke="var(--syntax-keyword)" strokeWidth="1.5" /></svg>} />
-              <BarItem onClick={() => addAssociation()} drag="association" label={e.addAssociation} icon={<svg width="18" height="14" aria-hidden><ellipse cx="9" cy="7" rx="8" ry="5.5" fill="none" stroke="var(--syntax-keyword)" strokeWidth="1.5" /></svg>} />
-              <BarItem onClick={() => addNote()} drag="note" label={e.addNote} icon={<StickyNote size={15} className="text-[var(--syntax-attr)]" />} />
+              <BarItem onClick={() => addEntity()} drag="entity" label={e.addEntity} icon={<svg width="18" height="14" aria-hidden><rect x="1" y="1" width="16" height="12" rx="2" fill="none" stroke="var(--diagram-violet)" strokeWidth="1.5" /><path d="M1 5h16" stroke="var(--diagram-violet)" strokeWidth="1.5" /></svg>} />
+              <BarItem onClick={() => addAssociation()} drag="association" label={e.addAssociation} icon={<svg width="18" height="14" aria-hidden><ellipse cx="9" cy="7" rx="8" ry="5.5" fill="none" stroke="var(--diagram-violet)" strokeWidth="1.5" /></svg>} />
+              <BarItem onClick={() => addNote()} drag="note" label={e.addNote} icon={<StickyNote size={15} className="text-[var(--diagram-yellow)]" />} />
             </CanvasBar>
 
-            <Minimap parts={boxes} all={all} view={view} size={size} lit={id => sel?.id === id || multi.includes(id)} tone={{ fill: 'var(--syntax-keyword)', opacity: 0.55 }} onGo={canvas.centerOn} />
+            <Minimap parts={boxes} all={all} view={view} size={size} lit={id => sel?.id === id || multi.includes(id)} tone={{ fill: 'var(--diagram-violet)', opacity: 0.55 }} onGo={canvas.centerOn} />
           </div>
 
           {/* The part chosen, or the check */}
@@ -453,7 +453,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
                         <div className="flex items-center gap-1.5">
                           {isEntity && (
                             <input type="checkbox" checked={!!a.identifier} title={e.identifier} aria-label={e.identifierOf.replace('{name}', a.name)}
-                              onChange={ev => setAttr(a.id, { identifier: ev.target.checked || undefined })} className="accent-[var(--syntax-keyword)]" />
+                              onChange={ev => setAttr(a.id, { identifier: ev.target.checked || undefined })} className="accent-[var(--diagram-violet)]" />
                           )}
                           <input value={a.name} aria-label={e.attrName} onChange={ev => setAttr(a.id, { name: ev.target.value }, `attr:${a.id}`)} spellCheck={false}
                             className={cn('h-7 min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 font-mono text-sm text-fg outline-none focus:border-accent', a.identifier && 'underline')} />

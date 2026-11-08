@@ -8,8 +8,8 @@ export function mcdColors(): McdColors {
   const v = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback
   return {
     canvas: v('--color-canvas', '#0D0F13'), card: v('--color-surface', '#161A21'), line: v('--color-fg-muted', '#8792A2'),
-    entity: v('--syntax-keyword', '#C792EA'), text: v('--color-fg', '#E8ECF2'), muted: v('--color-fg-secondary', '#9AA4B2'),
-    card11: v('--syntax-keyword', '#C792EA'), note: 'rgba(255,203,107,.16)', noteText: v('--color-fg', '#E8ECF2')
+    entity: v('--diagram-violet', '#C792EA'), text: v('--color-fg', '#E8ECF2'), muted: v('--color-fg-secondary', '#9AA4B2'),
+    card11: v('--diagram-violet', '#C792EA'), note: 'rgba(255,203,107,.16)', noteText: v('--color-fg', '#E8ECF2')
   }
 }
 
@@ -26,7 +26,7 @@ export function schemaColors(): SvgColors {
 /** A diagram's colours: the theme's CSS variables on the canvas, their values in a picture */
 export const LIVE_DIAGRAM: DiagramColors = {
   canvas: 'var(--color-canvas)', card: 'var(--color-surface)', line: 'var(--color-fg-muted)', text: 'var(--color-fg)', muted: 'var(--color-fg-muted)',
-  accent: 'var(--syntax-keyword)', actor: 'var(--syntax-attr)', system: 'var(--color-accent)', note: 'rgba(255,203,107,.16)', noteText: 'var(--color-fg)'
+  accent: 'var(--diagram-violet)', actor: 'var(--diagram-yellow)', system: 'var(--color-accent)', note: 'rgba(255,203,107,.16)', noteText: 'var(--color-fg)'
 }
 export function diagramColors(): DiagramColors {
   const css = getComputedStyle(document.documentElement)

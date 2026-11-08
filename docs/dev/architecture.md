@@ -72,6 +72,7 @@ Les valeurs viennent du thème (`src/renderer/src/styles/index.css`) :
 - le cadre (`components/layout/`) : barre de titre de 44 px, rail d'icônes de 64 px (Accueil, les six groupes, Paramètres en bas) et panneau du groupe de 220 px, replié par Ctrl+B ; il garde sa taille en densité compacte et se construit depuis `app/navigation.ts` (`RAIL`, `MENU_GROUPS`, `railOf`), comme le routeur et la palette ;
 - une couleur de marque trop pâle pour le fond blanc prend `paleClass(couleur)` (`src/renderer/src/lib/brand.ts`), assombrie en thème clair seulement ;
 - le terminal reste sombre dans les deux thèmes : `bg-term`, `text-term-fg`…, et la palette `XTERM_THEME` (`src/renderer/src/features/terminal/snapshot.ts`) ;
+- le code d'un aperçu de fichier prend les couleurs `--syntax-*` de la maquette (mots-clés orange, chaînes vertes, nombres ambre, fonctions bleues) ; les diagrammes de la Modélisation ont les leurs, `--diagram-*`, pour ne pas se confondre avec l'orange d'une sélection ;
 - icônes `lucide-react` : 16 pour un outil d'une barre, 14 dans un bouton à icône (`IconButton`), 13 dans un bouton avec texte ou une ligne, 20 dans un état vide (`EmptyState` la ramène à cette taille) ;
 - un menu qui se replie à la main et aussi quand la page est étroite (SSH) : `useNarrow` (`src/renderer/src/hooks/useNarrow.ts`) ; sinon une requête de conteneur suffit (`SplitPane`, menus des Paramètres, de Docker, de Laravel et de Next).
 
