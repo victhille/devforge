@@ -46,7 +46,7 @@ test('Forgy uses ANTHROPIC_API_KEY without asking for a key', async () => {
   await goTo(page, '/settings?section=forgy')
   await expect(page.getByText('Clé lue dans ANTHROPIC_API_KEY ; une clé enregistrée ici la remplace')).toBeVisible()
   await page.keyboard.press('Control+J')
-  await expect(page.getByPlaceholder('Demande à Forgy…')).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'Question libre' })).toBeVisible()
   await expect(page.getByText(/Ajoute la clé API du fournisseur choisi/)).toHaveCount(0)
   await goTo(page, '/settings?section=connections')
   await expect(page.getByText('clé lue dans ANTHROPIC_API_KEY')).toBeVisible({ timeout: 20_000 })

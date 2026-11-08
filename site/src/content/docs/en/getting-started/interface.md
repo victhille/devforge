@@ -7,7 +7,14 @@ description: The home screen, the menu, favorites, the command palette, the term
 
 ![Home, with the active project, Git and activity](../../../../assets/screens/home-en.png)
 
-Home greets you according to the time of day and sums up what is running: containers online, ports listening, repositories to push, server state. It is made of **widgets**:
+Home greets you according to the time of day. Under the greeting, **chips** say where you stand: containers online (or "Nothing running"), changed repositories, repositories to push, server state.
+
+Below, two cards:
+
+- **Pick up again**: the three projects opened last, with their path, the state of their repository (changed, to push, up to date) and when they were last opened. **Open** leads to the project's page; **All Projects** to the list.
+- **Forgy**: a field to ask it a question, and three ready-made requests about the [active project](#the-active-project): **Commit message**, **Review the changes**, **Explain the project**. Each opens Forgy's panel and starts a new conversation.
+
+The rest of Home is made of **widgets**:
 
 | Widget | What it shows |
 |---|---|

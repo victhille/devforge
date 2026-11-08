@@ -3,7 +3,7 @@ title: Premier lancement
 description: Les cinq étapes de l'écran de bienvenue de DevForge.
 ---
 
-Au tout premier lancement, DevForge ouvre un accueil en **cinq étapes**. Rien n'est branché d'avance : DevForge ne connaît que ce que tu lui donnes, et tout est facultatif. **Passer**, en haut à droite, ferme l'accueil à n'importe quelle étape ; tout se retrouve ensuite dans les [Paramètres](/devforge/settings/general/).
+Au tout premier lancement, DevForge ouvre un accueil en **cinq étapes**. Rien n'est branché d'avance : DevForge ne connaît que ce que tu lui donnes, et tout est facultatif. La liste des étapes, à gauche, montre celles qui sont faites et celle en cours. **Passer**, en haut à droite, ferme l'accueil à n'importe quelle étape ; tout se retrouve ensuite dans les [Paramètres](/devforge/settings/general/).
 
 ## 1. Bienvenue
 

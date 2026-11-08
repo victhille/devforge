@@ -41,7 +41,7 @@ test('Forgy fills the Laravel form, and explains a pending migration', async () 
   })
   const { page } = run
   await page.keyboard.press('Control+J')
-  const input = page.getByPlaceholder('Demande à Forgy…')
+  const input = page.getByRole('textbox', { name: 'Question libre' })
   await input.fill('Ajoute une facture liée au client dans atelier')
   await input.press('Enter')
 
