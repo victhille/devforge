@@ -32,9 +32,18 @@ jobs:
           path: |
             node_modules
             ~\AppData\Local\electron\Cache
-          key: deps-${{ runner.os }}-node22-${{ steps.lock.outputs.key }}
+          key: deps-${{ runner.os }}-node22-electron-${{ steps.lock.outputs.key }}
       - if: steps.deps.outputs.cache-hit != 'true'
         run: npm ci
+      # Electron's binary (see the CI): electron-builder takes its zip from the Electron cache
+      - name: Electron binary
+        run: |
+          for try in 1 2 3 4; do
+            node node_modules/electron/install.js && exit 0
+            echo "Electron's download failed (try $try of 4)"
+            [ "$try" -lt 4 ] && sleep $((try * 20))
+          done
+          exit 1
 
       - name: Tag matches package.json
         run: |
