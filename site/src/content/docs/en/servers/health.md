@@ -7,6 +7,8 @@ The **Health** page goes around your server: updates, space, ports, SSH and cont
 
 At the top, a summary: **All good**, **To watch** or **To fix**, and the time of the check. **Refresh** reads again.
 
+Below, a **score out of 10** (each point to watch counts half, each point to fix counts nothing) and how many checks are **to fix**, **to watch** and **all good**.
+
 ## The checks
 
 | Check | What is looked at |

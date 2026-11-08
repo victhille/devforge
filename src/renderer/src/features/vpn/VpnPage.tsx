@@ -45,7 +45,7 @@ export default function VpnPage() {
 
   return (
     <Page>
-      <PageHeader title="VPN" subtitle={v.subtitle}
+      <PageHeader crumb={conn ? `${t.nav.groupOnline} · ${conn.name}` : t.nav.groupOnline} title="VPN" subtitle={v.subtitle}
         actions={connections && connections.length > 0 && (
           <label className="flex items-center gap-2 text-sm text-fg-secondary">
             {v.server}
@@ -98,7 +98,7 @@ function Login({ conn, port, onDone }: { conn: SSHConnection; port: number; onDo
       <div className="flex items-center gap-3">
         <div className="flex size-11 items-center justify-center rounded-xl bg-forgy-soft"><ShieldCheck size={22} className="text-forgy" /></div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-base font-semibold text-fg">{v.loginTitle}</h2>
+          <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{v.loginTitle}</h2>
           <p className="mt-0.5 text-sm text-fg-secondary">{v.loginHint}</p>
         </div>
       </div>
@@ -197,7 +197,7 @@ function Clients({ conn, found, onForget }: { conn: SSHConnection; found: VpnDet
       <Card className="df-rise flex flex-wrap items-center gap-4 p-5">
         <div className="flex size-12 items-center justify-center rounded-card bg-forgy-soft"><ShieldCheck size={26} className="text-forgy" /></div>
         <div className="min-w-[220px] flex-1">
-          <h2 className="text-lg font-semibold text-fg">WireGuard</h2>
+          <h2 className="font-display text-lg font-bold tracking-[-.01em] text-fg">WireGuard</h2>
           <div className="mt-1 font-mono text-xs text-fg-muted">
             {v.found.replace('{version}', found.version ?? 'latest').replace('{port}', String(found.port))}{tunnel && ` · ${v.tunnelOpen.replace('{url}', tunnel)}`}
           </div>
@@ -210,7 +210,7 @@ function Clients({ conn, found, onForget }: { conn: SSHConnection; found: VpnDet
 
       <Card className="df-rise overflow-hidden" style={{ '--i': 1 } as CSSProperties}>
         <div className="flex flex-wrap items-center gap-3 px-4.5 pt-4 pb-3">
-          <h3 className="flex-1 text-md font-semibold text-fg">{v.clients}{clients && <span className="ml-2 font-mono text-xs text-fg-muted">{clients.length}</span>}</h3>
+          <h3 className="flex-1 font-display text-md font-bold tracking-[-.01em] text-fg">{v.clients}{clients && <span className="ml-2 font-mono text-xs text-fg-muted">{clients.length}</span>}</h3>
           <label className="relative">
             <span className="sr-only">{v.search}</span>
             <Search size={14} className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-fg-muted" />
@@ -225,7 +225,7 @@ function Clients({ conn, found, onForget }: { conn: SSHConnection; found: VpnDet
             const expired = !!c.expiresAt && new Date(c.expiresAt).getTime() < Date.now()
             return (
               <div key={c.id} className={cn('flex flex-wrap items-center gap-3 border-t border-line-subtle px-4.5 py-3', !c.enabled && 'opacity-60')}>
-                <div aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-full bg-active text-sm font-semibold text-fg-secondary">{c.name.slice(0, 1).toUpperCase() || '?'}</div>
+                <div aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-control bg-accent-soft font-display text-sm font-bold text-accent">{c.name.slice(0, 1).toUpperCase() || '?'}</div>
                 <div className="min-w-[200px] flex-1">
                   <div className="truncate text-sm font-medium text-fg">{c.name}</div>
                   <div className="truncate font-mono text-xs text-fg-muted">{c.ipv4}{c.ipv6 ? `, ${c.ipv6}` : ''}</div>

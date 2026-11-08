@@ -270,6 +270,15 @@ export interface SSHConnection {
   createdAt: string
 }
 
+/** One entry of a server folder, read over SFTP */
+export interface SftpEntry {
+  name: string
+  kind: 'dir' | 'file' | 'link'
+  size: number
+  /** ms since 1970 */
+  mtime: number
+}
+
 export interface SSHSessionStatus {
   sessionId: string
   connectionId: string
@@ -451,6 +460,10 @@ export interface DevForgeAPI {
   sshWrite: (sessionId: string, data: string) => Promise<void>
   sshResize: (sessionId: string, cols: number, rows: number) => Promise<void>
   sshDisconnect: (sessionId: string) => Promise<void>
+  /** A folder of the server over SFTP (the session's own connection); an empty path is the home folder */
+  sshSftpList: (sessionId: string, dir: string) => Promise<{ path: string; entries: SftpEntry[] }>
+  /** Copies a file of the server where the user picks; the path saved, or null when cancelled */
+  sshSftpDownload: (sessionId: string, remotePath: string) => Promise<string | null>
   onSshData: (callback: (sessionId: string, data: string) => void) => () => void
   onSshStatus: (callback: (status: SSHSessionStatus) => void) => () => void
   /** A server was added, edited or removed */

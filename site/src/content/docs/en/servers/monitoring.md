@@ -16,6 +16,8 @@ The **Monitoring** page watches your sites and APIs, and the state of your serve
 | Check every | 30 s, 1 min, 5 min, 15 min or 1 h |
 | Expected text | optional: the page must contain it to count as up |
 
+At the top, four counts: the **watched** URLs, those **down**, their **uptime** over the last checks and the **incidents of the last 30 days**, with how long they lasted in all. An incident starts when a URL stops answering and ends when it answers again.
+
 DevForge checks each URL in the background and sends a **Windows notification** when one goes down or comes back. Each URL shows its state and since when, its last 24 hours and its response time. **Check now**, **Pause** / **Resume**, **Edit**, **Delete**.
 
 **Found in your projects** suggests URLs spotted in your projects.

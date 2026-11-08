@@ -5,6 +5,7 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
 import { formatRelative } from '@renderer/lib/format'
+import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import Switch from '@renderer/components/ui/Switch'
@@ -53,7 +54,7 @@ export default function N8nPage() {
 
   return (
     <Page>
-      <PageHeader title="n8n" subtitle={n.subtitle}
+      <PageHeader crumb={conn ? `${t.nav.groupOnline} · ${conn.name}` : t.nav.groupOnline} title="n8n" subtitle={n.subtitle}
         actions={connections && connections.length > 0 && (
           <label className="flex items-center gap-2 text-sm text-fg-secondary">
             {n.server}
@@ -150,7 +151,7 @@ function Install({ conn, onDone }: { conn: SSHConnection; onDone: () => void }) 
         <div className="flex items-center gap-3">
           <div className="flex size-11 items-center justify-center rounded-xl bg-forgy-soft"><N8nMark /></div>
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-semibold text-fg">{n.installTitle.replace('{name}', conn.name)}</h2>
+            <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{n.installTitle.replace('{name}', conn.name)}</h2>
             <p className="mt-0.5 text-sm text-fg-secondary">{n.installHint}</p>
           </div>
         </div>
@@ -274,12 +275,12 @@ function Installed({ conn, instance, onChange }: { conn: SSHConnection; instance
         <div className="flex size-12 items-center justify-center rounded-card bg-forgy-soft"><N8nMark size={26} /></div>
         <div className="min-w-[220px] flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-lg font-semibold text-fg">n8n{status?.version ? ` ${status.version}` : ''}</h2>
+            <h2 className="font-display text-lg font-bold tracking-[-.01em] text-fg">n8n{status?.version ? ` ${status.version}` : ''}</h2>
             {!status ? <Spinner /> : (
-              <span className={cn('flex items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-xs font-medium', on ? 'bg-success-soft text-success' : 'bg-active text-fg-secondary')}>
+              <Badge color={on ? 'success' : 'default'}>
                 <StatusDot state={on ? 'on' : 'off'} live={on} />
                 {on ? n.running : status.state ? n.stopped : n.notRunning}
-              </span>
+              </Badge>
             )}
           </div>
           <div className="mt-1 font-mono text-xs text-fg-muted">
@@ -334,7 +335,7 @@ function Installed({ conn, instance, onChange }: { conn: SSHConnection; instance
 
       {!instance.hasKey ? (
         <Card className="df-rise flex max-w-2xl flex-col gap-3 p-5" style={{ '--i': 1 } as CSSProperties}>
-          <h3 className="text-md font-semibold text-fg">{n.apiKey}</h3>
+          <h3 className="font-display text-md font-bold tracking-[-.01em] text-fg">{n.apiKey}</h3>
           <p className="text-sm text-fg-secondary">{n.apiKeyHint}</p>
           <div className="flex gap-2">
             <Input type="password" value={key} onChange={e => setKey(e.target.value)} placeholder={n.apiKeyPlaceholder} aria-label={n.apiKey} className="font-mono" autoComplete="off" />
@@ -349,7 +350,7 @@ function Installed({ conn, instance, onChange }: { conn: SSHConnection; instance
       ) : on && (
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[3fr_2fr]">
           <Card className="df-rise overflow-hidden" style={{ '--i': 1 } as CSSProperties}>
-            <h3 className="px-4.5 pt-4 pb-2 text-md font-semibold text-fg">{n.workflows}{workflows && <span className="ml-2 font-mono text-xs text-fg-muted">{workflows.length}</span>}</h3>
+            <h3 className="px-4.5 pt-4 pb-2 font-display text-md font-bold tracking-[-.01em] text-fg">{n.workflows}{workflows && <span className="ml-2 font-mono text-xs text-fg-muted">{workflows.length}</span>}</h3>
             {!workflows ? <div className="p-4.5"><Spinner /></div> : workflows.length === 0 ? <p className="px-4.5 pb-4 text-sm text-fg-muted">{n.noWorkflows}</p> : workflows.map(w => (
               <div key={w.id} className="group flex items-center gap-3 border-t border-line-subtle px-4.5 py-2.5">
                 <Switch checked={w.active} label={w.name} onChange={async active => {
@@ -382,15 +383,15 @@ function Installed({ conn, instance, onChange }: { conn: SSHConnection; instance
           </Card>
           <Card className="df-rise self-start overflow-hidden" style={{ '--i': 2 } as CSSProperties}>
             <div className="flex items-center gap-3 px-4.5 pt-4 pb-2">
-              <h3 className="flex-1 text-md font-semibold text-fg">{n.executions}</h3>
+              <h3 className="flex-1 font-display text-md font-bold tracking-[-.01em] text-fg">{n.executions}</h3>
               <label className="flex items-center gap-2 text-xs text-fg-secondary">{n.onlyErrors}<Switch checked={onlyErrors} onChange={setOnlyErrors} label={n.onlyErrors} /></label>
             </div>
             {!execs ? <div className="p-4.5"><Spinner /></div> : execs.length === 0 ? <p className="px-4.5 pb-4 text-sm text-fg-muted">{n.noExecutions}</p> : execs.map(e => (
               <div key={e.id} className="flex items-center gap-3 border-t border-line-subtle px-4.5 py-2.5">
-                <span className={cn('w-20 shrink-0 rounded-full px-2 py-0.5 text-center font-mono text-xs',
-                  e.status === 'success' ? 'bg-success-soft text-success' : ['error', 'crashed'].includes(e.status) ? 'bg-danger-soft text-danger' : 'bg-active text-fg-secondary')}>
+                <Badge mono className="w-20 shrink-0 justify-center"
+                  color={e.status === 'success' ? 'success' : ['error', 'crashed'].includes(e.status) ? 'danger' : 'default'}>
                   {n.status[e.status as keyof typeof n.status] ?? e.status}
-                </span>
+                </Badge>
                 <span className="min-w-0 flex-1 truncate text-sm text-fg">{e.workflowName}</span>
                 <span className="shrink-0 font-mono text-xs text-fg-muted">{formatRelative(e.startedAt, lang)}</span>
               </div>

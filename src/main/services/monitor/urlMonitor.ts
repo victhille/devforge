@@ -6,6 +6,7 @@ import { loadSettings } from '../settings/settingsService'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { appendPoint, removeSeries } from './history'
 import { emitAlert } from './vpsWatch'
+import { trackIncidents } from '@shared/lib/incidents'
 
 const MAX_CHECKS = 60
 const MIN_INTERVAL = 30
@@ -81,6 +82,7 @@ export async function check(id: string): Promise<MonitorState> {
   const result = await probe(m)
   const s = stateOf(id)
   const next = result.ok ? 'up' : 'down'
+  s.incidents = trackIncidents(s.incidents, result.ok, result.at)
 
   // Notify only on real transitions (not on the very first check)
   if (s.status !== next) {

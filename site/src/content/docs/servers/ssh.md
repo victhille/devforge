@@ -14,10 +14,10 @@ Sur chaque serveur :
 | Bouton | Effet |
 |---|---|
 | clic sur le nom | ouvre un terminal SSH dans un nouvel onglet |
-| Dashboard | ouvre le tableau de bord du serveur |
+| Tableau de bord | ouvre le tableau de bord du serveur (aussi en haut du terminal de la session ouverte) |
 | Bases de données du serveur | ouvre la page [Base de données](/devforge/data/database/#détecter-des-bases) et cherche les bases de ce serveur |
 | Modifier la connexion | change ses réglages ; laisser le mot de passe vide le garde |
-| Supprimer | retire le serveur |
+| Supprimer la connexion | retire le serveur |
 
 **Masquer les serveurs** replie la colonne pour donner toute la place au terminal.
 
@@ -27,7 +27,10 @@ DevForge mémorise l'empreinte de la clé du serveur à la première connexion, 
 
 ## Le terminal
 
-Chaque connexion ouverte est un onglet ; on peut en ouvrir plusieurs et les fermer une à une. L'état s'affiche (*Connexion en cours…*, *Déconnecté*).
+Chaque connexion ouverte est un onglet ; on peut en ouvrir plusieurs et les fermer une à une. Au-dessus, le serveur de l'onglet affiché, son état (*connecté*, *Connexion en cours…*, *Déconnecté*) et deux boutons :
+
+- **Fichiers (SFTP)** parcourt les dossiers du serveur (en partant de ton dossier personnel, ou d'un chemin tapé) et **télécharge** un fichier à l'endroit que tu choisis sur ce PC. Tu vois ce que l'utilisateur SSH peut lire, comme dans le terminal ; rien n'est modifié sur le serveur.
+- **Tableau de bord** ouvre le tableau de bord du serveur.
 
 ## Le tableau de bord du serveur
 

@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Trash2, Terminal as TerminalIcon, Wifi, WifiOff, Edit2, X, Server, BarChart2, Database, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { Plus, Trash2, Terminal as TerminalIcon, Wifi, WifiOff, Edit2, X, Server, BarChart2, Database, PanelLeftClose, PanelLeftOpen, LayoutDashboard, FolderOpen } from 'lucide-react'
 import type { SSHConnection, SSHSessionStatus } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
+import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
-import { SectionTitle } from '@renderer/components/ui/Page'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import { useNarrow } from '@renderer/hooks/useNarrow'
 import ConnectionForm from './components/ConnectionForm'
+import FilesModal from './components/FilesModal'
 import TerminalPane from './components/TerminalPane'
 import { pressable } from '@renderer/lib/a11y'
 
@@ -37,6 +38,7 @@ export default function SSHPage() {
   const [sessions,    setSessions]    = useState<ActiveSession[]>([])
   const [activeId,    setActiveId]    = useState<string | null>(null)
   const [form,        setForm]        = useState<{ open: boolean; target?: SSHConnection }>({ open: false })
+  const [filesOpen,   setFilesOpen]   = useState(false)
   const [foldedByHand, setFoldedByHand] = usePersistentState('devforge:ssh-panel-collapsed', false)
   // A narrow page folds the menu by itself; its button then opens it until the page is wide again
   const [rootRef, narrow] = useNarrow<HTMLDivElement>(760)
@@ -45,6 +47,9 @@ export default function SSHPage() {
   const togglePanel = () => (narrow ? setOpenWhileNarrow(o => !o) : setFoldedByHand(c => !c))
 
   const reload = () => window.devforge.getSshConnections().then(setConnections)
+  // The session on screen and its server, named above the terminal
+  const active = sessions.find(s => s.sessionId === activeId)
+  const activeConn = connections.find(c => c.id === active?.connectionId)
 
   useEffect(() => { reload() }, [])
 
@@ -94,7 +99,7 @@ export default function SSHPage() {
       {/* Connections (collapsible: gives the terminal more room) */}
       <aside className={cn('flex shrink-0 flex-col border-r border-line-subtle bg-surface transition-[width] duration-200', panelCollapsed ? 'w-14' : 'w-64')}>
         <div className={cn('flex h-11 shrink-0 items-center border-b border-line-subtle', panelCollapsed ? 'justify-center' : 'justify-between px-3')}>
-          {!panelCollapsed && <SectionTitle>{t.ssh.connections}</SectionTitle>}
+          {!panelCollapsed && <h2 className="text-sm font-semibold text-fg">{t.ssh.connections}</h2>}
           <div className="flex items-center gap-0.5">
             {!panelCollapsed && <IconButton title={t.ssh.newConnection} onClick={() => setForm({ open: true })}><Plus size={15} /></IconButton>}
             <IconButton title={panelCollapsed ? t.ssh.showServers : t.ssh.hideServers} onClick={togglePanel}>
@@ -128,7 +133,7 @@ export default function SSHPage() {
               )
             }
             return (
-              <div key={conn.id} className="group relative rounded-lg transition-colors hover:bg-hover">
+              <div key={conn.id} className={cn('group relative rounded-control transition-colors', active?.connectionId === conn.id ? 'bg-accent-soft' : 'hover:bg-hover')}>
                 <button onClick={() => connect(conn)} className="flex w-full items-center gap-2.5 px-2.5 py-2 text-left">
                   <span className="size-2 shrink-0 rounded-full" style={{ background: conn.color }} />
                   <span className="flex min-w-0 flex-1 flex-col">
@@ -136,19 +141,16 @@ export default function SSHPage() {
                     <span className="truncate font-mono text-2xs text-fg-muted">{conn.username}@{conn.host}:{conn.port}</span>
                   </span>
                   {live && (
-                    <span
-                      className="rounded-full px-1.5 py-px text-2xs font-semibold uppercase group-hover:invisible"
-                      style={{ background: `${conn.color}22`, color: conn.color }}
-                    >
-                      {live.status === 'connecting' ? '…' : 'live'}
-                    </span>
+                    <Badge dot color={live.status === 'connecting' ? 'warning' : 'success'} className="group-hover:invisible">
+                      {live.status === 'connecting' ? '…' : t.ssh.live}
+                    </Badge>
                   )}
                 </button>
                 <div className="absolute top-1/2 right-1.5 hidden -translate-y-1/2 items-center gap-1 rounded-md bg-hover group-hover:flex">
-                  <IconButton size="sm" title="Dashboard" onClick={() => navigate(`/vps/${conn.id}`)}><BarChart2 size={12} /></IconButton>
+                  <IconButton size="sm" title={t.ssh.dashboard} onClick={() => navigate(`/vps/${conn.id}`)}><BarChart2 size={12} /></IconButton>
                   <IconButton size="sm" title={t.ssh.databases} onClick={() => navigate(`/database?detect=${conn.id}`)}><Database size={12} /></IconButton>
                   <IconButton size="sm" title={t.ssh.editConnection} onClick={() => setForm({ open: true, target: conn })}><Edit2 size={12} /></IconButton>
-                  <IconButton size="sm" tone="danger" title="Delete" onClick={() => deleteConnection(conn.id)}><Trash2 size={12} /></IconButton>
+                  <IconButton size="sm" tone="danger" title={t.ssh.removeConnection} onClick={() => deleteConnection(conn.id)}><Trash2 size={12} /></IconButton>
                 </div>
               </div>
             )
@@ -167,6 +169,22 @@ export default function SSHPage() {
           </div>
         ) : (
           <>
+            {active && activeConn && (
+              <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-line-subtle bg-surface px-5 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="mb-0.5 truncate text-sm text-fg-muted">{t.nav.groupServers} / {t.nav.ssh}</p>
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <h1 className="truncate font-display text-xl font-bold tracking-[-.02em] text-fg">{activeConn.name}</h1>
+                    {active.status === 'connected' ? <Badge dot color="success">{t.vpsDash.connected}</Badge>
+                      : active.status === 'connecting' ? <Badge dot color="warning">{t.ssh.connecting}</Badge>
+                      : <Badge dot color="danger">{t.ssh.disconnected}</Badge>}
+                  </div>
+                  <p className="truncate font-mono text-xs text-fg-muted">{activeConn.username}@{activeConn.host}:{activeConn.port}</p>
+                </div>
+                {active.status === 'connected' && <Button size="sm" variant="secondary" onClick={() => setFilesOpen(true)}><FolderOpen size={13} /> {t.ssh.files}</Button>}
+                <Button size="sm" variant="secondary" onClick={() => navigate(`/vps/${activeConn.id}`)}><LayoutDashboard size={13} /> {t.ssh.dashboard}</Button>
+              </header>
+            )}
             <div role="tablist" className="flex h-9 shrink-0 items-end gap-0.5 overflow-x-auto border-b border-line-subtle bg-surface px-1.5">
               {sessions.map(s => (
                 <div
@@ -187,7 +205,7 @@ export default function SSHPage() {
                   <StatusIcon status={s.status} />
                   <IconButton
                     size="sm"
-                    title="Close"
+                    title={t.ssh.closeSession}
                     className="size-5"
                     onClick={e => { e.stopPropagation(); closeSession(s.sessionId) }}
                   >
@@ -206,6 +224,10 @@ export default function SSHPage() {
           </>
         )}
       </div>
+
+      {filesOpen && active && activeConn && (
+        <FilesModal key={active.sessionId} sessionId={active.sessionId} name={activeConn.name} onClose={() => setFilesOpen(false)} />
+      )}
 
       {form.open && (
         <ConnectionForm initial={form.target} onSave={saveConnection} onCancel={() => setForm({ open: false })} />

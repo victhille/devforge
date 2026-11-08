@@ -14,6 +14,7 @@ import { ServerSelect, useServerPicker } from './ServerPicker'
 import NeedsSetup from '@renderer/components/NeedsSetup'
 import { errorText } from '@renderer/lib/errors'
 import LogBox from '@renderer/components/ui/LogBox'
+import Stat, { StatRow } from '@renderer/components/ui/Stat'
 
 const ORDER: Record<HealthLevel, number> = { bad: 0, warn: 1, unknown: 2, ok: 3 }
 /** `uptime -p` answers in English: "up 2 weeks, 2 days" → "en marche depuis 2 semaines, 2 jours" */
@@ -59,7 +60,7 @@ export default function HealthPage() {
   const { connections, conn, serverId, setServerId } = useServerPicker()
   return (
     <Page>
-      <PageHeader title={t.nav.health} subtitle={t.vpsOps.healthSubtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
+      <PageHeader crumb={conn ? `${t.nav.groupServers} · ${conn.name}` : t.nav.groupServers} title={t.nav.health} subtitle={t.vpsOps.healthSubtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
       {!connections ? <Spinner /> : !conn ? <NeedsSetup service="server" /> : <Health key={conn.id} conn={conn} />}
     </Page>
   )
@@ -126,7 +127,7 @@ function Health({ conn }: { conn: SSHConnection }) {
       <Card className="df-rise flex flex-wrap items-center gap-4 p-5">
         <div className={cn('flex size-12 items-center justify-center rounded-card', Top.soft, Top.text)}><Top.icon size={24} /></div>
         <div className="min-w-[220px] flex-1">
-          <h2 className="text-lg font-semibold text-fg">{o.summary[level]}</h2>
+          <h2 className="font-display text-lg font-bold tracking-[-.01em] text-fg">{o.summary[level]}</h2>
           <div className="mt-1 text-xs text-fg-muted">
             {[health.os, health.uptime && uptimeText(health.uptime, lang), o.checkedAt.replace('{when}', formatRelative(health.checkedAt, lang))].filter(Boolean).join(' · ')}
           </div>
@@ -134,13 +135,29 @@ function Health({ conn }: { conn: SSHConnection }) {
         <Button variant="secondary" loading={loading} onClick={load}>{!loading && <RefreshCw size={14} />} {o.refresh}</Button>
       </Card>
 
-      <Card className="df-rise overflow-hidden" style={{ '--i': 1 } as CSSProperties}>
+      <StatRow className="df-rise" style={{ '--i': 1 } as CSSProperties}>
+        {(() => {
+          const n = (l: HealthLevel) => health.checks.filter(c => c.level === l).length
+          const known = n('ok') + n('warn') + n('bad')
+          const score = known ? Math.round((10 * (n('ok') + n('warn') / 2)) / known) : null
+          return <Stat label={o.statScore} value={score === null ? '—' : score} unit={score === null ? undefined : '/ 10'}
+            tone={score === null ? undefined : score >= 8 ? 'success' : score >= 5 ? 'warning' : 'danger'} />
+        })()}
+        {(['bad', 'warn', 'ok'] as const).map(l => {
+          const n = health.checks.filter(c => c.level === l).length
+          return <Stat key={l} label={o.summary[l]} value={n} tone={n === 0 ? undefined : l === 'bad' ? 'danger' : l === 'warn' ? 'warning' : 'success'} />
+        })}
+      </StatRow>
+
+      <Card className="df-rise overflow-hidden" style={{ '--i': 2 } as CSSProperties}>
         {sorted.map((c, i) => {
           const L = LEVEL_STYLE[c.level]
           const title = (o.checks as Record<string, { title: string }>)[c.id]?.title ?? c.id
           return (
             <div key={c.id} className={cn('flex flex-wrap items-center gap-3 px-4.5 py-3', i > 0 && 'border-t border-line-subtle')}>
-              <L.icon size={17} className={cn('shrink-0', L.text)} aria-label={o.summary[c.level]} />
+              <span className={cn('flex size-7 shrink-0 items-center justify-center rounded-lg', L.soft, L.text)}>
+                <L.icon size={14} aria-label={o.summary[c.level]} />
+              </span>
               <div className="min-w-[240px] flex-1">
                 <div className="text-sm font-medium text-fg">{title}</div>
                 <div className="text-sm text-fg-secondary">{text(c)}</div>

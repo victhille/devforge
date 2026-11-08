@@ -7,6 +7,8 @@ La page **Santé** fait le tour de ton serveur : mises à jour, espace, ports, S
 
 En haut, un résumé : **Tout va bien**, **À surveiller** ou **À corriger**, et l'heure de la vérification. **Actualiser** relance la lecture.
 
+Dessous, une **note sur 10** (chaque point à surveiller compte pour moitié, chaque point à corriger pour rien) et le nombre de vérifications **à corriger**, **à surveiller** et **qui vont bien**.
+
 ## Les vérifications
 
 | Vérification | Ce qui est regardé |

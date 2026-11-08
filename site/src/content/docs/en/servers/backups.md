@@ -29,7 +29,8 @@ Then set:
 - If the nightly task has disappeared from the server, **Save** puts it back.
 - **Back up now** runs a backup right away.
 - **Copy to this PC** brings the newest backup home; **Open the folder** shows it.
-- **Files on the server** lists the backups (*day* or *week*).
+- **Next** recalls the time of the nightly backup; **Kept**, how many days are on the server and their size.
+- **Files on the server** lists the backups in a table: date (*day* or *week*), file, size and **Restore**.
 - **Log** shows the details of each operation.
 
 ## Restore

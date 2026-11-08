@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { AlertTriangle, ArchiveRestore, CheckCircle2, Database, FolderOpen, HardDriveDownload, Play, Power, Settings2, ShieldAlert } from 'lucide-react'
+import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { AlertTriangle, ArchiveRestore, CheckCircle2, FolderOpen, HardDriveDownload, Play, Power, Settings2, ShieldAlert } from 'lucide-react'
 import type { BackupCandidates, BackupPlan, BackupState, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
 import { formatRelative, formatSize } from '@renderer/lib/format'
+import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
-import Card from '@renderer/components/ui/Card'
+import Card, { CardHeader, CardTitle } from '@renderer/components/ui/Card'
+import { Table, Td, Th } from '@renderer/components/ui/Table'
 import Checkbox from '@renderer/components/ui/Checkbox'
 import Modal from '@renderer/components/ui/Modal'
 import Spinner from '@renderer/components/ui/Spinner'
@@ -18,6 +20,7 @@ import { errorText } from '@renderer/lib/errors'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
 import Notice from '@renderer/components/ui/Notice'
 import LogBox from '@renderer/components/ui/LogBox'
+import Stat, { StatRow } from '@renderer/components/ui/Stat'
 
 /** Same threshold as the main process' warning */
 const STALE_HOURS = 36
@@ -27,7 +30,7 @@ export default function BackupsPage() {
   const { connections, conn, serverId, setServerId } = useServerPicker()
   return (
     <Page>
-      <PageHeader title={t.nav.backups} subtitle={t.backups.subtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
+      <PageHeader crumb={conn ? `${t.nav.groupServers} · ${conn.name}` : t.nav.groupServers} title={t.nav.backups} subtitle={t.backups.subtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
       {!connections ? <Spinner /> : !conn ? <NeedsSetup service="server" /> : <Backups key={conn.id} conn={conn} />}
     </Page>
   )
@@ -85,7 +88,7 @@ function Backups({ conn }: { conn: SSHConnection }) {
               {level === 'ok' ? <CheckCircle2 size={24} /> : level === 'bad' ? <ShieldAlert size={24} /> : level === 'warn' ? <AlertTriangle size={24} /> : <HardDriveDownload size={24} />}
             </div>
             <div className="min-w-[240px] flex-1">
-              <h2 className="text-lg font-semibold text-fg">{b.last}</h2>
+              <h2 className="font-display text-lg font-bold tracking-[-.01em] text-fg">{b.last}</h2>
               <div className="text-base text-fg-secondary">
                 {!last ? b.never.replace('{time}', plan.time)
                   : last.ok ? b.lastOk.replace('{when}', formatRelative(last.finishedAt, lang)).replace('{size}', formatSize(last.size))
@@ -118,12 +121,20 @@ function Backups({ conn }: { conn: SSHConnection }) {
         </Card>
       )}
 
+      {plan && !editing && (
+        <StatRow>
+          <Stat label={b.statNext} value={plan.time} unit={b.statNextUnit} />
+          <Stat label={b.statKept} value={new Set(st.files.map(f => f.day)).size}
+            unit={b.statKeptUnit.replace('{size}', formatSize(st.files.reduce((n, f) => n + f.size, 0)))} />
+        </StatRow>
+      )}
+
       {(busy || log) && <LogBox title={b.journal} text={log} running={!!busy} />}
 
       {plan && !editing && (
         <Card className="df-rise overflow-hidden" style={{ '--i': 1 } as CSSProperties}>
-          <h3 className="px-4.5 pt-4 pb-2 text-md font-semibold text-fg">{b.files}</h3>
-          {st.files.length === 0 ? <p className="px-4.5 pb-4 text-sm text-fg-muted">{b.noFiles}</p> : (
+          <CardHeader><CardTitle>{b.files}</CardTitle></CardHeader>
+          {st.files.length === 0 ? <p className="px-4 py-4 text-sm text-fg-muted">{b.noFiles}</p> : (
             <FileList files={st.files} disabled={!!busy} onRestore={setRestoring} />
           )}
         </Card>
@@ -157,34 +168,29 @@ function Backups({ conn }: { conn: SSHConnection }) {
 function FileList({ files, disabled, onRestore }: { files: BackupState['files']; disabled: boolean; onRestore: (path: string) => void }) {
   const { t } = useI18n()
   const b = t.backups
-  const days = useMemo(() => {
-    const map = new Map<string, BackupState['files']>()
-    for (const f of files) { const k = `${f.kind}|${f.day}`; map.set(k, [...(map.get(k) ?? []), f]) }
-    return [...map]
-  }, [files])
   return (
-    <div>
-      {days.map(([key, list]) => {
-        const [kind, day] = key.split('|')
-        return (
-          <div key={key} className="border-t border-line-subtle px-4.5 py-3">
-            <div className="mb-1.5 flex items-center gap-2 text-base font-medium text-fg">
-              {day} <span className="rounded-md bg-active px-1.5 py-0.5 font-mono text-2xs text-fg-secondary">{kind === 'weekly' ? b.weekly : b.daily}</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              {list.map(f => (
-                <div key={f.path} className="group flex items-center gap-3 rounded-lg px-2 py-1 hover:bg-hover">
-                  <Database size={13} className="shrink-0 text-fg-muted" />
-                  <span className="min-w-0 flex-1 truncate font-mono text-xs text-fg-secondary">{f.path.split('/').pop()}</span>
-                  <span className="font-mono text-xs text-fg-muted">{formatSize(f.size)}</span>
-                  <Button size="sm" variant="ghost" disabled={disabled} className="opacity-60 group-hover:opacity-100" onClick={() => onRestore(f.path)}>{b.restore}</Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      })}
-    </div>
+    <Table>
+      <thead>
+        <tr>
+          <Th>{b.colDate}</Th>
+          <Th>{b.colFile}</Th>
+          <Th align="right">{b.colSize}</Th>
+          <Th><span className="sr-only">{b.restore}</span></Th>
+        </tr>
+      </thead>
+      <tbody>
+        {files.map(f => (
+          <tr key={f.path}>
+            <Td className="whitespace-nowrap">
+              <span className="flex items-center gap-2 font-medium text-fg">{f.day} <Badge mono>{f.kind === 'weekly' ? b.weekly : b.daily}</Badge></span>
+            </Td>
+            <Td className="w-full max-w-0 truncate font-mono text-xs text-fg-secondary" title={f.path}>{f.path.split('/').pop()}</Td>
+            <Td align="right" className="font-mono text-xs whitespace-nowrap text-fg-muted">{formatSize(f.size)}</Td>
+            <Td align="right"><Button size="sm" variant="ghost" disabled={disabled} onClick={() => onRestore(f.path)}><ArchiveRestore size={13} /> {b.restore}</Button></Td>
+          </tr>
+        ))}
+      </tbody>
+    </Table>
   )
 }
 

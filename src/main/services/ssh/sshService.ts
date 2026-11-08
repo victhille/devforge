@@ -1,7 +1,12 @@
 import { Client, type ConnectConfig } from 'ssh2'
 import { randomUUID } from 'crypto'
 import { buildSshConfig } from './sshClient'
-import type { SSHConnection, SSHSessionStatus } from '@shared/types'
+import type { SftpEntry, SSHConnection, SSHSessionStatus } from '@shared/types'
+import { toSftpEntries } from './sftpEntries'
+
+/** A folder listing waits this long for the server, and shows at most this many entries */
+const SFTP_LIST_TIMEOUT_MS = 15_000
+const SFTP_MAX_ENTRIES = 10_000
 
 type DataCb   = (sessionId: string, data: string) => void
 type StatusCb = (status: SSHSessionStatus) => void
@@ -163,6 +168,36 @@ export class SSHService {
     })
   }
 
+  /** A folder of the server over SFTP: its full path and its entries (`dir` empty: the home folder) */
+  list(sessionId: string, dir: string): Promise<{ path: string; entries: SftpEntry[] }> {
+    return new Promise((resolve, reject) => {
+      const session = this.sessions.get(sessionId)
+      if (!session) { reject(new Error('Session not found')); return }
+      session.client.sftp((err, sftp) => {
+        if (err) { reject(err); return }
+        // One answer only: the listing, a protocol error of the server, or the time limit
+        let done = false
+        const finish = (e: Error | null, value?: { path: string; entries: SftpEntry[] }) => {
+          if (done) return
+          done = true
+          clearTimeout(timer)
+          sftp.end()
+          if (e) reject(e)
+          else resolve(value!)
+        }
+        const timer = setTimeout(() => finish(new Error('The server did not answer in time')), SFTP_LIST_TIMEOUT_MS)
+        sftp.once('error', (e: Error) => finish(e))
+        sftp.realpath(dir || '.', (e1, path) => {
+          if (e1) { finish(e1); return }
+          sftp.readdir(path, (e2, list) => {
+            if (e2) finish(e2)
+            else finish(null, { path, entries: toSftpEntries(list).slice(0, SFTP_MAX_ENTRIES) })
+          })
+        })
+      })
+    })
+  }
+
   /** Copies a file of the server to this PC over SFTP (to `localPath`, written in place) */
   download(sessionId: string, remotePath: string, localPath: string): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -170,7 +205,11 @@ export class SSHService {
       if (!session) { reject(new Error('Session not found')); return }
       session.client.sftp((err, sftp) => {
         if (err) { reject(err); return }
-        sftp.fastGet(remotePath, localPath, e => { sftp.end(); if (e) reject(e); else resolve() })
+        // A protocol error of the server ends the copy instead of escaping as an uncaught error
+        let done = false
+        const finish = (e?: Error | null) => { if (done) return; done = true; sftp.end(); if (e) reject(e); else resolve() }
+        sftp.once('error', (e: Error) => finish(e))
+        sftp.fastGet(remotePath, localPath, e => finish(e))
       })
     })
   }

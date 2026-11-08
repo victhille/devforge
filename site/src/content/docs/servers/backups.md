@@ -29,7 +29,8 @@ Puis règle :
 - Si la tâche de nuit a disparu du serveur, **Enregistrer** la remet.
 - **Sauvegarder maintenant** lance une sauvegarde tout de suite.
 - **Copier sur ce PC** rapatrie la dernière sauvegarde ; **Ouvrir le dossier** l'affiche.
-- **Fichiers sur le serveur** liste les sauvegardes (*jour* ou *semaine*).
+- **Prochaine** rappelle l'heure de la sauvegarde de nuit ; **Gardées**, combien de jours sont sur le serveur et leur taille.
+- **Fichiers sur le serveur** liste les sauvegardes dans un tableau : date (*jour* ou *semaine*), fichier, taille et **Restaurer**.
 - **Journal** montre le détail de chaque opération.
 
 ## Restaurer

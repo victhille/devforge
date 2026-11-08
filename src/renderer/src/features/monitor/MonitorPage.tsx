@@ -15,6 +15,8 @@ import { Page, PageHeader } from '@renderer/components/ui/Page'
 import Suggestions from '@renderer/components/ui/Suggestions'
 import ServersSection, { SiteHistory } from './ServersSection'
 import StatusDot from '@renderer/components/ui/StatusDot'
+import Stat, { StatRow } from '@renderer/components/ui/Stat'
+import { formatDowntime, incidentSummary } from '@shared/lib/incidents'
 
 const INTERVALS = [30, 60, 300, 900, 3600]
 
@@ -101,11 +103,16 @@ export default function MonitorPage() {
   const save = async (mon: Monitor) => { await window.devforge.monitor.save(mon); await reload(); setEditing(null) }
 
   const down = monitors.filter(x => x.enabled && states[x.id]?.status === 'down').length
+  // Uptime of the recent checks of the watched URLs, all together
+  const recent = monitors.filter(x => x.enabled).flatMap(x => states[x.id]?.checks ?? [])
+  const uptime = recent.length ? Math.round((recent.filter(c => c.ok).length / recent.length) * 1000) / 10 : null
+  const incidents = incidentSummary(monitors.map(x => states[x.id]?.incidents))
 
   return (
     <Page>
       <PageHeader
         icon={<Activity size={18} />}
+        crumb={t.nav.groupServers}
         title={m.title}
         subtitle={monitors.length ? (down ? m.subtitleDown.replace('{n}', String(down)) : m.subtitleOk) : m.subtitle}
         actions={<Button onClick={() => setEditing({})}><Plus size={14} /> {m.add}</Button>}
@@ -123,6 +130,17 @@ export default function MonitorPage() {
           }
         }))}
       />
+
+      {monitors.length > 0 && (
+        <StatRow>
+          <Stat label={m.statWatched} value={monitors.filter(x => x.enabled).length} unit={monitors.some(x => !x.enabled) ? `/ ${monitors.length}` : undefined} />
+          <Stat label={m.statDown} value={down} tone={down > 0 ? 'danger' : undefined} />
+          <Stat label={m.statUptime} value={uptime === null ? '—' : `${uptime.toLocaleString(lang)} %`}
+            tone={uptime === null ? undefined : uptime >= 99 ? 'success' : uptime >= 90 ? 'warning' : 'danger'} />
+          <Stat label={m.statIncidents} value={incidents.count} unit={incidents.downMs > 0 ? formatDowntime(incidents.downMs, t.vpsDash.dayShort) : undefined}
+            tone={incidents.count > 0 ? 'warning' : undefined} />
+        </StatRow>
+      )}
 
       {monitors.length === 0 ? (
         <EmptyState icon={<Activity size={32} />} title={m.emptyTitle} description={m.emptyHint}

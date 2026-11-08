@@ -60,6 +60,8 @@ Une page se construit avec les composants de `src/renderer/src/components/ui/` p
 | Une liste à côté de son contenu | `SplitPane` (la liste passe au-dessus quand la page est étroite) |
 | Le champ de recherche d'une liste | `SearchInput` |
 | Le titre d'une page | `PageHeader` (titre en `font-display`, sous-titre, actions à droite) ; `CardTitle` pour une carte (aussi en `font-display`), `SectionTitle` au-dessus d'un groupe de cartes |
+| Des compteurs en haut d'une page | `Stat` dans une `StatRow` (l'intitulé, puis la valeur en grand en `font-display` ; `tone` seulement quand il y a quelque chose à voir, `unit` pour les petits mots après) |
+| Un tableau de données | `Table`, `Th`, `Td` (en-têtes de 34 px, lignes de 42 px séparées d'un trait, la ligne survolée éclairée ; `align="right"` pour les nombres et les actions) |
 
 Les valeurs viennent du thème (`src/renderer/src/styles/index.css`) :
 

@@ -94,7 +94,7 @@ export function ComposeDetail({ p, containers, busy, onAction, onContainer }: {
       <Card className="overflow-hidden rounded-card">
         <div className="flex flex-wrap items-center gap-2.5 border-b border-line-subtle px-4.5 py-4">
           <div className="min-w-[200px] flex-1">
-            <h2 className="text-lg font-semibold text-fg">{p.name}</h2>
+            <h2 className="font-display text-lg font-bold tracking-[-.01em] text-fg">{p.name}</h2>
             <div className="truncate font-mono text-xs text-fg-muted">{p.dir ?? p.configFiles}</div>
             {p.projects?.length ? <div className="truncate text-2xs text-fg-muted">{d.composeProjects.replace('{list}', p.projects.join(', '))}</div> : null}
           </div>
