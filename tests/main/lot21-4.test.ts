@@ -75,6 +75,16 @@ describe('.env sync with a deployed copy', () => {
     expect(ssh.commands.at(-1)).toContain('umask 077')
     await expect(diffEnv('t1', '.env', '../etc/passwd')).rejects.toThrow('Not an env file')
   })
+
+  it('a key named like an Object method is only the file\'s own', async () => {
+    expect(compareEnv({ constructor: '1' }, {})).toEqual([{ key: 'constructor', status: 'local' }])
+    expect(compareEnv({}, { toString: '1' })).toEqual([{ key: 'toString', status: 'remote' }])
+    // Pulled while the server has no such key: removed here, never written as a function
+    writeFileSync(join(dir, '.env'), 'A=1\nconstructor=x\n')
+    ssh.outputs.push(`A=1\n${SEP}yes`)
+    expect(await applyEnv('t1', '.env', '.env', 'pull', ['constructor', 'valueOf'])).toEqual({ changed: 1, backup: 'DevForge' })
+    expect(readFileSync(join(dir, '.env'), 'utf-8')).toBe('A=1\n')
+  })
 })
 
 describe('GitHub', () => {

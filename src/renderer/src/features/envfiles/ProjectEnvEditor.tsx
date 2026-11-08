@@ -13,6 +13,8 @@ import Notice from '@renderer/components/ui/Notice'
 import { generateSecret, laravelAppKey } from '@renderer/features/tools/generator/random'
 
 const isExample = (name: string) => /example|sample|dist|template/i.test(name)
+/** A name the file can hold (the field already turns other characters into _): it cannot start with a digit */
+const isKeyName = (key: string) => /^[A-Za-z_][A-Za-z0-9_.-]*$/.test(key)
 
 /** Keys present in the template but missing from .env */
 export function missingInEnv(env: EnvProject): string[] {
@@ -88,9 +90,15 @@ export default function ProjectEnvEditor({ projectPath, title, onEnvChange }: {
   }
 
   async function addKey() {
-    if (!newKey.key.trim()) return
-    await change(newKey.file, newKey.key.trim(), newKey.value)
-    setNewKey(k => ({ ...k, key: '', value: '' }))
+    if (!isKeyName(newKey.key.trim())) return
+    try {
+      await window.devforge.env.write(projectPath, newKey.file, { [newKey.key.trim()]: newKey.value })
+      await reload()
+      // Emptied only once written: a refused value (maybe a pasted secret) stays in the field
+      setNewKey(k => ({ ...k, key: '', value: '' }))
+    } catch (err) {
+      toast.show({ tone: 'error', title: e.saveFailed, description: String(err) })
+    }
   }
 
   async function doBackup() {
@@ -141,7 +149,7 @@ export default function ProjectEnvEditor({ projectPath, title, onEnvChange }: {
         <Select aria-label={e.fileLabel} value={newKey.file} onChange={ev => setNewKey(k => ({ ...k, file: ev.target.value }))} className="w-48 font-mono">
           {Array.from(new Set(['.env', ...env.files.map(f => f.name)])).map(n => <option key={n}>{n}</option>)}
         </Select>
-        <Button onClick={addKey} disabled={!newKey.key.trim()}><Plus size={14} /> {e.add}</Button>
+        <Button onClick={addKey} disabled={!isKeyName(newKey.key.trim())}><Plus size={14} /> {e.add}</Button>
       </div>
     </div>
   )

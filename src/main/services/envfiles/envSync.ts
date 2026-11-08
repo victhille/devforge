@@ -30,11 +30,14 @@ async function readRemote(connectionId: string, path: string): Promise<string | 
   return out.slice(i + SEP.length).trim() === 'yes' ? out.slice(0, i).replace(/\n$/, '') : null
 }
 
+/** The file's own key only: `constructor`, `toString`… are not inherited from Object */
+const has = (values: Record<string, string>, key: string) => Object.hasOwn(values, key)
+
 export function compareEnv(local: Record<string, string>, remote: Record<string, string>): EnvSyncKey[] {
   const keys = [...new Set([...Object.keys(local), ...Object.keys(remote)])].sort((a, b) => a.localeCompare(b))
   return keys.map(key => ({
     key,
-    status: !(key in remote) ? 'local' : !(key in local) ? 'remote' : local[key] === remote[key] ? 'same' : 'different'
+    status: !has(remote, key) ? 'local' : !has(local, key) ? 'remote' : local[key] === remote[key] ? 'same' : 'different'
   }))
 }
 
@@ -61,9 +64,10 @@ export async function applyEnv(targetId: string, localName: string, remoteName: 
   const [from, to] = direction === 'push' ? [local, remote] : [remote, local]
   const changes: Record<string, string | null> = {}
   for (const key of keys) {
-    if (typeof key !== 'string' || !(key in from || key in to)) continue
-    const value = key in from ? from[key]! : null
-    if (to[key] !== value && !(value === null && !(key in to))) changes[key] = value
+    if (typeof key !== 'string' || !(has(from, key) || has(to, key))) continue
+    const value = has(from, key) ? from[key]! : null
+    const current = has(to, key) ? to[key]! : null
+    if (current !== value) changes[key] = value
   }
   const changed = Object.keys(changes).length
   if (!changed) return { changed: 0, backup: null }
