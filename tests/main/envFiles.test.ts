@@ -55,6 +55,8 @@ describe('writeEnvValues', () => {
     'C:\\Users\\me\\file',
     'back\\nslash-n literal',
     'real\nnewline',
+    'lone\rreturn',
+    'windows\r\nline break',
     '$VAR and ${OTHER}'
   ])('round-trips %j', async value => {
     const dir = project()
@@ -68,6 +70,49 @@ describe('writeEnvValues', () => {
     await expect(writeEnvValues(tempDir('other'), '.env', { A: '1' })).rejects.toThrow()
     await expect(writeEnvValues(dir, '../evil', { A: '1' })).rejects.toThrow()
     await expect(writeEnvValues(dir, 'package.json', { A: '1' })).rejects.toThrow()
+  })
+
+  it.each([
+    'A\nINJECTED',
+    'A\rINJECTED',
+    'A B',
+    'A=B',
+    '1ABC',
+    '',
+    '# comment'
+  ])('refuses the key %j and leaves the file as it was', async key => {
+    const dir = project()
+    writeFileSync(join(dir, '.env'), 'A=1\n')
+    await expect(writeEnvValues(dir, '.env', { [key]: 'x' })).rejects.toThrow(/Not an env variable name/)
+    expect(readFileSync(join(dir, '.env'), 'utf-8')).toBe('A=1\n')
+  })
+
+  it('refuses changes that are not text values in an object, as a window could send them', async () => {
+    const dir = project()
+    writeFileSync(join(dir, '.env'), 'A=1\n')
+    const send = (changes: unknown) => writeEnvValues(dir, '.env', changes as Record<string, string | null>)
+    await expect(send({ A: 2 })).rejects.toThrow(/must be text/)
+    await expect(send({ A: { toString: () => 'x\nB=1' } })).rejects.toThrow(/must be text/)
+    await expect(send(['A=1'])).rejects.toThrow(/must be an object/)
+    await expect(send(null)).rejects.toThrow(/must be an object/)
+    expect(readFileSync(join(dir, '.env'), 'utf-8')).toBe('A=1\n')
+  })
+
+  it('reads, changes and removes a value holding a lone \\r or U+2028, as older versions wrote it', async () => {
+    const dir = project()
+    writeFileSync(join(dir, '.env'), "OLD='a\rb'\nSEP='x y'\nZ=1\n")
+    expect((await readEnvProject(dir)).files[0].values).toEqual({ OLD: 'a\rb', SEP: 'x y', Z: '1' })
+    await writeEnvValues(dir, '.env', { OLD: 'new', SEP: null })
+    expect(readFileSync(join(dir, '.env'), 'utf-8')).toBe('OLD=new\nZ=1\n')
+  })
+
+  it('never writes a raw line break, even a lone \\r: the value stays on its line', async () => {
+    const dir = project()
+    await writeEnvValues(dir, '.env', { KEY: 'a\rINJECTED=1', OTHER: 'b\nALSO=2' })
+    const text = readFileSync(join(dir, '.env'), 'utf-8')
+    expect(text).toBe('KEY="a\\rINJECTED=1"\nOTHER="b\\nALSO=2"\n')
+    expect(text.replace(/\n$/, '').split(/\r\n|\r|\n/)).toHaveLength(2)
+    expect(Object.keys((await readEnvProject(dir)).files[0].values)).toEqual(['KEY', 'OTHER'])
   })
 })
 

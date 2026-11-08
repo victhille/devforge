@@ -8,7 +8,10 @@ import { getProjectPaths } from '../projects/projectStorage'
 
 /** .env, .env.local, .env.example, .env.production.local … nothing else. */
 const ENV_NAME = /^\.env(\.[A-Za-z0-9_-]+)*$/
-const KEY_LINE = /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_.-]*)\s*=\s*(.*)$/
+/** A variable name as KEY_LINE reads it back */
+const KEY_NAME = /^[A-Za-z_][A-Za-z0-9_.-]*$/
+/** `s`: a value holding a lone \r or U+2028 (the line is already cut on \r?\n) is still read, changed and removed */
+const KEY_LINE = /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_.-]*)\s*=\s*(.*)$/s
 
 /** Only projects saved in DevForge can be read or written. */
 function assertProject(projectPath: string): void {
@@ -16,15 +19,27 @@ function assertProject(projectPath: string): void {
 }
 
 function assertName(name: string): void {
-  if (!ENV_NAME.test(name)) throw new Error(`Not an env file: ${name}`)
+  if (typeof name !== 'string' || !ENV_NAME.test(name)) throw new Error(`Not an env file: ${String(name)}`)
+}
+
+/**
+ * Changes as they may come from the window: every key a name the file can hold
+ * (a line break in a key would write lines of its own), every value text or null.
+ */
+function assertChanges(changes: unknown): asserts changes is Record<string, string | null> {
+  if (!changes || typeof changes !== 'object' || Array.isArray(changes)) throw new Error('The changes must be an object')
+  for (const [key, value] of Object.entries(changes)) {
+    if (!KEY_NAME.test(key)) throw new Error(`Not an env variable name: ${JSON.stringify(key.slice(0, 60))}`)
+    if (value !== null && typeof value !== 'string') throw new Error(`The value of ${key} must be text`)
+  }
 }
 
 function unquote(raw: string): string {
   const v = raw.trim()
   if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
     const inner = v.slice(1, -1)
-    // Like dotenv: only \n (and \") are escapes in double quotes, other backslashes are literal
-    return v.startsWith('"') ? inner.replace(/\\(n|")/g, (_, c: string) => (c === 'n' ? '\n' : '"')) : inner
+    // Like dotenv: only \n, \r (and \") are escapes in double quotes, other backslashes are literal
+    return v.startsWith('"') ? inner.replace(/\\([nr"])/g, (_, c: string) => (c === 'n' ? '\n' : c === 'r' ? '\r' : '"')) : inner
   }
   // Strip trailing inline comment on unquoted values
   return v.replace(/\s+#.*$/, '')
@@ -32,12 +47,13 @@ function unquote(raw: string): string {
 
 /**
  * Value as dotenv reads it back unchanged. Single quotes are literal (Windows
- * paths, $VARS); double quotes only when a newline or an apostrophe needs them.
+ * paths, $VARS); double quotes only when a line break or an apostrophe needs them,
+ * so a line break, even a lone \r, never reaches the file as is.
  */
 function quoteIfNeeded(value: string): string {
   if (value === '' || /^[^\s#"'\\]*$/.test(value)) return value
-  if (!value.includes("'") && !value.includes('\n')) return `'${value}'`
-  return `"${value.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`
+  if (!/['\r\n]/.test(value)) return `'${value}'`
+  return `"${value.replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}"`
 }
 
 export function parseEnv(content: string): Record<string, string> {
@@ -83,6 +99,7 @@ export const isEnvName = (name: string) => ENV_NAME.test(name)
 
 /** The text of an env file with values set (null removes the key): comments, order and other lines stay */
 export function applyEnvChanges(original: string, changes: Record<string, string | null>): string {
+  assertChanges(changes)
   const eol = original.includes('\r\n') ? '\r\n' : '\n'
   const pending = new Map(Object.entries(changes))
 
