@@ -16,6 +16,7 @@ export async function getGitStatus(projectPath: string): Promise<GitStatus> {
   let ahead = 0
   let behind = 0
   let dirty = false
+  let changes = 0
 
   for (const line of out.split('\n')) {
     if (line.startsWith('# branch.head ')) {
@@ -26,8 +27,9 @@ export async function getGitStatus(projectPath: string): Promise<GitStatus> {
       if (m) { ahead = parseInt(m[1]); behind = parseInt(m[2]) }
     } else if (line && !line.startsWith('#')) {
       dirty = true
+      changes++
     }
   }
 
-  return { branch, dirty, ahead, behind }
+  return { branch, dirty, ahead, behind, changes }
 }

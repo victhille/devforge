@@ -30,21 +30,34 @@ test('a group is detected, imported, unfolded on its card, and its page shows it
   await expect(page.getByText('groupe · 2 projets · backend (Symfony), frontend (React)')).toBeVisible()
   await page.getByRole('button', { name: 'Importer' }).click()
 
-  // The group's card, unfolded: each project with its own actions
+  // The group's card, folded as in the mock-up: its projects as chips
   const card = page.locator('.df-rise', { has: page.getByRole('heading', { name: 'FreelanceManager' }) })
-  await expect(card.getByText('groupe · 2 projets')).toBeVisible()
+  await expect(card.getByText('2 projets', { exact: true })).toBeVisible()
   await expect(card.getByText('backend', { exact: true })).toBeVisible()
   await expect(card.getByText('frontend', { exact: true })).toBeVisible()
   // The front saved before is not listed twice
   await expect(page.getByRole('heading', { name: 'frontend' })).toHaveCount(0)
   expect(await settledAxe(page)).toEqual([])
 
-  await card.getByRole('button', { name: 'Replier le groupe' }).click()
-  await expect(card.getByText('backend · frontend')).toBeVisible()
+  // Unfolded: each project with its own actions
   await card.getByRole('button', { name: 'Déplier le groupe' }).click()
+  await expect(card.getByRole('button', { name: 'Terminal' })).toHaveCount(2)
+  expect(await settledAxe(page)).toEqual([])
+  await card.getByRole('button', { name: 'Replier le groupe' }).click()
+  await expect(card.getByRole('button', { name: 'Terminal' })).toHaveCount(0)
+
+  // Its other actions behind « ⋯ », the removal set apart
+  await card.getByRole('button', { name: 'Autres actions' }).click()
+  // (« Groupe dans <IDE> » comes first when an IDE is found on this PC)
+  await expect(card.getByRole('menuitem', { name: 'Terminal' })).toBeVisible()
+  await expect(card.getByRole('menuitem').last()).toHaveText('Retirer de DevForge')
+  expect(await settledAxe(page)).toEqual([])
+  await page.keyboard.press('Escape')
+  await expect(card.getByRole('menu')).toHaveCount(0)
+  await expect(card.getByRole('button', { name: 'Autres actions' })).toBeFocused()
 
   // Its page: the projects side by side, the front's scripts, the back's workshop
-  await card.getByRole('button', { name: 'Ouvrir la fiche' }).click()
+  await card.getByRole('button', { name: 'Ouvrir le groupe' }).click()
   await expect(page.getByRole('heading', { name: 'Les 2 projets du groupe' })).toBeVisible()
   await expect(page.getByRole('tablist', { name: 'backend' }).getByRole('tab', { name: 'Symfony' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Lancer dev' })).toBeVisible()

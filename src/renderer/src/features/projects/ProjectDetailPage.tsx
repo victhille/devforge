@@ -613,7 +613,7 @@ export default function ProjectDetailPage() {
         <div className="flex flex-wrap items-center gap-2">
           <IconButton title={p.favorite ? h.unfavorite : h.favorite} aria-pressed={p.favorite} onClick={toggleFavorite}
             className={cn(p.favorite && 'text-warning hover:text-warning')}><Star size={16} fill={p.favorite ? 'currentColor' : 'none'} /></IconButton>
-          {ide.labelFor(p.ide) && <Button variant="secondary" title={h.openIde} onClick={() => ide.open(p.path, p.ide)}><Code2 size={14} /> {ide.labelFor(p.ide)}</Button>}
+          {ide.labelFor(p.ide) && <Button variant="secondary" title={h.openIde} aria-label={`${h.openIde} · ${ide.labelFor(p.ide)}`} onClick={() => ide.open(p.path, p.ide)}><Code2 size={14} aria-hidden /> {ide.labelFor(p.ide)}</Button>}
           {scripts.dev && <Button variant="secondary" onClick={() => { runScriptHere('dev'); setTab('terminal') }}><Play size={14} /> {h.runDev}</Button>}
           <AskForgy size="md" label={h.askForgy} icon={<Bot size={14} />} className="border-transparent bg-transparent text-accent hover:bg-elevated hover:text-accent" />
           <MoreMenu label={h.moreActions} items={[

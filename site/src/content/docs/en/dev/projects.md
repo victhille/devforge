@@ -7,7 +7,7 @@ description: The list of your projects and each project's page, with Git, GitHub
 
 The **Projects** page shows:
 
-- **Your Projects**: the ones DevForge tracks. Each card shows the framework, the Git state ("uncommitted"), an **Open** button (in orange for the active project), then icons: the project's [IDE](/devforge/en/dev/ide/) (its name on hover; no icon when the chosen IDE is "None"), **Terminal**, **Scripts** (the `package.json` scripts) and **Remove**. The star at the top makes it a **Favorite**. The stack filters show how many projects they keep, and **Grid** / **List** changes the view.
+- **Your Projects**: the ones DevForge tracks. The subtitle counts them (*5 projects and 1 group in D:\Dev*). Each card shows the framework and the package manager, then a Git line: the branch, what is waiting (*1 changed*, *2 to push*, *up to date*) and the last opening (*8 min ago*). At the bottom, **Open** (in orange for the active project), the project's [IDE](/devforge/en/dev/ide/) (its name on hover; no icon when the chosen IDE is "None"), **Terminal**, and **⋯** (**Other actions**): the `package.json` scripts and **Remove from DevForge**. The star at the top makes it a **Favorite**. The stack filters show how many projects they keep, and **Grid** / **List** changes the view.
 - **Detected in…**: projects found in your projects folders but not tracked yet. **Import** adds them.
 
 Filter by name, and by framework: only your projects' frameworks get a filter, and none shows when there is only one. **Rescan** reads the folders again. At the end of the filters row, **Add a folder** leads to the projects folders in [Settings](/devforge/en/settings/general/), for projects kept elsewhere.
@@ -30,8 +30,8 @@ In [New project](/devforge/en/dev/new-project/), the destination offers your fol
 A folder that is not a project but holds several, for instance `FreelanceManager/` with `backend/` (Symfony) and `frontend/` (React), becomes a **group**:
 
 - DevForge looks one level down, two at most, when the folder has no project file (`package.json`, `composer.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`…) but its sub-folders do. `node_modules`, `vendor`, build folders and hidden folders are skipped.
-- The **group's card** reads "group · *n* projects" with its projects' stacks. Unfolded, it shows each project with its stack, Git state, IDE, terminal and scripts; **Fold the group** shrinks it to one line (remembered). At the bottom: the whole group in the IDE, its terminal, **Open its page**. Unfolded, it spans two columns and the next cards move up into the free room.
-- What is not a project is part of the group too: under its projects, the card lists "Also in the folder:" `docs/`, `infra/`, `README.md`, `Dockerfile`… (folded: "+ *n* more"). Hidden and dependency folders are left out.
+- The **group's card**, folded, shows its projects as chips (with their stack), the folder's Git line and *n projects*. **Unfold the group** shows each project with its stack, Git state, IDE, terminal and scripts (remembered); unfolded, it spans two columns and the next cards move up into the free room. At the bottom: **Open the group**, and **⋯** for the whole group in the IDE, its terminal or **Remove from DevForge**.
+- What is not a project is part of the group too: under its projects, the card lists "Also in the folder:" `docs/`, `infra/`, `README.md`, `Dockerfile`… (folded: the first two as chips, then "+ *n* more"). Hidden and dependency folders are left out.
 - The **Groups** filter keeps only them; a framework filter also keeps a group one of whose projects uses it.
 - A project you already tracked that sits in a tracked group no longer shows twice: it is in its group.
 

@@ -11,6 +11,7 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
 import SearchInput from '@renderer/components/ui/SearchInput'
+import Spinner from '@renderer/components/ui/Spinner'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
 import { useNoteCounts } from '@renderer/hooks/useLiveData'
 import { ProjectCard, DetectedProjectCard, type CardLayout } from './components/ProjectCard'
@@ -30,7 +31,7 @@ function readView(): CardLayout {
 
 export default function ProjectsPage() {
   const navigate = useNavigate()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const { runScript } = useConsole()
   const ide = usePreferredIde()
   // The active project's card stands out (its Open button in orange)
@@ -44,7 +45,7 @@ export default function ProjectsPage() {
     return window.devforge.github.onCiStates(setCi)
   }, [])
   const {
-    projects, gitStatuses, scripts,
+    projects, loaded, gitStatuses, scripts,
     open, openTerminal, toggleFavorite, remove, importDetected
   } = useProjects({ withDetails: true })
 
@@ -120,19 +121,23 @@ export default function ProjectsPage() {
 
   const container = view === 'list'
     ? 'flex flex-col gap-2'
-    : 'grid grid-flow-row-dense grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4'
+    : 'grid grid-flow-row-dense grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3.5'
 
-  const subtitle = t.projects.subtitle
-    .replace('{n}', String(projects.length))
-    .replace('{s}', projects.length > 1 ? 's' : '')
-    .replace('{d}', newDetected.length > 0
-      ? t.projects.detectedSuffix.replace('{n}', String(newDetected.length)).replace('{s}', newDetected.length > 1 ? 's' : '')
-      : '')
+  // As in the mock-up: « 5 projets et 1 groupe dans D:\Dev · 4 détectés »
+  // French: 0 or 1 projet; English: 1 project only
+  const plural = (s: string, n: number) => s.replace('{n}', String(n)).replace('{s}', (lang === 'en' ? n !== 1 : n > 1) ? 's' : '')
+  const groups = listed.filter(p => p.framework === 'group').length
+  const singles = listed.length - groups
+  const where = folders.length > 1 ? plural(t.projects.summaryFolders, folders.length) : folders[0] ?? ''
+  const subtitle = plural(t.projects.summaryProjects, singles)
+    + (groups ? plural(t.projects.summaryGroups, groups) : '')
+    + (where ? t.projects.summaryIn.replace('{where}', where) : '')
+    + (newDetected.length ? plural(t.projects.detectedSuffix, newDetected.length) : '')
 
   return (
-    <Page>
-      {/* Title, then the filter box and actions */}
-      <PageHeader title={t.projects.title} subtitle={subtitle} actions={<>
+    <Page className="df-mockup">
+      {/* Title, then the filter box and actions (the mock-up's measures: df-mockup) */}
+      <PageHeader crumb={t.nav.groupDev} title={t.projects.title} subtitle={subtitle} actions={<>
         <SearchInput value={search} onChange={setSearch} placeholder={t.projects.searchPlaceholder} className="w-[260px]" />
         {folders.length > 0 && (
           <Button variant="secondary" loading={scanning} onClick={rescan}>
@@ -152,7 +157,7 @@ export default function ProjectsPage() {
       </>} />
 
       {/* Stack filters, then folder filters */}
-      <div role="group" aria-label={t.projects.stackFilter} className="df-rise flex flex-wrap items-center gap-1.5" style={{ '--i': 1 } as CSSProperties}>
+      <div role="group" aria-label={t.projects.stackFilter} className="df-rise flex flex-wrap items-center gap-2.5" style={{ '--i': 1 } as CSSProperties}>
         {filters.length > 1 && (['all', ...filters] as const).map(id => (
           <FilterChip key={id} active={shown === id} onClick={() => setFilter(id)} count={countOf(id)}>
             {id === 'all' ? t.projects.filterAll : id === 'group' ? t.projects.filterGroups : FRAMEWORK_LABEL[id] ?? id}
@@ -183,7 +188,8 @@ export default function ProjectsPage() {
       {/* Saved */}
       {filteredSaved.length > 0 && (
         <section className="flex flex-col gap-2.5">
-          <SectionTitle>{t.projects.yourProjects}</SectionTitle>
+          {/* Named only when the detected ones follow, as the mock-up has none */}
+          <SectionTitle className={filteredDetected.length ? undefined : 'sr-only'}>{t.projects.yourProjects}</SectionTitle>
           <div className={container}>
             {filteredSaved.map((p, i) => p.framework === 'group' ? (
               <GroupCard
@@ -254,7 +260,8 @@ export default function ProjectsPage() {
 
       {/* Empty / scanning */}
       {filteredSaved.length === 0 && filteredDetected.length === 0 && (
-        scanning
+        !loaded ? <div className="flex justify-center py-12"><Spinner /></div>
+        : scanning
           ? <p className="py-12 text-center text-fg-muted">{t.projects.scanning}</p>
           : <EmptyState
               icon={<FolderOpen size={32} />}

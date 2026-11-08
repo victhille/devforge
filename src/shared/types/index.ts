@@ -310,6 +310,8 @@ export interface GitStatus {
   dirty: boolean
   ahead: number
   behind: number
+  /** Changed, staged or untracked files */
+  changes?: number
 }
 
 // ─── Ports ───────────────────────────────────────────────────────────────────
