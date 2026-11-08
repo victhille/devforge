@@ -376,7 +376,7 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
             {/* v4.1: the cursors and the parts, in a bar at the bottom */}
             <CanvasBar tool={tool} onTool={setTool}>
               {NODE_TYPES[kind].map(type => <BarItem key={type} onClick={() => addNode(type)} drag={type} label={g.nodes[type]} icon={ICONS[type]} />)}
-              <BarItem onClick={() => addNote()} drag={NOTE} label={e.addNote} icon={<StickyNote size={15} className="text-[var(--syntax-attr)]" />} />
+              <BarItem onClick={() => addNote()} drag={NOTE} label={e.addNote} icon={<StickyNote size={15} className="text-[var(--diagram-yellow)]" />} />
               {EDGE_TYPES[kind].length > 1 && <>
                 <BarSeparator />
                 <div role="radiogroup" aria-label={g.edgesTitle} title={g.edgesTitle} className="flex shrink-0 items-center gap-0.5">

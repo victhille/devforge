@@ -8,13 +8,19 @@
 /* « Forge » : graphite chaud, l'orange de Forgy comme accent */
 
 :root {
-  /* Code colours (file previews), one set per theme */
-  --syntax-keyword: #C792EA;
-  --syntax-string:  #A5D6A7;
-  --syntax-number:  #F7B267;
-  --syntax-title:   #82AAFF;
-  --syntax-tag:     #F07178;
-  --syntax-attr:    #FFCB6B;
+  /* Code colours (file previews), one set per theme; from the mock-up: keywords orange, strings green, numbers amber, functions blue */
+  --syntax-keyword: #FF9457;
+  --syntax-string:  #9BD48A;
+  --syntax-number:  #F2B544;
+  --syntax-title:   #7AA7FF;
+  --syntax-tag:     #F2766B;
+  --syntax-attr:    #C4A7F5;
+  /* Diagrams (Modeling): their own colours, apart from the code's and from the orange of a selection,
+     named by hue as each serves several roles (an MCD's entities, a note, a use case's actor, a kind's tag) */
+  --diagram-violet:  #C792EA;
+  --diagram-orange:  #F7B267;
+  --diagram-red:     #F07178;
+  --diagram-yellow:  #FFCB6B;
   --bg-base:        #121110;
   --bg-surface:     #1A1816;
   --bg-elevated:    #221F1C;
@@ -60,12 +66,16 @@
 }
 
 [data-theme='light'] {
-  --syntax-keyword: #8B3FC7;
-  --syntax-string:  #2E7D32;
-  --syntax-number:  #B35A00;
+  --syntax-keyword: #B53C0B;
+  --syntax-string:  #286A2C;
+  --syntax-number:  #8F5A00;
   --syntax-title:   #1F5FC4;
-  --syntax-tag:     #C62839;
-  --syntax-attr:    #8A6100;
+  --syntax-tag:     #B0214F;
+  --syntax-attr:    #7046C2;
+  --diagram-violet:  #8B3FC7;
+  --diagram-orange:  #B35A00;
+  --diagram-red:     #C62839;
+  --diagram-yellow:  #8A6100;
   --bg-base:        #F7F4F0;
   --bg-surface:     #FFFFFF;
   --bg-elevated:    #F3EFEA;
@@ -108,12 +118,16 @@
 
 @media (prefers-color-scheme: light) {
   :root[data-theme='system'] {
-    --syntax-keyword: #8B3FC7;
-    --syntax-string:  #2E7D32;
-    --syntax-number:  #B35A00;
+    --syntax-keyword: #B53C0B;
+    --syntax-string:  #286A2C;
+    --syntax-number:  #8F5A00;
     --syntax-title:   #1F5FC4;
-    --syntax-tag:     #C62839;
-    --syntax-attr:    #8A6100;
+    --syntax-tag:     #B0214F;
+    --syntax-attr:    #7046C2;
+    --diagram-violet:  #8B3FC7;
+    --diagram-orange:  #B35A00;
+    --diagram-red:     #C62839;
+    --diagram-yellow:  #8A6100;
     --bg-base:        #F7F4F0;
     --bg-surface:     #FFFFFF;
     --bg-elevated:    #F3EFEA;
