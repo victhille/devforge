@@ -9,7 +9,7 @@ import { DEFAULT_FAVORITES, HOME, LISTED_PAGES, MENU_GROUPS, RAIL, isListed, isO
 import { useProjects } from '@renderer/features/projects/hooks/useProjects'
 import { SETTINGS_SECTIONS } from '@renderer/features/settings/sections'
 import { useHasServer, useServerName } from '@renderer/hooks/useHasServer'
-import { PanelLabel, ProjectList } from './PanelProjects'
+import { PanelLabel, ProjectList, onProject } from './PanelProjects'
 import { MAX_FAVORITES } from '@shared/lib/favorites'
 
 const ENTRIES = [HOME, ...LISTED_PAGES]
@@ -54,10 +54,13 @@ function PinButton({ pinned, full, onToggle }: { pinned: boolean; full: boolean;
   )
 }
 
-/** A page of the panel: icon and name, the one on screen in bold with an orange icon */
-function PanelLink({ to, label, Icon, pin }: { to: string; label: string; Icon: LucideIcon; pin?: boolean }) {
+/**
+ * A page of the panel: icon and name, the one on screen in bold with an orange icon.
+ * `yields`: a more precise link of the panel holds the page (a project listed below Projects)
+ */
+function PanelLink({ to, label, Icon, pin, yields }: { to: string; label: string; Icon: LucideIcon; pin?: boolean; yields?: boolean }) {
   const { pathname } = useLocation()
-  const on = isOn(pathname, to)
+  const on = isOn(pathname, to) && !yields
   return (
     <Link
       to={to}
@@ -173,6 +176,8 @@ export default function Sidebar() {
   const listed = settingsShown || collapsed ? [] : shown === 'home'
     ? projects.slice().sort((a, b) => when(b).localeCompare(when(a))).slice(0, RECENT_PROJECTS)
     : shown === 'groupDev' ? projects.slice().sort((a, b) => a.name.localeCompare(b.name)).slice(0, GROUP_PROJECTS) : []
+  // A listed project on screen is the panel's current page, not Projects as well
+  const projectListed = listed.some(p => onProject(pathname, p.id))
   const note = settingsShown ? null
     : shown === 'home' ? t.nav.noteHome
     : (shown === 'groupServers' || shown === 'groupOnline') && server ? t.nav.noteServer.replace('{name}', server) : null
@@ -253,7 +258,7 @@ export default function Sidebar() {
                           onDrop={e => { e.preventDefault(); if (dragged !== null) move(dragged, i); setDragged(null) }}
                           onDragEnd={() => setDragged(null)}
                           onKeyDown={onFavKey(i)}>
-                          <PanelLink to={path} label={t.nav[page.labelKey]} Icon={page.icon} pin />
+                          <PanelLink to={path} label={t.nav[page.labelKey]} Icon={page.icon} pin yields={path === '/projects' && projectListed} />
                           <PinButton pinned full={false} onToggle={() => togglePin(path)} />
                         </div>
                       )
@@ -268,7 +273,7 @@ export default function Sidebar() {
                     const page = entry(path)
                     return (
                       <div key={path} className="group/row relative">
-                        <PanelLink to={path} label={t.nav[page.labelKey as NavKey]} Icon={page.icon} pin />
+                        <PanelLink to={path} label={t.nav[page.labelKey as NavKey]} Icon={page.icon} pin yields={path === '/projects' && projectListed} />
                         <PinButton pinned={favorites.includes(path)} full={favorites.length >= MAX_FAVORITES} onToggle={() => togglePin(path)} />
                       </div>
                     )

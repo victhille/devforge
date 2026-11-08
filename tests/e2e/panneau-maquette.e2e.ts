@@ -51,6 +51,7 @@ test('the panel lists the projects, says where things stand, and holds the Setti
   await expect(menu.getByRole('link', { name: /^(Shop|Blog|Api|Docs)/ })).toHaveText([/^Api, à jour$/, /^Blog/, /^Docs/, /^Shop2, 2 fichier/])
   await menu.getByRole('link', { name: /^Blog/ }).click()
   await expect(menu.getByRole('link', { name: /^Blog/ })).toHaveAttribute('aria-current', 'page')
+  await expect(menu.locator('[aria-current="page"]')).toHaveCount(1)
   expect(await settledAxeIssues(page)).toEqual([])
 
   // Servers: the server's name at the bottom

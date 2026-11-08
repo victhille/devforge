@@ -4,6 +4,9 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import type { Project } from '@shared/types'
 
+/** Whether the page on screen is this project's (its overview or one of its tabs) */
+export const onProject = (pathname: string, id: string) => pathname === `/project/${id}` || pathname.startsWith(`/project/${id}/`)
+
 /** A heading of the menu's panel (Favorites, Recent projects…) */
 export function PanelLabel({ children }: { children: ReactNode }) {
   return <span className="truncate text-xs font-semibold tracking-wide text-fg-muted">{children}</span>
@@ -49,7 +52,7 @@ function useRepoStates(projects: Project[]) {
 function ProjectLink({ project, state }: { project: Project; state: RepoState | undefined }) {
   const { t } = useI18n()
   const { pathname } = useLocation()
-  const on = pathname === `/project/${project.id}` || pathname.startsWith(`/project/${project.id}/`)
+  const on = onProject(pathname, project.id)
   const changes = state?.changes ?? 0
   const status = state === undefined ? null
     : state === null ? t.nav.projectNoRepo
