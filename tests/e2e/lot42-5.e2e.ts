@@ -52,7 +52,7 @@ test('an OpenAI-compatible server chosen in Settings › Forgy answers in the pa
   // Asked in the panel: the local model answers, named in the header
   await page.keyboard.press('Control+J')
   await expect(page.getByText(/qwen-local/).first()).toBeVisible()
-  const input = page.getByPlaceholder('Demande à Forgy…')
+  const input = page.getByRole('textbox', { name: 'Question libre' })
   await input.fill('Qui es-tu ?')
   await input.press('Enter')
   await expect(page.getByText('Bonjour, ici un modèle local.')).toBeVisible()

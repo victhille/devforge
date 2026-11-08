@@ -126,7 +126,7 @@ test('Forgy asks for an API key when none is saved', async () => {
   const { page } = run
   await page.keyboard.press('Control+J')
   await expect(page.getByText(/Ajoute la clé API du fournisseur choisi/)).toBeVisible()
-  await expect(page.getByPlaceholder('Demande à Forgy…')).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'Question libre' })).toBeVisible()
 })
 
 test('Settings copies a diagnostic report without secrets', async () => {
