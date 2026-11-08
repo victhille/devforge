@@ -5,7 +5,7 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
-import Card from '@renderer/components/ui/Card'
+import Card, { CardTitle } from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
@@ -46,7 +46,7 @@ function StackCard({ stack, procs, running, onEdit, onDelete }: {
     <Card className="overflow-hidden">
       <div className="flex items-center gap-3 border-b border-line-subtle px-4 py-3">
         <span className="size-2.5 rounded-full" style={{ background: stack.color }} />
-        <h3 className="flex-1 text-md font-semibold text-fg">{stack.name}</h3>
+        <CardTitle className="flex-1">{stack.name}</CardTitle>
         {running > 0 && <Badge color="success">{s.running.replace('{n}', String(running))}</Badge>}
         <IconButton title={s.edit} onClick={onEdit}><Pencil size={14} /></IconButton>
         <IconButton title={t.common.delete} tone="danger" onClick={onDelete}><Trash2 size={14} /></IconButton>

@@ -68,10 +68,10 @@ export default function TabBar<T extends string>({ items, active, onSelect, more
   const tab = (t: TabItem<T>, inMeasure = false) => (
     <button key={t.id} role={inMeasure ? undefined : 'tab'} aria-selected={inMeasure ? undefined : active === t.id} tabIndex={inMeasure ? -1 : undefined}
       onClick={inMeasure ? undefined : () => onSelect(t.id)}
-      className={cn('flex h-9 shrink-0 items-center gap-1.5 border-b-2 px-3 text-base font-medium whitespace-nowrap transition-colors',
-        active === t.id ? 'border-accent text-fg' : 'border-transparent text-fg-secondary hover:text-fg')}>
+      className={cn('flex h-9.5 shrink-0 items-center gap-1.5 border-b-2 px-3 text-base whitespace-nowrap transition-colors',
+        active === t.id ? 'border-accent font-semibold text-fg' : 'border-transparent font-medium text-fg-secondary hover:text-fg')}>
       {t.label}
-      {!!t.count && <span className="rounded-full bg-elevated px-1.5 font-mono text-2xs text-fg-muted">{t.count}</span>}
+      {!!t.count && <span className="rounded-full bg-elevated px-1.5 font-mono text-2xs text-fg-secondary">{t.count}</span>}
     </button>
   )
 
@@ -86,17 +86,17 @@ export default function TabBar<T extends string>({ items, active, onSelect, more
         {hidden.length > 0 && (
           <div ref={menu} className="relative shrink-0">
             <button aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(v => !v)}
-              className={cn('flex h-9 items-center gap-1 border-b-2 border-transparent px-3 text-base font-medium whitespace-nowrap', open ? 'text-fg' : 'text-fg-secondary hover:text-fg')}>
-              {moreLabel} <span className="rounded-full bg-elevated px-1.5 font-mono text-2xs text-fg-muted">{hidden.length}</span>
+              className={cn('flex h-9.5 items-center gap-1 border-b-2 border-transparent px-3 text-base font-medium whitespace-nowrap', open ? 'text-fg' : 'text-fg-secondary hover:text-fg')}>
+              {moreLabel} <span className="rounded-full bg-elevated px-1.5 font-mono text-2xs text-fg-secondary">{hidden.length}</span>
               <ChevronDown size={14} className={cn('transition-transform', open && 'rotate-180')} />
             </button>
             {open && (
-              <div role="menu" aria-label={moreLabel} className="absolute top-10 right-0 z-30 flex min-w-[200px] flex-col rounded-xl border border-line bg-elevated p-1 shadow-pop">
+              <div role="menu" aria-label={moreLabel} className="absolute top-10.5 right-0 z-30 flex min-w-[200px] flex-col rounded-xl border border-line bg-surface p-1 shadow-pop">
                 {hidden.map(t => (
                   <button key={t.id} role="menuitem" onClick={() => { onSelect(t.id); setOpen(false) }}
-                    className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm text-fg-secondary hover:bg-hover hover:text-fg">
+                    className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm text-fg-secondary hover:bg-elevated hover:text-fg">
                     {t.label}
-                    {!!t.count && <span className="rounded-full bg-canvas px-1.5 font-mono text-2xs text-fg-muted">{t.count}</span>}
+                    {!!t.count && <span className="rounded-full bg-elevated px-1.5 font-mono text-2xs text-fg-secondary">{t.count}</span>}
                   </button>
                 ))}
               </div>

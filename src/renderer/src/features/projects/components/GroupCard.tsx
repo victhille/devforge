@@ -5,6 +5,8 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Card from '@renderer/components/ui/Card'
 import IconButton from '@renderer/components/ui/IconButton'
+import Badge from '@renderer/components/ui/Badge'
+import Button from '@renderer/components/ui/Button'
 import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
 import ProjectIcon from './ProjectIcon'
 import ScriptsMenu from './ScriptsMenu'
@@ -66,7 +68,7 @@ function SubRow({ sub, ideLabel, onOpenIde, onTerminal, onRunScript }: { sub: Su
         </div>
       </div>
       <div className="flex items-center gap-1.5">
-        {ideLabel && <button onClick={() => onOpenIde(sub.path)} className="h-[30px] rounded-lg border border-line bg-elevated px-2.5 text-xs font-medium text-fg hover:bg-hover">{ideLabel}</button>}
+        {ideLabel && <Button size="sm" variant="secondary" onClick={() => onOpenIde(sub.path)}>{ideLabel}</Button>}
         <IconButton size="sm" title={t.projects.terminal} onClick={() => onTerminal(sub.path)}><Terminal size={13} /></IconButton>
         <ScriptsMenu scripts={scripts} onRun={onRunScript} />
       </div>
@@ -92,8 +94,6 @@ export default function GroupCard(props: Props) {
   const subIde = (sub: SubProject) => project.subIdes?.[sub.name] ?? project.ide
   const ideLabel = ide.labelFor(project.ide)
   const stacks = [...new Set(subs.map(s => FRAMEWORK_LABEL[s.framework] ?? s.framework))]
-  // One line, whatever the card's width
-  const action = 'h-8 min-w-0 flex-1 truncate whitespace-nowrap rounded-lg border px-2 text-sm font-medium transition-colors'
 
   return (
     // Like a project's card: a click opens its page, except on its own buttons and menus
@@ -102,10 +102,10 @@ export default function GroupCard(props: Props) {
       <div className="flex items-center gap-3">
         <ProjectIcon framework="group" size="lg" />
         <div className="min-w-0 flex-1">
-          <h2 className="flex items-center gap-2 truncate text-md font-semibold text-fg">{project.name}<CiDot failing={ciFailing} /></h2>
+          <h2 className="flex items-center gap-2 truncate font-display text-md font-bold tracking-[-.01em] text-fg">{project.name}<CiDot failing={ciFailing} /></h2>
           <div className="truncate font-mono text-xs text-fg-muted" title={project.path}>{project.path}</div>
         </div>
-        <IconButton title={t.projects.favorite} onClick={onToggleFavorite} className={cn(project.favorite && 'text-warning hover:text-warning')}>
+        <IconButton title={t.projects.favorite} onClick={onToggleFavorite} className={cn(project.favorite && 'text-accent hover:text-accent')}>
           <Star size={13} fill={project.favorite ? 'currentColor' : 'none'} />
         </IconButton>
         <IconButton title={folded ? t.projects.groupUnfold : t.projects.groupFold} aria-expanded={!folded} onClick={toggle}>
@@ -113,8 +113,8 @@ export default function GroupCard(props: Props) {
         </IconButton>
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="rounded-full bg-accent-soft px-2.5 py-0.5 font-mono text-xs text-accent">{t.projects.groupCount.replace('{n}', String(subs.length))}</span>
-        {stacks.map(s => <span key={s} className="rounded-md border border-line bg-elevated px-2 py-0.5 font-mono text-xs text-fg-secondary">{s}</span>)}
+        <Badge color="accent">{t.projects.groupCount.replace('{n}', String(subs.length)).replace('{s}', subs.length > 1 ? 's' : '')}</Badge>
+        {stacks.map(s => <Badge key={s} mono>{s}</Badge>)}
         {folder && <span className="px-1.5 text-xs text-fg-muted">{folder}</span>}
         <TasksChip count={openTasks} onClick={onOpenTasks} />
       </div>
@@ -146,12 +146,13 @@ export default function GroupCard(props: Props) {
         )}
       <div className="mt-auto flex items-center gap-1.5">
         {ideLabel && (
-          <button onClick={() => ide.open(project.path, project.ide)} title={t.projects.groupIde.replace('{ide}', ideLabel)} aria-label={t.projects.groupIde.replace('{ide}', ideLabel)}
-            className={cn(action, 'border-line bg-elevated text-fg hover:bg-hover')}>{folded ? ideLabel : t.projects.groupIde.replace('{ide}', ideLabel)}</button>
+          <Button size="sm" variant="secondary" className="min-w-0 flex-1 truncate" onClick={() => ide.open(project.path, project.ide)} title={t.projects.groupIde.replace('{ide}', ideLabel)} aria-label={t.projects.groupIde.replace('{ide}', ideLabel)}>
+            {folded ? ideLabel : t.projects.groupIde.replace('{ide}', ideLabel)}
+          </Button>
         )}
-        <button onClick={() => onTerminal(project.path)} className={cn(action, 'border-line bg-elevated text-fg hover:bg-hover')}>{t.projects.terminal}</button>
-        <button onClick={onDetail} title={t.projects.groupOpen} className={cn(action, 'border-transparent bg-accent-soft font-semibold text-accent hover:bg-accent hover:text-accent-fg')}>{folded ? t.projects.open : t.projects.groupOpen}</button>
-        {onRemove && <IconButton tone="danger" title={t.projects.remove} onClick={onRemove}><Trash2 size={13} /></IconButton>}
+        <Button size="sm" variant="secondary" className="min-w-0 flex-1 truncate" onClick={() => onTerminal(project.path)}>{t.projects.terminal}</Button>
+        <Button size="sm" variant="secondary" className="min-w-0 flex-1 truncate" onClick={onDetail} title={t.projects.groupOpen}>{folded ? t.projects.open : t.projects.groupOpen}</Button>
+        {onRemove && <IconButton size="sm" tone="danger" title={t.projects.remove} onClick={onRemove}><Trash2 size={13} /></IconButton>}
       </div>
     </Card>
   )

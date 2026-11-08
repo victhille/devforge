@@ -26,9 +26,9 @@ const needsAttention = (r: RepoRow) =>
 
 function Stat({ label, value, tone }: { label: string; value: number; tone?: string }) {
   return (
-    <Card className="flex flex-col gap-1 px-4 py-3">
-      <span className={cn('text-2xl font-semibold', tone ?? 'text-fg')}>{value}</span>
-      <span className="text-sm text-fg-secondary">{label}</span>
+    <Card className="flex flex-col gap-0.5 p-3.5">
+      <span className="text-sm text-fg-muted">{label}</span>
+      <span className={cn('font-display text-2xl font-bold tracking-[-.02em]', value > 0 ? tone ?? 'text-fg' : 'text-fg')}>{value}</span>
     </Card>
   )
 }
@@ -115,8 +115,8 @@ export default function GitDashboardPage() {
 
                 <button className="flex min-w-0 flex-1 flex-col items-start text-left" onClick={() => navigate(`/project/${row.project.id}`)}>
                   <span className="flex items-center gap-2">
-                    <span className="font-medium text-fg hover:text-accent">{row.project.name}</span>
-                    <span className="inline-flex items-center gap-1 rounded bg-elevated px-1.5 py-px font-mono text-2xs text-fg-secondary">
+                    <span className="font-semibold text-fg hover:text-accent">{row.project.name}</span>
+                    <span className="inline-flex items-center gap-1 rounded-md bg-elevated px-1.5 py-px font-mono text-2xs text-fg-secondary">
                       <GitBranch size={10} /> {d.branch}
                     </span>
                   </span>

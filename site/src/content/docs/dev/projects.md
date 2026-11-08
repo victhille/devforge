@@ -7,7 +7,7 @@ description: La liste de tes projets et la fiche de chaque projet, avec Git, Git
 
 La page **Projets** montre :
 
-- **Vos projets** : ceux que DevForge suit. Chaque carte affiche le framework, l'état Git (« modifs en cours ») et des boutons **Ouvrir**, le nom de l'[IDE](/devforge/dev/ide/) du projet (aucun bouton si l'IDE choisi est « Aucun »), **Terminal**, **Scripts** (les scripts du `package.json`), **Favori** et **Retirer**.
+- **Vos projets** : ceux que DevForge suit. Chaque carte affiche le framework, l'état Git (« modifs en cours »), un bouton **Ouvrir** (en orange pour le projet actif) puis des icônes : l'[IDE](/devforge/dev/ide/) du projet (son nom au survol ; aucune icône si l'IDE choisi est « Aucun »), **Terminal**, **Scripts** (les scripts du `package.json`) et **Retirer**. L'étoile en haut le met en **Favori**. Les filtres par technologie montrent combien de projets ils gardent, et **Grille** / **Liste** change l'affichage.
 - **Détectés dans…** : les projets trouvés dans tes dossiers de projets mais pas encore suivis. **Importer** les ajoute.
 
 Filtre par nom, et par framework : seuls les frameworks de tes projets ont un filtre, et aucun filtre ne s'affiche s'il n'y en a qu'un. **Rescanner** relit les dossiers. Au bout de la ligne des filtres, **Ajouter un dossier** mène aux dossiers de projets des [Paramètres](/devforge/settings/general/), pour des projets rangés ailleurs.

@@ -3,7 +3,7 @@ title: Stack launcher
 description: Start your whole dev setup in one click, front, API, Docker, VS Code and browser.
 ---
 
-The **Launcher** (*Stack launcher* page) starts your whole dev setup in one click. A **stack** groups what you start every day: the front, the API, Docker, VS Code, the browser…
+The **Launcher** starts your whole dev setup in one click. A **stack** groups what you start every day: the front, the API, Docker, VS Code, the browser…
 
 ## Creating a stack
 

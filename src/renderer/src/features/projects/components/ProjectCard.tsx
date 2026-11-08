@@ -30,7 +30,7 @@ function SubNames({ project }: { project: DetectedProject }) {
   if (!project.subprojects?.length) return null
   return (
     <span className="truncate text-xs text-fg-secondary">
-      {t.projects.groupCount.replace('{n}', String(project.subprojects.length))} · {project.subprojects.map(s => `${s.name} (${FRAMEWORK_LABEL[s.framework] ?? s.framework})`).join(', ')}
+      {t.projects.groupCount.replace('{n}', String(project.subprojects.length)).replace('{s}', project.subprojects.length > 1 ? 's' : '')} · {project.subprojects.map(s => `${s.name} (${FRAMEWORK_LABEL[s.framework] ?? s.framework})`).join(', ')}
     </span>
   )
 }
@@ -40,7 +40,7 @@ function FavoriteButton({ active, onClick, title }: { active: boolean; onClick: 
     <IconButton
       title={title}
       onClick={e => { e.stopPropagation(); onClick() }}
-      className={cn(active && 'text-warning hover:text-warning')}
+      className={cn(active && 'text-accent hover:text-accent')}
     >
       <Star size={13} fill={active ? 'currentColor' : 'none'} />
     </IconButton>
@@ -92,10 +92,12 @@ interface SavedProps {
   onOpenTasks?: () => void
   /** v3.8: its GitHub workflows failing now */
   ciFailing?: string[]
+  /** The active project (Forgy and the widget work on it): its card stands out */
+  active?: boolean
 }
 
 export function ProjectCard(props: SavedProps) {
-  const { project, layout, gitStatus, scripts = {}, ideLabel, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript, index = 0, folder, openTasks, onOpenTasks, ciFailing } = props
+  const { project, layout, gitStatus, scripts = {}, ideLabel, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript, index = 0, folder, openTasks, onOpenTasks, ciFailing, active } = props
   const { t } = useI18n()
   const label = FRAMEWORK_LABEL[project.framework] ?? project.framework
 
@@ -104,36 +106,34 @@ export function ProjectCard(props: SavedProps) {
       : gitStatus.ahead > 0 ? { text: `↑ ${gitStatus.ahead}`, color: 'text-accent' }
       : gitStatus.dirty ? { text: t.projects.uncommitted, color: 'text-warning' }
       : { text: t.home.upToDate, color: 'text-success' }
-    const action = 'h-8 rounded-lg border text-sm font-medium transition-colors'
+    // Forge: one main action (Open, in orange for the active project), the others as icons
     return (
-      <Card interactive onClick={onDetail} className="df-rise group flex flex-col gap-3 rounded-card p-4.5" style={{ '--i': index } as CSSProperties}>
-        <div className="flex items-center gap-3">
+      <Card interactive onClick={onDetail} className={cn('df-rise group flex flex-col gap-3.5 rounded-card p-4.5', active && 'border-accent/35')} style={{ '--i': index } as CSSProperties}>
+        <div className="flex items-start gap-3">
           <ProjectIcon framework={project.framework} size="lg" />
           <div className="min-w-0 flex-1">
-            <h2 className="flex items-center gap-2 truncate text-md font-semibold text-fg">{project.name}<CiDot failing={ciFailing} /></h2>
+            <h2 className="flex items-center gap-2 truncate font-display text-md font-bold tracking-[-.01em] text-fg">{project.name}<CiDot failing={ciFailing} /></h2>
             <div className="truncate font-mono text-xs text-fg-muted" title={project.path}>{project.path}</div>
           </div>
           <FavoriteButton active={project.favorite} onClick={onToggleFavorite} title={t.projects.favorite} />
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {[label, project.packageManager].filter(Boolean).map(tag => (
-            <span key={tag} className="rounded-md border border-line bg-elevated px-2 py-0.5 font-mono text-xs text-fg-secondary">{tag}</span>
-          ))}
+          {[label, project.packageManager].filter(Boolean).map(tag => <Badge key={tag} mono>{tag}</Badge>)}
           <FolderTag name={folder} />
           <TasksChip count={openTasks} onClick={onOpenTasks} />
         </div>
         {project.missing && <div className="text-xs font-medium text-warning">{t.hub.missing}</div>}
         {git && (
-          <div className="flex items-center gap-2 font-mono text-xs text-fg-secondary">
-            <GitBranch size={14} /> {gitStatus!.branch} <span className={git.color}>{git.text}</span>
-          </div>
+          <p className="flex items-center gap-1.5 text-sm text-fg-secondary">
+            <GitBranch size={13} aria-hidden /> <span className="font-mono">{gitStatus!.branch}</span> <span className={git.color}>{git.text}</span>
+          </p>
         )}
-        <div className="mt-auto flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-          {ideLabel && <button onClick={onOpenVSCode} className={cn(action, 'flex-1 border-line bg-elevated text-fg hover:bg-hover')}>{ideLabel}</button>}
-          <button onClick={onTerminal} className={cn(action, 'flex-1 border-line bg-elevated text-fg hover:bg-hover')}>{t.projects.terminal}</button>
-          <button onClick={onOpen} className={cn(action, 'flex-1 border-transparent bg-accent font-semibold text-accent-fg hover:bg-accent-hover')}>{t.projects.open}</button>
+        <div className="mt-auto flex items-center gap-1" onClick={e => e.stopPropagation()}>
+          <Button size="sm" variant={active ? 'primary' : 'secondary'} className="flex-1" onClick={onOpen}>{t.projects.open}</Button>
+          {ideLabel && <IconButton size="sm" title={ideLabel} onClick={onOpenVSCode}><Code2 size={14} /></IconButton>}
+          <IconButton size="sm" title={t.projects.terminal} onClick={onTerminal}><Terminal size={14} /></IconButton>
           {onRunScript && <ScriptsMenu scripts={scripts} onRun={onRunScript} />}
-          {onRemove && <IconButton tone="danger" title={t.projects.remove} onClick={onRemove}><Trash2 size={13} /></IconButton>}
+          {onRemove && <IconButton size="sm" tone="danger" title={t.projects.remove} onClick={onRemove}><Trash2 size={13} /></IconButton>}
         </div>
       </Card>
     )
@@ -158,7 +158,7 @@ export function ProjectCard(props: SavedProps) {
         <IconButton title={t.projects.terminal} onClick={onTerminal}><Terminal size={13} /></IconButton>
         {onRunScript && <ScriptsMenu scripts={scripts} onRun={onRunScript} />}
         {ideLabel && <Button variant="ghost" size="sm" onClick={onOpenVSCode}><Code2 size={13} /> {ideLabel}</Button>}
-        <Button variant="secondary" size="sm" onClick={onOpen}>{t.projects.open}</Button>
+        <Button variant={active ? 'primary' : 'secondary'} size="sm" onClick={onOpen}>{t.projects.open}</Button>
         {onRemove && <IconButton tone="danger" title={t.projects.remove} onClick={onRemove}><Trash2 size={13} /></IconButton>}
       </div>
     </Card>
@@ -183,7 +183,7 @@ export function DetectedProjectCard({ project, layout, onImport, onOpen, onTermi
 
   const actions = (
     <>
-      <IconButton title="Open folder" onClick={onOpen}><FolderOpen size={13} /></IconButton>
+      <IconButton title={t.projects.openFolder} onClick={onOpen}><FolderOpen size={13} /></IconButton>
       <IconButton title={t.projects.terminal} onClick={onTerminal}><Terminal size={13} /></IconButton>
     </>
   )

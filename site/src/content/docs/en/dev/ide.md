@@ -3,7 +3,7 @@ title: IDE
 description: The IDEs DevForge finds on your PC, the ones you add by hand, and one IDE per project.
 ---
 
-Wherever a project opens (cards, project page, command palette, launcher, Git dashboard), the button bears the **name of the IDE** that will open it.
+Wherever a project opens (cards, project page, command palette, launcher, Git page), the button bears the **name of the IDE** that will open it (on hovering the icon, on the cards).
 
 ## The IDEs found
 

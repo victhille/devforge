@@ -41,7 +41,7 @@ test('the rail shows a group in the panel, its pages lead there, from the mouse 
   await expect(page.locator('main h1')).toHaveText(/^(Bonjour|Bonsoir)/)
   await menu.getByRole('link', { name: 'Git', exact: true }).click()
   await expect(page).toHaveURL(/#\/git$/)
-  await expect(page.locator('main h1')).toHaveText('Tableau de bord Git')
+  await expect(page.locator('main h1')).toHaveText('Git')
   await expect(menu.getByRole('link', { name: 'Git', exact: true })).toHaveAttribute('aria-current', 'page')
 
   // The favorites are under Home
