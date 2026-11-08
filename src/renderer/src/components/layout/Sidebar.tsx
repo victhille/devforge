@@ -75,7 +75,6 @@ function PanelLink({ to, label, Icon, pin, yields }: { to: string; label: string
 
 /** How many projects the panel lists: the last opened under Home, the first by name under Development */
 const RECENT_PROJECTS = 3
-const GROUP_PROJECTS = 6
 
 /** A square of the rail: a group (button) or Settings (link); orange when it holds the page on screen */
 const railItem = (current: boolean, shown: boolean) => cn(
@@ -172,11 +171,10 @@ export default function Sidebar() {
 
   const label = (key: RailKey) => (key === 'home' ? t.nav.home : t.nav[key])
   const group = MENU_GROUPS.find(g => g.key === shown)
-  // The projects the panel lists: the last opened under Home, by name under Development
+  // The projects the panel lists: the last opened, under Home only (Development shows its pages, the Projects page lists them all)
   const when = (p: Project) => p.lastOpenedAt ?? p.createdAt
-  const listed = settingsShown || collapsed ? [] : shown === 'home'
-    ? projects.slice().sort((a, b) => when(b).localeCompare(when(a))).slice(0, RECENT_PROJECTS)
-    : shown === 'groupDev' ? projects.slice().sort((a, b) => a.name.localeCompare(b.name)).slice(0, GROUP_PROJECTS) : []
+  const listed = settingsShown || collapsed || shown !== 'home' ? []
+    : projects.slice().sort((a, b) => when(b).localeCompare(when(a))).slice(0, RECENT_PROJECTS)
   // A listed project on screen is the panel's current page, not Projects as well
   const projectListed = listed.some(p => onProject(pathname, p.id))
   const note = settingsShown ? null
@@ -265,7 +263,7 @@ export default function Sidebar() {
                       )
                     })}
                   </div>
-                  <ProjectList label={t.nav.recentProjects} projects={listed} more={0} />
+                  <ProjectList label={t.nav.recentProjects} projects={listed} />
                 </>
               ) : (
                 <>
@@ -287,7 +285,6 @@ export default function Sidebar() {
                     </Link>
                   )}
                 </div>
-                {shown === 'groupDev' && <ProjectList label={t.nav.projects} projects={listed} more={Math.max(0, projects.length - GROUP_PROJECTS)} />}
                 </>
               )}
 

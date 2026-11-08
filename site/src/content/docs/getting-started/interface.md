@@ -37,7 +37,7 @@ Un projet peut être **actif** : Forgy et le widget de bureau s'y rapportent. Il
 
 Le menu de gauche est un rail d'icônes : l'**Accueil**, puis six groupes. Un clic sur un groupe affiche ses pages dans le panneau d'à côté, sans quitter la page ouverte. Le rail marque en orange l'endroit de la page ouverte : l'Accueil quand elle est dans tes favoris et que le panneau les montre, son groupe sinon.
 
-Sous l'Accueil, le panneau montre tes **favoris** et tes trois **projets récents** ; sous Développement, tes projets par ordre alphabétique (les six premiers, puis un lien vers les autres). Devant chaque projet, un point dit l'état de son dépôt : orange s'il a des fichiers modifiés (leur nombre est à droite), vert s'il est à jour, gris si le dossier n'est pas un dépôt Git. En bas du panneau, une note : le rappel de <kbd>Ctrl</kbd> <kbd>K</kbd> sous l'Accueil, le serveur suivi sous Serveurs et Mise en ligne.
+Sous l'Accueil, le panneau montre tes **favoris** et tes trois **projets récents** (tous les autres sont sur la page [Projets](/devforge/dev/projects/)). Devant chaque projet, un point dit l'état de son dépôt : orange s'il a des fichiers modifiés (leur nombre est à droite), vert s'il est à jour, gris si le dossier n'est pas un dépôt Git. En bas du panneau, une note : le rappel de <kbd>Ctrl</kbd> <kbd>K</kbd> sous l'Accueil, le serveur suivi sous Serveurs et Mise en ligne.
 
 | Groupe | Pages |
 |---|---|

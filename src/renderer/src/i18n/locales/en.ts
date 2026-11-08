@@ -68,7 +68,6 @@ const en = {
     projectChanges: '{n} changed file(s)',
     projectClean: 'up to date',
     projectNoRepo: 'not a Git repository',
-    moreProjects: '{n} more project(s)',
     noteHome: 'Ctrl K leads to any page, project or script.',
     noteServer: 'Server: {name}'
   },

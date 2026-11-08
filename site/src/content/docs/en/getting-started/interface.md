@@ -37,7 +37,7 @@ One project can be **active**: Forgy and the desktop widget refer to it. It beco
 
 The left menu is an icon rail: **Home**, then six groups. Clicking a group shows its pages in the panel beside it, without leaving the page on screen. The rail marks in orange where the page on screen sits: Home when it is one of your favorites and the panel shows them, its group otherwise.
 
-Under Home, the panel shows your **favorites** and your three **recent projects**; under Development, your projects in alphabetical order (the first six, then a link to the others). In front of each project, a dot tells the state of its repository: orange when it has changed files (their number is on the right), green when it is up to date, grey when the folder is not a Git repository. At the bottom of the panel, a note: a reminder of <kbd>Ctrl</kbd> <kbd>K</kbd> under Home, the watched server under Servers and Going live.
+Under Home, the panel shows your **favorites** and your three **recent projects** (all the others are on the [Projects](/devforge/en/dev/projects/) page). In front of each project, a dot tells the state of its repository: orange when it has changed files (their number is on the right), green when it is up to date, grey when the folder is not a Git repository. At the bottom of the panel, a note: a reminder of <kbd>Ctrl</kbd> <kbd>K</kbd> under Home, the watched server under Servers and Going live.
 
 | Group | Pages |
 |---|---|

@@ -32,10 +32,15 @@ export default function TabBar<T extends string>({ items, active, onSelect, more
     setWidth(el.clientWidth)
     return () => ro.disconnect()
   }, [])
-  // Each tab's width, from an invisible copy of the bar
+  // Each tab's width, from an invisible copy of the bar, with the gap after it (read from the style: it follows the page's measures)
   const key = items.map(i => `${i.id}:${i.label}:${i.count ?? ''}`).join('|')
   useLayoutEffect(() => {
-    const read = () => setWidths([...(measure.current?.children ?? [])].map(c => (c as HTMLElement).offsetWidth + 4))
+    const read = () => {
+      const el = measure.current
+      if (!el) return
+      const gap = parseFloat(getComputedStyle(el).columnGap) || 0
+      setWidths([...el.children].map(c => (c as HTMLElement).getBoundingClientRect().width + gap))
+    }
     read()
     // Measured again once the font is there (the fallback is narrower)
     void document.fonts?.ready.then(read)
@@ -71,7 +76,7 @@ export default function TabBar<T extends string>({ items, active, onSelect, more
       className={cn('flex h-9.5 shrink-0 items-center gap-1.5 border-b-2 px-0.5 text-base whitespace-nowrap transition-colors',
         active === t.id ? 'border-accent font-semibold text-fg' : 'border-transparent font-medium text-fg-secondary hover:text-fg')}>
       {t.label}
-      {!!t.count && <span className="rounded-full bg-elevated px-1.5 font-mono text-[10.5px] text-fg-secondary">{t.count}</span>}
+      {!!t.count && <span className="rounded-full bg-elevated px-1.5 font-mono text-2xs text-fg-secondary">{t.count}</span>}
     </button>
   )
 

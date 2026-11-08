@@ -7,16 +7,16 @@ import type { Project } from '@shared/types'
 /** Whether the page on screen is this project's (its overview or one of its tabs) */
 export const onProject = (pathname: string, id: string) => pathname === `/project/${id}` || pathname.startsWith(`/project/${id}/`)
 
-/** A row of the panel (a page, a Settings section, a project): 39 px, 14 px text; the one on screen on the active background
+/** A row of the panel (a page, a Settings section, a project): 34 px, 14 px text; the one on screen on the active background
  *  (the app's rem is 13 px: one spacing unit is 3.25 px) */
 export const panelRow = (on: boolean, className?: string) => cn(
-  'group/link flex h-12 items-center gap-3.5 rounded-control px-3 text-md transition-colors',
+  'group/link flex h-10.5 items-center gap-3 rounded-control px-3 text-md transition-colors',
   on ? 'bg-active font-semibold text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg',
   className
 )
 
 /** The icons of the panel's rows */
-export const PANEL_ICON = 18
+export const PANEL_ICON = 17
 
 /** A heading of the menu's panel (Favorites, Recent projects…) */
 export function PanelLabel({ children }: { children: ReactNode }) {
@@ -82,20 +82,14 @@ function ProjectLink({ project, state }: { project: Project; state: RepoState | 
   )
 }
 
-/** A labelled list of projects in the panel, with a link to all of them when there are more */
-export function ProjectList({ label, projects, more }: { label: string; projects: Project[]; more: number }) {
-  const { t } = useI18n()
+/** A labelled list of projects in the panel (the recent ones, under Home) */
+export function ProjectList({ label, projects }: { label: string; projects: Project[] }) {
   const states = useRepoStates(projects)
   if (!projects.length) return null
   return (
     <div className="flex flex-col gap-1">
       <div className="flex h-8 items-center px-3 pb-1"><PanelLabel>{label}</PanelLabel></div>
       {projects.map(p => <ProjectLink key={p.id} project={p} state={states[p.id]} />)}
-      {more > 0 && (
-        <Link to="/projects" className="mt-0.5 flex h-9 items-center truncate rounded-control px-3 text-sm text-fg-muted transition-colors hover:bg-hover hover:text-fg">
-          {t.nav.moreProjects.replace('{n}', String(more))}
-        </Link>
-      )}
     </div>
   )
 }

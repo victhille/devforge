@@ -67,7 +67,6 @@ const fr = {
     projectChanges: '{n} fichier(s) modifié(s)',
     projectClean: 'à jour',
     projectNoRepo: 'pas un dépôt Git',
-    moreProjects: '{n} autre(s) projet(s)',
     noteHome: 'Ctrl K mène à n’importe quelle page, projet ou script.',
     noteServer: 'Serveur : {name}'
   },
