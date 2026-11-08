@@ -11,6 +11,8 @@ export interface ProjectNote {
   body: string
   /** The file's last change (ISO) */
   updatedAt: string
+  /** Kept on this PC, out of Git (`local: true` in its header): the notes moved from DevForge's data, which were private */
+  local?: boolean
 }
 
 /** A note in the list: no text, its boxes left to check counted */
@@ -20,6 +22,7 @@ export interface NoteSummary {
   pinned: boolean
   updatedAt: string
   open: number
+  local?: boolean
 }
 
 /** What the window saves: no id for a new note */

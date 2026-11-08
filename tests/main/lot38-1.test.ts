@@ -145,7 +145,8 @@ describe('the notes of v3.8 move into the project', () => {
     writeFileSync(legacy(), JSON.stringify({ p0: entry }))
     expect(listNotes('p0')).toHaveLength(2)
     expect(existsSync(legacy())).toBe(false)
-    expect(readdirSync(notesDir()).sort()).toEqual(['notes.md', 'taches.md'])
+    // With the .gitignore that keeps them on this PC
+    expect(readdirSync(notesDir()).sort()).toEqual(['.gitignore', 'notes.md', 'taches.md'])
   })
 
   it('a project whose folder is gone keeps its old notes', () => {

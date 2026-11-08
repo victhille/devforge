@@ -61,6 +61,7 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
   const queue = useRef<Promise<unknown>>(Promise.resolve())
   const titleRef = useRef<HTMLInputElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
+  const newRef = useRef<HTMLButtonElement>(null)
   const listRef = useRef(list)
   listRef.current = list
 
@@ -137,7 +138,8 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
     return enqueue(() => window.devforge.notes.read(projectId, id)).then(show, err => setReadError(errorText(err)))
   }, [enqueue, flush, projectId])
 
-  // The first note opens; one changed elsewhere (Forgy, the Modeling page, a git pull) is read again
+  // The first note opens; one changed by Forgy or the Modeling page (or on disk, seen when the list is read again) opens again,
+  // unless something typed here is still waiting to be saved
   useEffect(() => {
     if (!list) return
     const to = target.current
@@ -175,6 +177,8 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
     try {
       await enqueue(() => window.devforge.notes.remove(projectId, to.id))
       setLive<NoteSummary[]>(key, l => (l ?? []).filter(n => n.id !== to.id))
+      // The button that had the focus is gone with the note: back to "New note"
+      newRef.current?.focus()
     } catch (err) {
       toast.show({ tone: 'error', title: k.removeFailed, description: errorText(err) })
       void openNote(to.id)
@@ -209,15 +213,16 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
 
   return (
     <div className="grid grid-cols-12 gap-4">
-      <aside className="col-span-12 flex min-w-0 flex-col gap-1.5 md:col-span-3">
-        <Button variant="secondary" size="sm" onClick={create}><Plus size={13} aria-hidden /> {k.newNote}</Button>
+      <aside aria-label={k.list} className="col-span-12 flex min-w-0 flex-col gap-1.5 md:col-span-3">
+        <Button ref={newRef} variant="secondary" size="sm" onClick={create}><Plus size={13} aria-hidden /> {k.newNote}</Button>
         <ul aria-label={k.list} className="flex flex-col gap-1.5">
           {list.map(n => {
             const on = n.id === openId
             const shownPinned = on ? pinned : n.pinned
             return (
               <li key={n.id}>
-                <button type="button" aria-current={on || undefined} onClick={() => { if (!on) void openNote(n.id) }}
+                {/* 9 px corners and 34 px rows: the mock-up's .sel */}
+                <button type="button" aria-current={on || undefined} title={(on ? title : n.title).trim() || k.untitled} onClick={() => { if (!on) void openNote(n.id) }}
                   className={cn('flex h-8.5 w-full items-center gap-2.5 rounded-[9px] px-2.5 text-left transition-colors duration-150',
                     on ? 'bg-accent-soft font-semibold text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg')}>
                   {shownPinned && <Pin size={13} className="shrink-0 text-accent" aria-hidden />}
@@ -238,7 +243,7 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
           : (
             <RichNotes key={round} value={note.body} onChange={body => change({ body })}
               aside={<>
-                <span className={cn('text-xs', state === 'failed' ? 'text-danger' : 'text-fg-muted')}>{status}</span>
+                <span role={state === 'failed' ? 'alert' : undefined} className={cn('text-xs', state === 'failed' ? 'text-danger' : 'text-fg-muted')}>{status}</span>
                 <IconButton size="sm" title={k.pin} aria-pressed={pinned} active={pinned} onClick={togglePin}><Pin size={14} /></IconButton>
                 <IconButton size="sm" tone="danger" title={k.remove} onClick={() => void remove()}><Trash2 size={14} /></IconButton>
               </>}

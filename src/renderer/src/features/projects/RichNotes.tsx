@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ListChecks } from 'lucide-react'
-import { cleanStyle, NOTES_TAGS, toHtmlBody } from '@shared/lib/notesFormat'
+import { cleanStyle, notesTagAttrs, toHtmlBody } from '@shared/lib/notesFormat'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 
@@ -10,11 +10,12 @@ export function sanitize(html: string): string {
   const walk = (node: Element) => {
     for (const child of [...node.childNodes]) {
       // The file keeps one block per line: those line breaks between blocks are not text
-      if (child.nodeType === Node.TEXT_NODE && /^\s*\n\s*$/.test(child.textContent ?? '') && ['BODY', 'UL', 'OL'].includes(node.tagName)) child.remove()
+      const text = child.nodeType === Node.TEXT_NODE ? child.textContent ?? '' : null
+      if (text !== null && text.includes('\n') && !text.trim() && ['BODY', 'UL', 'OL'].includes(node.tagName)) child.remove()
     }
     for (const child of [...node.children]) {
       const tag = child.tagName.toLowerCase()
-      const allowed = NOTES_TAGS[tag]
+      const allowed = notesTagAttrs(tag)
       if (!allowed) {
         // Unknown wrapper (a pasted <a>, <table>…): its text stays, script and style go
         if (['script', 'style', 'iframe', 'object', 'embed', 'img', 'svg', 'link', 'meta'].includes(tag)) child.remove()
@@ -183,7 +184,7 @@ export default function RichNotes({ value, onChange, header, aside }: {
   const Btn = ({ label, hint, active, onClick, children, className }: { label: string; hint: string; active: boolean; onClick: () => void; children: ReactNode; className?: string }) => (
     <button type="button" title={hint} aria-label={label} aria-pressed={active} onMouseDown={e => e.preventDefault()} onClick={onClick}
       className={cn('flex h-7 w-7.5 items-center justify-center rounded-[7px] text-md font-bold transition-colors',
-        active ? 'bg-accent-soft text-accent' : 'text-fg-secondary hover:bg-elevated hover:text-fg', className)}>
+        active ? 'bg-accent-soft text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg', className)}>
       {children}
     </button>
   )
@@ -191,11 +192,11 @@ export default function RichNotes({ value, onChange, header, aside }: {
   return (
     <div className="flex flex-col gap-3.5">
       <div className="flex flex-wrap items-center gap-2.5">
-        <div role="toolbar" aria-label={k.toolbar} className="flex w-fit gap-0.5 rounded-[10px] border border-line-subtle p-1">
+        <div role="toolbar" aria-label={k.toolbar} className="flex w-fit gap-0.5 rounded-control border border-line-subtle p-1">
           <Btn label={k.bold} hint={k.boldHint} active={inside && on('bold')} onClick={() => run('bold')}>B</Btn>
           <Btn label={k.italic} hint={k.italicHint} active={inside && on('italic')} onClick={() => run('italic')} className="italic">I</Btn>
           <Btn label={k.heading} hint={k.heading} active={inside && block === 'h3'} onClick={() => run('formatBlock', block === 'h3' ? 'p' : 'h3')}>H</Btn>
-          <Btn label={k.checklist} hint={k.checklistHint} active={inChecklist} onClick={checklist}><ListChecks size={15} strokeWidth={2.2} aria-hidden /></Btn>
+          <Btn label={k.checklist} hint={k.checklistHint} active={inChecklist} onClick={checklist}><ListChecks size={14} aria-hidden /></Btn>
           <Btn label={k.code} hint={k.codeHint} active={inCode} onClick={code} className="font-mono text-sm">{'{}'}</Btn>
         </div>
         <span className="min-w-0 flex-1" />

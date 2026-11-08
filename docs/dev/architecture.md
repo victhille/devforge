@@ -39,7 +39,7 @@ Les listes lues par beaucoup de pages (projets, connexions de base, modèles d'u
 - deux pages qui les demandent en même temps ne font qu'une requête ;
 - quand le processus principal les écrit (une page, Forgy, un import), il envoie `data:changed` avec un sujet (`dataChanged('projects')`, `'db-connections'`, `'models'` avec le chemin du projet ; `src/main/lib/changes.ts`) : les pages qui les montrent les relisent aussitôt, les autres à leur prochaine visite.
 
-Pour une nouvelle liste : un sujet dans `DataTopic` (`src/shared/types/index.ts`), `dataChanged(sujet)` dans la fonction du service qui écrit, et un hook `useLive(clé, lecture, { topic })` (voir `src/renderer/src/hooks/useLiveData.ts`). Pas pour ce qu'on est en train de saisir (les notes, un modèle ouvert) : la relecture écraserait la saisie.
+Pour une nouvelle liste : un sujet dans `DataTopic` (`src/shared/types/index.ts`), `dataChanged(sujet)` dans la fonction du service qui écrit, et un hook `useLive(clé, lecture, { topic })` (voir `src/renderer/src/hooks/useLiveData.ts`). Pas pour ce qu'on est en train de saisir (un modèle ouvert) : la relecture écraserait la saisie. Les notes d'un projet font les deux : leur liste et les compteurs de cases passent par `useLive` (sujet `notes`, avec le chemin du projet), la note ouverte n'est relue que si rien de ce qu'on a tapé n'attend d'être enregistré.
 
 ## Interface
 

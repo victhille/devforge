@@ -396,7 +396,8 @@ export async function planAction(name: string, input: Record<string, unknown>): 
     case 'free_port': return freePortPlan(input.port)
     case 'run_script': return scriptPlan(findProject(input.project), str(input.script, 'script'))
     case 'env_add': return envPlan(findProject(input.project), str(input.key, 'key'), input.value, input.file)
-    case 'notes_task': return { ...taskPlan(findProject(input.project), input.action, input.text, input.task), reversible: true, safe: true }
+    // Removing a task always asks: the notes may come from a repository written by others
+    case 'notes_task': return { ...taskPlan(findProject(input.project), input.action, input.text, input.task), reversible: true, safe: input.action !== 'remove' }
     case 'update_packages': {
       // Changes the dependencies and reaches the registry: never without a click
       const plan = await updatePackagesPlan(findProject(input.project), input.packages, input.to, input.manifest)
