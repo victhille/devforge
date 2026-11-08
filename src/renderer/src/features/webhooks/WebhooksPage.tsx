@@ -75,6 +75,8 @@ export default function WebhooksPage() {
   }
 
   const req = useMemo(() => requests.find(r => r.id === selected) ?? null, [requests, selected])
+  const today = new Date().toDateString()
+  const receivedToday = requests.filter(r => new Date(r.at).toDateString() === today).length
   const url = status?.port ? `http://localhost:${status.port}` : null
 
   return (
@@ -86,6 +88,7 @@ export default function WebhooksPage() {
           <span className="text-sm text-fg-muted">{t.nav.groupData}</span>
           <h1 className="font-display text-xl leading-tight font-bold tracking-[-.02em] text-fg">{w.title}</h1>
         </div>
+        <Badge color={status?.port ? 'success' : 'default'} dot>{status?.port ? w.listening : w.stopped}</Badge>
         <div className="ml-4 flex items-center gap-2">
           <Input type="number" value={port} onChange={e => setPort(e.target.value)} disabled={!!status?.port} aria-label="Port" className="h-8 w-24 font-mono" />
           <Button size="sm" variant={status?.port ? 'danger' : 'primary'} onClick={toggle}>
@@ -121,8 +124,10 @@ export default function WebhooksPage() {
 
       <SplitPane width="xl" label={w.requests} className="flex-1" sideClassName="overflow-y-auto bg-transparent" side={<>
         {/* Requests */}
-          {requests.length === 0 && (
+          {requests.length === 0 ? (
             <p className="p-6 text-center text-sm text-fg-muted">{status?.port ? w.waiting : w.notStarted}</p>
+          ) : (
+            <p className="border-b border-line-subtle px-4 py-2 text-xs text-fg-muted">{w.receivedToday.replace('{n}', String(receivedToday))}</p>
           )}
           {requests.map(r => (
             <button key={r.id} onClick={() => { setSelected(r.id); setExample(false); setReplayResult(null) }}

@@ -10,6 +10,7 @@ import { pressable } from '@renderer/lib/a11y'
 import Button from '@renderer/components/ui/Button'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
+import { PageHeader } from '@renderer/components/ui/Page'
 import { LEVEL_COLOR, levelOf, type LogLevel } from './logLevel'
 import Suggestions from '@renderer/components/ui/Suggestions'
 import { formatRelative, formatSize } from '@renderer/lib/format'
@@ -118,6 +119,8 @@ export default function LogsPage() {
     if (!paused && listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight
   }, [visible, paused])
 
+  const levelName: Record<LogLevel, string> = { error: l.levelError, warn: l.levelWarn, info: l.levelInfo, debug: l.levelDebug, other: '' }
+
   const toggleLevel = (lvl: LogLevel) => setLevels(prev => {
     const n = new Set(prev)
     if (n.has(lvl)) n.delete(lvl); else n.add(lvl)
@@ -142,6 +145,7 @@ export default function LogsPage() {
 
       {!file ? (
         <div className="flex flex-1 flex-col gap-4 p-8">
+          <PageHeader crumb={t.nav.groupData} title={t.nav.logs} />
           <Suggestions
             title={l.suggestions}
             items={suggested.map(s => ({
@@ -160,9 +164,9 @@ export default function LogsPage() {
           <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line-subtle px-4 py-2">
             <SearchInput className="w-full max-w-72" value={search} onChange={setSearch} placeholder={l.search} />
             {LEVELS.map(lvl => (
-              <button key={lvl} onClick={() => toggleLevel(lvl)}
-                className={cn('rounded-full border px-2.5 py-0.5 font-mono text-xs transition-opacity', LEVEL_CHIP[lvl], !levels.has(lvl) && 'opacity-35')}>
-                {lvl} {counts[lvl]}
+              <button key={lvl} onClick={() => toggleLevel(lvl)} aria-pressed={levels.has(lvl)}
+                className={cn('rounded-full border px-2.5 py-0.5 text-xs transition-opacity', LEVEL_CHIP[lvl], !levels.has(lvl) && 'opacity-35')}>
+                {levelName[lvl]} <span className="font-mono tabular-nums">{counts[lvl]}</span>
               </button>
             ))}
             <span className="ml-auto truncate font-mono text-2xs text-fg-muted" title={file.path}>{file.path}</span>

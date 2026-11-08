@@ -1,4 +1,5 @@
 import type { ListeningPort } from '@shared/types'
+import { reachableFromNetwork } from '@shared/lib/netAddress'
 import { run, runFile } from '../../lib/exec'
 
 export async function getListeningPorts(): Promise<ListeningPort[]> {
@@ -22,14 +23,16 @@ async function getWindowsProcessNames(): Promise<Map<number, string>> {
   return names
 }
 
-async function getWindowsPorts(): Promise<ListeningPort[]> {
-  // Both commands run in parallel
-  const [output, names] = await Promise.all([
-    run('netstat -ano', { timeout: 8000 }),
-    getWindowsProcessNames()
-  ])
+/** Address part of "0.0.0.0:3000", "[::1]:5173", "127.0.0.53%lo:53", "*:80" */
+export function hostOf(local: string): string {
+  const host = local.replace(/:\d+$/, '').replace(/^\[|\]$/g, '').replace(/%.*$/, '')
+  return host === '*' ? '0.0.0.0' : host
+}
 
-  const seen = new Map<number, ListeningPort>()
+/** `netstat -ano` (Windows): one entry per port and process, an address reachable from the network kept over a loopback one */
+export function parseNetstat(output: string, names: Map<number, string>): ListeningPort[] {
+  // Keyed by port and process: the address of one never shows on another
+  const seen = new Map<string, ListeningPort>()
   for (const line of output.split('\n')) {
     if (!line.includes('LISTENING')) continue
     const parts = line.trim().split(/\s+/)
@@ -38,14 +41,16 @@ async function getWindowsPorts(): Promise<ListeningPort[]> {
     if (!portMatch) continue
     const port = parseInt(portMatch[1])
     const pid  = parseInt(parts[4]) || null
-    if (!seen.has(port)) seen.set(port, { port, pid, processName: pid ? names.get(pid) ?? '' : '' })
+    const address = hostOf(parts[1])
+    const known = seen.get(`${port}:${pid}`)
+    if (!known) seen.set(`${port}:${pid}`, { port, pid, processName: pid ? names.get(pid) ?? '' : '', address })
+    else if (reachableFromNetwork(address) && !reachableFromNetwork(known.address)) known.address = address
   }
-
-  return Array.from(seen.values()).sort((a, b) => a.port - b.port)
+  return Array.from(seen.values()).sort((a, b) => a.port - b.port || (a.pid ?? 0) - (b.pid ?? 0))
 }
 
-async function getUnixPorts(): Promise<ListeningPort[]> {
-  const output = await run('ss -tlnp', { timeout: 5000 })
+/** `ss -tlnp` (Linux, macOS with iproute2) */
+export function parseSs(output: string): ListeningPort[] {
   const result: ListeningPort[] = []
   for (const line of output.split('\n').slice(1)) {
     if (!line.trim()) continue
@@ -58,10 +63,24 @@ async function getUnixPorts(): Promise<ListeningPort[]> {
     result.push({
       port: parseInt(portMatch[1]),
       pid: pidMatch ? parseInt(pidMatch[1]) : null,
-      processName: nameMatch?.[1] ?? ''
+      processName: nameMatch?.[1] ?? '',
+      address: hostOf(parts[3])
     })
   }
   return result.sort((a, b) => a.port - b.port)
+}
+
+async function getWindowsPorts(): Promise<ListeningPort[]> {
+  // Both commands run in parallel
+  const [output, names] = await Promise.all([
+    run('netstat -ano', { timeout: 8000 }),
+    getWindowsProcessNames()
+  ])
+  return parseNetstat(output, names)
+}
+
+async function getUnixPorts(): Promise<ListeningPort[]> {
+  return parseSs(await run('ss -tlnp', { timeout: 5000 }))
 }
 
 const SYSTEM_PROCESS = /^(system|svchost|lsass|services|wininit|smss|csrss)(\.exe)?$/i

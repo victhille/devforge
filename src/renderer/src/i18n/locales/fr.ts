@@ -981,7 +981,12 @@ const fr = {
     catPHP:         'PHP',
     catInfra:       'Infrastructure',
     notDetected:    'Non détecté',
-    install:        'Installer {name}'
+    install:        'Installer {name}',
+    noteNpm: 'npm est livré avec Node.js',
+    notePhp: 'Nécessaire pour les projets Symfony',
+    noteComposer: 'Gestionnaire de dépendances PHP, nécessaire pour Symfony',
+    noteSymfony: 'Facultatif : permet symfony new et symfony server:start',
+    catCount: '{n} sur {total} détectés'
   },
 
   ports: {
@@ -998,7 +1003,15 @@ const fr = {
     free:     'Libérer',
     freeConfirm: 'Arrêter « {name} » (PID {pid}) pour libérer le port {port} ?',
     freed:    'Port {port} libéré',
-    freeFailed: 'Impossible de libérer le port {port}'
+    freeFailed: 'Impossible de libérer le port {port}',
+    address: 'Adresse',
+    project: 'Projet',
+    search: 'Chercher un port ou un processus',
+    noMatch: 'Aucun port ne correspond à « {q} ».',
+    freeNote: 'Libérer un port arrête le processus qui l’occupe, après confirmation.',
+    network: 'réseau',
+    networkHint: 'Joignable depuis les autres appareils du réseau',
+    localHint: 'Joignable depuis ce PC seulement'
   },
 
   symfony: {
@@ -2621,7 +2634,8 @@ const fr = {
     pattern:     'Pattern',
     flags:       'Flags',
     matches:     'correspondances',
-    noMatch:     'Aucune correspondance'
+    noMatch:     'Aucune correspondance',
+    sortKeys: 'Trier les clés'
   },
 
   // v3.5 lot 5: the commands added to the Docs page
@@ -2783,7 +2797,9 @@ const fr = {
     removed:  'supprimé',
     equal:    'inchangé',
     clear:    'Effacer',
-    noInput:  'Colle du texte dans les deux panneaux pour voir les différences'
+    noInput:  'Colle du texte dans les deux panneaux pour voir les différences',
+    ignoreSpaces: 'Ignorer les espaces',
+    swap: 'Inverser'
   },
 
   generator: {
@@ -2806,7 +2822,11 @@ const fr = {
     formatBase64:  'Base64',
     formatAlpha:   'Alphanumérique',
     bytes:         'Octets',
-    version:       'Version'
+    version:       'Version',
+    regenerate: 'Régénérer',
+    laravelPrefix: 'Préfixe base64: (APP_KEY de Laravel)',
+    urlSafe: 'Sûr pour une URL',
+    strength: '{n} bits d’aléa'
   },
 
   common: {
@@ -2889,7 +2909,14 @@ const fr = {
     confirmTitle:     'Supprimer définitivement ?',
     confirmText:      '{n} dossiers ({size}) vont être supprimés définitivement. Ils se regénèrent avec npm install, composer install, cargo build…',
     confirmDelete:    'Supprimer {size}',
-    freed:            '{size} libérés ({n} dossiers)'
+    freed:            '{size} libérés ({n} dossiers)',
+    statReclaimable: 'Récupérable',
+    statSelected: 'Sélection',
+    colPick: 'Choisir',
+    colFolder: 'Dossier',
+    colProject: 'Projet',
+    colActivity: 'Dernière activité',
+    colSize: 'Taille'
   },
 
   envFiles: {
@@ -2920,7 +2947,10 @@ const fr = {
     backupFailed:    'Échec de la sauvegarde',
     lastBackup:      'Dernière sauvegarde chiffrée {when}',
     restoreConfirm:  'Écraser les fichiers .env avec la dernière sauvegarde ?',
-    restored:        'Restaurés : {files}'
+    restored:        'Restaurés : {files}',
+    regenerate: 'Régénérer',
+    regenerateConfirm: 'Remplacer {key} dans {file} par un nouveau secret tiré au hasard ? Les sessions ouvertes et ce qui a été chiffré avec l’ancienne valeur ne seront plus lisibles. Une sauvegarde chiffrée des fichiers .env est faite avant : Restaurer la reprend.',
+    regenerated: '{key} régénéré dans {file}'
   },
 
   stacks: {
@@ -3107,7 +3137,15 @@ const fr = {
     saveFailed:    'Impossible d\'enregistrer le domaine',
     suggestions:   'Détectés dans tes projets',
     emptyTitle:    'Aucun domaine local',
-    emptyHint:     'Associe un domaine .test à un port local. Les domaines .localhost marchent sans toucher au fichier hosts.'
+    emptyHint:     'Associe un domaine .test à un port local. Les domaines .localhost marchent sans toucher au fichier hosts.',
+    colTarget: 'Vers',
+    colProject: 'Projet',
+    colState: 'État',
+    colActions: 'Actions',
+    stateUp: 'répond',
+    stateDown: 'rien sur le port',
+    stateOff: 'désactivé',
+    activeCount: 'Actifs : {n} sur {total}'
   },
 
   database: {
@@ -3294,7 +3332,11 @@ const fr = {
     resume:     'Suivre',
     noLines:    'Aucune ligne ne correspond aux filtres.',
     emptyTitle: 'Suis un fichier de log en direct',
-    emptyHint:  'Laravel, Symfony, nginx, pm2, logs JSON (pino, winston)… Les lignes sont colorées par niveau et le fichier est suivi au fil de l\'eau.'
+    emptyHint:  'Laravel, Symfony, nginx, pm2, logs JSON (pino, winston)… Les lignes sont colorées par niveau et le fichier est suivi au fil de l\'eau.',
+    levelError: 'Erreurs',
+    levelWarn: 'Avertissements',
+    levelInfo: 'Infos',
+    levelDebug: 'Débogage'
   },
 
   webhooks: {
@@ -3317,7 +3359,10 @@ const fr = {
     send:          'Envoyer',
     replayHint:    'Renvoie la même méthode, les mêmes headers et le même body. Sans chemin, le chemin capturé est réutilisé.',
     emptyTitle:    'Inspecte les webhooks entrants',
-    emptyHint:     'Pointe un service vers l\'adresse locale (ou un tunnel) : chaque requête apparaît ici avec ses en-têtes et son corps.'
+    emptyHint:     'Pointe un service vers l\'adresse locale (ou un tunnel) : chaque requête apparaît ici avec ses en-têtes et son corps.',
+    listening: 'En écoute',
+    stopped: 'Arrêté',
+    receivedToday: 'Reçues aujourd’hui : {n}'
   }
 } as const
 

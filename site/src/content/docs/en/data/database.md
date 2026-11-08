@@ -32,7 +32,7 @@ The **Database** page is a client for **PostgreSQL**, **MySQL / MariaDB** and **
 
 ![A SQLite table in the Browse tab](../../../../assets/screens/database-en.png)
 
-Pick a connection: the list of tables (filterable) shows. The **Database** tab sums up the server, the database, the number of tables, views and rows (estimate), indexes and foreign keys.
+Pick a connection: the list of tables (filterable) shows, with the number of rows of each (an estimate on PostgreSQL and MySQL). Above the title, "Data & API / connection name" leads back to the database overview. The **Database** tab sums up the server, the database, the number of tables, views and rows (estimate), indexes and foreign keys.
 
 For a table:
 

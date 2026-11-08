@@ -7,17 +7,22 @@ import IconButton from '@renderer/components/ui/IconButton'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import ToolHelp from '@renderer/components/ui/ToolHelp'
 import { JSON_EXAMPLE } from '../../examples'
+import { sortKeys } from '../lib/json'
 import { IoGrid, IoPanel, IO_TEXTAREA, ToolActions, type ToolboxT } from '../IoPanel'
 
 export default function JsonTool({ t }: { t: ToolboxT }) {
   const [input, setInput]   = useState('')
   const [output, setOutput] = useState('')
   const [error, setError]   = useState('')
-  const h = useI18n().t.toolHelp
+  const { t: all } = useI18n()
+  const h = all.toolHelp
 
-  function run(indent?: number) {
-    try { setOutput(JSON.stringify(JSON.parse(input), null, indent)); setError('') }
-    catch { setError(t.invalid); setOutput('') }
+  function run(indent?: number, sorted = false) {
+    try {
+      const value = JSON.parse(input)
+      setOutput(JSON.stringify(sorted ? sortKeys(value) : value, null, indent))
+      setError('')
+    } catch { setError(t.invalid); setOutput('') }
   }
 
   return (
@@ -28,7 +33,7 @@ export default function JsonTool({ t }: { t: ToolboxT }) {
         <IoPanel
           label={t.input}
           actions={
-            <IconButton size="sm" title="Clear" onClick={() => { setInput(''); setOutput(''); setError('') }}>
+            <IconButton size="sm" title={all.common.clear} onClick={() => { setInput(''); setOutput(''); setError('') }}>
               <Trash2 size={13} />
             </IconButton>
           }
@@ -42,6 +47,7 @@ export default function JsonTool({ t }: { t: ToolboxT }) {
       <ToolActions>
         <Button onClick={() => run(2)}>{t.format}</Button>
         <Button variant="secondary" onClick={() => run()}>{t.minify}</Button>
+        <Button variant="secondary" onClick={() => run(2, true)}>{t.sortKeys}</Button>
       </ToolActions>
     </>
   )

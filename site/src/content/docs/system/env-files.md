@@ -21,6 +21,8 @@ Si des clés du modèle (`.env.example`) manquent dans `.env`, un bandeau les li
 
 **Modifier** une valeur ou **Ajouter** une clé écrit directement dans le fichier.
 
+**Régénérer** apparaît au survol des secrets que l'application tire elle-même, reconnus à leur nom exact : `APP_KEY`, `APP_SECRET`, `SECRET_KEY`, `SESSION_SECRET`, `JWT_SECRET`, `AUTH_SECRET`, `NEXTAUTH_SECRET`, `BETTER_AUTH_SECRET`, `COOKIE_SECRET`, `CSRF_SECRET`. Après confirmation, DevForge fait une **sauvegarde chiffrée** des fichiers `.env`, puis écrit un nouveau secret tiré au hasard : 32 octets en hexadécimal, ou `base64:` suivi de 32 octets pour l'`APP_KEY` de Laravel. Les sessions ouvertes et ce qui a été chiffré avec l'ancienne valeur ne sont plus lisibles ; **Restaurer** reprend la sauvegarde. Les secrets donnés par un service (`STRIPE_KEY`, `GITHUB_CLIENT_SECRET`, un token d'API) et les clés de chiffrement ne sont jamais proposés.
+
 ## Sauvegarder
 
 - **Sauvegarde chiffrée** enregistre les `.env` du projet dans DevForge, chiffrés par Windows. La date de la dernière sauvegarde s'affiche.

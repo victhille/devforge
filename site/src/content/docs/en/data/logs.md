@@ -18,6 +18,7 @@ Known formats: Laravel, Symfony, nginx, pm2, and JSON logs (pino, winston). Line
 - **Pause** / **Follow**: freezes the view or resumes following.
 - **Wrap lines** or not.
 - **Clear the view**.
+- **Errors**, **Warnings**, **Info**, **Debug**: each button gives the number of lines of its level and shows or hides them.
 
 ## Elsewhere
 

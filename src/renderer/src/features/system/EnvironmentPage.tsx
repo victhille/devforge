@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { RefreshCw, CheckCircle2, XCircle, ExternalLink } from 'lucide-react'
 import type { EnvironmentTool } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
+import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
@@ -9,27 +10,32 @@ import ProjectCompatibility from './ProjectCompatibility'
 
 // ─── Install info per tool ────────────────────────────────────────────────────
 
+type EnvT = ReturnType<typeof useI18n>['t']['environment']
+
 interface InstallInfo {
   label: string
   url: string
-  note?: string
+  /** A sentence about the tool (translated) */
+  note?: (t: EnvT) => string
+  /** The command that installs it */
+  command?: string
 }
 
 const INSTALL_INFO: Record<string, InstallInfo> = {
-  node:        { label: 'Node.js',     url: 'https://nodejs.org',                          note: 'npm is included with Node.js' },
-  npm:         { label: 'Node.js',     url: 'https://nodejs.org',                          note: 'npm is bundled with Node.js' },
-  pnpm:        { label: 'pnpm',        url: 'https://pnpm.io/installation',                note: 'npm install -g pnpm' },
-  yarn:        { label: 'Yarn',        url: 'https://yarnpkg.com/getting-started/install', note: 'npm install -g yarn' },
+  node:        { label: 'Node.js',     url: 'https://nodejs.org',                          note: t => t.noteNpm },
+  npm:         { label: 'Node.js',     url: 'https://nodejs.org',                          note: t => t.noteNpm },
+  pnpm:        { label: 'pnpm',        url: 'https://pnpm.io/installation',                command: 'npm install -g pnpm' },
+  yarn:        { label: 'Yarn',        url: 'https://yarnpkg.com/getting-started/install', command: 'npm install -g yarn' },
   git:         { label: 'Git',         url: 'https://git-scm.com/downloads' },
-  php:         { label: 'PHP',         url: 'https://www.php.net/downloads',               note: 'Required for Symfony projects' },
-  composer:    { label: 'Composer',    url: 'https://getcomposer.org/download/',           note: 'PHP dependency manager — required for Symfony' },
-  symfony_cli: { label: 'Symfony CLI', url: 'https://symfony.com/download',                note: 'Optional — enables symfony new & symfony server:start' },
+  php:         { label: 'PHP',         url: 'https://www.php.net/downloads',               note: t => t.notePhp },
+  composer:    { label: 'Composer',    url: 'https://getcomposer.org/download/',           note: t => t.noteComposer },
+  symfony_cli: { label: 'Symfony CLI', url: 'https://symfony.com/download',                note: t => t.noteSymfony },
   docker:      { label: 'Docker',      url: 'https://docs.docker.com/get-docker/' }
 }
 
 // ─── Tool row ─────────────────────────────────────────────────────────────────
 
-function ToolRow({ tool, t }: { tool: EnvironmentTool; t: { notDetected: string; install: string } }) {
+function ToolRow({ tool, t }: { tool: EnvironmentTool; t: EnvT }) {
   const detected = tool.status === 'detected'
   const install  = !detected ? INSTALL_INFO[tool.id] : undefined
 
@@ -47,10 +53,11 @@ function ToolRow({ tool, t }: { tool: EnvironmentTool; t: { notDetected: string;
 
       <div className="flex shrink-0 items-center justify-end">
         {detected ? (
-          <span className="rounded bg-success-soft px-2 py-0.5 font-mono text-sm text-success">{tool.version}</span>
+          <Badge color="success" mono>{tool.version}</Badge>
         ) : install ? (
           <div className="flex flex-col items-end gap-1">
-            {install.note && <span className="text-right text-xs italic text-fg-muted">{install.note}</span>}
+            {install.note && <span className="text-right text-xs text-fg-muted">{install.note(t)}</span>}
+            {install.command && <code className="font-mono text-xs text-fg-muted">{install.command}</code>}
             <Button
               size="sm"
               variant="secondary"
@@ -122,7 +129,14 @@ export default function EnvironmentPage() {
             if (catTools.length === 0) return null
             return (
               <section key={cat.label} className="flex flex-col gap-2">
-                <SectionTitle>{cat.label}</SectionTitle>
+                <div className="flex items-baseline justify-between gap-3">
+                  <SectionTitle>{cat.label}</SectionTitle>
+                  <span className="text-xs text-fg-muted tabular-nums">
+                    {t.environment.catCount
+                      .replace('{n}', String(catTools.filter(x => x.status === 'detected').length))
+                      .replace('{total}', String(catTools.length))}
+                  </span>
+                </div>
                 <Card className="overflow-hidden">
                   {catTools.map(tool => <ToolRow key={tool.id} tool={tool} t={t.environment} />)}
                 </Card>

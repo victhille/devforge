@@ -318,6 +318,8 @@ export interface ListeningPort {
   port: number
   pid: number | null
   processName: string
+  /** Address it listens on: 127.0.0.1 / ::1 (this PC only), 0.0.0.0 / :: or a network card's address (the network) */
+  address?: string
 }
 
 export * from './git'

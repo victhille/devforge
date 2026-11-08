@@ -10,6 +10,7 @@ import { Input, Select } from '@renderer/components/ui/Input'
 import EnvMatrix from './EnvMatrix'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
 import Notice from '@renderer/components/ui/Notice'
+import { generateSecret, laravelAppKey } from '@renderer/features/tools/generator/random'
 
 const isExample = (name: string) => /example|sample|dist|template/i.test(name)
 
@@ -71,6 +72,21 @@ export default function ProjectEnvEditor({ projectPath, title, onEnvChange }: {
     toast.show({ tone: 'success', title: e.filled.replace('{n}', String(missing.length)) })
   }
 
+  /** A new random secret: Laravel's APP_KEY keeps its "base64:" form */
+  async function regenerate(fileName: string, key: string) {
+    if (!(await confirmDialog(e.regenerateConfirm.replace('{key}', key).replace('{file}', fileName), { danger: true }))) return
+    const value = key === 'APP_KEY' ? laravelAppKey() : generateSecret(32, 'hex')
+    try {
+      // The old value stays in the encrypted backup: Restore brings it back
+      setBackup(await window.devforge.env.backup(projectPath))
+      await window.devforge.env.write(projectPath, fileName, { [key]: value })
+      await reload()
+      toast.show({ tone: 'success', title: e.regenerated.replace('{key}', key).replace('{file}', fileName) })
+    } catch (err) {
+      toast.show({ tone: 'error', title: e.saveFailed, description: String(err) })
+    }
+  }
+
   async function addKey() {
     if (!newKey.key.trim()) return
     await change(newKey.file, newKey.key.trim(), newKey.value)
@@ -117,7 +133,7 @@ export default function ProjectEnvEditor({ projectPath, title, onEnvChange }: {
         </Notice>
       )}
 
-      <EnvMatrix env={env} onChange={change} />
+      <EnvMatrix env={env} onChange={change} onRegenerate={regenerate} />
 
       <div className="flex flex-wrap items-end gap-2">
         <Input placeholder="NEW_KEY" aria-label={e.newKeyLabel} value={newKey.key} onChange={ev => setNewKey(k => ({ ...k, key: ev.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_') }))} className="w-56 font-mono" />

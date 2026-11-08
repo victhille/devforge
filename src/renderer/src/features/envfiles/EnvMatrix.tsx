@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Eye, EyeOff, Pencil, Trash2, X } from 'lucide-react'
+import { Check, Eye, EyeOff, Pencil, RefreshCw, Trash2, X } from 'lucide-react'
 import type { EnvProject } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -9,14 +9,22 @@ import { Input } from '@renderer/components/ui/Input'
 
 const isExample = (name: string) => /example|sample|dist|template/i.test(name)
 
+/**
+ * Keys holding a secret the app draws itself, by their exact name: never one a service gives
+ * (GITHUB_CLIENT_SECRET, STRIPE_WEBHOOK_SECRET…) nor an encryption key whose data would be lost
+ */
+export const isRegenerable = (key: string) => /^(APP_KEY|APP_SECRET|SECRET_KEY|SESSION_SECRET|JWT_SECRET|AUTH_SECRET|NEXTAUTH_SECRET|BETTER_AUTH_SECRET|COOKIE_SECRET|CSRF_SECRET)$/i.test(key)
+
 
 interface Props {
   env: EnvProject
   onChange: (fileName: string, key: string, value: string | null) => Promise<void>
+  /** Draw a new random value for a secret key */
+  onRegenerate?: (fileName: string, key: string) => void
 }
 
 /** Keys × files table: spot missing variables and edit values in place. */
-export default function EnvMatrix({ env, onChange }: Props) {
+export default function EnvMatrix({ env, onChange, onRegenerate }: Props) {
   const { t } = useI18n()
   const e = t.envFiles
   const [revealed, setRevealed] = useState(false)
@@ -93,6 +101,11 @@ export default function EnvMatrix({ env, onChange }: Props) {
                           >
                             <Pencil size={12} />
                           </IconButton>
+                          {has && onRegenerate && !isExample(f.name) && isRegenerable(key) && (
+                            <IconButton size="sm" title={e.regenerate} onClick={() => onRegenerate(f.name, key)}>
+                              <RefreshCw size={12} />
+                            </IconButton>
+                          )}
                           {has && (
                             <IconButton size="sm" tone="danger" title={t.common.delete} onClick={() => onChange(f.name, key, null)}>
                               <Trash2 size={12} />

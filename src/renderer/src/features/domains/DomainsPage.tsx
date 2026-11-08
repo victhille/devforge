@@ -1,17 +1,20 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { AlertTriangle, ArrowRight, CheckCircle2, ExternalLink, Globe, Plus, ShieldCheck, Trash2 } from 'lucide-react'
-import type { DomainSuggestion, DomainsStatus, LocalDomain } from '@shared/types'
+import type { DomainSuggestion, DomainsStatus, ListeningPort, LocalDomain, PortProject } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
+import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
-import Card from '@renderer/components/ui/Card'
+import Card, { CardHeader, CardTitle } from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import Switch from '@renderer/components/ui/Switch'
 import { Input } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import Suggestions from '@renderer/components/ui/Suggestions'
+import { Table, Td, Th } from '@renderer/components/ui/Table'
 import { errorText } from '@renderer/lib/errors'
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -25,16 +28,26 @@ export default function DomainsPage() {
   const [suggested, setSuggested] = useState<DomainSuggestion[]>([])
   const [draft, setDraft] = useState({ name: '', port: '3000' })
   const [applying, setApplying] = useState(false)
+  /** Ports listening now (null until read): whether each domain answers */
+  const [listening, setListening] = useState<ListeningPort[] | null>(null)
+  const [owners, setOwners] = useState<PortProject[]>([])
+  const alive = useRef(true)
 
   const reload = useCallback(async () => {
     const [list, st] = await Promise.all([window.devforge.domains.list(), window.devforge.domains.status()])
+    if (!alive.current) return
     setDomains(list)
     setStatus(st)
+    window.devforge.getListeningPorts().then(p => { if (alive.current) setListening(p) }).catch(() => { if (alive.current) setListening([]) })
   }, [])
 
   useEffect(() => {
+    alive.current = true
     reload()
-    window.devforge.suggest.domains().then(setSuggested).catch(() => {})
+    window.devforge.suggest.domains().then(s => { if (alive.current) setSuggested(s) }).catch(() => {})
+    // The project of each port reads every process's command line: once, when the page opens
+    window.devforge.suggest.portProjects().then(o => { if (alive.current) setOwners(o) }).catch(() => {})
+    return () => { alive.current = false }
   }, [reload])
 
   async function save(domain: LocalDomain) {
@@ -63,6 +76,14 @@ export default function DomainsPage() {
   }
 
   const suffix = status?.proxyPort && status.proxyPort !== 80 ? `:${status.proxyPort}` : ''
+  const active = domains.filter(x => x.enabled).length
+  const stateOf = (dom: LocalDomain) => !dom.enabled
+    ? <Badge>{d.stateOff}</Badge>
+    : listening === null
+      ? <span className="text-fg-disabled">—</span>
+      : listening.some(l => l.port === dom.port)
+      ? <Badge color="success" dot>{d.stateUp}</Badge>
+      : <Badge color="warning" dot>{d.stateDown}</Badge>
 
   return (
     <Page>
@@ -128,24 +149,54 @@ export default function DomainsPage() {
       {domains.length === 0 ? (
         <EmptyState icon={<Globe size={32} />} title={d.emptyTitle} description={d.emptyHint} />
       ) : (
-        <Card className="divide-y divide-line-subtle">
-          {domains.map(dom => (
-            <div key={dom.id} className={cn('flex items-center gap-4 px-4 py-3', !dom.enabled && 'opacity-50')}>
-              <Switch checked={dom.enabled} onChange={v => save({ ...dom, enabled: v })} label={dom.domain} />
-              <button
-                disabled={!status?.proxyPort || !dom.enabled}
-                onClick={() => window.devforge.openExternal(`http://${dom.domain}${suffix}`)}
-                className="flex items-center gap-1.5 font-mono text-md text-fg hover:text-accent disabled:hover:text-fg"
-              >
-                http://{dom.domain}{suffix} <ExternalLink size={12} />
-              </button>
-              <ArrowRight size={14} className="text-fg-muted" />
-              <span className="flex-1 font-mono text-sm text-fg-secondary">localhost:{dom.port}</span>
-              <IconButton title={t.common.delete} tone="danger" onClick={async () => { await window.devforge.domains.remove(dom.id); reload() }}>
-                <Trash2 size={14} />
-              </IconButton>
-            </div>
-          ))}
+        <Card className="overflow-hidden">
+          <CardHeader><CardTitle>{d.activeCount.replace('{n}', String(active)).replace('{total}', String(domains.length))}</CardTitle></CardHeader>
+          <Table>
+            <thead>
+              <tr>
+                <Th>{d.domain}</Th>
+                <Th>{d.colTarget}</Th>
+                <Th>{d.colProject}</Th>
+                <Th>{d.colState}</Th>
+                <Th><span className="sr-only">{d.colActions}</span></Th>
+              </tr>
+            </thead>
+            <tbody>
+              {domains.map(dom => {
+                const owner = owners.find(o => o.port === dom.port)
+                return (
+                  <tr key={dom.id}>
+                    <Td>
+                      <span className={cn('flex items-center gap-3', !dom.enabled && 'opacity-60')}>
+                        <Switch checked={dom.enabled} onChange={v => save({ ...dom, enabled: v })} label={dom.domain} />
+                        <button
+                          disabled={!status?.proxyPort || !dom.enabled}
+                          onClick={() => window.devforge.openExternal(`http://${dom.domain}${suffix}`)}
+                          className="flex items-center gap-1.5 font-mono text-sm text-fg hover:text-accent disabled:hover:text-fg"
+                        >
+                          http://{dom.domain}{suffix} <ExternalLink size={12} />
+                        </button>
+                      </span>
+                    </Td>
+                    <Td className="font-mono text-sm text-fg-secondary">
+                      <span className="flex items-center gap-2"><ArrowRight size={13} className="text-fg-muted" /> localhost:{dom.port}</span>
+                    </Td>
+                    <Td>
+                      {owner
+                        ? <Link to={`/project/${owner.projectId}`} className="text-fg-secondary hover:text-accent">{owner.projectName}</Link>
+                        : <span className="text-fg-disabled">—</span>}
+                    </Td>
+                    <Td>{stateOf(dom)}</Td>
+                    <Td align="right">
+                      <IconButton title={t.common.delete} tone="danger" onClick={async () => { await window.devforge.domains.remove(dom.id); reload() }}>
+                        <Trash2 size={14} />
+                      </IconButton>
+                    </Td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </Table>
         </Card>
       )}
     </Page>

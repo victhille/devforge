@@ -9,9 +9,11 @@ import { useAssistantPageContext } from '@renderer/features/assistant/AssistantC
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import { cn } from '@renderer/lib/cn'
+import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
+import Stat, { StatRow } from '@renderer/components/ui/Stat'
 import { formatSize } from '@renderer/lib/format'
 import OverviewView from './OverviewView'
 import SqlPanel from './SqlPanel'
@@ -149,6 +151,8 @@ export default function DbExplorer({ conn, back, actions }: {
   }, [tables, filter])
 
   const dbName = overview?.database || conn.database || conn.name
+  // Rows of each table, from the overview (an estimate on big engines)
+  const rowsOf = useMemo(() => new Map(overview?.tables.map(x => [`${x.schema}.${x.name}`, x.rows]) ?? []), [overview])
 
   const tabItems = table
     ? [
@@ -196,6 +200,7 @@ export default function DbExplorer({ conn, back, actions }: {
                       className={cn('flex-1 truncate text-left font-mono text-xs', selected ? 'text-accent' : 'text-fg-secondary hover:text-fg')}>
                       {tb.schema && tb.schema !== 'public' ? `${tb.schema}.` : ''}{tb.name}
                     </button>
+                    {rowsOf.get(key) != null && <span className="shrink-0 pr-1 text-2xs text-fg-muted tabular-nums">{rowsOf.get(key)!.toLocaleString()}</span>}
                   </div>
                   {open.has(key) && tb.columns.map(col => (
                     <div key={col.name} className="flex items-center gap-1.5 py-0.5 pl-7 font-mono text-2xs">
@@ -222,13 +227,16 @@ export default function DbExplorer({ conn, back, actions }: {
           {/* Breadcrumb, table name and actions */}
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="min-w-[200px] flex-1">
-              <nav className="flex min-w-0 items-center gap-1.5 font-mono text-xs text-fg-muted">
-                <span>{conn.type}</span>
-                <ChevronRight size={11} />
-                <button onClick={() => { setTable(null); setTab('overview') }} className="truncate hover:text-fg">{dbName}</button>
-                {table?.schema && <><ChevronRight size={11} /><span>{table.schema}</span></>}
+              <nav aria-label={t.nav.breadcrumb} className="flex min-w-0 items-center gap-1.5 text-sm text-fg-muted">
+                <span className="shrink-0">{t.nav.groupData}</span>
+                <span aria-hidden>/</span>
+                {table
+                  ? <button onClick={() => { setTable(null); setTab('overview') }} className="min-w-0 truncate hover:text-fg">{conn.name}</button>
+                  : <span className="min-w-0 truncate">{conn.name}</span>}
+                <Badge mono className="shrink-0">{conn.type}</Badge>
+                {table?.schema && <><span aria-hidden>/</span><span className="shrink-0 font-mono text-xs">{table.schema}</span></>}
               </nav>
-              <h1 className="mt-0.5 flex items-center gap-2 truncate text-xl font-semibold tracking-[-.02em] text-fg">
+              <h1 className="mt-0.5 flex items-center gap-2 truncate font-display text-xl font-bold tracking-[-.02em] text-fg">
                 {table ? table.name : dbName}
               </h1>
             </div>
@@ -243,19 +251,14 @@ export default function DbExplorer({ conn, back, actions }: {
 
           {/* Key figures of the open table */}
           {table && details && sameTable(table, detailsFor) && (
-            <div className="flex flex-wrap gap-3">
+            <StatRow>
               {[
                 [d.rowsEstimate, details.stats?.rows != null ? details.stats.rows.toLocaleString() : '—'],
                 [d.size, details.stats?.dataBytes != null ? formatSize((details.stats.dataBytes ?? 0) + (details.stats.indexBytes ?? 0)) : '—'],
                 [d.statIndexes, String(details.indexes.length)],
                 [d.statForeignKeys, details.foreignKeys.length ? `${details.foreignKeys.length} → ${details.foreignKeys[0].table}` : '0']
-              ].map(([label, value]) => (
-                <div key={label} className="min-w-[140px] flex-1 rounded-xl border border-line-subtle bg-surface px-3.5 py-3">
-                  <div className="font-mono text-xs text-fg-muted uppercase">{label}</div>
-                  <div className="mt-0.5 truncate text-xl font-semibold text-fg">{value}</div>
-                </div>
-              ))}
-            </div>
+              ].map(([label, value]) => <Stat key={label} label={label} value={<span className="block truncate" title={value}>{value}</span>} />)}
+            </StatRow>
           )}
         </div>
 

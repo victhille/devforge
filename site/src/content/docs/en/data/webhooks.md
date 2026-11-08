@@ -17,7 +17,7 @@ cloudflared tunnel --url http://127.0.0.1:9999
 
 ## Inspect
 
-Each request shows up live: method, path, time, **Headers** and **Body** (truncated at 1 MB). **Clear** empties the list.
+A badge next to the title says whether the server is **Listening** or **Stopped**. Each request shows up live: method, path, time, **Headers** and **Body** (truncated at 1 MB). The top of the list counts the requests received today. **Clear** empties the list.
 
 ## Respond
 

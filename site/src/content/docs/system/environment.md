@@ -14,6 +14,8 @@ La page **Environnement** détecte les outils de dev installés sur ce PC et leu
 
 Un outil absent est marqué *Non détecté*, avec **Installer…** : un lien vers sa page d'installation et, quand il y en a une, la commande à lancer (par exemple `npm install -g pnpm`).
 
+Chaque catégorie dit combien de ses outils sont détectés (« 3 sur 4 détectés »).
+
 La détection est gardée en mémoire (les outils changent rarement) ; **Actualiser** la relance.
 
 ## Versions requises par les projets

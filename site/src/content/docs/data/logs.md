@@ -18,6 +18,7 @@ Formats reconnus : Laravel, Symfony, nginx, pm2, et les logs JSON (pino, winston
 - **Pause** / **Suivre** : fige l'affichage ou reprend le suivi.
 - **Retour à la ligne** ou non.
 - **Vider l'affichage**.
+- **Erreurs**, **Avertissements**, **Infos**, **Débogage** : chaque bouton donne le nombre de lignes du niveau et les montre ou les cache.
 
 ## Ailleurs
 

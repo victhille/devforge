@@ -29,11 +29,30 @@ export function generatePassword(length: number, opts: PasswordOptions): string 
 
 export type SecretFormat = 'hex' | 'base64' | 'alpha'
 
-export function generateSecret(bytes: number, format: SecretFormat): string {
+export interface SecretOptions {
+  /** Base64 only: keep the "=" at the end (Laravel's APP_KEY has it) */
+  padded?: boolean
+  /** Base64 only: "-" and "_" instead of "+" and "/", no "=" (safe in a URL or a file name) */
+  urlSafe?: boolean
+}
+
+export function generateSecret(bytes: number, format: SecretFormat, opts: SecretOptions = {}): string {
   if (format === 'alpha') return pick(LOWER + NUMBERS, bytes)
   const arr = crypto.getRandomValues(new Uint8Array(bytes))
   if (format === 'hex') return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('')
-  return btoa(String.fromCharCode(...arr)).replace(/=/g, '')
+  const b64 = btoa(String.fromCharCode(...arr))
+  if (opts.urlSafe) return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+  return opts.padded ? b64 : b64.replace(/=/g, '')
+}
+
+/** Laravel's APP_KEY: "base64:" then 32 random bytes in base64, as `php artisan key:generate` writes it */
+export function laravelAppKey(): string {
+  return `base64:${generateSecret(32, 'base64', { padded: true })}`
+}
+
+/** Bits of randomness in a secret of `bytes` bytes ("alpha" draws one of 36 characters per byte) */
+export function secretBits(bytes: number, format: SecretFormat): number {
+  return format === 'alpha' ? Math.floor(bytes * Math.log2(36)) : bytes * 8
 }
 
 export function generateUuid(): string {

@@ -9,7 +9,7 @@ The **Local domains** page names your dev servers: `shop.test` instead of `local
 
 Type a **domain** ending in `.test` or `.localhost` (for example `shop.test`) and the local **port**, then **Add**. **Detected in your projects** suggests domain / port pairs taken from your projects.
 
-Each domain can be enabled or disabled; it is marked *running* when its server answers.
+The domains show in a table, with the number of active ones on top ("Active: 2 of 3"). For each: the switch that enables or disables it, the address, the target port, the **project** holding that port and its **state**: *answers* when a server listens on the port, *nothing on the port* otherwise, *disabled* when it is off.
 
 ## The proxy
 

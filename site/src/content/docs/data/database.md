@@ -32,7 +32,7 @@ La page **Base de données** est un client pour **PostgreSQL**, **MySQL / MariaD
 
 ![Une table SQLite dans l'onglet Parcourir](../../../assets/screens/database-fr.png)
 
-Choisis une connexion : la liste des tables (filtrable) s'affiche. L'onglet **Base** résume le serveur, la base, le nombre de tables, de vues et de lignes (estimation), les index et clés étrangères.
+Choisis une connexion : la liste des tables (filtrable) s'affiche, avec le nombre de lignes de chacune (une estimation sur PostgreSQL et MySQL). Au-dessus du titre, « Données & API / nom de la connexion » ramène à la vue d'ensemble de la base. L'onglet **Base** résume le serveur, la base, le nombre de tables, de vues et de lignes (estimation), les index et clés étrangères.
 
 Pour une table :
 
