@@ -28,6 +28,8 @@ test('export without secrets, erase everything, import the setup back', async ()
   const exported = join(userData, 'export.json')
 
   await goTo(page, '/settings?section=data')
+  // The section is read from the settings: its buttons first, then axe once they have faded in
+  await expect(page.getByRole('button', { name: 'Exporter' })).toBeVisible()
   expect(await settledAxe(page)).toEqual([])
   await page.getByRole('button', { name: 'Exporter' }).click()
   await expect(page.getByText('Configuration exportée.')).toBeVisible()
