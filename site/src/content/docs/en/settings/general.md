@@ -3,11 +3,12 @@ title: Settings
 description: Every DevForge setting, section by section, from General to About.
 ---
 
-**Settings** is pinned at the bottom of the menu. Every change applies right away. **Search settings…** filters the sections (for example "theme", "budget", "backups").
+**Settings** is pinned at the bottom of the menu; its sections show in the menu's panel, or in a row above the settings when the window is narrow. Every change applies right away. **Search settings…** filters the sections (for example "theme", "budget", "backups").
 
 | Section | Content |
 |---|---|
 | General | projects folders, package manager, IDE, terminal suggestions, startup, global launcher |
+| [Templates](/devforge/en/dev/new-project/#my-templates) | your project templates: update, rename, delete |
 | [Connections](/devforge/en/getting-started/connections/) | GitHub, Git identity, Forgy key, Vercel, Docker, servers, databases |
 | Appearance | theme, language, animations, density |
 | [Forgy](/devforge/en/forgy/assistant/#settings) | key, model, depth, budget, actions, desktop widget, dictation, stroll |

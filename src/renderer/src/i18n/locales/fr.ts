@@ -62,7 +62,14 @@ const fr = {
     windowMinimize: 'Réduire la fenêtre',
     windowMaximize: 'Agrandir la fenêtre',
     windowRestore: 'Restaurer la fenêtre',
-    windowClose: 'Fermer la fenêtre'
+    windowClose: 'Fermer la fenêtre',
+    recentProjects: 'Projets récents',
+    projectChanges: '{n} fichier(s) modifié(s)',
+    projectClean: 'à jour',
+    projectNoRepo: 'pas un dépôt Git',
+    moreProjects: '{n} autre(s) projet(s)',
+    noteHome: 'Ctrl K mène à n’importe quelle page, projet ou script.',
+    noteServer: 'Serveur : {name}'
   },
 
   palette: {

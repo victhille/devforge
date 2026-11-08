@@ -35,11 +35,11 @@ test('a connection and a project saved elsewhere show up in the open pages, with
 
   // The Projects page: a project saved meanwhile is listed at once
   await goTo(page, '/projects')
-  await expect(page.getByText('Atelier', { exact: true }).first()).toBeVisible()
+  await expect(page.getByRole('main').getByText('Atelier', { exact: true }).first()).toBeVisible()
   const other = join(dir, 'boutique')
   mkdirSync(other, { recursive: true })
   await page.evaluate(p => window.devforge.saveProject({ id: 'p2', name: 'Boutique', path: p, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }), other)
-  await expect(page.getByText('Boutique', { exact: true }).first()).toBeVisible()
+  await expect(page.getByRole('main').getByText('Boutique', { exact: true }).first()).toBeVisible()
 
   // Back on the Database page: the list is there at once (kept), the connection still in it
   await goTo(page, '/database')

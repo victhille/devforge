@@ -2,7 +2,7 @@ import { createElement as h } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { DEFAULT_FAVORITES, LISTED_PAGES, MENU_GROUPS, RAIL, groupOf, panelFor, parentOf, railOf } from '@renderer/app/navigation'
+import { DEFAULT_FAVORITES, LISTED_PAGES, MENU_GROUPS, RAIL, groupOf, panelFor, parentOf, railCurrent, railOf } from '@renderer/app/navigation'
 import Sidebar from '@renderer/components/layout/Sidebar'
 
 describe('sidebar menu', () => {
@@ -51,6 +51,16 @@ describe('sidebar menu', () => {
     // Settings has no group: the panel does not move
     expect(panelFor('groupData', '/settings', favs)).toBe('groupData')
   })
+
+  it('the rail lights the panel that lists the page: a favorite under Home lights Home, not its group', () => {
+    const favs = ['/projects', '/database']
+    expect(railCurrent('home', '/database', favs)).toBe('home')
+    expect(railCurrent('groupData', '/database', favs)).toBe('groupData')
+    expect(railCurrent('home', '/git', favs)).toBe('groupDev')
+    // Settings is lit by its own link at the bottom, never by a group
+    expect(railCurrent('groupData', '/settings', favs)).toBeNull()
+    expect(railCurrent('home', '/settings', favs)).toBeNull()
+  })
 })
 
 describe('Sidebar', () => {
@@ -86,5 +96,15 @@ describe('Sidebar', () => {
     expect(home).toContain('Favorites')
     expect(home.match(/data-fav/g)).toHaveLength(DEFAULT_FAVORITES.length)
     expect(link(at('/project/p1'), 'Projects')).toContain('aria-current="page"')
+    // A note at the bottom of Home's panel
+    expect(home).toContain('Ctrl K leads to any page, project or script.')
+  })
+
+  it('on Settings, the panel lists its sections, the one on screen marked', () => {
+    const out = at('/settings?section=appearance')
+    for (const name of ['General', 'Templates', 'Connections', 'Appearance', 'Forgy', 'Servers', 'Data', 'Updates', 'About']) expect(link(out, name)).not.toBe('')
+    expect(link(out, 'Appearance')).toContain('aria-current="page"')
+    expect(link(out, 'General')).not.toContain('aria-current')
+    expect(link(at('/settings'), 'General')).toContain('aria-current="page"')
   })
 })

@@ -63,7 +63,14 @@ const en = {
     windowMinimize: 'Minimize the window',
     windowMaximize: 'Maximize the window',
     windowRestore: 'Restore the window',
-    windowClose: 'Close the window'
+    windowClose: 'Close the window',
+    recentProjects: 'Recent projects',
+    projectChanges: '{n} changed file(s)',
+    projectClean: 'up to date',
+    projectNoRepo: 'not a Git repository',
+    moreProjects: '{n} more project(s)',
+    noteHome: 'Ctrl K leads to any page, project or script.',
+    noteServer: 'Server: {name}'
   },
 
   palette: {

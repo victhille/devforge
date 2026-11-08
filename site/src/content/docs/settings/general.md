@@ -3,11 +3,12 @@ title: Paramètres
 description: Tous les réglages de DevForge, section par section, de Général à À propos.
 ---
 
-**Paramètres** est épinglé en bas du menu. Chaque changement s'applique tout de suite. **Chercher un réglage…** filtre les sections (par exemple « thème », « budget », « sauvegardes »).
+**Paramètres** est épinglé en bas du menu ; ses sections s'affichent dans le panneau du menu, ou en rangée au-dessus des réglages quand la fenêtre est étroite. Chaque changement s'applique tout de suite. **Chercher un réglage…** filtre les sections (par exemple « thème », « budget », « sauvegardes »).
 
 | Section | Contenu |
 |---|---|
 | Général | dossiers de projets, gestionnaire de paquets, IDE, suggestions du terminal, démarrage, lanceur global |
+| [Modèles](/devforge/dev/new-project/#mes-modèles) | tes modèles de projet : mettre à jour, renommer, supprimer |
 | [Connexions](/devforge/getting-started/connections/) | GitHub, identité Git, clé Forgy, Vercel, Docker, serveurs, bases |
 | Apparence | thème, langue, animations, densité |
 | [Forgy](/devforge/forgy/assistant/#réglages) | clé, modèle, profondeur, budget, actions, widget de bureau, dictée, balade |
