@@ -15,15 +15,26 @@ export async function axeIssues(page: Page): Promise<AxeIssue[]> {
   })
 }
 
-/** axeIssues once every fade-in is over: half-faded text would fail contrast */
+/**
+ * axeIssues once every fade-in and transition is over: half-faded text would fail contrast.
+ * The page is calm when nothing has moved for two looks in a row, 150 ms apart: content read
+ * a moment later (settings, a list) starts its own fade-in in between, and is waited for too
+ */
 export async function settledAxeIssues(page: Page): Promise<AxeIssue[]> {
   await page.evaluate(async () => {
-    for (let i = 0; i < 20; i++) {
-      // Looping ones (Forgy, spinners) never end: only the fade-ins count
+    const frame = () => new Promise(r => requestAnimationFrame(() => r(null)))
+    let calm = 0
+    for (let i = 0; i < 40 && calm < 2; i++) {
+      await frame()
+      // Looping ones (Forgy, spinners) never end: only the fade-ins and the transitions count
       const running = document.getAnimations().filter(a => a.playState === 'running' && a.effect?.getTiming().iterations !== Infinity)
-      if (!running.length) break
-      await Promise.race([Promise.all(running.map(a => a.finished.catch(() => {}))), new Promise(r => setTimeout(r, 1000))])
-      await new Promise(r => requestAnimationFrame(() => r(null)))
+      if (running.length) {
+        calm = 0
+        await Promise.race([Promise.all(running.map(a => a.finished.catch(() => {}))), new Promise(r => setTimeout(r, 1000))])
+      } else {
+        calm++
+        await new Promise(r => setTimeout(r, 150))
+      }
     }
   })
   return axeIssues(page)
