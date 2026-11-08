@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Check, Database, Info, Palette, Plug, RefreshCw, Server, SlidersHorizontal, Bot, type LucideIcon, LayoutTemplate } from 'lucide-react'
+import { Check } from 'lucide-react'
 import type { AppSettings, PackageManager, Theme, AppLanguage, MotionSetting, Density } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -20,24 +20,15 @@ import ProjectFolders from './ProjectFolders'
 import IdeSettings from './IdeSettings'
 import TemplatesSettings from './TemplatesSettings'
 import { projectFolders } from '@shared/lib/projectFolders'
-import { PROVIDERS } from '@shared/data/assistantProviders'
 import { Segmented, SettingRow, SettingsCard } from './parts'
 import SearchInput from '@renderer/components/ui/SearchInput'
+import { SETTINGS_SECTIONS as SECTIONS, type SettingsSection as Section } from './sections'
 
-type Section = 'general' | 'templates' | 'connections' | 'appearance' | 'forgy' | 'servers' | 'data' | 'updates' | 'about'
-const SECTIONS: { id: Section; icon: LucideIcon; words: string }[] = [
-  { id: 'general', icon: SlidersHorizontal, words: 'dossier folder projets projects paquets package npm pnpm yarn éditeur editor ide vs code windows démarrer start barre tray lanceur launcher raccourci shortcut raycast' },
-  { id: 'templates', icon: LayoutTemplate, words: 'modèles templates projet project copier copy nouveau new' },
-  { id: 'connections', icon: Plug, words: 'connexions connections comptes accounts github gh jeton token git identité identity nom e-mail clé key anthropic vercel docker serveur server vps ssh base database' },
-  { id: 'appearance', icon: Palette, words: 'thème theme sombre dark clair light langue language anglais english français animations motion densité density compact compacte' },
-  { id: 'forgy', icon: Bot, words: `assistant clé key api modèle model effort budget actions widget raccourci shortcut promène walk boulon fournisseur provider gpt ${PROVIDERS.map(p => p.label).join(' ')}` },
-  { id: 'servers', icon: Server, words: 'surveillance watch vps ssh alertes alerts disque disk conteneur container notifications site' },
-  { id: 'data', icon: Database, words: 'données data sauvegardes backups restaurer restore journal log diagnostic rapport report dossier effacer clear historique history' },
-  { id: 'updates', icon: RefreshCw, words: 'mise à jour update version bêta beta canal channel nouveautés notes quoi de neuf what new' },
-  { id: 'about', icon: Info, words: 'version commit github licences problème issue' }
-]
 
 /** Small previews of the three themes */
+/** The width of the sections, and of the header so its search lines up with their cards */
+const SECTION_WIDTH = 'max-w-[860px]'
+
 const THEMES: { id: Theme; bg: string; side: string; card: string; ink: string; line: string; accent: string }[] = [
   { id: 'dark', bg: '#121110', side: '#151311', card: '#1A1816', ink: '#F2EEE9', line: '#2E2A26', accent: '#FF7A33' },
   { id: 'light', bg: '#F7F4F0', side: '#FBF9F6', card: '#FFFFFF', ink: '#1E1A16', line: '#E4DED6', accent: '#B53C0B' },
@@ -105,7 +96,7 @@ export default function SettingsPage() {
 
   return (
     <Page className="gap-5.5">
-      <div className="df-rise flex flex-wrap items-end gap-3">
+      <div className={cn('df-rise flex flex-wrap items-end gap-3', SECTION_WIDTH)}>
         <div className="min-w-[220px] flex-1">
           <h1 className="font-display text-page font-bold tracking-[-.025em] text-fg">{s.title}</h1>
           <p className="mt-1 text-base text-fg-secondary">{s.subtitle}</p>
@@ -113,16 +104,17 @@ export default function SettingsPage() {
         <span aria-live="polite" className={cn('flex h-[30px] items-center gap-1.5 rounded-full bg-success-soft px-3 text-xs font-medium text-success transition-opacity duration-300', savedVisible ? 'opacity-100' : 'opacity-0')}>
           <Check size={13} strokeWidth={2.6} /> {s.autoSaved}
         </span>
+        <SearchInput className="w-full sm:w-64" value={query} onChange={setQuery} placeholder={s.searchPlaceholder} />
       </div>
 
-      {/* The menu stands beside the settings; on a narrow page (a small window, Forgy's panel open) it becomes a row of chips above them */}
+      {/* The sections are in the menu's panel; here they show as a row of chips on a narrow page (a small
+          window, Forgy's panel open) and while searching, as the results */}
       <div className="@container">
-        <div className="flex flex-col gap-4 @min-[760px]:flex-row @min-[760px]:items-start @min-[760px]:gap-6">
-          <nav aria-label={s.title} className="df-rise flex flex-wrap gap-1.5 @min-[760px]:w-[230px] @min-[760px]:shrink-0 @min-[760px]:flex-col @min-[760px]:flex-nowrap @min-[760px]:gap-0.5">
-            <SearchInput className="w-full @min-[760px]:mb-2.5" value={query} onChange={setQuery} placeholder={s.searchPlaceholder} />
+        <div className="flex flex-col gap-4">
+          <nav aria-label={s.title} className={cn('df-rise flex flex-wrap gap-1.5', !q && '@min-[760px]:hidden')}>
             {shown.map(x => (
               <button key={x.id} onClick={() => go(x.id)} aria-current={section === x.id ? 'page' : undefined}
-                className={cn('flex h-8 items-center gap-2 rounded-control border px-2.5 text-left text-base font-medium transition-colors @min-[760px]:h-9 @min-[760px]:gap-2.5 @min-[760px]:border-transparent',
+                className={cn('flex h-8 items-center gap-2 rounded-control border px-2.5 text-left text-base font-medium transition-colors',
                   section === x.id ? 'border-accent bg-accent-soft text-fg' : 'border-line text-fg-secondary hover:bg-surface hover:text-fg')}>
                 <x.icon size={16} aria-hidden />
                 <span className="flex-1">{s.nav[x.id]}</span>
@@ -131,7 +123,7 @@ export default function SettingsPage() {
             {!shown.length && <p className="mx-2.5 my-1.5 text-sm text-fg-muted">{s.noMatch}</p>}
           </nav>
 
-          <section key={section ?? 'none'} className="flex min-w-0 max-w-[860px] flex-1 flex-col gap-4.5">
+          <section key={section ?? 'none'} className={cn('flex min-w-0 flex-1 flex-col gap-4.5', SECTION_WIDTH)}>
             {section === 'general' && (
               <SettingsCard title={s.nav.general} hint={s.generalHint}>
                 <SettingRow label={s.defaultDir} hint={s.defaultDirHint}>

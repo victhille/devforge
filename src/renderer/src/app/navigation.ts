@@ -157,6 +157,15 @@ export function isOn(pathname: string, to: string): boolean {
  * (a favorite stays under Home), the page's own group otherwise; Settings changes nothing.
  */
 export function panelFor(shown: RailKey, pathname: string, favorites: string[]): RailKey {
-  const holds = shown === 'home' ? pathname === '/' || favorites.some(p => isOn(pathname, p)) : groupOf(pathname) === shown
-  return holds ? shown : railOf(pathname) ?? shown
+  return panelHolds(shown, pathname, favorites) ? shown : railOf(pathname) ?? shown
+}
+
+/** Whether the panel shown lists the page on screen: a favorite (or the home page) under Home, a page or detail page in its group */
+export function panelHolds(shown: RailKey, pathname: string, favorites: string[]): boolean {
+  return shown === 'home' ? pathname === '/' || favorites.some(p => isOn(pathname, p)) : groupOf(pathname) === shown
+}
+
+/** The rail entry lit as holding the page: the panel shown when it lists it (a favorite stays under Home), else the page's own */
+export function railCurrent(shown: RailKey, pathname: string, favorites: string[]): RailKey | null {
+  return panelHolds(shown, pathname, favorites) ? shown : railOf(pathname)
 }

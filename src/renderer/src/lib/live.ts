@@ -97,7 +97,9 @@ export function useLive<T>(key: string | null, load: () => Promise<T>, watch?: {
   // The page's latest way of reading it
   if (key) entryFor(key, load, watch)
   const subscribe = useCallback((cb: () => void) => (key ? watchLive(key, load, cb, watch) : () => {}), [key]) // eslint-disable-line react-hooks/exhaustive-deps
-  const snap = useSyncExternalStore(subscribe, () => (key ? liveSnapshot(key) : EMPTY))
+  // The same snapshot on a server render (the menu's tests render the sidebar to a string)
+  const read = () => (key ? liveSnapshot(key) : EMPTY)
+  const snap = useSyncExternalStore(subscribe, read, read)
   const reload = useCallback(() => (key ? reloadLive(key) : Promise.resolve()), [key])
   return { data: snap.data as T | undefined, error: snap.error, loaded: snap.loaded, reload }
 }

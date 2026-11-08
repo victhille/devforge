@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation, useSearchParams } from 'react-router-dom'
 import { PanelLeftClose, PanelLeftOpen, RotateCcw, Star, type LucideIcon } from 'lucide-react'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
-import { DEFAULT_FAVORITES, HOME, LISTED_PAGES, MENU_GROUPS, RAIL, isListed, isOn, panelFor, railOf, type NavKey, type RailKey } from '@renderer/app/navigation'
-import { useHasServer } from '@renderer/hooks/useHasServer'
+import type { Project } from '@shared/types'
+import { DEFAULT_FAVORITES, HOME, LISTED_PAGES, MENU_GROUPS, RAIL, isListed, isOn, panelFor, railCurrent, railOf, type NavKey, type RailKey } from '@renderer/app/navigation'
+import { useProjects } from '@renderer/features/projects/hooks/useProjects'
+import { SETTINGS_SECTIONS } from '@renderer/features/settings/sections'
+import { useHasServer, useServerName } from '@renderer/hooks/useHasServer'
+import { PanelLabel, ProjectList, onProject } from './PanelProjects'
 import { MAX_FAVORITES } from '@shared/lib/favorites'
 
 const ENTRIES = [HOME, ...LISTED_PAGES]
@@ -50,10 +54,13 @@ function PinButton({ pinned, full, onToggle }: { pinned: boolean; full: boolean;
   )
 }
 
-/** A page of the panel: icon and name, the one on screen in bold with an orange icon */
-function PanelLink({ to, label, Icon, pin }: { to: string; label: string; Icon: LucideIcon; pin?: boolean }) {
+/**
+ * A page of the panel: icon and name, the one on screen in bold with an orange icon.
+ * `yields`: a more precise link of the panel holds the page (a project listed below Projects)
+ */
+function PanelLink({ to, label, Icon, pin, yields }: { to: string; label: string; Icon: LucideIcon; pin?: boolean; yields?: boolean }) {
   const { pathname } = useLocation()
-  const on = isOn(pathname, to)
+  const on = isOn(pathname, to) && !yields
   return (
     <Link
       to={to}
@@ -69,6 +76,10 @@ function PanelLink({ to, label, Icon, pin }: { to: string; label: string; Icon: 
     </Link>
   )
 }
+
+/** How many projects the panel lists: the last opened under Home, the first by name under Development */
+const RECENT_PROJECTS = 3
+const GROUP_PROJECTS = 6
 
 /** A square of the rail: a group (button) or Settings (link); orange when it holds the page on screen */
 const railItem = (current: boolean, shown: boolean) => cn(
@@ -91,8 +102,12 @@ export default function Sidebar() {
   const [favorites, saveFavorites] = useFavorites()
   const hasServer = useHasServer()
   const shownFavorites = favorites.filter(p => known(p) && isListed(p, hasServer))
-  const current = railOf(pathname)
-  const [shown, setShown] = useState<RailKey>(() => current ?? 'home')
+  const [shown, setShown] = useState<RailKey>(() => railOf(pathname) ?? 'home')
+  // The rail lights the panel shown when it lists the page (a favorite stays under Home), else the page's group
+  const current = railCurrent(shown, pathname, shownFavorites)
+  const [params] = useSearchParams()
+  const { projects } = useProjects()
+  const server = useServerName()
   // The rail is one Tab stop; the arrows move inside it
   const [stop, setStop] = useState<RailKey | null>(null)
   const rail = useRef<HTMLDivElement>(null)
@@ -105,6 +120,11 @@ export default function Sidebar() {
   const favoritesRef = useRef(shownFavorites)
   useEffect(() => { favoritesRef.current = shownFavorites })
   useEffect(() => { setShown(s => panelFor(s, pathname, favoritesRef.current)) }, [pathname])
+  // On Settings the panel holds their sections, until a group is picked on the rail (until the next page)
+  const onSettings = pathname.startsWith('/settings')
+  const [browsing, setBrowsing] = useState(false)
+  useEffect(() => { setBrowsing(false) }, [pathname])
+  const settingsShown = onSettings && !browsing
   // The rail's Tab stop goes back to the group shown
   useEffect(() => { setStop(null) }, [shown])
 
@@ -121,8 +141,9 @@ export default function Sidebar() {
   }, [setCollapsed])
 
   const pick = (key: RailKey) => {
+    setBrowsing(true)
     if (collapsed) { setShown(key); setCollapsed(false) }
-    else if (key === shown) setCollapsed(true)
+    else if (key === shown && !settingsShown) setCollapsed(true)
     else setShown(key)
   }
 
@@ -155,9 +176,18 @@ export default function Sidebar() {
 
   const label = (key: RailKey) => (key === 'home' ? t.nav.home : t.nav[key])
   const group = MENU_GROUPS.find(g => g.key === shown)
+  // The projects the panel lists: the last opened under Home, by name under Development
+  const when = (p: Project) => p.lastOpenedAt ?? p.createdAt
+  const listed = settingsShown || collapsed ? [] : shown === 'home'
+    ? projects.slice().sort((a, b) => when(b).localeCompare(when(a))).slice(0, RECENT_PROJECTS)
+    : shown === 'groupDev' ? projects.slice().sort((a, b) => a.name.localeCompare(b.name)).slice(0, GROUP_PROJECTS) : []
+  // A listed project on screen is the panel's current page, not Projects as well
+  const projectListed = listed.some(p => onProject(pathname, p.id))
+  const note = settingsShown ? null
+    : shown === 'home' ? t.nav.noteHome
+    : (shown === 'groupServers' || shown === 'groupOnline') && server ? t.nav.noteServer.replace('{name}', server) : null
   const paths = group ? group.paths.filter(p => isListed(p, hasServer)) : []
   const waiting = group ? group.paths.length - paths.length : 0
-  const settingsOn = pathname.startsWith('/settings')
   const toggleLabel = collapsed ? t.nav.expand : t.nav.collapse
 
   return (
@@ -167,7 +197,7 @@ export default function Sidebar() {
         <div className="flex w-[64px] shrink-0 flex-col items-center gap-1.5 border-r border-line-subtle bg-chrome py-3">
           <div ref={rail} role="toolbar" aria-orientation="vertical" aria-label={t.nav.railLabel} onKeyDown={onRailKey} className="flex flex-col items-center gap-1.5">
             {RAIL.map(({ key, icon: Icon }) => {
-              const isShown = !collapsed && shown === key
+              const isShown = !collapsed && !settingsShown && shown === key
               return (
                 <button
                   key={key}
@@ -193,14 +223,27 @@ export default function Sidebar() {
         <div id="nav-panel" className={cn('shrink-0 overflow-hidden bg-sidebar transition-[width] duration-200', collapsed ? 'w-0' : 'w-[220px] border-r border-line-subtle')}>
           {!collapsed && (
             <div className="flex h-full w-[219px] flex-col gap-4.5 overflow-y-auto px-3 pt-4.5 pb-3">
-              <p className="truncate px-2 font-display text-lg font-bold tracking-tight text-fg">{label(shown)}</p>
+              <p className="truncate px-2 font-display text-lg font-bold tracking-tight text-fg">{settingsShown ? t.nav.settings : label(shown)}</p>
 
-              {shown === 'home' ? (
+              {settingsShown ? (
+                <div className="flex flex-col gap-0.5">
+                  {SETTINGS_SECTIONS.map(x => {
+                    const on = (params.get('notes') ? 'updates' : params.get('section') ?? 'general') === x.id
+                    return (
+                      <Link key={x.id} to={`/settings?section=${x.id}`} aria-current={on ? 'page' : undefined}
+                        className={cn('group/link flex h-8 items-center gap-2.5 rounded-lg px-2 text-base transition-colors', on ? 'bg-active font-semibold text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg')}>
+                        <x.icon size={16} strokeWidth={1.8} className={cn('shrink-0', on ? 'text-accent' : 'text-fg-muted group-hover/link:text-fg-secondary')} />
+                        <span className="truncate">{t.settings.nav[x.id]}</span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              ) : shown === 'home' ? (
                 <>
                   <PanelLink to="/" label={t.nav.home} Icon={HOME.icon} />
                   <div className="flex flex-col gap-0.5">
                     <div className="group/head flex h-6 items-center justify-between px-2 pb-1">
-                      <span className="truncate text-xs font-semibold tracking-wide text-fg-muted">{t.nav.favorites}</span>
+                      <PanelLabel>{t.nav.favorites}</PanelLabel>
                       {!isDefault && (
                         <button type="button" title={t.nav.favoritesReset} aria-label={t.nav.favoritesReset} onClick={() => saveFavorites([...DEFAULT_FAVORITES])}
                           className="flex size-5 items-center justify-center rounded-md text-fg-muted opacity-0 transition-opacity group-hover/head:opacity-100 focus-visible:opacity-100 hover:text-fg">
@@ -220,20 +263,22 @@ export default function Sidebar() {
                           onDrop={e => { e.preventDefault(); if (dragged !== null) move(dragged, i); setDragged(null) }}
                           onDragEnd={() => setDragged(null)}
                           onKeyDown={onFavKey(i)}>
-                          <PanelLink to={path} label={t.nav[page.labelKey]} Icon={page.icon} pin />
+                          <PanelLink to={path} label={t.nav[page.labelKey]} Icon={page.icon} pin yields={path === '/projects' && projectListed} />
                           <PinButton pinned full={false} onToggle={() => togglePin(path)} />
                         </div>
                       )
                     })}
                   </div>
+                  <ProjectList label={t.nav.recentProjects} projects={listed} more={0} />
                 </>
               ) : (
+                <>
                 <div className="flex flex-col gap-0.5">
                   {paths.map(path => {
                     const page = entry(path)
                     return (
                       <div key={path} className="group/row relative">
-                        <PanelLink to={path} label={t.nav[page.labelKey as NavKey]} Icon={page.icon} pin />
+                        <PanelLink to={path} label={t.nav[page.labelKey as NavKey]} Icon={page.icon} pin yields={path === '/projects' && projectListed} />
                         <PinButton pinned={favorites.includes(path)} full={favorites.length >= MAX_FAVORITES} onToggle={() => togglePin(path)} />
                       </div>
                     )
@@ -246,9 +291,14 @@ export default function Sidebar() {
                     </Link>
                   )}
                 </div>
+                {shown === 'groupDev' && <ProjectList label={t.nav.projects} projects={listed} more={Math.max(0, projects.length - GROUP_PROJECTS)} />}
+                </>
               )}
 
-              <span className="mt-auto shrink-0 px-2 font-mono text-xs text-fg-muted">v{__APP_VERSION__}</span>
+              <div className="mt-auto flex shrink-0 flex-col gap-2 px-2">
+                {note && <p className="-mx-2 rounded-control border border-line-subtle bg-surface p-2.5 text-xs text-fg-secondary">{note}</p>}
+                <span className="font-mono text-xs text-fg-muted">v{__APP_VERSION__}</span>
+              </div>
             </div>
           )}
         </div>
@@ -266,8 +316,8 @@ export default function Sidebar() {
           >
             {collapsed ? <PanelLeftOpen size={18} strokeWidth={1.8} /> : <PanelLeftClose size={18} strokeWidth={1.8} />}
           </button>
-          <NavLink to="/settings" aria-label={t.nav.settings} title={t.nav.settings} className={railItem(settingsOn, false)}>
-            {settingsOn && <RailMark />}
+          <NavLink to="/settings" onClick={() => setBrowsing(false)} aria-label={t.nav.settings} title={t.nav.settings} className={railItem(onSettings, false)}>
+            {onSettings && <RailMark />}
             <SettingsIcon size={18} strokeWidth={1.8} />
           </NavLink>
         </div>

@@ -35,7 +35,9 @@ One project can be **active**: Forgy and the desktop widget refer to it. It beco
 
 ## The menu
 
-The left menu is an icon rail: **Home**, then six groups. Clicking a group shows its pages in the panel beside it, without leaving the page on screen; the group of the page on screen is marked in orange. Under Home, the panel shows your **favorites**.
+The left menu is an icon rail: **Home**, then six groups. Clicking a group shows its pages in the panel beside it, without leaving the page on screen. The rail marks in orange where the page on screen sits: Home when it is one of your favorites and the panel shows them, its group otherwise.
+
+Under Home, the panel shows your **favorites** and your three **recent projects**; under Development, your projects in alphabetical order (the first six, then a link to the others). In front of each project, a dot tells the state of its repository: orange when it has changed files (their number is on the right), green when it is up to date, grey when the folder is not a Git repository. At the bottom of the panel, a note: a reminder of <kbd>Ctrl</kbd> <kbd>K</kbd> under Home, the watched server under Servers and Going live.
 
 | Group | Pages |
 |---|---|
@@ -46,7 +48,7 @@ The left menu is an icon rail: **Home**, then six groups. Clicking a group shows
 | System | [Environment](/devforge/en/system/environment/), [Ports](/devforge/en/system/ports/), [Env variables](/devforge/en/system/env-files/), [Local domains](/devforge/en/system/domains/), [Disk cleaner](/devforge/en/system/cleaner/) |
 | Tools | [Toolbox, Snippets, Text Diff, Generator, Docs](/devforge/en/tools/utilities/) |
 
-**Settings** is pinned at the bottom of the rail. <kbd>Ctrl</kbd> <kbd>B</kbd> folds or reopens the panel; clicking the group that is already shown folds it too. From the keyboard, the arrows move along the rail, <kbd>Enter</kbd> shows the group and <kbd>Tab</kbd> goes on to its pages.
+**Settings** is pinned at the bottom of the rail; its panel lists the [sections of the Settings](/devforge/en/settings/general/). <kbd>Ctrl</kbd> <kbd>B</kbd> folds or reopens the panel; clicking the group that is already shown folds it too. From the keyboard, the arrows move along the rail, <kbd>Enter</kbd> shows the group and <kbd>Tab</kbd> goes on to its pages.
 
 As long as no server is set up, the pages that need one (Health, Services, Backups, n8n, VPN, Status page) are hidden; the group says "N more with a server".
 

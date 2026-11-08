@@ -35,7 +35,9 @@ Un projet peut être **actif** : Forgy et le widget de bureau s'y rapportent. Il
 
 ## Le menu
 
-Le menu de gauche est un rail d'icônes : l'**Accueil**, puis six groupes. Un clic sur un groupe affiche ses pages dans le panneau d'à côté, sans quitter la page ouverte ; le groupe de la page ouverte est marqué en orange. Sous l'Accueil, le panneau montre tes **favoris**.
+Le menu de gauche est un rail d'icônes : l'**Accueil**, puis six groupes. Un clic sur un groupe affiche ses pages dans le panneau d'à côté, sans quitter la page ouverte. Le rail marque en orange l'endroit de la page ouverte : l'Accueil quand elle est dans tes favoris et que le panneau les montre, son groupe sinon.
+
+Sous l'Accueil, le panneau montre tes **favoris** et tes trois **projets récents** ; sous Développement, tes projets par ordre alphabétique (les six premiers, puis un lien vers les autres). Devant chaque projet, un point dit l'état de son dépôt : orange s'il a des fichiers modifiés (leur nombre est à droite), vert s'il est à jour, gris si le dossier n'est pas un dépôt Git. En bas du panneau, une note : le rappel de <kbd>Ctrl</kbd> <kbd>K</kbd> sous l'Accueil, le serveur suivi sous Serveurs et Mise en ligne.
 
 | Groupe | Pages |
 |---|---|
@@ -46,7 +48,7 @@ Le menu de gauche est un rail d'icônes : l'**Accueil**, puis six groupes. Un cl
 | Système | [Environnement](/devforge/system/environment/), [Ports](/devforge/system/ports/), [Variables .env](/devforge/system/env-files/), [Domaines locaux](/devforge/system/domains/), [Nettoyage disque](/devforge/system/cleaner/) |
 | Outils | [Boîte à outils, Snippets, Diff texte, Générateur, Docs](/devforge/tools/utilities/) |
 
-**Paramètres** est épinglé en bas du rail. <kbd>Ctrl</kbd> <kbd>B</kbd> replie ou rouvre le panneau ; un nouveau clic sur le groupe affiché le replie aussi. Au clavier, le rail se parcourt avec les flèches, <kbd>Entrée</kbd> affiche le groupe et <kbd>Tab</kbd> passe à ses pages.
+**Paramètres** est épinglé en bas du rail ; son panneau liste les [sections des Paramètres](/devforge/settings/general/). <kbd>Ctrl</kbd> <kbd>B</kbd> replie ou rouvre le panneau ; un nouveau clic sur le groupe affiché le replie aussi. Au clavier, le rail se parcourt avec les flèches, <kbd>Entrée</kbd> affiche le groupe et <kbd>Tab</kbd> passe à ses pages.
 
 Tant qu'aucun serveur n'est configuré, les pages qui en demandent un (Santé, Services, Sauvegardes, n8n, VPN, Page de statut) sont masquées ; le groupe indique « N de plus avec un serveur ».
 
