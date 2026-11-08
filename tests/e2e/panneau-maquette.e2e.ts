@@ -69,4 +69,11 @@ test('the panel lists the projects, says where things stand, and holds the Setti
   await expect(page.getByRole('radio', { name: 'Clair' })).toBeVisible()
   await expect(menu.getByRole('link', { name: 'Apparence' })).toHaveAttribute('aria-current', 'page')
   expect(await settledAxeIssues(page)).toEqual([])
+
+  // From Settings, a group of the rail shows its pages; the Settings square brings the sections back
+  await menu.getByRole('button', { name: 'Développement' }).click()
+  await expect(menu.getByRole('link', { name: 'Git' })).toBeVisible()
+  await expect(menu.getByRole('button', { name: 'Développement' })).toHaveAttribute('aria-pressed', 'true')
+  await menu.getByRole('link', { name: 'Paramètres' }).click()
+  await expect(menu.getByRole('link', { name: 'Apparence' })).toBeVisible()
 })

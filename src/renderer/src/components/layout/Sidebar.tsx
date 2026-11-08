@@ -120,6 +120,11 @@ export default function Sidebar() {
   const favoritesRef = useRef(shownFavorites)
   useEffect(() => { favoritesRef.current = shownFavorites })
   useEffect(() => { setShown(s => panelFor(s, pathname, favoritesRef.current)) }, [pathname])
+  // On Settings the panel holds their sections, until a group is picked on the rail (until the next page)
+  const onSettings = pathname.startsWith('/settings')
+  const [browsing, setBrowsing] = useState(false)
+  useEffect(() => { setBrowsing(false) }, [pathname])
+  const settingsShown = onSettings && !browsing
   // The rail's Tab stop goes back to the group shown
   useEffect(() => { setStop(null) }, [shown])
 
@@ -136,8 +141,9 @@ export default function Sidebar() {
   }, [setCollapsed])
 
   const pick = (key: RailKey) => {
+    setBrowsing(true)
     if (collapsed) { setShown(key); setCollapsed(false) }
-    else if (key === shown) setCollapsed(true)
+    else if (key === shown && !settingsShown) setCollapsed(true)
     else setShown(key)
   }
 
@@ -170,7 +176,6 @@ export default function Sidebar() {
 
   const label = (key: RailKey) => (key === 'home' ? t.nav.home : t.nav[key])
   const group = MENU_GROUPS.find(g => g.key === shown)
-  const settingsShown = pathname.startsWith('/settings')
   // The projects the panel lists: the last opened under Home, by name under Development
   const when = (p: Project) => p.lastOpenedAt ?? p.createdAt
   const listed = settingsShown || collapsed ? [] : shown === 'home'
@@ -192,7 +197,7 @@ export default function Sidebar() {
         <div className="flex w-[64px] shrink-0 flex-col items-center gap-1.5 border-r border-line-subtle bg-chrome py-3">
           <div ref={rail} role="toolbar" aria-orientation="vertical" aria-label={t.nav.railLabel} onKeyDown={onRailKey} className="flex flex-col items-center gap-1.5">
             {RAIL.map(({ key, icon: Icon }) => {
-              const isShown = !collapsed && shown === key
+              const isShown = !collapsed && !settingsShown && shown === key
               return (
                 <button
                   key={key}
@@ -311,8 +316,8 @@ export default function Sidebar() {
           >
             {collapsed ? <PanelLeftOpen size={18} strokeWidth={1.8} /> : <PanelLeftClose size={18} strokeWidth={1.8} />}
           </button>
-          <NavLink to="/settings" aria-label={t.nav.settings} title={t.nav.settings} className={railItem(settingsShown, false)}>
-            {settingsShown && <RailMark />}
+          <NavLink to="/settings" onClick={() => setBrowsing(false)} aria-label={t.nav.settings} title={t.nav.settings} className={railItem(onSettings, false)}>
+            {onSettings && <RailMark />}
             <SettingsIcon size={18} strokeWidth={1.8} />
           </NavLink>
         </div>

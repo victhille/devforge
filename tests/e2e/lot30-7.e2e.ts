@@ -42,6 +42,8 @@ test('server pages are listed only once a server is set up', async () => {
   await dialog.getByLabel('Hôte / IP').fill('127.0.0.1')
   await dialog.getByLabel("Nom d'utilisateur").fill('test')
   await dialog.getByRole('button', { name: 'Enregistrer', exact: true }).click()
+  // On Settings the panel holds their sections: the group is shown again from the rail
+  await menu.getByRole('button', { name: 'Mise en ligne' }).click()
   await expect(menu.getByRole('link', { name: 'n8n' })).toBeVisible()
   await expect(menu.getByRole('link', { name: 'VPN' })).toBeVisible()
   await expect(menu.getByText('de plus avec un serveur')).toHaveCount(0)
