@@ -5,6 +5,7 @@ import { cn } from '@renderer/lib/cn'
 import { formatRelative } from '@renderer/lib/format'
 import Card from '@renderer/components/ui/Card'
 import Switch from '@renderer/components/ui/Switch'
+import { Select } from '@renderer/components/ui/Input'
 import { SectionTitle } from '@renderer/components/ui/Page'
 import { TimeChart, UptimeStrip } from '@renderer/components/charts/TimeChart'
 import { useHistory, useWatch } from '@renderer/hooks/useWatch'
@@ -67,10 +68,9 @@ export default function ServersSection() {
         <SectionTitle className="flex-1">{w.serversTitle} · {w.last24h}</SectionTitle>
         <label className="flex items-center gap-2 text-sm text-fg-secondary">
           {w.diskAlert}
-          <select value={config.diskAlert} onChange={e => saveConfig({ diskAlert: Number(e.target.value) })}
-            className="h-8 rounded-lg border border-line bg-canvas px-2 font-mono text-sm text-fg outline-none">
+          <Select value={config.diskAlert} onChange={e => saveConfig({ diskAlert: Number(e.target.value) })} className="w-28 font-mono">
             {[70, 75, 80, 85, 90, 95].map(v => <option key={v} value={v}>{v} %</option>)}
-          </select>
+          </Select>
         </label>
       </div>
       {connections.length === 0 && <NeedsSetup service="server" compact />}

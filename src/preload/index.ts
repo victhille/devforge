@@ -203,6 +203,8 @@ const api: DevForgeAPI = {
   sshWrite:           (sid, data)  => ipcRenderer.invoke('ssh:write', sid, data),
   sshResize:          (sid, c, r)  => ipcRenderer.invoke('ssh:resize', sid, c, r),
   sshDisconnect:      (sid)        => ipcRenderer.invoke('ssh:disconnect', sid),
+  sshSftpList:        (sid, dir)   => ipcRenderer.invoke('ssh:sftp-list', sid, dir),
+  sshSftpDownload:    (sid, path)  => ipcRenderer.invoke('ssh:sftp-download', sid, path),
 
   onSshData: (callback) => {
     const listener = (_e: Electron.IpcRendererEvent, sessionId: string, data: string) => callback(sessionId, data)

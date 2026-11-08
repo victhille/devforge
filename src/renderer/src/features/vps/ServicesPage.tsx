@@ -4,13 +4,15 @@ import type { SSHConnection, VpsService } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
+import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
-import Card from '@renderer/components/ui/Card'
+import Card, { CardTitle } from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { ServerSelect, useServerPicker } from './ServerPicker'
 import NeedsSetup from '@renderer/components/NeedsSetup'
+import Notice from '@renderer/components/ui/Notice'
 import { errorText } from '@renderer/lib/errors'
 
 export default function ServicesPage() {
@@ -18,7 +20,8 @@ export default function ServicesPage() {
   const { connections, conn, serverId, setServerId } = useServerPicker()
   return (
     <Page>
-      <PageHeader title={t.nav.services} subtitle={t.vpsOps.servicesSubtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
+      <PageHeader crumb={conn ? `${t.nav.groupServers} · ${conn.name}` : t.nav.groupServers} title={t.nav.services} subtitle={t.vpsOps.servicesSubtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
+      {conn && <Notice tone="info">{t.vpsOps.servicesTunnel}</Notice>}
       {!connections ? <Spinner /> : !conn ? <NeedsSetup service="server" /> : <Services key={conn.id} conn={conn} />}
     </Page>
   )
@@ -59,20 +62,20 @@ function Services({ conn }: { conn: SSHConnection }) {
           {list.map((s, i) => (
             <Card key={`${s.container}:${s.port}`} className="df-rise flex flex-col gap-3 p-4" style={{ '--i': i } as CSSProperties}>
               <div className="flex items-start gap-3">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent"><AppWindow size={19} /></div>
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-control bg-accent-soft text-accent"><AppWindow size={18} /></div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="truncate text-md font-semibold text-fg">{s.name}</h3>
+                    <CardTitle className="truncate">{s.name}</CardTitle>
                     <span className={cn('size-1.5 shrink-0 rounded-full', s.running ? 'bg-success' : 'bg-fg-disabled')} title={s.running ? s.status : o.stopped} />
                   </div>
                   <div className="truncate font-mono text-xs text-fg-muted" title={s.image}>{s.image}</div>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="rounded-md border border-line-subtle bg-canvas px-2 py-0.5 font-mono text-fg-secondary">{s.scheme}://…:{s.port}</span>
+                <Badge mono>{s.scheme}://…:{s.port}</Badge>
                 {s.exposed
-                  ? <span className="flex items-center gap-1 rounded-md bg-warning-soft px-2 py-0.5 font-medium text-warning" title={o.exposedHint}><Globe size={12} /> {o.exposed}</span>
-                  : <span className="flex items-center gap-1 text-fg-muted"><Lock size={12} /> {o.local}</span>}
+                  ? <span title={o.exposedHint} className="inline-flex"><Badge color="warning"><Globe size={12} /> {o.exposed}</Badge></span>
+                  : <Badge><Lock size={12} /> {o.local}</Badge>}
               </div>
               {tunnels[s.port] && <div className="truncate font-mono text-xs text-fg-muted">{o.tunnelOpen.replace('{url}', tunnels[s.port]!)}</div>}
               <Button variant="secondary" className="self-start" disabled={!s.running} loading={busy === s.port} onClick={() => open(s)}>

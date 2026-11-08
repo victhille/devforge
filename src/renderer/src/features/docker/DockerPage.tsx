@@ -9,7 +9,7 @@ import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import Modal from '@renderer/components/ui/Modal'
 import Spinner from '@renderer/components/ui/Spinner'
-import { Page } from '@renderer/components/ui/Page'
+import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { useAssistantPageContext } from '@renderer/features/assistant/AssistantContext'
 import { ComposeDetail, ContainerDetail, hostPorts } from './ComposeDetail'
 import RemoteDocker from './RemoteDocker'
@@ -121,12 +121,10 @@ export default function DockerPage() {
   const selectedContainer = selection?.kind === 'container' ? data?.containers.find(c => c.id === selection.id) : undefined
 
   return (
-    <Page className="max-w-[1280px] gap-5 px-8 pt-7">
-      <header className="df-rise flex flex-wrap items-center gap-3">
-        <div className="min-w-[220px] flex-1">
-          <h1 className="text-page leading-tight font-semibold tracking-[-.02em] text-fg">{d.title}</h1>
-          <p className="text-sm text-fg-muted">{data?.available ? d.subtitle.replace('{v}', data.version ?? '').replace('{n}', String(running)) : d.subtitleOff}</p>
-        </div>
+    <Page>
+      <PageHeader className="df-rise" crumb={t.nav.groupOnline} title={d.title}
+        subtitle={data?.available ? d.subtitle.replace('{v}', data.version ?? '').replace('{n}', String(running)) : d.subtitleOff}
+        actions={<>
         <Tabs<'local' | 'vps'> value={where} onChange={setWhere} items={[{ value: 'local', label: t.watch.local }, { value: 'vps', label: t.watch.vps }]} />
         {where === 'local' && (
           <>
@@ -135,7 +133,8 @@ export default function DockerPage() {
             <Button variant="secondary" onClick={() => setPruning('confirm')} disabled={!data?.available}><Eraser size={14} /> {d.prune}</Button>
           </>
         )}
-      </header>
+        </>}
+      />
 
       {where === 'vps' ? <RemoteDocker connections={servers} /> : data && !data.available ? (
         <EmptyState icon={<Container size={32} />} title={d.unavailable} description={data.error} />

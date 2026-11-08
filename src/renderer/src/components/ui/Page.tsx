@@ -9,6 +9,8 @@ export function Page({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
 interface HeaderProps {
   title: ReactNode
   subtitle?: ReactNode
+  /** Where the page sits (its group, its server), above the title */
+  crumb?: ReactNode
   icon?: ReactNode
   actions?: ReactNode
   className?: string
@@ -18,10 +20,11 @@ interface HeaderProps {
  * Page title row: the title in the display font, the subtitle under it, actions on the right,
  * aligned on the title's foot (the icon is kept for the API, not drawn)
  */
-export function PageHeader({ title, subtitle, actions, className }: HeaderProps) {
+export function PageHeader({ title, subtitle, crumb, actions, className }: HeaderProps) {
   return (
     <header className={cn('flex flex-wrap items-end justify-between gap-3.5', className)}>
       <div className="min-w-[220px] flex-1">
+        {crumb && <div className="mb-1 flex min-w-0 items-center gap-1.5 truncate text-sm text-fg-muted">{crumb}</div>}
         <h1 className="truncate font-display text-page font-bold tracking-[-.025em] text-fg">{title}</h1>
         {subtitle && <p className="mt-1 text-base text-fg-secondary">{subtitle}</p>}
       </div>

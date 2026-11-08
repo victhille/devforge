@@ -52,6 +52,7 @@ const fr = {
     groupDev: 'Développement',
     groupServers: 'Serveurs',
     groupOnline: 'Mise en ligne',
+    breadcrumb: "Fil d'Ariane",
     groupData: 'Données & API',
     groupSystem: 'Système',
     groupTools: 'Outils',
@@ -1764,7 +1765,10 @@ const fr = {
     user:       'Utilisateur',
     command:    'Commande',
     dockerOne:  'Docker (1 conteneur)',
-    dockerMany: 'Docker ({n} conteneurs)'
+    dockerMany: 'Docker ({n} conteneurs)',
+    connected:  'Connecté',
+    image:      'Image',
+    state:      'État'
   },
   ssh: {
     hostKey:        'Clé du serveur',
@@ -1795,7 +1799,22 @@ const fr = {
     save:           'Enregistrer',
     emptyTerminal:  'Choisis une connexion pour ouvrir un terminal',
     connecting:     'Connexion en cours...',
-    disconnected:   'Déconnecté'
+    disconnected:   'Déconnecté',
+    live:           'connecté',
+    dashboard:      'Tableau de bord',
+    removeConnection: 'Supprimer la connexion',
+    closeSession:   'Fermer la session',
+    files:          'Fichiers (SFTP)',
+    filesTitle:     'Fichiers de {name}',
+    parentDir:      'Dossier parent',
+    path:           'Dossier',
+    emptyDir:       'Ce dossier est vide.',
+    colName:        'Nom',
+    colSize:        'Taille',
+    colModified:    'Modifié',
+    download:       'Télécharger',
+    downloadFile:   'Télécharger {name}',
+    downloaded:     'Enregistré : {file}'
   },
 
   assistant: {
@@ -1995,6 +2014,13 @@ const fr = {
     localCopyNone: "Pas encore copiée sur ce PC",
     localCopyError: "Copie sur ce PC impossible : {error}",
     files: "Fichiers sur le serveur",
+    colDate: "Date",
+    colFile: "Fichier",
+    colSize: "Taille",
+    statNext: "Prochaine",
+    statNextUnit: "chaque nuit",
+    statKept: "Gardées",
+    statKeptUnit: "jours · {size}",
     noFiles: "Aucun fichier pour l'instant.",
     daily: "jour",
     weekly: "semaine",
@@ -2023,6 +2049,8 @@ const fr = {
     checking: "Lecture de l'état du serveur…",
     checkedAt: "Vérifié {when}",
     summary: { ok: "Tout va bien", warn: "À surveiller", bad: "À corriger", unknown: "Inconnu" },
+    statScore: "Note",
+    servicesTunnel: "DevForge ouvre chaque service par un tunnel SSH vers localhost : il n'a pas besoin d'être exposé sur Internet.",
     unknownText: "Impossible de lire cette information sur ce serveur.",
     checks: {
       updates: { title: "Mises à jour", ok: "Le système est à jour.", warn: "{count} mises à jour en attente.", bad: "{count} mises à jour en attente, dont {security} de sécurité." },
@@ -3054,7 +3082,11 @@ const fr = {
     since:           'depuis',
     emptyTitle:      'Rien n\'est surveillé pour l\'instant',
     emptyHint:       'Ajoute tes sites et API : DevForge les vérifie en arrière-plan et envoie une notification Windows quand l\'un tombe ou revient.',
-    backgroundHint:  'Les vérifications continuent tant que DevForge est ouvert ou réduit dans la barre système.'
+    backgroundHint:  'Les vérifications continuent tant que DevForge est ouvert ou réduit dans la barre système.',
+    statWatched:     'Surveillées',
+    statDown:        'Hors ligne',
+    statUptime:      'Disponibilité',
+    statIncidents:   'Incidents · 30 jours'
   },
 
   domains: {

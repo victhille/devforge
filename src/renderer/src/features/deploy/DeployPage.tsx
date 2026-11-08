@@ -4,8 +4,8 @@ import { CheckCircle2, ChevronDown, ChevronRight, Pencil, Plus, Rocket, Search, 
 import type { DeployRun, DeployTarget, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
-import { cn } from '@renderer/lib/cn'
 import { formatRelative } from '@renderer/lib/format'
+import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
@@ -71,16 +71,16 @@ function TargetCard({ target, connection, onEdit, onDelete }: {
       <div className="flex items-center gap-3 border-b border-line-subtle px-4 py-3">
         <Server size={16} className="shrink-0" style={{ color: connection?.color }} />
         <div className="flex min-w-0 flex-1 flex-col">
-          <span className="font-semibold text-fg">{target.name}</span>
+          <h2 className="truncate font-display text-md font-bold tracking-[-.01em] text-fg">{target.name}</h2>
           <span className="truncate font-mono text-2xs text-fg-muted">
             {connection ? `${connection.username}@${connection.host}` : d.missingServer}:{target.remotePath}
           </span>
         </div>
         {last && !live && (
-          <span className={cn('flex items-center gap-1 text-xs', last.status === 'success' ? 'text-success' : 'text-danger')}>
-            {last.status === 'success' ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
+          <Badge color={last.status === 'success' ? 'success' : 'danger'}>
+            {last.status === 'success' ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
             {formatRelative(last.startedAt, lang)}
-          </span>
+          </Badge>
         )}
         <IconButton title={d.edit} onClick={onEdit}><Pencil size={14} /></IconButton>
         <IconButton title={t.common.delete} tone="danger" onClick={onDelete}><Trash2 size={14} /></IconButton>
@@ -131,6 +131,7 @@ export default function DeployPage() {
     <Page>
       <PageHeader
         icon={<Rocket size={18} />}
+        crumb={t.nav.groupOnline}
         title={d.title}
         subtitle={d.subtitle}
         actions={

@@ -4,7 +4,6 @@ import { ArrowDown, ArrowUp, CloudDownload, Code2, GitBranch, GitCommitHorizonta
 import type { Project } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
-import { cn } from '@renderer/lib/cn'
 import { formatRelative } from '@renderer/lib/format'
 import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
@@ -13,6 +12,7 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 import ErrorState from '@renderer/components/ui/ErrorState'
 import IconButton from '@renderer/components/ui/IconButton'
 import Tabs from '@renderer/components/ui/Tabs'
+import Stat, { StatRow, type StatTone } from '@renderer/components/ui/Stat'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import ProjectIcon from '@renderer/features/projects/components/ProjectIcon'
 import { useGitRepos, type RepoRow } from './useGitRepos'
@@ -24,14 +24,8 @@ type Filter = 'attention' | 'all'
 const needsAttention = (r: RepoRow) =>
   !!r.details?.isRepo && (r.details.changes > 0 || r.details.ahead > 0 || r.details.behind > 0)
 
-function Stat({ label, value, tone }: { label: string; value: number; tone?: string }) {
-  return (
-    <Card className="flex flex-col gap-0.5 p-3.5">
-      <span className="text-sm text-fg-muted">{label}</span>
-      <span className={cn('font-display text-2xl font-bold tracking-[-.02em]', value > 0 ? tone ?? 'text-fg' : 'text-fg')}>{value}</span>
-    </Card>
-  )
-}
+/** A count in color only when there is something to see */
+const count = (value: number, tone: StatTone) => ({ value, tone: value > 0 ? tone : undefined })
 
 export default function GitDashboardPage() {
   const { t, lang } = useI18n()
@@ -83,12 +77,12 @@ export default function GitDashboardPage() {
         }
       />
 
-      <div className="grid grid-cols-4 gap-3">
-        <Stat label={g.statRepos}   value={repos.length} />
-        <Stat label={g.statChanges} value={repos.filter(r => r.details!.changes > 0).length} tone="text-warning" />
-        <Stat label={g.statAhead}   value={repos.filter(r => r.details!.ahead > 0).length}   tone="text-accent" />
-        <Stat label={g.statBehind}  value={repos.filter(r => r.details!.behind > 0).length}  tone="text-danger" />
-      </div>
+      <StatRow>
+        <Stat label={g.statRepos} value={repos.length} />
+        <Stat label={g.statChanges} {...count(repos.filter(r => r.details!.changes > 0).length, 'warning')} />
+        <Stat label={g.statAhead} {...count(repos.filter(r => r.details!.ahead > 0).length, 'accent')} />
+        <Stat label={g.statBehind} {...count(repos.filter(r => r.details!.behind > 0).length, 'danger')} />
+      </StatRow>
 
       <Tabs<Filter>
         value={filter}

@@ -14,10 +14,10 @@ On each server:
 | Button | Effect |
 |---|---|
 | click on the name | opens an SSH terminal in a new tab |
-| Dashboard | opens the server's dashboard |
+| Dashboard | opens the server's dashboard (also at the top of the open session's terminal) |
 | Databases on this server | opens the [Database](/devforge/en/data/database/#find-databases) page and looks for this server's databases |
 | Edit Connection | changes its settings; leaving the password empty keeps it |
-| Delete | removes the server |
+| Delete the connection | removes the server |
 
 **Hide servers** folds the column to give all the room to the terminal.
 
@@ -27,7 +27,10 @@ DevForge remembers the fingerprint of the server's key on the first connection, 
 
 ## The terminal
 
-Each open connection is a tab; you can open several and close them one by one. The state shows (*Connecting...*, *Disconnected*).
+Each open connection is a tab; you can open several and close them one by one. Above, the server of the tab on screen, its state (*connected*, *Connecting...*, *Disconnected*) and two buttons:
+
+- **Files (SFTP)** browses the server's folders (from your home folder, or a path you type) and **downloads** a file wherever you pick on this PC. You see what the SSH user can read, as in the terminal; nothing is changed on the server.
+- **Dashboard** opens the server's dashboard.
 
 ## The server dashboard
 

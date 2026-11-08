@@ -35,7 +35,7 @@ export default function StatusPage() {
   const { connections, conn, serverId, setServerId } = useServerPicker()
   return (
     <Page>
-      <PageHeader title={t.nav.statusPage} subtitle={t.statusPage.subtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
+      <PageHeader crumb={conn ? `${t.nav.groupOnline} · ${conn.name}` : t.nav.groupOnline} title={t.nav.statusPage} subtitle={t.statusPage.subtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
       {!connections ? <Spinner /> : !conn ? <NeedsSetup service="server" /> : <Status key={conn.id} conn={conn} />}
     </Page>
   )
@@ -80,7 +80,7 @@ function Status({ conn }: { conn: SSHConnection }) {
       <Card className="flex flex-wrap items-center gap-3 p-5">
         <StatusDot size="md" state={data.running ? 'on' : 'warn'} />
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-fg">{data.running ? s.online : s.stopped}</p>
+          <p className="font-display text-lg font-bold tracking-[-.01em] text-fg">{data.running ? s.online : s.stopped}</p>
           <p className="truncate font-mono text-xs text-fg-secondary">{data.url ?? '—'}{data.updatedAt ? ` · ${s.checked.replace('{when}', formatRelative(data.updatedAt, lang))}` : ''}</p>
         </div>
         <IconButton title={s.refresh} onClick={load}><RefreshCw size={14} /></IconButton>
@@ -162,7 +162,7 @@ function Install({ conn, log, setLog, busy, setBusy, onDone }: {
     <div className="flex flex-col gap-5">
       <Card className="flex flex-col gap-4 p-5">
         <div>
-          <h2 className="text-md font-semibold text-fg">{s.installTitle}</h2>
+          <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{s.installTitle}</h2>
           <p className="mt-1 text-sm text-fg-secondary">{s.installHelp}</p>
         </div>
         {!pre.docker && <p role="alert" className="flex items-center gap-2 text-sm text-warning"><AlertTriangle size={14} /> {s.noDocker}</p>}
@@ -251,11 +251,11 @@ const pct = (u: number | null) => u === null ? '—' : `${(Math.floor(u * 10000)
 
 function Bars({ history, name, s }: { history: StatusOverview['history'][string] | undefined; name: string; s: T }) {
   return (
-    <div role="img" aria-label={s.barsLabel.replace('{name}', name)} className="flex h-6 gap-px">
+    <div role="img" aria-label={s.barsLabel.replace('{name}', name)} className="flex h-5.5 gap-0.5">
       {Array.from({ length: DAYS }, (_, i) => {
         const d = history?.[day(DAYS - 1 - i)]
         const u = d && d.total ? d.ok / d.total : null
-        return <span key={i} title={`${day(DAYS - 1 - i)} · ${pct(u)}`} className={cn('flex-1 rounded-[1px]', u === null ? 'bg-elevated' : u >= 0.995 ? 'bg-success' : u >= 0.95 ? 'bg-warning' : 'bg-danger')} />
+        return <span key={i} title={`${day(DAYS - 1 - i)} · ${pct(u)}`} className={cn('flex-1 rounded-xs', u === null ? 'bg-elevated' : u >= 0.995 ? 'bg-success' : u >= 0.95 ? 'bg-warning' : 'bg-danger')} />
       })}
     </div>
   )
@@ -326,7 +326,7 @@ function Settings({ conn, data, onSaved }: { conn: SSHConnection; data: StatusOv
       <Card className="flex flex-col gap-4 p-5">
         <div className="flex flex-wrap items-start gap-3">
           <div className="min-w-0 flex-1">
-            <h2 className="text-md font-semibold text-fg">{s.monitorsTitle}</h2>
+            <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{s.monitorsTitle}</h2>
             <p className="mt-1 text-sm text-fg-secondary">{s.monitorsHelp}</p>
           </div>
           <Button variant="secondary" size="sm" disabled={dirty && !testing} onClick={toggleTest}><FlaskConical size={13} /> {testing ? s.testStop : s.testStart}</Button>
@@ -375,7 +375,7 @@ function Settings({ conn, data, onSaved }: { conn: SSHConnection; data: StatusOv
       <div className="grid gap-5 lg:grid-cols-2">
         <Card className="flex flex-col gap-4 p-5">
           <div>
-            <h2 className="text-md font-semibold text-fg">{s.alertsTitle}</h2>
+            <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{s.alertsTitle}</h2>
             <p className="mt-1 text-sm text-fg-secondary">{s.alertsHelp}</p>
           </div>
           <Checkbox checked={!!config.alerts.ntfy} onChange={v => change({ alerts: { ...config.alerts, ntfy: v ? { server: 'https://ntfy.sh', topic: randomTopic() } : null } })}>{s.ntfyOn}</Checkbox>
@@ -398,7 +398,7 @@ function Settings({ conn, data, onSaved }: { conn: SSHConnection; data: StatusOv
         </Card>
 
         <Card className="flex flex-col gap-4 p-5">
-          <h2 className="text-md font-semibold text-fg">{s.pageTitle}</h2>
+          <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{s.pageTitle}</h2>
           <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.title}
             <Input value={config.title} onChange={e => change({ title: e.target.value })} />
           </label>
@@ -447,7 +447,7 @@ function Incidents({ conn, data, onSaved }: { conn: SSHConnection; data: StatusO
     <Card className="flex flex-col gap-4 p-5">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h2 className="text-md font-semibold text-fg">{s.incidentsTitle}</h2>
+          <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{s.incidentsTitle}</h2>
           <p className="mt-1 text-sm text-fg-secondary">{s.incidentsHelp}</p>
         </div>
         <Button size="sm" variant="secondary" onClick={() => setWriting(true)}><Plus size={13} /> {s.writeIncident}</Button>
