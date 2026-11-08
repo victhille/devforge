@@ -23,5 +23,5 @@ Formats reconnus : Laravel, Symfony, nginx, pm2, et les logs JSON (pino, winston
 ## Ailleurs
 
 - L'onglet **Logs** de chaque [fiche projet](/devforge/dev/projects/) suit les logs de ce projet.
-- Les logs des conteneurs sont sur la page [Docker](/devforge/dev/docker/#logs).
+- Les logs des conteneurs sont sur la page [Docker](/devforge/dev/docker/#journaux).
 - Sur cette page, Forgy reçoit les 150 dernières lignes affichées pour expliquer une erreur.

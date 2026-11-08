@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { AlertTriangle, ExternalLink, FlaskConical, Plus, RefreshCw, Send, Trash2, X } from 'lucide-react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { AlertTriangle, Bell, ExternalLink, FlaskConical, Plus, RefreshCw, Send, Trash2, X } from 'lucide-react'
 import type {
   SSHConnection, StatusConfig, StatusExposure, StatusIncident, StatusMonitor, StatusOverview, StatusPrecheck
 } from '@shared/types'
@@ -7,12 +7,15 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
 import { formatRelative } from '@renderer/lib/format'
+import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import Checkbox from '@renderer/components/ui/Checkbox'
 import IconButton from '@renderer/components/ui/IconButton'
 import Modal from '@renderer/components/ui/Modal'
+import MoreMenu from '@renderer/components/ui/MoreMenu'
 import Spinner from '@renderer/components/ui/Spinner'
+import Switch from '@renderer/components/ui/Switch'
 import { Input, Select, Textarea } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { ServerSelect, useServerPicker } from '@renderer/features/vps/ServerPicker'
@@ -20,29 +23,32 @@ import NeedsSetup from '@renderer/components/NeedsSetup'
 import { errorText } from '@renderer/lib/errors'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
 import LogBox from '@renderer/components/ui/LogBox'
-import StatusDot from '@renderer/components/ui/StatusDot'
 
-const DAYS = 90
 const TEST_ID = 'devforge-test'
-const day = (offset: number) => new Date(Date.now() - offset * 86_400_000).toISOString().slice(0, 10)
 const slug = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'service'
 const randomTopic = () => `devforge-${Array.from(crypto.getRandomValues(new Uint8Array(8)), b => b.toString(16).padStart(2, '0')).join('')}`
-
-type T = ReturnType<typeof useI18n>['t']['statusPage']
 
 export default function StatusPage() {
   const { t } = useI18n()
   const { connections, conn, serverId, setServerId } = useServerPicker()
+  const select = <ServerSelect connections={connections} value={serverId} onChange={setServerId} />
   return (
-    <Page>
-      <PageHeader crumb={conn ? `${t.nav.groupOnline} · ${conn.name}` : t.nav.groupOnline} title={t.nav.statusPage} subtitle={t.statusPage.subtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
-      {!connections ? <Spinner /> : !conn ? <NeedsSetup service="server" /> : <Status key={conn.id} conn={conn} />}
+    <Page className="df-mockup">
+      {!connections || !conn ? (
+        <>
+          <PageHeader crumb={t.nav.groupOnline} title={t.nav.statusPage} subtitle={t.statusPage.subtitle} />
+          {!connections ? <Spinner /> : <NeedsSetup service="server" />}
+        </>
+      ) : <Status key={conn.id} conn={conn} select={select} />}
     </Page>
   )
 }
 
-
-function Status({ conn }: { conn: SSHConnection }) {
+/**
+ * As in the mock-up: the page's address and « Report an incident » in the
+ * header, the services shown and the alerts side by side, the incidents below.
+ */
+function Status({ conn, select }: { conn: SSHConnection; select: ReactNode }) {
   const { t, lang } = useI18n()
   const s = t.statusPage
   const [data, setData] = useState<StatusOverview | null>(null)
@@ -50,6 +56,7 @@ function Status({ conn }: { conn: SSHConnection }) {
   const [log, setLog] = useState('')
   const [busy, setBusy] = useState<'install' | 'uninstall' | null>(null)
   const [blocked, setBlocked] = useState<number[]>([])
+  const [writing, setWriting] = useState(false)
 
   const load = useCallback(() => {
     setError('')
@@ -70,35 +77,47 @@ function Status({ conn }: { conn: SSHConnection }) {
     try { await window.devforge.status.uninstall(conn.id) } catch (err) { setError(errorText(err)) } finally { setBusy(null); load() }
   }
 
-  if (error && !data) return <p role="alert" className="text-sm text-danger">{error}</p>
-  if (!data) return <Spinner />
-  if (!data.installed || busy === 'install') {
-    return <Install conn={conn} log={log} setLog={setLog} busy={busy === 'install'} setBusy={b => setBusy(b ? 'install' : null)} onDone={load} />
-  }
+  const installed = !!data?.installed && busy !== 'install'
+  const host = data?.url?.replace(/^https?:\/\//, '').replace(/\/$/, '') ?? ''
+  // The time of the last check on the state, so the subtitle stays on one line as in the mock-up
+  const title = installed && data ? (
+    <span className="flex min-w-0 items-center gap-3">
+      {t.nav.statusPage}
+      <span title={data.updatedAt ? s.checked.replace('{when}', formatRelative(data.updatedAt, lang)) : undefined}>
+        <Badge dot color={data.running ? 'success' : 'warning'}>{data.running ? s.online : s.stopped}</Badge>
+      </span>
+    </span>
+  ) : t.nav.statusPage
+
   return (
-    <div className="flex flex-col gap-5">
-      <Card className="flex flex-wrap items-center gap-3 p-5">
-        <StatusDot size="md" state={data.running ? 'on' : 'warn'} />
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-lg font-bold tracking-[-.01em] text-fg">{data.running ? s.online : s.stopped}</p>
-          <p className="truncate font-mono text-xs text-fg-secondary">{data.url ?? '—'}{data.updatedAt ? ` · ${s.checked.replace('{when}', formatRelative(data.updatedAt, lang))}` : ''}</p>
-        </div>
-        <IconButton title={s.refresh} onClick={load}><RefreshCw size={14} /></IconButton>
-        {data.url && <Button variant="secondary" onClick={() => window.devforge.openExternal(data.url!)}><ExternalLink size={14} /> {s.openPage}</Button>}
-      </Card>
-      <FirewallWarning conn={conn} blocked={blocked} onOpened={() => setBlocked([])} />
-      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
-      {data.config && <Settings conn={conn} data={data} onSaved={load} />}
-      <Incidents conn={conn} data={data} onSaved={load} />
-      <Card className="flex flex-wrap items-center gap-3 border-danger/30 p-5">
-        <div className="min-w-0 flex-1">
-          <p className="font-medium text-fg">{s.uninstall}</p>
-          <p className="text-sm text-fg-secondary">{s.uninstallHint}</p>
-        </div>
-        <Button variant="danger" loading={busy === 'uninstall'} onClick={uninstall}>{s.uninstall}</Button>
-      </Card>
-      {busy === 'uninstall' && <LogBox text={log} title={s.uninstall} running />}
-    </div>
+    <>
+      <PageHeader crumb={`${t.nav.groupOnline} · ${conn.name}`} title={title}
+        subtitle={s.subtitle}
+        actions={<>
+          {select}
+          {installed && data?.url && <Button variant="secondary" title={data.url} onClick={() => window.devforge.openExternal(data.url!)}><ExternalLink size={14} aria-hidden /> {host}</Button>}
+          {installed && <Button onClick={() => setWriting(true)}><Plus size={14} aria-hidden /> {s.reportIncident}</Button>}
+          {installed && (
+            <MoreMenu label={s.more} items={[
+              { label: s.refresh, icon: RefreshCw, onSelect: load },
+              { label: s.uninstall, icon: Trash2, danger: true, onSelect: uninstall }
+            ]} />
+          )}
+        </>} />
+
+      {error && !data ? <p role="alert" className="text-sm text-danger">{error}</p>
+        : !data ? <Spinner />
+        : !installed ? <Install conn={conn} log={log} setLog={setLog} busy={busy === 'install'} setBusy={b => setBusy(b ? 'install' : null)} onDone={load} />
+        : (
+          <>
+            <FirewallWarning conn={conn} blocked={blocked} onOpened={() => setBlocked([])} />
+            {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+            {busy === 'uninstall' && <LogBox text={log} title={s.uninstall} running />}
+            {data.config && <Settings conn={conn} data={data} onSaved={load} />}
+            <Incidents conn={conn} data={data} writing={writing} setWriting={setWriting} onSaved={load} />
+          </>
+        )}
+    </>
   )
 }
 
@@ -159,13 +178,13 @@ function Install({ conn, log, setLog, busy, setBusy, onDone }: {
   const ready = !!pre.docker && pre.compose && (exposure === 'port' || (!!address && (exposure !== 'caddy' || !email || /\S+@\S+\.\S+/.test(email))))
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex max-w-4xl flex-col gap-5">
       <Card className="flex flex-col gap-4 p-5">
         <div>
           <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{s.installTitle}</h2>
           <p className="mt-1 text-sm text-fg-secondary">{s.installHelp}</p>
         </div>
-        {!pre.docker && <p role="alert" className="flex items-center gap-2 text-sm text-warning"><AlertTriangle size={14} /> {s.noDocker}</p>}
+        {!pre.docker && <p role="alert" className="flex items-center gap-2 text-sm text-warning"><AlertTriangle size={14} aria-hidden /> {s.noDocker}</p>}
         <div role="radiogroup" aria-label={s.exposureLabel} className="grid gap-2 md:grid-cols-3">
           {options.map(o => (
             <button key={o.id} role="radio" aria-checked={exposure === o.id} disabled={o.disabled} onClick={() => setExposure(o.id)}
@@ -176,7 +195,7 @@ function Install({ conn, log, setLog, busy, setBusy, onDone }: {
             </button>
           ))}
         </div>
-        {pre.busyPorts.length > 0 && <p className="text-xs text-fg-secondary">{s.portsBusy.replace('{ports}', pre.busyPorts.join(', '))}</p>}
+        {pre.busyPorts.length > 0 && <p className="text-sm text-fg-secondary">{s.portsBusy.replace('{ports}', pre.busyPorts.join(', '))}</p>}
         {exposure !== 'port' && <FirewallWarning conn={conn} blocked={pre.firewallBlocks} onOpened={() => setPre({ ...pre, firewallBlocks: [] })} />}
 
         {exposure !== 'port' && (
@@ -198,7 +217,7 @@ function Install({ conn, log, setLog, busy, setBusy, onDone }: {
             {dns && <p className={cn('text-sm', dns.ok ? 'text-success' : 'text-warning')}>{dns.text}</p>}
             {exposure === 'caddy' && (
               <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.email}
-                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="toi@exemple.fr" className="w-72" />
+                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={s.emailPlaceholder} className="w-72" />
                 <span className="text-xs">{s.emailHint}</span>
               </label>
             )}
@@ -206,7 +225,7 @@ function Install({ conn, log, setLog, busy, setBusy, onDone }: {
         )}
         {error && <p role="alert" className="text-sm text-danger">{error}</p>}
         <div className="flex flex-wrap items-center justify-end gap-3">
-          <span className="mr-auto text-xs text-fg-secondary">{s.installWhere}</span>
+          <span className="mr-auto text-sm text-fg-secondary">{s.installWhere}</span>
           <Button loading={busy} disabled={!ready} onClick={install}>{s.install}</Button>
         </div>
       </Card>
@@ -233,47 +252,44 @@ function FirewallWarning({ conn, blocked, onOpened }: { conn: SSHConnection; blo
   }
   return (
     <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-warning/40 bg-warning-soft p-3">
-      <AlertTriangle size={16} className="shrink-0 text-warning" />
+      <AlertTriangle size={16} aria-hidden className="shrink-0 text-warning" />
       <p className="min-w-[220px] flex-1 text-sm text-fg">{s.firewallBlocked.replace('{ports}', blocked.join(', '))}</p>
       <Button size="sm" variant="secondary" loading={busy} onClick={open}>{s.firewallOpen}</Button>
     </div>
   )
 }
 
-// ─── Monitors, alerts, page ───────────────────────────────────────────────────
+// ─── Services shown, alerts, page ─────────────────────────────────────────────
 
 function uptime(history: StatusOverview['history'][string] | undefined): number | null {
   const days = Object.values(history ?? {})
   const total = days.reduce((a, d) => a + d.total, 0)
   return total ? days.reduce((a, d) => a + d.ok, 0) / total : null
 }
-const pct = (u: number | null) => u === null ? '—' : `${(Math.floor(u * 10000) / 100).toLocaleString()} %`
 
-function Bars({ history, name, s }: { history: StatusOverview['history'][string] | undefined; name: string; s: T }) {
-  return (
-    <div role="img" aria-label={s.barsLabel.replace('{name}', name)} className="flex h-5.5 gap-0.5">
-      {Array.from({ length: DAYS }, (_, i) => {
-        const d = history?.[day(DAYS - 1 - i)]
-        const u = d && d.total ? d.ok / d.total : null
-        return <span key={i} title={`${day(DAYS - 1 - i)} · ${pct(u)}`} className={cn('flex-1 rounded-xs', u === null ? 'bg-elevated' : u >= 0.995 ? 'bg-success' : u >= 0.95 ? 'bg-warning' : 'bg-danger')} />
-      })}
-    </div>
-  )
-}
+/** A setting of the alerts card: words on the left, its control on the right */
+const AlertRow = ({ label, children }: { label: ReactNode; children: ReactNode }) => (
+  <div className="flex min-h-12 items-center gap-3 border-t border-line-subtle py-2.5 first:border-t-0">
+    <span className="min-w-0 flex-1 text-base text-fg">{label}</span>
+    {children}
+  </div>
+)
 
 function Settings({ conn, data, onSaved }: { conn: SSHConnection; data: StatusOverview; onSaved: () => void }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const s = t.statusPage
   const toast = useToast()
   const [config, setConfig] = useState<StatusConfig>(data.config!)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [adding, setAdding] = useState(false)
   const [draft, setDraft] = useState<Omit<StatusMonitor, 'id'>>({ name: '', type: 'http', target: 'https://', public: true })
 
   useEffect(() => { if (!dirty) setConfig(data.config!) }, [data.config, dirty])
   const change = (patch: Partial<StatusConfig>) => { setConfig(c => ({ ...c, ...patch })); setDirty(true) }
   const setMonitor = (id: string, patch: Partial<StatusMonitor>) => change({ monitors: config.monitors.map(m => m.id === id ? { ...m, ...patch } : m) })
+  const pct = (u: number | null) => u === null ? '—' : `${(Math.floor(u * 10000) / 100).toLocaleString(lang)} %`
 
   async function save(next = config) {
     setError('')
@@ -323,98 +339,95 @@ function Settings({ conn, data, onSaved }: { conn: SSHConnection; data: StatusOv
       )}
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
 
-      <Card className="flex flex-col gap-4 p-5">
-        <div className="flex flex-wrap items-start gap-3">
-          <div className="min-w-0 flex-1">
-            <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{s.monitorsTitle}</h2>
-            <p className="mt-1 text-sm text-fg-secondary">{s.monitorsHelp}</p>
+      <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
+        <Card className="flex flex-col gap-3 p-4.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="min-w-0 flex-1 font-display text-md font-bold tracking-[-.01em] text-fg">{s.monitorsTitle}</h2>
+            <Button size="sm" variant="ghost" disabled={dirty && !testing} onClick={toggleTest}><FlaskConical size={13} aria-hidden /> {testing ? s.testStop : s.testStart}</Button>
+            <Button size="sm" variant="ghost" className="text-accent" aria-expanded={adding} onClick={() => setAdding(v => !v)}><Plus size={13} aria-hidden /> {s.addService}</Button>
           </div>
-          <Button variant="secondary" size="sm" disabled={dirty && !testing} onClick={toggleTest}><FlaskConical size={13} /> {testing ? s.testStop : s.testStart}</Button>
-        </div>
-        {testing && <p className="rounded-xl bg-warning-soft p-3 text-sm text-fg">{s.testRunning}</p>}
-        {config.monitors.length === 0 ? <p className="text-sm text-fg-secondary">{s.noMonitors}</p> : (
-          <ul aria-label={s.monitorsTitle} className="flex flex-col overflow-hidden rounded-xl border border-line-subtle">
-            {config.monitors.map(m => {
-              const st = data.monitors[m.id]
-              return (
-                <li key={m.id} aria-label={m.name} className="flex flex-col gap-2 border-t border-line-subtle px-4 py-3 first:border-t-0">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <StatusDot state={st?.status === 'up' ? 'on' : st?.status === 'down' ? 'error' : 'off'} />
-                    <strong className="text-fg">{m.name}</strong>
-                    <code className="min-w-0 flex-1 truncate font-mono text-xs text-fg-secondary">{m.type === 'tcp' ? `tcp ${m.target}` : m.target}</code>
-                    <span className="text-xs text-fg-secondary">{st?.status === 'down' ? s.down.replace('{error}', st.lastError ?? '') : st?.lastMs != null ? `${st.lastMs} ms` : s.waiting}</span>
-                    <span className="w-20 text-right font-mono text-xs text-fg-secondary">{pct(uptime(data.history[m.id]))}</span>
+          <p className="text-sm text-fg-secondary">{s.monitorsHelp}</p>
+          {testing && <p className="rounded-xl bg-warning-soft p-3 text-sm text-fg">{s.testRunning}</p>}
+          {config.monitors.length === 0 ? <p className="text-sm text-fg-secondary">{s.noMonitors}</p> : (
+            <ul aria-label={s.monitorsTitle} className="flex flex-col">
+              {config.monitors.map(m => {
+                const st = data.monitors[m.id]
+                return (
+                  <li key={m.id} aria-label={m.name} className="group flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line-subtle py-2.5 first:border-t-0">
+                    <span aria-hidden className={cn('size-2 shrink-0 rounded-full', st?.status === 'up' ? 'bg-success' : st?.status === 'down' ? 'bg-danger' : 'bg-fg-disabled')} />
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <strong className="truncate font-semibold text-fg">{m.name}</strong>
+                      <code className="truncate font-mono text-xs text-fg-muted">{m.type === 'tcp' ? `tcp ${m.target}` : m.target}</code>
+                    </span>
+                    <span className={cn('text-sm', st?.status === 'down' ? 'text-danger' : 'text-fg-muted')}>
+                      {st?.status === 'down' ? s.down.replace('{error}', st.lastError ?? '') : st?.lastMs != null ? `${st.lastMs} ms` : s.waiting}
+                    </span>
+                    <span className="w-20 text-right font-mono text-sm font-semibold text-fg" title={s.uptime90}>{pct(uptime(data.history[m.id]))}</span>
                     <Checkbox checked={m.public} onChange={v => setMonitor(m.id, { public: v })}>{s.public}</Checkbox>
                     <IconButton size="sm" title={s.remove.replace('{name}', m.name)} onClick={() => change({ monitors: config.monitors.filter(x => x.id !== m.id) })}><Trash2 size={13} /></IconButton>
-                  </div>
-                  <Bars history={data.history[m.id]} name={m.name} s={s} />
-                </li>
-              )
-            })}
-          </ul>
-        )}
-        <div className="flex flex-wrap items-end gap-2 border-t border-line-subtle pt-4">
-          <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.name}
-            <Input value={draft.name} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))} placeholder="Boutique" className="w-44" />
-          </label>
-          <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.type}
-            <Select value={draft.type} onChange={e => setDraft(d => ({ ...d, type: e.target.value as 'http' | 'tcp', target: e.target.value === 'tcp' ? '127.0.0.1:5432' : 'https://' }))} className="w-40">
-              <option value="http">{s.typeHttp}</option>
-              <option value="tcp">{s.typeTcp}</option>
-            </Select>
-          </label>
-          <label className="flex flex-1 flex-col gap-1.5 text-sm text-fg-secondary">{s.target}
-            <Input value={draft.target} onChange={e => setDraft(d => ({ ...d, target: e.target.value }))} className="min-w-[220px] font-mono" spellCheck={false} />
-          </label>
-          <Checkbox checked={draft.public} onChange={v => setDraft(d => ({ ...d, public: v }))} className="h-9">{s.public}</Checkbox>
-          <Button variant="secondary" disabled={!draft.name.trim() || draft.target.trim().length < 8} onClick={add}><Plus size={14} /> {s.add}</Button>
-        </div>
-        {data.exposure === 'n8n' && <p className="text-xs text-fg-secondary">{s.n8nTargets}</p>}
-      </Card>
-
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Card className="flex flex-col gap-4 p-5">
-          <div>
-            <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{s.alertsTitle}</h2>
-            <p className="mt-1 text-sm text-fg-secondary">{s.alertsHelp}</p>
-          </div>
-          <Checkbox checked={!!config.alerts.ntfy} onChange={v => change({ alerts: { ...config.alerts, ntfy: v ? { server: 'https://ntfy.sh', topic: randomTopic() } : null } })}>{s.ntfyOn}</Checkbox>
-          {config.alerts.ntfy && (
-            <div className="flex flex-col gap-2 pl-6">
-              <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.ntfyTopic}
-                <Input value={config.alerts.ntfy.topic} onChange={e => change({ alerts: { ...config.alerts, ntfy: { ...config.alerts.ntfy!, topic: e.target.value.trim() } } })} className="font-mono" spellCheck={false} />
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+          {adding && (
+            <div className="flex flex-wrap items-end gap-2 border-t border-line-subtle pt-4">
+              <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.name}
+                <Input value={draft.name} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))} placeholder={s.servicePlaceholder} className="w-40" />
               </label>
-              <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.ntfyServer}
-                <Input value={config.alerts.ntfy.server} onChange={e => change({ alerts: { ...config.alerts, ntfy: { ...config.alerts.ntfy!, server: e.target.value.trim() } } })} className="font-mono" spellCheck={false} />
+              <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.type}
+                <Select value={draft.type} onChange={e => setDraft(d => ({ ...d, type: e.target.value as 'http' | 'tcp', target: e.target.value === 'tcp' ? '127.0.0.1:5432' : 'https://' }))} className="w-36">
+                  <option value="http">{s.typeHttp}</option>
+                  <option value="tcp">{s.typeTcp}</option>
+                </Select>
               </label>
-              <p className="text-xs text-fg-secondary">{s.ntfyHint}</p>
+              <label className="flex flex-1 flex-col gap-1.5 text-sm text-fg-secondary">{s.target}
+                <Input value={draft.target} onChange={e => setDraft(d => ({ ...d, target: e.target.value }))} className="min-w-[200px] font-mono" spellCheck={false} />
+              </label>
+              <Checkbox checked={draft.public} onChange={v => setDraft(d => ({ ...d, public: v }))} className="h-9">{s.public}</Checkbox>
+              <Button variant="secondary" disabled={!draft.name.trim() || draft.target.trim().length < 8} onClick={add}><Plus size={14} aria-hidden /> {s.add}</Button>
             </div>
           )}
-          <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.webhook}
-            <Input value={config.alerts.webhook ?? ''} onChange={e => change({ alerts: { ...config.alerts, webhook: e.target.value.trim() || null } })} placeholder="https://n8n…/webhook/…" className="font-mono" spellCheck={false} />
-            <span className="text-xs">{s.webhookHint}</span>
-          </label>
-          <div><Button size="sm" variant="secondary" disabled={!config.alerts.ntfy && !config.alerts.webhook} onClick={sendTest}><Send size={13} /> {s.sendTest}</Button></div>
+          {data.exposure === 'n8n' && <p className="text-xs text-fg-secondary">{s.n8nTargets}</p>}
         </Card>
 
-        <Card className="flex flex-col gap-4 p-5">
-          <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{s.pageTitle}</h2>
-          <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.title}
-            <Input value={config.title} onChange={e => change({ title: e.target.value })} />
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.interval}
-              <Select value={String(config.intervalSec)} onChange={e => change({ intervalSec: Number(e.target.value) })}>
+        <Card className="flex flex-col gap-1 p-4.5">
+          <h2 className="mb-1 flex items-center gap-2 font-display text-md font-bold tracking-[-.01em] text-fg"><Bell size={15} aria-hidden className="text-fg-secondary" /> {s.alertsTitle}</h2>
+          <div className="flex flex-col">
+            <AlertRow label={s.ntfyOn}>
+              <Switch checked={!!config.alerts.ntfy} label={s.ntfyOn}
+                onChange={v => change({ alerts: { ...config.alerts, ntfy: v ? { server: 'https://ntfy.sh', topic: randomTopic() } : null } })} />
+            </AlertRow>
+            {config.alerts.ntfy && (
+              <div className="flex flex-col gap-2 pb-3">
+                <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.ntfyTopic}
+                  <Input value={config.alerts.ntfy.topic} onChange={e => change({ alerts: { ...config.alerts, ntfy: { ...config.alerts.ntfy!, topic: e.target.value.trim() } } })} className="font-mono" spellCheck={false} />
+                </label>
+                <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.ntfyServer}
+                  <Input value={config.alerts.ntfy.server} onChange={e => change({ alerts: { ...config.alerts, ntfy: { ...config.alerts.ntfy!, server: e.target.value.trim() } } })} className="font-mono" spellCheck={false} />
+                </label>
+                <p className="text-xs text-fg-secondary">{s.ntfyHint}</p>
+              </div>
+            )}
+            <AlertRow label={s.failures}>
+              <Select aria-label={s.failures} value={String(config.failuresBeforeDown)} onChange={e => change({ failuresBeforeDown: Number(e.target.value) })} className="w-40">
+                {[1, 2, 3, 5].map(v => <option key={v} value={v}>{(v > 1 ? s.failuresMany : s.failuresOne).replace('{n}', String(v))}</option>)}
+              </Select>
+            </AlertRow>
+            <AlertRow label={s.interval}>
+              <Select aria-label={s.interval} value={String(config.intervalSec)} onChange={e => change({ intervalSec: Number(e.target.value) })} className="w-40">
                 {[30, 60, 120, 300].map(v => <option key={v} value={v}>{s.everySec.replace('{n}', String(v))}</option>)}
               </Select>
+            </AlertRow>
+            <label className="flex flex-col gap-1.5 border-t border-line-subtle pt-3 text-sm text-fg-secondary">{s.webhook}
+              <Input value={config.alerts.webhook ?? ''} onChange={e => change({ alerts: { ...config.alerts, webhook: e.target.value.trim() || null } })} placeholder="https://n8n…/webhook/…" className="font-mono" spellCheck={false} />
+              <span className="text-xs">{s.webhookHint}</span>
             </label>
-            <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.failures}
-              <Select value={String(config.failuresBeforeDown)} onChange={e => change({ failuresBeforeDown: Number(e.target.value) })}>
-                {[1, 2, 3, 5].map(v => <option key={v} value={v}>{v}</option>)}
-              </Select>
+            <label className="mt-3 flex flex-col gap-1.5 text-sm text-fg-secondary">{s.title}
+              <Input value={config.title} onChange={e => change({ title: e.target.value })} />
             </label>
+            <div className="mt-3"><Button size="sm" variant="secondary" disabled={!config.alerts.ntfy && !config.alerts.webhook} onClick={sendTest}><Send size={13} aria-hidden /> {s.sendTest}</Button></div>
           </div>
-          <p className="text-xs text-fg-secondary">{s.pageHint}</p>
         </Card>
       </div>
     </div>
@@ -423,11 +436,21 @@ function Settings({ conn, data, onSaved }: { conn: SSHConnection; data: StatusOv
 
 // ─── Incidents ────────────────────────────────────────────────────────────────
 
-function Incidents({ conn, data, onSaved }: { conn: SSHConnection; data: StatusOverview; onSaved: () => void }) {
-  const { t } = useI18n()
+/** « hier · 12 min »: when it started, how long it lasted */
+function when(i: StatusIncident, lang: string, ongoing: string): string {
+  const start = new Date(i.startedAt)
+  const day = start.toLocaleDateString(lang, { day: 'numeric', month: 'short' })
+  if (!i.resolvedAt) return `${day} · ${ongoing}`
+  const min = Math.max(1, Math.round((new Date(i.resolvedAt).getTime() - start.getTime()) / 60_000))
+  return `${day} · ${min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')}`}`
+}
+
+function Incidents({ conn, data, writing, setWriting, onSaved }: {
+  conn: SSHConnection; data: StatusOverview; writing: boolean; setWriting: (v: boolean) => void; onSaved: () => void
+}) {
+  const { t, lang } = useI18n()
   const s = t.statusPage
   const toast = useToast()
-  const [writing, setWriting] = useState(false)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const manual = data.incidents.filter(i => !i.auto)
@@ -444,24 +467,19 @@ function Incidents({ conn, data, onSaved }: { conn: SSHConnection; data: StatusO
   }
 
   return (
-    <Card className="flex flex-col gap-4 p-5">
-      <div className="flex flex-wrap items-start gap-3">
-        <div className="min-w-0 flex-1">
-          <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{s.incidentsTitle}</h2>
-          <p className="mt-1 text-sm text-fg-secondary">{s.incidentsHelp}</p>
-        </div>
-        <Button size="sm" variant="secondary" onClick={() => setWriting(true)}><Plus size={13} /> {s.writeIncident}</Button>
-      </div>
-      {data.incidents.length === 0 ? <p className="text-sm text-fg-secondary">{s.noIncidents}</p> : (
-        <ul aria-label={s.incidentsTitle} className="flex flex-col gap-2">
+    <Card className="flex flex-col gap-2 p-4.5">
+      <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{s.incidentsTitle}</h2>
+      <p className="text-sm text-fg-secondary">{s.incidentsHelp}</p>
+      {data.incidents.length === 0 ? <p className="py-2 text-sm text-fg-muted">{s.noIncidents}</p> : (
+        <ul aria-label={s.incidentsTitle} className="flex flex-col">
           {data.incidents.slice(0, 15).map(i => (
-            <li key={i.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-line-subtle bg-canvas px-4 py-3">
+            <li key={i.id} className="flex flex-wrap items-center gap-3 border-t border-line-subtle py-2.5 first:border-t-0">
+              <Badge color={i.resolvedAt ? 'success' : 'danger'}>{i.resolvedAt ? s.resolved : s.ongoing}</Badge>
               <div className="min-w-0 flex-1">
-                <p className="font-medium text-fg">{i.title} <span className="text-xs font-normal text-fg-secondary">· {i.auto ? s.auto : s.manual}</span></p>
-                <p className="text-xs text-fg-secondary">{new Date(i.startedAt).toLocaleString()}{i.resolvedAt ? ` → ${new Date(i.resolvedAt).toLocaleString()}` : ''}{i.cause ? ` · ${i.cause}` : ''}</p>
-                {i.body && <p className="mt-1 text-sm text-fg-secondary">{i.body}</p>}
+                <p className="text-base font-medium text-fg">{i.title} <span className="text-xs font-normal text-fg-muted">· {i.auto ? s.auto : s.manual}{i.cause ? ` · ${i.cause}` : ''}</span></p>
+                {i.body && <p className="mt-0.5 text-sm text-fg-secondary">{i.body}</p>}
               </div>
-              <span className={cn('text-xs font-medium', i.resolvedAt ? 'text-success' : 'text-danger')}>{i.resolvedAt ? s.resolved : s.ongoing}</span>
+              <span className="text-sm text-fg-muted" title={`${new Date(i.startedAt).toLocaleString(lang)}${i.resolvedAt ? ` → ${new Date(i.resolvedAt).toLocaleString(lang)}` : ''}`}>{when(i, lang, s.ongoing)}</span>
               {!i.auto && !i.resolvedAt && <Button size="sm" variant="ghost" onClick={() => saveManual(manual.map(x => x.id === i.id ? { ...x, resolvedAt: new Date().toISOString() } : x))}>{s.markResolved}</Button>}
               {!i.auto && <IconButton size="sm" title={s.deleteIncident} onClick={() => saveManual(manual.filter(x => x.id !== i.id))}><X size={13} /></IconButton>}
             </li>
@@ -469,7 +487,7 @@ function Incidents({ conn, data, onSaved }: { conn: SSHConnection; data: StatusO
         </ul>
       )}
       {writing && (
-        <Modal title={s.writeIncident} onClose={() => setWriting(false)}>
+        <Modal title={s.reportIncident} onClose={() => setWriting(false)}>
           <div className="flex flex-col gap-3">
             <label className="flex flex-col gap-1.5 text-sm text-fg-secondary">{s.incidentTitle}
               <Input value={title} onChange={e => setTitle(e.target.value)} placeholder={s.incidentTitlePlaceholder} autoFocus />

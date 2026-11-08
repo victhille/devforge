@@ -10,7 +10,7 @@ import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
 import ProjectIcon from './ProjectIcon'
 import ScriptsMenu from './ScriptsMenu'
 import { CiDot, TasksChip, useGitLine } from './ProjectCard'
-import MoreMenu, { type MoreItem } from './MoreMenu'
+import MoreMenu, { type MoreItem } from '@renderer/components/ui/MoreMenu'
 import type { PreferredIde } from '@renderer/lib/ide'
 
 const OPEN_KEY = 'projects-groups-unfolded'

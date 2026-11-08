@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { Play, RefreshCw, RotateCcw, Square } from 'lucide-react'
+import { Boxes, Container, Play, RefreshCw, RotateCcw, Square } from 'lucide-react'
 import type { RemoteCompose, RemoteContainer, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
 import { pressable } from '@renderer/lib/a11y'
+import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
+import { Table, Td, Th } from '@renderer/components/ui/Table'
 import NeedsSetup from '@renderer/components/NeedsSetup'
 import { errorText } from '@renderer/lib/errors'
-import StatusDot from '@renderer/components/ui/StatusDot'
 import LogBox from '@renderer/components/ui/LogBox'
 
 /** "app-backend-1" in project "app" → "backend" */
@@ -20,19 +21,20 @@ const shortName = (c: RemoteContainer) => (c.composeProject ? c.name.replace(new
 
 /**
  * Docker on a VPS, over the background watch's SSH session: compose projects,
- * containers with start / stop / restart, and their last log lines.
+ * containers with start / stop / restart, and their last log lines. The server
+ * comes from the page's tab; with many servers, a picker here.
  */
-export default function RemoteDocker({ connections }: { connections: SSHConnection[] }) {
+export default function RemoteDocker({ connections, connectionId }: { connections: SSHConnection[]; connectionId?: string }) {
   const { t } = useI18n()
   const d = t.docker
   const w = t.watch
   const toast = useToast()
-  const [serverId, setServerId] = useState(connections[0]?.id ?? '')
+  const [picked, setPicked] = useState(connections[0]?.id ?? '')
+  const serverId = connectionId ?? picked
   const [data, setData] = useState<{ containers: RemoteContainer[]; compose: RemoteCompose[] } | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
-  const [selected, setSelected] = useState<string | null>(null)
   const [logs, setLogs] = useState<{ name: string; text: string } | null>(null)
 
   const load = useCallback(async () => {
@@ -43,7 +45,7 @@ export default function RemoteDocker({ connections }: { connections: SSHConnecti
     catch (err) { setError(errorText(err)); setData(null) }
     finally { setLoading(false) }
   }, [serverId])
-  useEffect(() => { setSelected(null); setLogs(null); load() }, [load])
+  useEffect(() => { setLogs(null); load() }, [load])
 
   const loadLogs = useCallback(async (name: string) => {
     try { setLogs({ name, text: await window.devforge.watch.dockerLogs(serverId, name, 200) }) }
@@ -74,16 +76,20 @@ export default function RemoteDocker({ connections }: { connections: SSHConnecti
 
   if (!connections.length) return <NeedsSetup service="server" />
 
+  const showLogs = (name: string) => (logs?.name === name ? setLogs(null) : loadLogs(name))
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
-        <label className="flex items-center">
-          <span className="sr-only">VPS</span>
-          <select value={serverId} onChange={e => setServerId(e.target.value)} className="h-9 rounded-control border border-line bg-canvas px-3 text-sm text-fg outline-none">
-            {connections.map(c => <option key={c.id} value={c.id}>{c.name} · {c.host}</option>)}
-          </select>
-        </label>
-        <Button variant="secondary" onClick={load} loading={loading}>{!loading && <RefreshCw size={14} />} {t.common.refresh}</Button>
+        {!connectionId && (
+          <label className="flex items-center">
+            <span className="sr-only">{d.server}</span>
+            <select value={picked} onChange={e => setPicked(e.target.value)} className="h-9 rounded-control border border-line bg-canvas px-3 text-sm text-fg outline-none">
+              {connections.map(c => <option key={c.id} value={c.id}>{c.name} · {c.host}</option>)}
+            </select>
+          </label>
+        )}
+        <Button variant="secondary" onClick={load} loading={loading}>{!loading && <RefreshCw size={14} aria-hidden />} {t.common.refresh}</Button>
       </div>
 
       {error ? <Card className="p-4.5 text-sm text-danger">{w.vpsNoDocker.replace('{error}', error)}</Card>
@@ -93,48 +99,75 @@ export default function RemoteDocker({ connections }: { connections: SSHConnecti
               const compose = data.compose.find(c => c.name === project)
               const running = list.filter(c => c.state === 'running').length
               return (
-                <Card key={project || '_'} className="df-rise overflow-hidden" style={{ '--i': gi } as CSSProperties}>
-                  <div className="flex flex-wrap items-center gap-2.5 border-b border-line-subtle px-4.5 py-3.5">
+                <Card key={project || '_'} className="df-rise" style={{ '--i': gi } as CSSProperties}>
+                  <div className="flex flex-wrap items-center gap-3 border-b border-line-subtle px-4.5 py-3.5">
+                    <span aria-hidden className="flex size-8 shrink-0 items-center justify-center rounded-control bg-active text-fg-secondary">
+                      {project ? <Boxes size={16} /> : <Container size={16} />}
+                    </span>
                     <div className="min-w-0 flex-1">
-                      <h2 className="font-semibold text-fg">{project || d.standalone}</h2>
+                      <h2 className="truncate font-display text-lg font-bold tracking-[-.01em] text-fg">{project || d.standalone}</h2>
                       {compose && <div className="truncate font-mono text-xs text-fg-muted">{compose.configFiles}</div>}
                     </div>
                     <span className="font-mono text-xs text-fg-secondary">{running}/{list.length}</span>
                     {compose && (busy === project ? <Spinner /> : (
                       <>
-                        {running < list.length && <Button size="sm" onClick={() => act(project, { compose }, 'up')}><Play size={12} /> {d.start}</Button>}
-                        {running > 0 && <Button size="sm" variant="secondary" onClick={() => act(project, { compose }, 'restart')}><RotateCcw size={12} /> {d.restart}</Button>}
-                        {running > 0 && <Button size="sm" variant="danger" onClick={() => act(project, { compose }, 'stop')}><Square size={11} /> {d.stop}</Button>}
+                        {running < list.length && <Button size="sm" onClick={() => act(project, { compose }, 'up')}><Play size={12} aria-hidden /> {d.start}</Button>}
+                        {running > 0 && <Button size="sm" variant="secondary" onClick={() => act(project, { compose }, 'restart')}><RotateCcw size={12} aria-hidden /> {d.restart}</Button>}
+                        {running > 0 && <Button size="sm" variant="danger" onClick={() => act(project, { compose }, 'stop')}><Square size={11} aria-hidden /> {d.stop}</Button>}
                       </>
                     ))}
                   </div>
-                  {list.map(c => {
-                    const on = c.state === 'running'
-                    return (
-                      <div key={c.id} onClick={() => { setSelected(c.name); loadLogs(c.name) }} {...pressable(() => { setSelected(c.name); loadLogs(c.name) })}
-                        className={cn('group flex cursor-pointer items-center gap-3 border-t border-line-subtle px-4.5 py-2.5 first:border-t-0 hover:bg-hover', selected === c.name && 'bg-hover')}>
-                        <StatusDot state={on ? 'on' : 'off'} live={on} />
-                        <span className="w-40 shrink-0 truncate font-medium text-fg">{shortName(c)}</span>
-                        <span className="min-w-0 flex-1 truncate font-mono text-xs text-fg-secondary">{c.image}</span>
-                        <span className="hidden w-44 truncate text-right text-xs text-fg-secondary md:block">{c.status}</span>
-                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100" onClick={e => e.stopPropagation()}>
-                          {busy === c.name ? <Spinner /> : on ? (
-                            <>
-                              <IconButton size="sm" title={d.restart} onClick={() => act(c.name, { container: c.name }, 'restart')}><RotateCcw size={12} /></IconButton>
-                              <IconButton size="sm" title={d.stop} onClick={() => act(c.name, { container: c.name }, 'stop')}><Square size={11} /></IconButton>
-                            </>
-                          ) : <IconButton size="sm" title={d.start} onClick={() => act(c.name, { container: c.name }, 'start')}><Play size={12} /></IconButton>}
-                        </div>
-                      </div>
-                    )
-                  })}
+                  {/* Same widths in every card: the columns line up from one project to the next */}
+                  <Table className="min-w-[640px] table-fixed">
+                    <colgroup>
+                      <col className="w-[22%]" />
+                      <col className="w-[34%]" />
+                      <col className="w-[20%]" />
+                      <col className="w-[13%]" />
+                      <col className="w-[11%]" />
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        <Th className="pl-4.5">{d.colService}</Th>
+                        <Th>{d.colImage}</Th>
+                        <Th>{d.colStatus}</Th>
+                        <Th>{d.colState}</Th>
+                        <Th align="right"><span className="sr-only">{d.colActions}</span></Th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {list.map(c => {
+                        const on = c.state === 'running'
+                        return (
+                          <tr key={c.id} onClick={() => showLogs(c.name)} {...pressable(() => showLogs(c.name))} aria-selected={logs?.name === c.name}
+                            className={cn('group cursor-pointer', logs?.name === c.name && '[&>td]:bg-elevated')}>
+                            <Td className="truncate pl-4.5 font-semibold text-fg" title={c.name}>{shortName(c)}</Td>
+                            <Td className="truncate font-mono text-xs text-fg-secondary" title={c.image}>{c.image}</Td>
+                            <Td className="truncate text-xs text-fg-secondary" title={c.status}>{c.status}</Td>
+                            <Td className="whitespace-nowrap"><Badge dot color={on ? 'success' : 'default'}>{on ? d.stateRunning : d.stateStopped}</Badge></Td>
+                            <Td align="right" onClick={e => e.stopPropagation()}>
+                              <div className="flex justify-end gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
+                                {busy === c.name ? <Spinner /> : on ? (
+                                  <>
+                                    <IconButton size="sm" title={d.restart} onClick={() => act(c.name, { container: c.name }, 'restart')}><RotateCcw size={12} /></IconButton>
+                                    <IconButton size="sm" title={d.stop} onClick={() => act(c.name, { container: c.name }, 'stop')}><Square size={11} /></IconButton>
+                                  </>
+                                ) : <IconButton size="sm" title={d.start} onClick={() => act(c.name, { container: c.name }, 'start')}><Play size={12} /></IconButton>}
+                              </div>
+                            </Td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </Table>
                 </Card>
               )
             })}
 
             {logs && (
               <LogBox text={logs.text} placeholder="—"
-                title={<span className="flex items-center gap-2.5">{w.vpsLogs.replace('{name}', logs.name)} <StatusDot state="on" live /></span>}
+                title={<span className="flex items-center gap-2.5">{w.vpsLogs.replace('{name}', logs.name)} <span className="font-mono text-xs font-normal text-fg-muted">{d.live}</span></span>}
+                label={w.vpsLogs.replace('{name}', logs.name)}
                 actions={<Button size="sm" variant="ghost" onClick={() => loadLogs(logs.name)}>{w.refreshLogs}</Button>} />
             )}
           </div>

@@ -9,18 +9,19 @@ The **Docker** page drives this PC's Docker engine (Docker Desktop) and your ser
 [Docker Desktop](https://www.docker.com/products/docker-desktop/) must be running. Otherwise the page says "Docker is not available"; the state also shows in [Connections](/devforge/en/getting-started/connections/#docker).
 :::
 
-## Local
+## This PC
 
-At the top: Docker's version and the number of running containers. Two views:
+At the top: Docker's version, the number of running containers and of images. The **This PC** tab shows this PC's Docker, and each server has its tab (beyond three servers, one **VPS** tab and a picker).
 
-- **Compose**: each Compose project with its services (image, ports, status, CPU), its state (*online*, *stopped*, *Never started*) and the DevForge project it belongs to. **Start**, **Stop**, **Restart**, and **Remove containers** (volumes, so database data, are kept: the project can be started again).
-- **Standalone**: standalone containers, with start, stop, restart and remove (data not stored in a volume is then lost).
+The menu on the left:
 
-An **Images** view lists the images.
+- **Compose**: each Compose project, with how many services are online. On the right, its services (image, ports, CPU, memory, state *online* or *stopped*) and the DevForge project it belongs to. **Start**, **Restart**, **Stop**, and **Remove containers** (volumes, so database data, are kept: the project can be started again). A project never started says so.
+- **Others** › **Standalone containers**: the containers started without a Compose project, with start, stop, restart and remove (data not stored in a volume is then lost).
+- **Others** › **Images**: the images, their date and size.
 
 ### Logs
 
-**Logs** opens the logs of a container or of all the services of a project, **live**. **Ask Forgy** hands the logs over to diagnose a crashing container.
+Under the services, the **logs** of all the services of a project, **live**; a click on a service shows only its own. **Ask Forgy** hands the logs over to diagnose a crashing container.
 
 ### Clean up
 
@@ -28,7 +29,7 @@ An **Images** view lists the images.
 
 ## On a server
 
-The **VPS** tab shows the Docker of an SSH server: its containers and their logs, through the SSH connection. If Docker cannot be reached on the server, the page shows the error.
+A server's tab shows its Docker, through the SSH connection: its Compose projects and containers, with start, stop and restart; a click on a container shows its last log lines. If Docker cannot be reached on the server, the page shows the error.
 
 ## Elsewhere in DevForge
 

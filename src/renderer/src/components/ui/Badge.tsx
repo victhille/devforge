@@ -25,7 +25,7 @@ interface Props {
 /** Forge: a small square tag, 22 px high */
 export default function Badge({ color = 'default', dot, mono, className, children }: Props) {
   return (
-    <span className={cn('inline-flex h-5.5 items-center gap-1.5 rounded-md px-2 text-xs whitespace-nowrap', mono ? 'font-mono font-medium' : 'font-semibold', COLORS[color], className)}>
+    <span className={cn('inline-flex h-5.5 items-center gap-1.5 rounded-md px-2 text-xs leading-none tracking-normal whitespace-nowrap', mono ? 'font-mono font-medium' : 'font-sans font-semibold', COLORS[color], className)}>
       {dot && <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-current" />}
       {children}
     </span>

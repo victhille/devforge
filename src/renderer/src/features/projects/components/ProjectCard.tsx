@@ -12,7 +12,7 @@ import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
 import ProjectIcon from './ProjectIcon'
 import GitBadge from './GitBadge'
 import ScriptsMenu from './ScriptsMenu'
-import MoreMenu, { type MoreItem } from './MoreMenu'
+import MoreMenu, { type MoreItem } from '@renderer/components/ui/MoreMenu'
 
 export type CardLayout = 'list' | 'grid'
 

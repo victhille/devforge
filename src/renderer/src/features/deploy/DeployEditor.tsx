@@ -6,14 +6,15 @@ import Checkbox from '@renderer/components/ui/Checkbox'
 import Modal from '@renderer/components/ui/Modal'
 import { Field, Input, Select, Textarea } from '@renderer/components/ui/Input'
 import { NO_PROJECTS, useProjectList } from '@renderer/hooks/useLiveData'
+import type { DeployMethod } from './deploySteps'
 
-/** Ready-made scripts for common setups */
-export const PRESETS: { id: string; label: string; script: string }[] = [
-  { id: 'node-pm2', label: 'Node.js + PM2', script: 'git pull\nnpm ci\nnpm run build\npm2 restart ecosystem.config.js --update-env' },
-  { id: 'compose',  label: 'Docker Compose', script: 'git pull\ndocker compose pull\ndocker compose up -d --build\ndocker image prune -f' },
-  { id: 'static',   label: 'Static site (build)', script: 'git pull\nnpm ci\nnpm run build' },
-  { id: 'symfony',  label: 'PHP / Symfony', script: 'git pull\ncomposer install --no-dev --optimize-autoloader\nphp bin/console doctrine:migrations:migrate --no-interaction\nphp bin/console cache:clear --env=prod' },
-  { id: 'laravel',  label: 'Laravel', script: 'git pull\ncomposer install --no-dev --optimize-autoloader\nphp artisan migrate --force\nphp artisan config:cache\nphp artisan route:cache' }
+/** Ready-made scripts for common setups, named like the methods of the deploy table */
+export const PRESETS: { id: Exclude<DeployMethod, 'script'>; script: string }[] = [
+  { id: 'pm2',     script: 'git pull\nnpm ci\nnpm run build\npm2 restart ecosystem.config.js --update-env' },
+  { id: 'compose', script: 'git pull\ndocker compose pull\ndocker compose up -d --build\ndocker image prune -f' },
+  { id: 'static',  script: 'git pull\nnpm ci\nnpm run build' },
+  { id: 'symfony', script: 'git pull\ncomposer install --no-dev --optimize-autoloader\nphp bin/console doctrine:migrations:migrate --no-interaction\nphp bin/console cache:clear --env=prod' },
+  { id: 'laravel', script: 'git pull\ncomposer install --no-dev --optimize-autoloader\nphp artisan migrate --force\nphp artisan config:cache\nphp artisan route:cache' }
 ]
 
 interface Props {
@@ -77,7 +78,7 @@ export default function DeployEditor({ initial, onSave, onClose }: Props) {
         {PRESETS.map(p => (
           <button key={p.id} type="button" onClick={() => set('script', p.script)}
             className="rounded-full border border-line-subtle px-2.5 py-0.5 text-xs text-fg-secondary hover:border-line hover:text-fg">
-            {p.label}
+            {d.method[p.id]}
           </button>
         ))}
       </div>

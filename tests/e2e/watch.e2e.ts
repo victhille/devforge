@@ -46,8 +46,8 @@ test('monitoring shows 24 h of a site and the watched servers', async () => {
   await expect(page.getByText('root@127.0.0.1 · non surveillé')).toBeVisible()
   expect(await settledAxeIssues(page)).toEqual([])
 
-  // Docker: the VPS side lists the servers
+  // Docker: each server has its tab beside « Ce PC », as in the mock-up
   await goTo(page, '/docker')
-  await page.getByRole('tab', { name: 'VPS' }).click()
-  await expect(page.getByRole('combobox').filter({ hasText: 'Prod' })).toBeVisible()
+  await page.getByRole('tab', { name: 'Prod' }).click()
+  await expect(page.getByText(/^Docker n'est pas accessible sur ce serveur/)).toBeVisible()
 })
