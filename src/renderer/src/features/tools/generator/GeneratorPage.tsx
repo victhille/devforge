@@ -3,11 +3,12 @@ import { RefreshCw } from 'lucide-react'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
 import Card, { CardHeader, CardTitle } from '@renderer/components/ui/Card'
+import Checkbox from '@renderer/components/ui/Checkbox'
 import CopyButton from '@renderer/components/ui/CopyButton'
 import IconButton from '@renderer/components/ui/IconButton'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
-import { generatePassword, generateSecret, generateUuid, type SecretFormat } from './random'
+import { generatePassword, generateSecret, generateUuid, laravelAppKey, secretBits, type SecretFormat } from './random'
 import ToolHelp from '@renderer/components/ui/ToolHelp'
 
 type T = ReturnType<typeof useI18n>['t']['generator']
@@ -29,7 +30,7 @@ function ResultRow({ value, onGenerate, label }: { value: string; onGenerate: ()
       <div className="min-h-8 flex-1 break-all rounded-control border border-line bg-canvas px-3 py-1.5 font-mono text-sm text-fg">
         {value || <span className="font-sans text-fg-muted">{t.generator.clickGenerate}</span>}
       </div>
-      <IconButton title="Regenerate" onClick={onGenerate}><RefreshCw size={14} /></IconButton>
+      <IconButton title={t.generator.regenerate} onClick={onGenerate}><RefreshCw size={14} /></IconButton>
       {value && <CopyButton text={value} />}
       <Button onClick={onGenerate}>{label}</Button>
     </div>
@@ -88,12 +89,17 @@ function PasswordSection({ t }: { t: T }) {
 function SecretSection({ t }: { t: T }) {
   const [bytes,  setBytes]  = useState(32)
   const [format, setFormat] = useState<SecretFormat>('hex')
+  const [laravel, setLaravel] = useState(false)
+  const [urlSafe, setUrlSafe] = useState(false)
   const [result, setResult] = useState('')
+  // Laravel's APP_KEY is always 32 bytes in padded base64
+  const asLaravel = format === 'base64' && laravel
+  const generate = () => setResult(asLaravel ? laravelAppKey() : generateSecret(bytes, format, { urlSafe: format === 'base64' && urlSafe }))
 
   return (
     <Section title={t.sectionSecret}>
       <div className="flex flex-wrap items-end gap-6">
-        <Slider label={t.bytes} value={bytes} min={8} max={64} onChange={setBytes} />
+        {!asLaravel && <Slider label={t.bytes} value={bytes} min={8} max={64} onChange={setBytes} />}
         <div className="flex flex-col gap-1.5 text-sm text-fg-muted">
           <span>{t.format}</span>
           <Tabs<SecretFormat>
@@ -106,8 +112,15 @@ function SecretSection({ t }: { t: T }) {
             ]}
           />
         </div>
+        {format === 'base64' && (
+          <div className="flex flex-col gap-2">
+            <Checkbox checked={laravel} onChange={setLaravel}>{t.laravelPrefix}</Checkbox>
+            {!laravel && <Checkbox checked={urlSafe} onChange={setUrlSafe}>{t.urlSafe}</Checkbox>}
+          </div>
+        )}
       </div>
-      <ResultRow value={result} onGenerate={() => setResult(generateSecret(bytes, format))} label={t.generate} />
+      <ResultRow value={result} onGenerate={generate} label={t.generate} />
+      <p className="text-xs text-fg-muted">{t.strength.replace('{n}', String(asLaravel ? 256 : secretBits(bytes, format)))}</p>
     </Section>
   )
 }

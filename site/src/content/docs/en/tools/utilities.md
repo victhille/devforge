@@ -11,7 +11,7 @@ One page, one tab per tool, and **Find a tool…** to go fast:
 
 | Tool | What it does |
 |---|---|
-| JSON | **Format** or **Minify**, with a clear error if the JSON is invalid |
+| JSON | **Format**, **Minify** or **Sort keys** (every object in alphabetical order, lists keep theirs), with a clear error if the JSON is invalid |
 | Base64 | **Encode** / **Decode** |
 | JWT | decodes a token's header and payload, without checking the signature |
 | Regex | a pattern and its flags, tested on a text: matches are highlighted |
@@ -40,14 +40,14 @@ Your reusable bits of code: a **title**, a **language**, the **code** and **tags
 
 ## Text Diff
 
-Paste an **Original** text and a **Modified** text: the result shows side by side what is *added*, *removed* or *unchanged*.
+Paste an **Original** text and a **Modified** text: the result shows side by side what is *added*, *removed* or *unchanged*. **Ignore whitespace** counts as equal the lines that only differ by indentation or extra spaces. **Swap** exchanges the two texts.
 
 ## Generator
 
 | Section | Settings |
 |---|---|
 | Password | length, uppercase, lowercase, numbers, symbols |
-| Secret / Token | format (Hex, Base64, alphanumeric) and number of bytes |
+| Secret / Token | format (Hex, Base64, alphanumeric) and number of bytes. In Base64: **base64: prefix (Laravel APP_KEY)** gives a key ready for Laravel's `.env`, **URL-safe** swaps `+` and `/` for `-` and `_`. Under the result, the bits of randomness |
 | UUID | one v4 UUID per click, the last 10 kept |
 
 **Generate**, then **Copy**.

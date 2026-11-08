@@ -187,9 +187,10 @@ const api: DevForgeAPI = {
   },
 
   suggest: {
-    logFiles:    invoke('suggest:log-files'),
-    monitorUrls: invoke('suggest:monitor-urls'),
-    domains:     invoke('suggest:domains')
+    logFiles:     invoke('suggest:log-files'),
+    monitorUrls:  invoke('suggest:monitor-urls'),
+    domains:      invoke('suggest:domains'),
+    portProjects: invoke('suggest:port-projects')
   },
 
   // SSH

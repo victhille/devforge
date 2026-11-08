@@ -21,6 +21,8 @@ If keys of the template (`.env.example`) are missing in `.env`, a banner lists t
 
 **Edit** a value or **Add** a key writes straight to the file.
 
+**Regenerate** shows on hover for the secrets the app draws itself, known by their exact name: `APP_KEY`, `APP_SECRET`, `SECRET_KEY`, `SESSION_SECRET`, `JWT_SECRET`, `AUTH_SECRET`, `NEXTAUTH_SECRET`, `BETTER_AUTH_SECRET`, `COOKIE_SECRET`, `CSRF_SECRET`. Once you confirm, DevForge makes an **encrypted backup** of the `.env` files, then writes a new random secret: 32 bytes in hexadecimal, or `base64:` then 32 bytes for Laravel's `APP_KEY`. Open sessions and what was encrypted with the old value are no longer readable; **Restore** brings the backup back. Secrets given by a service (`STRIPE_KEY`, `GITHUB_CLIENT_SECRET`, an API token) and encryption keys are never offered.
+
 ## Backing up
 
 - **Encrypted backup** saves the project's `.env` files in DevForge, encrypted by Windows. The date of the last backup shows.

@@ -11,7 +11,7 @@ Une page, un onglet par outil, et **Chercher un outil…** pour aller vite :
 
 | Outil | Ce qu'il fait |
 |---|---|
-| JSON | **Formater** ou **Minifier**, avec une erreur claire si le JSON est invalide |
+| JSON | **Formater**, **Minifier** ou **Trier les clés** (chaque objet par ordre alphabétique, les listes gardent leur ordre), avec une erreur claire si le JSON est invalide |
 | Base64 | **Encoder** / **Décoder** |
 | JWT | décode l'en-tête et le contenu (payload) d'un jeton, sans vérifier la signature |
 | Regex | un motif et ses flags, testés sur un texte : les correspondances sont surlignées |
@@ -40,14 +40,14 @@ Tes bouts de code réutilisables : un **titre**, un **langage**, le **code** et 
 
 ## Diff texte
 
-Colle un texte **Original** et un texte **Modifié** : le résultat montre côte à côte ce qui est *ajouté*, *supprimé* ou *inchangé*.
+Colle un texte **Original** et un texte **Modifié** : le résultat montre côte à côte ce qui est *ajouté*, *supprimé* ou *inchangé*. **Ignorer les espaces** compte comme identiques les lignes qui ne diffèrent que par l'indentation ou des espaces en trop. **Inverser** échange les deux textes.
 
 ## Générateur
 
 | Section | Réglages |
 |---|---|
 | Mot de passe | longueur, majuscules, minuscules, chiffres, symboles |
-| Secret / Token | format (Hex, Base64, alphanumérique) et nombre d'octets |
+| Secret / Token | format (Hex, Base64, alphanumérique) et nombre d'octets. En Base64 : **Préfixe base64: (APP_KEY de Laravel)** donne une clé prête pour le `.env` de Laravel, **Sûr pour une URL** remplace `+` et `/` par `-` et `_`. Sous le résultat, le nombre de bits d'aléa |
 | UUID | un UUID v4 par clic, les 10 derniers gardés |
 
 **Générer**, puis **Copier**.

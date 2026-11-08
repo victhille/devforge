@@ -293,8 +293,8 @@ export function RelationsTab({ details, table, onOpenTable }: { details: DbTable
 export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
     <Card className="flex flex-col gap-1 px-4 py-3">
-      <span className="text-2xs font-medium uppercase tracking-wider text-fg-muted">{label}</span>
-      <span className="truncate text-md font-semibold text-fg" title={typeof value === 'string' ? value : undefined}>{value}</span>
+      <span className="text-sm text-fg-muted">{label}</span>
+      <span className="truncate font-display text-lg leading-tight font-bold tracking-[-.01em] text-fg" title={typeof value === 'string' ? value : undefined}>{value}</span>
       {hint && <span className="text-2xs text-fg-muted">{hint}</span>}
     </Card>
   )

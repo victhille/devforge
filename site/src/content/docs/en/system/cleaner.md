@@ -15,7 +15,7 @@ Pick a folder (**Browse**) and **Scan**. DevForge lists, with their size:
 | Build output | `dist` and `build` (next to a `package.json`), `.next`, `.nuxt`, `.output`, `.svelte-kit` |
 | Caches | `.turbo`, `.parcel-cache`, `.cache`, `coverage`, `__pycache__` |
 
-The reclaimable total shows at the top. Projects with no activity for more than 30 days are marked *inactive*.
+The **reclaimable** total and the **selected** size show at the top. The table gives for each folder its category, the project, the project's **last activity** and the size. Projects with no activity for more than 30 days are marked *inactive*.
 
 ## Choose
 

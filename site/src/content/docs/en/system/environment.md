@@ -14,6 +14,8 @@ The **Environment** page detects the dev tools installed on this PC and their ve
 
 A missing tool is marked *Not detected*, with **Install…**: a link to its install page and, when there is one, the command to run (for example `npm install -g pnpm`).
 
+Each category says how many of its tools are detected ("3 of 4 detected").
+
 Detection is kept in memory (installed tools rarely change); **Refresh** runs it again.
 
 ## Project requirements

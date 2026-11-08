@@ -15,7 +15,7 @@ Choisis un dossier (**Parcourir**) et **Analyser**. DevForge liste avec leur tai
 | Builds | `dist` et `build` (à côté d'un `package.json`), `.next`, `.nuxt`, `.output`, `.svelte-kit` |
 | Caches | `.turbo`, `.parcel-cache`, `.cache`, `coverage`, `__pycache__` |
 
-Le total récupérable s'affiche en haut. Les projets sans activité depuis plus de 30 jours sont marqués *inactif*.
+Le total **récupérable** et la **sélection** s'affichent en haut. Le tableau donne pour chaque dossier sa catégorie, le projet, la **dernière activité** du projet et la taille. Les projets sans activité depuis plus de 30 jours sont marqués *inactif*.
 
 ## Choisir
 

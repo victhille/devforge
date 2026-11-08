@@ -9,7 +9,7 @@ La page **Domaines locaux** donne un nom à tes serveurs de dev : `shop.test` au
 
 Saisis un **domaine** qui finit par `.test` ou `.localhost` (par exemple `shop.test`) et le **port** local, puis **Ajouter**. **Détectés dans vos projets** propose des couples domaine / port tirés de tes projets.
 
-Chaque domaine peut être activé ou désactivé ; il est marqué *actif* quand son serveur répond.
+Les domaines s'affichent en tableau, avec le nombre de domaines actifs en tête (« Actifs : 2 sur 3 »). Pour chacun : l'interrupteur qui l'active ou le désactive, l'adresse, le port visé, le **projet** qui tient ce port et son **état** : *répond* quand un serveur écoute sur le port, *rien sur le port* sinon, *désactivé* quand il est coupé.
 
 ## Le proxy
 

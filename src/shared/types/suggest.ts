@@ -24,8 +24,17 @@ export interface DomainSuggestion {
   running: boolean
 }
 
+/** A dev server running from a project's folder */
+export interface PortProject {
+  port: number
+  projectId: string
+  projectName: string
+}
+
 export interface SuggestAPI {
   logFiles:   () => Promise<LogFileSuggestion[]>
   monitorUrls: () => Promise<UrlSuggestion[]>
   domains:    () => Promise<DomainSuggestion[]>
+  /** Which project each listening dev port comes from (by the command line of its process) */
+  portProjects: () => Promise<PortProject[]>
 }

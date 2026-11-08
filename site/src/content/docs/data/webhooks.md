@@ -17,7 +17,7 @@ cloudflared tunnel --url http://127.0.0.1:9999
 
 ## Inspecter
 
-Chaque requête apparaît en direct : méthode, chemin, heure, **Headers** et **Body** (tronqué à 1 Mo). **Vider** efface la liste.
+Un badge à côté du titre dit si le serveur est **En écoute** ou **Arrêté**. Chaque requête apparaît en direct : méthode, chemin, heure, **Headers** et **Body** (tronqué à 1 Mo). Le haut de la liste compte les requêtes reçues aujourd'hui. **Vider** efface la liste.
 
 ## Répondre
 

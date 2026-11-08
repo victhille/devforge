@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { ArrowLeftRight, Trash2 } from 'lucide-react'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
+import Checkbox from '@renderer/components/ui/Checkbox'
 import { Textarea } from '@renderer/components/ui/Input'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
 import { computeDiff, type DiffType } from './diff'
@@ -20,8 +21,9 @@ export default function DiffPage() {
   const { t } = useI18n()
   const [left,  setLeft]  = useState('')
   const [right, setRight] = useState('')
+  const [ignoreSpaces, setIgnoreSpaces] = useState(false)
 
-  const diff    = useMemo(() => (left || right ? computeDiff(left, right) : []), [left, right])
+  const diff    = useMemo(() => (left || right ? computeDiff(left, right, { ignoreWhitespace: ignoreSpaces }) : []), [left, right, ignoreSpaces])
   const added   = diff.filter(d => d.type === 'add').length
   const removed = diff.filter(d => d.type === 'remove').length
 
@@ -32,9 +34,14 @@ export default function DiffPage() {
         title={t.diff.title}
         subtitle={t.diff.subtitle}
         actions={(left || right) && (
-          <Button variant="secondary" size="sm" onClick={() => { setLeft(''); setRight('') }}>
-            <Trash2 size={13} /> {t.diff.clear}
-          </Button>
+          <>
+            <Button variant="secondary" size="sm" onClick={() => { setLeft(right); setRight(left) }}>
+              <ArrowLeftRight size={13} /> {t.diff.swap}
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => { setLeft(''); setRight('') }}>
+              <Trash2 size={13} /> {t.diff.clear}
+            </Button>
+          </>
         )}
       />
       <ToolHelp id="diff" what={t.toolHelp.diff.what} how={t.toolHelp.diff.how}
@@ -59,10 +66,11 @@ export default function DiffPage() {
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-1.5">
-        <div className="flex shrink-0 items-center justify-between">
+        <div className="flex shrink-0 items-center gap-4">
           <SectionTitle>{t.diff.result}</SectionTitle>
+          <Checkbox checked={ignoreSpaces} onChange={setIgnoreSpaces}>{t.diff.ignoreSpaces}</Checkbox>
           {diff.length > 0 && (
-            <div className="flex gap-3 text-sm font-semibold">
+            <div className="ml-auto flex gap-3 text-sm font-semibold">
               <span className="text-success">+{added} {t.diff.added}</span>
               <span className="text-danger">-{removed} {t.diff.removed}</span>
             </div>

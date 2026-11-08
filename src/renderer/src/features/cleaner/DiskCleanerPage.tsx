@@ -12,6 +12,8 @@ import Checkbox from '@renderer/components/ui/Checkbox'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import Modal from '@renderer/components/ui/Modal'
 import Spinner from '@renderer/components/ui/Spinner'
+import Stat, { StatRow } from '@renderer/components/ui/Stat'
+import { Table, Td, Th } from '@renderer/components/ui/Table'
 import ErrorState from '@renderer/components/ui/ErrorState'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Input } from '@renderer/components/ui/Input'
@@ -96,23 +98,15 @@ export default function DiskCleanerPage() {
 
       {rows.length > 0 && (
         <>
-          <div className="grid grid-cols-3 gap-3">
-            <Card className="flex flex-col gap-1 px-4 py-3">
-              <span className="flex items-center gap-2 text-2xl font-semibold text-fg">
-                {formatSize(total)} {sizing && <Spinner />}
-              </span>
-              <span className="text-sm text-fg-secondary">{c.reclaimable.replace('{n}', String(rows.length))}</span>
-            </Card>
-            <Card className="flex flex-col gap-1 px-4 py-3">
-              <span className="text-2xl font-semibold text-accent">{formatSize(selectedBytes)}</span>
-              <span className="text-sm text-fg-secondary">{c.selected.replace('{n}', String(selected.size))}</span>
-            </Card>
+          <StatRow>
+            <Stat label={c.statReclaimable} value={<span className="inline-flex items-center gap-2">{formatSize(total)} {sizing && <Spinner />}</span>} unit={c.reclaimable.replace('{n}', String(rows.length))} />
+            <Stat label={c.statSelected} tone="accent" value={formatSize(selectedBytes)} unit={c.selected.replace('{n}', String(selected.size))} />
             <Card className="flex items-center justify-center px-4 py-3">
               <Button variant="danger" size="lg" disabled={selected.size === 0} onClick={() => setConfirming(true)}>
                 <Trash2 size={16} /> {c.deleteSelected}
               </Button>
             </Card>
-          </div>
+          </StatRow>
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Tabs<KindFilter>
@@ -134,30 +128,44 @@ export default function DiskCleanerPage() {
             </div>
           </div>
 
-          <Card className="divide-y divide-line-subtle">
-            {visible.map(r => (
-              <div
-                key={r.path}
-                onClick={() => toggle(r.path, !selected.has(r.path))}
-                className={cn('flex cursor-pointer items-center gap-4 px-4 py-2.5 hover:bg-elevated', selected.has(r.path) && 'bg-accent-soft/40')}
-              >
-                <span onClick={e => e.stopPropagation()}>
-                  <Checkbox checked={selected.has(r.path)} onChange={on => toggle(r.path, on)}>{null}</Checkbox>
-                </span>
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="flex items-center gap-2">
-                    <span className="font-medium text-fg">{r.projectName}</span>
-                    <Badge color={KIND_COLOR[r.kind]} className="font-mono">{r.name}</Badge>
-                    {isOld(r.projectModified) && <Badge>{c.old}</Badge>}
-                  </span>
-                  <span className="truncate font-mono text-xs text-fg-muted">{r.path}</span>
-                </div>
-                <span className="shrink-0 text-xs text-fg-muted">{formatRelative(r.projectModified, lang)}</span>
-                <span className="w-24 shrink-0 text-right font-mono text-sm font-semibold text-fg">
-                  {r.size === null ? <Spinner className="ml-auto" /> : formatSize(r.size)}
-                </span>
-              </div>
-            ))}
+          <Card className="overflow-hidden">
+            <Table className="table-fixed">
+              <thead>
+                <tr>
+                  <Th className="w-12"><span className="sr-only">{c.colPick}</span></Th>
+                  <Th className="w-[22%]">{c.colFolder}</Th>
+                  <Th>{c.colProject}</Th>
+                  <Th className="w-40">{c.colActivity}</Th>
+                  <Th className="w-28" align="right">{c.colSize}</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map(r => (
+                  <tr key={r.path} onClick={() => toggle(r.path, !selected.has(r.path))}
+                    className={cn('cursor-pointer', selected.has(r.path) && '[&_td]:bg-accent-soft/40')}>
+                    <Td onClick={e => e.stopPropagation()}>
+                      <Checkbox checked={selected.has(r.path)} onChange={on => toggle(r.path, on)}><span className="sr-only">{r.path}</span></Checkbox>
+                    </Td>
+                    <Td>
+                      <span className="flex items-center gap-1.5">
+                        <Badge color={KIND_COLOR[r.kind]} className="font-mono">{r.name}</Badge>
+                        {isOld(r.projectModified) && <Badge>{c.old}</Badge>}
+                      </span>
+                    </Td>
+                    <Td className="py-1.5">
+                      <span className="flex min-w-0 flex-col">
+                        <span className="truncate font-medium text-fg">{r.projectName}</span>
+                        <span className="truncate font-mono text-2xs text-fg-muted" title={r.path}>{r.path}</span>
+                      </span>
+                    </Td>
+                    <Td className="text-xs text-fg-muted">{formatRelative(r.projectModified, lang)}</Td>
+                    <Td align="right" className="font-mono text-sm font-semibold text-fg">
+                      {r.size === null ? <Spinner className="ml-auto" /> : formatSize(r.size)}
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
           </Card>
         </>
       )}
