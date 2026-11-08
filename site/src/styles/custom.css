@@ -1,72 +1,76 @@
 /*
- * The docs in the « Atelier » look of the home page: a warm paper ground,
- * dark ink, Geist, the app's screens on its dark canvas, Forgy's orange for
- * what is current. The dark theme keeps the app's own colours.
+ * The docs in the app's « Forge » look (src/renderer/src/styles/index.css):
+ * warm charcoal in the dark theme, cream paper in the light one, Inter for the
+ * text, Bricolage Grotesque for the titles, JetBrains Mono for code, the
+ * forge orange for what is current, the app's screens on its dark canvas.
  */
 :root {
-  --sl-font: 'Geist Variable', 'Segoe UI', system-ui, sans-serif;
-  --sl-font-mono: 'Geist Mono Variable', ui-monospace, monospace;
+  --sl-font: 'Inter Variable', 'Segoe UI', system-ui, sans-serif;
+  --sl-font-mono: 'JetBrains Mono Variable', 'Cascadia Code', Consolas, monospace;
+  --df-display: 'Bricolage Grotesque Variable', 'Inter Variable', 'Segoe UI', sans-serif;
 
-  /* Dark theme: the app (src/renderer/src/styles/index.css) */
-  --sl-color-accent-low: #15233D;
-  --sl-color-accent: #5B9BFF;
-  --sl-color-accent-high: #CFE0FF;
-  --sl-color-white: #FFFFFF;
-  --sl-color-gray-1: #E8ECF2;
-  --sl-color-gray-2: #C3CAD5;
-  --sl-color-gray-3: #9AA4B2;
-  --sl-color-gray-4: #6B7584;
-  --sl-color-gray-5: #262C36;
-  --sl-color-gray-6: #161A21;
-  --sl-color-black: #0D0F13;
-  --sl-color-bg-nav: #0D0F13;
-  --sl-color-bg-sidebar: #0D0F13;
-  --sl-color-hairline: #1F242D;
-  --sl-color-hairline-light: #262C36;
+  /* Dark theme: the app's own colours */
+  --sl-color-accent-low: #3A1E10;
+  --sl-color-accent: #FF7A33;
+  --sl-color-accent-high: #FFC9A8;
+  --sl-color-white: #FAF7F3;
+  --sl-color-gray-1: #F2EEE9;
+  --sl-color-gray-2: #B5ADA4;
+  --sl-color-gray-3: #9E968D;
+  --sl-color-gray-4: #6E665E;
+  --sl-color-gray-5: #2E2A26;
+  --sl-color-gray-6: #1A1816;
+  --sl-color-black: #121110;
+  --sl-color-bg-nav: #121110;
+  --sl-color-bg-sidebar: #151311;
+  --sl-color-hairline: #25221F;
+  --sl-color-hairline-light: #2E2A26;
 
-  --df-orange: #FF9A3C;
-  --df-card: #161A21;
-  --df-current: #1C2638;
-  --df-code: #1D222B;
-  --df-ink: #E8ECF2;
+  --df-orange: #FF7A33;
+  --df-card: #1A1816;
+  --df-current: #2A2622;
+  --df-code: #221F1C;
+  --df-ink: #F2EEE9;
   --df-ink-hover: #FFFFFF;
-  --df-on-ink: #0D0F13;
-  --df-stage: #0A0C10;
+  --df-on-ink: #121110;
+  --df-stage: #0E0D0C;
 }
 
-/* Light theme, the default: the home page */
+/* Light theme, the default: the app's light theme */
 :root[data-theme='light'] {
-  --sl-color-accent-low: #E3EAFB;
-  --sl-color-accent: #1D4ED8;
-  --sl-color-accent-high: #1E3A8A;
-  --sl-color-white: #17191E;
-  --sl-color-gray-1: #23262D;
-  --sl-color-gray-2: #4A505C;
-  --sl-color-gray-3: #5F6571;
-  --sl-color-gray-4: #8A877F;
-  --sl-color-gray-5: #E2DED6;
-  --sl-color-gray-6: #EEEAE3;
-  --sl-color-gray-7: #F1EDE6;
-  --sl-color-black: #F6F4EF;
-  --sl-color-bg-nav: #F6F4EF;
-  --sl-color-bg-sidebar: #F6F4EF;
-  --sl-color-hairline: #E2DED6;
-  --sl-color-hairline-light: #E2DED6;
-  --sl-color-hairline-shade: #D6D1C8;
+  --sl-color-accent-low: #F7E3D8;
+  --sl-color-accent: #B53C0B;
+  --sl-color-accent-high: #7C2D12;
+  --sl-color-white: #1E1A16;
+  --sl-color-gray-1: #2A2520;
+  --sl-color-gray-2: #5C544C;
+  --sl-color-gray-3: #6A6158;
+  --sl-color-gray-4: #9A9086;
+  --sl-color-gray-5: #E4DED6;
+  --sl-color-gray-6: #EEE9E3;
+  --sl-color-gray-7: #F3EFEA;
+  --sl-color-black: #F7F4F0;
+  --sl-color-bg-nav: #F7F4F0;
+  --sl-color-bg-sidebar: #FBF9F6;
+  --sl-color-hairline: #E4DED6;
+  --sl-color-hairline-light: #E4DED6;
+  --sl-color-hairline-shade: #D9D2C9;
 
-  --df-orange: #C2530A;
+  --df-orange: #B53C0B;
   --df-card: #FFFFFF;
-  --df-current: #EAE5DC;
-  --df-code: #F1EDE6;
-  --df-ink: #17191E;
-  --df-ink-hover: #2B2F37;
+  --df-current: #ECE6DF;
+  --df-code: #F3EFEA;
+  --df-ink: #1E1A16;
+  --df-ink-hover: #34302B;
   --df-on-ink: #FFFFFF;
-  --df-stage: #0D0F13;
+  --df-stage: #121110;
 }
 
 /* Header */
 header.header { border-bottom: 1px solid var(--sl-color-hairline); }
-.site-title { font-weight: 700; letter-spacing: -0.02em; color: var(--sl-color-white); }
+.site-title { font-family: var(--df-display); font-weight: 700; letter-spacing: -0.02em; color: var(--sl-color-white); }
+/* Starlight sizes the logo on the whole header, tabs row included: the first row only */
+header .site-title img { height: 2rem; width: auto; }
 site-search button[data-open-modal] { border-radius: 9px; background: var(--df-card); border-color: var(--sl-color-gray-5); }
 
 /* Sidebar: plain group labels, the current page on a soft pill */
@@ -90,9 +94,11 @@ site-search button[data-open-modal] { border-radius: 9px; background: var(--df-c
 starlight-toc a[aria-current='true'],
 mobile-starlight-toc a[aria-current='true'] { color: var(--df-orange); font-weight: 600; }
 
-/* Text */
-.sl-markdown-content h1, h1#_top { letter-spacing: -0.035em; font-weight: 750; }
-.sl-markdown-content h2 { letter-spacing: -0.025em; }
+/* Text: titles in Bricolage, as the app's pages and cards */
+.sl-markdown-content :is(h1, h2, h3), h1#_top { font-family: var(--df-display); }
+.sl-markdown-content h1, h1#_top { letter-spacing: -0.025em; font-weight: 700; }
+.sl-markdown-content h2 { letter-spacing: -0.02em; font-weight: 700; }
+.sl-markdown-content h3 { letter-spacing: -0.01em; font-weight: 700; }
 .sl-markdown-content :is(h2, h3) { scroll-margin-top: 5rem; }
 
 /* Tables: a white card with fine rules */
@@ -139,8 +145,10 @@ mobile-starlight-toc a[aria-current='true'] { color: var(--df-orange); font-weig
 }
 .starlight-aside__title { color: var(--sl-color-white); }
 .starlight-aside__icon { color: var(--df-orange); }
-.starlight-aside--caution .starlight-aside__icon,
-.starlight-aside--danger .starlight-aside__icon { color: #B45309; }
+.starlight-aside--caution .starlight-aside__icon { color: #F2B544; }
+.starlight-aside--danger .starlight-aside__icon { color: #FF6B5E; }
+:root[data-theme='light'] .starlight-aside--caution .starlight-aside__icon { color: #8F5400; }
+:root[data-theme='light'] .starlight-aside--danger .starlight-aside__icon { color: #B42318; }
 
 /* Previous / next */
 .pagination-links a {
@@ -188,7 +196,7 @@ mobile-starlight-toc a[aria-current='true'] { color: var(--df-orange); font-weig
   background: var(--df-card); color: var(--sl-color-white); text-decoration: none;
 }
 .df-way:hover { border-color: var(--sl-color-gray-4); }
-.df-way strong { font-size: 1.05rem; }
+.df-way strong { font-family: var(--df-display); font-size: 1.05rem; }
 .df-way span { color: var(--sl-color-gray-2); font-size: var(--sl-text-sm); }
 .df-way em { margin-top: auto; font-style: normal; font-weight: 600; font-size: var(--sl-text-sm); color: var(--sl-color-accent); }
 
@@ -196,7 +204,7 @@ mobile-starlight-toc a[aria-current='true'] { color: var(--df-orange); font-weig
 .df-releases { margin-top: 2rem; }
 .df-release-latest { padding: 1.75rem; border: 1px solid var(--sl-color-gray-5); border-radius: 16px; background: var(--df-card); }
 .df-release-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 0.9rem; }
-.df-release-head h2 { margin: 0; font-size: 1.9rem; letter-spacing: -0.03em; color: var(--sl-color-white); }
+.df-release-head h2 { margin: 0; font-family: var(--df-display); font-size: 1.9rem; letter-spacing: -0.025em; color: var(--sl-color-white); }
 .df-badge { font-size: 0.8rem; font-weight: 600; color: var(--df-orange); background: color-mix(in srgb, var(--df-orange) 12%, transparent); padding: 0.1rem 0.65rem; border-radius: 999px; }
 .df-date { font: 0.85rem var(--sl-font-mono); color: var(--sl-color-gray-3); }
 .df-summary { margin-top: 1rem; font-size: 1.1rem; color: var(--sl-color-gray-1); }
@@ -208,11 +216,11 @@ mobile-starlight-toc a[aria-current='true'] { color: var(--df-orange); font-weig
 .df-release-actions a { font-weight: 600; text-decoration: none; }
 .df-release-actions a.df-button { padding: 0.6rem 1rem; border-radius: 9px; background: var(--df-ink); color: var(--df-on-ink); }
 .df-release-actions a.df-button:hover { background: var(--df-ink-hover); }
-.df-earlier { margin: 3rem 0 1rem; font-size: 1.5rem; letter-spacing: -0.02em; color: var(--sl-color-white); }
+.df-earlier { margin: 3rem 0 1rem; font-family: var(--df-display); font-size: 1.5rem; letter-spacing: -0.02em; color: var(--sl-color-white); }
 .df-release { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; padding: 1.4rem 0; border-top: 1px solid var(--sl-color-gray-5); }
 .df-release:last-of-type { border-bottom: 1px solid var(--sl-color-gray-5); }
 .df-release-side { flex: 0 0 160px; }
-.df-release-side h3 { margin: 0; font-size: 1.25rem; }
+.df-release-side h3 { margin: 0; font-family: var(--df-display); font-size: 1.25rem; }
 .df-release-side h3 a { color: var(--sl-color-white); text-decoration: none; }
 .df-release-main { flex: 1 1 380px; min-width: 0; color: var(--sl-color-gray-1); }
 .df-release-main summary { cursor: pointer; margin-top: 0.5rem; font-weight: 600; font-size: var(--sl-text-sm); color: var(--sl-color-accent); }

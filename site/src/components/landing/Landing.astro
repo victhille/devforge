@@ -6,8 +6,9 @@
  */
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import '@fontsource-variable/geist'
-import '@fontsource-variable/geist-mono'
+import '@fontsource-variable/inter'
+import '@fontsource-variable/jetbrains-mono'
+import '@fontsource-variable/bricolage-grotesque'
 import { Image } from 'astro:assets'
 import Forgy from './Forgy.astro'
 import { TEXT, type Lang } from './text'
@@ -50,7 +51,7 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content={new URL(`${base}/og-${lang}.png`, Astro.site).href} />
-  <meta name="theme-color" content="#F6F4EF" />
+  <meta name="theme-color" content="#F7F4F0" />
   <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
   <link rel="alternate" hreflang={lang === 'en' ? 'fr' : 'en'} href={otherHome} />
 </head>
@@ -344,11 +345,12 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
 
   <style is:global>
     :root {
-      --paper: #F6F4EF; --white: #FFFFFF; --ink: #17191E; --ink-2: #4A505C; --ink-3: #6E7480; --rule: #E2DED6; --rule-2: #D6D1C8;
-      --link: #1D4ED8; --orange: #E8630A;
-      --app: #0D0F13; --app-panel: #111419; --app-2: #161A21; --app-line: #262C36; --app-line-2: #1F242D; --app-fg: #E8ECF2; --app-fg-2: #9AA4B2; --app-fg-3: #8792A2;
-      --forgy: #FF9A3C; --green: #3FCF8E;
-      --font: 'Geist Variable', 'Segoe UI', system-ui, sans-serif; --mono: 'Geist Mono Variable', ui-monospace, monospace;
+      /* The app's « Forge » theme (src/renderer/src/styles/index.css): cream paper, warm ink, forge orange */
+      --paper: #F7F4F0; --white: #FFFFFF; --ink: #1E1A16; --ink-2: #5C544C; --ink-3: #6A6158; --rule: #E4DED6; --rule-2: #D9D2C9;
+      --link: #B53C0B; --link-hover: #9A3412; --orange: #B53C0B;
+      --app: #121110; --app-panel: #1A1816; --app-2: #221F1C; --app-line: #2E2A26; --app-line-2: #25221F; --app-fg: #F2EEE9; --app-fg-2: #B5ADA4; --app-fg-3: #9E968D;
+      --app-deep: #0E0D0C; --forgy: #FF7A33; --forgy-hover: #FF9457; --green: #4ACB8A;
+      --font: 'Inter Variable', 'Segoe UI', system-ui, sans-serif; --mono: 'JetBrains Mono Variable', 'Cascadia Code', Consolas, monospace; --display: 'Bricolage Grotesque Variable', 'Inter Variable', 'Segoe UI', sans-serif;
       color-scheme: light;
     }
     * { box-sizing: border-box; }
@@ -356,29 +358,31 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
     @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
     body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.6 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
     img { max-width: 100%; height: auto; display: block; }
-    h1, h2, h3 { margin: 0; letter-spacing: -0.03em; line-height: 1.1; }
+    h1, h2, h3 { margin: 0; font-family: var(--display); font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; }
     p { margin: 0; }
     a { color: var(--link); }
-    a:hover { color: #1E40AF; }
+    a:hover { color: var(--link-hover); }
     .wrap { width: min(1200px, 100% - 48px); margin-inline: auto; }
     .skip { position: absolute; left: -9999px; }
     .skip:focus { left: 12px; top: 12px; z-index: 10; background: var(--ink); color: #fff; padding: 8px 12px; }
     :focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+    /* On the app's dark canvas, the bright forge orange stands out */
+    :is(.band-dark, .projects-stage, .panel, .art-card, .video-frame) :focus-visible { outline-color: var(--forgy); }
 
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; font-weight: 600; border-radius: 10px; border: 1px solid transparent; }
     .btn-sm { padding: 9px 16px; font-size: 15px; border-radius: 8px; }
     .btn-lg { padding: 13px 22px; min-height: 48px; font-size: 16px; }
     .btn-block { display: flex; width: 100%; margin-top: 24px; }
     .btn-dark { background: var(--ink); color: #fff; }
-    .btn-dark:hover { background: #2B2F37; color: #fff; }
+    .btn-dark:hover { background: #34302B; color: #fff; }
     .btn-light { background: var(--white); color: var(--ink); border-color: var(--rule-2); }
-    .btn-light:hover { border-color: #BDB6AA; color: var(--ink); }
+    .btn-light:hover { border-color: #ABA196; color: var(--ink); }
     .more { display: inline-block; font-weight: 600; text-decoration: none; margin-top: 20px; }
     .more.center { display: block; text-align: center; font-size: 14.5px; margin-top: 16px; }
 
     .top { border-bottom: 1px solid var(--rule); background: var(--paper); }
     .top-inner { display: flex; align-items: center; gap: 32px; height: 68px; }
-    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 18px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-family: var(--display); font-weight: 700; font-size: 18px; }
     .brand:hover { color: var(--ink); }
     .brand-mark { width: 30px; height: 30px; border-radius: 8px; background: #0F1117; display: inline-flex; align-items: center; justify-content: center; }
     .links { display: flex; gap: 24px; font-size: 15px; }
@@ -391,9 +395,9 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
     .search-btn kbd, .search-foot kbd { font: 12px var(--mono); border: 1px solid var(--rule-2); border-radius: 5px; padding: 0 6px; background: var(--paper); color: var(--ink-3); }
     .search-dialog { width: min(680px, calc(100% - 32px)); max-height: min(640px, calc(100vh - 120px)); margin: 96px auto auto; padding: 0; border: 0; border-radius: 16px; background: var(--white); color: var(--ink); box-shadow: 0 30px 70px -20px rgba(0,0,0,.45); overflow: hidden; }
     .search-dialog[open] { display: flex; flex-direction: column; }
-    .search-dialog::backdrop { background: rgba(23,25,30,.42); }
+    .search-dialog::backdrop { background: rgba(30,26,22,.42); }
     .search-box { flex: 1; min-height: 0; overflow: hidden auto; padding: 16px 18px 4px; --pagefind-ui-font: var(--font); --pagefind-ui-primary: var(--ink); --pagefind-ui-text: var(--ink); --pagefind-ui-background: var(--white); --pagefind-ui-border: var(--rule-2); --pagefind-ui-tag: var(--paper); --pagefind-ui-border-width: 1px; --pagefind-ui-border-radius: 10px; --pagefind-ui-scale: .85; }
-    .search-box mark { background: #FDE6D3; color: inherit; border-radius: 3px; padding: 0 2px; }
+    .search-box mark { background: #F7E3D8; color: inherit; border-radius: 3px; padding: 0 2px; }
     .search-box a { color: var(--ink); }
     .search-foot { display: flex; justify-content: space-between; align-items: center; padding: 10px 18px 14px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--ink-3); }
     .search-close { border: 0; background: none; color: var(--link); font: 14px var(--font); cursor: pointer; padding: 6px 0; }
@@ -401,20 +405,20 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
     .hero { display: flex; flex-wrap: wrap; gap: 56px; align-items: center; padding: 88px 0 40px; }
     .hero-text { flex: 1 1 420px; min-width: 0; }
     .eyebrow { font-size: 14px; color: var(--ink-3); margin-bottom: 20px; }
-    .hero h1 { font-size: clamp(42px, 5.4vw, 64px); line-height: 1.04; letter-spacing: -0.04em; font-weight: 750; }
+    .hero h1 { font-size: clamp(42px, 5.4vw, 64px); line-height: 1.04; letter-spacing: -0.035em; font-weight: 800; }
     .orange { color: var(--orange); }
     .lead { margin-top: 24px; font-size: 19px; color: var(--ink-2); max-width: 34em; }
     .actions { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
     .meta { width: 100%; margin-top: 2px; font: 13.5px var(--mono); color: var(--ink-3); min-height: 1.5em; }
     .hero-art { flex: 1 1 560px; min-width: 0; position: relative; padding-bottom: 80px; }
-    .art-main { width: 100%; border-radius: 12px; border: 1px solid var(--app-line-2); box-shadow: 0 30px 60px -24px rgba(23,25,30,.55); }
-    .art-second { position: absolute; width: 58%; right: -28px; bottom: 0; border-radius: 10px; border: 1px solid var(--app-line-2); box-shadow: 0 24px 50px -18px rgba(23,25,30,.6); }
-    .art-card { position: absolute; left: -24px; bottom: 28px; width: 260px; background: var(--app-panel); color: var(--app-fg); border: 1px solid rgba(255,154,60,.45); border-radius: 12px; padding: 14px; box-shadow: 0 20px 40px -16px rgba(23,25,30,.6); font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
+    .art-main { width: 100%; border-radius: 12px; border: 1px solid var(--app-line-2); box-shadow: 0 30px 60px -24px rgba(30,26,22,.55); }
+    .art-second { position: absolute; width: 58%; right: -28px; bottom: 0; border-radius: 10px; border: 1px solid var(--app-line-2); box-shadow: 0 24px 50px -18px rgba(30,26,22,.6); }
+    .art-card { position: absolute; left: -24px; bottom: 28px; width: 260px; background: var(--app-panel); color: var(--app-fg); border: 1px solid rgba(255,122,51,.45); border-radius: 12px; padding: 14px; box-shadow: 0 20px 40px -16px rgba(30,26,22,.6); font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
     .art-card strong, .action strong { color: var(--forgy); }
-    .art-card code, .action code { font: 13px var(--mono); background: #0A0C10; border: 1px solid var(--app-line-2); border-radius: 6px; padding: 6px 8px; }
+    .art-card code, .action code { font: 13px var(--mono); background: var(--app-deep); border: 1px solid var(--app-line-2); border-radius: 6px; padding: 6px 8px; }
     .card-buttons { display: flex; gap: 6px; }
     .card-buttons span { border: 1px solid var(--app-line); padding: 4px 10px; border-radius: 6px; font-size: 13px; }
-    .card-buttons .ok { background: var(--forgy); color: #1A0E04; font-weight: 600; border-color: var(--forgy); }
+    .card-buttons .ok { background: var(--forgy); color: #1A0A02; font-weight: 600; border-color: var(--forgy); }
 
     .replaces { padding: 24px 0 80px; }
     .replaces p { border-top: 1px solid var(--rule); padding-top: 32px; display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; font-size: 15px; color: var(--ink-3); }
@@ -424,8 +428,8 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
     .video { padding: 0 0 96px; scroll-margin-top: 24px; }
     .video h2 { font-size: clamp(30px, 3.6vw, 40px); }
     .video-text { max-width: 44em; }
-    .video-frame { margin-top: 32px; background: var(--app); border-radius: 18px; padding: clamp(10px, 2vw, 24px); box-shadow: 0 30px 60px -28px rgba(23,25,30,.55); }
-    .video-frame video { display: block; width: 100%; height: auto; border-radius: 10px; background: #0A0C10; }
+    .video-frame { margin-top: 32px; background: var(--app); border-radius: 18px; padding: clamp(10px, 2vw, 24px); box-shadow: 0 30px 60px -28px rgba(30,26,22,.55); }
+    .video-frame video { display: block; width: 100%; height: auto; border-radius: 10px; background: var(--app-deep); }
     .band-white { background: var(--white); border-block: 1px solid var(--rule); }
     .band-dark { background: var(--app); color: var(--app-fg); }
     .section { padding-block: 104px; }
@@ -439,7 +443,7 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
     .day-shot { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; border: 1px solid var(--rule-2); }
     .day h3 { font-size: 18px; letter-spacing: -0.01em; }
     .day p { font-size: 15px; color: var(--ink-2); }
-    .term { background: #0A0C10; border-color: var(--app-line-2); color: var(--app-fg); font: 12.5px var(--mono); padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+    .term { background: var(--app-deep); border-color: var(--app-line-2); color: var(--app-fg); font: 12.5px var(--mono); padding: 16px; display: flex; flex-direction: column; gap: 6px; }
     .term .dim { color: var(--app-fg-2); }
     .term .green { margin-top: auto; color: var(--green); }
 
@@ -448,7 +452,7 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
     .tour-tabs { margin-top: 28px; display: flex; flex-direction: column; border-top: 1px solid var(--rule); }
     .tour-tabs button { all: unset; cursor: pointer; padding: 16px 0; border-bottom: 1px solid var(--rule); display: flex; flex-direction: column; gap: 4px; }
     .tour-tabs button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
-    .tab-title { font-weight: 650; font-size: 17px; color: var(--ink-3); }
+    .tab-title { font-family: var(--display); font-weight: 700; font-size: 17px; color: var(--ink-3); }
     .tab-text { display: none; font-size: 15px; color: var(--ink-2); }
     .tour-tabs button[aria-selected='true'] .tab-title { color: var(--ink); }
     .tour-tabs button[aria-selected='true'] .tab-text { display: block; }
@@ -461,11 +465,11 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
     .specs { margin: 36px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
     .specs div { padding: 16px 0; border-top: 1px solid var(--app-line); }
     .specs dt a { color: var(--app-fg); font-weight: 600; text-decoration: none; }
-    .specs dt a:hover { color: #7EB0FF; }
+    .specs dt a:hover { color: var(--forgy-hover); }
     .specs dd { margin: 4px 0 0; color: var(--app-fg-2); font-size: 15px; }
     .health { flex: 1 1 380px; min-width: 0; align-self: center; background: var(--app-2); border: 1px solid var(--app-line); border-radius: 14px; padding: 24px; font-size: 14.5px; }
-    .health-head { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 16px; margin-bottom: 18px; }
-    .badge { font-size: 13px; font-weight: 500; color: var(--green); background: rgba(63,207,142,.12); padding: 3px 10px; border-radius: 999px; }
+    .health-head { display: flex; justify-content: space-between; align-items: center; font-family: var(--display); font-weight: 700; font-size: 16px; margin-bottom: 18px; }
+    .badge { font-size: 13px; font-weight: 500; color: var(--green); background: rgba(74,203,138,.13); padding: 3px 10px; border-radius: 999px; }
     .health-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--app-line-2); }
     .health-row span:last-child { color: var(--app-fg-2); text-align: right; }
     .health-note { margin-top: 14px; font-size: 12px; color: var(--app-fg-3); }
@@ -474,12 +478,12 @@ const winLogo = 'M3 5.1 10.4 4v7.2H3V5.1Zm0 13.8 7.4 1.1v-7.1H3v6Zm8.2 1.2L21 21
     .forgy-text { flex: 1 1 440px; min-width: 0; }
     .forgy-text h2 { margin-top: 16px; }
     .forgy-text p { margin-top: 16px; font-size: 17px; color: var(--ink-2); }
-    .panel { flex: 1 1 440px; min-width: 0; background: var(--app-panel); color: var(--app-fg); border: 1px solid var(--app-line); border-radius: 14px; overflow: hidden; font-size: 14.5px; box-shadow: 0 24px 50px -24px rgba(23,25,30,.6); }
+    .panel { flex: 1 1 440px; min-width: 0; background: var(--app-panel); color: var(--app-fg); border: 1px solid var(--app-line); border-radius: 14px; overflow: hidden; font-size: 14.5px; box-shadow: 0 24px 50px -24px rgba(30,26,22,.6); }
     .panel-head { padding: 14px 18px; border-bottom: 1px solid var(--app-line-2); }
     .panel-head span { color: var(--app-fg-2); font-size: 13px; }
     .panel-body { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
-    .q { align-self: flex-end; background: rgba(91,155,255,.13); padding: 8px 12px; border-radius: 10px; }
-    .action { border: 1px solid rgba(255,154,60,.4); background: rgba(255,154,60,.08); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .q { align-self: flex-end; background: var(--app-2); padding: 8px 12px; border-radius: 10px; }
+    .action { border: 1px solid rgba(255,122,51,.4); background: rgba(255,122,51,.08); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 
     .faq-get { display: flex; flex-wrap: wrap; gap: 56px; }
     .faq { flex: 2 1 520px; min-width: 0; }
