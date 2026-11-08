@@ -117,12 +117,34 @@ export default function Onboarding() {
     { icon: Server, text: o.featureServers }
   ]
 
+  const stepNames = [o.stepWelcome, o.stepProjects, o.stepAccounts, o.stepForgy, o.stepDone]
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/55 p-6 backdrop-blur-[3px]">
       <div role="dialog" aria-modal="true" aria-labelledby="onboarding-title"
-        className="df-pop flex max-h-[calc(100vh-48px)] w-[min(680px,100%)] flex-col overflow-hidden rounded-window border border-line bg-surface shadow-pop">
+        className="df-pop flex max-h-[calc(100vh-48px)] w-[min(880px,100%)] overflow-hidden rounded-window border border-line bg-surface shadow-pop">
+        {/* The steps, the current one lit; on a narrow window the bar above the content says it */}
+        <aside aria-label={o.stepsLabel} className="hidden w-56 shrink-0 flex-col gap-6 border-r border-line-subtle bg-sidebar px-5 py-6 sm:flex">
+          <p className="font-display text-lg font-bold tracking-[-.01em] text-fg">DevForge</p>
+          <ol className="flex flex-col gap-1">
+            {stepNames.map((name, i) => (
+              <li key={name} aria-current={i === step ? 'step' : undefined}
+                className={cn('flex h-9 items-center gap-3 rounded-lg px-2.5 text-sm', i === step ? 'bg-active font-semibold text-fg' : i < step ? 'text-fg-secondary' : 'text-fg-muted')}>
+                <span aria-hidden className={cn('flex size-5.5 shrink-0 items-center justify-center rounded-full font-mono text-2xs',
+                  i < step ? 'bg-accent text-accent-fg' : i === step ? 'border border-accent text-accent' : 'border border-line')}>
+                  {i < step ? <Check size={11} strokeWidth={3} /> : i + 1}
+                </span>
+                {name}
+                {i < step && <span className="sr-only"> ({o.stepFinished})</span>}
+              </li>
+            ))}
+          </ol>
+          <p className="mt-auto text-xs text-fg-muted">{o.stepsNote}</p>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-3 px-6 pt-5">
-          <div role="progressbar" aria-valuemin={1} aria-valuemax={STEPS} aria-valuenow={step + 1} aria-label={o.progress.replace('{n}', String(step + 1)).replace('{t}', String(STEPS))} className="flex flex-1 gap-1.5">
+          <div role="progressbar" aria-valuemin={1} aria-valuemax={STEPS} aria-valuenow={step + 1} aria-label={o.progress.replace('{n}', String(step + 1)).replace('{t}', String(STEPS))} className="flex flex-1 gap-1.5 sm:invisible">
             {Array.from({ length: STEPS }, (_, i) => <span key={i} className={cn('h-1 flex-1 rounded-full transition-colors', i <= step ? 'bg-accent' : 'bg-active')} />)}
           </div>
           {step < STEPS - 1 && <button onClick={finish} className="text-xs text-fg-muted hover:text-fg">{o.skip}</button>}
@@ -274,6 +296,7 @@ export default function Onboarding() {
           {step === 2 && <Button onClick={saveAccounts}>{o.next}</Button>}
           {step === 3 && <Button variant="secondary" onClick={() => setStep(4)}>{o.later}</Button>}
           {step === 4 && <Button onClick={finish}>{o.go}</Button>}
+        </div>
         </div>
       </div>
     </div>

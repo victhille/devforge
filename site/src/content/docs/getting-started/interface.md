@@ -7,7 +7,14 @@ description: L'accueil, le menu, les favoris, la palette de commandes, le termin
 
 ![L'accueil, avec le projet actif, Git et l'activité](../../../assets/screens/home-fr.png)
 
-L'accueil salue selon l'heure et résume ce qui tourne : conteneurs en ligne, ports en écoute, dépôts à pousser, état du serveur. Il est fait de **widgets** :
+L'accueil salue selon l'heure. Sous la salutation, des **pastilles** disent où tu en es : conteneurs en ligne (ou « Rien ne tourne »), dépôts modifiés, dépôts à pousser, état du serveur.
+
+Dessous, deux cartes :
+
+- **Reprendre** : les trois projets ouverts en dernier, avec leur chemin, l'état de leur dépôt (modifié, à pousser, à jour) et la date de la dernière ouverture. **Ouvrir** mène à la fiche du projet ; **Tous les projets** à la liste.
+- **Forgy** : un champ pour lui poser une question, et trois demandes toutes faites sur le [projet actif](#le-projet-actif) : **Message de commit**, **Revue des changements**, **Expliquer le projet**. Chacune ouvre le panneau de Forgy et part dans une nouvelle conversation.
+
+Le reste de l'accueil est fait de **widgets** :
 
 | Widget | Ce qu'il montre |
 |---|---|

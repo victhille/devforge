@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check, GripVertical, LayoutDashboard, Layers, Maximize2, Minimize2, Plus, RefreshCw, RotateCcw, TerminalSquare, X } from 'lucide-react'
+import { ArrowUp, Check, GripVertical, LayoutDashboard, Layers, Maximize2, Minimize2, Plus, RefreshCw, RotateCcw, Server, TerminalSquare, X } from 'lucide-react'
 import type { DockerOverview, GitRepoDetails, HomeWidget, ListeningPort, Project, SSHConnection, WidgetId } from '@shared/types'
 import { DEFAULT_WIDGETS, WIDGET_IDS, masonryPlaces, type MasonryPlace } from '@shared/lib/homeWidgets'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -8,6 +8,7 @@ import { useActivity, useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
 import { devPorts } from '@renderer/lib/ports'
 import Button from '@renderer/components/ui/Button'
+import IconButton from '@renderer/components/ui/IconButton'
 import Card from '@renderer/components/ui/Card'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Page } from '@renderer/components/ui/Page'
@@ -21,6 +22,9 @@ import { Dot, Gauge, Pill, SmallButton, Tile, plural } from './parts'
 import { CommitsWidget } from './commitsWidget'
 import { BackupsWidget, HealthWidget, N8nWidget, ServicesWidget, VpnWidget } from './vpsWidgets'
 import NeedsSetup from '@renderer/components/NeedsSetup'
+import Mascot from '@renderer/features/assistant/Mascot'
+import StatusDot, { type DotState } from '@renderer/components/ui/StatusDot'
+import { useAssistant } from '@renderer/features/assistant/AssistantContext'
 
 // ─── Docker ───────────────────────────────────────────────────────────────────
 
@@ -239,7 +243,7 @@ function ActiveProjectCard({ projects, repos }: { projects: Project[]; repos: { 
             </div>
           </div>
           {picker}
-          <Button onClick={() => navigate(`/project/${active.id}`)}>{h.openHub}</Button>
+          <Button variant="secondary" onClick={() => navigate(`/project/${active.id}`)}>{h.openHub}</Button>
         </>
       ) : (
         <>
@@ -269,6 +273,121 @@ function ActivityTile({ i }: { i: number }) {
         </ol>
       )}
     </Tile>
+  )
+}
+
+// ─── State under the greeting ─────────────────────────────────────────────────
+
+type ChipTone = 'success' | 'warning' | 'accent' | 'danger' | 'muted'
+const CHIP_STATE: Record<Exclude<ChipTone, 'accent'>, DotState> = { success: 'on', warning: 'warn', danger: 'error', muted: 'off' }
+
+/** One fact of the moment: a dot of its colour (or an icon), then the words */
+function Chip({ tone, icon, children }: { tone: ChipTone; icon?: ReactNode; children: ReactNode }) {
+  return (
+    <li className="inline-flex h-7 items-center gap-2 rounded-full border border-line bg-surface px-3 text-sm text-fg-secondary">
+      {icon ?? (tone === 'accent'
+        ? <span aria-hidden className="size-2 shrink-0 rounded-full bg-accent" />
+        : <StatusDot state={CHIP_STATE[tone]} live={tone === 'success'} />)}
+      {children}
+    </li>
+  )
+}
+
+// ─── Pick up again ────────────────────────────────────────────────────────────
+
+/** The three projects opened last, each a click away */
+function ResumeCard({ projects, repos }: { projects: Project[]; repos: { project: Project; details: GitRepoDetails }[] | null }) {
+  const { t, lang } = useI18n()
+  const navigate = useNavigate()
+  const when = (p: Project) => p.lastOpenedAt ?? p.createdAt
+  const recent = projects.slice().sort((a, b) => when(b).localeCompare(when(a))).slice(0, 3)
+  return (
+    <Card className="df-rise flex h-full flex-col gap-3.5 rounded-card p-4.5" style={{ '--i': 1 } as CSSProperties}>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{t.home.resume}</h2>
+        <button onClick={() => navigate('/projects')} className="text-sm font-medium text-accent hover:underline">{t.home.allProjects}</button>
+      </div>
+      <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
+        {recent.map((p, k) => {
+          const d = repos?.find(r => r.project.id === p.id)?.details
+          return (
+            <article key={p.id} className="flex min-w-0 flex-col justify-between gap-3 rounded-xl border border-line-subtle bg-canvas p-3.5">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <ProjectIcon framework={p.framework} size="sm" />
+                <div className="min-w-0">
+                  <h3 className="truncate font-semibold text-fg" title={p.name}>{p.name}</h3>
+                  <p className="truncate font-mono text-2xs text-fg-muted" title={p.path}>{p.path}</p>
+                </div>
+              </div>
+              <div className="flex min-w-0 items-center gap-2">
+                {d?.isRepo && (d.changes > 0
+                  ? <Pill tone="warning">{t.home.changed.replace('{n}', String(d.changes)).replace('{s}', d.changes > 1 ? 's' : '')}</Pill>
+                  : d.ahead > 0 ? <Pill tone="accent">{t.home.ahead.replace('{n}', String(d.ahead))}</Pill>
+                  : <Pill tone="success">{t.home.upToDate}</Pill>)}
+                <span className="truncate text-xs text-fg-muted">{formatRelative(when(p), lang)}</span>
+              </div>
+              <Button size="sm" variant={k === 0 ? 'primary' : 'secondary'} aria-label={t.home.openNamed.replace('{name}', p.name)}
+                onClick={() => navigate(`/project/${p.id}`)}>
+                {t.home.openProject}
+              </Button>
+            </article>
+          )
+        })}
+      </div>
+    </Card>
+  )
+}
+
+// ─── Forgy ────────────────────────────────────────────────────────────────────
+
+/** Forgy at hand: a question typed here, or one of three asked about the active project */
+function ForgyCard({ project }: { project: Project | null }) {
+  const { t } = useI18n()
+  const { ask, mood } = useAssistant()
+  const [question, setQuestion] = useState('')
+  const send = () => {
+    const q = question.trim()
+    if (!q) return
+    ask(q)
+    setQuestion('')
+  }
+  const suggestions = project ? [
+    { label: t.home.suggestCommit, q: t.home.askCommit },
+    { label: t.home.suggestReview, q: t.home.askReview },
+    { label: t.home.suggestExplain, q: t.home.askExplain }
+  ] : []
+  return (
+    <Card className="df-rise flex h-full flex-col gap-3.5 rounded-card border-forgy/40 p-4.5" style={{ '--i': 2 } as CSSProperties}>
+      <div className="flex items-center gap-3">
+        <Mascot mood={mood} size={40} followCursor={false} />
+        <div className="min-w-0">
+          <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{t.assistant.mascotName}</h2>
+          <p className="text-sm text-fg-muted">{t.assistant.moods[mood]} · {t.home.forgyReads}</p>
+        </div>
+      </div>
+      <form onSubmit={e => { e.preventDefault(); send() }}
+        className="flex items-center gap-1.5 rounded-control border border-line bg-canvas py-1 pr-1 pl-3 focus-within:border-accent">
+        <label className="min-w-0 flex-1">
+          <span className="sr-only">{t.home.askForgy}</span>
+          <input value={question} onChange={e => setQuestion(e.target.value)} placeholder={t.home.askForgyPlaceholder}
+            className="h-7 w-full bg-transparent text-base text-fg outline-none placeholder:text-fg-muted" />
+        </label>
+        <IconButton type="submit" size="sm" title={t.home.askSend} disabled={!question.trim()}
+          className="bg-forgy text-forgy-fg hover:bg-forgy/90 hover:text-forgy-fg disabled:bg-active disabled:text-fg-muted">
+          <ArrowUp size={14} />
+        </IconButton>
+      </form>
+      {suggestions.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {suggestions.map(s => (
+            <button key={s.label} type="button" onClick={() => ask(s.q.replace('{project}', project!.name))}
+              className="h-7 rounded-full border border-line bg-surface px-3 text-sm text-fg-secondary transition-colors hover:border-forgy/50 hover:text-fg">
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </Card>
   )
 }
 
@@ -378,6 +497,7 @@ export default function HomePage() {
   const navigate = useNavigate()
   const { t, lang } = useI18n()
   const { projects, loaded } = useProjects()
+  const { active } = useActiveProject()
   const [name, setName] = useState('')
   const [docker, setDocker] = useState<DockerOverview | null>(null)
   const [ports, setPorts] = useState<ListeningPort[] | null>(null)
@@ -438,11 +558,19 @@ export default function HomePage() {
   const now = new Date()
   const running = docker?.containers.filter(c => c.state === 'running').length ?? 0
   const toPush = repos?.filter(r => r.details.ahead > 0).length ?? 0
-  const summary = [
-    running ? plural(running, t.home.servicesOne, t.home.servicesMany) : t.home.nothingRuns,
-    toPush ? plural(toPush, t.home.pushOne, t.home.pushMany) : null,
-    vps === 'ok' ? t.home.vpsOk : vps === 'disk' ? t.home.vpsDiskFull : vps === 'down' ? t.home.vpsDown : null
-  ].filter(Boolean).join(' · ')
+  const changedRepos = repos?.filter(r => r.details.changes > 0).length ?? 0
+  const vpsName = conn?.name || t.home.vpsFallback
+  // The facts of the moment, as chips (only what is known)
+  const chips: { tone: ChipTone; icon?: ReactNode; text: string }[] = [
+    ...(docker ? [running
+      ? { tone: 'success' as const, text: plural(running, t.home.chipContainersOne, t.home.chipContainersMany) }
+      : { tone: 'muted' as const, text: `${t.home.nothingRuns[0].toUpperCase()}${t.home.nothingRuns.slice(1)}` }] : []),
+    ...(changedRepos ? [{ tone: 'warning' as const, text: plural(changedRepos, t.home.chipChangedOne, t.home.chipChangedMany) }] : []),
+    ...(toPush ? [{ tone: 'accent' as const, icon: <ArrowUp size={13} aria-hidden className="text-accent" />, text: plural(toPush, t.home.pushOne, t.home.pushMany) }] : []),
+    ...(vps === 'ok' ? [{ tone: 'success' as const, icon: <Server size={13} aria-hidden className="text-fg-secondary" />, text: t.home.chipVpsOk.replace('{name}', vpsName) }]
+      : vps === 'disk' ? [{ tone: 'warning' as const, text: t.home.chipVpsDisk.replace('{name}', vpsName) }]
+      : vps === 'down' ? [{ tone: 'danger' as const, text: t.home.chipVpsDown.replace('{name}', vpsName) }] : [])
+  ]
   const greeting = now.getHours() >= 18 ? t.home.greetingEvening : t.home.greetingMorning
 
   // The shown widgets' spots (the active project has none without projects, unless customizing)
@@ -458,7 +586,11 @@ export default function HomePage() {
             {now.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
           <h1 className="mt-1 font-display text-hero font-bold tracking-[-.025em] text-fg">{name ? `${greeting} ${name}` : greeting}</h1>
-          <p className="mt-1 text-base text-fg-secondary">{docker ? `${summary[0].toUpperCase()}${summary.slice(1)}.` : t.home.subtitle}</p>
+          {chips.length > 0 ? (
+            <ul aria-label={t.home.statusLabel} className="mt-3 flex flex-wrap gap-2">
+              {chips.map(c => <Chip key={c.text} tone={c.tone} icon={c.icon}>{c.text}</Chip>)}
+            </ul>
+          ) : <p className="mt-1 text-base text-fg-secondary">{t.home.subtitle}</p>}
         </div>
         <div className="flex flex-wrap gap-2">
           {!editing && <Button variant="ghost" onClick={() => setEditing(true)}><LayoutDashboard size={15} /> {t.home.widgets.customize}</Button>}
@@ -470,6 +602,13 @@ export default function HomePage() {
       </header>
 
       {loaded && projects.length === 0 && <Onboarding />}
+
+      {loaded && projects.length > 0 && !editing && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="min-w-0 md:col-span-2"><ResumeCard projects={projects} repos={repos} /></div>
+          <ForgyCard project={active} />
+        </div>
+      )}
 
       {editing && widgets && (
         <WidgetBar widgets={widgets} onAdd={id => saveWidgets([...widgets, { id, size: id === 'activity' || id === 'active-project' ? 'full' : 'half' }])}
