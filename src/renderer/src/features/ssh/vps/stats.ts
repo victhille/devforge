@@ -1,14 +1,10 @@
 /** VPS stats: commands and parsers are shared with the main process (background watch) */
+import { formatDuration, type DurationUnit } from '@renderer/lib/format'
+import type { Lang } from '@renderer/i18n/translations'
+
 export * from '@shared/lib/vpsStats'
 
 // ─── Format helpers ───────────────────────────────────────────────────────────
-
-export function fmtBytes(bytes: number): string {
-  if (bytes === 0) return '0 B'
-  if (bytes < 1024 ** 2) return (bytes / 1024).toFixed(0) + ' KB'
-  if (bytes < 1024 ** 3) return (bytes / 1024 ** 2).toFixed(1) + ' MB'
-  return (bytes / 1024 ** 3).toFixed(2) + ' GB'
-}
 
 /** `day` is the short day unit of the interface language (j / d) */
 export function fmtUptime(sec: number, day = 'd'): string {
@@ -37,4 +33,17 @@ export function dockerTone(status: string): string {
   if (s.startsWith('up')) return 'bg-success'
   if (s.includes('exit')) return 'bg-danger'
   return 'bg-warning'
+}
+
+/**
+ * How long a container has been in its state, short and in the UI language:
+ * Docker's "Up 23 days (healthy)" → "23 j", "Exited (0) 2 hours ago" → "2 h".
+ * Null when the status carries no duration ("Created", "Dead").
+ */
+export function dockerSince(status: string, lang: Lang): string | null {
+  const m = /\b(?:(less than a second)|about an? (minute|hour)|(\d+) (second|minute|hour|day|week|month|year)s?)\b/i.exec(status)
+  if (!m) return null
+  if (m[1]) return `< ${formatDuration(1, 'second', lang)}`
+  const unit = (m[2] ?? m[4]).toLowerCase() as DurationUnit
+  return formatDuration(m[3] ? Number(m[3]) : 1, unit, lang)
 }

@@ -75,7 +75,7 @@ export default function DiskCleanerPage() {
       setSelected(new Set())
       toast.show({
         tone: r.failed.length ? 'error' : 'success',
-        title: c.freed.replace('{size}', formatSize(r.freedBytes)).replace('{n}', String(r.removed.length)),
+        title: c.freed.replace('{size}', formatSize(r.freedBytes, lang)).replace('{n}', String(r.removed.length)),
         description: r.failed.map(f => `${f.path}: ${f.error}`).join('\n') || undefined
       })
     } finally {
@@ -99,8 +99,8 @@ export default function DiskCleanerPage() {
       {rows.length > 0 && (
         <>
           <StatRow>
-            <Stat label={c.statReclaimable} value={<span className="inline-flex items-center gap-2">{formatSize(total)} {sizing && <Spinner />}</span>} unit={c.reclaimable.replace('{n}', String(rows.length))} />
-            <Stat label={c.statSelected} tone="accent" value={formatSize(selectedBytes)} unit={c.selected.replace('{n}', String(selected.size))} />
+            <Stat label={c.statReclaimable} value={<span className="inline-flex items-center gap-2">{formatSize(total, lang)} {sizing && <Spinner />}</span>} unit={c.reclaimable.replace('{n}', String(rows.length))} />
+            <Stat label={c.statSelected} tone="accent" value={formatSize(selectedBytes, lang)} unit={c.selected.replace('{n}', String(selected.size))} />
             <Card className="flex items-center justify-center px-4 py-3">
               <Button variant="danger" size="lg" disabled={selected.size === 0} onClick={() => setConfirming(true)}>
                 <Trash2 size={16} /> {c.deleteSelected}
@@ -160,7 +160,7 @@ export default function DiskCleanerPage() {
                     </Td>
                     <Td className="text-xs text-fg-muted">{formatRelative(r.projectModified, lang)}</Td>
                     <Td align="right" className="font-mono text-sm font-semibold text-fg">
-                      {r.size === null ? <Spinner className="ml-auto" /> : formatSize(r.size)}
+                      {r.size === null ? <Spinner className="ml-auto" /> : formatSize(r.size, lang)}
                     </Td>
                   </tr>
                 ))}
@@ -183,13 +183,13 @@ export default function DiskCleanerPage() {
             <>
               <Button variant="ghost" onClick={() => setConfirming(false)} disabled={deleting}>{t.common.cancel}</Button>
               <Button variant="danger" onClick={confirmDelete} loading={deleting}>
-                {!deleting && <Trash2 size={14} />} {c.confirmDelete.replace('{size}', formatSize(selectedBytes))}
+                {!deleting && <Trash2 size={14} />} {c.confirmDelete.replace('{size}', formatSize(selectedBytes, lang))}
               </Button>
             </>
           }
         >
           <p className="text-fg-secondary">
-            {c.confirmText.replace('{n}', String(selected.size)).replace('{size}', formatSize(selectedBytes))}
+            {c.confirmText.replace('{n}', String(selected.size)).replace('{size}', formatSize(selectedBytes, lang))}
           </p>
           <ul className="max-h-48 overflow-y-auto rounded-lg border border-line-subtle bg-canvas p-2 font-mono text-xs text-fg-muted">
             {selectedRows.map(r => <li key={r.path} className="truncate">{r.path}</li>)}

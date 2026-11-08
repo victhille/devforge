@@ -284,7 +284,7 @@ export default function ProjectDetailPage() {
         <LinkRow key={l.path} origin={l.origin} onUntie={() => link('logs', l.path, false)}
           actions={<Button size="sm" variant="secondary" onClick={() => navigate(`/logs?file=${encodeURIComponent(l.path)}`)}>{h.follow}</Button>}>
           <div className="truncate font-medium text-fg" title={l.path}>{fileName(l.path)}</div>
-          <div className="truncate font-mono text-xs text-fg-muted">{l.size ? `${formatSize(l.size)} · ` : ''}{l.modifiedAt ? formatRelative(l.modifiedAt, lang) : l.path}</div>
+          <div className="truncate font-mono text-xs text-fg-muted">{l.size ? `${formatSize(l.size, lang)} · ` : ''}{l.modifiedAt ? formatRelative(l.modifiedAt, lang) : l.path}</div>
         </LinkRow>
       ))}
     </Card>

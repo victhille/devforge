@@ -64,6 +64,7 @@ interface GitTree {
 }
 
 function TreeNode({ entry, depth, dirs, expanded, onToggle, selected, onSelect, emptyLabel, git }: NodeProps) {
+  const { lang } = useI18n()
   const isOpen   = expanded.has(entry.path)
   const loaded   = dirs.get(entry.path)
   const children = loaded && git ? git.withDeleted(entry.path, visibleEntries(loaded)) : loaded && visibleEntries(loaded)
@@ -91,7 +92,7 @@ function TreeNode({ entry, depth, dirs, expanded, onToggle, selected, onSelect, 
         <Icon size={13} color={color} strokeWidth={1.8} className={cn('shrink-0', paleClass(color))} />
         <span className={cn('truncate', status && TONE[status])}>{entry.name}</span>
         {!entry.isDirectory && !!entry.size && (
-          <span className={cn('shrink-0 pl-2 font-mono text-2xs text-fg-muted', !status && 'ml-auto')}>{formatSize(entry.size)}</span>
+          <span className={cn('shrink-0 pl-2 font-mono text-2xs text-fg-muted', !status && 'ml-auto')}>{formatSize(entry.size, lang)}</span>
         )}
         {status && <GitLetter status={status} />}
         {changedDir && <span aria-hidden data-testid="dir-changed" className="ml-auto size-1.5 shrink-0 rounded-full bg-warning" />}

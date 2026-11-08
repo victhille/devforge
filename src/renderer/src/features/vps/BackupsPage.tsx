@@ -91,7 +91,7 @@ function Backups({ conn }: { conn: SSHConnection }) {
               <h2 className="font-display text-lg font-bold tracking-[-.01em] text-fg">{b.last}</h2>
               <div className="text-base text-fg-secondary">
                 {!last ? b.never.replace('{time}', plan.time)
-                  : last.ok ? b.lastOk.replace('{when}', formatRelative(last.finishedAt, lang)).replace('{size}', formatSize(last.size))
+                  : last.ok ? b.lastOk.replace('{when}', formatRelative(last.finishedAt, lang)).replace('{size}', formatSize(last.size, lang))
                   : b.lastFailed.replace('{when}', formatRelative(last.finishedAt, lang))}
               </div>
               <div className="mt-0.5 text-xs text-fg-muted">{b.schedule.replace('{time}', plan.time).replace('{daily}', String(plan.keepDaily)).replace('{weekly}', String(plan.keepWeekly))}</div>
@@ -125,7 +125,7 @@ function Backups({ conn }: { conn: SSHConnection }) {
         <StatRow>
           <Stat label={b.statNext} value={plan.time} unit={b.statNextUnit} />
           <Stat label={b.statKept} value={new Set(st.files.map(f => f.day)).size}
-            unit={b.statKeptUnit.replace('{size}', formatSize(st.files.reduce((n, f) => n + f.size, 0)))} />
+            unit={b.statKeptUnit.replace('{size}', formatSize(st.files.reduce((n, f) => n + f.size, 0), lang))} />
         </StatRow>
       )}
 
@@ -166,7 +166,7 @@ function Backups({ conn }: { conn: SSHConnection }) {
 }
 
 function FileList({ files, disabled, onRestore }: { files: BackupState['files']; disabled: boolean; onRestore: (path: string) => void }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const b = t.backups
   return (
     <Table>
@@ -185,7 +185,7 @@ function FileList({ files, disabled, onRestore }: { files: BackupState['files'];
               <span className="flex items-center gap-2 font-medium text-fg">{f.day} <Badge mono>{f.kind === 'weekly' ? b.weekly : b.daily}</Badge></span>
             </Td>
             <Td className="w-full max-w-0 truncate font-mono text-xs text-fg-secondary" title={f.path}>{f.path.split('/').pop()}</Td>
-            <Td align="right" className="font-mono text-xs whitespace-nowrap text-fg-muted">{formatSize(f.size)}</Td>
+            <Td align="right" className="font-mono text-xs whitespace-nowrap text-fg-muted">{formatSize(f.size, lang)}</Td>
             <Td align="right"><Button size="sm" variant="ghost" disabled={disabled} onClick={() => onRestore(f.path)}><ArchiveRestore size={13} /> {b.restore}</Button></Td>
           </tr>
         ))}

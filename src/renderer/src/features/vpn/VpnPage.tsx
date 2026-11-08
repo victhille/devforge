@@ -237,8 +237,8 @@ function Clients({ conn, found, onForget }: { conn: SSHConnection; found: VpnDet
                 </div>
                 {(c.transferRx != null || c.transferTx != null) && (
                   <div className="flex w-40 shrink-0 gap-3 font-mono text-xs text-fg-secondary">
-                    <span className="flex items-center gap-1" title="↓"><ArrowDown size={12} aria-hidden />{formatSize(c.transferTx)}</span>
-                    <span className="flex items-center gap-1" title="↑"><ArrowUp size={12} aria-hidden />{formatSize(c.transferRx)}</span>
+                    <span className="flex items-center gap-1" title="↓"><ArrowDown size={12} aria-hidden />{formatSize(c.transferTx, lang)}</span>
+                    <span className="flex items-center gap-1" title="↑"><ArrowUp size={12} aria-hidden />{formatSize(c.transferRx, lang)}</span>
                   </div>
                 )}
                 <div className="flex shrink-0 items-center gap-1">

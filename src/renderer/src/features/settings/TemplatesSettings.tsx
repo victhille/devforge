@@ -69,7 +69,7 @@ export default function TemplatesSettings() {
                   <div className="truncate text-base font-medium text-fg">{tpl.name}</div>
                   {tpl.description && <div className="truncate text-sm text-fg-secondary">{tpl.description}</div>}
                   <div className="truncate font-mono text-xs text-fg-muted" title={tpl.sourcePath}>
-                    {m.files.replace('{n}', String(tpl.files))} · {formatSize(tpl.bytes)} · {m.updated.replace('{date}', new Date(tpl.updatedAt).toLocaleDateString(lang))} · {m.from.replace('{path}', tpl.sourcePath)}
+                    {m.files.replace('{n}', String(tpl.files))} · {formatSize(tpl.bytes, lang)} · {m.updated.replace('{date}', new Date(tpl.updatedAt).toLocaleDateString(lang))} · {m.from.replace('{path}', tpl.sourcePath)}
                   </div>
                 </div>
                 <Button size="sm" variant="secondary" loading={busy === tpl.id} title={m.refreshHint} onClick={() => refresh(tpl)}>{busy !== tpl.id && <RefreshCw size={13} />} {m.refresh}</Button>

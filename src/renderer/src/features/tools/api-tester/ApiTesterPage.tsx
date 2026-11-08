@@ -68,7 +68,7 @@ function previewUrl(html: string, pageUrl: string): string {
 }
 
 export default function ApiTesterPage() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   // ?method=GET&url=…: a request prepared elsewhere (Symfony workshop, routes)
   const [params] = useSearchParams()
   const asked = (params.get('method') ?? '').toUpperCase() as Method
@@ -232,7 +232,7 @@ export default function ApiTesterPage() {
                   {response.status} {response.statusText}
                 </span>
                 <span className="font-mono text-xs text-fg-secondary">
-                  {response.time} ms · {formatSize(response.size)}{contentType ? ` · ${contentType}` : ''}
+                  {response.time} ms · {formatSize(response.size, lang)}{contentType ? ` · ${contentType}` : ''}
                 </span>
                 <div role="tablist" className="ml-auto flex rounded-control border border-line bg-canvas p-[3px]">
                   {([

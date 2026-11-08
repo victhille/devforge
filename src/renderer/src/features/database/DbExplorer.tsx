@@ -40,7 +40,7 @@ export default function DbExplorer({ conn, back, actions }: {
   /** Extra buttons next to Refresh (the project tab's "Open full size") */
   actions?: ReactNode
 }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const d = t.database
   const [tables, setTables] = useState<DbTable[] | null>(null)
   const [schemaError, setSchemaError] = useState('')
@@ -254,7 +254,7 @@ export default function DbExplorer({ conn, back, actions }: {
             <StatRow>
               {[
                 [d.rowsEstimate, details.stats?.rows != null ? details.stats.rows.toLocaleString() : '—'],
-                [d.size, details.stats?.dataBytes != null ? formatSize((details.stats.dataBytes ?? 0) + (details.stats.indexBytes ?? 0)) : '—'],
+                [d.size, details.stats?.dataBytes != null ? formatSize((details.stats.dataBytes ?? 0) + (details.stats.indexBytes ?? 0), lang) : '—'],
                 [d.statIndexes, String(details.indexes.length)],
                 [d.statForeignKeys, details.foreignKeys.length ? `${details.foreignKeys.length} → ${details.foreignKeys[0].table}` : '0']
               ].map(([label, value]) => <Stat key={label} label={label} value={<span className="block truncate" title={value}>{value}</span>} />)}

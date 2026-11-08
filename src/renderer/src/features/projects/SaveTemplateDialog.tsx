@@ -11,7 +11,7 @@ import { errorText } from '@renderer/lib/errors'
 
 /** v3.8 lot 5: a project saved as a template, with what is left out and what will be copied */
 export default function SaveTemplateDialog({ project, onClose }: { project: Project; onClose: () => void }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const m = t.templates
   const toast = useToast()
   const [name, setName] = useState(project.name)
@@ -60,7 +60,7 @@ export default function SaveTemplateDialog({ project, onClose }: { project: Proj
         <div role="status" className="rounded-xl bg-canvas p-3 text-sm" data-testid="template-preview">
           {!preview ? <span className="text-fg-muted">{m.previewing}</span> : preview.tooBig ? <span className="text-danger">{m.tooBig}</span> : (
             <>
-              <div className="font-medium text-fg">{m.preview.replace('{files}', String(preview.files)).replace('{size}', formatSize(preview.bytes))}</div>
+              <div className="font-medium text-fg">{m.preview.replace('{files}', String(preview.files)).replace('{size}', formatSize(preview.bytes, lang))}</div>
               {preview.skipped.length > 0 && <div className="mt-1 text-xs text-fg-muted">{m.skipped.replace('{list}', preview.skipped.join(', '))}</div>}
             </>
           )}

@@ -2894,6 +2894,12 @@ const en = {
     browse:  'Browse'
   },
 
+  // Size and short duration units; Intl writes the number (decimal point)
+  units: {
+    b: 'B', kb: 'KB', mb: 'MB', gb: 'GB',
+    second: 's', minute: 'min', hour: 'h', day: 'd', week: 'wk', month: 'mo', year: 'yr'
+  },
+
   gitDash: {
     commit:              'Commit',
     commitTitle:         'Commit',

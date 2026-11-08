@@ -301,7 +301,7 @@ export function Stat({ label, value, hint }: { label: string; value: ReactNode; 
 }
 
 export function InfoTab({ details }: { details: DbTableDetails }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const d = t.database
   const s: DbTableStat | null = details.stats
   const total = s && (s.dataBytes !== null || s.indexBytes !== null) ? (s.dataBytes ?? 0) + (s.indexBytes ?? 0) : null
@@ -309,9 +309,9 @@ export function InfoTab({ details }: { details: DbTableDetails }) {
     <div className="flex flex-col gap-5 p-5">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label={d.rowsEstimate} value={s?.rows?.toLocaleString() ?? '—'} hint={d.approx} />
-        <Stat label={d.size} value={formatSize(total)} />
-        <Stat label={d.dataSize} value={formatSize(s?.dataBytes)} />
-        <Stat label={d.indexSize} value={formatSize(s?.indexBytes)} />
+        <Stat label={d.size} value={formatSize(total, lang)} />
+        <Stat label={d.dataSize} value={formatSize(s?.dataBytes, lang)} />
+        <Stat label={d.indexSize} value={formatSize(s?.indexBytes, lang)} />
         {s?.engine && <Stat label={d.engine} value={s.engine} />}
         {s?.collation && <Stat label={d.collation} value={s.collation} />}
         <Stat label={d.colType} value={s?.type === 'view' ? d.typeView : d.typeTable} />

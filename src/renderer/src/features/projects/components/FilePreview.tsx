@@ -62,7 +62,7 @@ export default function FilePreview({ file, line, root, ide: own, onClose, chang
   /** v3.7: what Git says of this file, its path in the project; the changes shown first */
   change?: FileChangeStatus; rel?: string; startOnChanges?: boolean
 }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const f = t.files
   const toast = useToast()
   const ide = usePreferredIde()
@@ -94,7 +94,7 @@ export default function FilePreview({ file, line, root, ide: own, onClose, chang
     <section aria-label={f.previewOf.replace('{name}', file.name)} className="flex min-h-0 min-w-0 flex-1 flex-col border-l border-line-subtle">
       <header className="flex h-10 shrink-0 items-center gap-2 border-b border-line-subtle px-3">
         <span className="truncate font-mono text-sm font-medium text-fg" title={file.path}>{file.name}</span>
-        {preview && preview.size > 0 && <span className="shrink-0 font-mono text-2xs text-fg-muted">{formatSize(preview.size)}</span>}
+        {preview && preview.size > 0 && <span className="shrink-0 font-mono text-2xs text-fg-muted">{formatSize(preview.size, lang)}</span>}
         {change && <span className={cn('shrink-0 font-mono text-2xs', TONE[change].replace('line-through', ''))}>{f.gitStatus[change]}</span>}
         <span className="ml-auto flex items-center gap-1">
           {change && change !== 'deleted' && (

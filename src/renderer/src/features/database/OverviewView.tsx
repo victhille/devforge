@@ -10,7 +10,7 @@ import { Stat } from './TableTabs'
 
 /** Database home, like phpMyAdmin's database page: info + every table with its size */
 export default function OverviewView({ overview, onOpenTable }: { overview: DbOverview; onOpenTable: (t: DbTableRef) => void }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const d = t.database
   const [filter, setFilter] = useState('')
   const tables = overview.tables.filter(tb => tb.type === 'table')
@@ -30,7 +30,7 @@ export default function OverviewView({ overview, onOpenTable }: { overview: DbOv
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
         <Stat label={d.server} value={overview.version} />
         <Stat label={d.databaseLabel} value={overview.database} />
-        <Stat label={d.size} value={formatSize(overview.sizeBytes)} />
+        <Stat label={d.size} value={formatSize(overview.sizeBytes, lang)} />
         <Stat label={d.tablesLabel} value={String(tables.length)} hint={views.length ? `${views.length} ${d.viewsLabel.toLowerCase()}` : undefined} />
         <Stat label={d.totalRows} value={totalRows.toLocaleString()} hint={d.approx} />
         <Stat label={d.encoding} value={overview.encoding ?? '—'} hint={overview.collation} />
@@ -70,10 +70,10 @@ export default function OverviewView({ overview, onOpenTable }: { overview: DbOv
                 <Td className="text-xs text-fg-secondary">{tb.type === 'view' ? d.typeView : d.typeTable}</Td>
                 <Td align="right" className="tabular-nums text-fg-secondary">{tb.rows?.toLocaleString() ?? '—'}</Td>
                 {hasSizes && <>
-                  <Td align="right" className="tabular-nums text-xs text-fg-secondary">{formatSize(tb.dataBytes)}</Td>
-                  <Td align="right" className="tabular-nums text-xs text-fg-secondary">{formatSize(tb.indexBytes)}</Td>
+                  <Td align="right" className="tabular-nums text-xs text-fg-secondary">{formatSize(tb.dataBytes, lang)}</Td>
+                  <Td align="right" className="tabular-nums text-xs text-fg-secondary">{formatSize(tb.indexBytes, lang)}</Td>
                   <Td align="right" className="tabular-nums text-xs font-medium text-fg">
-                    {formatSize(tb.dataBytes === null && tb.indexBytes === null ? null : (tb.dataBytes ?? 0) + (tb.indexBytes ?? 0))}
+                    {formatSize(tb.dataBytes === null && tb.indexBytes === null ? null : (tb.dataBytes ?? 0) + (tb.indexBytes ?? 0), lang)}
                   </Td>
                 </>}
                 {hasEngine && <Td className="text-xs text-fg-secondary">{tb.engine ?? ''}</Td>}
