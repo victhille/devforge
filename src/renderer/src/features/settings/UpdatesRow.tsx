@@ -43,7 +43,7 @@ export default function UpdatesSettings({ settings, set, onNotes }: {
         </div>
         <div className="min-w-[200px] flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold text-fg">DevForge {__APP_VERSION__}</h3>
+            <h3 className="font-display text-lg font-bold tracking-[-.01em] text-fg">DevForge {__APP_VERSION__}</h3>
             {status.state === 'up-to-date' && <Badge color="success">{u.updateUpToDate}</Badge>}
             {__APP_VERSION__.includes('-') && <Badge color="warning">{u.channelPre}</Badge>}
           </div>

@@ -102,7 +102,7 @@ export default function DocsPage() {
       {/* Content */}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-line-subtle px-8 py-4">
-          <h1 className={cn('flex items-center gap-2.5 text-xl font-semibold', paleClass(tech.color))} style={{ color: tech.color }}>
+          <h1 className={cn('flex items-center gap-2.5 font-display text-xl font-bold tracking-[-.02em]', paleClass(tech.color))} style={{ color: tech.color }}>
             <FrameworkIcon name={tech.id} size={20} />
             {tech.name}
           </h1>

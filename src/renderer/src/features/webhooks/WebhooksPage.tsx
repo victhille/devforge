@@ -82,7 +82,10 @@ export default function WebhooksPage() {
       {/* Server bar */}
       <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-line-subtle bg-surface px-6 py-3">
         <Webhook size={18} className="text-accent" />
-        <h1 className="text-xl font-semibold text-fg">{w.title}</h1>
+        <div className="flex min-w-0 flex-col">
+          <span className="text-sm text-fg-muted">{t.nav.groupData}</span>
+          <h1 className="font-display text-xl leading-tight font-bold tracking-[-.02em] text-fg">{w.title}</h1>
+        </div>
         <div className="ml-4 flex items-center gap-2">
           <Input type="number" value={port} onChange={e => setPort(e.target.value)} disabled={!!status?.port} aria-label="Port" className="h-8 w-24 font-mono" />
           <Button size="sm" variant={status?.port ? 'danger' : 'primary'} onClick={toggle}>

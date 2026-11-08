@@ -4,9 +4,9 @@ import type { DbBrowseResult, DbColumnInfo, DbConnection, DbForeignKey, DbTableD
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import { formatSize } from '@renderer/lib/format'
-import { cn } from '@renderer/lib/cn'
 import Badge from '@renderer/components/ui/Badge'
 import Card from '@renderer/components/ui/Card'
+import { Table, Td, Th } from '@renderer/components/ui/Table'
 import CopyButton from '@renderer/components/ui/CopyButton'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
@@ -139,13 +139,6 @@ export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableR
 
 const KEY_COLOR = { PRI: 'warning', UNI: 'accent', MUL: 'default' } as const
 
-function Th({ children, className }: { children?: ReactNode; className?: string }) {
-  return <th className={cn('border-b border-line-subtle px-3 py-2 text-left text-xs font-semibold text-fg-muted', className)}>{children}</th>
-}
-function Td({ children, className }: { children?: ReactNode; className?: string }) {
-  return <td className={cn('border-b border-line-subtle px-3 py-2 align-top', className)}>{children}</td>
-}
-
 type Editing = { kind: 'add' } | { kind: 'edit'; column: DbColumnInfo } | { kind: 'dropColumn'; column: string } | { kind: 'rename' } | { kind: 'drop' }
 
 /**
@@ -179,14 +172,14 @@ export function StructureTab({ details, conn, table, onChanged, onRenamed, onDro
             </span>
           )}
         </div>
-        <Card className="overflow-x-auto p-0">
-          <table className="w-full border-collapse text-sm">
-            <thead className="bg-elevated">
+        <Card className="overflow-hidden p-0">
+          <Table>
+            <thead>
               <tr><Th className="w-10">#</Th><Th>{d.colName}</Th><Th>{d.colType}</Th><Th>{d.colNull}</Th><Th>{d.colDefault}</Th><Th>{d.colKey}</Th><Th>{d.colExtra}</Th><Th>{d.colComment}</Th>{editable && <Th className="w-[72px]"><span className="sr-only">{d.colActions}</span></Th>}</tr>
             </thead>
             <tbody>
               {details.columns.map((c, i) => (
-                <tr key={c.name} className="hover:bg-hover">
+                <tr key={c.name}>
                   <Td className="text-fg-muted tabular-nums">{i + 1}</Td>
                   <Td className="font-mono font-medium text-fg">
                     <span className="flex items-center gap-1.5">{c.key === 'PRI' && <KeyRound size={11} className="text-warning" />}{c.name}</span>
@@ -208,19 +201,19 @@ export function StructureTab({ details, conn, table, onChanged, onRenamed, onDro
                 </tr>
               ))}
             </tbody>
-          </table>
+          </Table>
         </Card>
       </section>
 
       <section className="flex flex-col gap-2">
         <SectionTitle>{d.indexesTitle.replace('{n}', String(details.indexes.length))}</SectionTitle>
         {details.indexes.length === 0 ? <p className="text-sm text-fg-muted">{d.noIndexes}</p> : (
-          <Card className="overflow-x-auto p-0">
-            <table className="w-full border-collapse text-sm">
-              <thead className="bg-elevated"><tr><Th>{d.colName}</Th><Th>{d.colType}</Th><Th>{d.unique}</Th><Th>{d.indexColumns}</Th></tr></thead>
+          <Card className="overflow-hidden p-0">
+            <Table>
+              <thead><tr><Th>{d.colName}</Th><Th>{d.colType}</Th><Th>{d.unique}</Th><Th>{d.indexColumns}</Th></tr></thead>
               <tbody>
                 {details.indexes.map(i => (
-                  <tr key={i.name} className="hover:bg-hover">
+                  <tr key={i.name}>
                     <Td className="font-mono text-fg">
                       <span className="flex items-center gap-2">{i.name}{i.primary && <Badge color="warning" className="text-2xs">{d.primary}</Badge>}</span>
                     </Td>
@@ -230,7 +223,7 @@ export function StructureTab({ details, conn, table, onChanged, onRenamed, onDro
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </Table>
           </Card>
         )}
       </section>

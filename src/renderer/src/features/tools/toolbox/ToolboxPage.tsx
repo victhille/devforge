@@ -40,6 +40,7 @@ export default function ToolboxPage() {
   return (
     <Page className="min-h-full max-w-none gap-4">
       <PageHeader
+        crumb={t.nav.groupTools}
         title={t.toolbox.title}
         subtitle={t.toolbox.subtitle}
         actions={

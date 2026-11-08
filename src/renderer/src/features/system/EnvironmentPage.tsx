@@ -101,6 +101,7 @@ export default function EnvironmentPage() {
   return (
     <Page>
       <PageHeader
+        crumb={t.nav.groupSystem}
         title={t.environment.title}
         subtitle={tools.length > 0
           ? t.environment.subtitle.replace('{n}', String(totalDetected)).replace('{total}', String(tools.length))

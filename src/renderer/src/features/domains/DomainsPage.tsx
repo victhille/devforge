@@ -66,7 +66,7 @@ export default function DomainsPage() {
 
   return (
     <Page>
-      <PageHeader icon={<Globe size={18} />} title={d.title} subtitle={d.subtitle} />
+      <PageHeader icon={<Globe size={18} />} crumb={t.nav.groupSystem} title={d.title} subtitle={d.subtitle} />
 
       {/* Status */}
       <div className="grid grid-cols-2 gap-3">

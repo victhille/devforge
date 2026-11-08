@@ -84,7 +84,7 @@ export default function DiskCleanerPage() {
 
   return (
     <Page>
-      <PageHeader icon={<HardDrive size={18} />} title={c.title} subtitle={c.subtitle} />
+      <PageHeader icon={<HardDrive size={18} />} crumb={t.nav.groupSystem} title={c.title} subtitle={c.subtitle} />
 
       <div className="flex gap-2">
         <Input value={root} onChange={e => setRoot(e.target.value)} placeholder="C:\Dev" className="font-mono" />

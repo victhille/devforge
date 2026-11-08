@@ -28,6 +28,7 @@ export default function DiffPage() {
   return (
     <Page className="h-full max-w-none gap-4">
       <PageHeader
+        crumb={t.nav.groupTools}
         title={t.diff.title}
         subtitle={t.diff.subtitle}
         actions={(left || right) && (
