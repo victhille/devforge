@@ -7,7 +7,7 @@ import { libraryDescription } from '@shared/data/projectLibraries.fr'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import { Input } from '@renderer/components/ui/Input'
-import { WizardFooter, WizardHeader, type WizardStep } from './WizardFrame'
+import WizardFrame, { type WizardStep } from './WizardFrame'
 
 type NewProjectT = ReturnType<typeof useI18n>['t']['newProject']
 
@@ -75,45 +75,42 @@ export default function LibrarySelector({ framework, steps, onBack, onSubmit }: 
     active ? 'border-accent bg-accent-soft text-accent' : 'border-line-subtle text-fg-secondary hover:border-line hover:text-fg'
   )
 
-  return (
-    <div className="flex h-full flex-col">
-      <div className="flex shrink-0 flex-col gap-4 border-b border-line-subtle px-8 pt-7 pb-4">
-        <WizardHeader steps={steps} subtitle={t.newProject.libSubtitle} />
-        <div className="relative">
-          <Search size={13} className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-fg-muted" />
-          <Input
-            className="pl-8"
-            placeholder={t.newProject.libSearch}
-            value={search}
-            onChange={e => { setSearch(e.target.value); setCategory('all') }}
-          />
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          <button className={chip(category === 'all')} onClick={() => setCategory('all')}>{t.newProject.libCatAll}</button>
-          {categories.map(cat => (
-            <button key={cat} className={chip(category === cat)} onClick={() => setCategory(cat)}>
-              {t.newProject[CAT_LABEL_KEY[cat]] as string}
-            </button>
-          ))}
-        </div>
-      </div>
+  const chosen = available.filter(l => selected.has(l.id))
 
-      <div className="grid flex-1 auto-rows-min grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-2.5 overflow-y-auto px-8 py-5">
+  return (
+    <WizardFrame steps={steps} title={t.newProject.libTitle} subtitle={t.newProject.libSubtitle} onBack={onBack}
+      asideTitle={t.newProject.libChosen.replace('{n}', String(chosen.length))}
+      aside={chosen.length
+        ? <ul className="flex flex-wrap gap-1.5">{chosen.map(l => <li key={l.id} className="rounded-full bg-elevated px-2.5 py-0.5 text-sm text-fg-secondary">{l.name}</li>)}</ul>
+        : <p className="text-sm text-fg-muted">{t.newProject.libNoneChosen}</p>}
+      footer={<>
+        <Button onClick={create}>{createLabel}</Button>
+        <Button variant="ghost" onClick={() => onSubmit([], [])}>{t.newProject.libSkip}</Button>
+      </>}>
+      <div className="relative">
+        <Search size={13} className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-fg-muted" />
+        <Input className="pl-8" placeholder={t.newProject.libSearch} aria-label={t.newProject.libSearch} value={search}
+          onChange={e => { setSearch(e.target.value); setCategory('all') }} />
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        <button className={chip(category === 'all')} aria-pressed={category === 'all'} onClick={() => setCategory('all')}>{t.newProject.libCatAll}</button>
+        {categories.map(cat => (
+          <button key={cat} className={chip(category === cat)} aria-pressed={category === cat} onClick={() => setCategory(cat)}>
+            {t.newProject[CAT_LABEL_KEY[cat]] as string}
+          </button>
+        ))}
+      </div>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
         {filtered.map(lib => {
           const on = selected.has(lib.id)
           return (
-            <button
-              key={lib.id}
-              onClick={() => toggle(lib.id)}
-              className={cn(
-                'flex flex-col items-start gap-1 rounded-xl border p-3.5 text-left transition-colors',
-                on ? 'border-accent bg-accent-soft' : 'border-line-subtle bg-surface hover:border-line hover:bg-elevated'
-              )}
-            >
+            <button key={lib.id} aria-pressed={on} onClick={() => toggle(lib.id)}
+              className={cn('flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-colors',
+                on ? 'border-accent bg-accent-soft' : 'border-line-subtle bg-surface hover:border-fg-muted')}>
               <div className="flex w-full items-center justify-between">
-                <span className="size-2.5 rounded-full" style={{ background: lib.color }} />
+                <span aria-hidden className="size-2.5 rounded-full" style={{ background: lib.color }} />
                 {on && (
-                  <span className="flex size-4 items-center justify-center rounded-full bg-accent text-accent-fg">
+                  <span aria-hidden className="flex size-4 items-center justify-center rounded-full bg-accent text-accent-fg">
                     <Check size={10} strokeWidth={3} />
                   </span>
                 )}
@@ -125,14 +122,9 @@ export default function LibrarySelector({ framework, steps, onBack, onSubmit }: 
           )
         })}
         {filtered.length === 0 && (
-          <p className="col-span-full py-10 text-center text-fg-muted">No libraries found for "{search}"</p>
+          <p className="col-span-full py-10 text-center text-fg-muted">{t.newProject.libNone.replace('{query}', search)}</p>
         )}
       </div>
-
-      <WizardFooter onBack={onBack} className="shrink-0 border-t border-line-subtle bg-surface px-8 py-3">
-        <Button variant="ghost" onClick={() => onSubmit([], [])}>{t.newProject.libSkip}</Button>
-        <Button size="lg" onClick={create}>{createLabel}</Button>
-      </WizardFooter>
-    </div>
+    </WizardFrame>
   )
 }
