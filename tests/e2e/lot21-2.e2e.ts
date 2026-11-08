@@ -47,7 +47,7 @@ test('with a plan: last night, the files, a restore asks first', async () => {
   const { page } = run
   await goTo(page, '/backups')
   await expect(page.getByRole('heading', { name: 'Dernière sauvegarde' })).toBeVisible()
-  await expect(page.getByText(/^Réussie .* · 1\.2 MB$/)).toBeVisible()
+  await expect(page.getByText(/^Réussie .* · 1,2 Mo$/)).toBeVisible()
   await expect(page.getByText('Chaque nuit à 03:30 · 7 jours, 4 semaines')).toBeVisible()
   await expect(page.getByText('db-n8n-postgres-1.sql.gz')).toBeVisible()
   await page.getByRole('button', { name: 'Restaurer', exact: true }).first().click()

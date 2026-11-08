@@ -78,7 +78,7 @@ export default function FilesModal({ sessionId, name, onClose }: { sessionId: st
                         </button>
                       )}
                     </Td>
-                    <Td align="right" className="font-mono text-xs whitespace-nowrap text-fg-muted">{e.kind === 'file' ? formatSize(e.size) : ''}</Td>
+                    <Td align="right" className="font-mono text-xs whitespace-nowrap text-fg-muted">{e.kind === 'file' ? formatSize(e.size, lang) : ''}</Td>
                     <Td className="text-xs whitespace-nowrap text-fg-muted">{new Date(e.mtime).toLocaleString(lang, { dateStyle: 'short', timeStyle: 'short' })}</Td>
                     <Td align="right">
                       {e.kind === 'file' && <IconButton title={s.downloadFile.replace('{name}', e.name)} onClick={() => download(e)}><Download size={14} /></IconButton>}

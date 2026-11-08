@@ -10,7 +10,8 @@ import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { useVPS } from '../VPSContext'
-import { fmtBytes, fmtUptime } from './stats'
+import { formatSize } from '@renderer/lib/format'
+import { fmtUptime } from './stats'
 import { useVpsStats } from './useVpsStats'
 import StatCard, { CardLabel } from './components/StatCard'
 import { DisksPanel, DockerPanel, ProcessesPanel } from './components/Panels'
@@ -118,14 +119,14 @@ export default function VPSDashboardPage() {
             />
             <StatCard
               icon={<MemoryStick size={14} />} label={v.memory} pct={memPct}
-              value={`${fmtBytes(stats.memory.used)} / ${fmtBytes(stats.memory.total)}`}
+              value={`${formatSize(stats.memory.used, lang)} / ${formatSize(stats.memory.total, lang)}`}
               detail={`${Math.round(memPct)} %`}
-              extra={v.available.replace('{v}', fmtBytes(stats.memory.available))}
+              extra={v.available.replace('{v}', formatSize(stats.memory.available, lang))}
             />
             {stats.swap.total > 0 && (
               <StatCard
                 icon={<HardDrive size={14} />} label="Swap" pct={swapPct}
-                value={`${fmtBytes(stats.swap.used)} / ${fmtBytes(stats.swap.total)}`}
+                value={`${formatSize(stats.swap.used, lang)} / ${formatSize(stats.swap.total, lang)}`}
                 detail={`${Math.round(swapPct)} %`}
               />
             )}

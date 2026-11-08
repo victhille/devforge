@@ -3,12 +3,14 @@ import { cn } from '@renderer/lib/cn'
 import Badge from '@renderer/components/ui/Badge'
 import Card, { CardHeader, CardTitle } from '@renderer/components/ui/Card'
 import { Table, Td, Th } from '@renderer/components/ui/Table'
-import { dockerTone, fmtBytes, usageTone, type VPSStats } from '../stats'
+import { formatSize } from '@renderer/lib/format'
+import { dockerSince, dockerTone, usageTone, type VPSStats } from '../stats'
 import { UsageBar } from './StatCard'
 import { useI18n } from '@renderer/i18n/I18nContext'
 
 export function DisksPanel({ disks }: { disks: VPSStats['disks'] }) {
-  const v = useI18n().t.vpsDash
+  const { t, lang } = useI18n()
+  const v = t.vpsDash
   return (
     <Card>
       <CardHeader><CardTitle><HardDrive size={14} className="text-fg-muted" /> {v.disks}</CardTitle></CardHeader>
@@ -20,7 +22,7 @@ export function DisksPanel({ disks }: { disks: VPSStats['disks'] }) {
               <span className={cn('font-mono font-semibold', usageTone(d.pct))}>{d.pct} %</span>
             </div>
             <UsageBar pct={d.pct} />
-            <span className="font-mono text-xs text-fg-muted">{fmtBytes(d.used)} / {fmtBytes(d.total)}</span>
+            <span className="font-mono text-xs text-fg-muted">{formatSize(d.used, lang)} / {formatSize(d.total, lang)}</span>
           </div>
         ))}
         {disks.length === 0 && <span className="text-sm text-fg-muted">{v.noDisks}</span>}
@@ -85,11 +87,19 @@ export function DockerPanel({ containers }: { containers: VPSStats['docker'] }) 
                 </span>
               </Td>
               <Td className="max-w-72 truncate font-mono text-xs text-fg-muted" title={c.image}>{c.image}</Td>
-              <Td className="text-fg-secondary">{c.status}</Td>
+              <Td className="whitespace-nowrap text-fg-secondary" title={c.status}><DockerSince status={c.status} /></Td>
             </tr>
           ))}
         </tbody>
       </Table>
     </Card>
   )
+}
+
+/** How long the container has been in its state; screen readers hear the state first (the dot is only a color) */
+function DockerSince({ status }: { status: string }) {
+  const { t, lang } = useI18n()
+  const state = status.toLowerCase().startsWith('up') ? t.docker.stateRunning : t.docker.stateStopped
+  const since = dockerSince(status, lang)
+  return since ? <><span className="sr-only">{state}, </span>{since}</> : <>{state}</>
 }

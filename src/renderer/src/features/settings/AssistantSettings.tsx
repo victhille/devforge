@@ -15,7 +15,7 @@ import { Segmented, SettingRow, SettingsCard } from './parts'
 
 /** Whisper model for voice typing: choice, download, removal */
 function DictationRow({ settings, set }: { settings: AppSettings; set: <K extends keyof AppSettings>(k: K, v: AppSettings[K]) => Promise<void> }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const d = t.dictation
   const [status, setStatus] = useState<DictationStatus | null>(null)
   const [pct, setPct] = useState<number | null>(null)
@@ -26,7 +26,7 @@ function DictationRow({ settings, set }: { settings: AppSettings; set: <K extend
 
   return (
     <SettingRow label={d.setting} hint={<>{d.settingHint}<br /><span className="font-mono text-xs">
-      {busy ? (pct === null ? d.downloadingNoPct : d.downloading.replace('{p}', String(pct))) : status?.downloaded ? d.downloaded.replace('{size}', formatSize(status.size)) : d.notDownloaded}
+      {busy ? (pct === null ? d.downloadingNoPct : d.downloading.replace('{p}', String(pct))) : status?.downloaded ? d.downloaded.replace('{size}', formatSize(status.size, lang)) : d.notDownloaded}
     </span></>}>
       <div className="flex flex-col items-end gap-2">
         <Segmented<'base' | 'small'> label={d.setting} value={model} onChange={v => set('dictationModel', v)}
