@@ -22,7 +22,7 @@ export function WizardHeader({ steps, subtitle }: { steps: WizardStep[]; subtitl
         {steps.map((s, i) => {
           const text = `${i + 1} · ${s.label}`
           const cls = cn('flex h-8 items-center gap-1.5 rounded-full px-3 text-sm',
-            s.state === 'done' ? 'bg-success/10 text-success' : s.state === 'current' ? 'bg-active font-semibold text-fg' : 'border border-line text-fg-muted')
+            s.state === 'done' ? 'bg-success/10 text-success' : s.state === 'current' ? 'bg-accent-soft font-semibold text-fg' : 'border border-line text-fg-muted')
           return (
             <li key={i} aria-current={s.state === 'current' ? 'step' : undefined}>
               {s.state === 'done' && s.onClick

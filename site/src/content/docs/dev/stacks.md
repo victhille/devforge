@@ -3,7 +3,7 @@ title: Lanceur de stack
 description: Démarrer tout ton environnement de dev en un clic, front, API, Docker, VS Code et navigateur.
 ---
 
-Le **Lanceur** (page *Lanceur de stack*) démarre tout ton environnement de dev en un clic. Une **stack** regroupe ce que tu lances chaque jour : le front, l'API, Docker, VS Code, le navigateur…
+Le **Lanceur** démarre tout ton environnement de dev en un clic. Une **stack** regroupe ce que tu lances chaque jour : le front, l'API, Docker, VS Code, le navigateur…
 
 ## Créer une stack
 

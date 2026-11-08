@@ -2,6 +2,7 @@ import type { Framework, UserTemplate } from '@shared/types'
 import { PROJECT_TEMPLATES } from '@shared/data/projectTemplates'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import FrameworkIcon from '@renderer/components/ui/FrameworkIcon'
+import { paleClass } from '@renderer/lib/brand'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
 import ProjectIcon from '../components/ProjectIcon'
 
@@ -25,13 +26,15 @@ export default function TechSelector({ onSelect, templates, onTemplate }: { onSe
       {templates.length > 0 && (
         <section className="flex flex-col gap-2.5" aria-label={t.templates.mine}>
           <SectionTitle>{t.templates.mine}</SectionTitle>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3.5">
             {templates.map(tpl => (
               <button key={tpl.id} onClick={() => onTemplate(tpl)}
-                className="group flex flex-col items-start gap-2 rounded-xl border border-line-subtle bg-surface p-4 text-left transition-all hover:-translate-y-0.5 hover:bg-elevated hover:shadow-pop">
+                className="flex items-center gap-3 rounded-xl border border-line-subtle bg-surface p-3 text-left transition-colors hover:border-fg-muted">
                 <ProjectIcon framework={tpl.framework} />
-                <span className="font-semibold text-fg">{tpl.name}</span>
-                <span className="text-sm leading-snug text-fg-secondary">{tpl.description || t.templates.files.replace('{n}', String(tpl.files))}</span>
+                <span className="flex min-w-0 flex-col gap-0.5">
+                  <span className="truncate font-semibold text-fg" title={tpl.name}>{tpl.name}</span>
+                  <span className="text-xs leading-snug text-fg-muted">{tpl.description || t.templates.files.replace('{n}', String(tpl.files))}</span>
+                </span>
               </button>
             ))}
           </div>
@@ -44,21 +47,23 @@ export default function TechSelector({ onSelect, templates, onTemplate }: { onSe
         return (
           <section key={cat} className="flex flex-col gap-2.5">
             <SectionTitle>{labels[cat]}</SectionTitle>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3.5">
               {templates.map(tpl => (
                 <button
                   key={tpl.id}
                   onClick={() => onSelect(tpl.id)}
-                  className="group flex flex-col items-start gap-2 rounded-xl border border-line-subtle bg-surface p-4 text-left transition-all hover:-translate-y-0.5 hover:bg-elevated hover:shadow-pop"
+                  className="flex items-center gap-3 rounded-xl border border-line-subtle bg-surface p-3 text-left transition-colors hover:border-fg-muted"
                 >
                   <div
-                    className="flex size-10 items-center justify-center rounded-lg"
+                    className="flex size-9 shrink-0 items-center justify-center rounded-lg"
                     style={{ background: `${tpl.color}18` }}
                   >
-                    <FrameworkIcon name={tpl.iconName} size={22} style={{ color: tpl.color }} />
+                    <FrameworkIcon name={tpl.iconName} size={20} className={paleClass(tpl.color)} style={{ color: tpl.color }} />
                   </div>
-                  <span className="font-semibold text-fg">{t.newProject.templateName[tpl.id] ?? tpl.name}</span>
-                  <span className="text-sm leading-snug text-fg-secondary">{t.newProject.templateDesc[tpl.id] ?? tpl.description}</span>
+                  <span className="flex min-w-0 flex-col gap-0.5">
+                    <span className="truncate font-semibold text-fg" title={t.newProject.templateName[tpl.id] ?? tpl.name}>{t.newProject.templateName[tpl.id] ?? tpl.name}</span>
+                    <span className="text-xs leading-snug text-fg-muted">{t.newProject.templateDesc[tpl.id] ?? tpl.description}</span>
+                  </span>
                 </button>
               ))}
             </div>

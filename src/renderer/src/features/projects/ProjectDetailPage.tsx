@@ -15,6 +15,7 @@ import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
+import Badge from '@renderer/components/ui/Badge'
 import Spinner from '@renderer/components/ui/Spinner'
 import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
 import CommitModal from '@renderer/features/git/CommitModal'
@@ -65,7 +66,7 @@ function Tile({ title, icon, onSee, i, children }: { title: string; icon: ReactN
 
 function Origin({ origin }: { origin: 'auto' | 'manual' }) {
   const { t } = useI18n()
-  return <span className="rounded-full bg-elevated px-2 py-0.5 font-mono text-2xs text-fg-muted">{origin === 'auto' ? t.hub.auto : t.hub.manual}</span>
+  return <Badge>{origin === 'auto' ? t.hub.auto : t.hub.manual}</Badge>
 }
 
 const Muted = ({ children }: { children: ReactNode }) => <p className="text-sm text-fg-muted">{children}</p>
@@ -89,7 +90,7 @@ function HiddenList({ items, onShow }: { items: { ref: string; label: string }[]
   if (!items.length) return null
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="font-mono text-2xs tracking-widest text-fg-muted uppercase">{t.hub.hiddenTitle}</span>
+      <span className="text-xs font-semibold tracking-[.04em] text-fg-muted uppercase">{t.hub.hiddenTitle}</span>
       {items.map(i => (
         <div key={i.ref} className="flex items-center gap-2 text-sm text-fg-secondary">
           <span className="min-w-0 flex-1 truncate">{i.label}</span>
@@ -510,20 +511,20 @@ export default function ProjectDetailPage() {
   }
 
   return (
-    <div className="df-rise mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-8 pt-6 pb-24">
+    <div className="df-rise mx-auto flex w-full max-w-[1320px] flex-col gap-5 px-9 pt-6.5 pb-24">
       {/* Header */}
       <header className="flex flex-wrap items-center gap-3">
         <IconButton title={h.back} onClick={() => navigate(-1)}><ArrowLeft size={15} /></IconButton>
         <ProjectIcon framework={p.framework} size="lg" />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="truncate text-page leading-tight font-semibold tracking-[-.02em] text-fg">{p.name}</h1>
-            <span className="rounded-full bg-accent-soft px-2 py-0.5 font-mono text-xs font-medium text-accent">{h.active}</span>
+            <h1 className="truncate font-display text-page font-bold tracking-[-.025em] text-fg">{p.name}</h1>
+            <Badge color="accent">{h.active}</Badge>
           </div>
           <button onClick={() => window.devforge.openDirectory(p.path)} title={h.openFolder} className="max-w-full truncate font-mono text-xs text-fg-muted hover:text-accent">{p.path}</button>
         </div>
         <div className="flex items-center gap-1">
-          <IconButton title={h.favorite} onClick={toggleFavorite} className={cn(p.favorite && 'text-warning hover:text-warning')}><Star size={15} fill={p.favorite ? 'currentColor' : 'none'} /></IconButton>
+          <IconButton title={h.favorite} onClick={toggleFavorite} className={cn(p.favorite && 'text-accent hover:text-accent')}><Star size={15} fill={p.favorite ? 'currentColor' : 'none'} /></IconButton>
           {ide.labelFor(p.ide) && <IconButton title={`${h.openIde} · ${ide.labelFor(p.ide)}`} onClick={() => ide.open(p.path, p.ide)}><Code2 size={15} /></IconButton>}
           <IconButton title={h.openTerminal} onClick={() => window.devforge.openTerminal(p.path)}><Terminal size={15} /></IconButton>
           <IconButton title={t.templates.save} onClick={() => setSavingTemplate(true)}><LayoutTemplate size={15} /></IconButton>

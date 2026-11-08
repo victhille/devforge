@@ -7,7 +7,7 @@ description: The list of your projects and each project's page, with Git, GitHub
 
 The **Projects** page shows:
 
-- **Your Projects**: the ones DevForge tracks. Each card shows the framework, the Git state ("uncommitted") and buttons **Open**, the name of the project's [IDE](/devforge/en/dev/ide/) (no button when the chosen IDE is "None"), **Terminal**, **Scripts** (the `package.json` scripts), **Favorite** and **Remove**.
+- **Your Projects**: the ones DevForge tracks. Each card shows the framework, the Git state ("uncommitted"), an **Open** button (in orange for the active project), then icons: the project's [IDE](/devforge/en/dev/ide/) (its name on hover; no icon when the chosen IDE is "None"), **Terminal**, **Scripts** (the `package.json` scripts) and **Remove**. The star at the top makes it a **Favorite**. The stack filters show how many projects they keep, and **Grid** / **List** changes the view.
 - **Detected in…**: projects found in your projects folders but not tracked yet. **Import** adds them.
 
 Filter by name, and by framework: only your projects' frameworks get a filter, and none shows when there is only one. **Rescan** reads the folders again. At the end of the filters row, **Add a folder** leads to the projects folders in [Settings](/devforge/en/settings/general/), for projects kept elsewhere.
