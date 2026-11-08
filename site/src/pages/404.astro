@@ -4,8 +4,9 @@
  * file for every missing address: it is written in French and switches to
  * English when the address is under /en/.
  */
-import '@fontsource-variable/geist'
-import '@fontsource-variable/geist-mono'
+import '@fontsource-variable/inter'
+import '@fontsource-variable/jetbrains-mono'
+import '@fontsource-variable/bricolage-grotesque'
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 const issue = 'https://github.com/victhille/devforge/issues/new?title=Lien%20cass%C3%A9%20sur%20le%20site'
@@ -35,7 +36,7 @@ const f = t.fr
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex" />
   <title>{f.title}</title>
-  <meta name="theme-color" content="#F6F4EF" />
+  <meta name="theme-color" content="#F7F4F0" />
   <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
 </head>
 <body>
@@ -75,11 +76,11 @@ const f = t.fr
         <rect x="8" y="50" width="9" height="16" rx="4" fill="#C9CDD8"></rect>
         <rect x="83" y="50" width="9" height="16" rx="4" fill="#C9CDD8"></rect>
         <rect x="14" y="28" width="72" height="62" rx="26" fill="#E6E8EE"></rect>
-        <rect x="24" y="42" width="52" height="30" rx="14" fill="#1C2130"></rect>
+        <rect x="24" y="42" width="52" height="30" rx="14" fill="#221F1C"></rect>
         <path d="M33 58 H45" stroke="#8A6A50" stroke-width="4" stroke-linecap="round"></path>
         <path d="M55 58 H67" stroke="#8A6A50" stroke-width="4" stroke-linecap="round"></path>
-        <text x="72" y="22" font-size="14" font-weight="700" fill="#8A877F">z</text>
-        <text x="81" y="13" font-size="11" font-weight="700" fill="#8A877F">z</text>
+        <text x="72" y="22" font-size="14" font-weight="700" fill="#9A9086">z</text>
+        <text x="81" y="13" font-size="11" font-weight="700" fill="#9A9086">z</text>
       </svg>
     </div>
   </main>
@@ -107,9 +108,9 @@ const f = t.fr
 
   <style is:global>
     :root {
-      --paper: #F6F4EF; --white: #FFFFFF; --ink: #17191E; --ink-2: #4A505C; --ink-3: #6E7480; --rule: #E2DED6; --rule-2: #D6D1C8;
-      --link: #1D4ED8; --orange: #C2530A;
-      --font: 'Geist Variable', 'Segoe UI', system-ui, sans-serif; --mono: 'Geist Mono Variable', ui-monospace, monospace;
+      --paper: #F7F4F0; --white: #FFFFFF; --ink: #1E1A16; --ink-2: #5C544C; --ink-3: #6A6158; --rule: #E4DED6; --rule-2: #D9D2C9;
+      --link: #B53C0B; --orange: #B53C0B;
+      --font: 'Inter Variable', 'Segoe UI', system-ui, sans-serif; --mono: 'JetBrains Mono Variable', 'Cascadia Code', Consolas, monospace; --display: 'Bricolage Grotesque Variable', 'Inter Variable', 'Segoe UI', sans-serif;
       color-scheme: light;
     }
     * { box-sizing: border-box; }
@@ -120,18 +121,18 @@ const f = t.fr
     .btn-sm { padding: 9px 16px; font-size: 15px; border-radius: 8px; }
     .btn-lg { padding: 13px 22px; min-height: 48px; font-size: 16px; }
     .btn-dark { background: var(--ink); color: #fff; }
-    .btn-dark:hover { background: #2B2F37; color: #fff; }
+    .btn-dark:hover { background: #34302B; color: #fff; }
     .btn-light { background: var(--white); color: var(--ink); border-color: var(--rule-2); }
     .top { border-bottom: 1px solid var(--rule); }
     .top-inner { display: flex; align-items: center; height: 68px; }
-    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 18px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-family: var(--display); font-weight: 700; font-size: 18px; }
     .brand-mark { width: 30px; height: 30px; border-radius: 8px; background: #0F1117; display: inline-flex; align-items: center; justify-content: center; }
     .top-end { margin-left: auto; display: flex; align-items: center; gap: 16px; }
     .lang { color: var(--ink-3); text-decoration: none; font: 600 13px var(--mono); }
     .main { flex: 1; display: flex; flex-wrap: wrap; gap: 64px; align-items: center; padding-block: 96px; }
     .text { flex: 1 1 520px; min-width: 0; }
     .kicker { margin: 0; font: 600 15px var(--mono); color: var(--orange); }
-    h1 { margin: 12px 0 0; font-size: clamp(38px, 5vw, 60px); line-height: 1.04; letter-spacing: -0.04em; font-weight: 760; }
+    h1 { margin: 12px 0 0; font-family: var(--display); font-size: clamp(38px, 5vw, 60px); line-height: 1.04; letter-spacing: -0.035em; font-weight: 800; }
     .lead { margin: 20px 0 0; font-size: 19px; color: var(--ink-2); max-width: 32em; }
     .actions { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 12px; }
     .more { margin: 40px 0 0; padding: 24px 0 0; list-style: none; display: flex; flex-wrap: wrap; gap: 10px 28px; border-top: 1px solid var(--rule); font-size: 15px; }

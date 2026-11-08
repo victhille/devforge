@@ -27,7 +27,7 @@ const fr = {
     steps: [
       { time: '09:02', shot: 'palette', pos: 'center', title: 'Ctrl K, « bou »', text: "Le projet s'ouvre, son serveur de dev démarre depuis la palette.", alt: 'La palette de commandes' },
       { time: '11:40', shot: 'git', pos: 'left top', title: 'Commit & push', text: "Le message est suggéré d'après les fichiers touchés.", alt: 'Le tableau de bord Git' },
-      { time: '15:15', shot: 'database', pos: 'right top', title: "Un coup d'œil à la base", text: 'La base Docker du projet, déjà connectée.', alt: 'Une table dans le client SQL' }
+      { time: '15:15', shot: 'database', pos: 'right top', title: "Un coup d'œil à la base", text: 'La base SQLite du projet, déjà connectée.', alt: 'Une table dans le client SQL' }
     ],
     deploy: { time: '18:05', title: 'Déployer', text: 'Un clic : le script tourne sur ton serveur en SSH.', path: 'mon-serveur · /var/www/boutique', done: '✓ boutique déployé' }
   },
@@ -111,7 +111,7 @@ const en: Text = {
     steps: [
       { time: '09:02', shot: 'palette', pos: 'center', title: 'Ctrl K, "bou"', text: 'The project opens, its dev server starts from the palette.', alt: 'The command palette' },
       { time: '11:40', shot: 'git', pos: 'left top', title: 'Commit & push', text: 'The message is suggested from the files touched.', alt: 'The Git dashboard' },
-      { time: '15:15', shot: 'database', pos: 'right top', title: 'A look at the database', text: "The project's Docker database, already connected.", alt: 'A table in the SQL client' }
+      { time: '15:15', shot: 'database', pos: 'right top', title: 'A look at the database', text: "The project's SQLite database, already connected.", alt: 'A table in the SQL client' }
     ],
     deploy: { time: '18:05', title: 'Deploy', text: 'One click: the script runs on your server over SSH.', path: 'my-server · /var/www/shop', done: '✓ shop deployed' }
   },
