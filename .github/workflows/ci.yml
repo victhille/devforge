@@ -41,15 +41,23 @@ jobs:
         run: npm ci
       # npm ci no longer fetches Electron's binary: Electron fetches it on its first launch,
       # so it was never in the cache and every run downloaded it from GitHub during the e2e
-      # (a 504 there failed them all). Fetched here, before the cache is saved, with a few
-      # tries; nothing is downloaded when the cache already has it
+      # (a 504 there failed them all). Fetched here, before the cache is saved; nothing is
+      # downloaded when the cache already has it. GitHub can fail on this file for hours:
+      # after two tries there, the npmmirror copy. Either way the zip is checked against the
+      # SHA-256 sums shipped in the electron package, so a changed file is refused
       - name: Electron binary
         shell: bash
         run: |
           for try in 1 2 3 4; do
-            node node_modules/electron/install.js && exit 0
+            if [ "$try" -gt 2 ]; then
+              export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
+              echo "GitHub does not answer: trying the npmmirror copy"
+            fi
+            if node node_modules/electron/install.js; then
+              exit 0
+            fi
             echo "Electron's download failed (try $try of 4)"
-            [ "$try" -lt 4 ] && sleep $((try * 20))
+            [ "$try" -lt 4 ] && sleep $((try * 15))
           done
           exit 1
       # Saved right away: a failing test later must not lose it
