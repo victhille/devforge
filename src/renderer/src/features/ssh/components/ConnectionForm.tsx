@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Key, Lock, ShieldCheck } from 'lucide-react'
 import type { SSHAuthMethod, SSHConnection } from '@shared/types'
+import { isNetworkPath, isSshHost, sameSshAddress } from '@shared/lib/sshAddress'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Modal from '@renderer/components/ui/Modal'
+import Notice from '@renderer/components/ui/Notice'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Field, Input } from '@renderer/components/ui/Input'
 
@@ -37,20 +39,21 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
     if (file) setKeyPath(file)
   }
 
-  // The saved password and server key belong to the address they were saved for (see sshStorage)
-  const sameHost = !!initial && host.trim().toLowerCase() === initial.host.trim().toLowerCase() && Number(port) === (initial.port ?? 22)
-  const keepsPassword = !!initial?.hasPassword && sameHost && username.trim() === initial.username
-  const shownFingerprint = sameHost ? fingerprint : null
+  // What was kept for the server belongs to its address (see serverChanges): a new one is told it starts afresh
+  const moved = !!initial && !sameSshAddress(initial, { host, port: Number(port), username })
+  const keepsPassword = !!initial?.hasPassword && !moved
+  // The key shown is the one remembered for this host and port
+  const shownFingerprint = initial && sameSshAddress(initial, { host, port: Number(port), username: initial.username }) ? fingerprint : null
 
   function validate(): boolean {
     const errs: Record<string, string> = {}
     if (!name.trim())     errs.name     = t.ssh.required
     if (!host.trim())     errs.host     = t.ssh.required
-    else if (!/^[\p{L}\p{N}._:%-]+$/u.test(host.trim()) || host.trim().startsWith('-')) errs.host = t.ssh.invalidHost
+    else if (!isSshHost(host.trim())) errs.host = t.ssh.invalidHost
     if (!username.trim()) errs.username = t.ssh.required
     const p = Number(port)
     if (!Number.isInteger(p) || p < 1 || p > 65535) errs.port = t.ssh.invalidPort
-    if (authMethod === 'privateKey' && /^[\\/]{2}/.test(keyPath.trim())) errs.keyPath = t.ssh.networkKey
+    if (authMethod === 'privateKey' && isNetworkPath(keyPath.trim())) errs.keyPath = t.ssh.networkKey
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -64,7 +67,7 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
       port:           Number(port),
       username:       username.trim(),
       authMethod,
-      // Empty password on edit = keep the stored one (handled in main process)
+      // Empty password on edit = keep the stored one, for the same address (handled in main process)
       password:       authMethod === 'password' && password ? password : undefined,
       privateKeyPath: authMethod === 'privateKey' ? keyPath : undefined,
       color,
@@ -100,6 +103,9 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
         <Input value={username} onChange={e => setUsername(e.target.value)} placeholder="root" invalid={!!errors.username} maxLength={256} />
       </Field>
 
+      {/* Said once when it appears, not on each key typed: its text stays the same */}
+      {moved && <Notice tone="warning" role="status">{t.ssh.addressChanged}</Notice>}
+
       <div className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-fg-secondary">{t.ssh.labelAuth}</span>
         <Tabs<SSHAuthMethod>
@@ -113,10 +119,7 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
       </div>
 
       {authMethod === 'password' ? (
-        <Field
-          label={t.ssh.labelPassword}
-          hint={keepsPassword ? undefined : initial?.hasPassword && !password ? t.ssh.passwordForgotten : t.ssh.passwordEncrypted}
-        >
+        <Field label={t.ssh.labelPassword} hint={keepsPassword ? undefined : t.ssh.passwordEncrypted}>
           <Input
             type="password"
             value={password}
@@ -141,7 +144,7 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
             <span className="truncate font-mono text-2xs text-fg-muted">{shownFingerprint ?? t.ssh.hostKeyUnknown}</span>
           </div>
           {shownFingerprint && (
-            <Button size="sm" variant="ghost" onClick={async () => { await window.devforge.forgetSshHostKey(initial.id); setFingerprint(null) }}>
+            <Button size="sm" variant="ghost" onClick={async () => { if (await window.devforge.forgetSshHostKey(initial.id)) setFingerprint(null) }}>
               {t.ssh.forgetHostKey}
             </Button>
           )}

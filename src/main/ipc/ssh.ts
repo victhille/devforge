@@ -1,15 +1,16 @@
 import { app, dialog, ipcMain, BrowserWindow } from 'electron'
 import { join, posix } from 'path'
-import { loadSshConnections, getSshConnectionWithSecret, saveSshConnection, removeSshConnection, sshConnectionsEvents } from '../services/ssh/sshStorage'
+import { loadSshConnections, getSshConnectionWithSecret, sshConnectionsEvents } from '../services/ssh/sshStorage'
+import { removeServer, saveServer } from '../services/ssh/serverChanges'
 import { sshService } from '../services/ssh/sshService'
 import { forgetHost } from '../services/ssh/knownHosts'
+import { loadSettings } from '../services/settings/settingsService'
+import { isNetworkPath, isSshHost } from '@shared/lib/sshAddress'
 import type { SSHAuthMethod, SSHConnection } from '@shared/types'
 
 const AUTH_METHODS: SSHAuthMethod[] = ['password', 'privateKey']
 // eslint-disable-next-line no-control-regex -- control characters are what we refuse
 const CONTROL = /[\u0000-\u001f\u007f]/
-/** A host name, an IPv4 or an IPv6 address (with its zone, fe80::1%eth0): what ssh2 dials, no space, no `user@`, no leading dash */
-const HOST = /^[\p{L}\p{N}._:%-]+$/u
 
 const invalid = (field: string) => new Error(`Invalid SSH server: ${field}`)
 
@@ -32,7 +33,7 @@ export function parseSshConnection(v: unknown): SSHConnection {
   const name = text(c.name, 'name', 200).trim()
   if (!name) throw invalid('name')
   const host = text(c.host, 'host', 255).trim()
-  if (!HOST.test(host) || host.startsWith('-')) throw invalid('host')
+  if (!isSshHost(host)) throw invalid('host')
   const username = text(c.username, 'username', 256).trim()
   if (!username) throw invalid('username')
   const port = c.port
@@ -42,9 +43,8 @@ export function parseSshConnection(v: unknown): SSHConnection {
   // Passwords may hold any printable character, spaces included
   if (c.password !== undefined && c.password !== null && (typeof c.password !== 'string' || c.password.length > 1024 || c.password.includes('\0'))) throw invalid('password')
   const password = authMethod === 'password' && typeof c.password === 'string' && c.password ? c.password : undefined
-  // A key on a network share (\\server\share) would make Windows send the user's credentials to that server
   const keyPath = text(c.privateKeyPath, 'privateKeyPath', 4096).trim()
-  if (/^[\\/]{2}/.test(keyPath)) throw invalid('privateKeyPath')
+  if (isNetworkPath(keyPath)) throw invalid('privateKeyPath')
   const color = text(c.color, 'color', 9)
   if (color && !/^#[0-9a-f]{3,8}$/i.test(color)) throw invalid('color')
   const createdAt = text(c.createdAt, 'createdAt', 64)
@@ -66,11 +66,26 @@ export function registerSshHandlers(mainWindow: BrowserWindow): void {
   })
 
   ipcMain.handle('ssh:get-connections',    async () => loadSshConnections())
-  ipcMain.handle('ssh:save-connection',    async (_e, conn: unknown) => saveSshConnection(parseSshConnection(conn)))
-  ipcMain.handle('ssh:remove-connection',  async (_e, id: string) => removeSshConnection(id))
-  ipcMain.handle('ssh:forget-host-key',    async (_e, id: string) => {
+  ipcMain.handle('ssh:save-connection',    async (_e, conn: unknown) => saveServer(parseSshConnection(conn)))
+  ipcMain.handle('ssh:remove-connection',  async (_e, id: unknown) => removeServer(String(id ?? '')))
+  // Asked here, not in the window: a forgotten key makes the next connection trust whoever answers at that address
+  ipcMain.handle('ssh:forget-host-key',    async (_e, id: unknown): Promise<boolean> => {
     const conn = loadSshConnections().find(c => c.id === id)
-    if (conn) forgetHost(conn.host, conn.port)
+    if (!conn) return false
+    const fr = loadSettings().language === 'fr'
+    const { response } = await dialog.showMessageBox(mainWindow, {
+      type: 'warning',
+      buttons: fr ? ['Oublier la clé', 'Annuler'] : ['Forget key', 'Cancel'],
+      defaultId: 1,
+      cancelId: 1,
+      message: fr ? `Oublier la clé de ${conn.name} (${conn.host}:${conn.port}) ?` : `Forget the key of ${conn.name} (${conn.host}:${conn.port})?`,
+      detail: fr
+        ? 'La prochaine connexion acceptera la clé que présentera cette adresse, sans pouvoir la comparer. Ne le fais que si tu sais que le serveur a changé de clé (réinstallation, par exemple).'
+        : 'The next connection will accept whatever key this address presents, with nothing to compare it to. Only do it if you know the server changed its key (after a reinstall, for example).'
+    })
+    if (response !== 0) return false
+    forgetHost(conn.host, conn.port)
+    return true
   })
   ipcMain.handle('ssh:connect',            async (_e, connectionId: string) => {
     const conn = getSshConnectionWithSecret(connectionId)

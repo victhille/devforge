@@ -19,6 +19,8 @@ The **Database** page is a client for **PostgreSQL**, **MySQL / MariaDB** and **
 
 **Test connection** checks before saving.
 
+When editing, a password left empty keeps the saved one, as long as the database stays at the same place. If its type, host, port, user or SSH server changes, the password is forgotten and the form asks for it again: it never goes to another machine.
+
 ## Find databases
 
 **Find databases** looks for databases to add without typing anything:

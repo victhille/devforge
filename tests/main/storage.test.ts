@@ -1,7 +1,9 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import { describe, expect, it } from 'vitest'
-import { getDbConnection, listDbConnections, saveDbConnection } from '../../src/main/services/database/dbStorage'
+import { safeStorage } from 'electron'
+import type { DbConnection } from '@shared/types'
+import { forgetPasswordsThrough, getDbConnection, listDbConnections, saveDbConnection, storedPasswordFor } from '../../src/main/services/database/dbStorage'
 import { getSshConnectionWithSecret, loadSshConnections, saveSshConnection, sshServerFor } from '../../src/main/services/ssh/sshStorage'
 import { fingerprintOf, forgetHost, HostKeyMismatchError, knownFingerprint, makeHostVerifier } from '../../src/main/services/ssh/knownHosts'
 import { composeDirFor, composeName } from '../../src/main/services/docker/composeProjects'
@@ -20,6 +22,31 @@ describe('secrets at rest', () => {
     saveDbConnection({ id: 'd2', name: 'db', type: 'mysql', host: 'h', password: 'keep', color: '' })
     saveDbConnection({ id: 'd2', name: 'renamed', type: 'mysql', host: 'h', color: '' })
     expect(getDbConnection('d2')).toMatchObject({ name: 'renamed', password: 'keep' })
+  })
+
+  it('a DB connection pointed elsewhere forgets its password; the same target written differently keeps it', () => {
+    const base: DbConnection = { id: 'd3', name: 'db', type: 'postgres', host: 'db.example.org', user: 'shop', color: '' }
+    saveDbConnection({ ...base, password: 'pw' })
+    saveDbConnection({ ...base, name: 'renamed', host: 'DB.example.org', port: 5432, database: 'other' })
+    expect(getDbConnection('d3')?.password).toBe('pw')
+    for (const moved of [{ host: 'attacker.example' }, { port: 6543 }, { user: 'postgres' }, { sshConnectionId: 'v9' }, { type: 'mysql' as const }]) {
+      saveDbConnection({ ...base, password: 'pw' })
+      saveDbConnection({ ...base, ...moved })
+      expect(getDbConnection('d3')?.password, JSON.stringify(moved)).toBeUndefined()
+    }
+  })
+
+  it('a test before saving falls back on the stored password for the same target only; an encrypted value from the window is dropped', () => {
+    const base: DbConnection = { id: 'd4', name: 'db', type: 'mysql', host: 'h', user: 'u', color: '' }
+    saveDbConnection({ ...base, password: 'pw' })
+    expect(storedPasswordFor({ ...base, name: 'renamed' })).toBe('pw')
+    expect(storedPasswordFor({ ...base, host: 'attacker.example' })).toBeUndefined()
+    saveDbConnection({ ...base, id: 'd5', passwordEnc: safeStorage.encryptString('chosen').toString('base64') } as DbConnection)
+    expect(getDbConnection('d5')?.password).toBeUndefined()
+    // Reached through a server pointed elsewhere: forgotten, and read again as forgotten
+    saveDbConnection({ ...base, id: 'd6', sshConnectionId: 'v1', password: 'pw' })
+    expect(forgetPasswordsThrough('v1')).toEqual(['d6'])
+    expect(storedPasswordFor({ ...base, id: 'd6', sshConnectionId: 'v1' })).toBeUndefined()
   })
 
   it('SSH passwords are encrypted and old plain-text ones still load', () => {

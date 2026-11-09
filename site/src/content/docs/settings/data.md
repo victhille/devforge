@@ -24,7 +24,7 @@ Erreurs et évènements, secrets masqués, utile pour un rapport de bug. **Ouvri
 ## Exporter ou importer ma configuration
 
 - **Exporter** écrit dans un fichier tes projets, serveurs, bases, réglages… pour les reprendre sur un autre PC. **Aucun secret n'y est** : mots de passe, jetons et clés seront à ressaisir dans [Connexions](/devforge/getting-started/connections/).
-- **Importer…** remplace ta configuration actuelle par celle du fichier. Une sauvegarde est faite avant, puis DevForge redémarre.
+- **Importer…** remplace ta configuration actuelle par celle du fichier. Une sauvegarde est faite avant, puis DevForge redémarre. Si le fichier contient des serveurs, les clés de n8n, les accès au VPN et les mots de passe des bases qui passent par un serveur sont aussi oubliés sur ce PC : les mêmes serveurs peuvent désormais désigner d'autres machines.
 
 ## Effacer l'historique de surveillance
 

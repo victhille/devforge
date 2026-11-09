@@ -19,6 +19,8 @@ La page **Base de données** est un client pour **PostgreSQL**, **MySQL / MariaD
 
 **Tester la connexion** vérifie avant d'enregistrer.
 
+En modification, un mot de passe laissé vide garde celui enregistré, tant que la base reste au même endroit. Si son type, son hôte, son port, son utilisateur ou son serveur SSH change, le mot de passe est oublié et le formulaire demande de le saisir à nouveau : il ne part jamais vers une autre machine.
+
 ## Détecter des bases
 
 **Détecter des bases** cherche des bases à ajouter sans rien saisir :

@@ -73,5 +73,31 @@ export function importConfig(dataDir: string, raw: string): string[] {
     mkdirSync(dirname(file), { recursive: true })
     writeFileSync(file, JSON.stringify(content, null, 2))
   }
+  // Imported servers may give the ids of this PC's servers to other machines
+  if (names.includes('ssh-connections.json')) stripServerSecrets(dataDir)
   return names
+}
+
+type Json = Record<string, unknown>
+
+/**
+ * What this PC kept for its servers and sends through them, as serverChanges.forgetServerSecrets
+ * forgets it for one server pointed elsewhere (a secret added there goes here too): n8n's API keys,
+ * the wg-easy logins, the passwords of the databases reached through a server. Every server may have
+ * changed here, so every login goes, not one; they are given again by hand, like the servers' own passwords.
+ */
+function stripServerSecrets(dataDir: string): void {
+  const edit = (name: string, change: (data: unknown) => unknown) => {
+    const file = join(dataDir, name)
+    if (!existsSync(file)) return
+    try { writeFileSync(file, JSON.stringify(change(JSON.parse(readFileSync(file, 'utf-8'))), null, 2)) } catch { /* not JSON: left as is */ }
+  }
+  const without = (o: unknown, key: string) => {
+    if (!o || typeof o !== 'object') return o
+    const { [key]: _gone, ...rest } = o as Json
+    return rest
+  }
+  edit('n8n.json', d => ({ ...(d as Json), instances: ((d as Json)?.instances as unknown[] | undefined)?.map(i => without(i, 'keyEnc')) ?? [] }))
+  edit('vpn.json', d => ({ ...(d as Json), servers: [] }))
+  edit('databases.json', list => Array.isArray(list) ? list.map(c => ((c as Json)?.sshConnectionId ? without(c, 'passwordEnc') : c)) : list)
 }

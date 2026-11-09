@@ -46,12 +46,12 @@ SSH connections are used by the terminal, monitoring, n8n, the status page, back
 | Host / IP | `203.0.113.10` or `vps.example.com` |
 | Port | `22` |
 | Username | `deploy` |
-| Authentication | **Password** (stored encrypted) or **Private key** (path of the file, for example `C:\Users\you\.ssh\id_ed25519`) |
+| Authentication | **Password** (stored encrypted) or **Private key** (path of the file on this PC, for example `C:\Users\you\.ssh\id_ed25519`; a key on a network share is refused, since Windows would send your login to it) |
 | Color | to spot the server in lists |
 
-The **server key** is remembered on the first connection; if it changes, DevForge refuses to connect. **Forget key** resets it (after reinstalling the server, for example).
+The **server key** is remembered on the first connection; if it changes, DevForge refuses to connect. **Forget key** resets it, once confirmed in a Windows dialog (after reinstalling the server, for example).
 
-The saved password stays tied to the host, the port and the username. If one of them changes, DevForge forgets it and the form asks for it again: it never goes to another server. A new address also has its own server key, remembered on its first connection.
+What DevForge keeps for a server stays tied to its host, port and username: its password, n8n's API key, the VPN login and the passwords of the databases reached through it. If one of the three changes, or if the server is removed, DevForge forgets them: nothing goes to another machine. When editing, the form warns that they will have to be entered again. A new address also has its own server key, remembered on its first connection.
 
 :::tip
 Prefer an SSH key: the [Health](/devforge/en/servers/health/) page only offers to turn off SSH passwords if DevForge already connects with a key.

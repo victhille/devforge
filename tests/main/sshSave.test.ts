@@ -1,16 +1,30 @@
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ipcMain, safeStorage, type BrowserWindow } from 'electron'
+import { dialog, ipcMain, safeStorage, type BrowserWindow } from 'electron'
 import type { SSHConnection } from '@shared/types'
 import { registerSshHandlers } from '../../src/main/ipc/ssh'
 import { getSshConnectionWithSecret, loadSshConnections } from '../../src/main/services/ssh/sshStorage'
+import { buildSshConfig } from '../../src/main/services/ssh/sshClient'
+import { knownFingerprint, makeHostVerifier } from '../../src/main/services/ssh/knownHosts'
+import { disconnect } from '../../src/main/services/connections/connectionsService'
+import { forgetSession, sessionFor } from '../../src/main/services/monitor/vpsWatch'
 import { userData } from '../helpers'
 
 /** A saved server, through the IPC bridge: what a window may change, and where its password may go */
 
-const { connect } = vi.hoisted(() => ({ connect: vi.fn(async (_conn: unknown) => 'session') }))
-vi.mock('../../src/main/services/ssh/sshService', () => ({ sshService: { setCallbacks: () => {}, connect } }))
+const { connect, connectForDashboard, sshDisconnect, n8nFails } = vi.hoisted(() => ({
+  connect: vi.fn(async (_conn: unknown) => 'session'),
+  connectForDashboard: vi.fn(async (_conn: unknown) => 'watch-session'),
+  sshDisconnect: vi.fn((_sid: string) => {}),
+  n8nFails: { on: false }
+}))
+vi.mock('../../src/main/services/ssh/sshService', () => ({ sshService: { setCallbacks: () => {}, connect, connectForDashboard, disconnect: sshDisconnect } }))
+// A file that cannot be written (an antivirus holding it, say), on demand
+vi.mock('../../src/main/services/n8n/n8nService', async orig => {
+  const real = await orig<typeof import('../../src/main/services/n8n/n8nService')>()
+  return { ...real, forgetApiKey: (id: string) => { if (n8nFails.on) throw new Error('EBUSY'); real.forgetApiKey(id) } }
+})
 
 type Handler = (event: unknown, ...args: unknown[]) => unknown
 const handlers = new Map<string, Handler>()
@@ -20,6 +34,8 @@ registerSshHandlers({ webContents: { send: () => {} } } as unknown as BrowserWin
 const call = async (channel: string, ...args: unknown[]) => handlers.get(channel)!({}, ...args)
 const save = (conn: unknown) => call('ssh:save-connection', conn)
 const file = () => join(userData(), 'ssh-connections.json')
+const enc = (s: string) => safeStorage.encryptString(s).toString('base64')
+const json = (name: string) => JSON.parse(readFileSync(join(userData(), name), 'utf-8'))
 
 /** What the form sends for a server */
 const server = (over: Partial<SSHConnection> = {}): SSHConnection => ({
@@ -27,7 +43,9 @@ const server = (over: Partial<SSHConnection> = {}): SSHConnection => ({
   color: '#4F8EF7', createdAt: '2026-11-09T10:00:00.000Z', ...over
 })
 
-beforeEach(() => rmSync(file(), { force: true }))
+beforeEach(() => {
+  for (const name of ['ssh-connections.json', 'n8n.json', 'vpn.json', 'databases.json', 'known_hosts.json']) rmSync(join(userData(), name), { force: true })
+})
 
 describe('the saved password stays with its address', () => {
   it('a window that points a server to another host cannot send it the saved password', async () => {
@@ -66,6 +84,93 @@ describe('the saved password stays with its address', () => {
     writeFileSync(file(), JSON.stringify([{ id: 's1', name: 'vps', host: '203.0.113.10', username: 'deploy', authMethod: 'password', passwordEnc: safeStorage.encryptString('pw!').toString('base64') }]))
     await save(server({ name: 'renamed' }))
     expect(getSshConnectionWithSecret('s1')).toMatchObject({ name: 'renamed', port: 22, password: 'pw!' })
+  })
+})
+
+describe('what is kept for a server stays with its address', () => {
+  /** n8n's API key, the wg-easy login, a database reached through the server and one that is not */
+  const seedKept = () => {
+    writeFileSync(join(userData(), 'n8n.json'), JSON.stringify({ instances: [{ connectionId: 's1', domain: '', exposure: 'port', installedAt: '', keyEnc: enc('n8n-key') }] }))
+    writeFileSync(join(userData(), 'vpn.json'), JSON.stringify({ servers: [{ connectionId: 's1', port: 51821, username: 'admin', passwordEnc: enc('wg') }] }))
+    writeFileSync(join(userData(), 'databases.json'), JSON.stringify([
+      { id: 'via', name: 'shop', type: 'postgres', host: '127.0.0.1', port: 5432, user: 'shop', sshConnectionId: 's1', color: '', passwordEnc: enc('db-via') },
+      { id: 'direct', name: 'local', type: 'mysql', host: '127.0.0.1', port: 3306, user: 'root', color: '', passwordEnc: enc('db-local') }
+    ]))
+  }
+  const kept = () => ({
+    n8n: !!json('n8n.json').instances[0].keyEnc,
+    vpn: json('vpn.json').servers.length > 0,
+    via: !!json('databases.json')[0].passwordEnc,
+    direct: !!json('databases.json')[1].passwordEnc
+  })
+
+  it('a new address forgets n8n\'s key, the VPN login and the passwords of the databases through the server', async () => {
+    await save(server({ password: 'pw!' }))
+    seedKept()
+    await save(server({ name: 'prod' }))
+    expect(kept()).toEqual({ n8n: true, vpn: true, via: true, direct: true })
+    await save(server({ host: 'attacker.example' }))
+    expect(kept()).toEqual({ n8n: false, vpn: false, via: false, direct: true })
+    // n8n itself stays listed: only its key is asked again
+    expect(json('n8n.json').instances).toHaveLength(1)
+  })
+
+  it('removing the server forgets them, from SSH or from Connections, and a new server never inherits them', async () => {
+    for (const remove of [() => call('ssh:remove-connection', 's1'), () => disconnect('server', 's1')]) {
+      await save(server())
+      seedKept()
+      await remove()
+      expect(kept()).toEqual({ n8n: false, vpn: false, via: false, direct: true })
+    }
+    // Left by an older version for an id now taken by another server
+    seedKept()
+    await save(server({ host: 'attacker.example' }))
+    expect(kept()).toEqual({ n8n: false, vpn: false, via: false, direct: true })
+  })
+
+  it('when forgetting fails, the new address is not saved, and the next try forgets again', async () => {
+    await save(server())
+    seedKept()
+    n8nFails.on = true
+    await expect(save(server({ host: 'attacker.example' }))).rejects.toThrow('EBUSY')
+    n8nFails.on = false
+    expect(loadSshConnections()[0].host).toBe('203.0.113.10')
+    // The other steps ran all the same
+    expect(kept()).toEqual({ n8n: true, vpn: false, via: false, direct: true })
+    await save(server({ host: 'attacker.example' }))
+    expect(kept()).toEqual({ n8n: false, vpn: false, via: false, direct: true })
+  })
+
+  it('a watch session still opening to the old address is closed, not kept', async () => {
+    await save(server())
+    let opened!: (sid: string) => void
+    connectForDashboard.mockImplementationOnce(() => new Promise<string>(resolve => { opened = resolve }))
+    const pending = sessionFor('s1')
+    forgetSession('s1')
+    opened('old-address')
+    await expect(pending).rejects.toThrow(/changed/)
+    expect(sshDisconnect).toHaveBeenCalledWith('old-address')
+    expect(await sessionFor('s1')).toBe('watch-session')
+  })
+
+  it('the server key is forgotten only once the user confirms it in a dialog of the main process', async () => {
+    const answer = (n: number) => { (dialog as unknown as { answer: number }).answer = n }
+    await save(server())
+    makeHostVerifier('203.0.113.10', 22, () => {})(Buffer.from('host-key'))
+    answer(1)
+    expect(await call('ssh:forget-host-key', 's1')).toBe(false)
+    expect(knownFingerprint('203.0.113.10', 22)).not.toBeNull()
+    answer(0)
+    expect(await call('ssh:forget-host-key', 's1')).toBe(true)
+    expect(knownFingerprint('203.0.113.10', 22)).toBeNull()
+    expect(await call('ssh:forget-host-key', 'unknown')).toBe(false)
+    answer(1)
+  })
+
+  it('a key on a network share is never opened, even for a server saved by an older version or imported', () => {
+    for (const privateKeyPath of ['\\\\attacker.example\\share\\id_ed25519', '//attacker.example/share/id_ed25519']) {
+      expect(() => buildSshConfig(server({ authMethod: 'privateKey', privateKeyPath }))).toThrow(/network share/)
+    }
   })
 })
 

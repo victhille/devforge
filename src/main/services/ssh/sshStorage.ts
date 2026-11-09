@@ -3,6 +3,7 @@ import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { app, safeStorage } from 'electron'
 import type { SSHConnection } from '@shared/types'
+import { sameSshAddress } from '@shared/lib/sshAddress'
 import { knownFingerprint } from './knownHosts'
 import { writeJsonFile } from '../../lib/jsonFile'
 
@@ -81,9 +82,10 @@ export function getSshConnectionWithSecret(id: string): SSHConnection | undefine
 /** 'changed' after a server is added, edited or removed (the menu lists the server pages) */
 export const sshConnectionsEvents = new EventEmitter()
 
-/** Same machine and account: the host compared as the known hosts compare it, 22 for an old server saved without a port */
-function sameAddress(a: StoredSSHConnection, b: SSHConnection): boolean {
-  return a.host.trim().toLowerCase() === b.host.trim().toLowerCase() && (a.port ?? 22) === b.port && a.username === b.username
+/** A new server, or a saved one given another host, port or username: nothing kept for it may follow (see serverChanges) */
+export function isNewSshAddress(conn: SSHConnection): boolean {
+  const prev = readStored().find(c => c.id === conn.id)
+  return !prev || !sameSshAddress(prev, conn)
 }
 
 /**
@@ -94,13 +96,11 @@ function sameAddress(a: StoredSSHConnection, b: SSHConnection): boolean {
 export function saveSshConnection(conn: SSHConnection): void {
   const conns = readStored()
   const idx = conns.findIndex(c => c.id === conn.id)
+  const prev = idx >= 0 ? conns[idx] : undefined
   const { password, hasPassword: _hasPassword, fingerprint: _fp, ...rest } = conn
 
   let passwordEnc: string | undefined
-  if (conn.authMethod === 'password') {
-    const prev = idx >= 0 ? conns[idx] : undefined
-    passwordEnc = password ? encrypt(password) : prev && sameAddress(prev, conn) ? prev.passwordEnc : undefined
-  }
+  if (conn.authMethod === 'password') passwordEnc = password ? encrypt(password) : prev && sameSshAddress(prev, conn) ? prev.passwordEnc : undefined
 
   const stored: StoredSSHConnection = passwordEnc ? { ...rest, passwordEnc } : rest
   if (idx >= 0) conns[idx] = stored

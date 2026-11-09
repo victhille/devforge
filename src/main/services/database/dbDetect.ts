@@ -2,6 +2,7 @@ import { readFile } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
 import type { DbConnection, DetectedDatabase, Project } from '@shared/types'
+import { sameSshAddress } from '@shared/lib/sshAddress'
 import { findSubProjects } from '../projects/projectScanner'
 import { connectSsh, shQuote, sshRun } from '../ssh/sshClient'
 import { getSshConnectionWithSecret, sshServerFor } from '../ssh/sshStorage'
@@ -28,6 +29,11 @@ function publish(found: Found[]): DetectedDatabase[] {
     const { password, sshConnectionId: _s, ...rest } = f
     return { ...rest, key, hasPassword: !!password, exists }
   })
+}
+
+/** Candidates found through a server removed or pointed elsewhere: their passwords belong to the old machine (see serverChanges) */
+export function forgetDetectedThrough(sshConnectionId: string): void {
+  for (const [key, f] of cache) if (f.sshConnectionId === sshConnectionId) cache.delete(key)
 }
 
 export function addDetected(key: string): string {
@@ -76,6 +82,9 @@ export async function detectRemote(sshConnectionId: string): Promise<DetectedDat
     client.end()
   }
 
+  // Pointed elsewhere meanwhile: these passwords belong to the old machine, never tie them to the server
+  const now = getSshConnectionWithSecret(sshConnectionId)
+  if (!now || !sameSshAddress(server, now)) throw new Error('The server changed during the detection: run it again')
   return publish(parseRemoteOutput(output, server.name, sshConnectionId))
 }
 

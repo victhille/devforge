@@ -84,13 +84,27 @@ function closeSession(id: string): void {
   sessions.delete(id)
 }
 
+/** Bumped when a server is removed or pointed elsewhere: a session still opening to the old address is not kept */
+const generations = new Map<string, number>()
+
+/** The watch's session of a server whose address changed, closed; the next call opens one to the address saved then (see serverChanges) */
+export function forgetSession(id: string): void {
+  generations.set(id, (generations.get(id) ?? 0) + 1)
+  closeSession(id)
+}
+
 /** The watch's own SSH session for a server (opened once, reopened after a failure) */
 export async function sessionFor(connectionId: string): Promise<string> {
   const known = sessions.get(connectionId)
   if (known) return known
+  const generation = generations.get(connectionId) ?? 0
   const conn = getSshConnectionWithSecret(connectionId)
   if (!conn) throw new Error('Unknown server')
   const sid = await sshService.connectForDashboard(conn)
+  if ((generations.get(connectionId) ?? 0) !== generation) {
+    sshService.disconnect(sid)
+    throw new Error('The server changed while connecting: try again')
+  }
   sessions.set(connectionId, sid)
   return sid
 }

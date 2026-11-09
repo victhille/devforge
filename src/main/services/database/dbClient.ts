@@ -8,7 +8,8 @@ import type { DbBrowseOptions, DbBrowseResult, DbConnection, DbDiagram, DbOvervi
 import { detailsFor, diagramFor, overviewFor, type Raw } from './dbMeta'
 import { quoteColumn, quoteIdent } from '@shared/lib/sqlQuote'
 import { rowChangesProblem, rowStatements, type RowChange, type RowStatement } from '@shared/lib/rowEdits'
-import { getDbConnection, saveDbConnection } from './dbStorage'
+import { getDbConnection, saveDbConnection, storedPasswordFor } from './dbStorage'
+import { DB_DEFAULT_PORT } from '@shared/lib/dbTarget'
 import { findInCompose, findOnServer } from './dbDetect'
 import { openTunnel } from '../ssh/sshClient'
 import { sshServerFor } from '../ssh/sshStorage'
@@ -216,9 +217,9 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
   }
 }
 
-const DEFAULT_PORT = { mysql: 3306, postgres: 5432 }
 
-async function open(c: DbConnection): Promise<Driver> {
+/** `persist`: remember the address found (false for a test of settings not saved yet: Cancel must leave nothing) */
+async function open(c: DbConnection, persist = true): Promise<Driver> {
   // Database on one of our SSH servers: its port is usually firewalled, so go
   // through SSH. Docker may publish it on loopback or on the public address
   // only, so try both from the server.
@@ -229,7 +230,7 @@ async function open(c: DbConnection): Promise<Driver> {
     let last: UnreachableFromServer | null = null
     for (const host of hosts) {
       try {
-        return await reachVia({ ...c, host, sshConnectionId: sshId }, c)
+        return await reachVia({ ...c, host, sshConnectionId: sshId }, c, persist)
       } catch (err) {
         if (!(err instanceof UnreachableFromServer)) throw err
         last = err
@@ -239,7 +240,7 @@ async function open(c: DbConnection): Promise<Driver> {
     const target = { ...c, host: hosts[0], sshConnectionId: sshId }
     const match = await findOnServer(sshId, target).catch(() => undefined)
     if (!match || (hosts.includes(match.host) && match.port === c.port)) throw last!.withHint(target)
-    return reachVia({ ...target, host: match.host, port: match.port }, c)
+    return reachVia({ ...target, host: match.host, port: match.port }, c, persist)
   }
   try {
     switch (c.type) {
@@ -256,7 +257,7 @@ async function open(c: DbConnection): Promise<Driver> {
       if (match) {
         const fixed = { ...c, port: match.port, user: match.user ?? c.user, password: match.password ?? c.password }
         const d = await (c.type === 'mysql' ? mysqlDriver(fixed) : postgresDriver(fixed))
-        if (getDbConnection(c.id)) saveDbConnection(fixed)
+        if (persist && getDbConnection(c.id)) saveDbConnection(fixed)
         return d
       }
     }
@@ -280,17 +281,18 @@ class UnreachableFromServer extends Error {
 }
 
 /** Connect through SSH; remember the address when it differs from the saved one */
-async function reachVia(target: DbConnection, original: DbConnection): Promise<Driver> {
+async function reachVia(target: DbConnection, original: DbConnection, persist: boolean): Promise<Driver> {
   const d = await viaSsh(target, target.sshConnectionId!)
   const moved = target.host !== original.host || target.port !== original.port || target.sshConnectionId !== original.sshConnectionId
-  // Saved connections only; credentials are kept
-  if (moved && getDbConnection(original.id)) saveDbConnection({ ...target, password: undefined })
+  // Saved connections only; credentials are kept: read again, a server pointed elsewhere meanwhile has just forgotten them
+  if (persist && moved && getDbConnection(original.id)) saveDbConnection({ ...target, password: storedPasswordFor(original) })
   return d
 }
 
 /** The driver talks to a local port forwarded through the SSH server */
 async function viaSsh(c: DbConnection, sshConnectionId: string): Promise<Driver> {
-  const tunnel = await openTunnel(sshConnectionId, c.host || '127.0.0.1', c.port ?? DEFAULT_PORT[c.type as 'mysql'])
+  // Only MySQL and PostgreSQL get here: SQLite has no port
+  const tunnel = await openTunnel(sshConnectionId, c.host || '127.0.0.1', c.port ?? DB_DEFAULT_PORT[c.type as 'mysql' | 'postgres'])
   try {
     const direct = { ...c, host: '127.0.0.1', port: tunnel.localPort, sshConnectionId: undefined }
     const d = await (c.type === 'mysql' ? mysqlDriver(direct) : postgresDriver(direct))
@@ -342,10 +344,10 @@ export async function closeAllDbs(): Promise<void> {
   await Promise.all([...open$.keys()].map(closeDb))
 }
 
-/** Test unsaved settings; password falls back to the stored one */
+/** Test unsaved settings; password falls back to the stored one while they still go to the same place */
 export async function testDb(c: DbConnection): Promise<string> {
-  const full = { ...c, password: c.password || getDbConnection(c.id)?.password }
-  const d = await open(full)
+  const full = { ...c, password: c.password || storedPasswordFor(c) }
+  const d = await open(full, false)
   try { return await d.version() } finally { await d.close().catch(() => {}) }
 }
 
