@@ -220,3 +220,75 @@ export function extractSection(changelog, version) {
   const hit = parts.find(p => new RegExp(`^## \\[?${version.replace(/\./g, '\\.')}[\\] ]`).test(p))
   return hit ? hit.trim() + '\n' : null
 }
+
+/**
+ * Listed changes whose commit gives no text in this language: the section shows their
+ * subject instead, so it needs rewriting by hand (French subjects in the English notes…).
+ * @param {Change[]} changes
+ * @param {Lang} lang
+ * @returns {Change[]}
+ */
+export const missingNotes = (changes, lang) => changes.filter(c => !HIDDEN.has(c.kind) && !c.notes?.[lang])
+
+// ─── Release flow ─────────────────────────────────────────────────────────────
+// main only takes pull requests. `release prepare` writes the release on a
+// release/X.Y.Z branch cut from develop, then commits it once the notes are rewritten;
+// the branch goes to main by a PR (merge commit). `release tag`, on main after the
+// merge, tags vX.Y.Z and pushes the tag alone. main then goes back into develop by a PR.
+
+/** The files `release prepare` writes: the release commit holds them and nothing else */
+export const RELEASE_FILES = ['package.json', 'package-lock.json', ...LANGS.map(changelogFile), 'THIRD_PARTY_LICENSES.md']
+
+/** Branch of a release */
+export const releaseBranch = (/** @type {string} */ version) => `release/${version}`
+
+/**
+ * Version a release branch is named after (`release/1.4.0` → `1.4.0`), or null
+ * @param {string} branch
+ * @returns {string | null}
+ */
+export function versionOfBranch(branch) {
+  const m = branch.match(/^release\/(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$/)
+  return m ? m[1] : null
+}
+
+/**
+ * What `release prepare` does from here.
+ * - `write`: on develop (a new release/X.Y.Z branch is cut) or on a release branch whose
+ *   package.json is not at its version yet: version, changelogs and licenses are written
+ * - `commit`: on release/X.Y.Z, package.json at X.Y.Z and files changed (the notes were rewritten)
+ * - `done`: on release/X.Y.Z, package.json at X.Y.Z, nothing left to commit
+ * - `error`: any other branch
+ * @param {{ branch: string, pkgVersion: string, dirty: boolean }} state
+ * @returns {{ step: 'write', branchVersion: string | null } | { step: 'commit' | 'done', version: string } | { step: 'error', message: string }}
+ */
+export function prepareStep({ branch, pkgVersion, dirty }) {
+  const version = versionOfBranch(branch)
+  if (version && pkgVersion === version) return { step: dirty ? 'commit' : 'done', version }
+  if (version || branch === 'develop') return { step: 'write', branchVersion: version }
+  return { step: 'error', message: `Prepare a release on develop or on a ${releaseBranch('X.Y.Z')} branch cut from it, not on "${branch}".` }
+}
+
+/**
+ * Changed files that are not release files (they stay out of the release commit)
+ * @param {string[]} files
+ * @returns {string[]}
+ */
+export const unexpectedFiles = files => files.filter(f => !RELEASE_FILES.includes(f.replace(/\\/g, '/')))
+
+/**
+ * Why `release tag` cannot tag yet ([] when it can).
+ * @param {{ branch: string, version: string, pkgVersion: string, tagExists: boolean, behind?: number, ahead?: number, sections: Partial<Record<Lang, string | null>> }} state
+ *   behind / ahead: commits HEAD lacks from origin/main, and has that origin/main lacks
+ * @returns {string[]}
+ */
+export function tagProblems({ branch, version, pkgVersion, tagExists, behind = 0, ahead = 0, sections }) {
+  const problems = []
+  if (!['main', 'master'].includes(branch)) problems.push(`Tag on main once the release PR is merged, not on "${branch}".`)
+  if (behind) problems.push(`main is ${behind} commit(s) behind origin/main: git pull first.`)
+  if (ahead) problems.push(`main has ${ahead} commit(s) that are not on GitHub: main only takes pull requests.`)
+  if (pkgVersion !== version) problems.push(`package.json says ${pkgVersion}, not ${version}: is the ${releaseBranch(version)} PR merged, and main pulled?`)
+  if (tagExists) problems.push(`v${version} already exists: tagged already, or main is not at the new release yet (release PR merged? main pulled?).`)
+  for (const lang of LANGS) if (!sections[lang]) problems.push(`No ${version} section in ${changelogFile(lang)}.`)
+  return problems
+}
