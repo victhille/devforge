@@ -21,8 +21,10 @@ test('a new address forgets the saved password and what was kept for the server'
       writeFileSync(join(dir, 'vpn.json'), JSON.stringify({ servers: [{ connectionId: 's1', port: 51821, username: 'admin', passwordEnc: 'chiffre' }] }))
     }
   })
-  const { page, userData } = run
+  const { page, app, userData } = run
   const read = (name: string) => JSON.parse(readFileSync(join(userData, name), 'utf-8'))
+  // Below 760 px the server list folds to initials, without its edit button (the CI's window is smaller)
+  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setSize(1440, 900))
   await goTo(page, '/ssh')
   // The row's buttons show on hover, over its right side: the mouse stays on the left
   await page.getByText('deploy@203.0.113.10:22').hover({ position: { x: 4, y: 4 } })
