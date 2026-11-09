@@ -18,6 +18,7 @@ import StatCard from './components/StatCard'
 import { DisksPanel, DockerPanel, ProcessesPanel } from './components/Panels'
 import { HealthCard } from '@renderer/features/vps/HealthPage'
 import { useI18n } from '@renderer/i18n/I18nContext'
+import { useSshConnections } from '@renderer/hooks/useLiveData'
 
 function CenterState({ children }: { children: ReactNode }) {
   return <div className="flex flex-col items-center justify-center gap-3 py-24 text-center text-fg-secondary">{children}</div>
@@ -42,7 +43,12 @@ export default function VPSDashboardPage() {
   const { t, lang } = useI18n()
   const v = t.vpsDash
   const { sessions, getOrConnect, reconnect } = useVPS()
-  const [connection, setConnection] = useState<SSHConnection | null>(null)
+  // The server from the kept list: its name follows a rename, and a removed one sends back to the SSH page
+  // (as does a list that could not be read: the SSH page says why)
+  const { data: servers, loaded } = useSshConnections()
+  const connection: SSHConnection | null = servers?.find(c => c.id === connectionId) ?? null
+  const listed = servers !== undefined || loaded
+  const known = connection !== null
   const [health, setHealth] = useState<VpsHealth | null>(null)
 
   const session   = sessions.get(connectionId ?? '')
@@ -52,16 +58,12 @@ export default function VPSDashboardPage() {
 
   const { sysInfo, stats, cpuHistory, lastUpdated, refreshing, refreshNow, reset } = useVpsStats(sessionId)
 
-  // Load connection config, then connect (the context keeps the session alive)
+  // Once the list is there: connect to a known server (the context keeps the session alive)
   useEffect(() => {
-    if (!connectionId) return
-    window.devforge.getSshConnections().then(conns => {
-      const conn = conns.find(c => c.id === connectionId)
-      if (!conn) { navigate('/ssh'); return }
-      setConnection(conn)
-      getOrConnect(connectionId).catch(() => {})
-    })
-  }, [connectionId, getOrConnect, navigate])
+    if (!connectionId || !listed) return
+    if (!known) { navigate('/ssh'); return }
+    getOrConnect(connectionId).catch(() => {})
+  }, [connectionId, listed, known, getOrConnect, navigate])
 
   // Its health: the alert on the right and the Update button
   useEffect(() => {
