@@ -43,7 +43,8 @@ function Failure({ file, test, onOpen, onRerunTest, onExplain, running }: {
           <Bot size={13} aria-hidden /> {k.explain}
         </button>
       </div>
-      {test.message && <pre className="overflow-x-auto rounded-control bg-term px-3.5 py-3 font-mono text-sm leading-[1.65] whitespace-pre-wrap text-danger">{test.message}</pre>}
+      {/* Wrapped anywhere (a long path too): a box that scrolled sideways would need the keyboard's focus */}
+      {test.message && <pre className="rounded-control bg-term px-3.5 py-3 font-mono text-sm leading-[1.65] whitespace-pre-wrap wrap-anywhere text-danger">{test.message}</pre>}
       {(test.expected !== undefined || test.actual !== undefined) && (
         <dl className="grid grid-cols-[90px_1fr] gap-x-3 gap-y-1 font-mono text-sm">
           <dt className="text-fg-muted">{k.expected}</dt><dd className="break-all text-success">{test.expected ?? '—'}</dd>
