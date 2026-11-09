@@ -21,7 +21,7 @@ Ailleurs : **Demander à Forgy** sur une fiche projet, sur les logs Docker ou un
 
 ## Réglages
 
-**Paramètres › Forgy** (la clé se règle aussi dans [Paramètres › Connexions](/devforge/getting-started/connections/#forgy-anthropic)). En haut, une carte résume qui répond, avec quel modèle, si Forgy demande avant d'agir, et ce qu'il a coûté ce mois sur le budget. Les réglages suivent en quatre cartes, **Fournisseur**, **Réponses**, **Actions de Forgy** et **Présence** (balade, dictée, widget de bureau) :
+**Paramètres › Forgy** ([Paramètres › Connexions](/devforge/getting-started/connections/#forgy-anthropic) dit si une clé est enregistrée et mène ici). En haut, une carte résume qui répond, avec quel modèle, si Forgy demande avant d'agir, et ce qu'il a coûté ce mois sur le budget. Les réglages suivent en quatre cartes, **Fournisseur**, **Réponses**, **Actions de Forgy** et **Présence** (balade, dictée, widget de bureau) :
 
 | Réglage | Effet | Défaut |
 |---|---|---|

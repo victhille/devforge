@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Check, ClipboardCopy } from 'lucide-react'
-import type { AppSettings, PackageManager, Theme, AppLanguage, MotionSetting, Density } from '@shared/types'
+import type { AppLanguage, AppSettings, PackageManager } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { applyAppearance } from '@renderer/lib/appearance'
@@ -14,26 +14,21 @@ import ServerSettings from './ServerSettings'
 import ConnectionsSettings from './ConnectionsSettings'
 import DataSettings from './DataSettings'
 import UpdatesSettings from './UpdatesRow'
+import AppearanceSettings from './AppearanceSettings'
 import ReleaseNotes from './ReleaseNotes'
-import LauncherSettings from './LauncherSettings'
+import LauncherRow from './LauncherSettings'
 import ProjectFolders from './ProjectFolders'
 import IdeSettings from './IdeSettings'
 import TemplatesSettings from './TemplatesSettings'
 import { projectFolders } from '@shared/lib/projectFolders'
-import { Segmented, SettingRow, SettingsCard } from './parts'
+import { Segmented, SettingRow, SettingsCard, Words } from './parts'
+import Kbd from '@renderer/components/ui/Kbd'
 import SearchInput from '@renderer/components/ui/SearchInput'
 import { SETTINGS_SECTIONS as SECTIONS, type SettingsSection as Section } from './sections'
 
 
-/** Small previews of the three themes */
 /** The width of the sections, and of the header so its search lines up with their cards */
 const SECTION_WIDTH = 'max-w-[860px]'
-
-const THEMES: { id: Theme; bg: string; side: string; card: string; ink: string; line: string; accent: string }[] = [
-  { id: 'dark', bg: '#121110', side: '#151311', card: '#1A1816', ink: '#F2EEE9', line: '#2E2A26', accent: '#FF7A33' },
-  { id: 'light', bg: '#F7F4F0', side: '#FBF9F6', card: '#FFFFFF', ink: '#1E1A16', line: '#E4DED6', accent: '#B53C0B' },
-  { id: 'system', bg: 'linear-gradient(90deg,#121110 50%,#F7F4F0 50%)', side: '#151311', card: '#2E2A26', ink: '#B5ADA4', line: '#2E2A26', accent: '#FF7A33' }
-]
 
 export default function SettingsPage() {
   const { t, setLang } = useI18n()
@@ -66,7 +61,7 @@ export default function SettingsPage() {
     if (!persist) return
     await window.devforge.saveSettings(next)
     if (key === 'language') setLang(value as AppLanguage)
-    if (key === 'theme' || key === 'motion' || key === 'density') applyAppearance(next)
+    if (key === 'theme' || key === 'motion' || key === 'density' || key === 'accent' || key === 'textSize') applyAppearance(next)
     onSaved()
   }
 
@@ -159,15 +154,15 @@ export default function SettingsPage() {
                 <SettingRow label={s.minimizeToTray} hint={s.minimizeToTrayHint}>
                   <Switch checked={settings.minimizeToTray} onChange={v => set('minimizeToTray', v)} label={s.minimizeToTray} />
                 </SettingRow>
+                <LauncherRow settings={settings} update={update} />
               </SettingsCard>
             )}
-            {section === 'general' && <LauncherSettings settings={settings} update={update} />}
             {section === 'general' && (
               <SettingsCard title={s.groups.terminal}>
-                <SettingRow label={s.terminalSuggest} hint={s.terminalSuggestHint}>
+                <SettingRow label={s.terminalSuggest} hint={<Words text={s.terminalSuggestHint} parts={{ key: <Kbd>→</Kbd> }} />}>
                   <Switch checked={settings.terminalSuggest !== false} onChange={v => set('terminalSuggest', v)} label={s.terminalSuggest} />
                 </SettingRow>
-                <SettingRow label={s.ciAlerts} hint={s.ciAlertsHint}>
+                <SettingRow label={s.ciAlerts} hint={<Words text={s.ciAlertsHint} parts={{ link: <button type="button" onClick={() => go('connections')} className="text-accent hover:underline">{s.nav.connections}</button> }} />}>
                   <Segmented<'favorites' | 'all' | 'off'> label={s.ciAlerts} value={settings.ciAlerts ?? 'favorites'} onChange={v => set('ciAlerts', v)}
                     items={[{ value: 'favorites', label: s.ciAlertsFavorites }, { value: 'all', label: s.ciAlertsAll }, { value: 'off', label: s.ciAlertsOff }]} />
                 </SettingRow>
@@ -175,58 +170,12 @@ export default function SettingsPage() {
             )}
             {section === 'templates' && <TemplatesSettings />}
 
-            {section === 'appearance' && (
-              <SettingsCard title={s.theme}>
-                <div className="px-5 pt-1 pb-4.5">
-                  <div role="radiogroup" aria-label={s.theme} className="grid grid-cols-3 gap-3">
-                    {THEMES.map(th => {
-                      const on = settings.theme === th.id
-                      return (
-                        <button key={th.id} type="button" role="radio" aria-checked={on} onClick={() => set('theme', th.id)}
-                          className={cn('flex flex-col gap-2.5 rounded-xl border-2 bg-canvas p-2.5 text-left transition-[border-color,transform] hover:-translate-y-0.5', on ? 'border-accent' : 'border-line')}>
-                          <div aria-hidden className="flex h-[86px] overflow-hidden rounded-lg" style={{ background: th.bg }}>
-                            <div className="flex w-[26%] flex-col gap-[5px] px-1.5 py-2" style={{ background: th.side }}>
-                              <span className="h-[5px] rounded-[3px]" style={{ background: th.line }} />
-                              <span className="h-[5px] w-[70%] rounded-[3px]" style={{ background: th.line }} />
-                              <span className="h-[5px] w-[80%] rounded-[3px]" style={{ background: th.accent }} />
-                            </div>
-                            <div className="flex flex-1 flex-col gap-1.5 p-2.5">
-                              <span className="h-[7px] w-1/2 rounded-[3px]" style={{ background: th.ink }} />
-                              <span className="flex-1 rounded-md" style={{ background: th.card }} />
-                            </div>
-                          </div>
-                          <span className="flex items-center gap-2 text-base font-medium text-fg">
-                            <span className={cn('size-3.5 rounded-full', on ? 'border-[5px] border-accent' : 'border-[1.5px] border-fg-disabled')} />
-                            {th.id === 'dark' ? s.themeDark : th.id === 'light' ? s.themeLight : s.themeAuto}
-                          </span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              </SettingsCard>
-            )}
-            {section === 'appearance' && (
-              <SettingsCard title={s.groups.display}>
-                <SettingRow label={s.language} hint={s.languageHint}>
-                  <Segmented<AppLanguage> label={s.language} value={settings.language} onChange={v => set('language', v)}
-                    items={[{ value: 'fr', label: 'Français' }, { value: 'en', label: 'English' }]} />
-                </SettingRow>
-                <SettingRow label={s.density} hint={s.densityHint}>
-                  <Segmented<Density> label={s.density} value={settings.density ?? 'comfortable'} onChange={v => set('density', v)}
-                    items={[{ value: 'comfortable', label: s.densityComfortable }, { value: 'compact', label: s.densityCompact }]} />
-                </SettingRow>
-                <SettingRow label={s.motion} hint={s.motionHint}>
-                  <Segmented<MotionSetting> label={s.motion} value={settings.motion ?? 'system'} onChange={v => set('motion', v)}
-                    items={[{ value: 'full', label: s.motionFull }, { value: 'reduced', label: s.motionReduced }, { value: 'system', label: s.motionSystem }]} />
-                </SettingRow>
-              </SettingsCard>
-            )}
+            {section === 'appearance' && <AppearanceSettings settings={settings} set={set} />}
 
             {section === 'forgy' && <AssistantSettings onSaved={onSaved} settings={settings} set={set} />}
             {section === 'connections' && <ConnectionsSettings />}
             {section === 'servers' && <ServerSettings onSaved={onSaved} />}
-            {section === 'data' && <DataSettings onCopyReport={copyReport} />}
+            {section === 'data' && <DataSettings />}
             {section === 'updates' && <UpdatesSettings settings={settings} set={set} onNotes={() => setParams({ notes: 'all' }, { replace: true })} />}
 
             {section === 'about' && (

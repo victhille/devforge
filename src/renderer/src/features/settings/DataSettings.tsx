@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, Archive, ClipboardCopy, Download, FolderOpen, Trash2, Upload } from 'lucide-react'
+import { AlertTriangle, Archive, Download, FolderOpen, Trash2, Upload } from 'lucide-react'
 import type { DataInfo } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -12,7 +12,7 @@ import { errorText } from '@renderer/lib/errors'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
 
 /** Storage (data folder, local log, monitoring history), backups, export and import, then erasing everything */
-export default function DataSettings({ onCopyReport }: { onCopyReport: () => void }) {
+export default function DataSettings() {
   const { t, lang } = useI18n()
   const s = t.settings
   const toast = useToast()
@@ -44,10 +44,7 @@ export default function DataSettings({ onCopyReport }: { onCopyReport: () => voi
           </div>
         </SettingRow>
         <SettingRow label={s.log} hint={s.logHint}>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="ghost" onClick={() => window.devforge.data.openLog()}>{s.openLog}</Button>
-            <Button size="sm" variant="ghost" onClick={onCopyReport}><ClipboardCopy size={13} /> {s.copyReport}</Button>
-          </div>
+          <Button size="sm" variant="ghost" onClick={() => window.devforge.data.openLog()}>{s.openLog}</Button>
         </SettingRow>
         <SettingRow label={s.clearHistory} hint={s.clearHistoryHint}>
           <Button size="sm" variant="ghost" loading={busy === 'history'}

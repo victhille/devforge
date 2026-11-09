@@ -18,7 +18,7 @@ Filtre par nom, et par framework : seuls les frameworks de tes projets ont un fi
 
 Tes projets peuvent vivre dans plusieurs dossiers (« Projet Perso », « Projet Cefim »…). Dans [Paramètres › Général](/devforge/settings/general/), **Dossiers de projets** en tient la liste :
 
-- **Ajouter un dossier**, **Retirer ce dossier** (rien n'est supprimé sur le disque), **Monter** / **Descendre** pour les réordonner ;
+- **Ajouter un dossier**, × pour en retirer un (rien n'est supprimé sur le disque) ; l'icône d'un autre dossier devient une étoile au survol : un clic le met par défaut ;
 - le **premier** est le dossier *par défaut* : le terminal intégré s'y ouvre et les nouveaux projets y vont d'office.
 
 Avec plusieurs dossiers, la page Projets les parcourt tous : chaque carte porte le nom de son dossier, discret, et une ligne de filtres par dossier s'ajoute (**Tous les dossiers**, puis un par dossier). Un dossier qui n'existe plus est signalé (« Dossier introuvable ») au lieu de faire une erreur.

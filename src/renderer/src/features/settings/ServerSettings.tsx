@@ -7,10 +7,9 @@ import Button from '@renderer/components/ui/Button'
 import Checkbox from '@renderer/components/ui/Checkbox'
 import Notice from '@renderer/components/ui/Notice'
 import Range from '@renderer/components/ui/Range'
-import StatusDot from '@renderer/components/ui/StatusDot'
 import Switch from '@renderer/components/ui/Switch'
 import { useWatch } from '@renderer/hooks/useWatch'
-import { SettingRow, SettingsCard } from './parts'
+import { SettingRow, SettingsCard, Words } from './parts'
 
 const ALERTS: AlertKind[] = ['disk', 'container', 'server', 'site']
 
@@ -20,7 +19,7 @@ export default function ServerSettings({ onSaved }: { onSaved: () => void }) {
   const s = t.settings
   const w = t.watch
   const navigate = useNavigate()
-  const { statuses, config, saveConfig } = useWatch()
+  const { config, saveConfig } = useWatch()
   const [connections, setConnections] = useState<SSHConnection[]>([])
   useEffect(() => { window.devforge.getSshConnections().then(setConnections).catch(() => {}) }, [])
   if (!config) return null
@@ -36,15 +35,10 @@ export default function ServerSettings({ onSaved }: { onSaved: () => void }) {
             <div role="group" aria-label={s.watchedServers} className="flex flex-wrap items-center gap-x-4 gap-y-2">
               {connections.map(c => {
                 const on = config.watched.includes(c.id)
-                const st = statuses.find(x => x.connectionId === c.id)
-                // Its state from the last reading, next to its name (a dot, and the words for a screen reader)
-                const state = !on ? w.off : st?.state === 'ok' ? `${w.disk} ${Math.round(st.disk ?? 0)} %` : st?.state === 'down' ? w.down : w.connecting
                 return (
                   <Checkbox key={c.id} checked={on} className="text-sm"
                     onChange={v => save({ watched: v ? [...config.watched, c.id] : config.watched.filter(x => x !== c.id) })}>
                     <span className={on ? 'font-mono font-medium text-fg' : 'font-mono'}>{c.name}</span>
-                    {on && <span title={state}><StatusDot state={st?.state === 'ok' ? 'on' : st?.state === 'down' ? 'error' : 'warn'} /></span>}
-                    <span className="sr-only">{state}</span>
                   </Checkbox>
                 )
               })}
@@ -65,7 +59,7 @@ export default function ServerSettings({ onSaved }: { onSaved: () => void }) {
             </div>
           ))}
         </div>
-        <Notice className="mx-5 mb-4.5">{s.alertsHint}</Notice>
+        <Notice className="mx-5 mb-4.5"><Words text={s.alertsHint} parts={{ widget: <button type="button" onClick={() => navigate('/settings?section=forgy')} className="text-accent hover:underline">{s.widgetLink}</button> }} /></Notice>
       </SettingsCard>
     </>
   )

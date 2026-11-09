@@ -21,7 +21,7 @@ Elsewhere: **Ask Forgy** on a project page, on Docker logs or a migration; **Exp
 
 ## Settings
 
-**Settings › Forgy** (the key can also be set in [Settings › Connections](/devforge/en/getting-started/connections/#forgy-anthropic)). At the top, a card sums up who answers, with which model, whether Forgy asks before acting, and what it cost this month against the budget. The settings follow in four cards, **Provider**, **Answers**, **Forgy's actions** and **Presence** (walk, dictation, desktop widget):
+**Settings › Forgy** ([Settings › Connections](/devforge/en/getting-started/connections/#forgy-anthropic) says whether a key is saved and leads here). At the top, a card sums up who answers, with which model, whether Forgy asks before acting, and what it cost this month against the budget. The settings follow in four cards, **Provider**, **Answers**, **Forgy's actions** and **Presence** (walk, dictation, desktop widget):
 
 | Setting | Effect | Default |
 |---|---|---|

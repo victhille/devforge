@@ -45,13 +45,14 @@ test('projects of two folders show together, each with its folder; a gone folder
 
   // Settings: the list, the first one by default; removing one deletes nothing
   await goTo(page, '/settings?section=general')
-  await expect(page.getByLabel(/^Dossiers de projets \d$/)).toHaveCount(3)
-  await expect(page.getByText('par défaut', { exact: true })).toBeVisible()
-  await page.getByRole('button', { name: 'Retirer ce dossier' }).nth(2).click()
-  await expect(page.getByLabel(/^Dossiers de projets \d$/)).toHaveCount(2)
+  const list = page.getByRole('list', { name: 'Dossiers de projets' })
+  await expect(list.getByRole('listitem')).toHaveCount(3)
+  await expect(list.getByText('par défaut', { exact: true })).toBeVisible()
+  await list.getByRole('button', { name: /^Retirer ce dossier/ }).nth(2).click()
+  await expect(list.getByRole('listitem')).toHaveCount(2)
   await expect.poll(() => JSON.parse(readFileSync(join(userData, 'settings.json'), 'utf-8')).extraProjectsDirs).toEqual([join(userData, 'Projet Cefim')])
-  // The second one first: it becomes the default
-  await page.getByRole('button', { name: 'Monter' }).nth(1).click()
+  // The second one's folder turns into a star: it becomes the default
+  await list.getByRole('button', { name: /^Mettre par défaut/ }).click()
   await expect.poll(() => JSON.parse(readFileSync(join(userData, 'settings.json'), 'utf-8')).defaultProjectsDir).toBe(join(userData, 'Projet Cefim'))
   expect(await settledAxe(page)).toEqual([])
 })

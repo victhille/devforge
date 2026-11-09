@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { cn } from '@renderer/lib/cn'
 import Card from '@renderer/components/ui/Card'
 
@@ -24,11 +24,11 @@ export function SettingsCard({ title, hint, icon, action, danger, children, clas
   )
 }
 
-/** Label and help on the left, the control on the right (stacks when narrow) */
-export function SettingRow({ label, hint, children, className, danger }: { label: ReactNode; hint?: ReactNode; children?: ReactNode; className?: string; danger?: boolean }) {
+/** Label and help on the left, the control on the right (stacks when narrow; `stacked`: always under the label) */
+export function SettingRow({ label, hint, children, className, danger, stacked }: { label: ReactNode; hint?: ReactNode; children?: ReactNode; className?: string; danger?: boolean; stacked?: boolean }) {
   return (
     <div className={cn('flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line-subtle px-5 py-4', danger && 'bg-danger-soft/40', className)}>
-      <div className="min-w-0 flex-[1_1_240px]">
+      <div className={cn('min-w-0', stacked ? 'w-full flex-none' : 'flex-[1_1_240px]')}>
         <div className={cn('text-base font-medium', danger ? 'text-danger' : 'text-fg')}>{label}</div>
         {hint && <div className="mt-[3px] text-sm text-fg-secondary">{hint}</div>}
       </div>
@@ -52,4 +52,9 @@ export function Segmented<T extends string>({ value, onChange, items, label, mon
       ))}
     </div>
   )
+}
+
+/** A sentence with pieces set in it: « {key} l'accepte » with a key, « ({link}) » with a link */
+export function Words({ text, parts }: { text: string; parts: Record<string, ReactNode> }) {
+  return <>{text.split(/(\{\w+\})/).map((bit, i) => <Fragment key={i}>{/^\{\w+\}$/.test(bit) ? parts[bit.slice(1, -1)] ?? bit : bit}</Fragment>)}</>
 }

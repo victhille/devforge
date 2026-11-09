@@ -18,21 +18,26 @@ test('an empty profile: nothing set; a key, a Git identity, a server added, test
   await acceptConfirms(page)
   await goTo(page, '/settings?section=connections')
   // The first look at GitHub CLI and Docker can be slow on a busy machine (the app starts it at launch)
-  await expect(page.getByRole('heading', { name: 'Comptes et clés' })).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByRole('heading', { name: 'Comptes', exact: true })).toBeVisible({ timeout: 20_000 })
   await expect(page.getByText('aucune clé')).toBeVisible()
   await expect(page.getByText('Aucun serveur', { exact: true })).toBeVisible()
   await expect(page.getByText('Aucune base enregistrée')).toBeVisible()
   expect(await settledAxe(page)).toEqual([])
 
-  // A key is saved, then only "saved" shows
-  await page.getByRole('button', { name: 'Ajouter une clé · Forgy' }).click()
+  // Forgy's row leads to its settings: a key saved there, then only "saved" shows, here too
+  await page.getByRole('button', { name: 'Réglages de Forgy' }).click()
   await page.getByLabel('Clé API · Anthropic (Claude)').fill('sk-ant-test-devforge')
   await page.getByLabel('Clé API · Anthropic (Claude)').press('Enter')
   await expect(page.getByText('clé enregistrée')).toBeVisible()
   await expect(page.getByLabel('Clé API · Anthropic (Claude)')).toHaveCount(0)
   await expect(page.locator('input[value="sk-ant-test-devforge"]')).toHaveCount(0)
+  await goTo(page, '/settings?section=connections')
+  await expect(page.getByText('clé enregistrée')).toBeVisible({ timeout: 20_000 })
+  await page.getByRole('button', { name: 'Réglages de Forgy' }).click()
   await page.getByRole('button', { name: 'Retirer', exact: true }).click()
-  await expect(page.getByText('aucune clé')).toBeVisible()
+  await expect(page.getByLabel('Clé API · Anthropic (Claude)')).toBeVisible()
+  await goTo(page, '/settings?section=connections')
+  await expect(page.getByText('aucune clé')).toBeVisible({ timeout: 20_000 })
 
   // Git identity, in the redirected global config
   await page.getByRole('button', { name: 'Modifier' }).first().click()

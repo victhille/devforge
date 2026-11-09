@@ -3,7 +3,6 @@ import { Pencil, RefreshCw, Trash2 } from 'lucide-react'
 import type { UserTemplate } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
-import { formatSize } from '@renderer/lib/format'
 import { useNavigate } from 'react-router-dom'
 import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
@@ -80,7 +79,7 @@ export default function TemplatesSettings() {
                     <div className="truncate text-base font-semibold text-fg">{tpl.name}</div>
                     {tpl.description && <div className="truncate text-sm text-fg-secondary">{tpl.description}</div>}
                     <div className="truncate font-mono text-xs text-fg-muted" title={tpl.sourcePath}>
-                      {m.from.replace('{path}', tpl.sourcePath)} · {m.files.replace('{n}', String(tpl.files))} · {formatSize(tpl.bytes)} · {m.updated.replace('{date}', date(tpl.updatedAt))}
+                      {m.from.replace('{path}', tpl.sourcePath)} · {m.files.replace('{n}', String(tpl.files))} · {m.updated.replace('{date}', date(tpl.updatedAt))}
                     </div>
                   </div>
                   {tpl.sourceGone

@@ -187,6 +187,10 @@ export interface AppSettings {
   motion: MotionSetting
   /** 'compact': smaller spacing and text, for small screens */
   density: Density
+  /** The main colour (buttons, links, selection); Forge's orange unless chosen */
+  accent?: AccentColor
+  /** Text a little smaller or larger across the app, the layout unchanged */
+  textSize?: TextSize
   /** "What's new" window on the first launch after an update */
   showWhatsNew: boolean
   /** Whisper model for voice typing */
@@ -205,6 +209,8 @@ export interface AppSettings {
 
 export type MotionSetting = 'full' | 'reduced' | 'system'
 export type Density = 'comfortable' | 'compact'
+export type AccentColor = 'forge' | 'blue' | 'violet' | 'pink' | 'teal' | 'green'
+export type TextSize = 'small' | 'normal' | 'large' | 'larger'
 
 /** Settings → Data */
 export interface DataInfo {

@@ -19,7 +19,7 @@ Each backup shows its date, its reason (*manual*, *before format v12*, *before a
 
 ## Local log
 
-Errors and events, secrets masked, handy for a bug report. **Open log** shows it. **Copy report** copies the [diagnostic report](/devforge/en/settings/general/#about), which includes its last lines.
+Errors and events, secrets masked, handy for a bug report. **Open log** shows it. The [diagnostic report](/devforge/en/settings/general/#about), in **About**, includes its last lines.
 
 ## Export or import my setup
 

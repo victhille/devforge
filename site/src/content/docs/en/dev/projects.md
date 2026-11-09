@@ -18,7 +18,7 @@ Filter by name, and by framework: only your projects' frameworks get a filter, a
 
 Your projects may live in several folders ("Personal", "School"…). In [Settings › General](/devforge/en/settings/general/), **Projects folders** keeps their list:
 
-- **Add a folder**, **Remove this folder** (nothing is deleted on disk), **Move up** / **Move down** to reorder them;
+- **Add a folder**, × to remove one (nothing is deleted on disk); another folder's icon turns into a star on hover: a click makes it the default;
 - the **first** one is the *default*: the built-in terminal opens there and new projects go there unless you pick another.
 
 With several folders, the Projects page scans them all: each card bears its folder's name, discreetly, and a row of folder filters appears (**All folders**, then one per folder). A folder that no longer exists is reported ("Folder not found") instead of failing.

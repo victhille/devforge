@@ -18,6 +18,12 @@ import { providerInfo } from '@shared/data/assistantProviders'
 import { providerLabel } from '@renderer/features/assistant/providerLabel'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
 
+/** Remove: a small button in red, as in the mock-up */
+const REMOVE = 'text-danger hover:bg-danger-soft hover:text-danger'
+
+/** A database's kind as it is written */
+const DB_KIND: Record<string, string> = { sqlite: 'SQLite', postgres: 'PostgreSQL', mysql: 'MySQL' }
+
 /** Plugged in or not, in a few words, with a dot of its colour */
 function State({ on, children }: { on: boolean; children: ReactNode }) {
   return <Badge color={on ? 'success' : 'default'} dot>{children}</Badge>
@@ -94,7 +100,7 @@ function AlertsRow({ page, testButton, result, onRemove }: {
         {known ? <State on={known.ntfy}>{known.ntfy ? c.ntfyOn : c.ntfyOff}{known.webhook ? ` ${c.webhookToo}` : ''}</State>
           : <Button size="sm" variant="ghost" loading={state === 'busy'} onClick={read}>{c.readAlerts}</Button>}
         {testButton}
-        {known?.ntfy && <Button size="sm" variant="ghost" onClick={async () => { await onRemove(); await read() }}>{c.remove}</Button>}
+        {known?.ntfy && <Button size="sm" variant="ghost" className={REMOVE} aria-label={c.removeOf.replace('{name}', `ntfy · ${page.server}`)} onClick={async () => { await onRemove(); await read() }}>{c.remove}</Button>}
       </>}>
       {known && !known.ntfy && (
         <form className="flex flex-wrap gap-2" onSubmit={async e => {
@@ -206,7 +212,8 @@ export default function ConnectionsSettings() {
             <State on={!!data.github.cli}>{data.github.cli ? c.githubCli.replace('{login}', data.github.cli) : c.githubNoCli}</State>
             {data.github.token && <State on>{c.tokenSaved}</State>}
             {(data.github.cli || data.github.token) && testButton('github', 'GitHub')}
-            {data.github.token ? <Button size="sm" variant="ghost" onClick={() => disconnect('github', c.githubToken)}>{c.remove}</Button> : addButton('github', c.addToken, 'GitHub')}
+            {data.github.token && <Button size="sm" variant="ghost" className={REMOVE} aria-label={c.removeOf.replace('{name}', c.githubToken)} onClick={() => disconnect('github', c.githubToken)}>{c.remove}</Button>}
+            {!data.github.cli && !data.github.token && addButton('github', c.addToken, 'GitHub')}
           </>}>
           {open === 'github' && <SecretForm label={c.githubToken} placeholder="ghp_… / github_pat_…" onCancel={() => setOpen(null)} onSave={saved(v => window.devforge.github.saveToken(v))} />}
         </ServiceRow>
@@ -214,9 +221,9 @@ export default function ConnectionsSettings() {
         <ServiceRow icon={<Cloud size={16} />} name="Vercel" hint={c.vercelHint}
           aside={<>
             {result('vercel')}
-            <State on={data.vercel.connected}>{data.vercel.connected ? c.vercelAs.replace('{name}', data.vercel.username ?? '') : c.noToken}</State>
+            <span title={data.vercel.username ? c.vercelAs.replace('{name}', data.vercel.username) : undefined}><State on={data.vercel.connected}>{data.vercel.connected ? c.tokenSaved : c.noToken}</State></span>
             {data.vercel.connected && testButton('vercel', 'Vercel')}
-            {data.vercel.connected ? <Button size="sm" variant="ghost" onClick={() => disconnect('vercel', c.vercelToken)}>{c.remove}</Button> : addButton('vercel', c.addToken, 'Vercel')}
+            {data.vercel.connected ? <Button size="sm" variant="ghost" className={REMOVE} aria-label={c.removeOf.replace('{name}', c.vercelToken)} onClick={() => disconnect('vercel', c.vercelToken)}>{c.remove}</Button> : addButton('vercel', c.addToken, 'Vercel')}
           </>}>
           {open === 'vercel' && <SecretForm label={c.vercelToken} placeholder={c.vercelToken} onCancel={() => setOpen(null)} onSave={saved(v => window.devforge.vercel.saveToken(v))} />}
         </ServiceRow>
@@ -224,25 +231,16 @@ export default function ConnectionsSettings() {
         <ServiceRow icon={<Box size={16} />} name="Docker" hint={c.dockerHint}
           aside={<>
             {result('docker')}
-            <State on={!!data.docker.version}>{data.docker.version ? `Docker ${data.docker.version}` : c.dockerDown}</State>
-            {testButton('docker', 'Docker')}
+            <span title={data.docker.version ? `Docker ${data.docker.version}` : undefined}><State on={!!data.docker.version}>{data.docker.version ? c.dockerUp : c.dockerDown}</State></span>
+            {!data.docker.version && testButton('docker', 'Docker')}
             {!data.docker.version && <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal('https://www.docker.com/products/docker-desktop/')}><ExternalLink size={13} /> {c.dockerGet}</Button>}
           </>} />
 
-        <ServiceRow icon={<Bot size={16} />} tile="border-accent/30 bg-accent-soft text-accent" name={`${c.forgy} · ${forgyName}`} hint={c.forgyHint}
+        <ServiceRow icon={<Bot size={16} />} tile="border-accent/30 bg-accent-soft text-accent" name={c.forgy} hint={c.forgyHint}
           aside={<>
-            {result('forgy')}
-            <State on={data.forgy.hasKey}>{data.forgy.source === 'env' ? c.keyFromEnv.replace('{env}', providerInfo(data.forgy.provider).env.join(' / ')) : data.forgy.hasKey ? c.keySaved : c.noKey}</State>
-            {data.forgy.hasKey && testButton('forgy', c.forgy)}
-            {data.forgy.source === 'saved' && <Button size="sm" variant="ghost" onClick={() => disconnect('forgy', c.forgyKey)}>{c.remove}</Button>}
-            {data.forgy.source !== 'saved' && data.forgy.provider !== 'ollama' && addButton('forgy', c.addKey, c.forgy)}
+            <span title={forgyName}><State on={data.forgy.hasKey}>{data.forgy.source === 'env' ? c.keyFromEnv.replace('{env}', providerInfo(data.forgy.provider).env.join(' / ')) : data.forgy.hasKey ? c.keySaved : c.noKey}</State></span>
             <Button size="sm" variant="ghost" onClick={() => navigate('/settings?section=forgy')}>{c.forgySettings}</Button>
-          </>}>
-          {open === 'forgy' && (
-            <SecretForm label={`${c.forgyKey} · ${forgyName}`} placeholder={providerInfo(data.forgy.provider).placeholder} onCancel={() => setOpen(null)}
-              onSave={saved(v => window.devforge.assistant.saveConfig({ apiKey: v, keyFor: data.forgy.provider }))} />
-          )}
-        </ServiceRow>
+          </>} />
       </SettingsCard>
 
       <SettingsCard title={c.serversTitle} hint={c.serversHint}
@@ -267,10 +265,8 @@ export default function ConnectionsSettings() {
         action={<Button size="sm" variant="secondary" onClick={() => setDbForm(true)}><Plus size={14} /> {c.addDatabase}</Button>}>
         {data.databases.length === 0 && <SettingRow label={c.noDatabase} />}
         {data.databases.map(d => (
-          <ServiceRow key={d.id} icon={<Database size={16} />} tile="border-info/30 bg-info-soft text-info" name={d.name} hint={<span className="font-mono">{d.type} · {d.target}</span>}
+          <ServiceRow key={d.id} icon={<Database size={16} />} tile="border-info/30 bg-info-soft text-info" name={d.name} hint={<span className="font-mono">{DB_KIND[d.type] ?? d.type} · {d.target}</span>}
             aside={<>
-              {result(`database:${d.id}`)}
-              {testButton('database', d.name, d.id)}
               <Button size="sm" variant="ghost" onClick={() => navigate(`/database?conn=${encodeURIComponent(d.id)}`)}>{c.open}</Button>
               <IconButton size="sm" title={c.removeOf.replace('{name}', d.name)} tone="danger" onClick={() => disconnect('database', d.name, d.id)}><Trash2 size={13} /></IconButton>
             </>} />
@@ -285,12 +281,11 @@ export default function ConnectionsSettings() {
         )}
         {data.n8n.map(n => (
           <ServiceRow key={n.connectionId} icon={<Workflow size={16} />} tile="border-accent/30 bg-accent-soft text-accent" name={c.n8nOf.replace('{server}', n.server)}
-            hint={<span className="font-mono">{n.where}</span>}
+            hint={<>{n.hasKey ? c.n8nKeySaved : c.n8nNoKey} · <span className="font-mono">{n.where}</span></>}
             aside={<>
               {result(`n8n:${n.connectionId}`)}
-              <State on={n.hasKey}>{n.hasKey ? c.keySaved : c.noKey}</State>
               {n.hasKey && testButton('n8n', c.n8nOf.replace('{server}', n.server), n.connectionId)}
-              {n.hasKey ? <Button size="sm" variant="ghost" onClick={() => disconnect('n8n', c.n8nKey, n.connectionId)}>{c.remove}</Button> : addButton(`n8n:${n.connectionId}`, c.addKey, c.n8nOf.replace('{server}', n.server))}
+              {n.hasKey ? <Button size="sm" variant="ghost" className={REMOVE} aria-label={c.removeOf.replace('{name}', c.n8nOf.replace('{server}', n.server))} onClick={() => disconnect('n8n', c.n8nKey, n.connectionId)}>{c.remove}</Button> : addButton(`n8n:${n.connectionId}`, c.addKey, c.n8nOf.replace('{server}', n.server))}
               <Button size="sm" variant="ghost" onClick={() => navigate('/n8n')}>{c.open}</Button>
             </>}>
             {open === `n8n:${n.connectionId}` && <SecretForm label={c.n8nKey} placeholder="n8n_api_…" onCancel={() => setOpen(null)} onSave={saved(v => window.devforge.n8n.saveKey(n.connectionId, v))} />}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Check, KeyRound, Lock, ShieldCheck } from 'lucide-react'
+import { Check, KeyRound, Lock, ShieldCheck, Trash2 } from 'lucide-react'
 import type { AppSettings, AssistantActionMode, AssistantConfig, AssistantEffort, AssistantModel, AssistantProvider, AssistantUsage, ConnectionTest, DictationStatus } from '@shared/types'
 import { PROVIDERS, providerInfo } from '@shared/data/assistantProviders'
 import { providerLabel } from '@renderer/features/assistant/providerLabel'
@@ -8,6 +8,7 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
+import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Input } from '@renderer/components/ui/Input'
 import Switch from '@renderer/components/ui/Switch'
@@ -28,15 +29,18 @@ function DictationRow({ settings, set }: { settings: AppSettings; set: <K extend
   useEffect(() => window.devforge.dictation.onProgress(p => setPct(p.total ? Math.round((p.loaded / p.total) * 100) : null)), [])
 
   return (
-    <SettingRow label={d.setting} hint={<>{d.settingHint}<br /><span className="font-mono text-xs">
-      {busy ? (pct === null ? d.downloadingNoPct : d.downloading.replace('{p}', String(pct))) : status?.downloaded ? d.downloaded.replace('{size}', formatSize(status.size)) : d.notDownloaded}
-    </span></>}>
-      <div className="flex flex-col items-end gap-2">
+    <SettingRow label={d.setting} hint={status?.downloaded ? d.settingHint : (
+      <>{d.settingHint} <span role="status" className="text-fg-muted">{busy ? (pct === null ? d.downloadingNoPct : d.downloading.replace('{p}', String(pct))) : d.notDownloaded}</span></>
+    )}>
+      <div className="flex flex-wrap items-center justify-end gap-2">
         <Segmented<'base' | 'small'> label={d.setting} value={model} onChange={v => set('dictationModel', v)}
           items={[{ value: 'base', label: d.modelBase }, { value: 'small', label: d.modelSmall }]} />
-        {status && (status.downloaded
-          ? <Button size="sm" variant="ghost" onClick={async () => setStatus(await window.devforge.dictation.remove())}>{d.removeModel}</Button>
-          : <Button size="sm" variant="secondary" loading={busy} onClick={async () => { setBusy(true); try { setStatus(await window.devforge.dictation.prepare()) } finally { setBusy(false); setPct(null) } }}>{d.download}</Button>)}
+        {status && (status.downloaded ? <>
+          <span title={formatSize(status.size)}><Badge color="success" dot>{d.downloadedShort}</Badge></span>
+          <IconButton size="sm" tone="danger" title={d.removeModel} onClick={async () => setStatus(await window.devforge.dictation.remove())}><Trash2 size={13} /></IconButton>
+        </> : (
+          <Button size="sm" variant="secondary" loading={busy} onClick={async () => { setBusy(true); try { setStatus(await window.devforge.dictation.prepare()) } finally { setBusy(false); setPct(null) } }}>{d.download}</Button>
+        ))}
       </div>
     </SettingRow>
   )
@@ -81,7 +85,7 @@ export default function AssistantSettings({ onSaved, settings, set }: { onSaved:
     setConfig(await window.devforge.assistant.saveConfig(u))
     onSaved()
   }
-  const money = (n: number) => new Intl.NumberFormat(lang, { style: 'currency', currency: 'USD', currencyDisplay: 'narrowSymbol' }).format(n)
+  const money = (n: number) => new Intl.NumberFormat(lang, { style: 'currency', currency: 'USD', currencyDisplay: 'narrowSymbol', minimumFractionDigits: Number.isInteger(n) && n > 0 ? 0 : 2 }).format(n)
   const spentPct = usage && config.monthlyBudget > 0 ? Math.min(100, (usage.spent / config.monthlyBudget) * 100) : 0
   const info = providerInfo(config.provider)
   /** The models the provider offers, read with its key */
@@ -151,7 +155,7 @@ export default function AssistantSettings({ onSaved, settings, set }: { onSaved:
                 {config.hasKey && <Button size="sm" variant="ghost" disabled={tested === 'busy'} onClick={test} aria-label={c.testOf.replace('{name}', providerLabel(info.id, t))}>{c.test}</Button>}
                 {config.keySource === 'saved' && <>
                   <Button size="sm" variant="secondary" aria-expanded={replacing} onClick={() => setReplacing(r => !r)}>{s.replaceKey}</Button>
-                  <Button size="sm" variant="ghost" onClick={() => { setTested(null); void save({ clearKey: true, keyFor: config.provider }) }}>{c.remove}</Button>
+                  <Button size="sm" variant="ghost" className="text-danger hover:bg-danger-soft hover:text-danger" onClick={() => { setTested(null); void save({ clearKey: true, keyFor: config.provider }) }}>{c.remove}</Button>
                 </>}
               </div>
               {(config.keySource !== 'saved' || replacing) && (
@@ -173,7 +177,7 @@ export default function AssistantSettings({ onSaved, settings, set }: { onSaved:
             <Segmented<AssistantModel | 'auto'> label={a.model} value={config.model} onChange={m => save({ model: m })}
               items={[{ value: 'auto', label: 'Auto' }, { value: 'claude-haiku-5-5', label: 'Haiku' }, { value: 'claude-sonnet-5-5', label: 'Sonnet' }, { value: 'claude-opus-5-5', label: 'Opus' }]} />
           </SettingRow>
-          <SettingRow label={a.effort}>
+          <SettingRow label={a.effort} hint={s.effortHint}>
             <Segmented<AssistantEffort | 'auto'> label={a.effort} value={config.effort} onChange={effort => save({ effort })}
               items={[{ value: 'auto', label: a.effortAuto }, { value: 'low', label: a.effortLow }, { value: 'medium', label: a.effortMedium }, { value: 'high', label: a.effortHigh }]} />
           </SettingRow>

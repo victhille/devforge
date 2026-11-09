@@ -5,7 +5,7 @@ description: Guide pas à pas pour faire relire tes changements, écrire le mess
 
 Forgy lit tes changements, écrit le message et propose le commit. Tu relis, tu valides.
 
-**Il faut** : un projet Git avec des changements, et la clé de Forgy, Anthropic ou une autre ([Connexions](/devforge/getting-started/connections/#forgy-anthropic)). Compter 5 minutes.
+**Il faut** : un projet Git avec des changements, et la clé de Forgy, Anthropic ou une autre ([Paramètres › Forgy](/devforge/forgy/assistant/#réglages)). Compter 5 minutes.
 
 ## 1. Ouvre la fiche du projet
 

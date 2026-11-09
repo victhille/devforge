@@ -19,7 +19,7 @@ Chaque sauvegarde montre sa date, sa raison (*manuelle*, *avant le format v12*, 
 
 ## Journal local
 
-Erreurs et évènements, secrets masqués, utile pour un rapport de bug. **Ouvrir le journal** l'affiche. **Copier le rapport** copie le [rapport de diagnostic](/devforge/settings/general/#à-propos), qui en reprend les dernières lignes.
+Erreurs et évènements, secrets masqués, utile pour un rapport de bug. **Ouvrir le journal** l'affiche. Le [rapport de diagnostic](/devforge/settings/general/#à-propos), dans **À propos**, en reprend les dernières lignes.
 
 ## Exporter ou importer ma configuration
 

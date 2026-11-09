@@ -10,7 +10,7 @@ description: Every DevForge setting, section by section, from General to About.
 | General | projects folders, package manager, IDE, terminal suggestions, startup, global launcher |
 | [Templates](/devforge/en/dev/new-project/#my-templates) | your project templates: update, rename, delete |
 | [Connections](/devforge/en/getting-started/connections/) | GitHub, Git identity, Vercel, Docker, Forgy key, servers, databases, n8n and alerts |
-| Appearance | theme, language, animations, density |
+| Appearance | theme, language, main color, text size, density, animations, preview |
 | [Forgy](/devforge/en/forgy/assistant/#settings) | key, model, depth, budget, actions, desktop widget, dictation, stroll |
 | Servers | background watching and alerts |
 | [Data](/devforge/en/settings/data/) | folder, backups, log, export / import, erasing |
@@ -21,14 +21,14 @@ description: Every DevForge setting, section by section, from General to About.
 
 | Setting | Effect |
 |---|---|
-| Projects folders | the Projects page scans them all; the first gets new projects by default. Add, remove (nothing is deleted), reorder: see [Projects](/devforge/en/dev/projects/#several-projects-folders) |
+| Projects folders | the Projects page scans them all; the first one (the star, *default*) gets new projects. **Add a folder**, × to remove one (nothing is deleted), another folder's icon turns into a star to make it the default: see [Projects](/devforge/en/dev/projects/#several-projects-folders) |
 | Default package manager | npm, pnpm or yarn, used when the project has no lock file |
 | Default IDE | the IDE projects open in, among those found on this PC, or none; a project may have its own. See [IDE](/devforge/en/dev/ide/) |
-| IDEs added by hand | a program and its arguments, with **Try**; see [IDE](/devforge/en/dev/ide/#adding-an-ide-by-hand) |
+| Add an IDE | beside the list: a program and its arguments, with **Try**; the IDEs added show under it. See [IDE](/devforge/en/dev/ide/#adding-an-ide-by-hand) |
 | Terminal suggestions | the line's likely rest, greyed; see [the terminal](/devforge/en/getting-started/interface/#suggestions) |
 | Start with Windows | DevForge starts minimized when you sign in |
 | Minimize to tray on close | closing the window keeps the watch and the widget running |
-| Global launcher | turn it on, and change the shortcut (<kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>Space</kbd> by default); see [Finding your way](/devforge/en/getting-started/interface/#the-global-launcher) |
+| Global launcher | in **Start-up and window**: its shortcut key by key (<kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>Space</kbd> by default), **Change** then the new combination, and a switch to turn it off; see [Finding your way](/devforge/en/getting-started/interface/#the-global-launcher) |
 
 ## Appearance
 
@@ -39,16 +39,20 @@ description: Every DevForge setting, section by section, from General to About.
 | Theme | Dark, Light, or Like Windows |
 | Language | French or English: interface, release notes and Forgy's answers |
 | Animations | Full, Reduced (no page entrances or effects; Forgy stays still), or Like Windows |
+| Main color | Forge orange, Blue, Violet, Pink, Teal or Green: the whole look takes its tint (backgrounds, cards, menus, borders, texts, buttons, links and Forgy), in the dark theme as in the light one; only the logo stays orange. Every text keeps a contrast of at least 4.5:1 |
+| Text size | Small, Normal, Large or Larger: the text of the whole app, the layout stays the same |
 | Density | Comfortable or Compact (smaller margins and text to fit more on screen) |
+
+Beside it, the **Preview** card shows a project card with these choices, before you look at the pages.
 
 ## Servers
 
 One sample a minute in the background, kept 7 days. Two cards:
 
-- **Watching**: a box per server in **Watched servers** (a coloured dot shows its last state), and the **Disk threshold**, a slider from 50 to 95 % (85 % by default). **See the curves** opens [Monitoring](/devforge/en/servers/monitoring/).
+- **Watching**: a box per server in **Watched servers**, and the **Disk threshold**, a slider from 50 to 95 % (85 % by default). **See the curves** opens [Monitoring](/devforge/en/servers/monitoring/).
 - **Warn me when**: a switch per alert, when a disk fills up, a container stops, a server stops answering or a site goes down.
 
-Alerts arrive as Windows notifications, and Forgy sulks in the desktop widget.
+Alerts arrive as Windows notifications, and Forgy sulks in the desktop widget (the **widget** link leads to its setting, in Forgy › Presence).
 
 ## Updates
 
