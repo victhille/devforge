@@ -16,13 +16,13 @@ Sur chaque serveur :
 | clic sur le nom | ouvre un terminal SSH dans un nouvel onglet |
 | Tableau de bord | ouvre le tableau de bord du serveur (aussi en haut du terminal de la session ouverte) |
 | Bases de données du serveur | ouvre la page [Base de données](/devforge/data/database/#détecter-des-bases) et cherche les bases de ce serveur |
-| Modifier la connexion | change ses réglages ; laisser le mot de passe vide le garde |
+| Modifier la connexion | change ses réglages ; laisser le mot de passe vide le garde, sauf si l'hôte, le port ou l'utilisateur change : il faut alors le saisir à nouveau, comme la clé de n8n, l'accès au VPN et les mots de passe des bases qui passent par ce serveur |
 | Supprimer la connexion | retire le serveur |
 
 **Masquer les serveurs** replie la colonne pour donner toute la place au terminal.
 
 :::note[Clé du serveur]
-DevForge mémorise l'empreinte de la clé du serveur à la première connexion, comme OpenSSH. Si elle change, la connexion est refusée. Après une réinstallation du serveur, **Oublier la clé** dans le formulaire la remet à zéro.
+DevForge mémorise l'empreinte de la clé du serveur à la première connexion, comme OpenSSH. Si elle change, la connexion est refusée. Après une réinstallation du serveur, **Oublier la clé** dans le formulaire la remet à zéro, une fois confirmé dans la fenêtre de Windows qui s'ouvre.
 :::
 
 ## Le terminal

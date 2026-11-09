@@ -30,7 +30,7 @@ Une installation déjà présente dans `~/devforge/n8n` peut être relancée : s
 
 ## Workflows et exécutions
 
-Avec une **clé d'API n8n** (dans n8n : *Paramètres › API › Créer une clé*), chiffrée par Windows, à saisir ici ou dans [Paramètres › Connexions](/devforge/getting-started/connections/#n8n-et-alertes) :
+Avec une **clé d'API n8n** (dans n8n : *Paramètres › API › Créer une clé*), chiffrée par Windows, à saisir ici ou dans [Paramètres › Connexions](/devforge/getting-started/connections/#n8n-et-alertes) (elle est oubliée si le serveur change d'hôte, de port ou d'utilisateur, ou s'il est retiré) :
 
 - **Workflows** : la liste, avec leur date de modification et **Exporter dans un projet** (un fichier JSON dans un de tes projets) ;
 - **Exécutions** : réussie, échec, plantée, en cours…, avec le filtre **Échecs seulement**.

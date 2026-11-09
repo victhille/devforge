@@ -39,6 +39,15 @@ export function closeForward(connectionId: string, remotePort: number): void {
   forwards.delete(key)
 }
 
+/** Every forward of a server, whatever its port */
+export function closeForwardsOf(connectionId: string): void {
+  for (const [key, server] of forwards) {
+    if (!key.startsWith(`${connectionId}:`)) continue
+    server.close()
+    forwards.delete(key)
+  }
+}
+
 export function closeAllForwards(): void {
   for (const s of forwards.values()) s.close()
   forwards.clear()

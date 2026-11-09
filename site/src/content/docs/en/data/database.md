@@ -14,17 +14,19 @@ The **Database** page is a client for **PostgreSQL**, **MySQL / MariaDB** and **
 | Type | PostgreSQL, MySQL / MariaDB or SQLite |
 | Name | optional, defaults to `database@host` |
 | Host, port, user, password, database | for PostgreSQL and MySQL |
-| SQLite file | for SQLite |
+| SQLite file | for SQLite, a file on this PC: a file on a network share is refused, since Windows would send your login to it |
 | Connect through | **Direct connection**, or an SSH server: the connection then goes through an **SSH tunnel**, nothing to open on the server. Host and port are those seen from the server (`127.0.0.1` for a local service) |
 
 **Test connection** checks before saving.
+
+When editing, a password left empty keeps the saved one, as long as the database stays at the same place. If its type, host, port, user or SSH server changes, the password is forgotten and the form asks for it again: it never goes to another machine.
 
 ## Find databases
 
 **Find databases** looks for databases to add without typing anything:
 
-- **On a server (SSH)**: Docker PostgreSQL / MySQL / MariaDB containers (credentials read from their config) and services installed on the server. These databases go through an SSH tunnel.
-- **In your projects (.env)**: the databases described in your projects' `.env` files.
+- **On a server (SSH)**: Docker PostgreSQL / MySQL / MariaDB containers (credentials read from their config) and services installed on the server. These databases go through an SSH tunnel. A container is kept only if the server can reach it: a published port, or an address of its private network.
+- **In your projects (.env)**: the databases described in your projects' `.env` files. A database whose host is one of your servers goes through it. If several servers are saved there on different ports, DevForge does not guess: pick the right one in **Connect through**.
 
 **Add** saves a database found. The *Databases on this server* button of the [SSH](/devforge/en/servers/ssh/) page opens this search directly.
 

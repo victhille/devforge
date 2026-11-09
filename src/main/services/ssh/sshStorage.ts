@@ -3,6 +3,7 @@ import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { app, safeStorage } from 'electron'
 import type { SSHConnection } from '@shared/types'
+import { sameSshAddress } from '@shared/lib/sshAddress'
 import { knownFingerprint } from './knownHosts'
 import { writeJsonFile } from '../../lib/jsonFile'
 
@@ -63,11 +64,21 @@ export function loadSshConnections(): SSHConnection[] {
   }))
 }
 
-/** Saved SSH server whose address is `host`, if any */
-export function sshServerFor(host: string | undefined): SSHConnection | undefined {
+/** Saved SSH servers whose address is `host` (never this PC) */
+export function sshServersAt(host: string | undefined): SSHConnection[] {
   const h = host?.trim().toLowerCase()
-  if (!h || h === '127.0.0.1' || h === 'localhost') return undefined
-  return loadSshConnections().find(c => c.host.trim().toLowerCase() === h)
+  if (!h || h === '127.0.0.1' || h === 'localhost') return []
+  return loadSshConnections().filter(c => c.host.trim().toLowerCase() === h)
+}
+
+/**
+ * The saved SSH server at `host`, if they all are one machine: several accounts on the same port
+ * (root@vps, deploy@vps) reach the same one; different ports (a NAT) may be different machines,
+ * and which one runs the database is unknown (sshServersAt tells the caller there are several)
+ */
+export function sshServerFor(host: string | undefined): SSHConnection | undefined {
+  const same = sshServersAt(host)
+  return same.length && new Set(same.map(s => s.port ?? 22)).size === 1 ? same[0] : undefined
 }
 
 /** Main process only: includes the decrypted password, used to open the SSH session. */
@@ -81,16 +92,25 @@ export function getSshConnectionWithSecret(id: string): SSHConnection | undefine
 /** 'changed' after a server is added, edited or removed (the menu lists the server pages) */
 export const sshConnectionsEvents = new EventEmitter()
 
-/** An empty password keeps the one already stored. */
+/** A new server, or a saved one given another host, port or username: nothing kept for it may follow (see serverChanges) */
+export function isNewSshAddress(conn: SSHConnection): boolean {
+  const prev = readStored().find(c => c.id === conn.id)
+  return !prev || !sameSshAddress(prev, conn)
+}
+
+/**
+ * An empty password keeps the one already stored, for the same host, port and username only:
+ * a server pointed elsewhere forgets it, so the saved password never leaves for another machine.
+ * The server key needs nothing: it is remembered per host and port, and a new address is checked on its own.
+ */
 export function saveSshConnection(conn: SSHConnection): void {
   const conns = readStored()
   const idx = conns.findIndex(c => c.id === conn.id)
+  const prev = idx >= 0 ? conns[idx] : undefined
   const { password, hasPassword: _hasPassword, fingerprint: _fp, ...rest } = conn
 
   let passwordEnc: string | undefined
-  if (conn.authMethod === 'password') {
-    passwordEnc = password ? encrypt(password) : conns[idx]?.passwordEnc
-  }
+  if (conn.authMethod === 'password') passwordEnc = password ? encrypt(password) : prev && sameSshAddress(prev, conn) ? prev.passwordEnc : undefined
 
   const stored: StoredSSHConnection = passwordEnc ? { ...rest, passwordEnc } : rest
   if (idx >= 0) conns[idx] = stored

@@ -11,7 +11,7 @@ A **wg-easy version 15 or newer** container must run on the server, with its web
 
 ## Sign in
 
-Enter the **wg-easy interface** login (not the server one). It is checked, then encrypted by Windows; it only leaves DevForge towards wg-easy, through the SSH session. **Forget the login** removes it without changing anything on the server.
+Enter the **wg-easy interface** login (not the server one). It is checked, then encrypted by Windows; it only leaves DevForge towards wg-easy, through the SSH session. **Forget the login** removes it without changing anything on the server. It is also forgotten if the server changes host, port or username, or is removed: it must then be entered again.
 
 ## Clients
 

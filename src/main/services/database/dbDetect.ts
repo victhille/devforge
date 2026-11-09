@@ -2,6 +2,8 @@ import { readFile } from 'fs/promises'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
 import type { DbConnection, DetectedDatabase, Project } from '@shared/types'
+import { sameSshAddress } from '@shared/lib/sshAddress'
+import { isPrivateAddress } from '@shared/lib/netAddress'
 import { findSubProjects } from '../projects/projectScanner'
 import { connectSsh, shQuote, sshRun } from '../ssh/sshClient'
 import { getSshConnectionWithSecret, sshServerFor } from '../ssh/sshStorage'
@@ -28,6 +30,11 @@ function publish(found: Found[]): DetectedDatabase[] {
     const { password, sshConnectionId: _s, ...rest } = f
     return { ...rest, key, hasPassword: !!password, exists }
   })
+}
+
+/** Candidates found through a server removed or pointed elsewhere: their passwords belong to the old machine (see serverChanges) */
+export function forgetDetectedThrough(sshConnectionId: string): void {
+  for (const [key, f] of cache) if (f.sshConnectionId === sshConnectionId) cache.delete(key)
 }
 
 export function addDetected(key: string): string {
@@ -76,6 +83,9 @@ export async function detectRemote(sshConnectionId: string): Promise<DetectedDat
     client.end()
   }
 
+  // Pointed elsewhere meanwhile: these passwords belong to the old machine, never tie them to the server
+  const now = getSshConnectionWithSecret(sshConnectionId)
+  if (!now || !sameSshAddress(server, now)) throw new Error('The server changed during the detection: run it again')
   return publish(parseRemoteOutput(output, server.name, sshConnectionId))
 }
 
@@ -113,7 +123,13 @@ export function parseRemoteOutput(output: string, serverName: string, sshConnect
 
   for (const line of output.split('\n')) {
     if (!line.startsWith('C|')) continue
-    const [, rawName, image, envJson, portsJson, ips] = line.split('|')
+    // Read from both ends: a variable of the container may hold `|`, never its name, image, ports or addresses
+    const parts = line.split('|')
+    if (parts.length < 6) continue
+    const [, rawName, image] = parts
+    const ips = parts.pop()!
+    const portsJson = parts.pop()!
+    const envJson = parts.slice(3).join('|')
     const img = (image ?? '').toLowerCase()
     const type = /postgres|postgis|timescale|supabase\/postgres/.test(img) ? 'postgres' : /mysql|mariadb|percona/.test(img) ? 'mysql' : null
     if (!type) continue
@@ -130,8 +146,12 @@ export function parseRemoteOutput(output: string, serverName: string, sshConnect
       port = Number(binding.HostPort)
       publishedPorts.add(port)
     } else {
-      // Not published: reach the container directly on its Docker network IP
-      host = (ips ?? '').trim().split(/\s+/)[0] || '127.0.0.1'
+      // Not published: reach the container directly on its Docker network IP, a private one only
+      // (the password goes there); no address at all is the host's network
+      const addresses = ips.trim().split(/\s+/).filter(Boolean)
+      const inside = addresses.find(isPrivateAddress)
+      if (addresses.length && !inside) continue
+      host = inside ?? '127.0.0.1'
       port = inner
     }
 
