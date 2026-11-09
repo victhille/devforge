@@ -6,9 +6,10 @@ import { createProject } from '../services/projects/projectCreator'
 import { groupContents, scanDirectory } from '../services/projects/projectScanner'
 import { loadProjects, saveProject, removeProject, updateLastOpened, toggleFavorite } from '../services/projects/projectStorage'
 import { commandRunner } from '../services/system/commandRunner'
-import { assertSafeDir, assertScriptName } from '../lib/safe'
+import { assertScriptName } from '../lib/safe'
 import type { Project, ProjectCreationOptions, LogLine, CommandResult, PackageManager, LinkKind } from '@shared/types'
 import { getActiveProject, getProjectHub, linkResource, setActiveProject } from '../services/projects/projectHub'
+import { assertScriptsDir, readScripts } from '../services/projects/projectScripts'
 
 export function registerProjectHandlers(mainWindow: BrowserWindow): void {
   // ─── Project hub and active project ─────────────────────────────────────────
@@ -48,21 +49,13 @@ export function registerProjectHandlers(mainWindow: BrowserWindow): void {
   })
 
   // ─── Scripts ─────────────────────────────────────────────────────────────────
-  ipcMain.handle('scripts:get', async (_event, projectPath: string) => {
-    const pkgPath = join(projectPath, 'package.json')
-    if (!existsSync(pkgPath)) return {}
-    try {
-      const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
-      return pkg.scripts ?? {}
-    } catch { return {} }
-  })
+  ipcMain.handle('scripts:get', async (_event, projectPath: unknown) => readScripts(projectPath))
 
   ipcMain.handle('scripts:run', async (_event, projectPath: string, script: string, pm: PackageManager): Promise<string> => {
-    // The command goes through a shell: only real scripts of this package.json, with plain names
-    assertSafeDir(projectPath)
+    // The command goes through a shell: only real scripts of this package.json, with plain names, in a checked folder
+    const scripts = readScripts(projectPath)
     assertScriptName(script)
-    const pkg = JSON.parse(readFileSync(join(projectPath, 'package.json'), 'utf-8'))
-    if (!pkg.scripts || !(script in pkg.scripts)) throw new Error(`Unknown script: ${script}`)
+    if (!Object.hasOwn(scripts, script)) throw new Error(`Unknown script: ${script}`)
     const pmExe = pm === 'pnpm' ? 'pnpm' : pm === 'yarn' ? 'yarn' : 'npm'
     return commandRunner.run({
       executable: pmExe,
@@ -75,7 +68,7 @@ export function registerProjectHandlers(mainWindow: BrowserWindow): void {
 
   // A script started before the dependencies are installed fails ('vite' is not recognized…)
   ipcMain.handle('scripts:needs-install', async (_event, projectPath: string): Promise<boolean> => {
-    assertSafeDir(projectPath)
+    assertScriptsDir(projectPath)
     const file = join(projectPath, 'package.json')
     if (!existsSync(file) || existsSync(join(projectPath, 'node_modules'))) return false
     try {
@@ -87,7 +80,7 @@ export function registerProjectHandlers(mainWindow: BrowserWindow): void {
   })
 
   ipcMain.handle('scripts:install', async (_event, projectPath: string, pm: PackageManager): Promise<string> => {
-    assertSafeDir(projectPath)
+    assertScriptsDir(projectPath)
     return commandRunner.run({
       executable: pm === 'pnpm' ? 'pnpm' : pm === 'yarn' ? 'yarn' : 'npm',
       args: ['install'],

@@ -4,6 +4,27 @@ Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en
 
 ## [Unreleased]
 
+## [0.2.1](https://github.com/victhille/devforge/compare/v0.2.0...v0.2.1) — 2026-11-09
+
+> Security fixes for running scripts, and an interface that follows the text size everywhere.
+
+### Improvements
+
+- **Text size**: the terminal (blocks and SSH), the file tree, the Packages tab and the project page's tests now follow the chosen text size and density
+- **Keyboard**: the selectors in Settings, such as the text size, are walked with the arrow keys, with a single Tab stop
+- **Servers and projects**: the Ctrl+K palette, a server's dashboard, the terminal and Forgy's widget follow at once a server or project that is added, renamed or removed
+- **Screen readers**: a table that is loading says so, like the other skeletons
+
+### Fixes
+
+- **Database**: the full-screen schema no longer covers the bottom of the title bar
+
+### Security
+
+- **Scripts**: with pnpm or yarn, a script named like a package manager command (`publish`, `install`…) runs the script itself; a click can no longer publish a package by mistake
+- **Scripts**: a script name with characters a shell reads, or an unknown package manager from an imported export, no longer reaches the terminal, Forgy or project creation
+- **Network folders**: the scripts of a network share are only read for a saved project, so the Windows login is not sent to an unknown host
+
 ## [0.2.0](https://github.com/victhille/devforge/compare/v0.1.0...v0.2.0) — 2026-11-09
 
 > The whole app moves to the "Forge" interface, with a colour of your choice, text that grows and pages that show at once.

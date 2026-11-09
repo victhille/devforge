@@ -2,6 +2,7 @@ import { readdir, readFile } from 'fs/promises'
 import { join } from 'path'
 import type { Project } from '@shared/types'
 import { getRepoDetails } from '../git/gitRepo'
+import { scriptsOf } from '../projects/projectScripts'
 
 async function readText(path: string, max: number): Promise<string | null> {
   const t = await readFile(path, 'utf-8').catch(() => null)
@@ -32,7 +33,8 @@ export async function projectContext(p: Project): Promise<string> {
   if (git?.isRepo) lines.push(`Git: branch ${git.branch}, ${git.changes} changed file(s)${git.hasUpstream ? `, ahead ${git.ahead} / behind ${git.behind}` : ''}`)
   lines.push(`Top-level entries: ${entries.map(e => (e.isDirectory() ? `${e.name}/` : e.name)).sort().join(', ')}`)
   if (pkg) {
-    lines.push(`package.json scripts: ${JSON.stringify(pkg.scripts ?? {})}`)
+    // The scripts Forgy can run (run_script), as the window shows them
+    lines.push(`package.json scripts: ${JSON.stringify(scriptsOf(pkg))}`)
     lines.push(`dependencies: ${keys(pkg.dependencies)}`)
     lines.push(`devDependencies: ${keys(pkg.devDependencies)}`)
   }

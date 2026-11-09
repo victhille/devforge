@@ -8,6 +8,11 @@ describe('deploy steps', () => {
     expect(scriptLines('git pull\n\n  # a comment\nnpm ci  \r\nnpm run build')).toEqual(['git pull', 'npm ci', 'npm run build'])
   })
 
+  it('sees a build through run with every package manager, as a detected deploy writes it', () => {
+    expect(['npm run build', 'pnpm run build', 'yarn run build', 'pnpm build', 'yarn build'].map(stepKind)).toEqual(['build', 'build', 'build', 'build', 'build'])
+    expect(['git pull\npnpm install --frozen-lockfile\npnpm run build', 'git pull\nyarn install --frozen-lockfile\nyarn run build'].map(deployMethod)).toEqual(['static', 'static'])
+  })
+
   it('names each line by what it does', () => {
     expect(['git pull', 'npm ci', 'composer install --no-dev', 'npm run build', 'docker compose pull', 'php artisan migrate --force',
       'php artisan config:cache', 'pm2 reload ecosystem.config.js', 'docker compose up -d', 'docker image prune -f', 'curl -fsS http://x', 'echo hi'].map(stepKind))

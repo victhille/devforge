@@ -478,8 +478,6 @@ export interface DevForgeAPI {
   sshSftpDownload: (sessionId: string, remotePath: string) => Promise<string | null>
   onSshData: (callback: (sessionId: string, data: string) => void) => () => void
   onSshStatus: (callback: (status: SSHSessionStatus) => void) => () => void
-  /** A server was added, edited or removed */
-  onSshConnectionsChanged: (callback: () => void) => () => void
 
   // Environment
   /** Cached after the first call, pass true to re-detect */

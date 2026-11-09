@@ -45,6 +45,20 @@ test('settings are found by search and saved on change', async () => {
   await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).fontSize)).toBe('14.56px')
   expect(await settledAxe(page)).toEqual([])
 
+  // A group of choices is one stop for Tab (the chosen one), the arrows, Home and End choose
+  const textSize = page.getByRole('radiogroup', { name: 'Taille du texte' })
+  await expect(textSize.getByRole('radio', { name: 'Grande', exact: true })).toHaveAttribute('tabindex', '0')
+  await expect(textSize.getByRole('radio', { name: 'Normale' })).toHaveAttribute('tabindex', '-1')
+  await textSize.getByRole('radio', { name: 'Grande', exact: true }).press('ArrowLeft')
+  await expect(textSize.getByRole('radio', { name: 'Normale' })).toBeFocused()
+  await expect(page.locator('html')).toHaveAttribute('data-text-size', 'normal')
+  await page.keyboard.press('End')
+  await expect(textSize.getByRole('radio', { name: 'Très grande' })).toHaveAttribute('aria-checked', 'true')
+  // After the last, the first
+  await page.keyboard.press('ArrowRight')
+  await expect(textSize.getByRole('radio', { name: 'Petite' })).toBeFocused()
+  await expect(page.locator('html')).toHaveAttribute('data-text-size', 'small')
+
   // Alerts can be turned off one by one
   await sections.getByRole('link', { name: 'Serveurs' }).click()
   await page.getByRole('switch', { name: 'Un site tombe' }).click()

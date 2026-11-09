@@ -41,7 +41,7 @@ function pickScript(files: string[], branch: string, pm2App?: string): { preset:
   }
   if (has('package.json')) {
     const install = has('pnpm-lock.yaml') ? 'pnpm install --frozen-lockfile' : has('yarn.lock') ? 'yarn install --frozen-lockfile' : 'npm ci'
-    const build = has('pnpm-lock.yaml') ? 'pnpm build' : has('yarn.lock') ? 'yarn build' : 'npm run build'
+    const build = has('pnpm-lock.yaml') ? 'pnpm run build' : has('yarn.lock') ? 'yarn run build' : 'npm run build'
     const restart = pm2App ? `\npm2 restart ${pm2App} --update-env` : ''
     return { preset: pm2App ? 'Node.js + PM2' : 'Node.js', script: `${pull}\n${install}\n${build}${restart}` }
   }

@@ -4,7 +4,7 @@ import { AppWindow, ExternalLink, GitPullRequestArrow, HardDriveDownload, HeartP
 import type { BackupPlan, N8nInstance, SSHConnection, UpdateStatus, VpnServer, VpsService } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 // The shared settings: shown at once everywhere (I18nProvider applies the appearance), then written
-import { saveSettings } from '@renderer/hooks/useLiveData'
+import { NO_SERVERS, saveSettings, useSshConnections } from '@renderer/hooks/useLiveData'
 import type { Command } from './useCommands'
 
 /**
@@ -23,7 +23,8 @@ const pickServer = (id: string) => { try { localStorage.setItem('devforge:vps-se
 export function useActions(open: boolean): Command[] {
   const { t } = useI18n()
   const navigate = useNavigate()
-  const [connections, setConnections] = useState<SSHConnection[]>([])
+  // The kept list of servers, the same as the palette's pages and the menu
+  const connections: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
   const [n8n, setN8n] = useState<N8nInstance[]>([])
   const [vpn, setVpn] = useState<VpnServer[]>([])
   const [plans, setPlans] = useState<BackupPlan[]>([])
@@ -31,19 +32,23 @@ export function useActions(open: boolean): Command[] {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const [compact, setCompact] = useState(false)
 
+  // Each server's services when the palette opens, or a server comes: kept a few minutes (an SSH call)
   useEffect(() => {
     if (!open) return
-    window.devforge.getSshConnections().then(list => {
-      setConnections(list)
-      for (const c of list) {
-        const cached = servicesCache.get(c.id)
-        if (cached && Date.now() - cached.at < SERVICES_TTL) { setServices(s => ({ ...s, [c.id]: cached.list })); continue }
-        window.devforge.vpsOps.services(c.id).then(l => {
-          servicesCache.set(c.id, { at: Date.now(), list: l })
-          setServices(s => ({ ...s, [c.id]: l }))
-        }).catch(() => {})
-      }
-    }).catch(() => {})
+    const kept: Record<string, VpsService[]> = {}
+    for (const c of connections) {
+      const cached = servicesCache.get(c.id)
+      if (cached && Date.now() - cached.at < SERVICES_TTL) { kept[c.id] = cached.list; continue }
+      window.devforge.vpsOps.services(c.id).then(l => {
+        servicesCache.set(c.id, { at: Date.now(), list: l })
+        setServices(s => ({ ...s, [c.id]: l }))
+      }).catch(() => {})
+    }
+    if (Object.keys(kept).length) setServices(s => ({ ...s, ...kept }))
+  }, [open, connections])
+
+  useEffect(() => {
+    if (!open) return
     window.devforge.n8n.instances().then(setN8n).catch(() => {})
     window.devforge.vpn.servers().then(setVpn).catch(() => {})
     window.devforge.backups.plans().then(setPlans).catch(() => {})

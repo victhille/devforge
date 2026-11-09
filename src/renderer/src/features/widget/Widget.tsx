@@ -8,6 +8,7 @@ import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import Mascot, { type MascotMood } from '@renderer/features/assistant/Mascot'
 import Markdown from '@renderer/features/assistant/Markdown'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
+import { NO_PROJECTS, useProjectList } from '@renderer/hooks/useLiveData'
 import DictateButton from '@renderer/components/DictateButton'
 import { errorText } from '@renderer/lib/errors'
 import Notice from '@renderer/components/ui/Notice'
@@ -66,7 +67,8 @@ export default function Widget() {
   const [dictateLine, setDictateLine] = useState<string | null>(null)
   const [config, setConfig] = useState<AssistantConfig | null>(null)
   const [effort, setEffort] = useState<AssistantEffort | 'auto'>('auto')
-  const [projects, setProjects] = useState<Project[]>([])
+  // The kept list of projects (this window hears its changes too)
+  const projects: Project[] = useProjectList().data ?? NO_PROJECTS
   const [shortcut, setShortcut] = useState<string | null>(null)
   const [projectPath, setProjectPath] = usePersistentState<string | null>('devforge:widget-project', null)
   // Same project as the app
@@ -117,7 +119,6 @@ export default function Widget() {
     setUnread(0)
     setAlert(false)
     window.devforge.assistant.getConfig().then(setConfig)
-    window.devforge.getProjects().then(setProjects)
     window.devforge.widget.setOpen(true).then(() => inputRef.current?.focus())
   }, [])
 

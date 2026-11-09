@@ -99,7 +99,7 @@ A sensitive action needs <kbd>Enter</kbd> a second time. The launcher is set in 
 
 As you type, the line's **likely rest** shows greyed after the caret, as in the fish shell. It comes, in order, from:
 
-1. the **project's scripts** of the folder you are in (`npm run dev`, `pnpm build`…, by its package manager);
+1. the **project's scripts** of the folder you are in (`npm run dev`, `pnpm run build`…, by its package manager);
 2. this folder's **history**, latest first;
 3. the [Docs](/devforge/en/tools/utilities/#docs) page's commands, yours included.
 

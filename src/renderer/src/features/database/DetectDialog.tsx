@@ -11,6 +11,7 @@ import Spinner from '@renderer/components/ui/Spinner'
 import { Select } from '@renderer/components/ui/Input'
 import { SectionTitle } from '@renderer/components/ui/Page'
 import { errorText } from '@renderer/lib/errors'
+import { NO_SERVERS, useSshConnections } from '@renderer/hooks/useLiveData'
 
 const SOURCE_ICON = { docker: Container, native: Server, env: FileKey2 }
 
@@ -56,8 +57,10 @@ export default function DetectDialog({ initialServer, onClose, onAdded }: Props)
   const x = t.database
   const toast = useToast()
   const [local, setLocal] = useState<DetectedDatabase[] | null>(null)
-  const [servers, setServers] = useState<SSHConnection[]>([])
-  const [server, setServer] = useState(initialServer ?? '')
+  // The kept list of servers, shown at once; the first one until another is chosen
+  const servers: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
+  const [chosen, setServer] = useState(initialServer ?? '')
+  const server = chosen || servers[0]?.id || ''
   const [remote, setRemote] = useState<DetectedDatabase[] | null>(null)
   const [scanning, setScanning] = useState(false)
 
@@ -72,10 +75,6 @@ export default function DetectDialog({ initialServer, onClose, onAdded }: Props)
 
   useEffect(() => {
     window.devforge.db.detectLocal().then(setLocal).catch(() => setLocal([]))
-    window.devforge.getSshConnections().then(list => {
-      setServers(list)
-      setServer(s => s || list[0]?.id || '')
-    })
     if (initialServer) scan(initialServer)
   }, [initialServer, scan])
 

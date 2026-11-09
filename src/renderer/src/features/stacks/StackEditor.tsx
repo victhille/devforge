@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Code2, Globe, Plus, TerminalSquare, Trash2, FolderOpen } from 'lucide-react'
 import type { Stack, StackStep, StackStepType } from '@shared/types'
+import { scriptCommand } from '@shared/lib/terminalSuggest'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
@@ -39,10 +40,9 @@ export default function StackEditor({ initial, onSave, onClose }: Props) {
     if (!project) return
     const scripts = await window.devforge.getProjectScripts(project.path).catch(() => ({} as Record<string, string>))
     const script = ['dev', 'start', 'serve'].find(k => k in scripts)
-    const pm = project.packageManager === 'npm' ? 'npm run' : project.packageManager
     setSteps(list => [
       ...list,
-      ...(script ? [newStep('command', { label: project.name, command: `${pm} ${script}`, cwd: project.path })] : []),
+      ...(script ? [newStep('command', { label: project.name, command: scriptCommand(project.packageManager, script), cwd: project.path })] : []),
       newStep('vscode', { label: `VS Code — ${project.name}`, cwd: project.path })
     ])
     if (!name) setName(project.name)

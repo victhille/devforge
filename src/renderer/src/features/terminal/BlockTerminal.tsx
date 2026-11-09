@@ -9,13 +9,15 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { useAssistant } from '@renderer/features/assistant/AssistantContext'
 import { cn } from '@renderer/lib/cn'
+import { onTextSizeChange, textPx } from '@renderer/lib/appearance'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import Button from '@renderer/components/ui/Button'
 import type { ShellBackend } from './backends'
 import { useBlockShell, type Block } from './useBlockShell'
 import { lineText } from './snapshot'
-import { useSettings } from '@renderer/hooks/useLiveData'
+import { NO_PROJECTS, useProjectList, useSettings } from '@renderer/hooks/useLiveData'
+import { samePath } from '@renderer/lib/live'
 import '@xterm/xterm/css/xterm.css'
 
 const SHOWN_LINES = 300
@@ -126,8 +128,8 @@ function DoneBlock({ block: b, collapsed, onToggle, onCopy, onRerun, rerunDisabl
           className={cn('flex size-4 items-center justify-center', failed ? 'text-danger' : b.code === 0 ? 'text-success' : 'text-fg-secondary')}>
           {failed ? <X size={13} /> : b.code === 0 ? <Check size={13} /> : '–'}
         </span>
-        <span aria-hidden className="font-mono text-[12.5px] text-accent">›</span>
-        <code className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-term-fg" title={b.cmd}>{b.cmd}</code>
+        <span aria-hidden className="font-mono text-base text-accent">›</span>
+        <code className="min-w-0 flex-1 truncate font-mono text-base text-term-fg" title={b.cmd}>{b.cmd}</code>
         <span className={cn('shrink-0 font-mono text-xs', failed ? 'text-danger' : 'text-term-dim')}>
           {failed ? `${s.code} ${b.code} · ` : ''}{duration((b.endedAt ?? b.startedAt) - b.startedAt)} · {new Date(b.startedAt).toLocaleTimeString().slice(0, 5)}
         </span>
@@ -143,7 +145,7 @@ function DoneBlock({ block: b, collapsed, onToggle, onCopy, onRerun, rerunDisabl
               {s.showAll.replace('{n}', String(lines.length))}
             </button>
           )}
-          <pre className="max-h-[480px] overflow-auto px-4 pb-2.5 font-mono text-[12.5px] leading-[1.6] whitespace-pre-wrap break-words text-term-fg">
+          <pre className="max-h-[480px] overflow-auto px-4 pb-2.5 font-mono text-base leading-[1.6] whitespace-pre-wrap break-words text-term-fg">
             {shown.map((l, i) => (
               <div key={i}>{l.length ? l.map((seg, j) => <span key={j} style={{ color: seg.fg, fontWeight: seg.bold ? 600 : undefined }}>{seg.text}</span>) : ' '}</div>
             ))}
@@ -183,8 +185,11 @@ function LiveBlock({ block: b, term, onKeys, onResize, onStop }: {
   }, [b.startedAt])
 
   useEffect(() => {
-    if (!term || !host.current) return
-    if (!term.element) term.open(host.current)
+    const el = host.current
+    if (!term || !el) return
+    // The size of the blocks' text (text-base, times the text size chosen in Settings), so nothing jumps when it settles
+    term.options.fontSize = textPx(el)
+    if (!term.element) term.open(el)
     const fit = new FitAddon()
     term.loadAddon(fit)
     const refit = () => { const d = fit.proposeDimensions(); if (d && d.cols > 10) onResize(d.cols, term.rows) }
@@ -192,20 +197,24 @@ function LiveBlock({ block: b, term, onKeys, onResize, onStop }: {
     term.focus()
     const keys = term.onData(onKeys)
     const ro = new ResizeObserver(refit)
-    ro.observe(host.current)
-    return () => { keys.dispose(); ro.disconnect() }
+    ro.observe(el)
+    const stopSize = onTextSizeChange(() => {
+      const px = textPx(el)
+      if (term.options.fontSize !== px) { term.options.fontSize = px; refit() }
+    })
+    return () => { keys.dispose(); ro.disconnect(); stopSize() }
   }, [term, onKeys, onResize])
 
   return (
     <article aria-label={b.cmd} aria-busy="true" className="border-b border-white/[.06]">
       <header className="flex items-center gap-2 px-3 py-2">
         <Spinner />
-        <span aria-hidden className="font-mono text-[12.5px] text-accent">›</span>
-        <code className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-term-fg">{b.cmd}</code>
+        <span aria-hidden className="font-mono text-base text-accent">›</span>
+        <code className="min-w-0 flex-1 truncate font-mono text-base text-term-fg">{b.cmd}</code>
         <span className="font-mono text-xs text-term-dim">{s.running} · {duration(elapsed)}</span>
         <Button size="sm" variant="ghost" onClick={onStop}><Square size={11} /> {s.stop}</Button>
       </header>
-      <div ref={host} className="h-[340px] px-2 py-1" />
+      <div ref={host} className="h-[340px] px-2 py-1 text-base" />
     </article>
   )
 }
@@ -237,16 +246,18 @@ function InputBar({ shell, historyKey, shellLabel, onAsk }: {
       .catch(() => setDocs(DOCS.flatMap(d => d.sections.flatMap(x => x.entries.map(e => e.cmd)))))
   }, [])
 
-  // The scripts of the folder the shell is in, with the project's package manager
+  // The package manager of the project the shell is in, from the kept list of projects
+  const projects = useProjectList().data ?? NO_PROJECTS
+  const pm: PackageManager = (local && shell.cwd && projects.find(p => samePath(p.path, shell.cwd))?.packageManager) || 'npm'
+  // The scripts of the folder the shell is in, with that package manager
   useEffect(() => {
     if (!local || !shell.cwd) { setScripts([]); return }
     let alive = true
-    Promise.all([window.devforge.getProjectScripts(shell.cwd).catch(() => ({})), window.devforge.getProjects().catch(() => [])]).then(([found, projects]) => {
-      const pm: PackageManager = projects.find(p => p.path.toLowerCase() === shell.cwd.toLowerCase())?.packageManager ?? 'npm'
+    window.devforge.getProjectScripts(shell.cwd).catch(() => ({} as Record<string, string>)).then(found => {
       if (alive) setScripts(Object.keys(found).map(name => scriptCommand(pm, name)))
     })
     return () => { alive = false }
-  }, [local, shell.cwd])
+  }, [local, shell.cwd, pm])
 
   const rest = useMemo(
     () => suggest && atEnd ? suggestRest(value, { scripts, history: history.map(h => h.cmd), docs }) : '',
@@ -305,7 +316,7 @@ function InputBar({ shell, historyKey, shellLabel, onAsk }: {
   return (
     <div className="relative border-t border-line-subtle bg-term-block px-3 py-2">
       {searching && (
-        <ul role="listbox" aria-label={s.historyLabel} className="absolute right-3 bottom-full left-3 mb-1 flex max-h-72 flex-col-reverse overflow-y-auto rounded-xl border border-line bg-surface p-1 shadow-lg">
+        <ul role="listbox" aria-label={s.historyLabel} className="absolute right-3 bottom-full left-3 mb-1 flex max-h-72 flex-col-reverse overflow-y-auto rounded-xl border border-line bg-surface p-1 shadow-pop">
           {matches.length === 0 && <li className="px-3 py-2 text-sm text-fg-secondary">{s.historyEmpty}</li>}
           {matches.map((h, i) => (
             <li key={h.cmd} role="option" aria-selected={i === pick} onMouseDown={e => { e.preventDefault(); setValue(h.cmd); setSearching(false) }}

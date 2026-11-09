@@ -7,9 +7,13 @@ import type { PackageManager } from '../types'
  * every keystroke, over lists already in memory.
  */
 
-/** A package.json script as typed in a terminal */
+/**
+ * A package.json script as typed in a terminal: always through `run`, as scripts:run does. Without it,
+ * pnpm and yarn take a script named like one of their commands (publish, install, link, add…) for
+ * that command: a repository's "publish" script would publish with the user's npm account.
+ */
 export function scriptCommand(pm: PackageManager, name: string): string {
-  return pm === 'npm' ? `npm run ${name}` : `${pm} ${name}`
+  return `${pm} run ${name}`
 }
 
 export interface SuggestSources {

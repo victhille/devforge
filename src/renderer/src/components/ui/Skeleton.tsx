@@ -25,8 +25,8 @@ const width = (row: number, col: number) => WIDTHS[(row * 3 + col * 5) % WIDTHS.
 const colWidth = (col: number) => 96 + ((col * 37) % 64)
 
 interface TableSkeletonProps {
-  /** Said to screen readers while it loads (none: the frame around says it) */
-  label?: string
+  /** Said to screen readers while it loads: « loading » unless given, nothing with false (the frame around says it) */
+  label?: string | false
   rows?: number
   columns?: number
   /** A strip of buttons above (a table's actions) */
@@ -39,9 +39,10 @@ interface TableSkeletonProps {
  * bottom. Same paddings as the real grid, so the rows land where the data will.
  */
 export function TableSkeleton({ label, rows = 8, columns = 5, toolbar, className }: TableSkeletonProps) {
+  const said = useSaid(label)
   const cols = Array.from({ length: columns }, (_, c) => c)
   return (
-    <div role={label ? 'status' : undefined} aria-label={label} className={cn('flex min-h-0 flex-1 flex-col overflow-hidden', className)}>
+    <div role={said ? 'status' : undefined} aria-label={said} className={cn('flex min-h-0 flex-1 flex-col overflow-hidden', className)}>
       {toolbar && (
         <div className="flex shrink-0 items-center gap-5 border-b border-line-subtle px-4 py-3">
           {[78, 104, 96].map(w => <Skeleton key={w} className="h-4" style={{ width: w }} />)}

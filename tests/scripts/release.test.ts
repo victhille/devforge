@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
-  bumpFor, changelogFile, extractSection, nextVersion, parseCommit, prependSection, renderSection
+  RELEASE_FILES, bumpFor, changelogFile, extractSection, missingNotes, nextVersion, parseCommit, prepareStep,
+  prependSection, releaseBranch, renderSection, tagProblems, unexpectedFiles, versionOfBranch
 } from '../../scripts/lib/release.mjs'
 
 describe('parseCommit', () => {
@@ -124,5 +125,67 @@ describe('bilingual notes', () => {
     expect(prependSection('', renderSection('1.0.0', [c], { lang: 'en' }), 'en').startsWith('# Release notes')).toBe(true)
     expect(changelogFile('fr')).toBe('CHANGELOG.md')
     expect(changelogFile('en')).toBe('CHANGELOG.en.md')
+  })
+
+  it('points out the listed changes whose notes must be rewritten by hand', () => {
+    const french = parseCommit('e', 'fix(ssh): oublier le mot de passe')!
+    const hidden = parseCommit('f', 'test: plus de cas')!
+    expect(missingNotes([c, french, hidden], 'en')).toEqual([french])
+    expect(missingNotes([c, french, hidden], 'fr')).toEqual([french])
+    expect(missingNotes([c], 'en')).toEqual([])
+  })
+})
+
+describe('release through pull requests', () => {
+  it('names release branches after their version', () => {
+    expect(releaseBranch('1.4.0')).toBe('release/1.4.0')
+    expect(versionOfBranch('release/1.4.0')).toBe('1.4.0')
+    expect(versionOfBranch('release/2.0.0-beta.1')).toBe('2.0.0-beta.1')
+    expect(versionOfBranch('release/v1.4.0')).toBeNull()
+    expect(versionOfBranch('release/next')).toBeNull()
+    expect(versionOfBranch('hotfix/1.4.1')).toBeNull()
+    expect(versionOfBranch('develop')).toBeNull()
+  })
+
+  it('prepares on develop or on a release branch, never on main', () => {
+    expect(prepareStep({ branch: 'develop', pkgVersion: '0.2.0', dirty: false })).toEqual({ step: 'write', branchVersion: null })
+    expect(prepareStep({ branch: 'release/0.3.0', pkgVersion: '0.2.0', dirty: false })).toEqual({ step: 'write', branchVersion: '0.3.0' })
+    for (const branch of ['main', 'master', 'feat/notes', 'release/next']) {
+      expect(prepareStep({ branch, pkgVersion: '0.2.0', dirty: false })).toMatchObject({ step: 'error' })
+    }
+  })
+
+  it('commits once the release is written and its notes rewritten', () => {
+    expect(prepareStep({ branch: 'release/0.3.0', pkgVersion: '0.3.0', dirty: true })).toEqual({ step: 'commit', version: '0.3.0' })
+    expect(prepareStep({ branch: 'release/0.3.0', pkgVersion: '0.3.0', dirty: false })).toEqual({ step: 'done', version: '0.3.0' })
+  })
+
+  it('keeps the release commit to the release files', () => {
+    expect(RELEASE_FILES).toEqual(['package.json', 'package-lock.json', 'CHANGELOG.md', 'CHANGELOG.en.md', 'THIRD_PARTY_LICENSES.md'])
+    expect(unexpectedFiles(['package.json', 'CHANGELOG.en.md', 'THIRD_PARTY_LICENSES.md'])).toEqual([])
+    expect(unexpectedFiles(['CHANGELOG.md', 'src/main/index.ts', 'docs\\dev\\versions.md'])).toEqual(['src/main/index.ts', 'docs\\dev\\versions.md'])
+  })
+
+  describe('tag', () => {
+    const ready = {
+      branch: 'main', version: '0.3.0', pkgVersion: '0.3.0', tagExists: false, behind: 0, ahead: 0,
+      sections: { fr: '## 0.3.0 — 2026-11-10\n', en: '## 0.3.0 — 2026-11-10\n' }
+    }
+
+    it('tags main once the release PR is merged and pulled', () => {
+      expect(tagProblems(ready)).toEqual([])
+    })
+
+    it('refuses anywhere else, or before the merge', () => {
+      expect(tagProblems({ ...ready, branch: 'release/0.3.0' })).toEqual([expect.stringContaining('Tag on main')])
+      expect(tagProblems({ ...ready, pkgVersion: '0.2.0' })).toEqual([expect.stringContaining('package.json says 0.2.0, not 0.3.0')])
+      expect(tagProblems({ ...ready, behind: 2 })).toEqual([expect.stringContaining('git pull')])
+      expect(tagProblems({ ...ready, ahead: 1 })).toEqual([expect.stringContaining('only takes pull requests')])
+    })
+
+    it('never tags twice, nor without both sections', () => {
+      expect(tagProblems({ ...ready, tagExists: true })).toEqual([expect.stringContaining('v0.3.0 already exists')])
+      expect(tagProblems({ ...ready, sections: { fr: ready.sections.fr, en: null } })).toEqual(['No 0.3.0 section in CHANGELOG.en.md.'])
+    })
   })
 })

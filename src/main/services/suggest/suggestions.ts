@@ -2,6 +2,7 @@ import { readdir, readFile, stat } from 'fs/promises'
 import { join } from 'path'
 import type { DomainSuggestion, LogFileSuggestion, PortProject, Project, UrlSuggestion } from '@shared/types'
 import { loadProjects } from '../projects/projectStorage'
+import { scriptsOf } from '../projects/projectScripts'
 import { parseEnv } from '../envfiles/envFiles'
 import { listDomains } from '../domains/domainService'
 import { listMonitors } from '../monitor/urlMonitor'
@@ -74,7 +75,10 @@ export async function explicitPort(p: Project, env: Record<string, string>): Pro
     if (Number(env[k]) > 0) return [Number(env[k]), `.env ${k}`]
   }
   const pkg = await readFile(join(p.path, 'package.json'), 'utf-8').catch(() => '')
-  const scripts = pkg ? (JSON.parse(pkg).scripts ?? {}) as Record<string, string> : {}
+  // A package.json that cannot be read gives no port, instead of stopping the suggestions
+  let parsed: unknown = null
+  try { parsed = pkg ? JSON.parse(pkg) : null } catch { /* not JSON */ }
+  const scripts = scriptsOf(parsed)
   const dev = scripts.dev ?? scripts.start ?? scripts.serve ?? ''
   const m = dev.match(/(?:--port[= ]|-p\s+)(\d{2,5})/)
   if (m) return [Number(m[1]), 'package.json script']
