@@ -5,7 +5,7 @@ import Button from '@renderer/components/ui/Button'
 import Checkbox from '@renderer/components/ui/Checkbox'
 import Modal from '@renderer/components/ui/Modal'
 import { Field, Input, Select, Textarea } from '@renderer/components/ui/Input'
-import { NO_PROJECTS, useProjectList } from '@renderer/hooks/useLiveData'
+import { NO_PROJECTS, NO_SERVERS, useProjectList, useSshConnections } from '@renderer/hooks/useLiveData'
 import type { DeployMethod } from './deploySteps'
 
 /** Ready-made scripts for common setups, named like the methods of the deploy table */
@@ -26,19 +26,19 @@ interface Props {
 export default function DeployEditor({ initial, onSave, onClose }: Props) {
   const { t } = useI18n()
   const d = t.deploy
-  const [connections, setConnections] = useState<SSHConnection[]>([])
+  // The kept list of servers, shown at once
+  const connections: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
   // v4.2: the kept list of projects, shown at once
   const projects = useProjectList().data ?? NO_PROJECTS
   const [form, setForm] = useState<DeployTarget>(initial ?? {
     id: crypto.randomUUID(), name: '', connectionId: '', remotePath: '/var/www/', script: PRESETS[0].script, pushFirst: false
   })
 
+  // A target without a server takes the first one
+  const first = connections[0]?.id
   useEffect(() => {
-    window.devforge.getSshConnections().then(list => {
-      setConnections(list)
-      setForm(f => (f.connectionId ? f : { ...f, connectionId: list[0]?.id ?? '' }))
-    })
-  }, [])
+    if (first) setForm(f => (f.connectionId ? f : { ...f, connectionId: first }))
+  }, [first])
 
   const set = <K extends keyof DeployTarget>(k: K, v: DeployTarget[K]) => setForm(f => ({ ...f, [k]: v }))
   const valid = form.name.trim() && form.connectionId && form.remotePath.trim() && form.script.trim()

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Check, FolderGit2, Link2, Plus, Server } from 'lucide-react'
 import type { DeployTarget, DetectedDeploy, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -9,6 +9,7 @@ import Modal from '@renderer/components/ui/Modal'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Select } from '@renderer/components/ui/Input'
 import { errorText } from '@renderer/lib/errors'
+import { NO_SERVERS, useSshConnections } from '@renderer/hooks/useLiveData'
 
 interface Props {
   existing: DeployTarget[]
@@ -20,8 +21,10 @@ export default function DetectDeploysDialog({ existing, onClose, onCreated }: Pr
   const { t } = useI18n()
   const d = t.deploy
   const toast = useToast()
-  const [servers, setServers] = useState<SSHConnection[]>([])
-  const [server, setServer] = useState('')
+  // The kept list of servers, shown at once; the first one until another is chosen
+  const servers: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
+  const [chosen, setServer] = useState('')
+  const server = chosen || servers[0]?.id || ''
   const [found, setFound] = useState<DetectedDeploy[] | null>(null)
   const [scanning, setScanning] = useState(false)
   const [created, setCreated] = useState<Set<string>>(new Set())
@@ -35,12 +38,14 @@ export default function DetectDeploysDialog({ existing, onClose, onCreated }: Pr
     finally { setScanning(false) }
   }, [toast, d])
 
+  // The first server is looked through as the window opens, once
+  const first = servers[0]?.id
+  const scannedFirst = useRef(false)
   useEffect(() => {
-    window.devforge.getSshConnections().then(list => {
-      setServers(list)
-      if (list[0]) { setServer(list[0].id); scan(list[0].id) }
-    })
-  }, [scan])
+    if (!first || scannedFirst.current) return
+    scannedFirst.current = true
+    scan(first)
+  }, [first, scan])
 
   async function create(f: DetectedDeploy) {
     const conn = servers.find(s => s.id === server)

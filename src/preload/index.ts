@@ -214,12 +214,6 @@ const api: DevForgeAPI = {
     return () => ipcRenderer.removeListener('ssh:data', listener)
   },
 
-  onSshConnectionsChanged: (callback) => {
-    const listener = () => callback()
-    ipcRenderer.on('ssh:connections-changed', listener)
-    return () => ipcRenderer.removeListener('ssh:connections-changed', listener)
-  },
-
   onSshStatus: (callback) => {
     const listener = (_e: Electron.IpcRendererEvent, status: SSHSessionStatus) => callback(status)
     ipcRenderer.on('ssh:status', listener)
