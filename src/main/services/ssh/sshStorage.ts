@@ -81,7 +81,16 @@ export function getSshConnectionWithSecret(id: string): SSHConnection | undefine
 /** 'changed' after a server is added, edited or removed (the menu lists the server pages) */
 export const sshConnectionsEvents = new EventEmitter()
 
-/** An empty password keeps the one already stored. */
+/** Same machine and account: the host compared as the known hosts compare it, 22 for an old server saved without a port */
+function sameAddress(a: StoredSSHConnection, b: SSHConnection): boolean {
+  return a.host.trim().toLowerCase() === b.host.trim().toLowerCase() && (a.port ?? 22) === b.port && a.username === b.username
+}
+
+/**
+ * An empty password keeps the one already stored, for the same host, port and username only:
+ * a server pointed elsewhere forgets it, so the saved password never leaves for another machine.
+ * The server key needs nothing: it is remembered per host and port, and a new address is checked on its own.
+ */
 export function saveSshConnection(conn: SSHConnection): void {
   const conns = readStored()
   const idx = conns.findIndex(c => c.id === conn.id)
@@ -89,7 +98,8 @@ export function saveSshConnection(conn: SSHConnection): void {
 
   let passwordEnc: string | undefined
   if (conn.authMethod === 'password') {
-    passwordEnc = password ? encrypt(password) : conns[idx]?.passwordEnc
+    const prev = idx >= 0 ? conns[idx] : undefined
+    passwordEnc = password ? encrypt(password) : prev && sameAddress(prev, conn) ? prev.passwordEnc : undefined
   }
 
   const stored: StoredSSHConnection = passwordEnc ? { ...rest, passwordEnc } : rest

@@ -51,6 +51,8 @@ Les connexions SSH servent au terminal, à la surveillance, à n8n, à la page d
 
 La **clé du serveur** est mémorisée à la première connexion ; si elle change, DevForge refuse de se connecter. **Oublier la clé** la remet à zéro (après une réinstallation du serveur, par exemple).
 
+Le mot de passe enregistré reste attaché à l'hôte, au port et à l'utilisateur. Si l'un des trois change, DevForge l'oublie et le formulaire demande de le saisir à nouveau : il ne part jamais vers un autre serveur. Une nouvelle adresse a aussi sa propre clé du serveur, mémorisée à sa première connexion.
+
 :::tip
 Préfère une clé SSH : la page [Santé](/devforge/servers/health/) ne propose de couper les mots de passe SSH que si DevForge se connecte déjà avec une clé.
 :::

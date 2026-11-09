@@ -16,7 +16,7 @@ On each server:
 | click on the name | opens an SSH terminal in a new tab |
 | Dashboard | opens the server's dashboard (also at the top of the open session's terminal) |
 | Databases on this server | opens the [Database](/devforge/en/data/database/#find-databases) page and looks for this server's databases |
-| Edit Connection | changes its settings; leaving the password empty keeps it |
+| Edit Connection | changes its settings; leaving the password empty keeps it, unless the host, the port or the username changes: it must then be typed again |
 | Delete the connection | removes the server |
 
 **Hide servers** folds the column to give all the room to the terminal.

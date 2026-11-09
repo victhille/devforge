@@ -51,6 +51,8 @@ SSH connections are used by the terminal, monitoring, n8n, the status page, back
 
 The **server key** is remembered on the first connection; if it changes, DevForge refuses to connect. **Forget key** resets it (after reinstalling the server, for example).
 
+The saved password stays tied to the host, the port and the username. If one of them changes, DevForge forgets it and the form asks for it again: it never goes to another server. A new address also has its own server key, remembered on its first connection.
+
 :::tip
 Prefer an SSH key: the [Health](/devforge/en/servers/health/) page only offers to turn off SSH passwords if DevForge already connects with a key.
 :::
