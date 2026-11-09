@@ -1,6 +1,6 @@
 # Licences tierces
 
-DevForge 0.1.0 est distribué sous [GPL-3.0](LICENSE). Il inclut les 146 paquets open source ci-dessous, chacun sous sa propre licence : le texte complet de chaque licence est dans le dossier du paquet (`node_modules/<paquet>/LICENSE`) et sur sa page npm.
+DevForge 0.2.0 est distribué sous [GPL-3.0](LICENSE). Il inclut les 146 paquets open source ci-dessous, chacun sous sa propre licence : le texte complet de chaque licence est dans le dossier du paquet (`node_modules/<paquet>/LICENSE`) et sur sa page npm.
 
 Généré par `npm run licenses` à partir de `package-lock.json` : ne pas modifier à la main.
 
