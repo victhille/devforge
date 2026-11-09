@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react'
-import { RefreshCw, CheckCircle2, XCircle, ExternalLink } from 'lucide-react'
+import { useState, useEffect, type CSSProperties } from 'react'
+import { Check, Download, RefreshCw } from 'lucide-react'
 import type { EnvironmentTool } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
-import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
-import Card from '@renderer/components/ui/Card'
-import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
-import ProjectCompatibility from './ProjectCompatibility'
+import { Page, PageHeader } from '@renderer/components/ui/Page'
+import { Skeleton } from '@renderer/components/ui/Skeleton'
+import ProjectCompatibility, { useCompatibility } from './ProjectCompatibility'
 
 // ─── Install info per tool ────────────────────────────────────────────────────
 
@@ -30,49 +29,48 @@ const INSTALL_INFO: Record<string, InstallInfo> = {
   php:         { label: 'PHP',         url: 'https://www.php.net/downloads',               note: t => t.notePhp },
   composer:    { label: 'Composer',    url: 'https://getcomposer.org/download/',           note: t => t.noteComposer },
   symfony_cli: { label: 'Symfony CLI', url: 'https://symfony.com/download',                note: t => t.noteSymfony },
+  python:      { label: 'Python',      url: 'https://www.python.org/downloads/' },
   docker:      { label: 'Docker',      url: 'https://docs.docker.com/get-docker/' }
 }
 
 // ─── Tool row ─────────────────────────────────────────────────────────────────
 
-function ToolRow({ tool, t }: { tool: EnvironmentTool; t: EnvT }) {
+/**
+ * As in the mock-up: found, a check, its name and version; missing, a grey
+ * dot, its name dimmed and Install (the accent one when a project needs it).
+ */
+function ToolRow({ tool, usedBy, t }: { tool: EnvironmentTool; usedBy: string[]; t: EnvT }) {
   const detected = tool.status === 'detected'
-  const install  = !detected ? INSTALL_INFO[tool.id] : undefined
+  const install = !detected ? INSTALL_INFO[tool.id] : undefined
+  const hint = install?.command ?? install?.note?.(t)
 
   return (
-    <div className="flex min-h-14 items-center justify-between gap-4 border-b border-line-subtle px-5 py-3 transition-colors last:border-0 hover:bg-elevated">
-      <div className="flex items-center gap-3">
-        {detected
-          ? <CheckCircle2 size={16} className="shrink-0 text-success" />
-          : <XCircle      size={16} className="shrink-0 text-danger" />}
-        <div className="flex flex-col gap-0.5">
-          <span className="font-medium text-fg">{tool.name}</span>
-          <span className="font-mono text-xs text-fg-muted">{tool.command}</span>
-        </div>
-      </div>
-
-      <div className="flex shrink-0 items-center justify-end">
+    <li className="flex min-h-11 items-center gap-3 px-4 py-2">
+      {detected
+        ? <Check size={14} aria-hidden className="shrink-0 text-success" />
+        : <span aria-hidden className="mx-1 size-2 shrink-0 rounded-full bg-active" />}
+      <span className={detected ? 'font-semibold text-fg' : 'text-fg-muted'}>{tool.name}</span>
+      {!detected && <span className="sr-only">{t.notDetected}</span>}
+      <span className="ml-auto flex min-w-0 items-center gap-3">
         {detected ? (
-          <Badge color="success" mono>{tool.version}</Badge>
-        ) : install ? (
-          <div className="flex flex-col items-end gap-1">
-            {install.note && <span className="text-right text-xs text-fg-muted">{install.note(t)}</span>}
-            {install.command && <code className="font-mono text-xs text-fg-muted">{install.command}</code>}
-            <Button
-              size="sm"
-              variant="secondary"
-              className="border-accent bg-accent-soft text-accent hover:bg-accent hover:text-accent-fg"
-              onClick={() => window.devforge.openExternal(install.url)}
-            >
-              {t.install.replace('{name}', install.label)}
-              <ExternalLink size={11} />
-            </Button>
-          </div>
+          <span className="font-mono text-sm text-fg tabular-nums">{tool.version?.replace(/^v(?=\d)/, '')}</span>
         ) : (
-          <span className="text-sm italic text-fg-muted">{t.notDetected}</span>
+          <>
+            {usedBy.length > 0
+              ? <span className="truncate text-xs text-fg-secondary">{t.usedBy.replace('{names}', usedBy.join(', '))}</span>
+              : hint && <span className="truncate font-mono text-xs text-fg-muted" title={hint}>{hint}</span>}
+            {install
+              ? (
+                <Button size="sm" variant={usedBy.length ? 'primary' : 'secondary'} className="shrink-0" aria-label={t.install.replace('{name}', install.label)}
+                  onClick={() => window.devforge.openExternal(install.url)}>
+                  <Download size={13} aria-hidden /> {t.installShort}
+                </Button>
+              )
+              : <span className="text-sm text-fg-muted italic">{t.notDetected}</span>}
+          </>
         )}
-      </div>
-    </div>
+      </span>
+    </li>
   )
 }
 
@@ -80,8 +78,10 @@ function ToolRow({ tool, t }: { tool: EnvironmentTool; t: EnvT }) {
 
 export default function EnvironmentPage() {
   const { t } = useI18n()
+  const e = t.environment
   const [tools, setTools]     = useState<EnvironmentTool[]>([])
   const [loading, setLoading] = useState(false)
+  const compat = useCompatibility(tools)
 
   async function refresh(force = false) {
     setLoading(true)
@@ -91,59 +91,61 @@ export default function EnvironmentPage() {
 
   useEffect(() => { refresh() }, [])
 
-  function getTools(ids: string[]) {
-    return ids.map(id => tools.find(tool => tool.id === id)).filter(Boolean) as EnvironmentTool[]
-  }
-
   const totalDetected = tools.filter(tool => tool.status === 'detected').length
+  // A missing tool that a project asks for: its names beside Install
+  const usedBy = (id: string) => [...new Set(compat.filter(r => r.req.tool === id && r.status === 'missing').map(r => r.project.name))]
 
   const categories = [
-    { label: t.environment.catJS,    ids: ['node', 'npm', 'pnpm', 'yarn'] },
-    { label: t.environment.catVCS,   ids: ['git'] },
-    { label: t.environment.catPHP,   ids: ['php', 'composer', 'symfony_cli'] },
-    { label: 'Python',               ids: ['python'] },
-    { label: t.environment.catInfra, ids: ['docker'] }
-  ]
+    { label: e.catJS,     ids: ['node', 'npm', 'pnpm', 'yarn'] },
+    { label: e.catPHP,    ids: ['php', 'composer', 'symfony_cli'] },
+    { label: e.catTools,  ids: ['git', 'docker'] },
+    { label: e.catOthers, ids: ['python'] }
+  ].map(cat => ({ ...cat, tools: cat.ids.map(id => tools.find(x => x.id === id)).filter((x): x is EnvironmentTool => !!x) }))
 
   return (
-    <Page>
+    <Page className="df-mockup">
       <PageHeader
         crumb={t.nav.groupSystem}
-        title={t.environment.title}
+        title={e.title}
         subtitle={tools.length > 0
-          ? t.environment.subtitle.replace('{n}', String(totalDetected)).replace('{total}', String(tools.length))
-          : t.environment.subtitleLoading}
+          ? e.subtitle.replace('{n}', String(totalDetected)).replace('{total}', String(tools.length))
+          : e.subtitleLoading}
         actions={
-          <Button variant="secondary" size="sm" onClick={() => refresh(true)} loading={loading}>
-            <RefreshCw size={13} /> {t.environment.refresh}
+          <Button variant="secondary" onClick={() => refresh(true)} loading={loading}>
+            <RefreshCw size={14} aria-hidden /> {e.refresh}
           </Button>
         }
       />
 
       {loading && tools.length === 0 ? (
-        <p className="py-5 text-fg-muted">{t.environment.detecting}</p>
+        <div role="status" aria-label={e.detecting} className="grid gap-4 lg:grid-cols-2">
+          {[4, 3, 2, 1].map(n => (
+            <div key={n} className="overflow-hidden rounded-card border border-line-subtle bg-surface">
+              <div className="border-b border-line-subtle px-4 py-4"><Skeleton className="h-4 w-28" /></div>
+              {Array.from({ length: n }, (_, i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-3.5"><Skeleton className="h-3.5 w-24" /><Skeleton className="ml-auto h-3.5 w-14" /></div>
+              ))}
+            </div>
+          ))}
+        </div>
       ) : (
-        <div className="flex flex-col gap-6">
-          {categories.map(cat => {
-            const catTools = getTools(cat.ids)
-            if (catTools.length === 0) return null
-            return (
-              <section key={cat.label} className="flex flex-col gap-2">
-                <div className="flex items-baseline justify-between gap-3">
-                  <SectionTitle>{cat.label}</SectionTitle>
+        <div className="flex flex-col gap-4">
+          <div className="grid items-start gap-4 lg:grid-cols-2">
+            {categories.filter(cat => cat.tools.length > 0).map((cat, i) => (
+              <section key={cat.label} aria-labelledby={`env-cat-${i}`} className="df-rise overflow-hidden rounded-card border border-line-subtle bg-surface" style={{ '--i': i } as CSSProperties}>
+                <div className="flex items-center justify-between gap-3 border-b border-line-subtle px-4 py-3.5">
+                  <h2 id={`env-cat-${i}`} className="font-display text-md font-bold text-fg">{cat.label}</h2>
                   <span className="text-xs text-fg-muted tabular-nums">
-                    {t.environment.catCount
-                      .replace('{n}', String(catTools.filter(x => x.status === 'detected').length))
-                      .replace('{total}', String(catTools.length))}
+                    {e.catCount.replace('{n}', String(cat.tools.filter(x => x.status === 'detected').length)).replace('{total}', String(cat.tools.length))}
                   </span>
                 </div>
-                <Card className="overflow-hidden">
-                  {catTools.map(tool => <ToolRow key={tool.id} tool={tool} t={t.environment} />)}
-                </Card>
+                <ul className="divide-y divide-line-subtle">
+                  {cat.tools.map(tool => <ToolRow key={tool.id} tool={tool} usedBy={usedBy(tool.id)} t={e} />)}
+                </ul>
               </section>
-            )
-          })}
-          <ProjectCompatibility tools={tools} />
+            ))}
+          </div>
+          <ProjectCompatibility rows={compat} />
         </div>
       )}
     </Page>

@@ -24,6 +24,8 @@ test('a new key that starts with a digit cannot be added; a valid one is written
   const { page } = run
   await goTo(page, '/env-files')
   await page.getByRole('button', { name: /Shop/ }).click()
+  // The key is added in a row of the table, into the file on show
+  await page.getByRole('button', { name: 'Ajouter une clé' }).click()
 
   const key = page.getByRole('textbox', { name: 'Nouvelle clé' })
   const value = page.getByRole('textbox', { name: 'Valeur' })

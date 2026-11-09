@@ -7,9 +7,9 @@ La page **Domaines locaux** donne un nom à tes serveurs de dev : `shop.test` au
 
 ## Ajouter un domaine
 
-Saisis un **domaine** qui finit par `.test` ou `.localhost` (par exemple `shop.test`) et le **port** local, puis **Ajouter**. **Détectés dans vos projets** propose des couples domaine / port tirés de tes projets.
+**Nouveau domaine** (en haut à droite) ouvre le formulaire : un **domaine** qui finit par `.test` ou `.localhost` (par exemple `shop.test`) et le **port** local, puis **Ajouter**. **Détectés dans tes projets** propose des couples domaine / port tirés de tes projets.
 
-Les domaines s'affichent en tableau, avec le nombre de domaines actifs en tête (« Actifs : 2 sur 3 »). Pour chacun : l'interrupteur qui l'active ou le désactive, l'adresse, le port visé, le **projet** qui tient ce port et son **état** : *répond* quand un serveur écoute sur le port, *rien sur le port* sinon, *désactivé* quand il est coupé.
+Trois cartes résument l'état : le **proxy**, le **fichier hosts** et le nombre de domaines actifs (« 2 domaine(s) actif(s) sur 3 »). Les domaines s'affichent en tableau : le domaine, le port visé, le **projet** qui tient ce port, son **état** (*répond* quand un serveur écoute sur le port, *rien sur le port* sinon, *désactivé* quand il est coupé) et les actions : ouvrir l'adresse, l'interrupteur qui l'active ou le désactive, la corbeille au survol.
 
 ## Le proxy
 

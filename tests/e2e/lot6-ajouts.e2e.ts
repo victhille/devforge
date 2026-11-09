@@ -87,7 +87,7 @@ test('domains in a table with their state; logs and webhooks say where they stan
   const { page } = run
 
   await goTo(page, '/domains')
-  await expect(page.getByText('Actifs : 0 sur 1')).toBeVisible()
+  await expect(page.getByText('0 domaine(s) actif(s) sur 1')).toBeVisible()
   const domain = page.getByRole('row').filter({ hasText: 'shop.test' })
   await expect(domain).toContainText('localhost:3999')
   await expect(domain).toContainText('désactivé')
