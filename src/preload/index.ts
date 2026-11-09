@@ -116,6 +116,7 @@ const api: DevForgeAPI = {
     diagram:  invoke('db:diagram'),
     saveImage: invoke('db:save-image'),
     browse:   invoke('db:browse'),
+    search:   invoke('db:search'),
     applyRows: invoke('db:apply-rows'),
     exportTable: invoke('db:export'),
     saveResult: invoke('db:save-result'),

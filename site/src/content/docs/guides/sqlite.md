@@ -17,6 +17,8 @@ Pour PostgreSQL ou MySQL, **Détecter des bases** trouve seul celles décrites d
 
 Choisis la connexion : la liste des tables s'affiche, filtrable. Clique sur une table : l'onglet **Données** montre les lignes page par page. Un clic sur une colonne trie.
 
+Pour retrouver une valeur sans savoir dans quelle table elle est, l'onglet **Rechercher** de la base la cherche partout ([détails](/devforge/data/database/#rechercher-dans-la-base)).
+
 ![Une table SQLite dans l'onglet Données](../../../assets/screens/database-fr.png)
 
 ## 3. Comprends la structure

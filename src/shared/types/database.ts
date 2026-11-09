@@ -1,4 +1,5 @@
 import type { RowChange } from '../lib/rowEdits'
+import type { DbSearchOptions, DbSearchResult } from '../lib/dbSearch'
 // ─── Database client ─────────────────────────────────────────────────────────
 
 export type DbType = 'mysql' | 'postgres' | 'sqlite'
@@ -176,6 +177,8 @@ export interface DatabaseAPI {
   details: (id: string, table: DbTableRef) => Promise<DbTableDetails>
   /** One page of a table's rows */
   browse: (id: string, table: DbTableRef, opts: DbBrowseOptions) => Promise<DbBrowseResult>
+  /** The Search tab: one table's matching rows (up to the limit) and their count */
+  search: (id: string, table: DbTableRef, opts: DbSearchOptions) => Promise<DbSearchResult>
   /** v3.6: the whole table into a file the user picks; null when cancelled */
   exportTable: (id: string, table: DbTableRef, format: ExportFormat) => Promise<{ path: string; rows: number } | null>
   /** v3.6: a query's result saved as it is */

@@ -1,6 +1,6 @@
 ---
 title: Base de données
-description: Un client PostgreSQL, MySQL / MariaDB et SQLite, avec détection des bases de tes projets et de tes serveurs, tunnel SSH, tables et lignes modifiables, import CSV et export.
+description: Un client PostgreSQL, MySQL / MariaDB et SQLite, avec détection des bases de tes projets et de tes serveurs, tunnel SSH, recherche dans toute la base, tables et lignes modifiables, import CSV et export.
 ---
 
 La page **Base de données** est un client pour **PostgreSQL**, **MySQL / MariaDB** et **SQLite**. Les mots de passe sont chiffrés par Windows.
@@ -32,7 +32,7 @@ La page **Base de données** est un client pour **PostgreSQL**, **MySQL / MariaD
 
 ![Une table SQLite dans l'onglet Données](../../../assets/screens/database-fr.png)
 
-Le panneau **Connexions**, à gauche, liste tes bases. Choisis-en une : ses tables (filtrables) se déplient dessous, avec le nombre de lignes de chacune (une estimation sur PostgreSQL et MySQL). En bas du panneau, un rappel : les mots de passe sont chiffrés par Windows. Au-dessus du titre, « Données & API / nom de la connexion » ramène à la vue d'ensemble de la base. Les onglets sont en haut à droite, à côté de **Schéma** et du menu **⋯** (**Actualiser**, **Nouvelle table**, **Nouvelle requête**). L'onglet **Base** résume le serveur, la base, le nombre de tables, de vues et de lignes (estimation), les index et clés étrangères.
+Le panneau **Connexions**, à gauche, liste tes bases. Choisis-en une : ses tables (filtrables) se déplient dessous, avec le nombre de lignes de chacune (une estimation sur PostgreSQL et MySQL). En bas du panneau, un rappel : les mots de passe sont chiffrés par Windows. Au-dessus du titre, « Données & API / nom de la connexion » ramène à la vue d'ensemble de la base. Les onglets sont en haut à droite, à côté de **Schéma** et du menu **⋯** (**Actualiser**, **Rechercher dans la base**, **Nouvelle table**, **Nouvelle requête**). L'onglet **Base** résume le serveur, la base, le nombre de tables, de vues et de lignes (estimation), les index et clés étrangères.
 
 Pour une table :
 
@@ -43,6 +43,20 @@ Pour une table :
 | Relations | clés étrangères vers d'autres tables, et tables qui pointent vers celle-ci |
 | SQL | une requête sur cette table |
 | Infos | lignes, taille (données et index), moteur, interclassement, encodage, définition (DDL) |
+
+## Rechercher dans la base
+
+L'onglet **Rechercher** (ou **Rechercher dans la base** dans le menu **⋯**) cherche une valeur dans **toutes les tables à la fois**, comme la recherche de phpMyAdmin, en plus simple :
+
+- Tape ce que tu cherches puis <kbd>Entrée</kbd>. Chaque colonne est lue comme du texte : nombres, dates et JSON compris.
+- Le **mode** : **Contient le texte** (par défaut), **Au moins un des mots**, **Tous les mots** (chaque mot quelque part dans la ligne), **Valeur exacte** ou **Expression régulière**. Pour les mots, des guillemets gardent une expression entière : `"rue de Paris"`.
+- **Respecter la casse** : sans cette case, majuscules et minuscules sont confondues, lettres accentuées comprises (`élodie` trouve `Élodie`).
+- **Dans la colonne** limite la recherche aux colonnes de ce nom (proposées d'après les tables) ; seules les tables qui l'ont sont fouillées.
+- **Tables** : toutes par défaut, les vues à part ; déplie la liste pour en cocher certaines.
+
+Les tables sont fouillées une à une, et chacune s'affiche dès qu'elle a répondu ; **Arrêter** interrompt la recherche. Pour chaque table qui contient le terme : le nombre de lignes trouvées, les colonnes où il est, et les 50 premières lignes, la clé et ces colonnes en premier, le terme surligné. **Voir le SQL** met dans l'onglet **SQL** la requête qui ramène toutes les lignes ; **Ouvrir la table** affiche ses données. Les résultats restent là quand tu reviens sur l'onglet.
+
+La recherche ne fait que lire, et le terme part en paramètre, jamais collé dans le SQL. Chaque table fouillée est lue en entier : sur une grosse base, limite-toi à une colonne ou à quelques tables. Les expressions régulières suivent la syntaxe de la base : POSIX pour PostgreSQL, ICU ou PCRE pour MySQL / MariaDB, JavaScript pour SQLite.
 
 ## Le schéma
 

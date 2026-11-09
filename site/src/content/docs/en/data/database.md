@@ -1,6 +1,6 @@
 ---
 title: Database
-description: A PostgreSQL, MySQL / MariaDB and SQLite client, finding the databases of your projects and servers, with SSH tunnels, editable tables and rows, CSV import and export.
+description: A PostgreSQL, MySQL / MariaDB and SQLite client, finding the databases of your projects and servers, with SSH tunnels, a search through the whole database, editable tables and rows, CSV import and export.
 ---
 
 The **Database** page is a client for **PostgreSQL**, **MySQL / MariaDB** and **SQLite**. Passwords are encrypted by Windows.
@@ -32,7 +32,7 @@ The **Database** page is a client for **PostgreSQL**, **MySQL / MariaDB** and **
 
 ![A SQLite table in the Data tab](../../../../assets/screens/database-en.png)
 
-The **Connections** panel, on the left, lists your databases. Pick one: its tables (filterable) unfold under it, with the number of rows of each (an estimate on PostgreSQL and MySQL). At the bottom of the panel, a reminder: passwords are encrypted by Windows. Above the title, "Data & API / connection name" leads back to the database overview. The tabs are top right, next to **Schema** and the **⋯** menu (**Refresh**, **New table**, **New query**). The **Database** tab sums up the server, the database, the number of tables, views and rows (estimate), indexes and foreign keys.
+The **Connections** panel, on the left, lists your databases. Pick one: its tables (filterable) unfold under it, with the number of rows of each (an estimate on PostgreSQL and MySQL). At the bottom of the panel, a reminder: passwords are encrypted by Windows. Above the title, "Data & API / connection name" leads back to the database overview. The tabs are top right, next to **Schema** and the **⋯** menu (**Refresh**, **Search the database**, **New table**, **New query**). The **Database** tab sums up the server, the database, the number of tables, views and rows (estimate), indexes and foreign keys.
 
 For a table:
 
@@ -43,6 +43,20 @@ For a table:
 | Relations | foreign keys to other tables, and tables pointing to this one |
 | SQL | a query on this table |
 | Info | rows, size (data and indexes), engine, collation, encoding, definition (DDL) |
+
+## Searching the database
+
+The **Search** tab (or **Search the database** in the **⋯** menu) looks for a value in **every table at once**, like phpMyAdmin's search, made simpler:
+
+- Type what you are looking for, then <kbd>Enter</kbd>. Every column is read as text: numbers, dates and JSON included.
+- The **mode**: **Contains the text** (the default), **Any of the words**, **All the words** (each word somewhere in the row), **Exact value** or **Regular expression**. For words, quotes keep a phrase whole: `"main street"`.
+- **Match case**: without it, upper and lower case are the same, accented letters included (`élodie` finds `Élodie`).
+- **In the column** narrows the search to the columns of that name (suggested from the tables); only the tables that have it are searched.
+- **Tables**: all of them by default, views left out; unfold the list to tick some.
+
+Tables are searched one by one, and each shows as soon as it has answered; **Stop** ends the search. For each table that holds the term: the number of rows found, the columns it is in, and the first 50 rows, the key and those columns first, the term highlighted. **Show the SQL** puts the query that brings back every row in the **SQL** tab; **Open the table** shows its data. The results are still there when you come back to the tab.
+
+The search only reads, and the term goes in as a parameter, never pasted into the SQL. Each table searched is read whole: on a big database, stick to one column or a few tables. Regular expressions follow the database's syntax: POSIX for PostgreSQL, ICU or PCRE for MySQL / MariaDB, JavaScript for SQLite.
 
 ## The schema
 

@@ -17,6 +17,8 @@ For PostgreSQL or MySQL, **Find databases** finds on its own those described in 
 
 Pick the connection: the list of tables shows, filterable. Click a table: the **Data** tab shows the rows page by page. Click a column to sort.
 
+To find a value without knowing which table holds it, the database's **Search** tab looks everywhere ([details](/devforge/en/data/database/#searching-the-database)).
+
 ![A SQLite table in the Data tab](../../../../assets/screens/database-en.png)
 
 ## 3. Understand the structure

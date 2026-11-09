@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowLeft, Code2, Eye, Network, PanelLeftClose, PanelLeftOpen, Plus, RefreshCw, Table2 } from 'lucide-react'
+import { ArrowLeft, Code2, Eye, Network, PanelLeftClose, PanelLeftOpen, Plus, RefreshCw, Search, Table2 } from 'lucide-react'
 import type { DbConnection, DbOverview, DbTable, DbTableDetails, DbTableRef } from '@shared/types'
 import { quoteIdent } from '@shared/lib/sqlQuote'
 import { useAssistantPageContext } from '@renderer/features/assistant/AssistantContext'
@@ -10,10 +10,12 @@ import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
 import MoreMenu from '@renderer/components/ui/MoreMenu'
-import Spinner from '@renderer/components/ui/Spinner'
+import { Skeleton, TableSkeleton } from '@renderer/components/ui/Skeleton'
 import SearchInput from '@renderer/components/ui/SearchInput'
 import OverviewView from './OverviewView'
 import SqlPanel from './SqlPanel'
+import SearchPanel from './SearchPanel'
+import { useDbSearch } from './useDbSearch'
 import { BrowseTab, InfoTab, RelationsTab, StructureTab } from './TableTabs'
 import { CreateTableDialog } from './TableDialogs'
 import SchemaView from './SchemaView'
@@ -22,7 +24,7 @@ import ErrorState from '@renderer/components/ui/ErrorState'
 import { ENGINE_NAME } from './engines'
 import Tabs from '@renderer/components/ui/Tabs'
 
-type Tab = 'overview' | 'browse' | 'structure' | 'relations' | 'info' | 'sql'
+type Tab = 'overview' | 'search' | 'browse' | 'structure' | 'relations' | 'info' | 'sql'
 
 const sameTable = (a: DbTableRef | null, b: DbTableRef | null) => !!a && !!b && a.name === b.name && a.schema === b.schema
 
@@ -59,6 +61,8 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
   const [collapsed, setCollapsed] = usePersistentState('devforge:db-tables-collapsed', false)
   const [creating, setCreating] = useState(false)
   const [schemaOpen, setSchemaOpen] = useState(false)
+  // Kept here: a table opened from the results, then the base again, finds them
+  const search = useDbSearch(conn.id)
 
   const loadSchema = useCallback(async () => {
     setTables(null)
@@ -163,6 +167,7 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
       ]
     : [
         { value: 'overview' as Tab, label: d.tabOverview },
+        { value: 'search' as Tab,   label: t.dbSearch.tab },
         { value: 'sql' as Tab,      label: d.tabSql }
       ]
 
@@ -172,7 +177,11 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
       {tables && tables.length > 8 && (
         <SearchInput value={filter} onChange={setFilter} placeholder={d.filterTables} className="mb-1 h-8" />
       )}
-      {!tables && <Spinner className="m-2" />}
+      {!tables && (
+        <div role="status" aria-label={d.loading} className="flex flex-col gap-4 px-2.5 py-2.5">
+          {[70, 52, 84, 60].map(w => <Skeleton key={w} className="h-3.5" style={{ width: `${w}%` }} />)}
+        </div>
+      )}
       {schemaError && <p className="py-1 pr-2 text-sm text-danger">{schemaError}</p>}
       {tables?.length === 0 && !schemaError && <p className="px-2.5 py-1.5 text-sm text-fg-muted">{d.noTables}</p>}
       <ul aria-label={d.tablesOf.replace('{name}', conn.name)} className="flex flex-col gap-0.5">
@@ -201,13 +210,13 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
     <div className="flex h-full min-h-0">
       {/* On the Database page, under the connection in its panel; elsewhere a panel of its own */}
       {tablesSlot !== undefined ? (tablesSlot && createPortal(tablesList, tablesSlot)) : (
-        <aside aria-label={d.tablesLabel} className={cn('flex shrink-0 flex-col border-r border-line-subtle bg-surface transition-[width] duration-200', collapsed ? 'w-11' : 'w-[240px]')}>
-          <div className={cn('flex h-12 shrink-0 items-center', collapsed ? 'justify-center' : 'justify-between pr-1.5 pl-3.5')}>
+        <aside aria-label={d.tablesLabel} className={cn('flex shrink-0 flex-col border-r border-line-subtle bg-surface transition-[width] duration-200', collapsed ? 'w-14' : 'w-[240px]')}>
+          <div className={cn('flex h-14 shrink-0 items-center', collapsed ? 'justify-center' : 'justify-between pr-2.5 pl-3.5')}>
             {!collapsed && <span className="text-xs font-semibold tracking-wider text-fg-muted uppercase">{tables ? `${tables.length} ${d.tables}` : d.loading}</span>}
             <span className="flex items-center">
-              {!collapsed && <IconButton size="sm" title={d.newTable} onClick={() => setCreating(true)}><Plus size={14} /></IconButton>}
-              <IconButton size="sm" title={collapsed ? d.showTables : d.hideTables} onClick={() => setCollapsed(c => !c)}>
-                {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+              {!collapsed && <IconButton title={d.newTable} onClick={() => setCreating(true)}><Plus size={15} /></IconButton>}
+              <IconButton title={collapsed ? d.showTables : d.hideTables} onClick={() => setCollapsed(c => !c)}>
+                {collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
               </IconButton>
             </span>
           </div>
@@ -242,6 +251,7 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
               <Button variant="secondary" onClick={() => setSchemaOpen(true)}><Network size={14} aria-hidden /> {t.schema.button}</Button>
               <MoreMenu label={d.more} items={[
                 { label: t.common.refresh, icon: RefreshCw, onSelect: refresh },
+                { label: t.dbSearch.menu, icon: Search, onSelect: () => { setTable(null); setTab('search') } },
                 { label: d.newTable, icon: Plus, onSelect: () => setCreating(true) },
                 { label: d.newQuery, icon: Code2, onSelect: () => changeTab('sql') }
               ]} />
@@ -250,16 +260,30 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
         </div>
 
         <div key={`${table?.schema}.${table?.name}:${rev}`} className={cn('flex min-h-0 flex-1 flex-col px-8 pb-8', tab !== 'browse' && tab !== 'sql' && 'overflow-y-auto')}>
-          {viewError && tab !== 'browse' && tab !== 'sql' ? (
+          {viewError && tab !== 'browse' && tab !== 'sql' && tab !== 'search' ? (
             <ErrorState title={d.loadFailed} error={viewError} />
           ) : tab === 'overview' ? (
-            overview ? <OverviewView overview={overview} onOpenTable={tb => openTable(tb)} /> : <Spinner className="m-6" />
+            overview ? <OverviewView overview={overview} onOpenTable={tb => openTable(tb)} /> : (
+              <div role="status" aria-label={d.loading} className="flex flex-col gap-5">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
+                  {[0, 1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className="flex flex-col gap-3 rounded-card border border-line-subtle bg-surface p-4.5">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-5 w-24" />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-col overflow-hidden rounded-card border border-line-subtle bg-surface"><TableSkeleton rows={6} columns={8} /></div>
+              </div>
+            )
+          ) : tab === 'search' ? (
+            <SearchPanel dbType={conn.type} tables={tables} search={search} onOpenTable={ref => openTable(ref)} onShowSql={q => { setSql(q); setTab('sql') }} />
           ) : tab === 'sql' ? (
             <SqlPanel connId={conn.id} sql={sql} onSql={setSql} onSchemaChange={() => { loadSchema(); loadOverview() }} />
           ) : table && tab === 'browse' ? (
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-card border border-line-subtle bg-surface"><BrowseTab conn={conn} table={table} /></div>
           ) : !details || !sameTable(table, detailsFor) ? (
-            <Spinner className="m-6" />
+            <div className="flex min-h-0 flex-col overflow-hidden rounded-card border border-line-subtle bg-surface"><TableSkeleton label={d.loading} rows={6} columns={6} /></div>
           ) : tab === 'structure' ? (
             <StructureTab details={details} conn={conn} table={table ?? undefined} onChanged={refresh}
               onRenamed={name => afterTableChange({ name, schema: table?.schema ?? '' })} onDropped={() => afterTableChange(null)} />

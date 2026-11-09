@@ -10,6 +10,7 @@ import { Table, Td, Th } from '@renderer/components/ui/Table'
 import CopyButton from '@renderer/components/ui/CopyButton'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
+import { TableSkeleton } from '@renderer/components/ui/Skeleton'
 import { Select } from '@renderer/components/ui/Input'
 import { SectionTitle } from '@renderer/components/ui/Page'
 import Button from '@renderer/components/ui/Button'
@@ -72,7 +73,7 @@ export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableR
   const pending = rows.changes.length > 0
   useEffect(() => { rows.reset() }, [page, limit, sort, reload, table.name, table.schema]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!result || !grid) return <Spinner className="m-6" />
+  if (!result || !grid) return <TableSkeleton label={d.loading} toolbar rows={10} columns={6} />
 
   const from = result.rows.length ? page * limit + 1 : 0
   const to = page * limit + result.rows.length
