@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Code2, Play, Terminal } from 'lucide-react'
 import type { DefaultIDE, Project, SubProject } from '@shared/types'
+import { serverScript } from '@shared/lib/packageManagers'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useConsole } from '@renderer/app/ConsoleContext'
 import type { PreferredIde } from '@renderer/lib/ide'
@@ -25,9 +26,6 @@ const WORKSHOP: Partial<Record<string, (path: string) => JSX.Element>> = {
   nextjs: path => <NextPanel projectPath={path} />,
   laravel: path => <LaravelPanel projectPath={path} />
 }
-
-/** The script a "run everything" starts in each project */
-const devScript = (scripts: Record<string, string>) => ['dev', 'start', 'serve'].find(s => s in scripts) ?? null
 
 function SubPanel({ group, sub, scripts, ide, onIde }: { group: Project; sub: SubProject; scripts: Record<string, string>; ide: PreferredIde; onIde: (next: DefaultIDE | undefined) => void }) {
   const { t } = useI18n()
@@ -100,9 +98,9 @@ export default function GroupProjects({ group, ide, onSave }: { group: Project; 
       .then(entries => setScripts(Object.fromEntries(entries)))
   }, [paths])
 
-  const startable = subs.filter(s => devScript(scripts[s.path] ?? {}))
+  const startable = subs.filter(s => serverScript(scripts[s.path] ?? {}))
   async function runAll() {
-    for (const s of startable) await runScript(s.path, devScript(scripts[s.path])!, s.packageManager, `${group.name}/${s.name}`)
+    for (const s of startable) await runScript(s.path, serverScript(scripts[s.path])!, s.packageManager, `${group.name}/${s.name}`)
   }
 
   return (

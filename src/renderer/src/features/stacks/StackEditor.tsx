@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Code2, Globe, Plus, TerminalSquare, Trash2, FolderOpen } from 'lucide-react'
 import type { Stack, StackStep, StackStepType } from '@shared/types'
 import { scriptCommand } from '@shared/lib/terminalSuggest'
+import { serverScript } from '@shared/lib/packageManagers'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
@@ -39,7 +40,7 @@ export default function StackEditor({ initial, onSave, onClose }: Props) {
     const project = projects.find(p => p.path === path)
     if (!project) return
     const scripts = await window.devforge.getProjectScripts(project.path).catch(() => ({} as Record<string, string>))
-    const script = ['dev', 'start', 'serve'].find(k => k in scripts)
+    const script = serverScript(scripts)
     setSteps(list => [
       ...list,
       ...(script ? [newStep('command', { label: project.name, command: scriptCommand(project.packageManager, script), cwd: project.path })] : []),

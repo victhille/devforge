@@ -3,7 +3,7 @@ import { join } from 'path'
 import { app } from 'electron'
 import type Anthropic from '@anthropic-ai/sdk'
 import type { AssistantAction, AssistantActionStatus, Project } from '@shared/types'
-import { managerOf } from '@shared/lib/packageManagers'
+import { isLongRunningScript, managerOf } from '@shared/lib/packageManagers'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { forgetRepo, getChanges, getRepoDetails, git, gitCommit, gitPull, gitPush } from '../git/gitRepo'
 import { composeAction, containerAction, getOverview } from '../docker/dockerService'
@@ -235,6 +235,9 @@ async function freePortPlan(port: unknown): Promise<ActionPlan> {
   }
 }
 
+/** A script body that runs more than one program: chained, redirected, or calling other scripts */
+const RUNS_MORE = /[&;|<>\r\n]|\b(?:npm|pnpm|yarn|bun|npx|pnpx|bunx|run-s|run-p|npm-run-all|concurrently|turbo|nx|lerna)\b/
+
 function scriptPlan(p: Project, script: string): ActionPlan {
   // The command goes through a shell: only a real script of this package.json, with a plain name
   // (readScripts keeps those only), in a checked folder; one every object has (toString) is not one
@@ -244,16 +247,24 @@ function scriptPlan(p: Project, script: string): ActionPlan {
   // Known package managers only (loadProjects already keeps those; the project may come from elsewhere)
   const command = `${managerOf(p.packageManager)} run ${script}`
   const key = `assistant:${p.id}:${script}`
+  // npm and Yarn 1 run pre<script> and post<script> with it: the card shows them
+  const hooks = [`pre${script}`, `post${script}`].filter(h => Object.hasOwn(scripts, h))
+  // A dev server or a watcher stops and that is all; any other script (deploy, publish, db:reset…)
+  // may act for good, so it always waits for a click, even in the auto-safe mode. So does a dev
+  // server with a hook, with commands chained in it (prisma migrate deploy && node server.js), a
+  // redirection, or one that runs other scripts (npm run deploy, run-s db:reset serve)
+  const longRunning = isLongRunningScript(script) && !hooks.length && !RUNS_MORE.test(scripts[script])
   return {
     title: `Run ${script} · ${p.name}`,
-    preview: `${command}\n${scripts[script]}`,
-    reversible: true, safe: true,
+    preview: [command, scripts[script], ...hooks.map(h => `${h}: ${scripts[h]}`)].join('\n'),
+    reversible: longRunning, safe: longRunning,
     run: async () => {
       processManager.start(key, command, p.path)
       // A few seconds of output tell whether it started
       await new Promise(r => setTimeout(r, 4000))
       const lines = processManager.logs(key).slice(-15).map(l => l.text).join('\n')
-      return { output: `${processManager.isRunning(key) ? 'Running' : 'Exited'}\n${lines}`, undo: { type: 'stop-process', key } }
+      // Stopping undoes a server; it does not undo what a build or a deploy already did
+      return { output: `${processManager.isRunning(key) ? 'Running' : 'Exited'}\n${lines}`, undo: longRunning ? { type: 'stop-process', key } : undefined }
     }
   }
 }

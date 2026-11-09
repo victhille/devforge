@@ -78,6 +78,28 @@ describe('Forgy runs a script', () => {
     await expect(plan('constructor')).rejects.toThrow('No "constructor" script')
   })
 
+  it('starts a dev server alone in auto-safe mode; any other script waits for a click', async () => {
+    project({ scripts: { ...SCRIPTS, start: 'node server.js', watch: 'tsc -w', deploy: 'vercel --prod', publish: 'npm publish' } })
+    for (const script of ['dev', 'start', 'watch']) expect(await plan(script)).toMatchObject({ safe: true, reversible: true })
+    for (const script of ['build:prod', 'deploy', 'publish']) expect(await plan(script)).toMatchObject({ safe: false, reversible: false })
+  })
+
+  it('a dev server with a pre or post script, or with commands chained in it, waits for a click too', async () => {
+    project({ scripts: { dev: 'vite', predev: 'node seed.js', start: 'prisma migrate deploy && node server.js', serve: 'vite preview; rm x' } })
+    const dev = await plan('dev')
+    expect(dev).toMatchObject({ safe: false, reversible: false })
+    // npm runs predev with it: the card shows it
+    expect(dev.preview).toBe('npm run dev\nvite\npredev: node seed.js')
+    for (const script of ['start', 'serve']) expect(await plan(script)).toMatchObject({ safe: false, reversible: false })
+  })
+
+  it('a dev server that runs other scripts or writes into a file waits for a click', async () => {
+    project({ scripts: { dev: 'npm run deploy', start: 'run-s db:reset serve', serve: 'vite > package.json', watch: 'concurrently a b' } })
+    for (const script of ['dev', 'start', 'serve', 'watch']) expect(await plan(script)).toMatchObject({ safe: false, reversible: false })
+    project({ scripts: { dev: 'next dev --turbopack', start: 'node server.js' } })
+    for (const script of ['dev', 'start']) expect(await plan(script)).toMatchObject({ safe: true, reversible: true })
+  })
+
   it('names only a known package manager', async () => {
     project({ scripts: SCRIPTS }, 'pnpm')
     expect((await plan('dev')).preview).toBe('pnpm run dev\nvite --port 5174')

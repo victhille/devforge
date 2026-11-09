@@ -16,7 +16,7 @@ Forgy peut aussi **agir**. Chaque action s'affiche en **carte** dans le panneau 
 | Conteneur | `start`, `stop` ou `restart` d'un conteneur | oui (`start` ↔ `stop`) | non |
 | SQL | une requête : lecture (50 lignes) ou écriture | non | lecture seule |
 | Libérer un port | arrête le processus qui écoute sur un port | non | non |
-| Script | lance un script du `package.json` en arrière-plan | oui (arrêt) | oui |
+| Script | lance un script du `package.json` en arrière-plan | oui (arrêt) pour un serveur ou une surveillance : `dev`, `start`, `serve`, `watch` ; non pour les autres | `dev`, `start`, `serve`, `watch` |
 | Variable .env | ajoute une **nouvelle** clé à un `.env` (valeur masquée sur la carte) | oui (suppression) | oui |
 | Workflow n8n | active ou désactive un workflow | oui (inverse) | oui |
 | Exécution n8n | relance une exécution en échec | non | non |
@@ -34,7 +34,7 @@ Forgy peut aussi **agir**. Chaque action s'affiche en **carte** dans le panneau 
 **Paramètres › Forgy › Actions de Forgy** :
 
 - **Toujours demander** (par défaut) : chaque action attend ton clic.
-- **Auto pour les actions sûres** : seules les actions de la colonne « Auto possible » (annulables ou en lecture) partent sans clic. Push, pull, écriture SQL, ports et mises à jour de paquets demandent toujours ton accord.
+- **Auto pour les actions sûres** : seules les actions de la colonne « Auto possible » (annulables ou en lecture) partent sans clic. Push, pull, écriture SQL, ports, mises à jour de paquets et scripts autres que `dev`, `start`, `serve` et `watch` (build, déploiement, publication…) demandent toujours ton accord, comme un de ces quatre qui lance autre chose avec lui (un script `predev` ou `postdev`, des commandes enchaînées par `&&`, un autre script appelé par `npm run`).
 
 ## Garde-fous
 
