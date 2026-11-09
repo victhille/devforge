@@ -27,8 +27,8 @@ import SearchInput from '@renderer/components/ui/SearchInput'
 import { SETTINGS_SECTIONS as SECTIONS, type SettingsSection as Section } from './sections'
 
 
-/** The width of the sections, and of the header so its search lines up with their cards */
-const SECTION_WIDTH = 'max-w-[860px]'
+/** At the mock-up's measures (one spacing unit is 4 px), its width (1040 px with the margins), against the menu */
+const PAGE = 'df-mockup mx-0 max-w-[1040px] gap-5'
 
 export default function SettingsPage() {
   const { t, setLang } = useI18n()
@@ -96,13 +96,13 @@ export default function SettingsPage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  if (!settings) return <Page><p className="text-fg-muted">{t.common.loading}</p></Page>
+  if (!settings) return <Page className={PAGE}><p className="text-fg-muted">{t.common.loading}</p></Page>
 
   if (notes) return <Page><ReleaseNotes focus={notes === 'all' ? null : notes} onBack={() => setParams({ section: 'updates' }, { replace: true })} /></Page>
 
   return (
-    <Page className="gap-5.5">
-      <div className={cn('df-rise flex flex-wrap items-end gap-3', SECTION_WIDTH)}>
+    <Page className={PAGE}>
+      <div className="df-rise flex flex-wrap items-end gap-3.5">
         <div className="min-w-[220px] flex-1">
           <p className="mb-1 text-sm text-fg-muted">{s.title}</p>
           <h1 className="font-display text-page font-bold tracking-[-.025em] text-fg">{section ? s.nav[section] : s.title}</h1>
@@ -111,9 +111,9 @@ export default function SettingsPage() {
         <span aria-live="polite" className={cn('flex h-[30px] items-center gap-1.5 rounded-full bg-success-soft px-3 text-xs font-medium text-success transition-opacity duration-300', savedVisible ? 'opacity-100' : 'opacity-0')}>
           <Check size={13} strokeWidth={2.6} /> {s.autoSaved}
         </span>
-        <div ref={search} className="relative w-full sm:w-64">
+        <div ref={search} className="relative w-full sm:w-65">
           <SearchInput value={query} onChange={setQuery} placeholder={s.searchPlaceholder} />
-          {!query && <kbd aria-hidden className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 rounded-md border border-line px-1.5 font-mono text-2xs text-fg-muted">/</kbd>}
+          {!query && <span aria-hidden className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"><Kbd>/</Kbd></span>}
         </div>
       </div>
 
@@ -133,7 +133,7 @@ export default function SettingsPage() {
             {!shown.length && <p className="mx-2.5 my-1.5 text-sm text-fg-muted">{s.noMatch}</p>}
           </nav>
 
-          <section key={section ?? 'none'} className={cn('flex min-w-0 flex-1 flex-col gap-4.5', SECTION_WIDTH)}>
+          <section key={section ?? 'none'} className="flex min-w-0 flex-1 flex-col gap-5">
             {section === 'general' && (
               <SettingsCard title={s.groups.projects}>
                 <SettingRow label={s.defaultDir} hint={s.defaultDirHint}>
