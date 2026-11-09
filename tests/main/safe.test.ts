@@ -15,8 +15,9 @@ describe('assertWebUrl', () => {
 })
 
 describe('assertScriptName', () => {
-  it.each(['dev', 'build:prod', 'test:e2e', 'lint-fix', '@scope/x'])('accepts %s', n => expect(assertScriptName(n)).toBe(n))
-  it.each(['dev & calc', 'a;b', 'x|y', '$(id)', 'a b', '', '"q"'])('refuses %s', n => expect(() => assertScriptName(n)).toThrow())
+  it.each(['dev', 'build:prod', 'test:e2e', 'lint-fix', '@scope/x', 'lib/build'])('accepts %s', n => expect(assertScriptName(n)).toBe(n))
+  // A leading / is a pattern for pnpm (/x/ runs every script matching x), a leading - an option
+  it.each(['dev & calc', 'a;b', 'x|y', '$(id)', 'a b', '', '"q"', '/x/', '/./', '-x', '--help'])('refuses %s', n => expect(() => assertScriptName(n)).toThrow())
 })
 
 describe('assertSafeDir', () => {

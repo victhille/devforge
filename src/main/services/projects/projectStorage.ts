@@ -2,6 +2,7 @@ import { existsSync, readFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { app } from 'electron'
 import type { Project } from '@shared/types'
+import { managerOf } from '@shared/lib/packageManagers'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { dataChanged } from '../../lib/changes'
 
@@ -14,7 +15,9 @@ export function loadProjects(): Project[] {
   const path = getStoragePath()
   if (!existsSync(path)) return []
   try {
-    return JSON.parse(readFileSync(path, 'utf-8')) as Project[]
+    const list = JSON.parse(readFileSync(path, 'utf-8')) as Project[]
+    // An imported file or the window may have written any package manager: it goes into commands
+    return Array.isArray(list) ? list.filter(p => p && typeof p === 'object').map(p => ({ ...p, packageManager: managerOf(p.packageManager) })) : []
   } catch {
     return []
   }

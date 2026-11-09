@@ -73,8 +73,11 @@ export async function launch(command: string, args: string[]): Promise<boolean> 
   })
 }
 
-/** An npm script name with nothing a shell could interpret */
-export const SCRIPT_NAME = /^[\w:.@/+-]+$/
+/**
+ * An npm script name with nothing a shell could interpret. Not starting with / (pnpm reads
+ * « /x/ » as a pattern and runs every script it matches) nor - (read as an option).
+ */
+export const SCRIPT_NAME = /^[\w:.@+][\w:.@/+-]*$/
 
 /** npm script names from package.json: refuse anything a shell could interpret */
 export function assertScriptName(name: unknown): string {

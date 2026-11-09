@@ -6,6 +6,7 @@ import { detectTool } from '../system/environmentDetector'
 import { runSetup } from './projectSetup'
 import { packageName } from '@shared/data/projectLibraries'
 import { extractTemplate } from './userTemplates'
+import { managerOf } from '@shared/lib/packageManagers'
 
 type LogCb = (log: LogLine) => void
 type ResultCb = (result: CommandResult) => void
@@ -334,6 +335,8 @@ export function createProject(
   onLog: LogCb,
   onResult: ResultCb
 ): string {
+  // The package manager goes into the commands (--use-pnpm…): a known one only, whatever the window or a template sent
+  options = { ...options, packageManager: managerOf(options.packageManager) }
   validateName(options.name)
   validatePath(options.destination)
   checkNoConflict(options.destination, options.name)

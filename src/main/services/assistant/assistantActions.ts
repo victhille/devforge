@@ -3,6 +3,7 @@ import { join } from 'path'
 import { app } from 'electron'
 import type Anthropic from '@anthropic-ai/sdk'
 import type { AssistantAction, AssistantActionStatus, Project } from '@shared/types'
+import { managerOf } from '@shared/lib/packageManagers'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { forgetRepo, getChanges, getRepoDetails, git, gitCommit, gitPull, gitPush } from '../git/gitRepo'
 import { composeAction, containerAction, getOverview } from '../docker/dockerService'
@@ -23,6 +24,7 @@ import { updatePackagesPlan } from './packageTools'
 import { taskPlan, undoNotes, type NotesUndo } from './notesTools'
 import { createModelPlan, undoModels, type ModelsUndo } from './modelingTools'
 import { restoreAndInstall } from '../packages/projectPackages'
+import { readScripts } from '../projects/projectScripts'
 import { BrowserWindow } from 'electron'
 
 /**
@@ -234,11 +236,13 @@ async function freePortPlan(port: unknown): Promise<ActionPlan> {
 }
 
 function scriptPlan(p: Project, script: string): ActionPlan {
+  // The command goes through a shell: only a real script of this package.json, with a plain name
+  // (readScripts keeps those only), in a checked folder; one every object has (toString) is not one
   let scripts: Record<string, string> = {}
-  try { scripts = (JSON.parse(readFileSync(join(p.path, 'package.json'), 'utf-8')) as { scripts?: Record<string, string> }).scripts ?? {} } catch { /* no package.json */ }
-  if (!scripts[script]) throw new ToolError(`No "${script}" script in ${p.name}. Scripts: ${Object.keys(scripts).join(', ') || 'none'}`)
-  const pm = p.packageManager || 'npm'
-  const command = `${pm} run ${script}`
+  try { scripts = readScripts(p.path) } catch { /* a folder that cannot be checked */ }
+  if (!Object.hasOwn(scripts, script)) throw new ToolError(`No "${script}" script in ${p.name}. Scripts: ${Object.keys(scripts).join(', ') || 'none'}`)
+  // Known package managers only (loadProjects already keeps those; the project may come from elsewhere)
+  const command = `${managerOf(p.packageManager)} run ${script}`
   const key = `assistant:${p.id}:${script}`
   return {
     title: `Run ${script} · ${p.name}`,
