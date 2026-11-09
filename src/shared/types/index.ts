@@ -461,10 +461,11 @@ export interface DevForgeAPI {
 
   // SSH
   getSshConnections: () => Promise<SSHConnection[]>
+  /** A new address also forgets what was kept for the server (n8n's key, the VPN login, the passwords of its databases) */
   saveSshConnection: (conn: SSHConnection) => Promise<void>
   removeSshConnection: (id: string) => Promise<void>
-  /** Forget the remembered server key (after a legitimate reinstall) */
-  forgetSshHostKey: (id: string) => Promise<void>
+  /** Forget the remembered server key (after a legitimate reinstall), once the user confirmed it in a dialog of the main process: false when cancelled */
+  forgetSshHostKey: (id: string) => Promise<boolean>
   sshConnect:          (connectionId: string) => Promise<string>
   sshConnectDashboard: (connectionId: string) => Promise<string>
   sshExec:             (sessionId: string, command: string) => Promise<string>

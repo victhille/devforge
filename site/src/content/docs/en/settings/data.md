@@ -26,7 +26,7 @@ Errors and events, secrets masked, handy for a bug report. **Open log** shows it
 On the **To another PC** row:
 
 - **Export** writes your projects, servers, databases, settings… to a file, to take them to another PC. **No secret is in it**: passwords, tokens and keys are to be entered again in [Connections](/devforge/en/getting-started/connections/).
-- **Import…** replaces your current setup with the file's. A backup is made first, then DevForge restarts.
+- **Import…** replaces your current setup with the file's. A backup is made first, then DevForge restarts. If the file holds servers, n8n's keys, the VPN logins and the passwords of the databases reached through a server are forgotten on this PC too: the same servers may now name other machines.
 
 ## Clear monitoring history
 

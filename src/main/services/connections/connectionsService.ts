@@ -6,7 +6,8 @@ import { account as vercelAccount, checkAccount as vercelCheck, saveToken as sav
 import { endpointOf, envApiKey, getApiKey, getConfig as getAssistantConfig, keyFor, saveConfig as saveAssistantConfig } from '../assistant/assistantStorage'
 import { CompatError, compatModels } from '../assistant/openaiCompat'
 import { providerInfo } from '@shared/data/assistantProviders'
-import { loadSshConnections, removeSshConnection } from '../ssh/sshStorage'
+import { loadSshConnections } from '../ssh/sshStorage'
+import { removeServer } from '../ssh/serverChanges'
 import { connectSsh, sshRun } from '../ssh/sshClient'
 import { getDbConnection, listDbConnections, removeDbConnection } from '../database/dbStorage'
 import { testDb } from '../database/dbClient'
@@ -137,7 +138,7 @@ export async function disconnect(kind: Exclude<ConnectionKind, 'docker'>, id?: s
       if (config) await saveStatusConfig(String(id), { ...config, alerts: { ...config.alerts, ntfy: null } })
       return
     }
-    case 'server': removeSshConnection(String(id ?? '')); return
+    case 'server': await removeServer(String(id ?? '')); return
     case 'database': removeDbConnection(String(id ?? '')); return
   }
 }

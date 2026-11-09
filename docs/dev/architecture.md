@@ -87,6 +87,7 @@ Les valeurs viennent du thème (`src/renderer/src/styles/index.css`) :
 
 - Mots de passe, jetons et clés sont chiffrés par Windows (`safeStorage`), dans des champs `…Enc`.
 - Ils ne repartent jamais vers la page : elle reçoit seulement « renseigné » ou « aucun ».
+- Un secret appartient à la machine pour laquelle il a été donné. Un mot de passe laissé vide n'est gardé que pour la même adresse : `sameSshAddress` (`src/shared/lib/sshAddress.ts`) pour un serveur, `sameDbTarget` (`src/shared/lib/dbTarget.ts`) pour une base. Ce qui passe par un serveur (clé n8n, accès wg-easy, bases jointes par lui) est oublié quand il change d'adresse ou est retiré : `forgetServerSecrets` (`src/main/services/ssh/serverChanges.ts`), et `stripServerSecrets` (`profile.ts`) à l'import. Un nouveau secret lié à un serveur s'ajoute aux deux.
 - Le journal (`logs/devforge.log`) masque ce qui ressemble à un secret.
 - Rien de personnel dans le dépôt : `scripts/check-personal.mjs` fait échouer la CI si un mot de la liste privée (`PERSONAL_PATTERNS`) revient.
 

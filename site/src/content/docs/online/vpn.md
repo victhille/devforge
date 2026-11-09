@@ -11,7 +11,7 @@ Un conteneur **wg-easy version 15 ou plus** doit tourner sur le serveur, avec so
 
 ## Se connecter
 
-Saisis l'identifiant de l'**interface wg-easy** (pas celui du serveur). Il est vérifié, puis chiffré par Windows ; il ne sort de DevForge que vers wg-easy, par la session SSH. **Oublier l'identifiant** le retire sans rien modifier sur le serveur.
+Saisis l'identifiant de l'**interface wg-easy** (pas celui du serveur). Il est vérifié, puis chiffré par Windows ; il ne sort de DevForge que vers wg-easy, par la session SSH. **Oublier l'identifiant** le retire sans rien modifier sur le serveur. Il est aussi oublié si le serveur change d'hôte, de port ou d'utilisateur, ou s'il est retiré : il faut alors le saisir à nouveau.
 
 ## Les clients
 

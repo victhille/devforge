@@ -26,9 +26,11 @@ export class Notification {
   show(): void { Notification.shown.push(this.opts) }
 }
 
-/** Save / open dialogs: `next` is the path the user "picks", empty for Cancel */
+/** Save / open dialogs: `next` is the path the user "picks", empty for Cancel; `answer` the button clicked in a message box */
 export const dialog = {
   next: '',
+  answer: 1,
   showSaveDialog: async () => (dialog.next ? { canceled: false, filePath: dialog.next } : { canceled: true, filePath: undefined }),
-  showOpenDialog: async () => (dialog.next ? { canceled: false, filePaths: [dialog.next] } : { canceled: true, filePaths: [] })
+  showOpenDialog: async () => (dialog.next ? { canceled: false, filePaths: [dialog.next] } : { canceled: true, filePaths: [] }),
+  showMessageBox: async () => ({ response: dialog.answer, checkboxChecked: false })
 }

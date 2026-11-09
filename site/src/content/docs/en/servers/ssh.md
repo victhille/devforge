@@ -16,13 +16,13 @@ Each server shows its name, `user@host` and a dot: green when its terminal is op
 | click on the name | opens an SSH terminal |
 | Dashboard | opens the server's dashboard (also at the top of the open session's terminal) |
 | Databases on this server | opens the [Database](/devforge/en/data/database/#find-databases) page and looks for this server's databases |
-| Edit Connection | changes its settings; leaving the password empty keeps it |
+| Edit Connection | changes its settings; leaving the password empty keeps it, unless the host, the port or the username changes: it must then be typed again, like n8n's key, the VPN login and the passwords of the databases reached through this server |
 | Delete the connection | removes the server |
 
 **Hide servers** folds the column to give all the room to the terminal. At the bottom of the column, a reminder: keys stay in `~\.ssh` and passwords are encrypted by Windows.
 
 :::note[Server key]
-DevForge remembers the fingerprint of the server's key on the first connection, like OpenSSH. If it changes, the connection is refused. After reinstalling the server, **Forget key** in the form resets it.
+DevForge remembers the fingerprint of the server's key on the first connection, like OpenSSH. If it changes, the connection is refused. After reinstalling the server, **Forget key** in the form resets it, once confirmed in the Windows dialog that opens.
 :::
 
 ## The terminal

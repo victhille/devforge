@@ -8,11 +8,13 @@ import type { DbBrowseOptions, DbBrowseResult, DbConnection, DbDiagram, DbOvervi
 import { detailsFor, diagramFor, overviewFor, type Raw } from './dbMeta'
 import { quoteColumn, quoteIdent } from '@shared/lib/sqlQuote'
 import { rowChangesProblem, rowStatements, type RowChange, type RowStatement } from '@shared/lib/rowEdits'
-import { getDbConnection, saveDbConnection } from './dbStorage'
+import { getDbConnection, saveDbConnection, storedPasswordFor } from './dbStorage'
 import { sqliteFunctions, withRegexp } from './sqliteFunctions'
+import { DB_DEFAULT_PORT } from '@shared/lib/dbTarget'
 import { findInCompose, findOnServer } from './dbDetect'
 import { openTunnel } from '../ssh/sshClient'
-import { sshServerFor } from '../ssh/sshStorage'
+import { loadSshConnections, sshServerFor, sshServersAt } from '../ssh/sshStorage'
+import { isNetworkPath, sameSshAddress } from '@shared/lib/sshAddress'
 import { loadSettings } from '../settings/settingsService'
 
 const ROW_LIMIT = 1000
@@ -170,6 +172,10 @@ let SQL: SqlJsStatic | null = null
 
 async function sqliteDriver(c: DbConnection): Promise<Driver> {
   if (!c.file) throw new Error('No SQLite file')
+  // Opening \\server\share makes Windows send the user's credentials to that server: the path may come from an import
+  if (isNetworkPath(c.file)) throw new Error(loadSettings().language === 'fr'
+    ? 'Fichier SQLite sur un partage réseau refusé : copie-le sur ce PC.'
+    : 'SQLite file on a network share refused: copy it to this PC.')
   if (!SQL) {
     // Locate the wasm next to the sql.js package (works in dev and packaged)
     const wasmDir = dirname(createRequire(__filename).resolve('sql.js/dist/sql-wasm.wasm'))
@@ -246,20 +252,34 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
   }
 }
 
-const DEFAULT_PORT = { mysql: 3306, postgres: 5432 }
 
-async function open(c: DbConnection): Promise<Driver> {
+/** `persist`: remember the address found (false for a test of settings not saved yet: Cancel must leave nothing) */
+async function open(c: DbConnection, persist = true): Promise<Driver> {
   // Database on one of our SSH servers: its port is usually firewalled, so go
   // through SSH. Docker may publish it on loopback or on the public address
   // only, so try both from the server.
   const server = c.type !== 'sqlite' && !c.sshConnectionId ? sshServerFor(c.host) : undefined
-  const sshId = c.sshConnectionId ?? server?.id
+  // Several machines behind that address (a NAT): never fall back on a direct connection, unencrypted on the internet
+  if (c.type !== 'sqlite' && !c.sshConnectionId && !server && sshServersAt(c.host).length > 1) {
+    throw new Error(loadSettings().language === 'fr'
+      ? `Plusieurs serveurs SSH sont enregistrés à l'adresse ${c.host}, sur des ports différents : choisis celui qui héberge la base dans « Se connecter via ».`
+      : `Several SSH servers are saved at ${c.host}, on different ports: pick the one hosting the database in "Connect through".`)
+  }
+  // An empty id from the window counts as none
+  const sshId = c.sshConnectionId || server?.id
   if (c.type !== 'sqlite' && sshId) {
+    // The server as it is now: pointed elsewhere while this connects (each try opens its own
+    // tunnel), nothing more goes through it, and nothing found is saved for it
+    const via = loadSshConnections().find(s => s.id === sshId)
+    const assertServerUnchanged = () => {
+      const now = loadSshConnections().find(s => s.id === sshId)
+      if (!via || !now || !sameSshAddress(via, now)) throw new Error('The SSH server changed while connecting: try again')
+    }
     const hosts = server ? ['127.0.0.1', c.host!] : [c.host || '127.0.0.1']
     let last: UnreachableFromServer | null = null
     for (const host of hosts) {
       try {
-        return await reachVia({ ...c, host, sshConnectionId: sshId }, c)
+        return await reachVia({ ...c, host, sshConnectionId: sshId }, c, persist, assertServerUnchanged)
       } catch (err) {
         if (!(err instanceof UnreachableFromServer)) throw err
         last = err
@@ -267,9 +287,10 @@ async function open(c: DbConnection): Promise<Driver> {
     }
     // The server cannot reach any of these: look for the database on it
     const target = { ...c, host: hosts[0], sshConnectionId: sshId }
+    assertServerUnchanged()
     const match = await findOnServer(sshId, target).catch(() => undefined)
     if (!match || (hosts.includes(match.host) && match.port === c.port)) throw last!.withHint(target)
-    return reachVia({ ...target, host: match.host, port: match.port }, c)
+    return reachVia({ ...target, host: match.host, port: match.port }, c, persist, assertServerUnchanged)
   }
   try {
     switch (c.type) {
@@ -286,7 +307,7 @@ async function open(c: DbConnection): Promise<Driver> {
       if (match) {
         const fixed = { ...c, port: match.port, user: match.user ?? c.user, password: match.password ?? c.password }
         const d = await (c.type === 'mysql' ? mysqlDriver(fixed) : postgresDriver(fixed))
-        if (getDbConnection(c.id)) saveDbConnection(fixed)
+        if (persist && getDbConnection(c.id)) saveDbConnection(fixed)
         return d
       }
     }
@@ -309,18 +330,27 @@ class UnreachableFromServer extends Error {
   }
 }
 
-/** Connect through SSH; remember the address when it differs from the saved one */
-async function reachVia(target: DbConnection, original: DbConnection): Promise<Driver> {
+/**
+ * Connect through SSH; remember the address when it differs from the saved one. `assertServerUnchanged`
+ * throws when the server was pointed elsewhere since the connection began (see open).
+ */
+async function reachVia(target: DbConnection, original: DbConnection, persist: boolean, assertServerUnchanged: () => void): Promise<Driver> {
+  // Checked right before the tunnel reads the server's address, in the same tick
+  assertServerUnchanged()
   const d = await viaSsh(target, target.sshConnectionId!)
   const moved = target.host !== original.host || target.port !== original.port || target.sshConnectionId !== original.sshConnectionId
-  // Saved connections only; credentials are kept
-  if (moved && getDbConnection(original.id)) saveDbConnection({ ...target, password: undefined })
+  if (persist && moved && getDbConnection(original.id)) {
+    try { assertServerUnchanged() } catch (err) { await d.close().catch(() => {}); throw err }
+    // Saved connections only; credentials are kept: read again, a server pointed elsewhere meanwhile has just forgotten them
+    saveDbConnection({ ...target, password: storedPasswordFor(original) })
+  }
   return d
 }
 
 /** The driver talks to a local port forwarded through the SSH server */
 async function viaSsh(c: DbConnection, sshConnectionId: string): Promise<Driver> {
-  const tunnel = await openTunnel(sshConnectionId, c.host || '127.0.0.1', c.port ?? DEFAULT_PORT[c.type as 'mysql'])
+  // Only MySQL and PostgreSQL get here: SQLite has no port
+  const tunnel = await openTunnel(sshConnectionId, c.host || '127.0.0.1', c.port ?? DB_DEFAULT_PORT[c.type as 'mysql' | 'postgres'])
   try {
     const direct = { ...c, host: '127.0.0.1', port: tunnel.localPort, sshConnectionId: undefined }
     const d = await (c.type === 'mysql' ? mysqlDriver(direct) : postgresDriver(direct))
@@ -372,10 +402,10 @@ export async function closeAllDbs(): Promise<void> {
   await Promise.all([...open$.keys()].map(closeDb))
 }
 
-/** Test unsaved settings; password falls back to the stored one */
+/** Test unsaved settings; password falls back to the stored one while they still go to the same place */
 export async function testDb(c: DbConnection): Promise<string> {
-  const full = { ...c, password: c.password || getDbConnection(c.id)?.password }
-  const d = await open(full)
+  const full = { ...c, password: c.password || storedPasswordFor(c) }
+  const d = await open(full, false)
   try { return await d.version() } finally { await d.close().catch(() => {}) }
 }
 

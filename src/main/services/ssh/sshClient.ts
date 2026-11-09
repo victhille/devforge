@@ -2,6 +2,7 @@ import { Client, type ConnectConfig } from 'ssh2'
 import { readFileSync, existsSync } from 'fs'
 import net from 'net'
 import type { SSHConnection } from '@shared/types'
+import { isNetworkPath } from '@shared/lib/sshAddress'
 import { getSshConnectionWithSecret } from './sshStorage'
 import { makeHostVerifier } from './knownHosts'
 
@@ -18,6 +19,8 @@ export function buildSshConfig(conn: SSHConnection, onHostMismatch: (err: Error)
   if (conn.authMethod === 'password') cfg.password = conn.password
   else {
     const keyPath = conn.privateKeyPath ?? ''
+    // Checked before the file is touched: a server saved by an older version or imported from a file may still name a share
+    if (isNetworkPath(keyPath)) throw new Error('Private key on a network share refused: copy it to this PC')
     if (!existsSync(keyPath)) throw new Error(`Private key not found: ${keyPath}`)
     cfg.privateKey = readFileSync(keyPath)
   }

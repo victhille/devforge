@@ -61,6 +61,15 @@ export function saveApiKey(connectionId: string, apiKey: string | null): N8nInst
   return publicOf(s)
 }
 
+/** The API key of a server removed or pointed to another address (see serverChanges): n8n itself stays listed */
+export function forgetApiKey(connectionId: string): void {
+  const all = readStore()
+  const s = all.find(i => i.connectionId === connectionId)
+  if (!s?.keyEnc) return
+  delete s.keyEnc
+  writeStore(all)
+}
+
 export function forgetInstance(connectionId: string): void {
   closeTunnel(connectionId)
   writeStore(readStore().filter(i => i.connectionId !== connectionId))

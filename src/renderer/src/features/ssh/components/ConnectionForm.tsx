@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Key, Lock, ShieldCheck } from 'lucide-react'
 import type { SSHAuthMethod, SSHConnection } from '@shared/types'
+import { isNetworkPath, isSshHost, sameSshAddress } from '@shared/lib/sshAddress'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Modal from '@renderer/components/ui/Modal'
+import Notice from '@renderer/components/ui/Notice'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Field, Input } from '@renderer/components/ui/Input'
 
@@ -37,13 +39,21 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
     if (file) setKeyPath(file)
   }
 
+  // What was kept for the server belongs to its address (see serverChanges): a new one is told it starts afresh
+  const moved = !!initial && !sameSshAddress(initial, { host, port: Number(port), username })
+  const keepsPassword = !!initial?.hasPassword && !moved
+  // The key shown is the one remembered for this host and port
+  const shownFingerprint = initial && sameSshAddress(initial, { host, port: Number(port), username: initial.username }) ? fingerprint : null
+
   function validate(): boolean {
     const errs: Record<string, string> = {}
-    if (!name.trim())     errs.name     = 'Required'
-    if (!host.trim())     errs.host     = 'Required'
-    if (!username.trim()) errs.username = 'Required'
-    const p = parseInt(port, 10)
-    if (isNaN(p) || p < 1 || p > 65535) errs.port = 'Invalid port'
+    if (!name.trim())     errs.name     = t.ssh.required
+    if (!host.trim())     errs.host     = t.ssh.required
+    else if (!isSshHost(host.trim())) errs.host = t.ssh.invalidHost
+    if (!username.trim()) errs.username = t.ssh.required
+    const p = Number(port)
+    if (!Number.isInteger(p) || p < 1 || p > 65535) errs.port = t.ssh.invalidPort
+    if (authMethod === 'privateKey' && isNetworkPath(keyPath.trim())) errs.keyPath = t.ssh.networkKey
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -54,10 +64,10 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
       id:             initial?.id ?? crypto.randomUUID(),
       name:           name.trim(),
       host:           host.trim(),
-      port:           parseInt(port, 10),
+      port:           Number(port),
       username:       username.trim(),
       authMethod,
-      // Empty password on edit = keep the stored one (handled in main process)
+      // Empty password on edit = keep the stored one, for the same address (handled in main process)
       password:       authMethod === 'password' && password ? password : undefined,
       privateKeyPath: authMethod === 'privateKey' ? keyPath : undefined,
       color,
@@ -77,12 +87,12 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
       }
     >
       <Field label={t.ssh.labelName} error={errors.name}>
-        <Input value={name} onChange={e => setName(e.target.value)} placeholder="My VPS" invalid={!!errors.name} autoFocus />
+        <Input value={name} onChange={e => setName(e.target.value)} placeholder="My VPS" invalid={!!errors.name} maxLength={200} autoFocus />
       </Field>
 
       <div className="flex gap-3">
         <Field label={t.ssh.labelHost} error={errors.host} className="flex-1">
-          <Input value={host} onChange={e => setHost(e.target.value)} placeholder="192.168.1.1" invalid={!!errors.host} />
+          <Input value={host} onChange={e => setHost(e.target.value)} placeholder="192.168.1.1" invalid={!!errors.host} maxLength={255} />
         </Field>
         <Field label={t.ssh.labelPort} error={errors.port} className="w-24">
           <Input value={port} onChange={e => setPort(e.target.value)} placeholder="22" invalid={!!errors.port} />
@@ -90,8 +100,11 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
       </div>
 
       <Field label={t.ssh.labelUsername} error={errors.username}>
-        <Input value={username} onChange={e => setUsername(e.target.value)} placeholder="root" invalid={!!errors.username} />
+        <Input value={username} onChange={e => setUsername(e.target.value)} placeholder="root" invalid={!!errors.username} maxLength={256} />
       </Field>
+
+      {/* Said once when it appears, not on each key typed: its text stays the same */}
+      {moved && <Notice tone="warning" role="status">{t.ssh.addressChanged}</Notice>}
 
       <div className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-fg-secondary">{t.ssh.labelAuth}</span>
@@ -106,18 +119,18 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
       </div>
 
       {authMethod === 'password' ? (
-        <Field label={t.ssh.labelPassword} hint={initial?.hasPassword ? undefined : t.ssh.passwordEncrypted}>
+        <Field label={t.ssh.labelPassword} hint={keepsPassword ? undefined : t.ssh.passwordEncrypted}>
           <Input
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder={initial?.hasPassword ? t.ssh.passwordUnchanged : '••••••••'}
+            placeholder={keepsPassword ? t.ssh.passwordUnchanged : '••••••••'}
           />
         </Field>
       ) : (
-        <Field label={t.ssh.labelKeyPath}>
+        <Field label={t.ssh.labelKeyPath} error={errors.keyPath}>
           <div className="flex gap-2">
-            <Input value={keyPath} onChange={e => setKeyPath(e.target.value)} placeholder="~/.ssh/id_rsa" className="font-mono" />
+            <Input value={keyPath} onChange={e => setKeyPath(e.target.value)} placeholder="~/.ssh/id_rsa" className="font-mono" invalid={!!errors.keyPath} />
             <Button variant="secondary" onClick={browseKey}>{t.ssh.browseKey}</Button>
           </div>
         </Field>
@@ -125,13 +138,13 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
 
       {initial && (
         <div className="flex items-center gap-2 rounded-lg border border-line-subtle bg-canvas px-3 py-2">
-          <ShieldCheck size={14} className={fingerprint ? 'text-success' : 'text-fg-muted'} />
+          <ShieldCheck size={14} className={shownFingerprint ? 'text-success' : 'text-fg-muted'} />
           <div className="flex min-w-0 flex-1 flex-col">
             <span className="text-xs font-medium text-fg-secondary">{t.ssh.hostKey}</span>
-            <span className="truncate font-mono text-2xs text-fg-muted">{fingerprint ?? t.ssh.hostKeyUnknown}</span>
+            <span className="truncate font-mono text-2xs text-fg-muted">{shownFingerprint ?? t.ssh.hostKeyUnknown}</span>
           </div>
-          {fingerprint && (
-            <Button size="sm" variant="ghost" onClick={async () => { await window.devforge.forgetSshHostKey(initial.id); setFingerprint(null) }}>
+          {shownFingerprint && (
+            <Button size="sm" variant="ghost" onClick={async () => { if (await window.devforge.forgetSshHostKey(initial.id)) setFingerprint(null) }}>
               {t.ssh.forgetHostKey}
             </Button>
           )}

@@ -32,6 +32,12 @@ describe('SQLite connection', () => {
     expect(await testDb({ id: 'x', name: 'x', type: 'sqlite', file, color: '' })).toMatch(/^SQLite 3\./)
   })
 
+  it('never opens a file on a network share (Windows would send the login to that server)', async () => {
+    for (const file of ['\\\\attacker.example\\share\\app.sqlite', '//attacker.example/share/app.sqlite']) {
+      await expect(testDb({ id: 'x', name: 'x', type: 'sqlite', file, color: '' })).rejects.toThrow(/partage réseau|network share/)
+    }
+  })
+
   it('runs queries and reports errors without throwing', async () => {
     const r = await dbQuery(ID, 'SELECT email FROM client ORDER BY id')
     expect(r.columns).toEqual(['email'])

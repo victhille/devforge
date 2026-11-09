@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { FolderOpen } from 'lucide-react'
 import type { DbConnection, DbType, SSHConnection } from '@shared/types'
 import { NO_SERVERS, useSshConnections } from '@renderer/hooks/useLiveData'
+import { DB_DEFAULT_PORT, sameDbTarget } from '@shared/lib/dbTarget'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
@@ -11,8 +12,6 @@ import { Field, Input, Select } from '@renderer/components/ui/Input'
 import { CONNECTION_COLORS } from '@renderer/features/ssh/components/ConnectionForm'
 import { errorText } from '@renderer/lib/errors'
 import Notice from '@renderer/components/ui/Notice'
-
-const DEFAULT_PORT: Record<DbType, number | undefined> = { mysql: 3306, postgres: 5432, sqlite: undefined }
 
 interface Props {
   initial?: DbConnection
@@ -48,6 +47,8 @@ export default function DbConnectionForm({ initial, onSave, onClose }: Props) {
   }
 
   const valid = c.type === 'sqlite' ? !!c.file : !!c.host && !!c.user
+  // The saved password goes to its target only (see dbStorage): pointed elsewhere, it is forgotten
+  const keepsPassword = !!initial?.hasPassword && sameDbTarget(initial, c)
 
   return (
     <Modal
@@ -63,7 +64,7 @@ export default function DbConnectionForm({ initial, onSave, onClose }: Props) {
     >
       <Tabs<DbType>
         value={c.type}
-        onChange={type => { set('type', type); set('port', DEFAULT_PORT[type]) }}
+        onChange={type => { set('type', type); set('port', DB_DEFAULT_PORT[type]) }}
         items={[{ value: 'postgres', label: 'PostgreSQL' }, { value: 'mysql', label: 'MySQL / MariaDB' }, { value: 'sqlite', label: 'SQLite' }]}
       />
 
@@ -87,9 +88,11 @@ export default function DbConnectionForm({ initial, onSave, onClose }: Props) {
           <div className="flex gap-3">
             <Field label={d.user} className="flex-1"><Input value={c.user ?? ''} onChange={e => set('user', e.target.value)} /></Field>
             <Field label={d.password} className="flex-1">
-              <Input type="password" value={password} onChange={e => { setPassword(e.target.value); setTest(null) }} placeholder={c.hasPassword ? t.ssh.passwordUnchanged : ''} />
+              <Input type="password" value={password} onChange={e => { setPassword(e.target.value); setTest(null) }} placeholder={keepsPassword ? t.ssh.passwordUnchanged : ''} />
             </Field>
           </div>
+          {/* Said once when it appears, not on each key typed: its text stays the same */}
+          {initial?.hasPassword && !keepsPassword && !password && <Notice tone="warning" role="status">{d.passwordForgotten}</Notice>}
           <Field label={d.databaseName}><Input value={c.database ?? ''} onChange={e => set('database', e.target.value)} /></Field>
           <Field label={d.viaSsh} hint={c.sshConnectionId ? d.viaSshHint : undefined}>
             <Select value={c.sshConnectionId ?? ''} onChange={e => set('sshConnectionId', e.target.value || undefined)}>
