@@ -8,6 +8,7 @@ import Button from '@renderer/components/ui/Button'
 import CopyButton from '@renderer/components/ui/CopyButton'
 import { Select } from '@renderer/components/ui/Input'
 import Switch from '@renderer/components/ui/Switch'
+import { useRange } from '@renderer/components/ui/Range'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { generatePassword, generateSecret, generateUuid, laravelAppKey, secretBits, type PasswordOptions, type SecretFormat } from './random'
@@ -33,16 +34,14 @@ function Row({ label, children, htmlFor }: { label: ReactNode; children: ReactNo
 
 /** The value moves with the knob; it is kept (and a new value drawn) once the knob is let go */
 function Slider({ id, label, value, unit, min, max, onChange }: { id: string; label: string; value: number; unit: string; min: number; max: number; onChange: (v: number) => void }) {
-  const [shown, setShown] = useState(value)
-  useEffect(() => setShown(value), [value])
-  const commit = () => { if (shown !== value) onChange(shown) }
+  const { shown, input } = useRange(value, onChange)
   return (
     <div className="flex flex-col gap-2 border-b border-line-subtle pb-4">
       <div className="flex items-baseline justify-between">
         <label htmlFor={id} className="text-sm font-semibold text-fg">{label}</label>
         <span className="font-mono text-sm text-fg-secondary">{shown} {unit}</span>
       </div>
-      <input id={id} type="range" min={min} max={max} value={shown} onChange={e => setShown(Number(e.target.value))} onPointerUp={commit} onKeyUp={commit} onBlur={commit} className="w-full accent-accent" />
+      <input id={id} type="range" min={min} max={max} aria-valuetext={`${shown} ${unit}`} {...input} className="w-full accent-accent" />
     </div>
   )
 }

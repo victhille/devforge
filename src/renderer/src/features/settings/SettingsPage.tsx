@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Check } from 'lucide-react'
+import { Check, ClipboardCopy } from 'lucide-react'
 import type { AppSettings, PackageManager, Theme, AppLanguage, MotionSetting, Density } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -240,15 +240,26 @@ export default function SettingsPage() {
                     </div>
                   ))}
                 </dl>
-                <div className="flex flex-wrap gap-2 border-t border-line-subtle px-5 py-4">
-                  <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(__REPO_URL__)}>{s.githubPage}</Button>
-                  <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(`${__REPO_URL__}/issues/new`)}>{s.reportIssue}</Button>
-                  <Button size="sm" variant="secondary" onClick={() => setParams({ notes: 'all' }, { replace: true })}>{s.releaseNotes}</Button>
-                  <Button size="sm" variant="secondary" onClick={copyReport}>{s.copyReport}</Button>
-                  <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(`${__REPO_URL__}/blob/main/LICENSE`)}>{s.viewLicense}</Button>
-                </div>
+              </SettingsCard>
+            )}
+            {section === 'about' && (
+              <SettingsCard title={s.groups.help}>
+                <SettingRow label={s.diagnostic} hint={s.diagnosticHint}>
+                  <Button size="sm" variant="secondary" onClick={copyReport}><ClipboardCopy size={13} /> {s.copyReport}</Button>
+                </SettingRow>
+                <SettingRow label={s.onGithub} hint={s.onGithubHint}>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal(__REPO_URL__)}>{s.githubPage}</Button>
+                    <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal(`${__REPO_URL__}/issues/new`)}>{s.reportIssue}</Button>
+                  </div>
+                </SettingRow>
+                <SettingRow label={s.releaseNotes} hint={s.releaseNotesHint}>
+                  <Button size="sm" variant="ghost" onClick={() => setParams({ notes: 'all' }, { replace: true })}>{s.seeAllVersions}</Button>
+                </SettingRow>
                 {/* GPL-3.0 section 5d: an interactive program shows its legal notices */}
-                <p className="border-t border-line-subtle px-5 py-4 text-sm text-fg-secondary">{s.legalNotice}</p>
+                <SettingRow label={s.licence} hint={s.legalNotice}>
+                  <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal(`${__REPO_URL__}/blob/main/LICENSE`)}>{s.viewLicense}</Button>
+                </SettingRow>
               </SettingsCard>
             )}
           </section>

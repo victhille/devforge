@@ -212,7 +212,8 @@ export interface DataInfo {
   /** Bytes used by DevForge's own files */
   size: number
   schemaVersion: number
-  backups: { name: string; at: string; reason: 'format' | 'manual' | 'restore'; version: number }[]
+  /** Newest first; size in bytes */
+  backups: { name: string; at: string; reason: 'format' | 'manual' | 'restore'; version: number; size: number }[]
 }
 
 export interface DataAPI {

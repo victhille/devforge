@@ -25,6 +25,7 @@ test('an empty profile: nothing set; a key, a Git identity, a server added, test
   expect(await settledAxe(page)).toEqual([])
 
   // A key is saved, then only "saved" shows
+  await page.getByRole('button', { name: 'Ajouter une clé · Forgy' }).click()
   await page.getByLabel('Clé API · Anthropic (Claude)').fill('sk-ant-test-devforge')
   await page.getByLabel('Clé API · Anthropic (Claude)').press('Enter')
   await expect(page.getByText('clé enregistrée')).toBeVisible()
@@ -34,9 +35,10 @@ test('an empty profile: nothing set; a key, a Git identity, a server added, test
   await expect(page.getByText('aucune clé')).toBeVisible()
 
   // Git identity, in the redirected global config
+  await page.getByRole('button', { name: 'Modifier' }).first().click()
   await page.getByLabel('Nom', { exact: true }).fill('Alice Martin')
   await page.getByLabel('E-mail', { exact: true }).fill('alice@example.org')
-  await page.getByRole('button', { name: 'Enregistrer' }).nth(1).click()
+  await page.getByRole('button', { name: 'Enregistrer', exact: true }).click()
   await expect(page.getByText('Identité Git enregistrée.')).toBeVisible()
   expect(readFileSync(join(run.userData, 'gitconfig'), 'utf-8')).toContain('alice@example.org')
 

@@ -80,7 +80,7 @@ test('a project saved as a template gives a renamed new project, without .env, n
 
   // Settings › Templates: renamed, then deleted
   await goTo(page, '/settings?section=templates')
-  const list = page.getByRole('list', { name: 'Modèles' })
+  const list = page.getByRole('list', { name: 'Mes modèles' })
   await expect(list).toContainText('API Node')
   await expect(list).toContainText('4 fichier(s)')
   await list.getByRole('button', { name: 'Renommer' }).click()

@@ -90,6 +90,6 @@ Never secrets: a `.env` or `.env.*` file is never copied, even if it is not in t
 - dependencies are installed (`npm install` or your manager's, `composer install`), unless you unchecked **Install dependencies**;
 - a **new Git history** starts (the template does not carry the original `.git`), then GitHub and the editor if you checked them.
 
-**Settings › Templates** lists your templates: **Update** copies the original project again (with the same list of what is left out), the pencil renames, the bin deletes. Projects already created do not change.
+**Settings › Templates** lists your templates, with their original project, their number of files and their date: the arrows (**Update**) copy the original project again (with the same list of what is left out), the pencil renames, the bin deletes. When the original project no longer exists, the row says so in place of the arrows. **New project from a template** opens New Project. Projects already created do not change.
 
 Templates are kept in DevForge's data (one archive per template, in the `templates` folder), backed up with it before a migration. They are not part of the profile export.

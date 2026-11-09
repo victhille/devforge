@@ -9,13 +9,13 @@ description: Tous les réglages de DevForge, section par section, de Général �
 |---|---|
 | Général | dossiers de projets, gestionnaire de paquets, IDE, suggestions du terminal, démarrage, lanceur global |
 | [Modèles](/devforge/dev/new-project/#mes-modèles) | tes modèles de projet : mettre à jour, renommer, supprimer |
-| [Connexions](/devforge/getting-started/connections/) | GitHub, identité Git, clé Forgy, Vercel, Docker, serveurs, bases |
+| [Connexions](/devforge/getting-started/connections/) | GitHub, identité Git, Vercel, Docker, clé Forgy, serveurs, bases, n8n et alertes |
 | Apparence | thème, langue, animations, densité |
 | [Forgy](/devforge/forgy/assistant/#réglages) | clé, modèle, profondeur, budget, actions, widget de bureau, dictée, balade |
 | Serveurs | surveillance en arrière-plan et alertes |
 | [Données](/devforge/settings/data/) | dossier, sauvegardes, journal, export / import, effacement |
-| Mises à jour | canal, vérification, notes de version |
-| À propos | version, commit, date de build, rapport de diagnostic |
+| Mises à jour | version installée, canal, vérification, nouveautés de la version |
+| À propos | version, commit, date de build, rapport de diagnostic, GitHub, licence |
 
 ## Général
 
@@ -43,24 +43,28 @@ description: Tous les réglages de DevForge, section par section, de Général �
 
 ## Serveurs
 
-Un relevé par minute en arrière-plan, gardé 7 jours :
+Un relevé par minute en arrière-plan, gardé 7 jours. Deux cartes :
 
-- un interrupteur **Surveiller en arrière-plan** par serveur ;
-- **Alerte disque à** 75, 80, 85, 90 ou 95 % ;
-- **Me prévenir quand** le disque se remplit, un conteneur s'arrête, un serveur ne répond plus, un site tombe.
+- **Surveillance** : une case par serveur dans **Serveurs surveillés** (un point de couleur y montre son dernier état), et le **Seuil du disque**, un curseur de 50 à 95 % (85 % par défaut). **Voir les courbes** ouvre [Monitoring](/devforge/servers/monitoring/).
+- **Me prévenir quand** : un interrupteur par alerte, quand le disque se remplit, un conteneur s'arrête, un serveur ne répond plus ou un site tombe.
 
-Les alertes arrivent en notification Windows. Voir [Monitoring](/devforge/servers/monitoring/).
+Les alertes arrivent en notification Windows, et Forgy fait la tête dans le widget de bureau.
 
 ## Mises à jour
 
+- La première carte montre la **version installée**, sa date de construction et son commit, et « DevForge est à jour » quand c'est le cas.
 - **Canal** : *Stable* (versions finales) ou *Bêta* (aussi les préversions, plus tôt mais parfois avec des bugs).
 - **Vérifier** cherche tout de suite une nouvelle version ; sinon c'est automatique, 15 s après le démarrage puis toutes les 6 h.
 - Une version prête s'installe au prochain redémarrage, ou avec **Redémarrer et mettre à jour** : une petite fenêtre montre l'avancement de l'installation, puis DevForge se relance tout seul.
-- **Montrer « Quoi de neuf » après une mise à jour** : une fenêtre résume la version au premier lancement.
-- **Notes de version** : toutes les versions, filtrables (nouveautés, améliorations, corrections), dans la langue de l'application.
+- **Montrer « Quoi de neuf » après une mise à jour** : une fenêtre résume la version au premier lancement ; **Revoir** la rouvre.
+- **Nouveautés de la version** : les changements de la version installée, filtrés par **Tout**, **Nouveautés**, **Améliorations** ou **Corrections**. **Voir toutes les versions →** ouvre les **notes de version** : toutes les versions, dans la langue de l'application.
 
 ## À propos
 
-Version, commit et date de build, liens vers la **page GitHub** et **Signaler un problème**.
+La carte **Cette version** donne la version et son canal, le commit, la date de build et la version d'Electron. La carte **Aide et licence** :
 
-**Copier le rapport** copie un **rapport de diagnostic** : version, système et dernières lignes du journal local, clés et mots de passe masqués. Rien n'est envoyé : colle-le où tu veux, par exemple dans une [issue GitHub](https://github.com/victhille/devforge/issues). Relis-le avant : il peut contenir des noms de serveurs ou de projets.
+- **DevForge sur GitHub** : **Page GitHub** et **Signaler un problème** ;
+- **Notes de version** : toutes les versions ;
+- **Licence** : DevForge est un logiciel libre sous GPL-3.0, **Licence GPL-3.0** en ouvre le texte.
+
+**Rapport de diagnostic › Copier le rapport** copie un **rapport de diagnostic** : version, système et dernières lignes du journal local, clés et mots de passe masqués. Rien n'est envoyé : colle-le où tu veux, par exemple dans une [issue GitHub](https://github.com/victhille/devforge/issues). Relis-le avant : il peut contenir des noms de serveurs ou de projets.

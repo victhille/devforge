@@ -40,9 +40,9 @@ Les vérifications tournent tant que DevForge est ouvert ou réduit dans la barr
 
 DevForge relève l'état de chaque serveur surveillé **toutes les minutes** (dans une session SSH dédiée) et garde **7 jours** d'historique : CPU, mémoire, disque, conteneurs en ligne, disponibilité sur 24 h.
 
-**Surveiller ce serveur** l'active. Les alertes se règlent dans **Paramètres › Serveurs** :
+**Surveiller ce serveur** l'active (ou sa case dans **Paramètres › Serveurs › Serveurs surveillés**). Les alertes s'y règlent aussi :
 
-- **Alerte disque à** 75, 80, 85, 90 ou 95 % ;
+- **Seuil du disque**, de 50 à 95 % ;
 - **Me prévenir quand** : le disque se remplit, un conteneur s'arrête, un serveur ne répond plus, un site tombe.
 
 Les alertes arrivent en notification Windows ; Forgy fait aussi la tête dans le widget de bureau. **Paramètres › Données › Effacer l'historique de surveillance** remet les courbes à zéro.

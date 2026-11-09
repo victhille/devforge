@@ -21,12 +21,12 @@ Ailleurs : **Demander à Forgy** sur une fiche projet, sur les logs Docker ou un
 
 ## Réglages
 
-**Paramètres › Forgy** (la clé se règle aussi dans [Paramètres › Connexions](/devforge/getting-started/connections/#forgy-anthropic)) :
+**Paramètres › Forgy** (la clé se règle aussi dans [Paramètres › Connexions](/devforge/getting-started/connections/#forgy-anthropic)). En haut, une carte résume qui répond, avec quel modèle, si Forgy demande avant d'agir, et ce qu'il a coûté ce mois sur le budget. Les réglages suivent en quatre cartes, **Fournisseur**, **Réponses**, **Actions de Forgy** et **Présence** (balade, dictée, widget de bureau) :
 
 | Réglage | Effet | Défaut |
 |---|---|---|
 | Fournisseur | qui répond : voir [Fournisseurs](#fournisseurs) | Anthropic |
-| Clé API | celle du fournisseur choisi, chiffrée par Windows, jamais renvoyée à l'interface. Sans clé enregistrée : sa variable d'environnement (`ANTHROPIC_API_KEY`…) si elle existe (l'écran l'indique) ; une clé enregistrée passe avant | — |
+| Clé API | celle du fournisseur choisi, chiffrée par Windows, jamais renvoyée à l'interface. Sans clé enregistrée : sa variable d'environnement (`ANTHROPIC_API_KEY`…) si elle existe (l'écran l'indique) ; une clé enregistrée passe avant. **Tester** liste les modèles (gratuit), **Remplacer** en saisit une autre, **Retirer** l'efface | — |
 | Modèle | Claude : **Auto** = le modèle de la tâche choisie, ou Opus 5.5, Sonnet 5.5, Haiku 5.5 pour tout. Autre fournisseur : le nom de son modèle | Auto |
 | Profondeur de réflexion | **Auto** = celle de la tâche ; ou Rapide, Équilibrée, Approfondie | Auto |
 | Budget mensuel | Forgy s'arrête à ce montant (estimation). `0` = sans limite | 5 $ |

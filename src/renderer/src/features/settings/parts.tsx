@@ -2,16 +2,22 @@ import type { ReactNode } from 'react'
 import { cn } from '@renderer/lib/cn'
 import Card from '@renderer/components/ui/Card'
 
-/** One settings section: a card with its title and a line about it */
-export function SettingsCard({ title, hint, icon, children, className }: { title: ReactNode; hint?: ReactNode; icon?: ReactNode; children: ReactNode; className?: string }) {
+/** One settings group: a card with its title, a line about it and, on the right, its action (Back up now, See the curves…) */
+export function SettingsCard({ title, hint, icon, action, danger, children, className }: {
+  title: ReactNode; hint?: ReactNode; icon?: ReactNode; action?: ReactNode
+  /** The sensitive zone: its header in the danger tone */
+  danger?: boolean
+  children: ReactNode; className?: string
+}) {
   return (
-    <Card className={cn('df-rise overflow-hidden', className)}>
-      <div className="flex items-center gap-3.5 px-5 pt-4.5 pb-3.5">
+    <Card className={cn('df-rise overflow-hidden', danger && 'border-danger/40', className)}>
+      <div className={cn('flex flex-wrap items-center gap-x-3.5 gap-y-2 px-5 pt-4.5 pb-3.5', danger && 'bg-danger-soft')}>
         {icon}
-        <div className="min-w-0 flex-1">
-          <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{title}</h2>
+        <div className="min-w-[200px] flex-1">
+          <h2 className={cn('font-display text-md font-bold tracking-[-.01em]', danger ? 'text-danger' : 'text-fg')}>{title}</h2>
           {hint && <p className="mt-1 text-sm text-fg-secondary">{hint}</p>}
         </div>
+        {action && <div className="flex flex-wrap items-center gap-2">{action}</div>}
       </div>
       {children}
     </Card>

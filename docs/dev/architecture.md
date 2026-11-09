@@ -53,6 +53,7 @@ Une page se construit avec les composants de `src/renderer/src/components/ui/` p
 | Un message dans la page (conseil, alerte, erreur) | `Notice` (`tone` : neutral, info, success, warning, danger ; `live` s'il arrive après une action, `role` pour en garder un) |
 | Une lecture qui a échoué | `ErrorState` (avec `onRetry`) — jamais un spinner qui tourne sans fin |
 | Une liste vide | `EmptyState` (une ligne dans un cadre pointillé : l'icône, ce qui manque, l'action) |
+| Un réglage en nombre (un seuil, une longueur) | `Range` (la valeur à droite, enregistrée au relâchement ; `useRange` pour une autre mise en page) |
 | L'état d'un service, d'un conteneur, d'un serveur | `StatusDot` (`on`, `off`, `warn`, `error`, `unknown` ; `live` pour la pulsation) |
 | La sortie d'une commande | `LogBox` |
 | Une question avant une suppression | `await confirmDialog(message, { danger: true })` (`src/renderer/src/app/ConfirmContext.tsx`), jamais `window.confirm` |

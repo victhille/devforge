@@ -90,6 +90,6 @@ Jamais de secrets : un fichier `.env` ou `.env.*` n'est jamais copié, même s'i
 - les dépendances s'installent (`npm install` ou celui de ton gestionnaire, `composer install`), sauf si tu as décoché **Installer les dépendances** ;
 - un **nouvel historique Git** commence (le modèle n'emporte pas le `.git` d'origine), puis GitHub et l'éditeur si tu les as cochés.
 
-**Paramètres › Modèles** liste tes modèles : **Mettre à jour** copie de nouveau le projet d'origine (avec la même liste de ce qui est laissé de côté), le crayon renomme, la corbeille supprime. Les projets déjà créés ne changent pas.
+**Paramètres › Modèles** liste tes modèles, avec leur projet d'origine, leur nombre de fichiers et leur date : les flèches (**Mettre à jour**) copient de nouveau le projet d'origine (avec la même liste de ce qui est laissé de côté), le crayon renomme, la corbeille supprime. Quand le projet d'origine n'existe plus, la ligne le dit à la place des flèches. **Nouveau projet depuis un modèle** ouvre Nouveau projet. Les projets déjà créés ne changent pas.
 
 Les modèles sont rangés dans les données de DevForge (une archive par modèle, dans le dossier `templates`), sauvegardés avec elles avant une migration. Ils ne font pas partie de l'export du profil.
