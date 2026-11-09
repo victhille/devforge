@@ -62,4 +62,20 @@ describe('remote database detection', () => {
     expect(pickMatch(found, conn({ type: 'postgres', database: 'nope', port: 1 }))?.port).toBe(5433)
     expect(pickMatch([], conn({}))).toBeUndefined()
   })
+
+  it('a variable holding | moves nothing, and a container never sends the password outside its server', () => {
+    const tricky = [
+      // Read from the left, the end of this variable would become the address, outside the server
+      'C|/pg|postgres:17|["POSTGRES_PASSWORD=z","X=a|b|203.0.113.7 "]|{"5432/tcp":null}|172.18.0.3 ',
+      // A container whose only address is a public one: left out
+      'C|/odd|postgres:17|["POSTGRES_PASSWORD=w"]|{"5432/tcp":null}|198.51.100.9 ',
+      // The host's network: no address of its own
+      'C|/host|mysql:8|["MYSQL_ROOT_PASSWORD=r"]|{}|'
+    ].join('\n')
+    const found = parseRemoteOutput(tricky, 'vps', 'ssh1')
+    expect(found.map(f => [f.origin, f.host, f.port, f.password])).toEqual([
+      ['pg', '172.18.0.3', 5432, 'z'],
+      ['host', '127.0.0.1', 3306, 'r']
+    ])
+  })
 })

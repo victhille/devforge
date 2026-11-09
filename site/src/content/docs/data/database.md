@@ -14,7 +14,7 @@ La page **Base de données** est un client pour **PostgreSQL**, **MySQL / MariaD
 | Type | PostgreSQL, MySQL / MariaDB ou SQLite |
 | Nom | facultatif, par défaut `base@hôte` |
 | Hôte, port, utilisateur, mot de passe, base | pour PostgreSQL et MySQL |
-| Fichier SQLite | pour SQLite |
+| Fichier SQLite | pour SQLite, un fichier sur ce PC : un fichier sur un partage réseau est refusé, car Windows y enverrait ton identifiant |
 | Se connecter via | **Connexion directe**, ou un serveur SSH : la connexion passe alors par un **tunnel SSH**, rien à ouvrir sur le serveur. L'hôte et le port sont ceux vus depuis le serveur (`127.0.0.1` pour un service local) |
 
 **Tester la connexion** vérifie avant d'enregistrer.
@@ -25,8 +25,8 @@ En modification, un mot de passe laissé vide garde celui enregistré, tant que 
 
 **Détecter des bases** cherche des bases à ajouter sans rien saisir :
 
-- **Sur un serveur (SSH)** : les conteneurs Docker PostgreSQL / MySQL / MariaDB (identifiants lus dans leur configuration) et les services installés sur le serveur. Ces bases passent par un tunnel SSH.
-- **Dans vos projets (.env)** : les bases décrites dans les fichiers `.env` de tes projets.
+- **Sur un serveur (SSH)** : les conteneurs Docker PostgreSQL / MySQL / MariaDB (identifiants lus dans leur configuration) et les services installés sur le serveur. Ces bases passent par un tunnel SSH. Un conteneur n'est retenu que si le serveur peut le joindre : un port publié, ou une adresse de son réseau privé.
+- **Dans vos projets (.env)** : les bases décrites dans les fichiers `.env` de tes projets. Une base dont l'hôte est celui d'un de tes serveurs passe par lui. Si plusieurs serveurs y sont enregistrés sur des ports différents, DevForge ne devine pas : choisis le bon dans **Se connecter via**.
 
 **Ajouter** enregistre une base trouvée. Le bouton *Bases de données du serveur* de la page [SSH](/devforge/servers/ssh/) ouvre directement cette détection.
 

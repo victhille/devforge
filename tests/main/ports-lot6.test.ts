@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { hostOf, parseNetstat, parseSs } from '../../src/main/services/system/portService'
-import { reachableFromNetwork } from '../../src/shared/lib/netAddress'
+import { isPrivateAddress, reachableFromNetwork } from '../../src/shared/lib/netAddress'
 import { projectOfCommand } from '../../src/main/services/suggest/portOwner'
 
 /** Lot 6: the address a port listens on, and the project it comes from */
@@ -78,5 +78,12 @@ describe('project of a dev server', () => {
   it('finds nothing for a process outside every project', () => {
     expect(projectOfCommand('C:\\Windows\\System32\\svchost.exe -k netsvcs', projects)).toBeUndefined()
     expect(projectOfCommand('node C:\\Dev\\shopify\\index.js', projects)).toBeUndefined()
+  })
+})
+
+describe('private addresses', () => {
+  it('a Docker network, loopback or a unique local IPv6, never a machine of the internet nor a name', () => {
+    for (const ok of ['172.18.0.3', '10.0.0.5', '192.168.1.20', '127.0.0.1', '172.31.255.1', '::1', 'fd12:3456::1']) expect(isPrivateAddress(ok), ok).toBe(true)
+    for (const bad of ['203.0.113.7', '172.32.0.1', '8.8.8.8', '999.1.1.1', '010.0.0.1', '172.016.0.1', 'fc::1', '2001:db8::1', 'db.example.org', '']) expect(isPrivateAddress(bad), bad).toBe(false)
   })
 })

@@ -2,7 +2,8 @@ import { readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import { describe, expect, it } from 'vitest'
 import { safeStorage } from 'electron'
-import type { DbConnection } from '@shared/types'
+import type { DbConnection, SSHConnection } from '@shared/types'
+import { testDb } from '../../src/main/services/database/dbClient'
 import { forgetPasswordsThrough, getDbConnection, listDbConnections, saveDbConnection, storedPasswordFor } from '../../src/main/services/database/dbStorage'
 import { getSshConnectionWithSecret, loadSshConnections, saveSshConnection, sshServerFor } from '../../src/main/services/ssh/sshStorage'
 import { fingerprintOf, forgetHost, HostKeyMismatchError, knownFingerprint, makeHostVerifier } from '../../src/main/services/ssh/knownHosts'
@@ -56,6 +57,17 @@ describe('secrets at rest', () => {
     expect(getSshConnectionWithSecret('s1')?.password).toBe('pw!')
     expect(sshServerFor('10.0.0.1')?.id).toBe('s1')
     expect(sshServerFor('127.0.0.1')).toBeUndefined()
+  })
+
+  it('several accounts on one machine still lead to it; several ports of one address may be several machines', async () => {
+    const server = (id: string, port: number, username: string): SSHConnection => ({ id, name: id, host: '10.0.0.9', port, username, authMethod: 'privateKey', color: '', createdAt: '' })
+    saveSshConnection(server('root9', 22, 'root'))
+    saveSshConnection(server('deploy9', 22, 'deploy'))
+    expect(sshServerFor('10.0.0.9')?.id).toBe('root9')
+    // A NAT: the database is neither guessed nor reached directly, unencrypted on the internet
+    saveSshConnection(server('nat9', 2222, 'root'))
+    expect(sshServerFor('10.0.0.9')).toBeUndefined()
+    await expect(testDb({ id: 'n9', name: 'db', type: 'postgres', host: '10.0.0.9', user: 'shop', password: 'pw', color: '' })).rejects.toThrow(/Plusieurs serveurs SSH|Several SSH servers/)
   })
 })
 

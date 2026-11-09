@@ -3,6 +3,7 @@ import { join } from 'path'
 import { randomUUID } from 'crypto'
 import type { DbConnection, DetectedDatabase, Project } from '@shared/types'
 import { sameSshAddress } from '@shared/lib/sshAddress'
+import { isPrivateAddress } from '@shared/lib/netAddress'
 import { findSubProjects } from '../projects/projectScanner'
 import { connectSsh, shQuote, sshRun } from '../ssh/sshClient'
 import { getSshConnectionWithSecret, sshServerFor } from '../ssh/sshStorage'
@@ -122,7 +123,13 @@ export function parseRemoteOutput(output: string, serverName: string, sshConnect
 
   for (const line of output.split('\n')) {
     if (!line.startsWith('C|')) continue
-    const [, rawName, image, envJson, portsJson, ips] = line.split('|')
+    // Read from both ends: a variable of the container may hold `|`, never its name, image, ports or addresses
+    const parts = line.split('|')
+    if (parts.length < 6) continue
+    const [, rawName, image] = parts
+    const ips = parts.pop()!
+    const portsJson = parts.pop()!
+    const envJson = parts.slice(3).join('|')
     const img = (image ?? '').toLowerCase()
     const type = /postgres|postgis|timescale|supabase\/postgres/.test(img) ? 'postgres' : /mysql|mariadb|percona/.test(img) ? 'mysql' : null
     if (!type) continue
@@ -139,8 +146,12 @@ export function parseRemoteOutput(output: string, serverName: string, sshConnect
       port = Number(binding.HostPort)
       publishedPorts.add(port)
     } else {
-      // Not published: reach the container directly on its Docker network IP
-      host = (ips ?? '').trim().split(/\s+/)[0] || '127.0.0.1'
+      // Not published: reach the container directly on its Docker network IP, a private one only
+      // (the password goes there); no address at all is the host's network
+      const addresses = ips.trim().split(/\s+/).filter(Boolean)
+      const inside = addresses.find(isPrivateAddress)
+      if (addresses.length && !inside) continue
+      host = inside ?? '127.0.0.1'
       port = inner
     }
 

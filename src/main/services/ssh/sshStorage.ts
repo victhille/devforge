@@ -64,11 +64,21 @@ export function loadSshConnections(): SSHConnection[] {
   }))
 }
 
-/** Saved SSH server whose address is `host`, if any */
-export function sshServerFor(host: string | undefined): SSHConnection | undefined {
+/** Saved SSH servers whose address is `host` (never this PC) */
+export function sshServersAt(host: string | undefined): SSHConnection[] {
   const h = host?.trim().toLowerCase()
-  if (!h || h === '127.0.0.1' || h === 'localhost') return undefined
-  return loadSshConnections().find(c => c.host.trim().toLowerCase() === h)
+  if (!h || h === '127.0.0.1' || h === 'localhost') return []
+  return loadSshConnections().filter(c => c.host.trim().toLowerCase() === h)
+}
+
+/**
+ * The saved SSH server at `host`, if they all are one machine: several accounts on the same port
+ * (root@vps, deploy@vps) reach the same one; different ports (a NAT) may be different machines,
+ * and which one runs the database is unknown (sshServersAt tells the caller there are several)
+ */
+export function sshServerFor(host: string | undefined): SSHConnection | undefined {
+  const same = sshServersAt(host)
+  return same.length && new Set(same.map(s => s.port ?? 22)).size === 1 ? same[0] : undefined
 }
 
 /** Main process only: includes the decrypted password, used to open the SSH session. */
