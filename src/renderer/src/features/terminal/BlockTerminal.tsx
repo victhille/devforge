@@ -16,7 +16,8 @@ import Button from '@renderer/components/ui/Button'
 import type { ShellBackend } from './backends'
 import { useBlockShell, type Block } from './useBlockShell'
 import { lineText } from './snapshot'
-import { useSettings } from '@renderer/hooks/useLiveData'
+import { NO_PROJECTS, useProjectList, useSettings } from '@renderer/hooks/useLiveData'
+import { samePath } from '@renderer/lib/live'
 import '@xterm/xterm/css/xterm.css'
 
 const SHOWN_LINES = 300
@@ -245,16 +246,18 @@ function InputBar({ shell, historyKey, shellLabel, onAsk }: {
       .catch(() => setDocs(DOCS.flatMap(d => d.sections.flatMap(x => x.entries.map(e => e.cmd)))))
   }, [])
 
-  // The scripts of the folder the shell is in, with the project's package manager
+  // The package manager of the project the shell is in, from the kept list of projects
+  const projects = useProjectList().data ?? NO_PROJECTS
+  const pm: PackageManager = (local && shell.cwd && projects.find(p => samePath(p.path, shell.cwd))?.packageManager) || 'npm'
+  // The scripts of the folder the shell is in, with that package manager
   useEffect(() => {
     if (!local || !shell.cwd) { setScripts([]); return }
     let alive = true
-    Promise.all([window.devforge.getProjectScripts(shell.cwd).catch(() => ({})), window.devforge.getProjects().catch(() => [])]).then(([found, projects]) => {
-      const pm: PackageManager = projects.find(p => p.path.toLowerCase() === shell.cwd.toLowerCase())?.packageManager ?? 'npm'
+    window.devforge.getProjectScripts(shell.cwd).catch(() => ({} as Record<string, string>)).then(found => {
       if (alive) setScripts(Object.keys(found).map(name => scriptCommand(pm, name)))
     })
     return () => { alive = false }
-  }, [local, shell.cwd])
+  }, [local, shell.cwd, pm])
 
   const rest = useMemo(
     () => suggest && atEnd ? suggestRest(value, { scripts, history: history.map(h => h.cmd), docs }) : '',
