@@ -65,8 +65,8 @@ jobs:
         env:
           PERSONAL_PATTERNS: ${{ secrets.PERSONAL_PATTERNS }}
 
-      # No `npm run check` here: `npm run release` ran it before tagging, and the CI
-      # ran it with the e2e on the commit before (the same code). The installer is built below.
+      # No `npm run check` here: `npm run release -- prepare` ran it on the release branch, and
+      # the CI ran it with the e2e on the release PR (the same code). The installer is built below.
       - run: npm run build
 
       - name: Build installer
