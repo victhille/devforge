@@ -51,8 +51,9 @@ test('a project with a database: its MCD and MPD made in one click, each step sh
   await expect(page.getByText('MCD et MPD créés depuis Shop SQLite (3 tables)')).toBeVisible()
 
   // The two models, listed in the tab
-  await expect(page.getByText('conception/shop.mcd.json')).toBeVisible()
-  await expect(page.getByText('conception/shop.mpd.json')).toBeVisible()
+  // Their file on hover
+  await expect(page.getByTitle('conception/shop.mcd.json')).toBeVisible()
+  await expect(page.getByTitle('conception/shop.mpd.json')).toBeVisible()
   await expect(page.getByText('3 entité(s) · 1 association(s)')).toBeVisible()
 
   await page.getByRole('button', { name: 'Ouvrir le MCD' }).click()

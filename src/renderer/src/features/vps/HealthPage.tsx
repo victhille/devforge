@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { CardSkeleton } from '@renderer/components/ui/Skeleton'
+import { Link } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, CircleHelp, Copy, RefreshCw, ShieldAlert, Wrench } from 'lucide-react'
 import type { HealthCheck, HealthFixId, HealthLevel, SSHConnection, VpsHealth } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
 import { formatRelative, formatSize } from '@renderer/lib/format'
+import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import Modal from '@renderer/components/ui/Modal'
@@ -14,6 +17,7 @@ import { ServerSelect, useServerPicker } from './ServerPicker'
 import NeedsSetup from '@renderer/components/NeedsSetup'
 import { errorText } from '@renderer/lib/errors'
 import LogBox from '@renderer/components/ui/LogBox'
+import Stat, { StatRow } from '@renderer/components/ui/Stat'
 
 const ORDER: Record<HealthLevel, number> = { bad: 0, warn: 1, unknown: 2, ok: 3 }
 /** `uptime -p` answers in English: "up 2 weeks, 2 days" → "en marche depuis 2 semaines, 2 jours" */
@@ -31,41 +35,42 @@ export const LEVEL_STYLE: Record<HealthLevel, { icon: typeof CheckCircle2; text:
   unknown: { icon: CircleHelp, text: 'text-fg-muted', soft: 'bg-active' }
 }
 
-/** Summary on the server's page: the overall level and what needs attention */
-export function HealthCard({ connectionId, onOpen }: { connectionId: string; onOpen: () => void }) {
+/** Summary on the server's page, as the mock-up's alert: the overall level and what needs attention, the way to the page */
+export function HealthCard({ health, onOpen }: { health: VpsHealth | null; onOpen: () => void }) {
   const { t } = useI18n()
   const o = t.vpsOps
-  const [health, setHealth] = useState<VpsHealth | null>(null)
-  const [failed, setFailed] = useState(false)
-  useEffect(() => { window.devforge.vpsOps.health(connectionId).then(setHealth).catch(() => setFailed(true)) }, [connectionId])
-  if (failed) return null
   const issues = (health?.checks ?? []).filter(c => c.level === 'bad' || c.level === 'warn').sort((a, b) => ORDER[a.level] - ORDER[b.level])
   const level: HealthLevel = health ? issues[0]?.level ?? 'ok' : 'unknown'
   const L = LEVEL_STYLE[level]
+  // Amber as in the mock-up, whatever the level: each check keeps its own color on the page
+  const alert = level === 'bad' || level === 'warn'
   return (
-    <Card className="flex flex-wrap items-center gap-3 p-4">
-      <div className={cn('flex size-9 items-center justify-center rounded-xl', L.soft, L.text)}>{health ? <L.icon size={18} /> : <Spinner />}</div>
-      <div className="min-w-[200px] flex-1">
-        <div className="text-sm font-semibold text-fg">{t.nav.health} · {health ? o.summary[level] : o.checking}</div>
-        {issues.length > 0 && <div className="truncate text-xs text-fg-secondary">{issues.slice(0, 3).map(c => (o.checks as Record<string, { title: string }>)[c.id]?.title ?? c.id).join(' · ')}</div>}
-      </div>
-      <Button size="sm" variant="secondary" onClick={onOpen}>{t.nav.health}</Button>
-    </Card>
+    <div className={cn('flex items-center gap-3 rounded-card border px-4 py-3.5', alert ? 'border-warning/30 bg-warning-soft' : 'border-line-subtle bg-surface')}>
+      <span className={cn('shrink-0', alert ? 'text-warning' : L.text)}>{health ? <L.icon size={16} aria-hidden /> : <Spinner />}</span>
+      <p className="min-w-0 flex-1 text-sm text-fg">
+        <span className="font-semibold">{health ? o.summary[level] : o.checking}</span>
+        {issues.length > 0 && <span className="text-fg-secondary"> · {issues.slice(0, 3).map(c => (o.checks as Record<string, { title: string }>)[c.id]?.title ?? c.id).join(', ')}</span>}
+      </p>
+      <Link to="/health" onClick={onOpen} className={cn('shrink-0 text-sm font-semibold hover:underline', level === 'ok' ? 'text-fg-secondary' : 'text-accent')}>{t.nav.health}</Link>
+    </div>
   )
 }
 
 export default function HealthPage() {
   const { t } = useI18n()
-  const { connections, conn, serverId, setServerId } = useServerPicker()
+  const picker = useServerPicker()
+  const { connections, conn } = picker
+  // The page's header comes with the check (« vérifié il y a 3 min », Revérifier)
+  if (connections && conn) return <Page className="df-mockup"><Health key={conn.id} conn={conn} picker={picker} /></Page>
   return (
-    <Page>
-      <PageHeader title={t.nav.health} subtitle={t.vpsOps.healthSubtitle} actions={<ServerSelect connections={connections} value={serverId} onChange={setServerId} />} />
-      {!connections ? <Spinner /> : !conn ? <NeedsSetup service="server" /> : <Health key={conn.id} conn={conn} />}
+    <Page className="df-mockup">
+      <PageHeader crumb={t.nav.groupServers} title={t.nav.health} subtitle={t.vpsOps.healthSubtitle} />
+      {!connections ? <CardSkeleton rows={3} /> : <NeedsSetup service="server" />}
     </Page>
   )
 }
 
-function Health({ conn }: { conn: SSHConnection }) {
+function Health({ conn, picker }: { conn: SSHConnection; picker: ReturnType<typeof useServerPicker> }) {
   const { t, lang } = useI18n()
   const o = t.vpsOps
   const toast = useToast()
@@ -88,7 +93,7 @@ function Health({ conn }: { conn: SSHConnection }) {
     const raw = c.level === 'unknown' ? o.unknownText : entry?.[c.level] || ''
     return raw.replace(/\{(\w+)\}/g, (_, k: string) => {
       const v = c.values[k]
-      return v === undefined ? '' : SIZES.has(k) ? formatSize(Number(v)) : String(v)
+      return v === undefined ? '' : SIZES.has(k) ? formatSize(Number(v), lang) : String(v)
     })
   }
 
@@ -114,42 +119,55 @@ function Health({ conn }: { conn: SSHConnection }) {
     }
   }
 
-  if (error) return <Card className="p-4.5 text-sm text-danger">{error}</Card>
-  if (!health) return <p className="flex items-center gap-2 text-sm text-fg-muted"><Spinner /> {o.checking}</p>
+  // As in the mock-up: where it is, when it was checked, Check again on the right
+  const header = (
+    <PageHeader crumb={`${t.nav.groupServers} · ${conn.name}`} title={t.nav.health}
+      subtitle={<>
+        {o.healthSubtitle} {health && o.checkedAt.replace('{when}', formatRelative(health.checkedAt, lang))}
+        {health && (health.os || health.uptime) && <span className="mt-0.5 block text-sm text-fg-muted">{[health.os, health.uptime && uptimeText(health.uptime, lang)].filter(Boolean).join(' · ')}</span>}
+      </>}
+      actions={<>
+        <ServerSelect connections={picker.connections} value={picker.serverId} onChange={picker.setServerId} />
+        <Button variant="secondary" loading={loading} onClick={load}>{!loading && <RefreshCw size={14} />} {o.recheck}</Button>
+      </>} />
+  )
+
+  if (error) return <>{header}<Card className="p-4.5 text-sm text-danger">{error}</Card></>
+  if (!health) return <>{header}<CardSkeleton label={o.checking} rows={4} /></>
 
   const sorted = [...health.checks].sort((a, b) => ORDER[a.level] - ORDER[b.level])
-  const level: HealthLevel = sorted.find(c => c.level !== 'unknown')?.level ?? 'unknown'
-  const Top = LEVEL_STYLE[level]
+  const count = (...levels: HealthLevel[]) => health.checks.filter(c => levels.includes(c.level)).length
+  const known = count('ok', 'warn', 'bad')
+  const score = known ? Math.round((10 * (count('ok') + count('warn') / 2)) / known) : null
+  const toFix = count('bad', 'warn')
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card className="df-rise flex flex-wrap items-center gap-4 p-5">
-        <div className={cn('flex size-12 items-center justify-center rounded-card', Top.soft, Top.text)}><Top.icon size={24} /></div>
-        <div className="min-w-[220px] flex-1">
-          <h2 className="text-lg font-semibold text-fg">{o.summary[level]}</h2>
-          <div className="mt-1 text-xs text-fg-muted">
-            {[health.os, health.uptime && uptimeText(health.uptime, lang), o.checkedAt.replace('{when}', formatRelative(health.checkedAt, lang))].filter(Boolean).join(' · ')}
-          </div>
-        </div>
-        <Button variant="secondary" loading={loading} onClick={load}>{!loading && <RefreshCw size={14} />} {o.refresh}</Button>
-      </Card>
+    <>
+      {header}
+      <StatRow className="df-rise" style={{ '--i': 1 } as CSSProperties}>
+        <Stat label={o.statScore} value={score === null ? '—' : score} unit={score === null ? undefined : '/ 10'} />
+        <Stat label={o.statToFix} value={toFix} tone={toFix === 0 ? undefined : 'warning'} />
+        <Stat label={o.summary.ok} value={count('ok')} tone={count('ok') ? 'success' : undefined} />
+      </StatRow>
 
-      <Card className="df-rise overflow-hidden" style={{ '--i': 1 } as CSSProperties}>
+      <Card className="df-rise overflow-hidden" style={{ '--i': 2 } as CSSProperties}>
         {sorted.map((c, i) => {
           const L = LEVEL_STYLE[c.level]
           const title = (o.checks as Record<string, { title: string }>)[c.id]?.title ?? c.id
           return (
-            <div key={c.id} className={cn('flex flex-wrap items-center gap-3 px-4.5 py-3', i > 0 && 'border-t border-line-subtle')}>
-              <L.icon size={17} className={cn('shrink-0', L.text)} aria-label={o.summary[c.level]} />
+            <div key={c.id} className={cn('flex flex-wrap items-center gap-3.5 px-4 py-3.5', i > 0 && 'border-t border-line-subtle')}>
+              <span className={cn('flex size-6.5 shrink-0 items-center justify-center rounded-lg', L.soft, L.text)}>
+                <L.icon size={14} aria-label={o.summary[c.level]} />
+              </span>
               <div className="min-w-[240px] flex-1">
-                <div className="text-sm font-medium text-fg">{title}</div>
+                <div className="text-base font-semibold text-fg">{title}</div>
                 <div className="text-sm text-fg-secondary">{text(c)}</div>
               </div>
-              {c.fix && (
-                <Button size="sm" variant={c.level === 'bad' ? 'primary' : 'secondary'} disabled={running} onClick={() => askFix(c.fix!)}>
-                  <Wrench size={13} /> {o.fixes[c.fix]}
+              {c.fix ? (
+                <Button size="sm" variant={c.level === 'ok' ? 'secondary' : c.level === 'bad' || c.fix === 'apt-upgrade' ? 'primary' : 'secondary'} disabled={running} onClick={() => askFix(c.fix!)}>
+                  <Wrench size={13} aria-hidden /> {o.fixes[c.fix]}
                 </Button>
-              )}
+              ) : c.level === 'ok' && <Badge color="success">{o.okBadge}</Badge>}
             </div>
           )
         })}
@@ -173,6 +191,6 @@ function Health({ conn }: { conn: SSHConnection }) {
           {!health.sudo && <p className="text-base text-warning">{o.noSudo}</p>}
         </Modal>
       )}
-    </div>
+    </>
   )
 }

@@ -7,10 +7,11 @@ The **Modeling** page (*Data & API* menu) is for designing before coding. Models
 
 ## The page
 
-- **The project picker**, top right: the active project by default.
-- **The project's chain**: MCD → MLD → MPD → SQL → linked database, with the state of each (*Up to date*, *▲ To update*, *Not written yet*). A click opens the step. The linked database tells how many differences part it from the MPD.
-- **The project's models**: a preview, the kind, the date, the file. A click opens the model; rename and delete on hover. Renaming an MCD renames its MPD and its script too.
-- **Create a model**: an **MCD**, an **MPD** (its window asks for a connection: **None** for a blank MPD, drawn table by table, or a database to read, see below), or a **diagram** (use cases, classes, sequence, flowchart, architecture); the MPD is made from the MCD.
+- Under the title, **Suggest an MCD with Forgy** (it reads the project's code and database) and **New model**.
+- **The filters**: **All**, then one per kind of model there is (MCD, MPD, Use cases, Classes…). **The project picker**, on the right: the active project by default.
+- **The project's models**: a preview, the kind, the name, the size and the date; the file on hover. A click opens the model; rename and delete on hover. Renaming an MCD renames its MPD and its script too. The last card, **New model**, starts one.
+- **The project's chain**, under the models: MCD → MLD → MPD → SQL → linked database, with the state of each (*Up to date*, *▲ To update*, *Not written yet*). A click opens the step. The linked database tells how many differences part it from the MPD.
+- **New model** asks which: an **MCD**, an **MPD** (its window asks for a connection: **None** for a blank MPD, drawn table by table, or a database to read, see below), or a **diagram** (use cases, classes, sequence, flowchart, architecture); the MPD is made from the MCD.
 
 At the top of the editor, the **MCD · MLD · MPD · SQL** tabs go from one step of the same model to the next. On the left, the breadcrumb says where you are: **Project › Modeling › the model** when you opened it from a project's Modeling tab (a click on the project leads back there), else **Modeling › the model**. The arrow goes back to the first one.
 
@@ -114,7 +115,7 @@ The other way: the MPD takes the database's tables, columns, types and keys. Wha
 
 ## Import from a database
 
-**Create a model → Physical model**, then a connection in the list, reads that database and makes two files: its **MPD** (linked to the connection) and the **MCD** worked out from it:
+**New model → Physical model**, then a connection in the list, reads that database and makes two files: its **MPD** (linked to the connection) and the **MCD** worked out from it:
 
 - a table whose key is made of foreign keys to two tables or more becomes an **association** again, its other columns its attributes;
 - any other foreign key becomes an association between its two tables, **1,1** (or **0,1** when it can be empty) on the side of the table holding it, **0,n** on the other; it is named after the key's role when it says one (`reviewer_id` → ACCESS_REQUEST_REVIEWER);

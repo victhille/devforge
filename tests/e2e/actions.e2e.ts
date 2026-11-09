@@ -37,7 +37,7 @@ async function start(): Promise<{ project: string }> {
 async function askForgy() {
   const { page } = run
   await page.keyboard.press('Control+J')
-  const input = page.getByPlaceholder('Demande à Forgy…')
+  const input = page.getByRole('textbox', { name: 'Question libre' })
   await input.fill('Ajoute NEW_FLAG dans le .env de Shop')
   await input.press('Enter')
 }

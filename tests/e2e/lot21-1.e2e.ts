@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import { writeFileSync } from 'fs'
 import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
+import { settledAxeIssues } from './axe'
 
 /** A saved server plus canned outputs: the pages run without a real VPS */
 const vps = (dir: string) => {
@@ -60,16 +61,20 @@ test('services of the VPS: web interfaces, the exposed one flagged', async () =>
   await expect(page.getByRole('heading', { name: 'phpMyAdmin' })).toBeVisible()
   await expect(page.getByText('Ouvert sur Internet')).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Ouvrir' })).toHaveCount(3)
+  expect(await settledAxeIssues(page)).toEqual([])
 })
 
 test('health of the VPS: updates to install, the command shown before it runs', async () => {
   run = await launch({ settings: { onboarded: true }, seed: vps, env: { DEVFORGE_TEST_VPS: '{userData}/vps.json' } })
   const { page } = run
   await goTo(page, '/health')
-  await expect(page.getByRole('heading', { name: 'À surveiller' })).toBeVisible()
+  // As in the mock-up: Check again in the header, the checks to fix counted
+  await expect(page.getByRole('button', { name: 'Revérifier' })).toBeVisible()
+  await expect(page.getByText('À corriger', { exact: true })).toBeVisible()
   await expect(page.getByText('20 mises à jour en attente.')).toBeVisible()
   await expect(page.getByText('Connexion par clé uniquement.')).toBeVisible()
   await expect(page.getByText('353 essais refusés en 24 h, bloqués par fail2ban.')).toBeVisible()
+  expect(await settledAxeIssues(page)).toEqual([])
 
   await page.getByRole('button', { name: 'Installer les mises à jour' }).click()
   const dialog = page.getByRole('dialog')

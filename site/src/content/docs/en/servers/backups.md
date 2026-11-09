@@ -25,16 +25,18 @@ Then set:
 
 ## Follow up
 
-- **Last backup**: done (date and size) or failed. After more than 36 h without a backup, DevForge warns you: check that the server runs and cron is active.
-- If the nightly task has disappeared from the server, **Save** puts it back.
-- **Back up now** runs a backup right away.
+At the top, **Schedule** opens the settings above again and **Back up now** runs a backup right away.
+
+- **Last backup**: its time, done or failed. After more than 36 h without a backup, DevForge warns you: check that the server runs and cron is active.
+- If the nightly task has disappeared from the server, **Schedule** then **Save** puts it back.
 - **Copy to this PC** brings the newest backup home; **Open the folder** shows it.
-- **Files on the server** lists the backups (*day* or *week*).
+- **Next** recalls the time of the nightly backup; **Kept**, how many days are on the server and their size.
+- The table lists the server's backups: date (with *week* for a weekly one), content (**Database …** for a database, **Data …** for a volume or a folder), size and **Restore**.
 - **Log** shows the details of each operation.
 
 ## Restore
 
-**Restore** brings a database or a volume back to its state of a given day. First, a copy of the current state is made in `pre-restore/`; the containers that use this data are stopped during the restore, then started again.
+**Restore** brings a database or a volume back to its state of a given day, after a confirmation. First, a copy of the current state is made in `pre-restore/`; the containers that use this data are stopped during the restore, then started again.
 
 ## Turn off
 

@@ -5,7 +5,9 @@ description: Updates, disk space, memory, open ports, SSH security and container
 
 The **Health** page goes around your server: updates, space, ports, SSH and containers. It needs a server set up (see [Connections](/devforge/en/getting-started/connections/#servers-vps)).
 
-At the top, a summary: **All good**, **To watch** or **To fix**, and the time of the check. **Refresh** reads again.
+At the top, the time of the check, the server's system and how long it has been up. **Check again** reads again.
+
+Below, three counts: the **Score** out of 10 (each point to watch counts half, each point to fix counts nothing), the checks **To fix** (to fix or to watch) and those **All good**.
 
 ## The checks
 
@@ -24,7 +26,7 @@ At the top, a summary: **All good**, **To watch** or **To fix**, and the time of
 | Containers | stopped on an error, looping or restarting often |
 | Docker space | space to reclaim (unused images, cache) |
 
-Information that cannot be read on this server shows as *Unknown*.
+Each check shows its icon, what was found and, when all is well, the **ok** badge. Information that cannot be read on this server shows as *Unknown*.
 
 ## Fixes
 
@@ -47,5 +49,5 @@ Each fix shows the exact command before running it, with **Run**, **Copy the com
 
 ## Elsewhere
 
-- The **VPS health** widget on Home and the Health card of the [dashboard](/devforge/en/servers/ssh/#the-server-dashboard) sum up this page.
+- The **VPS health** widget on Home and the Health alert of the [dashboard](/devforge/en/servers/ssh/#the-server-dashboard) sum up this page.
 - Forgy can read the server's health ("Morning check of the VPS"), see [Forgy](/devforge/en/forgy/assistant/#tasks).

@@ -20,6 +20,12 @@ export interface MonitorCheck {
   error?: string
 }
 
+/** A time the URL did not answer; `end` is null while it lasts */
+export interface MonitorIncident {
+  start: string
+  end: string | null
+}
+
 export interface MonitorState {
   id: string
   status: 'up' | 'down' | 'unknown'
@@ -27,6 +33,8 @@ export interface MonitorState {
   checks: MonitorCheck[]
   /** When the current status started */
   since: string | null
+  /** The last 30 days of incidents, most recent first (none in files written before v0.2) */
+  incidents?: MonitorIncident[]
 }
 
 export interface MonitorAPI {

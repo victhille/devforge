@@ -7,10 +7,11 @@ La page **Modélisation** (menu *Données & API*) sert à concevoir avant de cod
 
 ## La page
 
-- **Le sélecteur de projet**, en haut à droite : le projet actif par défaut.
-- **La chaîne du projet** : MCD → MLD → MPD → SQL → base liée, avec l'état de chacun (*À jour*, *▲ À mettre à jour*, *Pas encore écrit*). Un clic ouvre l'étape. La base liée dit combien de différences la séparent du MPD.
-- **Les modèles du projet** : un aperçu, le type, la date, le fichier. Un clic ouvre le modèle ; renommer et supprimer au survol. Renommer un MCD renomme aussi son MPD et son script.
-- **Créer un modèle** : un **MCD**, un **MPD** (sa fenêtre demande une connexion : **Aucune** pour un MPD vierge, dessiné table par table, ou une base à lire, voir plus bas), ou un **diagramme** (cas d'utilisation, classes, séquence, logigramme, architecture) ; le MPD d'un MCD se génère depuis lui.
+- Sous le titre, **Proposer un MCD avec Forgy** (il lit le code et la base du projet) et **Nouveau modèle**.
+- **Les filtres** : **Tous**, puis un par type de modèle présent (MCD, MPD, Cas d'utilisation, Classes…). **Le sélecteur de projet**, à droite : le projet actif par défaut.
+- **Les modèles du projet** : un aperçu, le type, le nom, la taille et la date ; le fichier au survol. Un clic ouvre le modèle ; renommer et supprimer au survol. Renommer un MCD renomme aussi son MPD et son script. La dernière carte, **Nouveau modèle**, en démarre un.
+- **La chaîne du projet**, sous les modèles : MCD → MLD → MPD → SQL → base liée, avec l'état de chacun (*À jour*, *▲ À mettre à jour*, *Pas encore écrit*). Un clic ouvre l'étape. La base liée dit combien de différences la séparent du MPD.
+- **Nouveau modèle** demande lequel : un **MCD**, un **MPD** (sa fenêtre demande une connexion : **Aucune** pour un MPD vierge, dessiné table par table, ou une base à lire, voir plus bas), ou un **diagramme** (cas d'utilisation, classes, séquence, logigramme, architecture) ; le MPD d'un MCD se génère depuis lui.
 
 En haut de l'éditeur, les onglets **MCD · MLD · MPD · SQL** passent d'une étape à l'autre du même modèle. À gauche, le fil d'Ariane dit où tu es : **Projet › Modélisation › le modèle** quand tu l'as ouvert depuis l'onglet Modélisation d'un projet (un clic sur le projet y ramène), sinon **Modélisation › le modèle**. La flèche revient au premier.
 
@@ -114,7 +115,7 @@ L'autre sens : le MPD reprend les tables, colonnes, types et clés de la base. C
 
 ## Importer depuis une base
 
-**Créer un modèle → Modèle physique**, puis une connexion dans la liste, lit cette base et crée deux fichiers : son **MPD** (lié à la connexion) et le **MCD** qui s'en déduit :
+**Nouveau modèle → Modèle physique**, puis une connexion dans la liste, lit cette base et crée deux fichiers : son **MPD** (lié à la connexion) et le **MCD** qui s'en déduit :
 
 - une table dont la clé est faite de clés étrangères vers deux tables ou plus redevient une **association**, ses autres colonnes ses attributs ;
 - toute autre clé étrangère devient une association entre ses deux tables, **1,1** (ou **0,1** si elle peut être vide) côté table qui la porte, **0,n** de l'autre ; elle porte le nom du rôle de la clé quand il en dit un (`reviewer_id` → ACCESS_REQUEST_REVIEWER) ;

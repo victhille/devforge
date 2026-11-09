@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
+import { settledAxeIssues as settledAxe } from './axe'
 
 /** Settings redone: sections, search, saved on change; release notes and "What's new" */
 let run: Launched
@@ -15,6 +16,8 @@ test('settings are found by search and saved on change', async () => {
   const { page, userData } = run
   await goTo(page, '/settings')
   const nav = page.getByRole('navigation', { name: 'Paramètres' })
+  // The sections are in the menu's panel; the page shows them as chips while searching
+  const sections = page.getByRole('navigation', { name: 'Menu principal' })
 
   // Search narrows the sections
   await page.getByPlaceholder('Chercher un réglage…').fill('sauvegarde')
@@ -26,17 +29,33 @@ test('settings are found by search and saved on change', async () => {
 
   // A theme click is applied and written at once, no "Save" button
   await page.getByPlaceholder('Chercher un réglage…').fill('')
-  await nav.getByRole('button', { name: 'Apparence' }).click()
+  await sections.getByRole('link', { name: 'Apparence' }).click()
   await page.getByRole('radio', { name: 'Clair' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   await expect.poll(() => JSON.parse(readFileSync(join(userData, 'settings.json'), 'utf-8')).theme).toBe('light')
   await page.getByRole('radio', { name: 'Réduites' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced')
+  // Another colour (the whole look: backgrounds too) and a larger text, applied at once and kept
+  await page.getByRole('radio', { name: 'Bleu' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'blue')
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg-base'))).toBe('#EBF5FF')
+  await page.getByRole('radio', { name: 'Grande', exact: true }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-text-size', 'large')
+  await expect.poll(() => JSON.parse(readFileSync(join(userData, 'settings.json'), 'utf-8'))).toMatchObject({ accent: 'blue', textSize: 'large' })
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).fontSize)).toBe('14.56px')
+  expect(await settledAxe(page)).toEqual([])
 
   // Alerts can be turned off one by one
-  await nav.getByRole('button', { name: 'Serveurs' }).click()
+  await sections.getByRole('link', { name: 'Serveurs' }).click()
   await page.getByRole('switch', { name: 'Un site tombe' }).click()
   await expect.poll(() => JSON.parse(readFileSync(join(userData, 'watch.json'), 'utf-8')).alerts.site).toBe(false)
+  expect(await settledAxe(page)).toEqual([])
+
+  // Updates: the installed version, then its changes filtered by kind
+  await sections.getByRole('link', { name: 'Mises à jour' }).click()
+  await page.getByRole('radio', { name: 'Corrections' }).click()
+  await expect(page.getByRole('radio', { name: 'Corrections' })).toHaveAttribute('aria-checked', 'true')
+  expect(await settledAxe(page)).toEqual([])
 })
 
 test('release notes are cards filtered by kind, and "What\'s new" follows an update', async () => {

@@ -5,7 +5,7 @@ description: Step-by-step guide to get your changes reviewed, have the commit me
 
 Forgy reads your changes, writes the message and suggests the commit. You read, you approve.
 
-**You need**: a Git project with changes, and Forgy's key, Anthropic's or another's ([Connections](/devforge/en/getting-started/connections/#forgy-anthropic)). About 5 minutes.
+**You need**: a Git project with changes, and Forgy's key, Anthropic's or another's ([Settings › Forgy](/devforge/en/forgy/assistant/#settings)). About 5 minutes.
 
 ## 1. Open the project's page
 

@@ -47,7 +47,7 @@ test('cmd blocks get their exit code, and the shell is still there after another
   expect(await settledAxeIssues(page)).toEqual([])
 
   // Another tab and back: same shell, same blocks
-  await page.getByRole('tab', { name: 'Git' }).click()
+  await page.getByRole('tab', { name: /^Fichiers et Git/ }).click()
   await expect(shell).toBeHidden()
   await page.getByRole('tab', { name: 'Terminal' }).click()
   await expect(shell.getByRole('article', { name: 'echo bonjour cmd' })).toBeVisible()

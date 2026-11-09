@@ -8,6 +8,7 @@ import { app } from 'electron'
 import type { Framework, PackageManager, TemplatePreview, UserTemplate } from '@shared/types'
 import { isExcluded, packFiles, renameIn, unpackFiles } from '@shared/lib/userTemplates'
 import { writeJsonFile } from '../../lib/jsonFile'
+import { dataChanged } from '../../lib/changes'
 
 /**
  * v3.8 lot 5: projects saved as templates. The list in templates.json, each
@@ -28,7 +29,8 @@ export function listTemplates(): UserTemplate[] {
   } catch { return [] }
 }
 
-const saveList = (list: UserTemplate[]) => writeJsonFile(indexFile(), list)
+/** Written, then told to the windows (New project, Settings › Templates read the list again) */
+const saveList = (list: UserTemplate[]) => { writeJsonFile(indexFile(), list); dataChanged('templates') }
 
 const find = (id: string) => {
   const t = listTemplates().find(x => x.id === id)

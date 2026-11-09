@@ -4,27 +4,33 @@ interface Props {
   checked: boolean
   onChange: (checked: boolean) => void
   label?: string
+  /** Can't be changed now (its title says why) */
+  disabled?: boolean
+  title?: string
   className?: string
 }
 
-export default function Switch({ checked, onChange, label, className }: Props) {
+/** Forge: 34 × 20, the knob in the text color when off, on the accent when on */
+export default function Switch({ checked, onChange, label, disabled, title, className }: Props) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
       aria-label={label}
+      disabled={disabled}
+      title={disabled ? title : undefined}
       onClick={() => onChange(!checked)}
       className={cn(
-        'relative h-5 w-9 shrink-0 rounded-full transition-colors',
+        'relative h-5 w-8.5 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50',
         checked ? 'bg-accent' : 'bg-active',
         className
       )}
     >
       <span
         className={cn(
-          'absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform',
-          checked && 'translate-x-4'
+          'absolute top-0.75 left-0.75 size-3.5 rounded-full transition-transform',
+          checked ? 'translate-x-3.5 bg-accent-fg' : 'bg-fg-secondary'
         )}
       />
     </button>

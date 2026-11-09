@@ -187,6 +187,10 @@ export interface AppSettings {
   motion: MotionSetting
   /** 'compact': smaller spacing and text, for small screens */
   density: Density
+  /** The main colour (buttons, links, selection); Forge's orange unless chosen */
+  accent?: AccentColor
+  /** Text a little smaller or larger across the app, the layout unchanged */
+  textSize?: TextSize
   /** "What's new" window on the first launch after an update */
   showWhatsNew: boolean
   /** Whisper model for voice typing */
@@ -205,6 +209,8 @@ export interface AppSettings {
 
 export type MotionSetting = 'full' | 'reduced' | 'system'
 export type Density = 'comfortable' | 'compact'
+export type AccentColor = 'forge' | 'blue' | 'violet' | 'pink' | 'teal' | 'green'
+export type TextSize = 'small' | 'normal' | 'large' | 'larger'
 
 /** Settings → Data */
 export interface DataInfo {
@@ -212,7 +218,8 @@ export interface DataInfo {
   /** Bytes used by DevForge's own files */
   size: number
   schemaVersion: number
-  backups: { name: string; at: string; reason: 'format' | 'manual' | 'restore'; version: number }[]
+  /** Newest first; size in bytes */
+  backups: { name: string; at: string; reason: 'format' | 'manual' | 'restore'; version: number; size: number }[]
 }
 
 export interface DataAPI {
@@ -270,6 +277,15 @@ export interface SSHConnection {
   createdAt: string
 }
 
+/** One entry of a server folder, read over SFTP */
+export interface SftpEntry {
+  name: string
+  kind: 'dir' | 'file' | 'link'
+  size: number
+  /** ms since 1970 */
+  mtime: number
+}
+
 export interface SSHSessionStatus {
   sessionId: string
   connectionId: string
@@ -301,6 +317,8 @@ export interface GitStatus {
   dirty: boolean
   ahead: number
   behind: number
+  /** Changed, staged or untracked files */
+  changes?: number
 }
 
 // ─── Ports ───────────────────────────────────────────────────────────────────
@@ -309,12 +327,14 @@ export interface ListeningPort {
   port: number
   pid: number | null
   processName: string
+  /** Address it listens on: 127.0.0.1 / ::1 (this PC only), 0.0.0.0 / :: or a network card's address (the network) */
+  address?: string
 }
 
 export * from './git'
 
 /** v4.2: the data the windows keep and read again when the main process says it changed */
-export type DataTopic = 'projects' | 'db-connections' | 'models'
+export type DataTopic = 'projects' | 'db-connections' | 'models' | 'notes' | 'settings' | 'ssh' | 'templates'
 export * from './cleaner'
 export * from './envfiles'
 export * from './versions'
@@ -441,16 +461,21 @@ export interface DevForgeAPI {
 
   // SSH
   getSshConnections: () => Promise<SSHConnection[]>
+  /** A new address also forgets what was kept for the server (n8n's key, the VPN login, the passwords of its databases) */
   saveSshConnection: (conn: SSHConnection) => Promise<void>
   removeSshConnection: (id: string) => Promise<void>
-  /** Forget the remembered server key (after a legitimate reinstall) */
-  forgetSshHostKey: (id: string) => Promise<void>
+  /** Forget the remembered server key (after a legitimate reinstall), once the user confirmed it in a dialog of the main process: false when cancelled */
+  forgetSshHostKey: (id: string) => Promise<boolean>
   sshConnect:          (connectionId: string) => Promise<string>
   sshConnectDashboard: (connectionId: string) => Promise<string>
   sshExec:             (sessionId: string, command: string) => Promise<string>
   sshWrite: (sessionId: string, data: string) => Promise<void>
   sshResize: (sessionId: string, cols: number, rows: number) => Promise<void>
   sshDisconnect: (sessionId: string) => Promise<void>
+  /** A folder of the server over SFTP (the session's own connection); an empty path is the home folder */
+  sshSftpList: (sessionId: string, dir: string) => Promise<{ path: string; entries: SftpEntry[] }>
+  /** Copies a file of the server where the user picks; the path saved, or null when cancelled */
+  sshSftpDownload: (sessionId: string, remotePath: string) => Promise<string | null>
   onSshData: (callback: (sessionId: string, data: string) => void) => () => void
   onSshStatus: (callback: (status: SSHSessionStatus) => void) => () => void
   /** A server was added, edited or removed */

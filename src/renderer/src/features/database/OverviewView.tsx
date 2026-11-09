@@ -4,12 +4,13 @@ import type { DbOverview, DbTableRef } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { formatSize } from '@renderer/lib/format'
 import Card from '@renderer/components/ui/Card'
+import { Table, Td, Th } from '@renderer/components/ui/Table'
 import { Input } from '@renderer/components/ui/Input'
 import { Stat } from './TableTabs'
 
 /** Database home, like phpMyAdmin's database page: info + every table with its size */
 export default function OverviewView({ overview, onOpenTable }: { overview: DbOverview; onOpenTable: (t: DbTableRef) => void }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const d = t.database
   const [filter, setFilter] = useState('')
   const tables = overview.tables.filter(tb => tb.type === 'table')
@@ -25,11 +26,11 @@ export default function OverviewView({ overview, onOpenTable }: { overview: DbOv
   }, [overview.tables, filter])
 
   return (
-    <div className="flex flex-col gap-5 p-5">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+    <div className="flex flex-col gap-5">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
         <Stat label={d.server} value={overview.version} />
         <Stat label={d.databaseLabel} value={overview.database} />
-        <Stat label={d.size} value={formatSize(overview.sizeBytes)} />
+        <Stat label={d.size} value={formatSize(overview.sizeBytes, lang)} />
         <Stat label={d.tablesLabel} value={String(tables.length)} hint={views.length ? `${views.length} ${d.viewsLabel.toLowerCase()}` : undefined} />
         <Stat label={d.totalRows} value={totalRows.toLocaleString()} hint={d.approx} />
         <Stat label={d.encoding} value={overview.encoding ?? '—'} hint={overview.collation} />
@@ -40,48 +41,48 @@ export default function OverviewView({ overview, onOpenTable }: { overview: DbOv
         <Input value={filter} onChange={e => setFilter(e.target.value)} placeholder={d.filterTables} className="pl-8" />
       </div>
 
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full border-collapse text-sm">
-          <thead className="bg-elevated text-xs text-fg-muted">
+      <Card className="overflow-hidden p-0">
+        <Table>
+          <thead>
             <tr>
-              <th className="border-b border-line-subtle px-3 py-2 text-left font-semibold">{d.colName}</th>
-              <th className="border-b border-line-subtle px-3 py-2 text-left font-semibold">{d.colType}</th>
-              <th className="border-b border-line-subtle px-3 py-2 text-right font-semibold">{d.rowsEstimate}</th>
+              <Th>{d.colName}</Th>
+              <Th>{d.colType}</Th>
+              <Th align="right">{d.rowsEstimate}</Th>
               {hasSizes && <>
-                <th className="border-b border-line-subtle px-3 py-2 text-right font-semibold">{d.dataSize}</th>
-                <th className="border-b border-line-subtle px-3 py-2 text-right font-semibold">{d.indexSize}</th>
-                <th className="border-b border-line-subtle px-3 py-2 text-right font-semibold">{d.size}</th>
+                <Th align="right">{d.dataSize}</Th>
+                <Th align="right">{d.indexSize}</Th>
+                <Th align="right">{d.size}</Th>
               </>}
-              {hasEngine && <th className="border-b border-line-subtle px-3 py-2 text-left font-semibold">{d.engine}</th>}
-              {hasEngine && <th className="border-b border-line-subtle px-3 py-2 text-left font-semibold">{d.collation}</th>}
-              <th className="border-b border-line-subtle px-3 py-2 text-left font-semibold">{d.comment}</th>
+              {hasEngine && <Th>{d.engine}</Th>}
+              {hasEngine && <Th>{d.collation}</Th>}
+              <Th>{d.comment}</Th>
             </tr>
           </thead>
           <tbody>
             {shown.map(tb => (
-              <tr key={`${tb.schema}.${tb.name}`} className="hover:bg-hover">
-                <td className="border-b border-line-subtle px-3 py-2">
+              <tr key={`${tb.schema}.${tb.name}`}>
+                <Td>
                   <button onClick={() => onOpenTable(tb)} className="flex items-center gap-2 font-mono font-medium text-fg hover:text-accent">
                     {tb.type === 'view' ? <Eye size={13} className="text-fg-muted" /> : <Table2 size={13} className="text-fg-muted" />}
                     {showSchema && <span className="text-fg-muted">{tb.schema}.</span>}{tb.name}
                   </button>
-                </td>
-                <td className="border-b border-line-subtle px-3 py-2 text-xs text-fg-secondary">{tb.type === 'view' ? d.typeView : d.typeTable}</td>
-                <td className="border-b border-line-subtle px-3 py-2 text-right tabular-nums text-fg-secondary">{tb.rows?.toLocaleString() ?? '—'}</td>
+                </Td>
+                <Td className="text-xs text-fg-secondary">{tb.type === 'view' ? d.typeView : d.typeTable}</Td>
+                <Td align="right" className="tabular-nums text-fg-secondary">{tb.rows?.toLocaleString() ?? '—'}</Td>
                 {hasSizes && <>
-                  <td className="border-b border-line-subtle px-3 py-2 text-right tabular-nums text-xs text-fg-secondary">{formatSize(tb.dataBytes)}</td>
-                  <td className="border-b border-line-subtle px-3 py-2 text-right tabular-nums text-xs text-fg-secondary">{formatSize(tb.indexBytes)}</td>
-                  <td className="border-b border-line-subtle px-3 py-2 text-right tabular-nums text-xs font-medium text-fg">
-                    {formatSize(tb.dataBytes === null && tb.indexBytes === null ? null : (tb.dataBytes ?? 0) + (tb.indexBytes ?? 0))}
-                  </td>
+                  <Td align="right" className="tabular-nums text-xs text-fg-secondary">{formatSize(tb.dataBytes, lang)}</Td>
+                  <Td align="right" className="tabular-nums text-xs text-fg-secondary">{formatSize(tb.indexBytes, lang)}</Td>
+                  <Td align="right" className="tabular-nums text-xs font-medium text-fg">
+                    {formatSize(tb.dataBytes === null && tb.indexBytes === null ? null : (tb.dataBytes ?? 0) + (tb.indexBytes ?? 0), lang)}
+                  </Td>
                 </>}
-                {hasEngine && <td className="border-b border-line-subtle px-3 py-2 text-xs text-fg-secondary">{tb.engine ?? ''}</td>}
-                {hasEngine && <td className="border-b border-line-subtle px-3 py-2 font-mono text-2xs text-fg-muted">{tb.collation ?? ''}</td>}
-                <td className="max-w-64 truncate border-b border-line-subtle px-3 py-2 text-xs text-fg-muted">{tb.comment ?? ''}</td>
+                {hasEngine && <Td className="text-xs text-fg-secondary">{tb.engine ?? ''}</Td>}
+                {hasEngine && <Td className="font-mono text-2xs text-fg-muted">{tb.collation ?? ''}</Td>}
+                <Td className="max-w-64 truncate text-xs text-fg-muted">{tb.comment ?? ''}</Td>
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       </Card>
     </div>
   )

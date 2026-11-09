@@ -7,7 +7,7 @@ La page **Nettoyage disque** libère de la place en supprimant les dossiers que 
 
 ## Analyser
 
-Choisis un dossier (**Parcourir**) et **Analyser**. DevForge liste avec leur taille :
+Choisis un dossier (le champ en haut à droite, ou l'icône de dossier pour le parcourir) et **Analyser**. DevForge liste avec leur taille :
 
 | Catégorie | Exemples |
 |---|---|
@@ -15,7 +15,9 @@ Choisis un dossier (**Parcourir**) et **Analyser**. DevForge liste avec leur tai
 | Builds | `dist` et `build` (à côté d'un `package.json`), `.next`, `.nuxt`, `.output`, `.svelte-kit` |
 | Caches | `.turbo`, `.parcel-cache`, `.cache`, `coverage`, `__pycache__` |
 
-Le total récupérable s'affiche en haut. Les projets sans activité depuis plus de 30 jours sont marqués *inactif*.
+Une carte donne le total **récupérable**, une barre qui le répartit entre dépendances, caches et builds, et le bouton **Supprimer la sélection** avec sa taille. Le tableau donne pour chaque dossier sa catégorie (sa couleur), le projet, la **dernière activité** du projet et la taille. Les projets sans activité depuis plus de 30 jours sont marqués *inactif*.
+
+Les dossiers sont trouvés en une fraction de seconde (DevForge ne regarde jamais dans un `node_modules`), puis leurs tailles arrivent une à une, seize à la fois. Sur Windows, elles sont lues par la liste native du système (`robocopy` en mode liste : rien n'est copié, les liens et jonctions ne sont pas suivis) : quelques secondes pour des centaines de milliers de fichiers, au lieu d'une minute en lisant chaque fichier.
 
 ## Choisir
 

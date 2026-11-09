@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { CanvasSkeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AlertTriangle, ArrowRight, Copy } from 'lucide-react'
 import type { MldNaming, ModelFile } from '@shared/types'
@@ -9,7 +10,6 @@ import { useToast } from '@renderer/app/ToastContext'
 import { errorText } from '@renderer/lib/errors'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
-import Spinner from '@renderer/components/ui/Spinner'
 import ModelTabs from './ModelTabs'
 import ModelCrumbs from './ModelCrumbs'
 import { fill, modelUrl, siblings, useSiblings } from './model'
@@ -75,7 +75,7 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
   }
 
   if (error) return <div className="p-8"><ErrorState title={m.loadFailed} error={error} /></div>
-  if (!model || !mld) return <Spinner className="m-8" />
+  if (!model || !mld) return <CanvasSkeleton />
 
   const ruleText = (r: MldRule): ReactNode => {
     switch (r.kind) {
@@ -110,7 +110,7 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
             )}
             {!mld.relations.length ? <p className="text-sm text-fg-secondary">{l.empty}</p> : (
               <section aria-label={fill(l.title, { n: mld.relations.length })} className="flex flex-col gap-3">
-                <h2 className="font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{fill(l.title, { n: mld.relations.length })}</h2>
+                <h2 className="text-xs font-semibold tracking-[.04em] text-fg-muted uppercase">{fill(l.title, { n: mld.relations.length })}</h2>
                 <ul className="flex flex-col gap-1.5 rounded-xl border border-line-subtle bg-canvas p-4 font-mono text-base leading-relaxed">
                   {mld.relations.map(r => (
                     <li key={r.id} data-relation={r.name}>
@@ -135,7 +135,7 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
             )}
             {mld.rules.length > 0 && (
               <section aria-label={l.rules} className="flex flex-col gap-3">
-                <h2 className="font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{l.rules}</h2>
+                <h2 className="text-xs font-semibold tracking-[.04em] text-fg-muted uppercase">{l.rules}</h2>
                 <ol className="flex flex-col gap-2">
                   {mld.rules.map((r, i) => (
                     <li key={i} className="flex gap-2.5 text-sm text-fg-secondary">
@@ -150,7 +150,7 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
           </div>
 
           <aside aria-label={l.naming} className="flex w-[300px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-line-subtle p-4">
-            <h2 className="font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{l.naming}</h2>
+            <h2 className="text-xs font-semibold tracking-[.04em] text-fg-muted uppercase">{l.naming}</h2>
             <NamingSelect label={l.namingTables} value={naming.tables} options={l.tablesOpt} onChange={v => setNaming({ ...naming, tables: v })} />
             <NamingSelect label={l.namingPk} value={naming.pk} options={l.pkOpt} onChange={v => setNaming({ ...naming, pk: v })} />
             <NamingSelect label={l.namingFk} value={naming.fk} options={l.fkOpt} onChange={v => setNaming({ ...naming, fk: v })} />

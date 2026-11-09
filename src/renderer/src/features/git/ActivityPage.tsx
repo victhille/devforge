@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { CardSkeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate } from 'react-router-dom'
 import { ArrowDown, ArrowUp, RefreshCw } from 'lucide-react'
 import type { ActivityData } from '@shared/types'
@@ -8,11 +9,11 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
-import Spinner from '@renderer/components/ui/Spinner'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
+import { useSettings } from '@renderer/hooks/useLiveData'
 
 /** The bars' colours: the most active projects, then "others" */
-const COLORS = ['var(--color-accent)', 'var(--color-success)', 'var(--color-warning)', 'var(--syntax-keyword)']
+const COLORS = ['var(--color-accent)', 'var(--color-success)', 'var(--color-warning)', 'var(--color-info)']
 const OTHERS = 'var(--color-fg-muted)'
 
 /**
@@ -26,14 +27,15 @@ export default function ActivityPage() {
   const [data, setData] = useState<ActivityData | null>(null)
   const [loading, setLoading] = useState(false)
   const [mine, setMine] = useState(true)
-  const [folders, setFolders] = useState<string[]>([])
+  const { data: settings } = useSettings()
+  const folders = useMemo(() => (settings ? projectFolders(settings) : []), [settings])
   const [place, setPlace] = useState('all')
 
   const load = (fresh = false) => {
     setLoading(true)
     window.devforge.activity.get(fresh).then(setData).catch(() => {}).finally(() => setLoading(false))
   }
-  useEffect(() => { load(); window.devforge.getSettings().then(s => setFolders(projectFolders(s))).catch(() => {}) }, [])
+  useEffect(() => { load() }, [])
 
   const now = Math.floor(Date.now() / 1000)
   const projects = useMemo(() => (data?.projects ?? []).filter(p => place === 'all' || folderOf(p.path, folders) === place), [data, place, folders])
@@ -74,7 +76,7 @@ export default function ActivityPage() {
         ))}
       </div>}
 
-      {!data ? <Spinner className="m-6" /> : (
+      {!data ? <CardSkeleton label={t.common.loading} rows={4} /> : (
         <>
           <Card className="flex flex-col gap-3 p-4.5">
             <div className="flex items-baseline gap-2.5">
@@ -140,7 +142,7 @@ export default function ActivityPage() {
                 <ul className="flex flex-col gap-1.5 text-sm">
                   {toFollow(projects).map(p => (
                     <li key={p.id} className="flex items-center gap-3">
-                      <button onClick={() => navigate(`/project/${p.id}?tab=git`)} className="min-w-0 flex-1 truncate text-left text-fg hover:text-accent">
+                      <button onClick={() => navigate(`/project/${p.id}?tab=files`)} className="min-w-0 flex-1 truncate text-left text-fg hover:text-accent">
                         {p.name} · <span className="font-mono text-xs text-fg-secondary">{p.branch}</span>
                       </button>
                       {p.ahead > 0 && <span className="flex items-center gap-0.5 font-mono text-xs text-accent"><ArrowUp size={11} />{k.toPush.replace('{n}', String(p.ahead))}</span>}

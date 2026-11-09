@@ -62,7 +62,8 @@ test('a model written while the lists are open (as Forgy does) shows up at once,
     }
   })
   const { page } = run
-  const card = page.getByText('conception/connexion.sequence.json')
+  // The model's card, its file in its tooltip
+  const card = page.getByTitle('conception/connexion.sequence.json')
 
   // The project's Modeling tab, open while the main process writes a model (Forgy's way: not from this page)
   await goTo(page, '/project/p1')

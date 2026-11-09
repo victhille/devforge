@@ -3,6 +3,7 @@ import FrameworkIcon, { FRAMEWORK_COLOR } from '@renderer/components/ui/Framewor
 import { paleClass } from '@renderer/lib/brand'
 
 const SIZES = {
+  xs: { box: 'size-4.5 rounded-md', icon: 11 },
   sm: { box: 'size-8 rounded-lg',  icon: 15 },
   md: { box: 'size-9 rounded-lg',  icon: 16 },
   lg: { box: 'size-12 rounded-xl', icon: 24 }

@@ -1,36 +1,41 @@
-import { useEffect, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { Check } from 'lucide-react'
 import type { Framework, PhpStatus, ProjectSetup, SetupDatabase, SetupFeature } from '@shared/types'
 import { DB_NAME_RE, DEFAULT_DB_PORT, SETUP_FEATURES } from '@shared/lib/projectSetup'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
-import Card, { CardTitle } from '@renderer/components/ui/Card'
-import Checkbox from '@renderer/components/ui/Checkbox'
+import Switch from '@renderer/components/ui/Switch'
 import { Field, Input } from '@renderer/components/ui/Input'
-import WizardFrame, { type WizardStep } from './WizardFrame'
+import { FamilyLabel, OptionRow } from './WizardFrame'
 import Notice from '@renderer/components/ui/Notice'
 
-type Stack = Pick<ProjectSetup, 'database' | 'dbName' | 'dbPort' | 'appPort' | 'features'>
+export type Stack = Pick<ProjectSetup, 'database' | 'dbName' | 'dbPort' | 'appPort' | 'features'>
 
 interface Props {
   framework: Framework
   projectName: string
   /** Choices made before going back */
   initial: Stack | null
-  steps: WizardStep[]
-  onBack: () => void
-  onSubmit: (stack: Stack) => void
+  /** The choices as they are made, for the summary on the right */
+  onDraft?: (stack: Stack) => void
 }
 
-const DATABASES: SetupDatabase[] = ['postgres', 'mysql', 'sqlite', 'none']
+/** The screen validates the section: the stack, or null (and the error shown) */
+export interface StackHandle { submit: () => Stack | null }
 
-/** Step 3 (Symfony, Next.js): database and options */
-export default function StackForm({ framework, projectName, initial, steps, onBack, onSubmit }: Props) {
+/** In the mock-up's order: none, a file, then the servers in Docker */
+const DATABASES: SetupDatabase[] = ['none', 'sqlite', 'postgres', 'mysql']
+
+/** Step 2, second part (Symfony, Next.js, Laravel): the database and the options */
+const StackForm = forwardRef<StackHandle, Props>(function StackForm({ framework, projectName, initial, onDraft }, ref) {
   const { t } = useI18n()
   const s = t.newProject.setup
   const [database, setDatabase] = useState<SetupDatabase>(initial?.database ?? 'postgres')
-  const [dbName, setDbName] = useState(initial?.dbName || projectName.replace(/-/g, '_').replace(/^[^a-zA-Z_]/, '_$&').slice(0, 63))
+  const nameFor = (project: string) => project.replace(/-/g, '_').replace(/^[^a-zA-Z_]/, '_$&').slice(0, 63)
+  const [dbName, setDbName] = useState(initial?.dbName || nameFor(projectName))
+  const dbTouched = useRef(!!initial?.dbName)
+  useEffect(() => { if (!dbTouched.current) setDbName(nameFor(projectName)) }, [projectName])
   const [ports, setPorts] = useState<Record<'postgres' | 'mysql', number>>(() => initial && (initial.database === 'postgres' || initial.database === 'mysql') ? { ...DEFAULT_DB_PORT, [initial.database]: initial.dbPort } : { ...DEFAULT_DB_PORT })
   const [features, setFeatures] = useState<SetupFeature[]>(initial?.features ?? ['api', 'tests', 'ci'])
   const [error, setError] = useState('')
@@ -83,12 +88,16 @@ export default function StackForm({ framework, projectName, initial, steps, onBa
 
   const authSqlite = database === 'none' && features.includes('auth')
 
-  function submit() {
-    if (server && !DB_NAME_RE.test(dbName)) { setError(s.dbNameError); return }
-    const port = server ? ports[database as 'postgres' | 'mysql'] : 0
-    // Accounts need a database: none chosen with authentication means SQLite
-    onSubmit({ database: authSqlite ? 'sqlite' : database, dbName, dbPort: port, ...(framework === 'laravel' ? { appPort } : {}), features: SETUP_FEATURES.filter(f => features.includes(f)) })
-  }
+  // Accounts need a database: none chosen with authentication means SQLite
+  const stackOf = (): Stack => ({ database: authSqlite ? 'sqlite' : database, dbName, dbPort: server ? ports[database as 'postgres' | 'mysql'] : 0, ...(framework === 'laravel' ? { appPort } : {}), features: SETUP_FEATURES.filter(f => features.includes(f)) })
+  useImperativeHandle(ref, () => ({
+    submit: () => {
+      if (server && !DB_NAME_RE.test(dbName)) { setError(s.dbNameError); return null }
+      return stackOf()
+    }
+  }))
+  const draft = JSON.stringify(stackOf())
+  useEffect(() => { onDraft?.(JSON.parse(draft)) }, [draft, onDraft])
 
   const willDo = [
     ...(server ? [s.doCompose.replace('{engine}', s.db[database].name)] : []),
@@ -99,13 +108,7 @@ export default function StackForm({ framework, projectName, initial, steps, onBa
   ]
 
   return (
-    <WizardFrame
-      steps={steps}
-      subtitle={s.subtitle}
-      onBack={onBack}
-      hint={s.cmdHint}
-      footer={<Button size="lg" onClick={submit}>{t.newProject.continue}</Button>}
-    >
+    <>
       {phpProblem && php && (
         <Notice tone="warning" live title={s.phpTitle}
           action={php.found && php.ini ? <Button variant="secondary" disabled={phpBusy} onClick={enablePhp}>{s.phpEnable}</Button> : undefined}>
@@ -115,63 +118,45 @@ export default function StackForm({ framework, projectName, initial, steps, onBa
       )}
       {phpNote && !phpProblem && <p role="status" className="text-sm text-success">{phpNote}</p>}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="flex flex-col gap-3.5 p-5">
-          <CardTitle>{s.dbTitle}</CardTitle>
-          <div role="radiogroup" aria-label={s.dbTitle} className="grid grid-cols-2 gap-2.5 xl:grid-cols-4">
-            {DATABASES.map(db => (
-              <button
-                key={db}
-                type="button"
-                role="radio"
-                aria-checked={database === db}
-                onClick={() => { setDatabase(db); setError('') }}
-                className={cn(
-                  'flex flex-col items-start gap-0.5 rounded-xl border-2 bg-canvas p-3 text-left transition-colors',
-                  database === db ? 'border-accent' : 'border-line hover:border-fg-disabled'
-                )}
-              >
-                <span className="font-semibold text-fg">{s.db[db].name}</span>
-                <span className="text-xs text-fg-secondary">{s.db[db].desc}</span>
-              </button>
-            ))}
-          </div>
-          {server && (
-            <div className="grid grid-cols-2 gap-2.5">
-              <Field label={s.dbName} error={error}>
-                <Input value={dbName} onChange={e => { setDbName(e.target.value); setError('') }} className="font-mono" spellCheck={false} invalid={!!error} />
-              </Field>
-              <Field label={s.dbPort} hint={s.dbPortHint}>
-                <Input
-                  type="number" min={1} max={65535} className="font-mono"
-                  value={ports[database as 'postgres' | 'mysql']}
-                  onChange={e => setPorts(p => ({ ...p, [database]: Number(e.target.value) }))}
-                />
-              </Field>
-            </div>
-          )}
-          {willDo.length > 0 && (
-            <div className="flex flex-col gap-1.5 rounded-control border border-line-subtle bg-console p-3 text-sm">
-              <span className="text-xs text-fg-muted">{s.willDo}</span>
-              {willDo.map(line => <span key={line} className="flex items-center gap-2 text-fg"><Check size={12} className="shrink-0 text-success" />{line}</span>)}
-            </div>
-          )}
-        </Card>
-
-        <Card className="flex flex-col gap-3 p-5">
-          <CardTitle>{s.featTitle}</CardTitle>
-          {SETUP_FEATURES.map(f => (
-            <Checkbox key={f} checked={features.includes(f)} onChange={on => toggle(f, on)}
-              className={cn('items-start gap-3 rounded-xl border bg-canvas p-3 transition-colors', features.includes(f) ? 'border-accent/50' : 'border-line hover:border-fg-disabled')}>
-              <span className="-mt-0.5 flex flex-col">
-                <span className="font-semibold text-fg">{s.feat[f]}</span>
-                <span className="text-sm text-fg-secondary">{desc(f)}</span>
-              </span>
-            </Checkbox>
-          ))}
-          {authSqlite && <p role="status" className="rounded-xl bg-accent-soft p-3 text-sm text-fg">{s.authSqlite}</p>}
-        </Card>
+      <FamilyLabel>{s.dbTitle}</FamilyLabel>
+      <div role="radiogroup" aria-label={s.dbTitle} className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-3">
+        {DATABASES.map(db => (
+          <button key={db} type="button" role="radio" aria-checked={database === db} onClick={() => { setDatabase(db); setError('') }}
+            className={cn('flex min-w-0 flex-col gap-0.5 rounded-xl border p-3 text-left transition-colors',
+              database === db ? 'border-accent bg-accent-soft' : 'border-line-subtle bg-surface hover:border-fg-muted')}>
+            <span className="truncate font-semibold text-fg">{s.db[db].name}</span>
+            <span className="text-xs text-fg-muted">{s.db[db].desc}</span>
+          </button>
+        ))}
       </div>
-    </WizardFrame>
+      {server && (
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={s.dbName} error={error}>
+            <Input value={dbName} onChange={e => { dbTouched.current = true; setDbName(e.target.value); setError('') }} className="font-mono" spellCheck={false} invalid={!!error} />
+          </Field>
+          <Field label={s.dbPort} hint={s.dbPortHint}>
+            <Input type="number" min={1} max={65535} className="font-mono" value={ports[database as 'postgres' | 'mysql']}
+              onChange={e => setPorts(p => ({ ...p, [database]: Number(e.target.value) }))} />
+          </Field>
+        </div>
+      )}
+      {willDo.length > 0 && (
+        <ul aria-label={s.willDo} className="flex flex-col gap-1 text-sm">
+          {willDo.map(line => <li key={line} className="flex items-center gap-2 text-fg-secondary"><Check size={12} aria-hidden className="shrink-0 text-success" />{line}</li>)}
+        </ul>
+      )}
+
+      <FamilyLabel>{s.featTitle}</FamilyLabel>
+      <div className="rounded-card border border-line-subtle bg-surface px-3.5">
+        {SETUP_FEATURES.map(f => (
+          <OptionRow key={f} label={s.feat[f]} hint={desc(f)}>
+            <Switch checked={features.includes(f)} onChange={on => toggle(f, on)} label={s.feat[f]} />
+          </OptionRow>
+        ))}
+      </div>
+      {authSqlite && <p role="status" className="rounded-xl bg-accent-soft p-3 text-sm text-fg">{s.authSqlite}</p>}
+    </>
   )
-}
+})
+
+export default StackForm

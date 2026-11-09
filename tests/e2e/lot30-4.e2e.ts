@@ -15,6 +15,8 @@ test.afterEach(async () => {
 test('export without secrets, erase everything, import the setup back', async () => {
   let shop = ''
   run = await launch({
+    // No fade-ins: on a slow machine axe could measure the danger zone half-faded
+    settings: { motion: 'reduced' },
     // export.json is not part of the data: erasing leaves it, the import reads it back
     env: { DEVFORGE_TEST_EXPORT_PATH: '{userData}/export.json', DEVFORGE_TEST_IMPORT_PATH: '{userData}/export.json', DEVFORGE_TEST_NO_RELAUNCH: '1', GIT_CONFIG_GLOBAL: '{userData}/gitconfig' },
     seed: dir => {
@@ -28,6 +30,8 @@ test('export without secrets, erase everything, import the setup back', async ()
   const exported = join(userData, 'export.json')
 
   await goTo(page, '/settings?section=data')
+  // The section is read from the settings: its buttons first, then axe once they have faded in
+  await expect(page.getByRole('button', { name: 'Exporter' })).toBeVisible()
   expect(await settledAxe(page)).toEqual([])
   await page.getByRole('button', { name: 'Exporter' }).click()
   await expect(page.getByText('Configuration exportée.')).toBeVisible()
@@ -37,9 +41,10 @@ test('export without secrets, erase everything, import the setup back', async ()
   expect(bundle).not.toContain('chiffre')
   expect(bundle).not.toContain('passwordEnc')
 
-  // Erasing needs the word typed; the page's memory goes too
+  // Erasing asks first, then needs the word typed; the page's memory goes too
   await page.evaluate(() => localStorage.setItem('devforge:test', '1'))
-  const wipe = page.getByRole('button', { name: 'Tout effacer' })
+  await page.getByRole('button', { name: 'Tout effacer…' }).click()
+  const wipe = page.getByRole('button', { name: 'Tout effacer', exact: true })
   await expect(wipe).toBeDisabled()
   await page.getByLabel('Tape « effacer » pour confirmer').fill('effacer')
   await wipe.click()

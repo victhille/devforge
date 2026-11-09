@@ -1,11 +1,12 @@
 import { readdir, readFile, stat } from 'fs/promises'
 import { join } from 'path'
-import type { DomainSuggestion, LogFileSuggestion, Project, UrlSuggestion } from '@shared/types'
+import type { DomainSuggestion, LogFileSuggestion, PortProject, Project, UrlSuggestion } from '@shared/types'
 import { loadProjects } from '../projects/projectStorage'
 import { parseEnv } from '../envfiles/envFiles'
 import { listDomains } from '../domains/domainService'
 import { listMonitors } from '../monitor/urlMonitor'
 import { getListeningPorts } from '../system/portService'
+import { projectOfCommand } from './portOwner'
 import { run } from '../../lib/exec'
 
 /** Folders where frameworks write their logs */
@@ -85,8 +86,16 @@ export async function explicitPort(p: Project, env: Record<string, string>): Pro
   return null
 }
 
+/** The reading under way: callers at the same time share it (one CIM query, not one each) */
+let readingCommandLines: Promise<Map<number, string>> | null = null
+
 /** Command lines of the processes listening on dev ports (Windows: one CIM query) */
-async function listeningCommandLines(): Promise<Map<number, string>> {
+function listeningCommandLines(): Promise<Map<number, string>> {
+  readingCommandLines ??= readCommandLines().finally(() => { readingCommandLines = null })
+  return readingCommandLines
+}
+
+async function readCommandLines(): Promise<Map<number, string>> {
   const ports = (await getListeningPorts()).filter(p => p.pid && p.port >= 1024)
   const byPid = new Map<number, number[]>()
   for (const p of ports) byPid.set(p.pid!, [...(byPid.get(p.pid!) ?? []), p.port])
@@ -108,6 +117,17 @@ async function listeningCommandLines(): Promise<Map<number, string>> {
   return result
 }
 
+/** Which project each listening dev port comes from */
+export async function portProjects(): Promise<PortProject[]> {
+  const [cmdlines, projects] = await Promise.all([listeningCommandLines(), Promise.resolve(loadProjects())])
+  const out: PortProject[] = []
+  for (const [port, cmd] of cmdlines) {
+    const p = projectOfCommand(cmd, projects)
+    if (p) out.push({ port, projectId: p.id, projectName: p.name })
+  }
+  return out.sort((a, b) => a.port - b.port)
+}
+
 export async function suggestDomains(): Promise<DomainSuggestion[]> {
   const existing = listDomains()
   const [cmdlines, projects] = await Promise.all([listeningCommandLines(), Promise.resolve(loadProjects())])
@@ -115,12 +135,8 @@ export async function suggestDomains(): Promise<DomainSuggestion[]> {
   const usedPorts = new Set(existing.map(d => d.port))
 
   // 1. Running dev servers whose command line points into a project folder
-  const norm = (s: string) => s.toLowerCase().replace(/\\/g, '/')
-  for (const [port, rawCmd] of cmdlines) {
-    const cmd = norm(rawCmd)
-    const p = projects
-      .filter(x => cmd.includes(norm(x.path) + '/'))
-      .sort((a, b) => b.path.length - a.path.length)[0] // deepest match wins
+  for (const [port, cmd] of cmdlines) {
+    const p = projectOfCommand(cmd, projects)
     // One suggestion per project (a project can run several dev servers)
     if (!p || usedPorts.has(port) || out.some(o => o.projectName === p.name)) continue
     usedPorts.add(port)

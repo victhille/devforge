@@ -50,4 +50,25 @@ describe('v3.0 lot 4: profile', () => {
     importConfig(other, JSON.stringify({ app: 'DevForge', format: 1, files: { 'settings.json': {}, '../evil.json': {} } }))
     expect(existsSync(join(other, '..', 'evil.json'))).toBe(false)
   })
+
+  it('imported servers forget what this PC kept for its own: n8n keys, VPN logins, passwords of databases through a server', () => {
+    const exported = JSON.stringify(exportConfig(profile(), '3.0.0'))
+    const other = tempDir('kept')
+    const read = (name: string) => JSON.parse(readFileSync(join(other, name), 'utf-8'))
+    const seed = () => {
+      writeFileSync(join(other, 'n8n.json'), JSON.stringify({ instances: [{ connectionId: 's1', domain: '', keyEnc: 'k' }] }))
+      writeFileSync(join(other, 'vpn.json'), JSON.stringify({ servers: [{ connectionId: 's1', port: 51821, username: 'admin', passwordEnc: 'w' }] }))
+      writeFileSync(join(other, 'databases.json'), JSON.stringify([{ id: 'via', sshConnectionId: 's1', passwordEnc: 'd' }, { id: 'direct', passwordEnc: 'l' }]))
+    }
+    // Without servers in the file, nothing to forget
+    seed()
+    importConfig(other, JSON.stringify({ app: 'DevForge', format: 1, files: { 'settings.json': {} } }))
+    expect(read('n8n.json').instances[0].keyEnc).toBe('k')
+    // The same ids may now name other machines
+    seed()
+    importConfig(other, exported)
+    expect(read('n8n.json')).toEqual({ instances: [{ connectionId: 's1', domain: '' }] })
+    expect(read('vpn.json')).toEqual({ servers: [] })
+    expect(read('databases.json')).toEqual([{ id: 'via', sshConnectionId: 's1' }, { id: 'direct', passwordEnc: 'l' }])
+  })
 })

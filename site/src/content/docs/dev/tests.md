@@ -23,24 +23,26 @@ Avec plusieurs outils (Vitest et Playwright, par exemple), un menu choisit leque
 
 **Lancer les tests** démarre l'outil dans le dossier du projet ; sa sortie défile en dessous pendant l'exécution, et **Arrêter** le coupe. Ensuite :
 
-- quatre chiffres : **réussis**, **échoués**, **ignorés**, et la **durée** ;
-- les tests **par fichier**, chacun avec ✓, ✗ ou *ignoré* et son temps ; un fichier qui a un échec est ouvert, les autres sont repliés ;
+- les totaux en pastilles : **réussis**, **échecs**, **ignorés**, et la **durée** ;
+- à gauche, les **fichiers de tests**, chacun avec son nombre de tests et d'échecs ; le premier fichier en échec est choisi d'office ;
+- à droite, **les tests du fichier choisi**, chacun avec ✓, ✗ ou *ignoré* et son temps ;
 - **Sortie de la commande**, repliée, garde ce que l'outil a écrit.
 
 L'outil écrit son rapport dans les données de DevForge, jamais dans le projet. La dernière exécution complète est gardée : en revenant sur l'onglet, elle s'affiche avec son heure (*Dernière exécution il y a 5 min*).
 
 ## Les échecs
 
-Un test échoué se déplie sous sa ligne :
+Dans le détail du fichier, le premier échec s'affiche en haut ; un clic sur un autre test échoué l'affiche à sa place :
 
 - son **message** ;
 - **Attendu** et **Reçu**, quand l'outil les donne (Jest, Vitest, PHPUnit, pytest, et `left` / `right` en Rust) ;
-- **À** *fichier:ligne* : un clic ouvre le fichier dans l'onglet **Fichiers**, à la ligne, surlignée ;
+- **À** *fichier:ligne* : un clic (ou **Ouvrir le fichier**) l'ouvre dans l'onglet **Fichiers et Git**, à la ligne, surlignée ;
 - **Message complet** pour la trace entière.
 
 Puis :
 
-- **Relancer ce fichier** (sous l'échec, ou l'icône sur la ligne du fichier) ;
+- **Relancer ce test** : seulement ce test, quand son nom est fait de mots simples (lettres, chiffres, espaces et ponctuation courante) ; sinon, tout son fichier ;
+- **Relancer ce fichier** (à côté du titre des tests du fichier) ;
 - **Relancer les échecs** : seulement les fichiers qui ont échoué ;
 - **Échecs seulement** cache tout ce qui passe ;
 - **Expliquer avec Forgy** envoie le nom du test, son endroit et son message à [Forgy](/devforge/forgy/assistant/), qui explique l'échec et propose une correction.

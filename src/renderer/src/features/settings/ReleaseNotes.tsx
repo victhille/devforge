@@ -68,7 +68,7 @@ export default function ReleaseNotes({ focus, onBack }: { focus?: string | null;
       <div className="df-rise flex flex-wrap items-end gap-3">
         <div className="min-w-[220px] flex-1">
           <button onClick={onBack} className="flex items-center gap-1 text-sm text-accent hover:underline"><ArrowLeft size={13} /> {n.back}</button>
-          <h1 className="mt-1.5 text-page font-semibold tracking-tight text-fg">{t.settings.releaseNotes}</h1>
+          <h1 className="mt-1.5 font-display text-page font-bold tracking-[-.025em] text-fg">{t.settings.releaseNotes}</h1>
         </div>
         <div role="radiogroup" aria-label={t.settings.releaseNotes} className="flex flex-wrap gap-1.5">
           {filters.map(f => (

@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
@@ -63,9 +64,9 @@ export default function Modal({ title, onClose, footer, className, children }: P
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  return (
+  const dialog = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6 backdrop-blur-[2px]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-6 backdrop-blur-[3px]"
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
@@ -74,10 +75,10 @@ export default function Modal({ title, onClose, footer, className, children }: P
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={cn('flex max-h-full w-full max-w-md flex-col rounded-xl border border-line bg-surface shadow-pop outline-none', className)}
+        className={cn('flex max-h-full w-full max-w-md flex-col rounded-window border border-line bg-surface shadow-pop outline-none', className)}
       >
         <div className="flex items-center justify-between border-b border-line-subtle px-5 py-3.5">
-          <h3 id={titleId} className="text-md font-semibold text-fg">{title}</h3>
+          <h3 id={titleId} className="font-display text-lg font-bold tracking-[-.01em] text-fg">{title}</h3>
           <IconButton title={t.common.close} onClick={onClose}><X size={16} /></IconButton>
         </div>
         <div className="flex flex-col gap-4 overflow-y-auto px-5 py-4">{children}</div>
@@ -87,4 +88,7 @@ export default function Modal({ title, onClose, footer, className, children }: P
       </div>
     </div>
   )
+  // On the document itself: a page that moves (its rise as it appears) would otherwise hold it in its own box.
+  // Without a document (a render to text, the tests' markup) it stays where it is
+  return typeof document === 'undefined' ? dialog : createPortal(dialog, document.body)
 }

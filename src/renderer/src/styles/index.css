@@ -1,141 +1,167 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/geist/wght.css';
-@import '@fontsource-variable/geist-mono/wght.css';
+/* « Forge » : Inter pour le texte, JetBrains Mono pour le code, Bricolage Grotesque pour les titres, embarquées dans l'app */
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+@import '@fontsource-variable/bricolage-grotesque/opsz.css';
 
 /* ─── Theme variables (dark by default) ────────────────────────────────────── */
+/* « Forge » : graphite chaud, l'orange de Forgy comme accent. Ses fonds, bordures, textes et accent sont aussi
+   PALETTES.forge dans src/shared/lib/accents.ts (les aperçus d'Apparence) : changer l'un, c'est changer l'autre
+   (tests/shared/accents.test.ts les compare). Les autres couleurs d'Apparence s'écrivent par-dessus (lib/appearance.ts). */
 
 :root {
-  /* Code colours (file previews), one set per theme */
-  --syntax-keyword: #C792EA;
-  --syntax-string:  #A5D6A7;
-  --syntax-number:  #F7B267;
-  --syntax-title:   #82AAFF;
-  --syntax-tag:     #F07178;
-  --syntax-attr:    #FFCB6B;
-  --bg-base:        #0D0F13;
-  --bg-surface:     #161A21;
-  --bg-elevated:    #1D222B;
-  --bg-hover:       #1A1F27;
-  --bg-active:      #1C2638;
-  --bg-console:     #0A0C10;
-  --bg-sidebar:     #111419;
-  --bg-chrome:      #0A0C10;
+  /* Code colours (file previews), one set per theme; from the mock-up: keywords orange, strings green, numbers amber, functions blue */
+  --syntax-keyword: #FF9457;
+  --syntax-string:  #9BD48A;
+  --syntax-number:  #F2B544;
+  --syntax-title:   #7AA7FF;
+  --syntax-tag:     #F2766B;
+  --syntax-attr:    #C4A7F5;
+  /* Diagrams (Modeling): their own colours, apart from the code's and from the orange of a selection,
+     named by hue as each serves several roles (an MCD's entities, a note, a use case's actor, a kind's tag) */
+  --diagram-violet:  #C792EA;
+  --diagram-orange:  #F7B267;
+  --diagram-red:     #F07178;
+  --diagram-yellow:  #FFCB6B;
+  --bg-base:        #121110;
+  --bg-surface:     #1A1816;
+  --bg-elevated:    #221F1C;
+  --bg-hover:       #262320;
+  --bg-active:      #2A2622;
+  --bg-console:     #0E0D0C;
+  --bg-sidebar:     #151311;
+  --bg-chrome:      #0E0D0C;
 
-  --border:         #262C36;
-  --border-subtle:  #1F242D;
+  --border:         #2E2A26;
+  --border-subtle:  #25221F;
 
-  --text-primary:   #E8ECF2;
-  --text-secondary: #9AA4B2;
-  --text-muted:     #8792A2;
-  --text-disabled:  #3A4250;
+  --text-primary:   #F2EEE9;
+  --text-secondary: #B5ADA4;
+  --text-muted:     #9E968D;
+  --text-disabled:  #4A443E;
 
-  --accent:         #5B9BFF;
-  --accent-hover:   #7EB0FF;
-  --accent-dim:     rgba(91, 155, 255, 0.13);
+  --accent:         #FF7A33;
+  --accent-hover:   #FF9457;
+  --accent-dim:     rgba(255, 122, 51, 0.14);
   /* Text on an accent background */
-  --accent-fg:      #08111F;
+  --accent-fg:      #1A0A02;
 
-  --success:        #3FCF8E;
-  --success-dim:    rgba(63, 207, 142, 0.11);
-  --warning:        #F5B544;
-  --warning-dim:    rgba(245, 181, 68, 0.11);
-  --danger:         #FF6B6B;
-  --danger-dim:     rgba(255, 107, 107, 0.11);
+  --success:        #4ACB8A;
+  --success-dim:    rgba(74, 203, 138, 0.13);
+  --warning:        #F2B544;
+  --warning-dim:    rgba(242, 181, 68, 0.13);
+  --danger:         #FF6B5E;
+  --danger-dim:     rgba(255, 107, 94, 0.13);
   --danger-fg:      #1F0606;
   --success-fg:     #03140C;
+  /* An information that is not a warning: blue, since the accent is orange */
+  --info:           #7AA7FF;
+  --info-dim:       rgba(122, 167, 255, 0.13);
 
-  /* Forgy, the assistant: its orange is kept for everything assistant-related */
-  --forgy:          #FF9A3C;
-  --forgy-dim:      rgba(255, 154, 60, 0.12);
+  /* Forgy, the assistant: its orange is the accent of the whole app */
+  --forgy:          #FF7A33;
+  --forgy-dim:      rgba(255, 122, 51, 0.14);
   /* Text on a Forgy background */
-  --forgy-fg:       #1A0E04;
+  --forgy-fg:       #1A0A02;
 
   --shadow-color:   rgba(0, 0, 0, 0.5);
 }
 
 [data-theme='light'] {
-  --syntax-keyword: #8B3FC7;
-  --syntax-string:  #2E7D32;
-  --syntax-number:  #B35A00;
+  --syntax-keyword: #B53C0B;
+  --syntax-string:  #286A2C;
+  --syntax-number:  #8F5A00;
   --syntax-title:   #1F5FC4;
-  --syntax-tag:     #C62839;
-  --syntax-attr:    #8A6100;
-  --bg-base:        #F0F2F5;
+  --syntax-tag:     #B0214F;
+  --syntax-attr:    #7046C2;
+  --diagram-violet:  #8B3FC7;
+  --diagram-orange:  #B35A00;
+  --diagram-red:     #C62839;
+  --diagram-yellow:  #8A6100;
+  --bg-base:        #F7F4F0;
   --bg-surface:     #FFFFFF;
-  --bg-elevated:    #F7F8FB;
-  --bg-hover:       #EEF0F4;
-  --bg-active:      #E4E7ED;
-  --bg-console:     #F7F8FB;
-  --bg-sidebar:     #F7F8FB;
+  --bg-elevated:    #F3EFEA;
+  --bg-hover:       #F0EBE5;
+  --bg-active:      #ECE6DF;
+  --bg-console:     #FBF9F6;
+  --bg-sidebar:     #FBF9F6;
   --bg-chrome:      #FFFFFF;
 
-  --border:         #D1D5DB;
-  --border-subtle:  #E5E7EB;
+  --border:         #E4DED6;
+  --border-subtle:  #EEE9E3;
 
-  --text-primary:   #111827;
-  --text-secondary: #4B5563;
-  --text-muted:     #5D6675;
-  --text-disabled:  #A3AAB5;
+  --text-primary:   #1E1A16;
+  --text-secondary: #5C544C;
+  --text-muted:     #6A6158;
+  --text-disabled:  #ABA196;
 
-  --accent:         #1D4ED8;
-  --accent-hover:   #1E40AF;
-  --accent-dim:     rgba(29, 78, 216, 0.10);
+  --accent:         #B53C0B;
+  --accent-hover:   #9A3412;
+  --accent-dim:     rgba(181, 60, 11, 0.10);
   --accent-fg:      #FFFFFF;
 
-  --success:        #036A4B;
-  --success-dim:    rgba(3, 106, 75, 0.10);
-  --warning:        #9A4A07;
-  --warning-dim:    rgba(154, 74, 7, 0.10);
-  --danger:         #B91C1C;
-  --danger-dim:     rgba(185, 28, 28, 0.10);
+  --success:        #0D7044;
+  --success-dim:    rgba(13, 112, 68, 0.10);
+  --warning:        #8F5400;
+  --warning-dim:    rgba(143, 84, 0, 0.10);
+  --danger:         #B42318;
+  --danger-dim:     rgba(180, 35, 24, 0.09);
   --danger-fg:      #FFFFFF;
   --success-fg:     #FFFFFF;
+  --info:           #1D4ED8;
+  --info-dim:       rgba(29, 78, 216, 0.09);
 
-  --forgy:          #B03B0A;
-  --forgy-dim:      rgba(176, 59, 10, 0.10);
+  --forgy:          #B53C0B;
+  --forgy-dim:      rgba(181, 60, 11, 0.10);
   --forgy-fg:       #FFFFFF;
 
-  --shadow-color:   rgba(0, 0, 0, 0.12);
+  --shadow-color:   rgba(60, 40, 20, 0.14);
 }
 
 @media (prefers-color-scheme: light) {
   :root[data-theme='system'] {
-    --syntax-keyword: #8B3FC7;
-    --syntax-string:  #2E7D32;
-    --syntax-number:  #B35A00;
+    --syntax-keyword: #B53C0B;
+    --syntax-string:  #286A2C;
+    --syntax-number:  #8F5A00;
     --syntax-title:   #1F5FC4;
-    --syntax-tag:     #C62839;
-    --syntax-attr:    #8A6100;
-    --bg-base:        #F0F2F5;
+    --syntax-tag:     #B0214F;
+    --syntax-attr:    #7046C2;
+    --diagram-violet:  #8B3FC7;
+    --diagram-orange:  #B35A00;
+    --diagram-red:     #C62839;
+    --diagram-yellow:  #8A6100;
+    --bg-base:        #F7F4F0;
     --bg-surface:     #FFFFFF;
-    --bg-elevated:    #F7F8FB;
-    --bg-hover:       #EEF0F4;
-    --bg-active:      #E4E7ED;
-    --bg-console:     #F7F8FB;
-    --bg-sidebar:     #F7F8FB;
+    --bg-elevated:    #F3EFEA;
+    --bg-hover:       #F0EBE5;
+    --bg-active:      #ECE6DF;
+    --bg-console:     #FBF9F6;
+    --bg-sidebar:     #FBF9F6;
     --bg-chrome:      #FFFFFF;
-    --border:         #D1D5DB;
-    --border-subtle:  #E5E7EB;
-    --text-primary:   #111827;
-    --text-secondary: #4B5563;
-    --text-muted:     #5D6675;
-    --text-disabled:  #A3AAB5;
-    --accent:         #1D4ED8;
-    --accent-hover:   #1E40AF;
-    --accent-dim:     rgba(29, 78, 216, 0.10);
+    --border:         #E4DED6;
+    --border-subtle:  #EEE9E3;
+    --text-primary:   #1E1A16;
+    --text-secondary: #5C544C;
+    --text-muted:     #6A6158;
+    --text-disabled:  #ABA196;
+    --accent:         #B53C0B;
+    --accent-hover:   #9A3412;
+    --accent-dim:     rgba(181, 60, 11, 0.10);
     --accent-fg:      #FFFFFF;
-    --success:        #036A4B;
-    --success-dim:    rgba(3, 106, 75, 0.10);
-    --warning:        #9A4A07;
-    --warning-dim:    rgba(154, 74, 7, 0.10);
-    --danger:         #B91C1C;
-    --danger-dim:     rgba(185, 28, 28, 0.10);
+    --success:        #0D7044;
+    --success-dim:    rgba(13, 112, 68, 0.10);
+    --warning:        #8F5400;
+    --warning-dim:    rgba(143, 84, 0, 0.10);
+    --danger:         #B42318;
+    --danger-dim:     rgba(180, 35, 24, 0.09);
     --danger-fg:      #FFFFFF;
     --success-fg:     #FFFFFF;
-    --forgy:          #B03B0A;
-    --forgy-dim:      rgba(176, 59, 10, 0.10);
+    --info:           #1D4ED8;
+    --info-dim:       rgba(29, 78, 216, 0.09);
+    --forgy:          #B53C0B;
+    --forgy-dim:      rgba(181, 60, 11, 0.10);
     --forgy-fg:       #FFFFFF;
-    --shadow-color:   rgba(0, 0, 0, 0.12);
+    --shadow-color:   rgba(60, 40, 20, 0.14);
   }
 }
 
@@ -171,39 +197,53 @@
   --color-danger:       var(--danger);
   --color-danger-soft:  var(--danger-dim);
   --color-danger-fg:    var(--danger-fg);
+  --color-info:         var(--info);
+  --color-info-soft:    var(--info-dim);
   --color-forgy:        var(--forgy);
   --color-forgy-soft:   var(--forgy-dim);
   --color-forgy-fg:     var(--forgy-fg);
 
-  --shadow-pop: 0 8px 32px var(--shadow-color);
+  /* Only what floats (menus, palette, windows) casts a shadow */
+  --shadow-pop: 0 18px 50px var(--shadow-color);
 }
 
 @theme {
-  --font-sans: 'Geist Variable', 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'Geist Mono Variable', 'Cascadia Code', 'Consolas', monospace;
+  --font-sans: 'Inter Variable', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'Cascadia Code', 'Consolas', monospace;
+  /* Page and card titles */
+  --font-display: 'Bricolage Grotesque Variable', 'Inter Variable', 'Segoe UI', sans-serif;
 
-  /* Compact desktop scale (base 13px) */
-  --text-2xs: 10px;  --text-2xs--line-height: 1.4;
-  --text-xs:  11px;  --text-xs--line-height: 1.45;
-  --text-sm:  12px;  --text-sm--line-height: 1.5;
-  --text-base: 13px; --text-base--line-height: 1.5;
-  --text-md:  14px;  --text-md--line-height: 1.5;
-  --text-lg:  16px;  --text-lg--line-height: 1.4;
-  --text-xl:  18px;  --text-xl--line-height: 1.35;
-  --text-2xl: 22px;  --text-2xl--line-height: 1.3;
-  --text-3xl: 28px;  --text-3xl--line-height: 1.2;
-  /* v4.3: a page's title (PageHeader), between 2xl and 3xl */
-  --text-page: 26px; --text-page--line-height: 1.2;
+  /* Compact desktop scale (base 13px). 11 / 12 / 13 / 14 / 16 / 20 / 28 / 34, 10 for keys and counters;
+     each one times --df-text-scale, the text size chosen in Settings › Appearance (lib/appearance.ts) */
+  --text-2xs: calc(10px * var(--df-text-scale, 1));  --text-2xs--line-height: 1.4;
+  --text-xs:  calc(11px * var(--df-text-scale, 1));  --text-xs--line-height: 1.45;
+  --text-sm:  calc(12px * var(--df-text-scale, 1));  --text-sm--line-height: 1.5;
+  --text-base: calc(13px * var(--df-text-scale, 1)); --text-base--line-height: 1.5;
+  --text-md:  calc(14px * var(--df-text-scale, 1));  --text-md--line-height: 1.5;
+  --text-lg:  calc(16px * var(--df-text-scale, 1));  --text-lg--line-height: 1.4;
+  --text-xl:  calc(20px * var(--df-text-scale, 1));  --text-xl--line-height: 1.3;
+  --text-2xl: calc(22px * var(--df-text-scale, 1));  --text-2xl--line-height: 1.25;
+  --text-3xl: calc(28px * var(--df-text-scale, 1));  --text-3xl--line-height: 1.15;
+  /* A page's title (PageHeader) */
+  --text-page: calc(28px * var(--df-text-scale, 1)); --text-page--line-height: 1.15;
+  /* The home page's greeting */
+  --text-hero: calc(34px * var(--df-text-scale, 1)); --text-hero--line-height: 1.1;
 
   /* v4.3: the terminal stays dark in both themes, its colors in one place (and XTERM_THEME in features/terminal/snapshot.ts) */
-  --color-term:       #090B10;
-  --color-term-block: #0F1218;
-  --color-term-fg:    #D4D4D4;
-  --color-term-dim:   #5A6372;
+  --color-term:       #0B0A09;
+  --color-term-block: #141210;
+  --color-term-fg:    #E8E2DA;
+  --color-term-dim:   #8A8279;
 
-  /* v4.3: named radii: a control (button, field, small card) and a card */
-  --radius-control: 9px;
+  /* Four radii. md 6 (badge, small button), lg 10 (button, field, tile), xl 14 (card), 2xl 18 (window) */
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+  /* Named radii: a control (button, field, small card), a card, a window */
+  --radius-control: 10px;
   --radius-card: 14px;
+  --radius-window: 18px;
 }
 
 /* ─── Compact density ───────────────────────────────────────────────────────
@@ -211,18 +251,27 @@
    every page denser at once (paddings, gaps, heights, text). */
 :root[data-density='compact'] {
   --spacing: 0.21rem;
-  --text-2xs: 9.5px;
-  --text-xs: 10.5px;
-  --text-sm: 11.5px;
-  --text-base: 12px;
-  --text-md: 13px;
-  --text-page: 23px;
-  --text-lg: 15px;
-  --text-xl: 17px;
-  --text-2xl: 20px;
-  --text-3xl: 25px;
+  --text-2xs: calc(9.5px * var(--df-text-scale, 1));
+  --text-xs: calc(10.5px * var(--df-text-scale, 1));
+  --text-sm: calc(11.5px * var(--df-text-scale, 1));
+  --text-base: calc(12px * var(--df-text-scale, 1));
+  --text-md: calc(13px * var(--df-text-scale, 1));
+  --text-page: calc(25px * var(--df-text-scale, 1));
+  --text-lg: calc(15px * var(--df-text-scale, 1));
+  --text-xl: calc(18px * var(--df-text-scale, 1));
+  --text-2xl: calc(20px * var(--df-text-scale, 1));
+  --text-3xl: calc(25px * var(--df-text-scale, 1));
+  --text-hero: calc(30px * var(--df-text-scale, 1));
 }
-:root[data-density='compact'] body { font-size: 12px; }
+:root[data-density='compact'] body { font-size: calc(12px * var(--df-text-scale, 1)); }
+
+/* ─── Screens at the mock-up's measures ────────────────────────────────────
+   The project page and the new project wizard follow the mock-up's pixels: one
+   spacing unit is 4 px inside them (the app's root is 13 px, where 0.25rem gives
+   3.25 px), so the shared components (buttons, badges, tabs) come out at their
+   intended sizes there. The compact density keeps its ratio. */
+.df-mockup { --spacing: 4px; }
+:root[data-density='compact'] .df-mockup { --spacing: 3.36px; }
 
 /* ─── Base ─────────────────────────────────────────────────────────────────── */
 
@@ -233,7 +282,7 @@
     background: var(--bg-base);
     color: var(--text-primary);
     font-family: var(--font-sans);
-    font-size: 13px;
+    font-size: calc(13px * var(--df-text-scale, 1));
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
@@ -303,3 +352,29 @@
 .df-code .hljs-meta { color: var(--color-fg-muted); }
 .df-code .hljs-emphasis { font-style: italic; }
 .df-code .hljs-strong { font-weight: 600; }
+
+/* ─── Checklists in a project's notes ───────────────────────────────────────
+   <ul data-checklist><li data-checked>: the box is drawn here, 16 px with a
+   5 px radius as in the mock-up; a click on it (or Ctrl+Enter) checks the
+   line, which is then struck through and greyed. */
+.df-note ul[data-checklist] { list-style: none; margin: 6px 0; padding-left: 0; display: flex; flex-direction: column; gap: 6px; }
+.df-note ul[data-checklist] > li { position: relative; padding-left: 24px; }
+.df-note ul[data-checklist] > li::before {
+  content: '';
+  position: absolute; left: 0; top: calc(0.85em - 8px);
+  box-sizing: border-box; width: 16px; height: 16px;
+  border: 1.5px solid var(--color-fg-muted); border-radius: 5px;
+  cursor: pointer;
+  transition: background-color .15s ease-out, border-color .15s ease-out;
+}
+.df-note ul[data-checklist] > li:hover::before { border-color: var(--color-accent); }
+.df-note ul[data-checklist] > li[data-checked='true'] { color: var(--color-fg-muted); text-decoration: line-through; }
+.df-note ul[data-checklist] > li[data-checked='true']::before { background: var(--color-accent); border-color: var(--color-accent); }
+.df-note ul[data-checklist] > li[data-checked='true']::after {
+  content: '';
+  position: absolute; left: 2px; top: calc(0.85em - 6px);
+  width: 12px; height: 12px;
+  background: var(--color-accent-fg);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
+  pointer-events: none;
+}

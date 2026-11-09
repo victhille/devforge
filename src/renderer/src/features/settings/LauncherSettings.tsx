@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import type { AppSettings } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
+import Kbd from '@renderer/components/ui/Kbd'
 import Switch from '@renderer/components/ui/Switch'
-import { SettingRow, SettingsCard } from './parts'
+import { SettingRow } from './parts'
 
 const MODIFIERS = new Set(['Control', 'Alt', 'Shift', 'Meta', 'AltGraph'])
 
@@ -24,7 +25,8 @@ export function toAccelerator(e: Pick<KeyboardEvent, 'ctrlKey' | 'altKey' | 'shi
 
 export const showAccelerator = (a: string) => a.replace('CommandOrControl', 'Ctrl').replace('Super', 'Win').replace(/\+/g, ' + ')
 
-export default function LauncherSettings({ settings, update }: { settings: AppSettings; update: (patch: Partial<AppSettings>) => Promise<void> }) {
+/** Settings › General › Start-up and window: the global launcher, its shortcut key by key, changed by pressing a new one */
+export default function LauncherRow({ settings, update }: { settings: AppSettings; update: (patch: Partial<AppSettings>) => Promise<void> }) {
   const { t } = useI18n()
   const s = t.settings
   const [recording, setRecording] = useState(false)
@@ -50,31 +52,24 @@ export default function LauncherSettings({ settings, update }: { settings: AppSe
     return () => window.removeEventListener('keydown', onKey, true)
   }, [recording, update])
 
-  const alwaysReady = settings.startWithWindows && settings.minimizeToTray
+  // « Space » in the interface's words
+  const keys = showAccelerator(settings.launcherShortcut).split(' + ').map(k => (k === 'Space' ? s.keySpace : k))
+  const on = settings.launcherEnabled
 
   return (
-    <SettingsCard title={s.launcherTitle} hint={s.launcherHint}>
-      <SettingRow label={s.launcherEnabled} hint={s.launcherEnabledHint}>
-        <Switch checked={settings.launcherEnabled} onChange={v => update({ launcherEnabled: v })} label={s.launcherEnabled} />
-      </SettingRow>
-      {settings.launcherEnabled && (
-        <>
-          <SettingRow label={s.launcherShortcut} hint={taken ? <span className="text-warning">{s.launcherTaken}</span> : s.launcherShortcutHint}>
-            <div className="flex items-center gap-2">
-              <kbd className="rounded-md border border-line bg-canvas px-2 py-1 font-mono text-sm text-fg">
-                {recording ? s.launcherPress : showAccelerator(settings.launcherShortcut)}
-              </kbd>
-              <Button size="sm" variant="secondary" onClick={() => setRecording(r => !r)}>{recording ? t.common.cancel : s.launcherChange}</Button>
-            </div>
-          </SettingRow>
-          {!alwaysReady && (
-            <div className="mx-5 mb-4 flex flex-wrap items-center gap-3 rounded-xl bg-accent-soft p-3">
-              <p className="min-w-[220px] flex-1 text-base text-fg">{s.launcherStartup}</p>
-              <Button size="sm" onClick={() => update({ startWithWindows: true, minimizeToTray: true })}>{s.launcherStartupYes}</Button>
-            </div>
-          )}
-        </>
-      )}
-    </SettingsCard>
+    <SettingRow label={s.launcherTitle} hint={on && taken ? <span className="text-warning">{s.launcherTaken}</span> : s.launcherHint}>
+      <div className="flex flex-wrap items-center gap-2">
+        {recording ? (
+          <span role="status" className="text-sm text-fg-secondary">{s.launcherPress}</span>
+        ) : (
+          <span className="flex items-center gap-1.5">
+            <span className="sr-only">{keys.join(' + ')}</span>
+            {keys.map(k => <span key={k} aria-hidden><Kbd size="md">{k}</Kbd></span>)}
+          </span>
+        )}
+        <Button size="sm" variant="ghost" disabled={!on} onClick={() => setRecording(r => !r)}>{recording ? t.common.cancel : s.launcherChange}</Button>
+        <Switch checked={on} onChange={v => update({ launcherEnabled: v })} label={s.launcherEnabled} />
+      </div>
+    </SettingRow>
   )
 }

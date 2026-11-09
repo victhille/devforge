@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron'
+import { access } from 'fs/promises'
 import type { Framework, PackageManager } from '@shared/types'
 import { assertProjectPath } from '../lib/safe'
 import { listTemplates, previewTemplate, refreshTemplate, removeTemplate, renameTemplate, saveTemplate } from '../services/projects/userTemplates'
@@ -7,7 +8,8 @@ const strings = (v: unknown) => (Array.isArray(v) ? v.filter((s): s is string =>
 
 /** v3.8: the user's project templates */
 export function registerTemplateHandlers(): void {
-  ipcMain.handle('templates:list', () => listTemplates())
+  // Each one says whether its project is still there (Update needs it)
+  ipcMain.handle('templates:list', () => Promise.all(listTemplates().map(async t => ({ ...t, sourceGone: await access(t.sourcePath).then(() => false, () => true) }))))
   ipcMain.handle('templates:preview', (_e, projectPath: unknown, exclude: unknown) => previewTemplate(assertProjectPath(projectPath), strings(exclude)))
   ipcMain.handle('templates:save', (_e, input: { projectPath: string; name: string; description: string; framework: Framework; packageManager: PackageManager; exclude: string[] }) =>
     saveTemplate({

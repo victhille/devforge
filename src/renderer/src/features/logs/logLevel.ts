@@ -27,3 +27,18 @@ export const LEVEL_COLOR: Record<LogLevel, string> = {
   debug: 'text-fg-muted',
   other: 'text-fg-secondary'
 }
+
+/**
+ * A line's time and its message, when it starts with a timestamp: « [2026-11-06 22:41:09] local.ERROR: boom »
+ * gives 22:41:09 and « boom » (the level has its own column). A line without one (JSON, a stack trace) stays whole.
+ */
+export function splitLine(text: string): { time: string | null; message: string } {
+  const head = /^\s*\[?(?:\d{4}-\d{2}-\d{2}[T ])?(\d{2}:\d{2}:\d{2})(?:[.,]\d{1,9})?(?:Z|[+-]\d{2}:?\d{2})?\]?\s*/.exec(text)
+  if (!head) return { time: null, message: text }
+  // The level is in its own column: « local.ERROR: » (Monolog), « INFO » or « [WARN] » leave the message
+  const rest = text.slice(head[0].length).replace(/^(?:[\w-]+\.)?\[?(?:EMERGENCY|ALERT|CRITICAL|FATAL|ERROR|WARNING|WARN|NOTICE|INFO|DEBUG|TRACE)\]?:?\s+/i, '')
+  return { time: head[1], message: rest }
+}
+
+/** The level's tag in the time column, as loggers write it */
+export const LEVEL_TAG: Record<LogLevel, string> = { error: 'ERROR', warn: 'WARNING', info: 'INFO', debug: 'DEBUG', other: '' }

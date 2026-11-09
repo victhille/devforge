@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { CanvasSkeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AlertTriangle, Check, Copy, FileCode2, KeyRound, LayoutTemplate, Maximize2, Plus, RefreshCw, RotateCcw, Sparkles, Trash2 } from 'lucide-react'
 import type { DbConnection, MpdColumn, MpdModel, MpdTable, MpdType, SqlEngine } from '@shared/types'
@@ -14,7 +15,6 @@ import { formatRelative } from '@renderer/lib/format'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
-import Spinner from '@renderer/components/ui/Spinner'
 import { saveDrawing, schemaColors } from './colors'
 import ModelTabs from './ModelTabs'
 import ModelCrumbs from './ModelCrumbs'
@@ -254,14 +254,14 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
   }
 
   if (error) return <div className="p-8"><ErrorState title={m.loadFailed} error={error} /></div>
-  if (!model || !mpd || !drawn) return <Spinner className="m-8" />
+  if (!model || !mpd || !drawn) return <CanvasSkeleton />
 
   const selTable = mpd.tables.find(x => x.id === sel)
   const tableName = (id: string) => mpd.tables.find(x => x.id === id)?.name ?? '?'
 
   const checkList = (
     <section aria-label={p.check} className="flex flex-col gap-2">
-      <h2 className="font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{p.check}</h2>
+      <h2 className="text-xs font-semibold tracking-[.04em] text-fg-muted uppercase">{p.check}</h2>
       {!issues.length ? <p className="flex items-center gap-1.5 text-sm text-success"><Check size={13} /> {p.allGood}</p> : (
         <ul className="flex flex-col gap-1">
           {issues.map((i, n) => (
@@ -326,7 +326,7 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
             </section>
             <aside aria-label={p.check} className="flex w-[300px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-line-subtle p-4">
               <div className="flex flex-col gap-2">
-                <h2 className="font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{fill(p.sqlTitle, { engine: p.engines[mpd.engine] })}</h2>
+                <h2 className="text-xs font-semibold tracking-[.04em] text-fg-muted uppercase">{fill(p.sqlTitle, { engine: p.engines[mpd.engine] })}</h2>
                 {sqlFile}
                 <div className="flex gap-2">
                   <Button size="sm" variant="secondary" onClick={copySql}><Copy size={13} /> {p.copy}</Button>
@@ -409,7 +409,7 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
                 {checkList}
                 <section aria-label={fill(p.sqlTitle, { engine: p.engines[mpd.engine] })} className="flex min-h-0 flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <h2 className="flex-1 font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{fill(p.sqlTitle, { engine: p.engines[mpd.engine] })}</h2>
+                    <h2 className="flex-1 text-xs font-semibold tracking-[.04em] text-fg-muted uppercase">{fill(p.sqlTitle, { engine: p.engines[mpd.engine] })}</h2>
                     <Button size="sm" variant="ghost" onClick={copySql}><Copy size={13} /> {p.copy}</Button>
                   </div>
                   {sqlFile}
@@ -467,7 +467,7 @@ function TablePanel({ table, engine, tableName, canReset, onTable, onColumn, onR
 
     <section aria-label={p.columns} className="flex flex-col gap-2">
       <div className="flex items-center">
-        <h2 className="flex-1 font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{p.columns}</h2>
+        <h2 className="flex-1 text-xs font-semibold tracking-[.04em] text-fg-muted uppercase">{p.columns}</h2>
         <Button size="sm" variant="ghost" onClick={addColumn}><Plus size={13} /> {p.addColumn}</Button>
       </div>
       <ul className="flex flex-col gap-1.5">
@@ -508,7 +508,7 @@ function TablePanel({ table, engine, tableName, canReset, onTable, onColumn, onR
 
     <section aria-label={p.indexes} className="flex flex-col gap-2">
       <div className="flex items-center">
-        <h2 className="flex-1 font-mono text-2xs font-medium tracking-widest text-fg-muted uppercase">{p.indexes}</h2>
+        <h2 className="flex-1 text-xs font-semibold tracking-[.04em] text-fg-muted uppercase">{p.indexes}</h2>
         <Button size="sm" variant="ghost" onClick={addIndex}><Plus size={13} /> {p.addIndex}</Button>
       </div>
       {!table.indexes.length ? <p className="text-xs text-fg-muted">{p.noIndex}</p> : (

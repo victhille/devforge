@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { CardSkeleton, LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { ExternalLink, GitBranch, KeyRound, RotateCcw, ScrollText, Upload } from 'lucide-react'
 import type { VercelAccount, VercelDeployment, VercelDomain, VercelEnvDiff, VercelProjectInfo } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -8,7 +9,6 @@ import { formatRelative } from '@renderer/lib/format'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import { Input } from '@renderer/components/ui/Input'
-import Spinner from '@renderer/components/ui/Spinner'
 import ErrorState from '@renderer/components/ui/ErrorState'
 import { errorText } from '@renderer/lib/errors'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
@@ -91,7 +91,7 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
   }
 
   if (accFailed) return <ErrorState error={accFailed} onRetry={() => { setAccFailed(''); setAccRound(r => r + 1) }} />
-  if (!acc) return <Spinner />
+  if (!acc) return <CardSkeleton rows={2} />
 
   if (!acc.connected) {
     return (
@@ -107,7 +107,7 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
   }
 
   if (error) return <ErrorState error={error} onRetry={load} />
-  if (info === undefined) return <Spinner />
+  if (info === undefined) return <CardSkeleton rows={3} />
   if (info === null) return <Card className="p-4.5 text-sm text-fg-secondary">{v.notLinked}</Card>
 
   const fileLabel = (env !== 'failed' && env?.localFile) || v.noLocalEnv
@@ -128,7 +128,7 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
 
       <Card className="overflow-hidden">
         <h3 className="px-4.5 pt-4 pb-2 text-md font-semibold text-fg">{v.deployments}</h3>
-        {!deps ? <div className="p-4.5"><Spinner /></div> : deps.length === 0 ? <p className="px-4.5 pb-4 text-sm text-fg-muted">{v.noDeployments}</p> : deps.map(d => (
+        {!deps ? <LinesSkeleton lines={3} className="px-4.5 py-4" /> : deps.length === 0 ? <p className="px-4.5 pb-4 text-sm text-fg-muted">{v.noDeployments}</p> : deps.map(d => (
           <div key={d.id} className="border-t border-line-subtle">
             <div className="group flex flex-wrap items-center gap-3 px-4.5 py-3">
               <span className={cn('rounded-full px-2 py-0.5 font-mono text-xs font-medium', STATE_TONE[d.state] ?? 'bg-active text-fg-secondary')}>{v.states[d.state as keyof typeof v.states] ?? d.state.toLowerCase()}</span>
@@ -170,7 +170,7 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
             <h3 className="text-md font-semibold text-fg">{v.env}</h3>
             <p className="text-xs text-fg-muted">{v.envHint}</p>
           </div>
-          {env === 'failed' ? <ErrorState /> : !env ? <Spinner /> : (
+          {env === 'failed' ? <ErrorState /> : !env ? <LinesSkeleton lines={3} /> : (
             <>
               {!env.missingRemote.length && !env.missingLocal.length && <p className="text-sm text-success">{v.envOk}</p>}
               {[[v.missingRemote, env.missingRemote, 'text-warning'], [v.missingLocal, env.missingLocal, 'text-fg-secondary']].map(([label, keys, tone]) => (keys as string[]).length > 0 && (
@@ -192,7 +192,7 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
         </Card>
         <Card className="flex flex-col gap-3 self-start p-4.5">
           <h3 className="text-md font-semibold text-fg">{v.domains}</h3>
-          {domains === 'failed' ? <ErrorState /> : !domains ? <Spinner /> : domains.length === 0 ? <p className="text-sm text-fg-muted">{v.noDomains}</p> : domains.map(d => (
+          {domains === 'failed' ? <ErrorState /> : !domains ? <LinesSkeleton lines={2} /> : domains.length === 0 ? <p className="text-sm text-fg-muted">{v.noDomains}</p> : domains.map(d => (
             <div key={d.name} className="flex flex-wrap items-center gap-2 border-t border-line-subtle pt-2.5 first:border-t-0 first:pt-0">
               <button onClick={() => window.devforge.openExternal(`https://${d.name}`)} className="min-w-0 flex-1 truncate text-left font-mono text-base text-fg hover:text-accent">{d.name}</button>
               {d.redirect && <span className="text-xs text-fg-muted">{v.redirect.replace('{to}', d.redirect)}</span>}

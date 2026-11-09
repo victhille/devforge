@@ -6,8 +6,17 @@ import { cn } from '@renderer/lib/cn'
 import { useCommands, scoreCommand, type Command } from './useCommands'
 import { errorText } from '@renderer/lib/errors'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
+import Kbd from '@renderer/components/ui/Kbd'
 
 const MAX_RESULTS = 60
+
+/** The typed words found in a result, in the accent and bold, as in the mock-up (a look only: the title is read whole) */
+function Hit({ text, query }: { text: string; query: string }) {
+  const words = query.trim().split(/\s+/).filter(Boolean).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  if (!words.length) return <>{text}</>
+  const parts = text.split(new RegExp(`(${words.join('|')})`, 'gi'))
+  return <>{parts.map((p, k) => (k % 2 ? <span key={k} className="font-bold text-accent">{p}</span> : p))}</>
+}
 
 /** Ctrl+K / Cmd+K launcher: pages, projects, scripts and servers. */
 export default function CommandPalette() {
@@ -93,58 +102,60 @@ export default function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-6 pt-[12vh] backdrop-blur-[2px]"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/55 px-6 pt-[12vh] backdrop-blur-[3px]"
       onMouseDown={e => { if (e.target === e.currentTarget) setOpen(false) }}
     >
-      <div className="flex max-h-[65vh] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-pop">
-        <div className="flex items-center gap-3 border-b border-line-subtle px-4">
-          <Search size={16} className="shrink-0 text-fg-muted" />
+      {/* Forge: a floating window, 680 px, the chosen row on the soft accent; rows of 44 px, keys easy to read */}
+      <div className="flex max-h-[65vh] w-full max-w-[680px] flex-col overflow-hidden rounded-window border border-line bg-surface shadow-pop">
+        {/* The field and the hints keep their height: only the list scrolls when it is long */}
+        <div className="flex shrink-0 items-center gap-4 border-b border-line-subtle px-6">
+          <Search size={18} aria-hidden className="shrink-0 text-fg-muted" />
           <input
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder={t.palette.placeholder}
-            className="h-12 flex-1 bg-transparent text-md text-fg outline-none placeholder:text-fg-muted"
+            className="h-18 flex-1 bg-transparent text-lg text-fg outline-none placeholder:text-fg-muted"
           />
-          <kbd className="rounded border border-line bg-elevated px-1.5 py-0.5 font-mono text-2xs text-fg-muted">Esc</kbd>
+          <Kbd size="md">{t.palette.escKey}</Kbd>
         </div>
 
-        <div ref={listRef} className="flex-1 overflow-y-auto p-1.5">
-          {results.length === 0 && <p className="px-3 py-8 text-center text-fg-muted">{t.palette.noResults}</p>}
+        <div ref={listRef} className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
+          {results.length === 0 && <p className="px-3 py-10 text-center text-base text-fg-muted">{t.palette.noResults}</p>}
           {results.map((cmd, i) => {
             const showGroup = i === 0 || results[i - 1].group !== cmd.group
             const Icon = cmd.icon
             return (
               <div key={cmd.id}>
                 {showGroup && (
-                  <div className="px-3 pt-2.5 pb-1 text-2xs font-semibold uppercase tracking-widest text-fg-muted">{cmd.group}</div>
+                  <div className="px-3.5 pt-3.5 pb-2 text-sm font-semibold tracking-wide text-fg-muted">{cmd.group}</div>
                 )}
                 <button
                   data-index={i}
                   onMouseMove={() => setCursor(i)}
                   onClick={() => execute(cmd)}
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left',
-                    i === cursor ? 'bg-active' : 'hover:bg-hover'
+                    'flex min-h-13.5 w-full items-center gap-4 rounded-control px-3.5 py-2.5 text-left',
+                    i === cursor ? 'bg-accent-soft' : 'hover:bg-elevated'
                   )}
                 >
-                  <Icon size={15} className={cn('shrink-0', i === cursor ? 'text-accent' : 'text-fg-muted')} style={cmd.color ? { color: cmd.color } : undefined} />
+                  <Icon size={18} aria-hidden className={cn('shrink-0', i === cursor ? 'text-accent' : 'text-fg-muted')} style={cmd.color ? { color: cmd.color } : undefined} />
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-fg">{cmd.title}</span>
-                    {cmd.subtitle && <span className="truncate font-mono text-2xs text-fg-muted">{cmd.subtitle}</span>}
+                    <span className="truncate text-md text-fg"><Hit text={cmd.title} query={query} /></span>
+                    {cmd.subtitle && <span className="truncate font-mono text-xs text-fg-muted">{cmd.subtitle}</span>}
                   </span>
-                  {i === cursor && <CornerDownLeft size={13} className="shrink-0 text-fg-muted" />}
+                  {i === cursor && <CornerDownLeft size={14} aria-hidden className="shrink-0 text-fg-muted" />}
                 </button>
               </div>
             )
           })}
         </div>
 
-        <div className="flex items-center gap-4 border-t border-line-subtle px-4 py-2 text-2xs text-fg-muted">
-          <span><kbd className="font-mono">↑↓</kbd> {t.palette.hintNavigate}</span>
-          <span><kbd className="font-mono">↵</kbd> {t.palette.hintRun}</span>
-          <span className="ml-auto"><kbd className="font-mono">Ctrl K</kbd> {t.palette.hintToggle}</span>
+        <div className="flex min-h-15 shrink-0 flex-wrap items-center gap-x-6 gap-y-2 border-t border-line-subtle px-6 py-3 text-sm text-fg-muted">
+          <span className="flex items-center gap-2.5"><Kbd size="md">↑↓</Kbd> {t.palette.hintNavigate}</span>
+          <span className="flex items-center gap-2.5"><Kbd size="md">↵</Kbd> {t.palette.hintRun}</span>
+          <span className="ml-auto flex items-center gap-2.5"><Kbd size="md">Ctrl K</Kbd> {t.palette.hintToggle}</span>
         </div>
       </div>
     </div>

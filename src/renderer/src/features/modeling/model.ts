@@ -7,12 +7,12 @@ import { useLive } from '@renderer/lib/live'
 
 /** The colour of each kind's tag, the same everywhere */
 export const KIND_TONE: Record<ModelKind, string> = {
-  mcd: 'bg-[color-mix(in_srgb,var(--syntax-keyword)_16%,transparent)] text-[var(--syntax-keyword)]',
-  mpd: 'bg-accent-soft text-accent',
-  usecase: 'bg-success/15 text-success',
-  class: 'bg-[color-mix(in_srgb,var(--syntax-number)_16%,transparent)] text-[var(--syntax-number)]',
-  sequence: 'bg-[color-mix(in_srgb,var(--syntax-tag)_16%,transparent)] text-[var(--syntax-tag)]',
-  flow: 'bg-[color-mix(in_srgb,var(--syntax-attr)_16%,transparent)] text-[var(--syntax-attr)]',
+  mcd: 'bg-accent-soft text-accent',
+  mpd: 'bg-info-soft text-info',
+  usecase: 'bg-success-soft text-success',
+  class: 'bg-warning-soft text-warning',
+  sequence: 'bg-[color-mix(in_srgb,var(--diagram-red)_16%,transparent)] text-[var(--diagram-red)]',
+  flow: 'bg-[color-mix(in_srgb,var(--diagram-yellow)_16%,transparent)] text-[var(--diagram-yellow)]',
   architecture: 'bg-elevated text-fg-secondary'
 }
 

@@ -22,7 +22,8 @@ function write(store: Store): void {
   writeJsonFile(path(), store)
 }
 
-const hostKey = (host: string, port: number) => `${host.toLowerCase()}:${port}`
+/** As sameSshAddress compares addresses: without case or surrounding spaces, 22 for a server saved without a port */
+const hostKey = (host: string, port: number | undefined) => `${host.trim().toLowerCase()}:${port ?? 22}`
 
 /** Same format as `ssh-keygen -lf`: SHA256:base64 without padding */
 export function fingerprintOf(key: Buffer): string {

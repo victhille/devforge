@@ -39,7 +39,7 @@ test('a Python project lists its packages, compared with PyPI, with the command 
   await expect(django).toContainText('4.2.11')
   await expect(django).toContainText('5.1.2')
   await expect(django).toContainText('majeure')
-  await expect(page.getByRole('row', { name: /pytest/ })).toContainText('dev')
+  await expect(page.getByRole('row', { name: /pytest/ })).toContainText('développement')
 
   // v3.6: updatable, but this environment has no Python of its own: the way to create one
   await expect(page.getByRole('status').filter({ hasText: 'environnement virtuel' }).first()).toContainText('python -m venv .venv')

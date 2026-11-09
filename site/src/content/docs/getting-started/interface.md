@@ -7,7 +7,14 @@ description: L'accueil, le menu, les favoris, la palette de commandes, le termin
 
 ![L'accueil, avec le projet actif, Git et l'activité](../../../assets/screens/home-fr.png)
 
-L'accueil salue selon l'heure et résume ce qui tourne : conteneurs en ligne, ports en écoute, dépôts à pousser, état du serveur. Il est fait de **widgets** :
+L'accueil salue selon l'heure. Sous la salutation, des **pastilles** disent où tu en es : conteneurs en ligne (ou « Rien ne tourne »), dépôts modifiés, dépôts à pousser, état du serveur.
+
+Dessous, deux cartes :
+
+- **Reprendre** : les trois projets ouverts en dernier, avec leur chemin, l'état de leur dépôt (modifié, à pousser, à jour) et la date de la dernière ouverture. **Ouvrir** mène à la fiche du projet ; **Tous les projets** à la liste.
+- **Forgy** : un champ pour lui poser une question, et trois demandes toutes faites sur le [projet actif](#le-projet-actif) : **Message de commit**, **Revue des changements**, **Expliquer le projet**. Chacune ouvre le panneau de Forgy et part dans une nouvelle conversation.
+
+Le reste de l'accueil est fait de **widgets** :
 
 | Widget | Ce qu'il montre |
 |---|---|
@@ -28,7 +35,9 @@ Un projet peut être **actif** : Forgy et le widget de bureau s'y rapportent. Il
 
 ## Le menu
 
-Le menu de gauche commence par l'**Accueil** et tes **favoris**, puis range toutes les pages en six groupes repliables :
+Le menu de gauche est un rail d'icônes : l'**Accueil**, puis six groupes. Un clic sur un groupe affiche ses pages dans le panneau d'à côté, sans quitter la page ouverte. Le rail marque en orange l'endroit de la page ouverte : l'Accueil quand elle est dans tes favoris et que le panneau les montre, son groupe sinon.
+
+Sous l'Accueil, le panneau montre tes **favoris** et tes trois **projets récents** (tous les autres sont sur la page [Projets](/devforge/dev/projects/)). Devant chaque projet, un point dit l'état de son dépôt : orange s'il a des fichiers modifiés (leur nombre est à droite), vert s'il est à jour, gris si le dossier n'est pas un dépôt Git. En bas du panneau, une note : le rappel de <kbd>Ctrl</kbd> <kbd>K</kbd> sous l'Accueil, le serveur suivi sous Serveurs et Mise en ligne.
 
 | Groupe | Pages |
 |---|---|
@@ -39,7 +48,7 @@ Le menu de gauche commence par l'**Accueil** et tes **favoris**, puis range tout
 | Système | [Environnement](/devforge/system/environment/), [Ports](/devforge/system/ports/), [Variables .env](/devforge/system/env-files/), [Domaines locaux](/devforge/system/domains/), [Nettoyage disque](/devforge/system/cleaner/) |
 | Outils | [Boîte à outils, Snippets, Diff texte, Générateur, Docs](/devforge/tools/utilities/) |
 
-**Paramètres** est épinglé en bas. <kbd>Ctrl</kbd> <kbd>B</kbd> réduit ou agrandit le menu.
+**Paramètres** est épinglé en bas du rail ; son panneau liste les [sections des Paramètres](/devforge/settings/general/). <kbd>Ctrl</kbd> <kbd>B</kbd> replie ou rouvre le panneau ; un nouveau clic sur le groupe affiché le replie aussi. Au clavier, le rail se parcourt avec les flèches, <kbd>Entrée</kbd> affiche le groupe et <kbd>Tab</kbd> passe à ses pages.
 
 Tant qu'aucun serveur n'est configuré, les pages qui en demandent un (Santé, Services, Sauvegardes, n8n, VPN, Page de statut) sont masquées ; le groupe indique « N de plus avec un serveur ».
 
@@ -102,7 +111,7 @@ Pendant que tu tapes, la **suite probable** de la ligne s'affiche en gris après
 |---|---|
 | <kbd>Ctrl</kbd> <kbd>K</kbd> | palette de commandes |
 | <kbd>Ctrl</kbd> <kbd>J</kbd> | ouvrir / fermer Forgy |
-| <kbd>Ctrl</kbd> <kbd>B</kbd> | réduire / agrandir le menu |
+| <kbd>Ctrl</kbd> <kbd>B</kbd> | replier / rouvrir le panneau du menu |
 | <kbd>F1</kbd> | la documentation de la page affichée |
 | <kbd>Ctrl</kbd> <kbd>`</kbd> | terminal intégré |
 | <kbd>Ctrl</kbd> <kbd>Entrée</kbd> | exécuter la requête SQL |

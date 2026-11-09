@@ -5,40 +5,42 @@ description: Plug in GitHub, your Git identity, Forgy's key, Vercel, Docker, SSH
 
 **Settings › Connections** gathers the services DevForge uses for you. Nothing is set up in advance: each one is plugged in here, **tested** and **removed**. A page that needs a missing service (GitHub, Vercel, a server, Forgy's key) says so and offers a button to plug it in.
 
+Each service fits on one row: its state (a green tag when it is plugged in), then small actions, **Test**, **Edit**, **Remove**. What is typed (a key, a token, your name) opens under the row, only when you ask: **Add a key**, **Add a token** or **Edit**. The top of the **Accounts** card counts the services plugged in.
+
 :::note[Where secrets go]
 Everything stays on this PC, in DevForge's folder. Keys, tokens and passwords are encrypted by Windows and are never shown again. Removing a service erases it; it will have to be set up again to be used.
 :::
 
-## Accounts and keys
+## Accounts
 
 ### GitHub
 
 Repositories, Actions and releases. Two ways to sign in:
 
 - **GitHub CLI**: run `gh auth login` once in a terminal. DevForge uses that sign-in when it exists and shows `GitHub CLI: your-account`.
-- **Personal token**: paste a GitHub token. Useful permissions: *Actions* and *Contents* read, *Actions* write to re-run failed jobs. It is checked, then encrypted.
+- **Personal token**: without GitHub CLI, **Add a token**, then paste a GitHub token. Useful permissions: *Actions* and *Contents* read, *Actions* write to re-run failed jobs. It is checked, then encrypted.
 
 Without either, the projects' GitHub tab and creating a GitHub repository from [New Project](/devforge/en/dev/new-project/) are not available.
 
 ### Git identity
 
-The **name** and **e-mail** of your commits, written to `git config --global`. A name on one line (100 characters at most) and a valid e-mail.
+The **name** and **e-mail** of your commits, written to `git config --global`; the row shows them, **Edit** opens the two fields. A name on one line (100 characters at most) and a valid e-mail.
 
 ### Forgy (Anthropic)
 
-The **API key** that makes [Forgy](/devforge/en/forgy/assistant/) talk: Anthropic's by default, or the one of the [provider chosen](/devforge/en/forgy/assistant/#providers) in Settings › Forgy (the row bears its name). The **Test** button lists the available models: it costs nothing. Without a saved key, DevForge uses the `ANTHROPIC_API_KEY` environment variable if it exists, and the row says so: "key read from ANTHROPIC_API_KEY". A key saved here takes precedence over the variable.
+The **API key** that makes [Forgy](/devforge/en/forgy/assistant/) talk: Anthropic's by default, or the one of the [provider chosen](/devforge/en/forgy/assistant/#providers) in Settings › Forgy (the row bears its name). The row says whether a key is saved; it is typed, tested (the test lists the models: it costs nothing), replaced and removed in [Settings › Forgy](/devforge/en/forgy/assistant/#settings), where **Forgy's settings** leads. Without a saved key, DevForge uses the `ANTHROPIC_API_KEY` environment variable if it exists, and the row says so: "key read from ANTHROPIC_API_KEY". A saved key takes precedence over the variable.
 
 ### Vercel
 
-Deployments, domains and variables of the projects linked to Vercel. Create a token on *vercel.com › Account Settings › Tokens* and paste it here. See [Deploy](/devforge/en/online/deploy/#vercel).
+Deployments, domains and variables of the projects linked to Vercel. Create a token on *vercel.com › Account Settings › Tokens*, then **Add a token** and paste it; the row then shows "token saved" (the account on hover). See [Deploy](/devforge/en/online/deploy/#vercel).
 
 ### Docker
 
-This PC's Docker engine (Docker Desktop): containers, Compose, the projects' databases. Nothing to type: the row tells whether Docker answers. If it is not installed, **Install Docker Desktop** opens the download page.
+This PC's Docker engine (Docker Desktop): containers, Compose, the projects' databases. Nothing to type: the row says "answers" (the version on hover). While it does not answer, **Test** checks again and **Install Docker Desktop** opens the download page.
 
 ## Servers (VPS)
 
-SSH connections are used by the terminal, monitoring, n8n, the status page, backups and deployments. **Add a server** opens the form:
+SSH connections are used by the terminal, monitoring, n8n, the status page, backups and deployments. **Add a server**, at the top of the card, opens the form:
 
 | Field | Example |
 |---|---|
@@ -46,10 +48,14 @@ SSH connections are used by the terminal, monitoring, n8n, the status page, back
 | Host / IP | `203.0.113.10` or `vps.example.com` |
 | Port | `22` |
 | Username | `deploy` |
-| Authentication | **Password** (stored encrypted) or **Private key** (path of the file, for example `C:\Users\you\.ssh\id_ed25519`) |
+| Authentication | **Password** (stored encrypted) or **Private key** (path of the file on this PC, for example `C:\Users\you\.ssh\id_ed25519`; a key on a network share is refused, since Windows would send your login to it) |
 | Color | to spot the server in lists |
 
-The **server key** is remembered on the first connection; if it changes, DevForge refuses to connect. **Forget key** resets it (after reinstalling the server, for example).
+Each server shows `user@host:port` and its method (SSH key or password); **Edit** opens the form again with its values, the bin removes it.
+
+The **server key** is remembered on the first connection; if it changes, DevForge refuses to connect. **Forget key** resets it, once confirmed in a Windows dialog (after reinstalling the server, for example).
+
+What DevForge keeps for a server stays tied to its host, port and username: its password, n8n's API key, the VPN login and the passwords of the databases reached through it. If one of the three changes, or if the server is removed, DevForge forgets them: nothing goes to another machine. When editing, the form warns that they will have to be entered again. A new address also has its own server key, remembered on its first connection.
 
 :::tip
 Prefer an SSH key: the [Health](/devforge/en/servers/health/) page only offers to turn off SSH passwords if DevForge already connects with a key.
@@ -59,18 +65,18 @@ Without a server, the pages that need one (Health, Services, Backups, n8n, VPN, 
 
 ## Databases
 
-The connections of the [Database](/devforge/en/data/database/) page: PostgreSQL, MySQL / MariaDB and SQLite, direct or through an SSH server. **Add a database** opens the same form as on that page.
+The connections of the [Database](/devforge/en/data/database/) page: PostgreSQL, MySQL / MariaDB and SQLite, direct or through an SSH server. **Add a database**, at the top of the card, opens the same form as on that page. Each database shows its kind and where it is; **Open** shows it on the Database page, the bin removes it.
 
 ## n8n and alerts
 
 Both services run on your servers: DevForge keeps n8n's key and reads the status page's settings over SSH.
 
-- **n8n · my-server**: one row per n8n installed from the [n8n](/devforge/en/online/n8n/) page, for its **n8n API key** (in n8n: *Settings › API › Create a key*). **Test** counts the workflows, **Open** goes to the n8n page. Without n8n, the row points to that page to install it.
+- **n8n · my-server**: one row per n8n installed from the [n8n](/devforge/en/online/n8n/) page, for its **n8n API key** (the row says whether it is saved; **Add a key**, then in n8n: *Settings › API › Create a key*). **Test** counts the workflows, **Open** goes to the n8n page. Without n8n, the row points to that page to install it.
 - **Status page · my-server**: one row per installed [status page](/devforge/en/online/status-page/). **Read the alerts** checks on the server whether ntfy alerts are on, and whether there is a webhook too. Without an ntfy alert, a form sets the **ntfy server** (`https://ntfy.sh` by default) and the **topic**: keep it secret, whoever knows it gets the alerts. **Test** sends a real test alert; **Remove** turns the ntfy alert off without touching the rest of the status page.
 
 ## Test and remove
 
-Each row has a **Test** button ("It answers: …" or "Failed: …" with the cause: token refused, Docker not answering, not found…) and a **Remove** button, which asks for confirmation.
+Accounts, servers, n8n and status pages have a **Test** button: the result shows as a tag, "It answers: …" in green or "Failed: …" in red with the cause (token refused, Docker not answering, not found…). A server not tested yet says so. **Remove**, in red (the bin for a server or a database), asks for confirmation.
 
 ## On another PC
 

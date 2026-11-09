@@ -3,7 +3,7 @@ title: IDE
 description: Les IDE que DevForge trouve sur ton PC, ceux que tu ajoutes à la main, et un IDE par projet.
 ---
 
-Partout où un projet s'ouvre (cartes, fiche, palette de commandes, lanceur, tableau Git), le bouton porte le **nom de l'IDE** qui l'ouvrira.
+Partout où un projet s'ouvre (cartes, fiche, palette de commandes, lanceur, page Git), le bouton porte le **nom de l'IDE** qui l'ouvrira (au survol de l'icône, sur les cartes).
 
 ## Les IDE trouvés
 

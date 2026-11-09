@@ -40,3 +40,13 @@ export function codeLanguage(name: string): CodeLanguage | null {
   if (lower.endsWith('.lock') && lower !== 'composer.lock') return null
   return BY_EXT[lower.slice(dot + 1)] ?? null
 }
+
+/** A language as people name it (a snippet's « TypeScript », « Bash »…) → its grammar; keep it in step with the snippets' list */
+const BY_LANGUAGE: Record<string, CodeLanguage> = {
+  typescript: 'typescript', javascript: 'javascript', python: 'python', go: 'go', rust: 'rust', php: 'php', java: 'java',
+  css: 'css', html: 'xml', sql: 'sql', bash: 'bash', shell: 'bash', json: 'json', yaml: 'yaml', markdown: 'markdown'
+}
+
+export function codeLanguageByName(language: string): CodeLanguage | null {
+  return BY_LANGUAGE[language.trim().toLowerCase()] ?? null
+}

@@ -15,9 +15,10 @@ export default function Checkbox({ checked, onChange, children, className }: Pro
       <input type="checkbox" className="peer sr-only" checked={checked} onChange={e => onChange(e.target.checked)} />
       <span
         className={cn(
-          'flex size-4 shrink-0 items-center justify-center rounded border transition-colors',
+          'flex size-4 shrink-0 items-center justify-center rounded-md border-[1.5px] transition-colors',
           'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent',
-          checked ? 'border-accent bg-accent text-accent-fg' : 'border-line bg-elevated'
+          // Forge: an empty square drawn in the muted text color, filled with the accent when checked
+          checked ? 'border-accent bg-accent text-accent-fg' : 'border-fg-muted bg-transparent'
         )}
       >
         {checked && <Check size={11} strokeWidth={3} />}

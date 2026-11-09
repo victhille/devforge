@@ -11,16 +11,15 @@ Un conteneur **wg-easy version 15 ou plus** doit tourner sur le serveur, avec so
 
 ## Se connecter
 
-Saisis l'identifiant de l'**interface wg-easy** (pas celui du serveur). Il est vérifié, puis chiffré par Windows ; il ne sort de DevForge que vers wg-easy, par la session SSH. **Oublier l'identifiant** le retire sans rien modifier sur le serveur.
+Saisis l'identifiant de l'**interface wg-easy** (pas celui du serveur). Il est vérifié, puis chiffré par Windows ; il ne sort de DevForge que vers wg-easy, par la session SSH. **Oublier l'identifiant** le retire sans rien modifier sur le serveur. Il est aussi oublié si le serveur change d'hôte, de port ou d'utilisateur, ou s'il est retiré : il faut alors le saisir à nouveau.
 
 ## Les clients
 
-- La liste montre chaque appareil : *jamais connecté* ou *vu il y a…*, date d'expiration ou *Permanent*, et un interrupteur pour l'activer ou le désactiver.
-- **Nouveau** : un nom (par exemple `Mon téléphone`) et une expiration facultative (vide = accès permanent).
-- **QR code** : à scanner avec l'application WireGuard du téléphone. Il contient la clé privée de l'appareil : ne le partage pas.
-- **Télécharger la configuration** : le fichier `.conf` pour un ordinateur.
-- **Supprimer** : l'appareil ne pourra plus se connecter.
+- Le tableau montre chaque appareil : son adresse, sa dernière connexion (*connecté* s'il vient de se connecter, sinon depuis quand), ses échanges, sa date d'expiration s'il en a une, et l'interrupteur **Actif**.
+- Un clic sur un appareil affiche à côté son **code QR**, à scanner avec l'application WireGuard du téléphone. Il contient la clé privée de l'appareil : il se ferme tout seul au bout de 2 minutes, ne le partage pas.
+- Sous le code : **Télécharger le fichier .conf** pour un ordinateur, et **Supprimer** (l'appareil ne pourra plus se connecter).
+- **Nouveau client** (en haut) : un nom (par exemple `Mon téléphone`) et une expiration facultative (vide = accès permanent). Son code QR s'affiche aussitôt.
 
-**Ouvrir wg-easy** ouvre l'interface complète par un tunnel dans la session SSH.
+Le menu **⋯** : **Ouvrir wg-easy** (l'interface complète, par un tunnel dans la session SSH), **Actualiser** et **Oublier l'identifiant**.
 
 Le widget **VPN** de l'accueil indique combien d'appareils sont connectés. La palette de commandes crée un client ; Forgy aussi, après ton accord, et la page s'ouvre sur son QR code.

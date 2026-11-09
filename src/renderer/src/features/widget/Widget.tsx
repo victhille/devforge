@@ -11,6 +11,8 @@ import { useActiveProject } from '@renderer/hooks/useActiveProject'
 import DictateButton from '@renderer/components/DictateButton'
 import { errorText } from '@renderer/lib/errors'
 import Notice from '@renderer/components/ui/Notice'
+import Button from '@renderer/components/ui/Button'
+import IconButton from '@renderer/components/ui/IconButton'
 
 type Phase = 'idle' | 'thinking' | 'searching' | 'working' | 'happy' | 'sad'
 /** The last question and its answer, as shown on the card */
@@ -28,7 +30,7 @@ function ChipSelect({ label, title, disabled, children, value, onChange }: {
   label: string; title: string; disabled?: boolean; children: ReactNode; value: string; onChange: (v: string) => void
 }) {
   return (
-    <label title={title} className={cn('relative flex h-[26px] min-w-0 items-center gap-1 rounded-lg border border-line bg-elevated px-2 text-xs font-medium text-fg-secondary',
+    <label title={title} className={cn('relative flex h-7 min-w-0 items-center gap-1 rounded-md border border-line bg-surface px-2 text-xs font-medium text-fg-secondary',
       disabled ? 'opacity-50' : 'hover:text-fg')}>
       <span className="truncate">{label}</span>
       <ChevronDown size={11} className="shrink-0" />
@@ -252,7 +254,7 @@ export default function Widget() {
       ) : (
         <>
           {turn && (
-            <div className="wg-card wg-pop flex w-[380px] flex-col gap-2.5 rounded-[18px] px-4 py-3.5 text-base">
+            <div className="wg-card wg-pop flex w-[380px] flex-col gap-2.5 rounded-window px-4 py-3.5 text-base">
               <div className="line-clamp-2 text-sm text-fg-secondary">{turn.question}</div>
               {turn.text && <div className="max-h-[320px] overflow-y-auto pr-1"><Markdown text={turn.text} /></div>}
               {turn.notices.map((n, i) => (
@@ -261,25 +263,23 @@ export default function Widget() {
               {!running && (
                 <div className="flex items-center gap-1.5">
                   {turn.text && (
-                    <button onClick={() => copy(turn.text)} className="flex h-7 items-center gap-1.5 rounded-lg border border-line bg-elevated px-2.5 text-sm font-medium text-fg hover:bg-hover">
+                    <Button size="sm" variant="secondary" onClick={() => copy(turn.text)}>
                       {isCopied() ? <Check size={12} className="text-success" /> : <Copy size={12} />} {isCopied() ? w.copied : w.copy}
-                    </button>
+                    </Button>
                   )}
-                  <button onClick={() => { window.devforge.widget.openInApp(conversationId); collapse() }}
-                    className="flex h-7 items-center gap-1.5 rounded-lg border border-line bg-elevated px-2.5 text-sm font-medium text-fg hover:bg-hover">
+                  <Button size="sm" variant="secondary" onClick={() => { window.devforge.widget.openInApp(conversationId); collapse() }}>
                     <ExternalLink size={12} /> {w.openInApp}
-                  </button>
-                  <button onClick={() => { reset(); inputRef.current?.focus() }} title={w.newQuestion} aria-label={w.newQuestion}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg text-fg-muted hover:bg-hover hover:text-fg">
+                  </Button>
+                  <IconButton size="sm" onClick={() => { reset(); inputRef.current?.focus() }} title={w.newQuestion}>
                     <Plus size={14} />
-                  </button>
+                  </IconButton>
                   {cost !== null && <span className="ml-auto font-mono text-xs text-fg-muted">{money(cost)}</span>}
                 </div>
               )}
             </div>
           )}
 
-          <div className="wg-card wg-pop flex w-[380px] flex-col gap-2 rounded-[20px] p-2.5">
+          <div className="wg-card wg-pop flex w-[380px] flex-col gap-2 rounded-window p-2.5">
             <div className="flex items-center gap-2">
               <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center">
                 <Mascot mood={mood} size={56} />
@@ -299,7 +299,7 @@ export default function Widget() {
               </label>
               {running ? (
                 <button onClick={() => idRef.current && window.devforge.assistant.stop(idRef.current)} title={a.stop} aria-label={a.stop}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line bg-elevated text-fg-secondary hover:text-fg">
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-fg-secondary hover:bg-elevated hover:text-fg">
                   <Square size={14} />
                 </button>
               ) : (
@@ -335,10 +335,9 @@ export default function Widget() {
                 {projects.map(p => <option key={p.id} value={p.path}>{p.name}</option>)}
               </ChipSelect>
               {running && <Loader2 size={14} className="shrink-0 animate-spin text-forgy" />}
-              <button onClick={collapse} title={w.collapse} aria-label={w.collapse}
-                className="ml-auto flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg text-fg-muted hover:bg-hover hover:text-fg">
+              <IconButton size="sm" onClick={collapse} title={w.collapse} className="ml-auto">
                 <ChevronDown size={14} />
-              </button>
+              </IconButton>
             </div>
           </div>
         </>

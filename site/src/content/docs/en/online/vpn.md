@@ -11,16 +11,15 @@ A **wg-easy version 15 or newer** container must run on the server, with its web
 
 ## Sign in
 
-Enter the **wg-easy interface** login (not the server one). It is checked, then encrypted by Windows; it only leaves DevForge towards wg-easy, through the SSH session. **Forget the login** removes it without changing anything on the server.
+Enter the **wg-easy interface** login (not the server one). It is checked, then encrypted by Windows; it only leaves DevForge towards wg-easy, through the SSH session. **Forget the login** removes it without changing anything on the server. It is also forgotten if the server changes host, port or username, or is removed: it must then be entered again.
 
 ## Clients
 
-- The list shows each device: *never connected* or *seen …*, expiry date or *Permanent*, and a switch to enable or disable it.
-- **New**: a name (for example `My phone`) and an optional expiry (empty = permanent access).
-- **QR code**: to scan with the WireGuard app on the phone. It holds the device's private key: do not share it.
-- **Download the configuration**: the `.conf` file for a computer.
-- **Delete**: the device can no longer connect.
+- The table shows each device: its address, its last connection (*connected* when it just connected, else since when), its transfers, its expiry date if any, and the **On** switch.
+- A click on a device shows its **QR code** beside the table, to scan with the WireGuard app on the phone. It holds the device's private key: it closes by itself after 2 minutes, do not share it.
+- Under the code: **Download the .conf file** for a computer, and **Delete** (the device can no longer connect).
+- **New client** (at the top): a name (for example `My phone`) and an optional expiry (empty = permanent access). Its QR code shows at once.
 
-**Open wg-easy** opens the full interface through a tunnel in the SSH session.
+The **⋯** menu: **Open wg-easy** (the full interface, through a tunnel in the SSH session), **Refresh** and **Forget the login**.
 
 The **VPN** widget on Home tells how many devices are connected. The command palette creates a client; so does Forgy, after your approval, and the page opens on its QR code.

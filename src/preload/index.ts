@@ -116,6 +116,7 @@ const api: DevForgeAPI = {
     diagram:  invoke('db:diagram'),
     saveImage: invoke('db:save-image'),
     browse:   invoke('db:browse'),
+    search:   invoke('db:search'),
     applyRows: invoke('db:apply-rows'),
     exportTable: invoke('db:export'),
     saveResult: invoke('db:save-result'),
@@ -187,9 +188,10 @@ const api: DevForgeAPI = {
   },
 
   suggest: {
-    logFiles:    invoke('suggest:log-files'),
-    monitorUrls: invoke('suggest:monitor-urls'),
-    domains:     invoke('suggest:domains')
+    logFiles:     invoke('suggest:log-files'),
+    monitorUrls:  invoke('suggest:monitor-urls'),
+    domains:      invoke('suggest:domains'),
+    portProjects: invoke('suggest:port-projects')
   },
 
   // SSH
@@ -203,6 +205,8 @@ const api: DevForgeAPI = {
   sshWrite:           (sid, data)  => ipcRenderer.invoke('ssh:write', sid, data),
   sshResize:          (sid, c, r)  => ipcRenderer.invoke('ssh:resize', sid, c, r),
   sshDisconnect:      (sid)        => ipcRenderer.invoke('ssh:disconnect', sid),
+  sshSftpList:        (sid, dir)   => ipcRenderer.invoke('ssh:sftp-list', sid, dir),
+  sshSftpDownload:    (sid, path)  => ipcRenderer.invoke('ssh:sftp-download', sid, path),
 
   onSshData: (callback) => {
     const listener = (_e: Electron.IpcRendererEvent, sessionId: string, data: string) => callback(sessionId, data)
@@ -455,9 +459,12 @@ const api: DevForgeAPI = {
     onProgress: on('modeling:progress')
   },
   notes: {
-    get:    invoke('notes:get'),
-    save:   invoke('notes:save'),
-    counts: invoke('notes:counts')
+    list:     invoke('notes:list'),
+    read:     invoke('notes:read'),
+    save:     invoke('notes:save'),
+    remove:   invoke('notes:remove'),
+    addTasks: invoke('notes:add-tasks'),
+    counts:   invoke('notes:counts')
   },
   tests: {
     detect: invoke('tests:detect'),

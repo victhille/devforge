@@ -30,7 +30,7 @@ export default function TerminalPane({ sessionId, status, error, active }: Props
 
     const term = new Terminal({
       theme: XTERM_THEME,
-      fontFamily: "'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace",
+      fontFamily: "'JetBrains Mono Variable', 'Cascadia Code', 'Fira Code', 'Consolas', monospace",
       fontSize: 13,
       lineHeight: 1.4,
       cursorBlink: true,
@@ -70,7 +70,7 @@ export default function TerminalPane({ sessionId, status, error, active }: Props
   }, [active])
 
   return (
-    <div className={cn('absolute inset-0 bg-term p-2', !active && 'invisible')}>
+    <div className={cn('absolute inset-0 bg-term px-4 py-3', !active && 'invisible')}>
       {status !== 'connected' && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 text-sm">
           {status === 'connecting' ? (

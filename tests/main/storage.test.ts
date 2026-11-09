@@ -1,7 +1,10 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import { describe, expect, it } from 'vitest'
-import { getDbConnection, listDbConnections, saveDbConnection } from '../../src/main/services/database/dbStorage'
+import { safeStorage } from 'electron'
+import type { DbConnection, SSHConnection } from '@shared/types'
+import { testDb } from '../../src/main/services/database/dbClient'
+import { forgetPasswordsThrough, getDbConnection, listDbConnections, saveDbConnection, storedPasswordFor } from '../../src/main/services/database/dbStorage'
 import { getSshConnectionWithSecret, loadSshConnections, saveSshConnection, sshServerFor } from '../../src/main/services/ssh/sshStorage'
 import { fingerprintOf, forgetHost, HostKeyMismatchError, knownFingerprint, makeHostVerifier } from '../../src/main/services/ssh/knownHosts'
 import { composeDirFor, composeName } from '../../src/main/services/docker/composeProjects'
@@ -22,6 +25,31 @@ describe('secrets at rest', () => {
     expect(getDbConnection('d2')).toMatchObject({ name: 'renamed', password: 'keep' })
   })
 
+  it('a DB connection pointed elsewhere forgets its password; the same target written differently keeps it', () => {
+    const base: DbConnection = { id: 'd3', name: 'db', type: 'postgres', host: 'db.example.org', user: 'shop', color: '' }
+    saveDbConnection({ ...base, password: 'pw' })
+    saveDbConnection({ ...base, name: 'renamed', host: 'DB.example.org', port: 5432, database: 'other' })
+    expect(getDbConnection('d3')?.password).toBe('pw')
+    for (const moved of [{ host: 'attacker.example' }, { port: 6543 }, { user: 'postgres' }, { sshConnectionId: 'v9' }, { type: 'mysql' as const }]) {
+      saveDbConnection({ ...base, password: 'pw' })
+      saveDbConnection({ ...base, ...moved })
+      expect(getDbConnection('d3')?.password, JSON.stringify(moved)).toBeUndefined()
+    }
+  })
+
+  it('a test before saving falls back on the stored password for the same target only; an encrypted value from the window is dropped', () => {
+    const base: DbConnection = { id: 'd4', name: 'db', type: 'mysql', host: 'h', user: 'u', color: '' }
+    saveDbConnection({ ...base, password: 'pw' })
+    expect(storedPasswordFor({ ...base, name: 'renamed' })).toBe('pw')
+    expect(storedPasswordFor({ ...base, host: 'attacker.example' })).toBeUndefined()
+    saveDbConnection({ ...base, id: 'd5', passwordEnc: safeStorage.encryptString('chosen').toString('base64') } as DbConnection)
+    expect(getDbConnection('d5')?.password).toBeUndefined()
+    // Reached through a server pointed elsewhere: forgotten, and read again as forgotten
+    saveDbConnection({ ...base, id: 'd6', sshConnectionId: 'v1', password: 'pw' })
+    expect(forgetPasswordsThrough('v1')).toEqual(['d6'])
+    expect(storedPasswordFor({ ...base, id: 'd6', sshConnectionId: 'v1' })).toBeUndefined()
+  })
+
   it('SSH passwords are encrypted and old plain-text ones still load', () => {
     saveSshConnection({ id: 's1', name: 'vps', host: '10.0.0.1', port: 22, username: 'root', authMethod: 'password', password: 'pw!', color: '', createdAt: '' })
     expect(readFileSync(join(userData(), 'ssh-connections.json'), 'utf-8')).not.toContain('pw!')
@@ -29,6 +57,17 @@ describe('secrets at rest', () => {
     expect(getSshConnectionWithSecret('s1')?.password).toBe('pw!')
     expect(sshServerFor('10.0.0.1')?.id).toBe('s1')
     expect(sshServerFor('127.0.0.1')).toBeUndefined()
+  })
+
+  it('several accounts on one machine still lead to it; several ports of one address may be several machines', async () => {
+    const server = (id: string, port: number, username: string): SSHConnection => ({ id, name: id, host: '10.0.0.9', port, username, authMethod: 'privateKey', color: '', createdAt: '' })
+    saveSshConnection(server('root9', 22, 'root'))
+    saveSshConnection(server('deploy9', 22, 'deploy'))
+    expect(sshServerFor('10.0.0.9')?.id).toBe('root9')
+    // A NAT: the database is neither guessed nor reached directly, unencrypted on the internet
+    saveSshConnection(server('nat9', 2222, 'root'))
+    expect(sshServerFor('10.0.0.9')).toBeUndefined()
+    await expect(testDb({ id: 'n9', name: 'db', type: 'postgres', host: '10.0.0.9', user: 'shop', password: 'pw', color: '' })).rejects.toThrow(/Plusieurs serveurs SSH|Several SSH servers/)
   })
 })
 

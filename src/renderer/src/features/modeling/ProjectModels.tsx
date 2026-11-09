@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate } from 'react-router-dom'
 import { Bot, Database, ExternalLink, Shapes } from 'lucide-react'
 import type { ModelKind, ModelSummary, Project } from '@shared/types'
@@ -8,7 +9,6 @@ import AskForgy from '@renderer/features/assistant/AskForgy'
 import { errorText } from '@renderer/lib/errors'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
-import Spinner from '@renderer/components/ui/Spinner'
 import { fill, modelUrl, useModels } from './model'
 import ModelGrid, { NameDialog } from './ModelGrid'
 import { ImportProgress, useModelImport } from './ImportProgress'
@@ -58,7 +58,7 @@ export default function ProjectModels({ project, databases }: { project: Project
     <div className="flex flex-col gap-4">
       <Card className="flex flex-wrap items-center gap-2 p-3">
         <Shapes size={16} className="text-fg-muted" />
-        <h3 className="mr-auto text-md font-semibold text-fg">{p.title}{models?.length ? <span className="ml-2 font-mono text-xs text-fg-muted">{models.length}</span> : null}</h3>
+        <h3 className="mr-auto font-display text-md font-bold tracking-[-.01em] text-fg">{p.title}{models?.length ? <span className="ml-2 font-mono text-xs text-fg-muted">{models.length}</span> : null}</h3>
         <select aria-label={m.newModel} value="" onChange={e => e.target.value && setCreating(e.target.value as ModelKind)}
           className="h-8 rounded-lg border border-line bg-surface px-2 text-sm text-fg outline-none focus:border-accent">
           <option value="">{m.newModel}…</option>
@@ -93,12 +93,12 @@ export default function ProjectModels({ project, databases }: { project: Project
         </Card>
       )}
 
-      {!models ? <Spinner className="m-4" /> : models.length
+      {!models ? <LinesSkeleton lines={3} className="m-4" /> : models.length
         ? <ModelGrid project={project} models={models} onChanged={load} from={project.id} />
         : <p className="rounded-xl border border-dashed border-line p-5 text-sm text-fg-secondary">{databases.length ? p.emptyWithDb : p.empty}</p>}
 
       <Card className="flex flex-col gap-2.5 border-forgy/30 p-4">
-        <h3 className="flex items-center gap-2 text-md font-semibold text-fg"><Bot size={16} className="text-forgy" /> {p.forgyTitle}</h3>
+        <h3 className="flex items-center gap-2 font-display text-md font-bold tracking-[-.01em] text-fg"><Bot size={16} className="text-forgy" /> {p.forgyTitle}</h3>
         <p className="text-sm text-fg-secondary">{p.forgyHint}</p>
         <textarea value={brief} onChange={e => setBrief(e.target.value)} rows={3} placeholder={p.forgyPlaceholder} aria-label={p.forgyTitle}
           className="resize-y rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent" />

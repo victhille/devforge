@@ -1,13 +1,13 @@
 # Licences tierces
 
-DevForge 0.1.0 est distribué sous [GPL-3.0](LICENSE). Il inclut les 145 paquets open source ci-dessous, chacun sous sa propre licence : le texte complet de chaque licence est dans le dossier du paquet (`node_modules/<paquet>/LICENSE`) et sur sa page npm.
+DevForge 0.2.0 est distribué sous [GPL-3.0](LICENSE). Il inclut les 146 paquets open source ci-dessous, chacun sous sa propre licence : le texte complet de chaque licence est dans le dossier du paquet (`node_modules/<paquet>/LICENSE`) et sur sa page npm.
 
 Généré par `npm run licenses` à partir de `package-lock.json` : ne pas modifier à la main.
 
-**Résumé** : MIT (84), Apache-2.0 (19), BSD-3-Clause (13), LGPL-3.0-or-later (10), ISC (7), Apache-2.0 AND LGPL-3.0-or-later (3), OFL-1.1 (2), Unlicense (2), Apache-2.0 AND LGPL-3.0-or-later AND MIT (1), Python-2.0 (1), BlueOak-1.0.0 (1), 0BSD (1), (MIT OR CC0-1.0) (1).
+**Résumé** : MIT (84), Apache-2.0 (19), BSD-3-Clause (13), LGPL-3.0-or-later (10), ISC (7), OFL-1.1 (3), Apache-2.0 AND LGPL-3.0-or-later (3), Unlicense (2), Apache-2.0 AND LGPL-3.0-or-later AND MIT (1), Python-2.0 (1), BlueOak-1.0.0 (1), 0BSD (1), (MIT OR CC0-1.0) (1).
 
 Points d'attention :
-- **Polices Geist et Geist Mono** : SIL Open Font License 1.1 (OFL-1.1), redistribuables avec l'application, à ne pas vendre seules.
+- **Polices Inter, JetBrains Mono et Bricolage Grotesque** : SIL Open Font License 1.1 (OFL-1.1), redistribuables avec l'application, à ne pas vendre seules.
 - **Apache-2.0** : les fichiers `NOTICE` éventuels de ces paquets sont conservés dans leur dossier.
 - **LGPL-3.0** (bibliothèque d'images libvips, via sharp) : compatible avec la GPL-3.0 de DevForge.
 
@@ -16,8 +16,9 @@ Points d'attention :
 | @anthropic-ai/sdk | 0.131.0 | MIT |
 | @babel/runtime | 7.29.10 | MIT |
 | @emnapi/runtime | 1.11.3 | MIT |
-| @fontsource-variable/geist | 5.3.0 | OFL-1.1 |
-| @fontsource-variable/geist-mono | 5.3.0 | OFL-1.1 |
+| @fontsource-variable/bricolage-grotesque | 5.3.0 | OFL-1.1 |
+| @fontsource-variable/inter | 5.3.0 | OFL-1.1 |
+| @fontsource-variable/jetbrains-mono | 5.3.0 | OFL-1.1 |
 | @huggingface/jinja | 0.5.10 | MIT |
 | @huggingface/tokenizers | 0.2.0 | Apache-2.0 |
 | @huggingface/transformers | 4.3.0 | Apache-2.0 |

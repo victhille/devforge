@@ -36,7 +36,8 @@ test('a project saved as a template gives a renamed new project, without .env, n
 
   // Saved from the project's page: what is copied, what is left out
   await goTo(page, '/project/s')
-  await page.getByRole('button', { name: 'Enregistrer comme modèle' }).click()
+  await page.getByRole('button', { name: 'Autres actions' }).click()
+  await page.getByRole('menuitem', { name: 'Enregistrer comme modèle' }).click()
   const dialog = page.getByRole('dialog', { name: 'Enregistrer « starter » comme modèle' })
   await dialog.getByLabel('Nom du modèle').fill('API Node')
   await dialog.getByLabel('Description').fill('Express, tests et lint')
@@ -48,12 +49,14 @@ test('a project saved as a template gives a renamed new project, without .env, n
 
   // New project › My templates
   await goTo(page, '/new-project')
-  const mine = page.getByRole('region', { name: 'Mes modèles' })
-  await mine.getByRole('button', { name: /API Node/ }).click()
+  await page.getByRole('tab', { name: /^Mes modèles/ }).click()
+  await page.getByRole('button', { name: /API Node/ }).click()
+  await page.getByRole('button', { name: 'Continuer' }).click()
   await expect(page.getByText('Nouveau projet depuis « API Node »')).toBeVisible()
-  await expect(page.getByRole('list', { name: 'Étapes' })).toContainText('1 · Framework : API Node')
+  await expect(page.getByRole('list', { name: 'Étapes' })).not.toContainText('Base de données')
   await page.getByLabel('Nom du projet').fill('my-shop')
-  await page.getByRole('checkbox', { name: 'Installer les dépendances' }).uncheck({ force: true })
+  await page.getByRole('switch', { name: 'Installer les dépendances' }).click()
+  await expect(page.getByRole('switch', { name: 'Installer les dépendances' })).toHaveAttribute('aria-checked', 'false')
   await page.getByRole('button', { name: 'Continuer' }).click()
 
   // Straight to Git: no database, no libraries, no welcome page
@@ -61,7 +64,8 @@ test('a project saved as a template gives a renamed new project, without .env, n
   await expect(recap).toContainText('Copie du modèle « API Node », le nom du projet remplacé')
   await expect(recap).toContainText('git init -b main')
   await expect(recap).not.toContainText('npm install')
-  await page.getByRole('checkbox', { name: 'Ouvrir dans VS Code à la fin' }).uncheck({ force: true })
+  await page.getByRole('switch', { name: 'Ouvrir dans VS Code à la fin' }).click()
+  await expect(page.getByRole('switch', { name: 'Ouvrir dans VS Code à la fin' })).toHaveAttribute('aria-checked', 'false')
   await page.getByRole('button', { name: 'Créer le projet' }).click()
 
   const made = join(dir, 'my-shop')
@@ -76,7 +80,7 @@ test('a project saved as a template gives a renamed new project, without .env, n
 
   // Settings › Templates: renamed, then deleted
   await goTo(page, '/settings?section=templates')
-  const list = page.getByRole('list', { name: 'Modèles' })
+  const list = page.getByRole('list', { name: 'Mes modèles' })
   await expect(list).toContainText('API Node')
   await expect(list).toContainText('4 fichier(s)')
   await list.getByRole('button', { name: 'Renommer' }).click()

@@ -21,14 +21,23 @@ export default defineConfig({
       },
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/victhille/devforge' }],
       editLink: { baseUrl: 'https://github.com/victhille/devforge/edit/main/site/' },
-      customCss: ['@fontsource-variable/geist', '@fontsource-variable/geist-mono', './src/styles/custom.css'],
+      customCss: ['@fontsource-variable/inter', '@fontsource-variable/jetbrains-mono', '@fontsource-variable/bricolage-grotesque', './src/styles/custom.css'],
       lastUpdated: true,
       // Light by default, the home page's download button in the header
       components: { ThemeProvider: './src/components/ThemeProvider.astro', SocialIcons: './src/components/SocialIcons.astro', Head: './src/components/Head.astro', Header: './src/components/Header.astro', Footer: './src/components/Footer.astro' },
       // src/pages/404.astro, in the look of the home page
       disable404Route: true,
-      // Code on the app's dark canvas in both themes
-      expressiveCode: { themes: ['github-dark-default'] },
+      // Code on the app's dark canvas in both themes, in its code font
+      expressiveCode: {
+        themes: ['github-dark-default'],
+        styleOverrides: {
+          codeFontFamily: "'JetBrains Mono Variable', 'Cascadia Code', Consolas, monospace",
+          codeBackground: '#121110',
+          borderColor: '#2E2A26',
+          borderRadius: '10px',
+          frames: { editorTabBarBackground: '#151311', editorActiveTabBackground: '#121110', terminalTitlebarBackground: '#151311', terminalBackground: '#121110' }
+        }
+      },
       // The documentation only: the other pages are tabs under the header (src/components/sections.ts)
       sidebar: [
         group('Prise en main', 'Getting started', [

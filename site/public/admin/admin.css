@@ -1,33 +1,33 @@
-/* The site's paper look (src/styles/custom.css), the app's colours in the dark */
+/* The site's look (src/styles/custom.css): the app's « Forge » colours, cream paper or warm charcoal */
 :root {
-  --bg: #F6F4EF;
+  --bg: #F7F4F0;
   --card: #FFFFFF;
-  --line: #E2DED6;
-  --ink: #17191E;
-  --ink-2: #4A505C;
-  --muted: #6B6862;
-  --accent: #1D4ED8;
-  --accent-soft: #E3EAFB;
+  --line: #E4DED6;
+  --ink: #1E1A16;
+  --ink-2: #5C544C;
+  --muted: #6A6158;
+  --accent: #B53C0B;
+  --accent-soft: #F7E3D8;
   --danger: #B42318;
-  --bar-track: #EEEAE3;
-  --s1: #1D4ED8;
-  --s2: #C2530A;
+  --bar-track: #EEE9E3;
+  --s1: #B53C0B;
+  --s2: #1D4ED8;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0D0F13;
-    --card: #161A21;
-    --line: #262C36;
-    --ink: #E8ECF2;
-    --ink-2: #C3CAD5;
-    --muted: #9AA4B2;
-    --accent: #5B9BFF;
-    --accent-soft: #15233D;
-    --danger: #FF7A70;
-    --bar-track: #1F242D;
-    --s1: #5B9BFF;
-    --s2: #FF9A3C;
+    --bg: #121110;
+    --card: #1A1816;
+    --line: #2E2A26;
+    --ink: #F2EEE9;
+    --ink-2: #B5ADA4;
+    --muted: #9E968D;
+    --accent: #FF7A33;
+    --accent-soft: #3A1E10;
+    --danger: #FF6B5E;
+    --bar-track: #25221F;
+    --s1: #FF7A33;
+    --s2: #7AA7FF;
     color-scheme: dark;
   }
 }
@@ -37,7 +37,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font: 15px/1.5 'Segoe UI', system-ui, sans-serif;
+  font: 15px/1.5 'Inter Variable', 'Segoe UI', system-ui, sans-serif;
 }
 main { max-width: 1100px; margin: 0 auto; padding: 32px 16px 64px; }
 h1 { margin: 0; font-size: 28px; letter-spacing: -.02em; }

@@ -40,7 +40,7 @@ test('not installed: what holds 80/443 picks the way online, the address needs n
   expect(await settledAxeIssues(page)).toEqual([])
 })
 
-test('installed: services with their 90 days, alerts, incidents; changes wait for "Save"', async () => {
+test('installed: services with their uptime, alerts, incidents; changes wait for "Save"', async () => {
   const config = {
     title: 'Services de Alice', intervalSec: 60, failuresBeforeDown: 3,
     monitors: [
@@ -62,11 +62,13 @@ test('installed: services with their 90 days, alerts, incidents; changes wait fo
   })
   const { page } = run
   await goTo(page, '/status')
-  await expect(page.getByText('En ligne', { exact: true })).toBeVisible()
-  await expect(page.getByText('https://status.203-0-113-10.sslip.io')).toBeVisible()
+  // As in the mock-up: its state in the title, its address and « Report an incident » in the header
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('en ligne')
+  await expect(page.getByRole('button', { name: 'status.203-0-113-10.sslip.io' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Signaler un incident' })).toBeVisible()
   const boutique = page.getByRole('listitem', { name: 'Boutique' })
   await expect(boutique).toContainText('212 ms')
-  await expect(boutique.getByRole('img', { name: 'Boutique : disponibilité des 90 derniers jours' })).toBeVisible()
+  await expect(boutique).toContainText('95,13 %')
   await expect(page.getByRole('listitem', { name: 'Base PostgreSQL' })).toContainText('en panne · ECONNREFUSED')
   await expect(page.getByText('Base PostgreSQL indisponible')).toBeVisible()
   await expect(page.getByText('Maintenance de la base')).toBeVisible()
@@ -74,6 +76,7 @@ test('installed: services with their 90 days, alerts, incidents; changes wait fo
   expect(await settledAxeIssues(page)).toEqual([])
 
   // A change is kept until "Save" (nothing sent to the server here)
+  await page.getByRole('button', { name: 'Ajouter un service' }).click()
   await page.getByLabel('Nom public').fill('API')
   await page.getByLabel('Adresse', { exact: true }).fill('https://api.example.fr/health')
   await page.getByRole('button', { name: 'Ajouter', exact: true }).click()

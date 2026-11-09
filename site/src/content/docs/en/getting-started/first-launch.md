@@ -3,7 +3,7 @@ title: First launch
 description: The five steps of DevForge's welcome screen.
 ---
 
-On the very first launch, DevForge opens a **five-step** welcome. Nothing is plugged in advance: DevForge only knows what you give it, and everything is optional. **Skip**, top right, closes the welcome at any step; everything can be found later in [Settings](/devforge/en/settings/general/).
+On the very first launch, DevForge opens a **five-step** welcome. Nothing is plugged in advance: DevForge only knows what you give it, and everything is optional. The list of steps, on the left, shows the ones done and the current one. **Skip**, top right, closes the welcome at any step; everything can be found later in [Settings](/devforge/en/settings/general/).
 
 ## 1. Welcome
 

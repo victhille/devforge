@@ -23,24 +23,26 @@ With several tools (Vitest and Playwright, say), a menu picks which one runs. A 
 
 **Run the tests** starts the tool in the project's folder; its output scrolls below while it runs, and **Stop** cuts it. Then:
 
-- four figures: **passed**, **failed**, **skipped**, and the **duration**;
-- the tests **by file**, each with ✓, ✗ or *skipped* and its time; a file with a failure is open, the others folded;
+- the totals as badges: **passed**, **failed**, **skipped**, and the **duration**;
+- on the left, the **test files**, each with its number of tests and failures; the first failing file is picked for you;
+- on the right, **the tests of the file picked**, each with ✓, ✗ or *skipped* and its time;
 - **Command output**, folded, keeps what the tool wrote.
 
 The tool writes its report in DevForge's data, never in the project. The last whole run is kept: back on the tab, it shows with its time (*Last run 5 min ago*).
 
 ## Failures
 
-A failed test unfolds under its line:
+In the file's detail, the first failure shows at the top; a click on another failed test shows it instead:
 
 - its **message**;
 - **Expected** and **Received**, when the tool gives them (Jest, Vitest, PHPUnit, pytest, and `left` / `right` in Rust);
-- **At** *file:line*: a click opens the file in the **Files** tab, at the line, highlighted;
+- **At** *file:line*: a click (or **Open the file**) opens it in the **Files & Git** tab, at the line, highlighted;
 - **Full message** for the whole trace.
 
 Then:
 
-- **Run this file again** (under the failure, or the icon on the file's row);
+- **Run this test again**: only that test, when its name is made of plain words (letters, numbers, spaces and common punctuation); otherwise, its whole file;
+- **Run this file again** (next to the title of the file's tests);
 - **Run the failures again**: only the files that failed;
 - **Failures only** hides everything that passes;
 - **Explain with Forgy** sends the test's name, place and message to [Forgy](/devforge/en/forgy/assistant/), which explains the failure and suggests a fix.

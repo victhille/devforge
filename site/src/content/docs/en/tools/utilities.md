@@ -7,11 +7,11 @@ The **Tools** group gathers the small everyday utilities. Everything runs on you
 
 ## Toolbox
 
-One page, one tab per tool, and **Find a tool…** to go fast:
+One page, a card per tool (its name and what it does), and **Find a tool…** to go fast (<kbd>Enter</kbd> opens the first one found, the arrows move from one tool to the next):
 
 | Tool | What it does |
 |---|---|
-| JSON | **Format** or **Minify**, with a clear error if the JSON is invalid |
+| JSON | **Format**, **Minify** or **Sort keys** (every object in alphabetical order, lists keep theirs), with a clear error if the JSON is invalid |
 | Base64 | **Encode** / **Decode** |
 | JWT | decodes a token's header and payload, without checking the signature |
 | Regex | a pattern and its flags, tested on a text: matches are highlighted |
@@ -21,7 +21,7 @@ One page, one tab per tool, and **Find a tool…** to go fast:
 | Timestamp | converts a Unix timestamp (seconds or milliseconds) to local time and relative time; **Now** |
 | URL | encodes (`encodeURIComponent` or `encodeURI`), decodes, and splits a URL: protocol, host, path, parameters, hash |
 
-Each output has its **Copy** button.
+Each tool has an **Input** card, where you type or paste, and a **Result** card, on a dark background, with its copy button.
 
 ## Help and examples
 
@@ -36,25 +36,27 @@ An example only fills fields: nothing is saved or sent. **Hide the help** folds 
 
 ## Snippets
 
-Your reusable bits of code: a **title**, a **language**, the **code** and **tags** (`react, hook, typescript`). Search, **Copy**, **Delete**. A block of the [built-in terminal](/devforge/en/getting-started/interface/#the-built-in-terminal) can also be saved as a snippet.
+Your reusable pieces of code: a **title**, a **language**, the **code** and **tags** (`react, hook, typescript`). On the left, a search, the languages as filters (**All**, TypeScript, PHP…) and the list, each snippet with its language and first tag. On the right, the chosen snippet: its tags, its code in colours, **Copy** and **New snippet**; the **⋯** menu lets you **Edit** it (the form, then **Save**) or **Delete** it, after confirmation. A block of the [built-in terminal](/devforge/en/getting-started/interface/#the-built-in-terminal) can be saved as a snippet too.
 
 ## Text Diff
 
-Paste an **Original** text and a **Modified** text: the result shows side by side what is *added*, *removed* or *unchanged*.
+Paste an **Original** and a **Modified** text: the number of lines removed and added shows, then the two versions **side by side**, with their line numbers, removed lines in red on the left and added lines in green on the right. **Unified** shows them as one list, with `+` and `-` (the choice is remembered). **Ignore whitespace** counts as equal the lines that only differ by indentation or extra spaces. **Swap** exchanges the two texts, **Clear** empties them.
 
 ## Generator
 
-| Section | Settings |
-|---|---|
-| Password | length, uppercase, lowercase, numbers, symbols |
-| Secret / Token | format (Hex, Base64, alphanumeric) and number of bytes |
-| UUID | one v4 UUID per click, the last 10 kept |
+A tab per kind of value, with its **Settings** on the left and the **Result** on the right:
 
-**Generate**, then **Copy**.
+| Tab | Settings |
+|---|---|
+| Password | length, uppercase, lowercase, digits, symbols |
+| App secret / token | format (Base64, Hex, alphanumeric) and number of bytes. In Base64: **base64: prefix (Laravel APP_KEY)** gives a key ready for Laravel's `.env`, **URL-safe** replaces `+` and `/` with `-` and `_` |
+| UUID | how many to draw at once (1 to 20), **Copy all** |
+
+A value is drawn as soon as it opens, and again when a setting changes; **Regenerate** draws another, **Copy** copies it. The result gives its strength in bits. Settings are remembered.
 
 ## Docs
 
-Command cheat sheets for **Docker**, **React**, **Vue**, **Symfony**, **Node.js**, **Git**, **Shell** and **Python**, with a search. Each command copies in one click.
+Command cheat sheets for **Docker**, **React**, **Vue**, **Symfony**, **Node.js**, **Git**, **Shell** and **Python**: on the left, each reference with its number of commands; on the right, its sections as cards, a row per command (the command, what it does, the copy). The search filters the open reference.
 
 ### Your own commands
 

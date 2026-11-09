@@ -4,12 +4,13 @@ import type { DbBrowseResult, DbColumnInfo, DbConnection, DbForeignKey, DbTableD
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import { formatSize } from '@renderer/lib/format'
-import { cn } from '@renderer/lib/cn'
 import Badge from '@renderer/components/ui/Badge'
 import Card from '@renderer/components/ui/Card'
+import { Table, Td, Th } from '@renderer/components/ui/Table'
 import CopyButton from '@renderer/components/ui/CopyButton'
 import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
+import { TableSkeleton } from '@renderer/components/ui/Skeleton'
 import { Select } from '@renderer/components/ui/Input'
 import { SectionTitle } from '@renderer/components/ui/Page'
 import Button from '@renderer/components/ui/Button'
@@ -72,7 +73,7 @@ export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableR
   const pending = rows.changes.length > 0
   useEffect(() => { rows.reset() }, [page, limit, sort, reload, table.name, table.schema]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!result || !grid) return <Spinner className="m-6" />
+  if (!result || !grid) return <TableSkeleton label={d.loading} toolbar rows={10} columns={6} />
 
   const from = result.rows.length ? page * limit + 1 : 0
   const to = page * limit + result.rows.length
@@ -139,13 +140,6 @@ export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableR
 
 const KEY_COLOR = { PRI: 'warning', UNI: 'accent', MUL: 'default' } as const
 
-function Th({ children, className }: { children?: ReactNode; className?: string }) {
-  return <th className={cn('border-b border-line-subtle px-3 py-2 text-left text-xs font-semibold text-fg-muted', className)}>{children}</th>
-}
-function Td({ children, className }: { children?: ReactNode; className?: string }) {
-  return <td className={cn('border-b border-line-subtle px-3 py-2 align-top', className)}>{children}</td>
-}
-
 type Editing = { kind: 'add' } | { kind: 'edit'; column: DbColumnInfo } | { kind: 'dropColumn'; column: string } | { kind: 'rename' } | { kind: 'drop' }
 
 /**
@@ -167,7 +161,7 @@ export function StructureTab({ details, conn, table, onChanged, onRenamed, onDro
   const close = () => setEditing(null)
   const changed = () => { close(); onChanged?.() }
   return (
-    <div className="flex flex-col gap-5 p-5">
+    <div className="flex flex-col gap-5">
       <section className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <SectionTitle>{d.columnsTitle.replace('{n}', String(details.columns.length))}</SectionTitle>
@@ -179,14 +173,14 @@ export function StructureTab({ details, conn, table, onChanged, onRenamed, onDro
             </span>
           )}
         </div>
-        <Card className="overflow-x-auto p-0">
-          <table className="w-full border-collapse text-sm">
-            <thead className="bg-elevated">
+        <Card className="overflow-hidden p-0">
+          <Table>
+            <thead>
               <tr><Th className="w-10">#</Th><Th>{d.colName}</Th><Th>{d.colType}</Th><Th>{d.colNull}</Th><Th>{d.colDefault}</Th><Th>{d.colKey}</Th><Th>{d.colExtra}</Th><Th>{d.colComment}</Th>{editable && <Th className="w-[72px]"><span className="sr-only">{d.colActions}</span></Th>}</tr>
             </thead>
             <tbody>
               {details.columns.map((c, i) => (
-                <tr key={c.name} className="hover:bg-hover">
+                <tr key={c.name}>
                   <Td className="text-fg-muted tabular-nums">{i + 1}</Td>
                   <Td className="font-mono font-medium text-fg">
                     <span className="flex items-center gap-1.5">{c.key === 'PRI' && <KeyRound size={11} className="text-warning" />}{c.name}</span>
@@ -208,19 +202,19 @@ export function StructureTab({ details, conn, table, onChanged, onRenamed, onDro
                 </tr>
               ))}
             </tbody>
-          </table>
+          </Table>
         </Card>
       </section>
 
       <section className="flex flex-col gap-2">
         <SectionTitle>{d.indexesTitle.replace('{n}', String(details.indexes.length))}</SectionTitle>
         {details.indexes.length === 0 ? <p className="text-sm text-fg-muted">{d.noIndexes}</p> : (
-          <Card className="overflow-x-auto p-0">
-            <table className="w-full border-collapse text-sm">
-              <thead className="bg-elevated"><tr><Th>{d.colName}</Th><Th>{d.colType}</Th><Th>{d.unique}</Th><Th>{d.indexColumns}</Th></tr></thead>
+          <Card className="overflow-hidden p-0">
+            <Table>
+              <thead><tr><Th>{d.colName}</Th><Th>{d.colType}</Th><Th>{d.unique}</Th><Th>{d.indexColumns}</Th></tr></thead>
               <tbody>
                 {details.indexes.map(i => (
-                  <tr key={i.name} className="hover:bg-hover">
+                  <tr key={i.name}>
                     <Td className="font-mono text-fg">
                       <span className="flex items-center gap-2">{i.name}{i.primary && <Badge color="warning" className="text-2xs">{d.primary}</Badge>}</span>
                     </Td>
@@ -230,7 +224,7 @@ export function StructureTab({ details, conn, table, onChanged, onRenamed, onDro
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </Table>
           </Card>
         )}
       </section>
@@ -274,7 +268,7 @@ export function RelationsTab({ details, table, onOpenTable }: { details: DbTable
   const { t } = useI18n()
   const d = t.database
   return (
-    <div className="flex flex-col gap-5 p-5">
+    <div className="flex flex-col gap-5">
       <section className="flex flex-col gap-2">
         <SectionTitle>{d.foreignKeys}</SectionTitle>
         {details.foreignKeys.length === 0 ? <p className="text-sm text-fg-muted">{d.noForeignKeys}</p> : (
@@ -300,25 +294,25 @@ export function RelationsTab({ details, table, onOpenTable }: { details: DbTable
 export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
     <Card className="flex flex-col gap-1 px-4 py-3">
-      <span className="text-2xs font-medium uppercase tracking-wider text-fg-muted">{label}</span>
-      <span className="truncate text-md font-semibold text-fg" title={typeof value === 'string' ? value : undefined}>{value}</span>
+      <span className="text-sm text-fg-muted">{label}</span>
+      <span className="truncate font-display text-lg leading-tight font-bold tracking-[-.01em] text-fg" title={typeof value === 'string' ? value : undefined}>{value}</span>
       {hint && <span className="text-2xs text-fg-muted">{hint}</span>}
     </Card>
   )
 }
 
 export function InfoTab({ details }: { details: DbTableDetails }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const d = t.database
   const s: DbTableStat | null = details.stats
   const total = s && (s.dataBytes !== null || s.indexBytes !== null) ? (s.dataBytes ?? 0) + (s.indexBytes ?? 0) : null
   return (
-    <div className="flex flex-col gap-5 p-5">
+    <div className="flex flex-col gap-5">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label={d.rowsEstimate} value={s?.rows?.toLocaleString() ?? '—'} hint={d.approx} />
-        <Stat label={d.size} value={formatSize(total)} />
-        <Stat label={d.dataSize} value={formatSize(s?.dataBytes)} />
-        <Stat label={d.indexSize} value={formatSize(s?.indexBytes)} />
+        <Stat label={d.size} value={formatSize(total, lang)} />
+        <Stat label={d.dataSize} value={formatSize(s?.dataBytes, lang)} />
+        <Stat label={d.indexSize} value={formatSize(s?.indexBytes, lang)} />
         {s?.engine && <Stat label={d.engine} value={s.engine} />}
         {s?.collation && <Stat label={d.collation} value={s.collation} />}
         <Stat label={d.colType} value={s?.type === 'view' ? d.typeView : d.typeTable} />

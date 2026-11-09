@@ -21,16 +21,20 @@ Si le pare-feu du serveur (ufw) ferme 80 et 443, DevForge propose **Ouvrir 80 et
 
 **Adresse de la page** : une adresse prête sans réglage DNS (`sslip.io`), ou **Mon sous-domaine** (par exemple `status.example.com`, avec **Vérifier le DNS**). L'e-mail pour le certificat est facultatif.
 
-## Ce qui est surveillé
+## La page installée
 
-Ajoute des services :
+En haut : l'état de la page (*en ligne* ou *arrêtée*), son adresse (un clic l'ouvre) et **Signaler un incident**. Le menu **⋯** : **Actualiser** et **Désinstaller**.
+
+## Services affichés
+
+**Ajouter un service** :
 
 | Type | Adresse |
 |---|---|
 | Site (HTTP) | `https://example.com` |
 | Port (TCP) | `hôte:port`, par exemple `127.0.0.1:5432` |
 
-Chaque service a un **nom public**. Ce qui est coché **Publique** s'affiche sur la page ; le reste ne se voit que dans DevForge. Chaque service montre sa disponibilité des 90 derniers jours.
+Chaque service a un **nom public**. Ce qui est coché **Publique** s'affiche sur la page ; le reste ne se voit que dans DevForge. Chaque service montre son état, son temps de réponse et sa disponibilité sur 90 jours.
 
 **Tester une panne** ajoute un service de test qui échoue : l'incident et l'alerte arrivent à la vérification suivante. **Retirer le test** le ferme.
 
@@ -41,20 +45,16 @@ Quand un service tombe puis revient, le serveur prévient lui-même :
 - **Notification sur le téléphone (ntfy)** : installe l'appli [ntfy](https://ntfy.sh) et abonne-toi au sujet. Garde-le secret : qui le connaît reçoit les alertes.
 - **Webhook** : un POST JSON à chaque panne et retour, par exemple vers un webhook n8n ou Discord.
 
+Dans la même carte : **Échecs de suite avant l'alerte** (plusieurs échecs de suite évitent les fausses alertes sur une coupure d'une seconde), **Vérification** toutes les N secondes et le **Titre** de la page.
+
 **Envoyer une alerte de test** vérifie le réglage. Les alertes ntfy se règlent, se testent et se retirent aussi dans [Paramètres › Connexions](/devforge/getting-started/connections/#n8n-et-alertes).
-
-## La page
-
-- **Titre** de la page.
-- **Vérification** toutes les N secondes.
-- **Échecs avant « en panne »** : plusieurs échecs de suite évitent les fausses alertes sur une coupure d'une seconde.
 
 Les réglages modifiés partent au serveur avec **Enregistrer**.
 
 ## Incidents
 
-Les incidents sont ouverts et fermés tout seuls par la surveillance (*automatique*). Tu peux aussi en **écrire** un (maintenance, explication) : un titre, un message facultatif, **Publier** ; il s'affiche sur la page publique. **Marquer résolu** ou **Supprimer**.
+Les incidents sont ouverts et fermés tout seuls par la surveillance (*automatique*). Tu peux aussi en signaler un avec **Signaler un incident** (maintenance, explication) : un titre, un message facultatif, **Publier** ; il s'affiche sur la page publique. **Marquer résolu** ou **Supprimer**.
 
 ## Désinstaller
 
-**Désinstaller** arrête le service et supprime `~/devforge/status` sur le serveur, historique compris.
+**Désinstaller** (menu **⋯**) arrête le service et supprime `~/devforge/status` sur le serveur, historique compris.

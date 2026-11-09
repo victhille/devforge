@@ -7,7 +7,14 @@ description: The home screen, the menu, favorites, the command palette, the term
 
 ![Home, with the active project, Git and activity](../../../../assets/screens/home-en.png)
 
-Home greets you according to the time of day and sums up what is running: containers online, ports listening, repositories to push, server state. It is made of **widgets**:
+Home greets you according to the time of day. Under the greeting, **chips** say where you stand: containers online (or "Nothing running"), changed repositories, repositories to push, server state.
+
+Below, two cards:
+
+- **Pick up again**: the three projects opened last, with their path, the state of their repository (changed, to push, up to date) and when they were last opened. **Open** leads to the project's page; **All Projects** to the list.
+- **Forgy**: a field to ask it a question, and three ready-made requests about the [active project](#the-active-project): **Commit message**, **Review the changes**, **Explain the project**. Each opens Forgy's panel and starts a new conversation.
+
+The rest of Home is made of **widgets**:
 
 | Widget | What it shows |
 |---|---|
@@ -28,7 +35,9 @@ One project can be **active**: Forgy and the desktop widget refer to it. It beco
 
 ## The menu
 
-The left menu starts with **Home** and your **favorites**, then lists every page in six folding groups:
+The left menu is an icon rail: **Home**, then six groups. Clicking a group shows its pages in the panel beside it, without leaving the page on screen. The rail marks in orange where the page on screen sits: Home when it is one of your favorites and the panel shows them, its group otherwise.
+
+Under Home, the panel shows your **favorites** and your three **recent projects** (all the others are on the [Projects](/devforge/en/dev/projects/) page). In front of each project, a dot tells the state of its repository: orange when it has changed files (their number is on the right), green when it is up to date, grey when the folder is not a Git repository. At the bottom of the panel, a note: a reminder of <kbd>Ctrl</kbd> <kbd>K</kbd> under Home, the watched server under Servers and Going live.
 
 | Group | Pages |
 |---|---|
@@ -39,7 +48,7 @@ The left menu starts with **Home** and your **favorites**, then lists every page
 | System | [Environment](/devforge/en/system/environment/), [Ports](/devforge/en/system/ports/), [Env variables](/devforge/en/system/env-files/), [Local domains](/devforge/en/system/domains/), [Disk cleaner](/devforge/en/system/cleaner/) |
 | Tools | [Toolbox, Snippets, Text Diff, Generator, Docs](/devforge/en/tools/utilities/) |
 
-**Settings** is pinned at the bottom. <kbd>Ctrl</kbd> <kbd>B</kbd> collapses or expands the menu.
+**Settings** is pinned at the bottom of the rail; its panel lists the [sections of the Settings](/devforge/en/settings/general/). <kbd>Ctrl</kbd> <kbd>B</kbd> folds or reopens the panel; clicking the group that is already shown folds it too. From the keyboard, the arrows move along the rail, <kbd>Enter</kbd> shows the group and <kbd>Tab</kbd> goes on to its pages.
 
 As long as no server is set up, the pages that need one (Health, Services, Backups, n8n, VPN, Status page) are hidden; the group says "N more with a server".
 
@@ -102,7 +111,7 @@ As you type, the line's **likely rest** shows greyed after the caret, as in the 
 |---|---|
 | <kbd>Ctrl</kbd> <kbd>K</kbd> | command palette |
 | <kbd>Ctrl</kbd> <kbd>J</kbd> | open / close Forgy |
-| <kbd>Ctrl</kbd> <kbd>B</kbd> | collapse / expand the menu |
+| <kbd>Ctrl</kbd> <kbd>B</kbd> | fold / reopen the menu panel |
 | <kbd>F1</kbd> | the documentation of the page on screen |
 | <kbd>Ctrl</kbd> <kbd>`</kbd> | built-in terminal |
 | <kbd>Ctrl</kbd> <kbd>Enter</kbd> | run the SQL query |

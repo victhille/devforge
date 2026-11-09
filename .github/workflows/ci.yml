@@ -23,9 +23,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      # npm ci takes 2 to 3 minutes on Windows (583 packages, Electron's download):
+      # npm ci takes 2 to 3 minutes on Windows (583 packages, then Electron's binary):
       # the installed packages are kept as long as package-lock.json does not change
-      # The packages, without the app's version (a release changes it, not the packages)
+      # The packages, without the app's version (a release changes it, not the packages);
+      # "electron" in the key: the caches saved before held no Electron binary
       - id: lock
         shell: bash
         run: echo "key=$(node scripts/deps-key.mjs)" >> "$GITHUB_OUTPUT"
@@ -35,9 +36,30 @@ jobs:
           path: |
             node_modules
             ~\AppData\Local\electron\Cache
-          key: deps-${{ runner.os }}-node22-${{ steps.lock.outputs.key }}
+          key: deps-${{ runner.os }}-node22-electron-${{ steps.lock.outputs.key }}
       - if: steps.deps.outputs.cache-hit != 'true'
         run: npm ci
+      # npm ci no longer fetches Electron's binary: Electron fetches it on its first launch,
+      # so it was never in the cache and every run downloaded it from GitHub during the e2e
+      # (a 504 there failed them all). Fetched here, before the cache is saved; nothing is
+      # downloaded when the cache already has it. GitHub can fail on this file for hours:
+      # after two tries there, the npmmirror copy. Either way the zip is checked against the
+      # SHA-256 sums shipped in the electron package, so a changed file is refused
+      - name: Electron binary
+        shell: bash
+        run: |
+          for try in 1 2 3 4; do
+            if [ "$try" -gt 2 ]; then
+              export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
+              echo "GitHub does not answer: trying the npmmirror copy"
+            fi
+            if node node_modules/electron/install.js; then
+              exit 0
+            fi
+            echo "Electron's download failed (try $try of 4)"
+            [ "$try" -lt 4 ] && sleep $((try * 15))
+          done
+          exit 1
       # Saved right away: a failing test later must not lose it
       - if: steps.deps.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4

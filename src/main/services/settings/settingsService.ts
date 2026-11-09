@@ -3,6 +3,7 @@ import { join, dirname } from 'path'
 import { app } from 'electron'
 import type { AppSettings } from '@shared/types'
 import { writeJsonFile } from '../../lib/jsonFile'
+import { dataChanged } from '../../lib/changes'
 import { DEFAULT_FAVORITES, cleanFavorites } from '@shared/lib/favorites'
 import { DEFAULT_WIDGETS, cleanWidgets } from '@shared/lib/homeWidgets'
 import type { HomeWidget } from '@shared/types'
@@ -67,12 +68,14 @@ export function savedLanguage(): 'fr' | 'en' | null {
   }
 }
 
-/** Favorites and Home widgets keep the value on disk: a page holding an older copy of the settings cannot undo them */
+/** Favorites and Home widgets keep the value on disk: a page holding an older copy of the settings cannot undo them.
+ *  Every window reads the settings again (`settings` topic): appearance, terminal, folders follow at once. */
 export function saveSettings(settings: AppSettings): void {
   const path = getSettingsPath()
   mkdirSync(dirname(path), { recursive: true })
   const disk = loadSettings()
   writeJsonFile(path, { ...settings, favorites: disk.favorites, homeWidgets: disk.homeWidgets })
+  dataChanged('settings')
 }
 
 export function setHomeWidgets(widgets: unknown): HomeWidget[] {
@@ -80,6 +83,7 @@ export function setHomeWidgets(widgets: unknown): HomeWidget[] {
   mkdirSync(dirname(path), { recursive: true })
   const homeWidgets = cleanWidgets(widgets)
   writeJsonFile(path, { ...loadSettings(), homeWidgets })
+  dataChanged('settings')
   return homeWidgets
 }
 
@@ -88,5 +92,6 @@ export function setFavorites(paths: unknown): string[] {
   mkdirSync(dirname(path), { recursive: true })
   const favorites = cleanFavorites(paths)
   writeJsonFile(path, { ...loadSettings(), favorites })
+  dataChanged('settings')
   return favorites
 }

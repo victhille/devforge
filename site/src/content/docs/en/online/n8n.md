@@ -22,17 +22,18 @@ An install already in `~/devforge/n8n` can be run again: its data is kept.
 
 ## Manage
 
-- State: *running*, *stopped*, *not started*.
-- **Open n8n**, **Start**, **Stop**, **Restart**, **Logs**.
+- At the top, n8n's state and version (*online · 1.82*), **Restart n8n** and **Open n8n** (**Start** when it is stopped).
+- The **⋯** menu: **Update**, **Logs**, **Stop** and **Forget this server**.
 - **Update**: backs up n8n's database, then moves to the latest image.
 - **Editor in French**: turns on the community French translation of n8n. The database is backed up then n8n restarts; texts added by a new n8n version stay in English until translated.
 - **Forget this server**: removes n8n from DevForge without deleting anything on the server.
 
 ## Workflows and executions
 
-With an **n8n API key** (in n8n: *Settings › API › Create a key*), encrypted by Windows, entered here or in [Settings › Connections](/devforge/en/getting-started/connections/#n8n-and-alerts):
+With an **n8n API key** (in n8n: *Settings › API › Create a key*), encrypted by Windows, entered here or in [Settings › Connections](/devforge/en/getting-started/connections/#n8n-and-alerts) (it is forgotten if the server changes host, port or username, or is removed):
 
-- **Workflows**: the list, with their last update and **Export to a project** (a JSON file in one of your projects);
-- **Executions**: success, failed, crashed, running…, with the **Failures only** filter.
+- four counts: **Active workflows**, **Runs · 24 h**, **Failures · 24 h** and **Public webhook** (or **Access** through an SSH tunnel);
+- the table of workflows: their **trigger** (webhook, scheduled, by hand…), their **last run** (success, failed…), how many runs in 24 h and the **Active** switch. On hovering a row, **Export to a project** (a JSON file in one of your projects);
+- below, when there are several, the **failures of the last 24 hours**.
 
 Forgy can turn a workflow on or off and retry a failed execution (actions to approve). The command palette opens and restarts n8n.

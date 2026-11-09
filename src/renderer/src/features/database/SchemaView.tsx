@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { CanvasSkeleton } from '@renderer/components/ui/Skeleton'
 import { createPortal } from 'react-dom'
 import { Eye, KeyRound, LayoutTemplate, Maximize2, Minus, Plus, X } from 'lucide-react'
 import type { DbConnection, DbDiagram, DbTableRef } from '@shared/types'
@@ -11,7 +12,6 @@ import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
-import Spinner from '@renderer/components/ui/Spinner'
 import { errorText } from '@renderer/lib/errors'
 import ErrorState from '@renderer/components/ui/ErrorState'
 
@@ -201,7 +201,7 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
     // On the body: inside a page with a transform (its entry animation), "fixed" would stay in the page
     createPortal(<div role="dialog" aria-modal="true" aria-label={s.title.replace('{db}', dbName)} className="fixed inset-x-0 top-[42px] bottom-0 z-40 flex flex-col overscroll-contain bg-canvas">
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-line-subtle px-4">
-        <h2 className="min-w-0 truncate text-md font-semibold text-fg">{s.title.replace('{db}', dbName)}</h2>
+        <h2 className="min-w-0 truncate font-display text-md font-bold tracking-[-.01em] text-fg">{s.title.replace('{db}', dbName)}</h2>
         <span className="hidden items-center gap-3 text-xs text-fg-muted md:flex">
           <span className="flex items-center gap-1"><KeyRound size={11} className="text-warning" /> {s.legendKey}</span>
           <span><span className="font-mono">!</span> {s.legendRequired}</span>
@@ -253,7 +253,7 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
           onPointerDown={e => down(e)} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onDragStart={e => e.preventDefault()}
           data-testid="schema-canvas">
           {error ? <ErrorState className="m-6" title={s.loadFailed} error={error} />
-            : !diagram ? <Spinner className="m-6" />
+            : !diagram ? <CanvasSkeleton />
             : !shown.size ? (
               <p className="absolute inset-x-0 top-1/3 mx-auto max-w-md text-center text-sm text-fg-secondary">
                 {diagram.tables.length === 0 ? s.empty : diagram.tables.length > MANY ? s.tooMany.replace('{n}', String(diagram.tables.length)) : s.noneShown}

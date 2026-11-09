@@ -5,7 +5,9 @@ description: Mises à jour, espace disque, mémoire, ports ouverts, sécurité S
 
 La page **Santé** fait le tour de ton serveur : mises à jour, espace, ports, SSH et conteneurs. Elle demande un serveur configuré (voir [Connexions](/devforge/getting-started/connections/#serveurs-vps)).
 
-En haut, un résumé : **Tout va bien**, **À surveiller** ou **À corriger**, et l'heure de la vérification. **Actualiser** relance la lecture.
+En haut, l'heure de la vérification, le système du serveur et depuis quand il tourne. **Revérifier** relance la lecture.
+
+Dessous, trois compteurs : la **Note** sur 10 (chaque point à surveiller compte pour moitié, chaque point à corriger pour rien), les vérifications **À corriger** (à corriger ou à surveiller) et celles où **Tout va bien**.
 
 ## Les vérifications
 
@@ -24,7 +26,7 @@ En haut, un résumé : **Tout va bien**, **À surveiller** ou **À corriger**, e
 | Conteneurs | arrêtés sur une erreur, en boucle ou qui redémarrent souvent |
 | Espace Docker | place récupérable (images inutilisées, cache) |
 
-Une information illisible sur ce serveur s'affiche *Inconnu*.
+Chaque vérification montre son icône, le constat et, quand tout va bien, la pastille **ok**. Une information illisible sur ce serveur s'affiche *Inconnu*.
 
 ## Les corrections
 
@@ -47,5 +49,5 @@ Chaque correction montre la commande exacte avant de la lancer, avec **Lancer**,
 
 ## Ailleurs
 
-- Le widget **Santé du VPS** de l'accueil et la carte Santé du [tableau de bord](/devforge/servers/ssh/#le-tableau-de-bord-du-serveur) résument cette page.
+- Le widget **Santé du VPS** de l'accueil et l'alerte Santé du [tableau de bord](/devforge/servers/ssh/#le-tableau-de-bord-du-serveur) résument cette page.
 - Forgy peut lire la santé du serveur (« Point du matin sur le VPS »), voir [Forgy](/devforge/forgy/assistant/#tâches).

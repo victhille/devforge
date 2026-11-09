@@ -21,12 +21,12 @@ Elsewhere: **Ask Forgy** on a project page, on Docker logs or a migration; **Exp
 
 ## Settings
 
-**Settings › Forgy** (the key can also be set in [Settings › Connections](/devforge/en/getting-started/connections/#forgy-anthropic)):
+**Settings › Forgy** ([Settings › Connections](/devforge/en/getting-started/connections/#forgy-anthropic) says whether a key is saved and leads here). At the top, a card sums up who answers, with which model, whether Forgy asks before acting, and what it cost this month against the budget. The settings follow in four cards, **Provider**, **Answers**, **Forgy's actions** and **Presence** (walk, dictation, desktop widget):
 
 | Setting | Effect | Default |
 |---|---|---|
 | Provider | who answers: see [Providers](#providers) | Anthropic |
-| API key | the chosen provider's, encrypted by Windows, never sent back to the interface. Without a saved key: its environment variable (`ANTHROPIC_API_KEY`…) if it exists (the screen says so); a saved key takes precedence | — |
+| API key | the chosen provider's, encrypted by Windows, never sent back to the interface. Without a saved key: its environment variable (`ANTHROPIC_API_KEY`…) if it exists (the screen says so); a saved key takes precedence. **Test** lists the models (free), **Replace** types another one, **Remove** erases it | — |
 | Model | Claude: **Auto** = the chosen task's model, or Opus 5.5, Sonnet 5.5, Haiku 5.5 for everything. Another provider: its model's name | Auto |
 | Thinking depth | **Auto** = the task's; or Fast, Balanced, Thorough | Auto |
 | Monthly budget | Forgy stops at this amount (estimate). `0` = no limit | $5 |

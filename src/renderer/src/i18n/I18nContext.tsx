@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react'
 import translations, { type Lang, type Translations } from './translations'
 import { applyAppearance } from '@renderer/lib/appearance'
+import { useSettings } from '@renderer/hooks/useLiveData'
 
 interface I18nContextValue {
   lang: Lang
@@ -16,17 +17,16 @@ const I18nContext = createContext<I18nContextValue>({
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang | null>(null)
+  const { data: settings, error } = useSettings()
 
-  // The UI waits for the saved language (a few ms): nothing renders, toasts
-  // included, in a language the user did not pick
+  // The UI waits for the saved language (a few ms): nothing renders, toasts included, in a language the user did not
+  // pick. Then the language and appearance follow the settings, however they change (a page, another window, an import)
   useEffect(() => {
-    window.devforge.getSettings()
-      .then(s => {
-        setLang((s as { language?: Lang }).language ?? 'en')
-        applyAppearance(s)
-      })
-      .catch(() => setLang('en'))
-  }, [])
+    if (!settings) return
+    setLang((settings as { language?: Lang }).language ?? 'en')
+    applyAppearance(settings)
+  }, [settings])
+  useEffect(() => { if (error) setLang(l => l ?? 'en') }, [error])
 
   const value = useMemo(() => lang && { lang, setLang, t: translations[lang] }, [lang])
   if (!value) return null
