@@ -40,7 +40,7 @@ export function ExportMenu({ conn, table }: { conn: DbConnection; table: DbTable
     <div ref={box} className="relative">
       <Button size="sm" variant="ghost" loading={busy} aria-expanded={open} onClick={() => setOpen(o => !o)}><Download size={13} /> {d.exportTable}</Button>
       {open && (
-        <div role="menu" className="absolute top-full left-0 z-30 mt-1 min-w-[220px] rounded-xl border border-line bg-surface p-1 shadow-lg">
+        <div role="menu" className="absolute top-full left-0 z-30 mt-1 min-w-[220px] rounded-xl border border-line bg-surface p-1 shadow-pop">
           {items.map(([f, label]) => (
             <button key={f} role="menuitem" onClick={() => run(f)} className="block w-full rounded-lg px-3 py-1.5 text-left text-sm text-fg hover:bg-hover">{label}</button>
           ))}

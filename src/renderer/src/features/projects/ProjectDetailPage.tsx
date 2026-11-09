@@ -291,7 +291,7 @@ export default function ProjectDetailPage() {
   ) : (
     <div className="flex flex-col gap-2.5">
       <div className="flex items-end gap-2">
-        <span className="font-display text-[26px] leading-none font-bold tracking-[-.02em] text-fg">{totals.passed}</span>
+        <span className="font-display text-page leading-none font-bold tracking-[-.02em] text-fg">{totals.passed}</span>
         <span className="text-sm text-fg-muted">{h.testsPassed}</span>
         <span className="flex-1" />
         <Badge color={totals.failed ? 'danger' : 'success'}>{h.testsFailed.replace('{n}', String(totals.failed))}</Badge>

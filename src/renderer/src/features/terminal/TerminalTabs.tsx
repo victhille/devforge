@@ -158,7 +158,7 @@ export default function TerminalTabs({ cwd, className, withSsh = true, onEmpty, 
             <Plus size={13} />
           </button>
           {menu && (
-            <div role="menu" className="absolute top-full left-0 z-30 mt-1 min-w-[200px] rounded-xl border border-line bg-surface p-1 shadow-lg">
+            <div role="menu" className="absolute top-full left-0 z-30 mt-1 min-w-[200px] rounded-xl border border-line bg-surface p-1 shadow-pop">
               {shells.map(sh => (
                 <button key={sh.kind} role="menuitem" onClick={() => { addLocal(sh); setMenu(false) }} className="block w-full rounded-lg px-3 py-1.5 text-left text-sm text-fg hover:bg-hover">{sh.label}</button>
               ))}

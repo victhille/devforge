@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, type KeyboardEvent, type ReactNode } from 'react'
 import { cn } from '@renderer/lib/cn'
 import Card from '@renderer/components/ui/Card'
 
@@ -41,10 +41,26 @@ export function SettingRow({ label, hint, children, className, danger, stacked }
 export function Segmented<T extends string>({ value, onChange, items, label, mono }: {
   value: T; onChange: (v: T) => void; items: { value: T; label: ReactNode }[]; label: string; mono?: boolean
 }) {
+  // A radio group: Tab reaches the chosen choice only, the arrows (Home, End) choose the next one (as Tabs)
+  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0
+    const edge = e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : -1
+    if (!step && edge < 0) return
+    e.preventDefault()
+    const at = items.findIndex(i => i.value === value)
+    const next = edge >= 0 ? items[edge] : items[(at + step + items.length) % items.length]
+    if (!next) return
+    onChange(next.value)
+    e.currentTarget.querySelector<HTMLButtonElement>(`[data-value="${next.value}"]`)?.focus()
+  }
+  // A value that matches none must not leave the group unreachable
+  const reachable = items.some(i => i.value === value) ? value : items[0]?.value
+
   return (
-    <div role="radiogroup" aria-label={label} className="flex flex-wrap rounded-control border border-line bg-canvas p-[3px]">
+    <div role="radiogroup" aria-label={label} onKeyDown={onKey} className="flex flex-wrap rounded-control border border-line bg-canvas p-[3px]">
       {items.map(item => (
-        <button key={item.value} type="button" role="radio" aria-checked={value === item.value} onClick={() => onChange(item.value)}
+        <button key={item.value} type="button" role="radio" data-value={item.value} aria-checked={value === item.value}
+          tabIndex={item.value === reachable ? 0 : -1} onClick={() => onChange(item.value)}
           className={cn('h-7 rounded-[7px] px-3.5 text-sm font-medium transition-colors', mono && 'font-mono',
             value === item.value ? 'bg-elevated text-fg shadow-sm' : 'text-fg-secondary hover:text-fg')}>
           {item.label}

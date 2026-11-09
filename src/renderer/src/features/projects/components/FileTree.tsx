@@ -13,7 +13,7 @@ import { changedTree, GitLetter, holdsChange, TONE, type ChangedNode, type GitSt
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', '.next', 'build', 'out', '.nuxt', 'vendor', '__pycache__', '.cache'])
 
 /** A row of the tree, as in the mock-up: 28 px, code font, 18 px further in per level */
-const ROW = 'flex h-7 items-center gap-2 rounded-[7px] pr-2 font-mono text-[12.5px]'
+const ROW = 'flex h-7 items-center gap-2 rounded-[7px] pr-2 font-mono text-sm'
 const indent = (depth: number) => ({ paddingLeft: 8 + depth * 18 })
 
 /** Dirs first, dotfiles last, skip heavy build/dependency folders. */
