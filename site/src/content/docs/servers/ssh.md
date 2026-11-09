@@ -27,7 +27,7 @@ DevForge mémorise l'empreinte de la clé du serveur à la première connexion, 
 
 ## Le terminal
 
-Sans session ouverte, la page t'invite à choisir une connexion à gauche. Une fois connecté, l'en-tête montre le serveur, son état (*connecté*, *Connexion en cours...*, *Déconnecté*), `utilisateur@hôte:port` et deux boutons :
+Sans session ouverte, la page t'invite à choisir une connexion à gauche. Une fois connecté, l'en-tête montre le serveur, son état (*connecté*, *Connexion en cours…*, *Déconnecté*), `utilisateur@hôte:port` et deux boutons :
 
 - **Fichiers (SFTP)** parcourt les dossiers du serveur (en partant de ton dossier personnel, ou d'un chemin tapé) et **télécharge** un fichier à l'endroit que tu choisis sur ce PC. Tu vois ce que l'utilisateur SSH peut lire, comme dans le terminal ; rien n'est modifié sur le serveur.
 - **Tableau de bord** ouvre le tableau de bord du serveur.
