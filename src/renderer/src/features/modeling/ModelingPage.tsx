@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight, Plus, Shapes, Sparkles } from 'lucide-react'
 import type { DbConnection, ModelKind, ModelSummary, Project } from '@shared/types'
@@ -15,7 +16,6 @@ import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import Modal from '@renderer/components/ui/Modal'
-import Spinner from '@renderer/components/ui/Spinner'
 import { Select } from '@renderer/components/ui/Input'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
 import AskForgy from '@renderer/features/assistant/AskForgy'
@@ -135,7 +135,7 @@ export default function ModelingPage() {
       </div>
 
       <section aria-label={m.models} className="flex flex-col gap-3">
-        {!models ? <Spinner className="m-4" /> : (
+        {!models ? <LinesSkeleton lines={4} className="m-4" /> : (
           <>
             {!models.length && <p className="text-sm text-fg-secondary">{m.noModels.replace('{name}', project?.name ?? '')}</p>}
             {project && <ModelGrid project={project} models={shown} onChanged={load} onNew={() => setPicking(true)} />}

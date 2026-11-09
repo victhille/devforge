@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { CardSkeleton, Skeleton } from '@renderer/components/ui/Skeleton'
 import { Check, Download, ExternalLink, FolderDown, KeyRound, LogOut, Play, RefreshCw, RotateCcw, ScrollText, Square, Workflow } from 'lucide-react'
 import type { N8nDomainCheck, N8nExecution, N8nExposure, N8nInstance, N8nLocale, N8nPrecheck, N8nStatus, N8nWorkflow, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -51,7 +52,7 @@ export default function N8nPage() {
       {!connections || !conn ? (
         <>
           <PageHeader crumb={t.nav.groupOnline} title="n8n" subtitle={n.subtitle} />
-          {!connections ? <Spinner /> : <NeedsSetup service="server" />}
+          {!connections ? <CardSkeleton rows={3} /> : <NeedsSetup service="server" />}
         </>
       ) : instance
         ? <Installed key={conn.id} conn={conn} instance={instance} picker={picker} onChange={refreshInstances} />
@@ -320,7 +321,7 @@ function Installed({ conn, instance, picker, onChange }: { conn: SSHConnection; 
   const title = (
     <span className="flex min-w-0 items-center gap-3">
       n8n
-      {!status ? <Spinner /> : (
+      {!status ? <Skeleton className="h-5.5 w-28" /> : (
         <Badge dot color={on ? 'success' : 'default'}>{on ? (status.version ? n.onlineVersion.replace('{v}', status.version) : n.running) : status.state ? n.stopped : n.notRunning}</Badge>
       )}
     </span>
@@ -369,7 +370,7 @@ function Installed({ conn, instance, picker, onChange }: { conn: SSHConnection; 
           <span className="flex-1">{apiError}</span>
           <Button size="sm" variant="ghost" onClick={async () => { await window.devforge.n8n.saveKey(conn.id, null); onChange() }}>{n.removeKey}</Button>
         </Card>
-      ) : !on ? null : !workflows ? <Spinner /> : (
+      ) : !on ? null : !workflows ? <CardSkeleton rows={4} /> : (
         <Card>
           {workflows.length === 0 ? <p className="px-4.5 py-4 text-sm text-fg-muted">{n.noWorkflows}</p> : (
             <Table>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AlertTriangle, Archive, Download, FolderOpen, Trash2, Upload } from 'lucide-react'
 import type { DataInfo } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -8,6 +8,10 @@ import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
 import { Input } from '@renderer/components/ui/Input'
 import { SettingRow, SettingsCard } from './parts'
+import { setLive, useLive } from '@renderer/lib/live'
+import { RowsSkeleton } from '@renderer/components/ui/Skeleton'
+
+const DATA_INFO = 'data-info'
 import { errorText } from '@renderer/lib/errors'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
 
@@ -16,11 +20,11 @@ export default function DataSettings() {
   const { t, lang } = useI18n()
   const s = t.settings
   const toast = useToast()
-  const [info, setInfo] = useState<DataInfo | null>(null)
+  const { data: info = null } = useLive<DataInfo>(DATA_INFO, () => window.devforge.data.info(), { freshMs: 60_000 })
+  const setInfo = (next: DataInfo) => setLive<DataInfo>(DATA_INFO, () => next)
   const [busy, setBusy] = useState<string | null>(null)
   const [wiping, setWiping] = useState(false)
   const [wipeWord, setWipeWord] = useState('')
-  useEffect(() => { window.devforge.data.info().then(setInfo).catch(() => {}) }, [])
 
   const when = (iso: string) => {
     const d = new Date(iso)
@@ -60,7 +64,8 @@ export default function DataSettings() {
           {busy !== 'backup' && <Archive size={13} />} {s.backupNow}
         </Button>
       }>
-        {!info?.backups.length && <p className="border-t border-line-subtle px-5 py-3.5 text-sm text-fg-muted">{s.noBackups}</p>}
+        {!info && <div role="status" aria-label={t.common.loading}><RowsSkeleton rows={2} /></div>}
+        {info && !info.backups.length && <p className="border-t border-line-subtle px-5 py-3.5 text-sm text-fg-muted">{s.noBackups}</p>}
         {!!info?.backups.length && (
           <ul aria-label={s.backups}>
             {info.backups.map(b => (

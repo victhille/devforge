@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { Check, Container, Database, FileKey2, Plus, Search, Server } from 'lucide-react'
 import type { DetectedDatabase, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -106,7 +107,7 @@ export default function DetectDialog({ initialServer, onClose, onAdded }: Props)
       {/* Projects */}
       <section className="flex flex-col gap-2">
         <SectionTitle>{x.inProjects}</SectionTitle>
-        {!local ? <div className="flex justify-center p-3"><Spinner /></div>
+        {!local ? <LinesSkeleton lines={3} className="p-3" />
           : local.length === 0 ? <p className="flex items-center gap-2 text-sm text-fg-muted"><Database size={14} /> {x.nothingInProjects}</p>
           : <div className="max-h-72 divide-y divide-line-subtle overflow-y-auto rounded-lg border border-line-subtle">{local.map(d => <CandidateRow key={d.key} d={d} onAdd={() => add(d)} />)}</div>}
       </section>

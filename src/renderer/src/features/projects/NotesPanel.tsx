@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { NotebookPen, Pin, Plus, Trash2 } from 'lucide-react'
 import type { NoteSummary, ProjectNote } from '@shared/types'
 import { countOpen } from '@shared/lib/notesFormat'
@@ -15,7 +16,6 @@ import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import ErrorState from '@renderer/components/ui/ErrorState'
 import IconButton from '@renderer/components/ui/IconButton'
-import Spinner from '@renderer/components/ui/Spinner'
 import RichNotes from './RichNotes'
 
 /** A note is saved this long after the last key */
@@ -190,7 +190,7 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
     change({ pinned: !pinned }, 0)
   }
 
-  if (!list) return error ? <ErrorState error={errorText(error)} onRetry={() => void reload()} /> : <Spinner />
+  if (!list) return error ? <ErrorState error={errorText(error)} onRetry={() => void reload()} /> : <LinesSkeleton lines={5} />
 
   const where = k.storedIn.split('{path}')
   const storedIn = (
@@ -239,7 +239,7 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
       <div ref={cardRef} className="col-span-12 min-w-0 md:col-span-9">
       <Card className="flex flex-col p-4.5" data-testid="note">
         {readError ? <ErrorState error={readError} onRetry={() => { if (openId) void openNote(openId) }} />
-          : !note ? <Spinner />
+          : !note ? <LinesSkeleton lines={6} plain className="p-4" />
           : (
             <RichNotes key={round} value={note.body} onChange={body => change({ body })}
               aside={<>

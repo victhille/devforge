@@ -13,6 +13,11 @@ import { Input } from '@renderer/components/ui/Input'
 import ConnectionForm from '@renderer/features/ssh/components/ConnectionForm'
 import DbConnectionForm from '@renderer/features/database/DbConnectionForm'
 import { SettingRow, SettingsCard } from './parts'
+import { useLive } from '@renderer/lib/live'
+import { CardSkeleton } from '@renderer/components/ui/Skeleton'
+
+const OVERVIEW = 'connections-overview'
+import { NO_SERVERS, useSshConnections } from '@renderer/hooks/useLiveData'
 import { errorText } from '@renderer/lib/errors'
 import { providerInfo } from '@shared/data/assistantProviders'
 import { providerLabel } from '@renderer/features/assistant/providerLabel'
@@ -125,8 +130,10 @@ export default function ConnectionsSettings() {
   const c = t.settings.connections
   const toast = useToast()
   const navigate = useNavigate()
-  const [data, setData] = useState<ConnectionsOverview | null>(null)
-  const [ssh, setSsh] = useState<SSHConnection[]>([])
+  // Shown at once with what was seen last, read again at each visit: keys and tokens saved elsewhere (Forgy, a page) tell no topic
+  const overview = useLive<ConnectionsOverview>(OVERVIEW, () => window.devforge.connections.overview(), { topic: ['ssh', 'db-connections', 'settings'], freshMs: 0 })
+  const data = overview.data ?? null
+  const ssh: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
   const [tests, setTests] = useState<Record<string, ConnectionTest | 'busy'>>({})
   const [identity, setIdentity] = useState({ name: '', email: '' })
   // The one form open under a row (a key, a token, the Git identity), the server being added or changed
@@ -134,14 +141,13 @@ export default function ConnectionsSettings() {
   const [serverForm, setServerForm] = useState<SSHConnection | 'new' | null>(null)
   const [dbForm, setDbForm] = useState(false)
 
-  const load = useCallback(() => {
-    window.devforge.connections.overview().then(d => {
-      setData(d)
-      setIdentity(i => (i.name || i.email ? i : { name: d.git.name ?? '', email: d.git.email ?? '' }))
-    }).catch(err => toast.show({ tone: 'error', title: errorText(err) }))
-    window.devforge.getSshConnections().then(setSsh).catch(() => {})
-  }, [toast])
-  useEffect(load, [load])
+  const { reload } = overview
+  const load = useCallback(() => { void reload() }, [reload])
+  // The Git identity's fields start from what is saved
+  useEffect(() => {
+    if (data) setIdentity(i => (i.name || i.email ? i : { name: data.git.name ?? '', email: data.git.email ?? '' }))
+  }, [data])
+  useEffect(() => { if (overview.error) toast.show({ tone: 'error', title: errorText(overview.error) }) }, [overview.error, toast])
 
   async function test(kind: ConnectionKind, id?: string) {
     const key = id ? `${kind}:${id}` : kind
@@ -175,7 +181,12 @@ export default function ConnectionsSettings() {
     <Button size="sm" variant="ghost" aria-expanded={open === key} aria-label={`${label} · ${name}`} onClick={() => setOpen(o => (o === key ? null : key))}><Plus size={13} /> {label}</Button>
   )
 
-  if (!data) return <div className="flex justify-center p-10"><Spinner /></div>
+  if (!data) return (
+    <div role="status" aria-label={t.common.loading} className="flex flex-col gap-5">
+      <CardSkeleton label={false} rows={5} />
+      <CardSkeleton label={false} rows={2} />
+    </div>
+  )
 
   const plugged = [!!(data.git.name && data.git.email), !!data.github.cli || data.github.token, data.vercel.connected, !!data.docker.version, data.forgy.hasKey].filter(Boolean).length
   const forgyName = providerLabel(data.forgy.provider, t)

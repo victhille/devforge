@@ -97,6 +97,60 @@ describe('kept data', () => {
     stop()
   })
 
+  it('follows several topics, and keeps a slow read fresh for as long as it says', async () => {
+    const { load, calls } = loader([['o1'], ['o2'], ['o3']])
+    const stop = live.watchLive('overview', load, () => {}, { topic: ['ssh', 'db-connections'], freshMs: 60_000 })
+    await settle()
+    emit({ topic: 'ssh' })
+    await settle()
+    emit({ topic: 'db-connections' })
+    await settle()
+    expect(calls.n).toBe(3)
+    stop()
+    // Shown again within its minute: kept as it is, not read
+    live.watchLive('overview', load, () => {})()
+    await settle()
+    expect(calls.n).toBe(3)
+    expect(live.liveSnapshot('overview').data).toEqual(['o3'])
+  })
+
+  it('keeps a change made here over an answer asked before it (the next read brings what was written)', async () => {
+    let answer: (v: string[]) => void = () => {}
+    const load = vi.fn(() => new Promise<string[]>(r => { answer = r }))
+    const stop = live.watchLive('settings-like', load, () => {}, { topic: 'settings' })
+    answer(['disk'])
+    await settle()
+    // A read on its way, then a change here: the old answer does not undo it
+    emit({ topic: 'settings' })
+    live.setLive<string[]>('settings-like', () => ['mine'])
+    answer(['old'])
+    await settle()
+    expect(live.liveSnapshot('settings-like').data).toEqual(['mine'])
+    // The change written, its own read shows it
+    emit({ topic: 'settings' })
+    answer(['mine'])
+    await settle()
+    expect(live.liveSnapshot('settings-like').data).toEqual(['mine'])
+    expect(load).toHaveBeenCalledTimes(3)
+    stop()
+  })
+
+  it('reads again after the read on its way when a change is told meanwhile (its answer may be older)', async () => {
+    const answers: ((v: string[]) => void)[] = []
+    const load = vi.fn(() => new Promise<string[]>(r => { answers.push(r) }))
+    const stop = live.watchLive('lists', load, () => {}, { topic: 'models' })
+    // The first read is on its way when a model is written
+    emit({ topic: 'models' })
+    expect(load).toHaveBeenCalledTimes(1)
+    answers[0]([])
+    await settle()
+    expect(load).toHaveBeenCalledTimes(2)
+    answers[1](['new.sequence.json'])
+    await settle()
+    expect(live.liveSnapshot('lists').data).toEqual(['new.sequence.json'])
+    stop()
+  })
+
   it('compares project paths whatever their slashes and case', () => {
     expect(live.samePath('C:\\A\\b\\', 'c:/a/B')).toBe(true)
     expect(live.samePath('C:\\A\\b', 'C:\\A\\bc')).toBe(false)

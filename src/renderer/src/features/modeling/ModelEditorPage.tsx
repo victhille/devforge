@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { CanvasSkeleton } from '@renderer/components/ui/Skeleton'
 import { useSearchParams } from 'react-router-dom'
 import { AlertTriangle, Check, Maximize2, Plus, Sparkles, StickyNote, Trash2, X } from 'lucide-react'
 import type { Cardinality, McdAttribute, McdModel, McdType } from '@shared/types'
@@ -11,7 +12,6 @@ import { errorText } from '@renderer/lib/errors'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
-import Spinner from '@renderer/components/ui/Spinner'
 import { mcdColors } from './colors'
 import ModelTabs from './ModelTabs'
 import { useSiblings, type ModelTab } from './model'
@@ -298,7 +298,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
   const errors = issues.filter(i => i.level === 'error').length
 
   if (error) return <div className="p-8"><ErrorState title={m.loadFailed} error={error} /></div>
-  if (!model || !mcd) return <Spinner className="m-8" />
+  if (!model || !mcd) return <CanvasSkeleton />
 
   const selEntity = sel?.kind === 'entity' ? mcd.entities.find(x => x.id === sel.id) : undefined
   const selAssociation = sel?.kind === 'association' ? mcd.associations.find(x => x.id === sel.id) : undefined

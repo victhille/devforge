@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { CardSkeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate } from 'react-router-dom'
 import { Bell } from 'lucide-react'
 import type { AlertKind, SSHConnection } from '@shared/types'
@@ -9,6 +9,7 @@ import Notice from '@renderer/components/ui/Notice'
 import Range from '@renderer/components/ui/Range'
 import Switch from '@renderer/components/ui/Switch'
 import { useWatch } from '@renderer/hooks/useWatch'
+import { NO_SERVERS, useSshConnections } from '@renderer/hooks/useLiveData'
 import { SettingRow, SettingsCard, Words } from './parts'
 
 const ALERTS: AlertKind[] = ['disk', 'container', 'server', 'site']
@@ -20,9 +21,8 @@ export default function ServerSettings({ onSaved }: { onSaved: () => void }) {
   const w = t.watch
   const navigate = useNavigate()
   const { config, saveConfig } = useWatch()
-  const [connections, setConnections] = useState<SSHConnection[]>([])
-  useEffect(() => { window.devforge.getSshConnections().then(setConnections).catch(() => {}) }, [])
-  if (!config) return null
+  const connections: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
+  if (!config) return <div role="status" aria-label={t.common.loading} className="flex flex-col gap-5"><CardSkeleton label={false} rows={2} /><CardSkeleton label={false} rows={4} /></div>
 
   const save = async (u: Parameters<typeof saveConfig>[0]) => { await saveConfig(u); onSaved() }
   const alertLabel: Record<AlertKind, string> = { disk: s.alertDisk, container: s.alertContainer, server: s.alertServer, site: s.alertSite }

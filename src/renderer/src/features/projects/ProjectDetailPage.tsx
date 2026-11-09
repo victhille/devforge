@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { CardGridSkeleton, CardSkeleton, Skeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft, Code2, Container, Database, ExternalLink, FileKey2, FolderOpen, GitBranch, Globe, Play, Rocket, ScrollText,
@@ -15,7 +16,6 @@ import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import IconButton from '@renderer/components/ui/IconButton'
 import Badge from '@renderer/components/ui/Badge'
-import Spinner from '@renderer/components/ui/Spinner'
 import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
 import { ComposeDetail } from '@renderer/features/docker/ComposeDetail'
 import ProjectEnvEditor from '@renderer/features/envfiles/ProjectEnvEditor'
@@ -192,7 +192,13 @@ export default function ProjectDetailPage() {
 
   const compose = useMemo(() => docker?.compose.find(c => (hub?.composeDir && c.dir === hub.composeDir) || c.name === hub?.composeName) ?? null, [docker, hub])
 
-  if (!hub) return <div className="p-8"><Spinner /></div>
+  if (!hub) return (
+    <div className="df-mockup mx-auto flex w-full max-w-[1320px] flex-col gap-5 px-9 pt-6.5 pb-24">
+      <div className="flex items-center gap-3.5"><Skeleton className="size-12 rounded-control" /><div className="flex flex-col gap-2"><Skeleton className="h-6 w-48" /><Skeleton className="h-3.5 w-72" /></div></div>
+      <Skeleton className="h-9 w-full max-w-[720px]" />
+      <CardGridSkeleton cards={3} />
+    </div>
+  )
   const p = hub.project
 
   const link = async (kind: LinkKind, ref: string, linked: boolean) => {
@@ -253,7 +259,7 @@ export default function ProjectDetailPage() {
 
   // ─── Tabs content ───────────────────────────────────────────────────────────
 
-  const gitSummary = !git ? <Spinner /> : !git.isRepo ? <Muted>{h.gitNone}</Muted> : (
+  const gitSummary = !git ? <Skeleton className="h-3.5 w-40" /> : !git.isRepo ? <Muted>{h.gitNone}</Muted> : (
     <div className="flex flex-col gap-2.5">
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-sm text-fg">{git.branch}</span>
@@ -299,7 +305,7 @@ export default function ProjectDetailPage() {
     </div>
   )
 
-  const composeSummary = !hub.composeDir ? <Muted>{h.composeNone}</Muted> : !docker ? <Spinner /> : !docker.available ? <Muted>{h.composeOff}</Muted> : (
+  const composeSummary = !hub.composeDir ? <Muted>{h.composeNone}</Muted> : !docker ? <Skeleton className="h-3.5 w-40" /> : !docker.available ? <Muted>{h.composeOff}</Muted> : (
     <div className="flex flex-col gap-3">
       <p className="truncate font-mono text-sm text-fg-secondary">
         {compose && compose.total > 0
@@ -437,7 +443,7 @@ export default function ProjectDetailPage() {
     ),
 
     docker: !hub.composeDir ? <EmptyState icon={<Container size={32} />} title={h.composeNone} />
-      : !docker ? <Spinner /> : !docker.available ? <EmptyState icon={<Container size={32} />} title={h.composeOff} />
+      : !docker ? <CardSkeleton rows={3} /> : !docker.available ? <EmptyState icon={<Container size={32} />} title={h.composeOff} />
       : compose ? (
         <ComposeDetail
           p={compose}
@@ -452,7 +458,7 @@ export default function ProjectDetailPage() {
           }}
           onContainer={async (c, a) => { setBusy(c.id); try { await window.devforge.docker.container(c.id, a) } finally { setBusy(null); loadDocker() } }}
         />
-      ) : <Spinner />,
+      ) : <CardSkeleton rows={3} />,
 
     env: <ProjectEnvEditor projectPath={p.path} onEnvChange={() => {}} />,
 

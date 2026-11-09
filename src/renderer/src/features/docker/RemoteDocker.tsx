@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { CardSkeleton } from '@renderer/components/ui/Skeleton'
 import { Boxes, Container, Play, RefreshCw, RotateCcw, Square } from 'lucide-react'
 import type { RemoteCompose, RemoteContainer, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -93,7 +94,7 @@ export default function RemoteDocker({ connections, connectionId }: { connection
       </div>
 
       {error ? <Card className="p-4.5 text-sm text-danger">{w.vpsNoDocker.replace('{error}', error)}</Card>
-        : !data ? <Spinner /> : data.containers.length === 0 ? <EmptyState title={d.noContainers} /> : (
+        : !data ? <CardSkeleton rows={4} /> : data.containers.length === 0 ? <EmptyState title={d.noContainers} /> : (
           <div className="flex flex-col gap-4">
             {groups.map(([project, list], gi) => {
               const compose = data.compose.find(c => c.name === project)

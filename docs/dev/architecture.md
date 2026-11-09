@@ -33,11 +33,12 @@ DevForge est une application Electron : un processus principal (Node.js) qui fai
 
 ### Données gardées et actualisées
 
-Les listes lues par beaucoup de pages (projets, connexions de base, modèles d'un projet) passent par `useLive` (`src/renderer/src/lib/live.ts`) :
+Les données lues par beaucoup de pages passent par `useLive` (`src/renderer/src/lib/live.ts`) : projets, connexions de base, modèles d'un projet, et aussi les réglages (`useSettings`, toutes les fenêtres : langue et apparence les suivent), les serveurs SSH (`useSshConnections`), les modèles de projet, les IDE trouvés, l'aperçu des Connexions, les versions des outils, le dossier des données. Elles sont :
 
-- gardées en mémoire une fois lues : une page qui revient les montre tout de suite, puis les relit en arrière-plan quand elles ont plus de 10 s ;
+- gardées en mémoire une fois lues : une page qui revient les montre tout de suite, puis les relit en arrière-plan quand elles ont plus de 10 s (`freshMs` pour une lecture lente : 5 min pour les versions des outils et les IDE, 1 min pour le dossier des données) ;
 - deux pages qui les demandent en même temps ne font qu'une requête ;
-- quand le processus principal les écrit (une page, Forgy, un import), il envoie `data:changed` avec un sujet (`dataChanged('projects')`, `'db-connections'`, `'models'` avec le chemin du projet ; `src/main/lib/changes.ts`) : les pages qui les montrent les relisent aussitôt, les autres à leur prochaine visite.
+- quand le processus principal les écrit (une page, Forgy, un import), il envoie `data:changed` avec un sujet (`dataChanged('projects')`, `'db-connections'`, `'models'` avec le chemin du projet, `'settings'`, `'ssh'`, `'templates'` ; `src/main/lib/changes.ts`) : les pages qui les montrent les relisent aussitôt, les autres à leur prochaine visite ; une entrée peut suivre plusieurs sujets (l'aperçu des Connexions : `['ssh', 'db-connections', 'settings']`) ;
+- un changement fait ici (`setLive`, `saveSettings`, `patchSettings`) s'affiche tout de suite, et une relecture partie avant lui ne l'écrase pas : celle qui suit l'écriture le confirme ; un changement annoncé pendant une lecture en route en déclenche une autre juste après.
 
 Pour une nouvelle liste : un sujet dans `DataTopic` (`src/shared/types/index.ts`), `dataChanged(sujet)` dans la fonction du service qui écrit, et un hook `useLive(clé, lecture, { topic })` (voir `src/renderer/src/hooks/useLiveData.ts`). Pas pour ce qu'on est en train de saisir (un modèle ouvert) : la relecture écraserait la saisie. Les notes d'un projet font les deux : leur liste et les compteurs de cases passent par `useLive` (sujet `notes`, avec le chemin du projet), la note ouverte n'est relue que si rien de ce qu'on a tapé n'attend d'être enregistré.
 
@@ -51,6 +52,7 @@ Une page se construit avec les composants de `src/renderer/src/components/ui/` p
 | Un mot ou une valeur dans une pastille | `Badge` (`color`, `dot` ; `mono` pour une valeur technique : framework, version, langage, code HTTP) |
 | Une touche ou un raccourci | `Kbd` |
 | Un message dans la page (conseil, alerte, erreur) | `Notice` (`tone` : neutral, info, success, warning, danger ; `live` s'il arrive après une action, `role` pour en garder un) |
+| Ce qui se charge | les blocs de `components/ui/Skeleton.tsx` à la forme de ce qui vient, plutôt qu'un spinner : `CardSkeleton` (une carte et ses lignes), `RowsSkeleton`, `LinesSkeleton` (une tuile, un panneau), `TableSkeleton`, `CardGridSkeleton` (des cartes en grille), `CanvasSkeleton` (un éditeur) ; ils disent « Chargement… » aux lecteurs d'écran (`label={false}` dans un cadre qui le dit déjà). Le spinner reste pour une action en cours (un bouton) |
 | Une lecture qui a échoué | `ErrorState` (avec `onRetry`) — jamais un spinner qui tourne sans fin |
 | Une liste vide | `EmptyState` (une ligne dans un cadre pointillé : l'icône, ce qui manque, l'action) |
 | Un réglage en nombre (un seuil, une longueur) | `Range` (la valeur à droite, enregistrée au relâchement ; `useRange` pour une autre mise en page) |

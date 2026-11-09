@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { ArrowUp, GitCommitHorizontal, Sparkles } from 'lucide-react'
 import type { Project } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -6,7 +7,6 @@ import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Checkbox from '@renderer/components/ui/Checkbox'
 import Modal from '@renderer/components/ui/Modal'
-import Spinner from '@renderer/components/ui/Spinner'
 import { Input, Textarea } from '@renderer/components/ui/Input'
 import { COMMIT_TYPES, formatCommit, suggestCommit, type CommitType } from './commitMessage'
 import { STATUS_LETTER, useCommit } from './useCommit'
@@ -71,7 +71,7 @@ export default function CommitModal({ project, canPush, onClose, onDone }: Props
           )}
         </div>
         <div className="max-h-56 overflow-y-auto rounded-lg border border-line-subtle bg-canvas">
-          {!changes && <div className="flex justify-center p-4"><Spinner /></div>}
+          {!changes && <LinesSkeleton lines={4} className="p-4" />}
           {changes?.length === 0 && <p className="p-4 text-center text-sm text-fg-muted">{g.noChanges}</p>}
           {changes?.map(c => {
             const st = STATUS_LETTER[c.status]

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { CardSkeleton, Skeleton } from '@renderer/components/ui/Skeleton'
 import { Container, Eraser, RefreshCw } from 'lucide-react'
 import type { DockerOverview, SSHConnection } from '@shared/types'
+import { NO_SERVERS, useSshConnections } from '@renderer/hooks/useLiveData'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
@@ -8,7 +10,6 @@ import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
 import Modal from '@renderer/components/ui/Modal'
-import Spinner from '@renderer/components/ui/Spinner'
 import { Table, Td, Th } from '@renderer/components/ui/Table'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { useAssistantPageContext } from '@renderer/features/assistant/AssistantContext'
@@ -64,8 +65,7 @@ export default function DockerPage() {
   const [pruning, setPruning] = useState<'confirm' | 'running' | null>(null)
   // This PC, or a server through SSH ('vps': the picker of the servers when there are many)
   const [where, setWhere] = usePersistentState<string>('devforge:docker-where', 'local')
-  const [servers, setServers] = useState<SSHConnection[]>([])
-  useEffect(() => { window.devforge.getSshConnections().then(setServers).catch(() => {}) }, [])
+  const servers: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
   const tabbed = servers.length <= TABBED_SERVERS
   // A kept tab that no longer exists (a server removed, fewer servers) falls back on a sensible one
   const place = where === 'local' ? 'local'
@@ -157,7 +157,12 @@ export default function DockerPage() {
 
       {remote ? <RemoteDocker key={place} connections={servers} connectionId={place === 'vps' ? undefined : place} /> : data && !data.available ? (
         <EmptyState icon={<Container size={32} />} title={d.unavailable} description={data.error} />
-      ) : !data ? <Spinner /> : (
+      ) : !data ? (
+        <div role="status" aria-label={t.common.loading} className="@container"><div className="flex flex-col gap-4 @min-[720px]:flex-row @min-[720px]:items-start">
+          <div className="flex flex-col gap-2 @min-[720px]:w-[260px] @min-[720px]:shrink-0">{[0, 1, 2, 3].map(i => <Skeleton key={i} className="h-11 rounded-control" />)}</div>
+          <CardSkeleton label={false} rows={4} className="min-w-0 flex-1" />
+        </div></div>
+      ) : (
         // The menu stands beside the details; on a narrow page (a small window, Forgy's panel open) it spreads in columns above them
         <div className="@container">
           <div className="flex flex-col gap-4 @min-[720px]:flex-row @min-[720px]:items-start">

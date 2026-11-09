@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { CanvasSkeleton } from '@renderer/components/ui/Skeleton'
 import {
   ArrowLeftRight, Box as BoxIcon, Circle, Cloud, Component, Database, Diamond, Hexagon, List, ListChecks, ListOrdered, Maximize2, Monitor,
   MoveRight, Play, Plus, RectangleHorizontal, Server, Square, SquareDashed, StickyNote, Trash2, User, X
@@ -12,7 +13,6 @@ import { errorText } from '@renderer/lib/errors'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
-import Spinner from '@renderer/components/ui/Spinner'
 import { diagramColors, LIVE_DIAGRAM, saveDrawing } from './colors'
 import { fill, KIND_TONE } from './model'
 import { dropZone, Handles, partAt, TARGET_RING, Wire } from './connect'
@@ -290,7 +290,7 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
   }
 
   if (error) return <div className="p-8"><ErrorState title={m.loadFailed} error={error} /></div>
-  if (!model || !dg) return <Spinner className="m-8" />
+  if (!model || !dg) return <CanvasSkeleton />
 
   const nameOf = (id: string) => dg.nodes.find(n => n.id === id)?.name ?? ''
   const selNode = sel?.kind === 'node' ? dg.nodes.find(n => n.id === sel.id) : undefined

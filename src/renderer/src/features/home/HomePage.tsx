@@ -13,6 +13,7 @@ import Card from '@renderer/components/ui/Card'
 import { Page } from '@renderer/components/ui/Page'
 import { useProjects } from '@renderer/features/projects/hooks/useProjects'
 import { useHistory, useWatch } from '@renderer/hooks/useWatch'
+import { patchSettings, useSettings, useSshConnections } from '@renderer/hooks/useLiveData'
 import { TimeChart } from '@renderer/components/charts/TimeChart'
 import { formatRelative } from '@renderer/lib/format'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
@@ -510,11 +511,15 @@ export default function HomePage() {
   const [name, setName] = useState('')
   const [docker, setDocker] = useState<DockerOverview | null>(null)
   const [ports, setPorts] = useState<ListeningPort[] | null>(null)
-  const [conn, setConn] = useState<SSHConnection | null | undefined>(undefined)
+  // The first server (undefined while the list is read, null without one)
+  const servers = useSshConnections()
+  const conn: SSHConnection | null | undefined = servers.data ? servers.data[0] ?? null : servers.error ? null : undefined
   const [repos, setRepos] = useState<{ project: Project; details: GitRepoDetails }[] | null>(null)
   const [fetching, setFetching] = useState(false)
   const [vps, setVps] = useState<'ok' | 'disk' | 'down' | null>(null)
-  const [widgets, setWidgets] = useState<HomeWidget[] | null>(null)
+  // The widgets chosen, from the shared settings (the defaults if they cannot be read)
+  const { data: settings, error: settingsError } = useSettings()
+  const widgets: HomeWidget[] | null = settings ? settings.homeWidgets ?? DEFAULT_WIDGETS : settingsError ? DEFAULT_WIDGETS : null
   const [editing, setEditing] = useState(false)
   const [dragged, setDragged] = useState<number | null>(null)
   // Masonry from md up (two columns), the cards' measured heights
@@ -528,10 +533,9 @@ export default function HomePage() {
   const [heights, setHeights] = useState<Record<string, number>>({})
   const setHeight = useCallback((id: string, h: number) => setHeights(m => (m[id] === h ? m : { ...m, [id]: h })), [])
 
-  useEffect(() => { window.devforge.getSettings().then(s => setWidgets(s.homeWidgets ?? DEFAULT_WIDGETS)).catch(() => setWidgets(DEFAULT_WIDGETS)) }, [])
   const saveWidgets = useCallback((next: HomeWidget[]) => {
-    setWidgets(next)
-    window.devforge.setHomeWidgets(next).then(setWidgets).catch(() => {})
+    patchSettings({ homeWidgets: next })
+    window.devforge.setHomeWidgets(next).catch(() => {})
   }, [])
 
   const loadDocker = useCallback(() => {
@@ -542,7 +546,6 @@ export default function HomePage() {
     let alive = true
     window.devforge.getUserName().then(n => { if (alive) setName(n) }).catch(() => {})
     window.devforge.getListeningPorts().then(p => { if (alive) setPorts(devPorts(p)) }).catch(() => { if (alive) setPorts([]) })
-    window.devforge.getSshConnections().then(list => { if (alive) setConn(list[0] ?? null) }).catch(() => { if (alive) setConn(null) })
     loadDocker()
     return () => { alive = false }
   }, [loadDocker])

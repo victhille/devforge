@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate } from 'react-router-dom'
 import { ExternalLink, Search, Send } from 'lucide-react'
 import { useDbConnections } from '@renderer/hooks/useLiveData'
@@ -7,7 +8,6 @@ import { SF_NAME_RE } from '@shared/lib/symfonyCommands'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
-import Spinner from '@renderer/components/ui/Spinner'
 import { Input, Select } from '@renderer/components/ui/Input'
 import { CommandButton, DbAuthHint, Section } from './parts'
 import { errorText } from '@renderer/lib/errors'
@@ -192,7 +192,7 @@ export function RoutesSection({ load, serverUrl, defaultUrl, help }: { load: () 
         <Search size={13} className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-fg-muted" />
         <Input aria-label={s.routesSearch} placeholder={s.routesSearch} value={q} onChange={e => setQ(e.target.value)} className="w-64 pl-8" />
       </div>}>
-      {error ? <p role="alert" className="font-mono text-sm text-danger">{error}</p> : !routes ? <Spinner /> : (
+      {error ? <p role="alert" className="font-mono text-sm text-danger">{error}</p> : !routes ? <LinesSkeleton lines={5} /> : (
         <ul aria-label={s.routesTitle.replace('{n}', String(routes.length))} className="flex flex-col overflow-hidden rounded-xl border border-line-subtle">
           {shown.map(r => {
             const method = r.methods[0] ?? 'GET'

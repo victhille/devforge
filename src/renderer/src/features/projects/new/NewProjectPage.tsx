@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import type { Framework, ProjectCreationOptions, AppSettings, ProjectSetup, UserTemplate } from '@shared/types'
 import { JS_FRAMEWORKS } from '@shared/data/projectLibraries'
 import { PROJECT_TEMPLATES } from '@shared/data/projectTemplates'
@@ -13,6 +13,9 @@ import LibrarySelector from './LibrarySelector'
 import FinishForm from './FinishForm'
 import WizardFrame, { RecapList, type WizardStep } from './WizardFrame'
 import CreationProgress, { useCreationProgress } from './CreationProgress'
+import { useSettings, useTemplates } from '@renderer/hooks/useLiveData'
+
+const NO_TEMPLATES: UserTemplate[] = []
 
 type Step = 'select' | 'options' | 'libraries' | 'finish'
 const ORDER: Step[] = ['select', 'options', 'libraries', 'finish']
@@ -30,8 +33,8 @@ export default function NewProjectPage() {
   const [framework, setFramework] = useState<Framework | null>(null)
   const [pending,   setPending]   = useState<ProjectCreationOptions | null>(null)
   const [stack,     setStack]     = useState<Stack | null>(null)
-  const [settings,  setSettings]  = useState<AppSettings | null>(null)
-  const [templates, setTemplates] = useState<UserTemplate[]>([])
+  const settings: AppSettings | null = useSettings().data ?? null
+  const templates: UserTemplate[] = useTemplates().data ?? NO_TEMPLATES
   const [userTemplate, setUserTemplate] = useState<UserTemplate | null>(null)
   /** Once "Create" is clicked, the steps stay where they are */
   const [creating, setCreating] = useState(false)
@@ -40,11 +43,6 @@ export default function NewProjectPage() {
   const stackForm = useRef<StackHandle>(null)
   const [draftName, setDraftName] = useState('')
   const [draftStack, setDraftStack] = useState<Stack | null>(null)
-
-  useEffect(() => {
-    window.devforge.getSettings().then(setSettings)
-    window.devforge.templates.list().then(setTemplates).catch(() => {})
-  }, [])
 
   const hasStack = (fw: Framework) => SETUP_FRAMEWORKS.includes(fw)
   const hasLibs  = (fw: Framework) => JS_FRAMEWORKS.includes(fw)

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { CardSkeleton } from '@renderer/components/ui/Skeleton'
 import { CheckCircle2, CircleDashed, CircleSlash, ExternalLink, GitPullRequest, KeyRound, Loader2, RefreshCw, RotateCcw, Tag, XCircle } from 'lucide-react'
 import type { GithubRepo, GithubRun, GithubStatus } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -9,7 +10,6 @@ import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import IconButton from '@renderer/components/ui/IconButton'
 import { Input } from '@renderer/components/ui/Input'
-import Spinner from '@renderer/components/ui/Spinner'
 import { errorText } from '@renderer/lib/errors'
 
 /** While a run is going, the panel looks again this often */
@@ -70,7 +70,7 @@ export default function GithubPanel({ projectPath, repo }: { projectPath: string
     )
   }
   if (error) return <Card className="flex items-center gap-3 p-4.5 text-sm text-danger"><span className="flex-1">{error === 'NOT_FOUND' ? g.notFound : error}</span><Button size="sm" variant="ghost" onClick={load}>{g.retry}</Button></Card>
-  if (!st) return <Spinner />
+  if (!st) return <div className="flex flex-col gap-4"><CardSkeleton rows={3} /><CardSkeleton label={false} rows={4} /></div>
 
   const base = `https://github.com/${repo.owner}/${repo.repo}`
   return (

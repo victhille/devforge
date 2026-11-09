@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { Skeleton } from '@renderer/components/ui/Skeleton'
 import { ArrowDown, ArrowUp, GitBranch, RefreshCw } from 'lucide-react'
 import type { DefaultIDE, GitRepoDetails, Project } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -33,7 +34,7 @@ export default function FilesGitPanel({ project, git, ide, open, busy, rev, onGi
   const commit = useCommit(project.path, onCommitted, rev)
   const stats = useMemo(() => Object.fromEntries((commit.changes ?? []).map(c => [c.path, { add: c.insertions, del: c.deletions }])), [commit.changes])
 
-  const header = !git ? <Spinner /> : !repo ? <p className="text-sm text-fg-muted">{h.gitNone}</p> : (
+  const header = !git ? <Skeleton className="h-4 w-56" /> : !repo ? <p className="text-sm text-fg-muted">{h.gitNone}</p> : (
     <div className="flex flex-col gap-1 border-b border-line-subtle pb-2.5">
       <div className="flex min-w-0 items-center gap-2">
         <GitBranch size={14} aria-hidden className="shrink-0 text-fg-secondary" />

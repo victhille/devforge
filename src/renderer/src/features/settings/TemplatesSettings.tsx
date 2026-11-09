@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Pencil, RefreshCw, Trash2 } from 'lucide-react'
 import type { UserTemplate } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -11,6 +11,8 @@ import { Input } from '@renderer/components/ui/Input'
 import Notice from '@renderer/components/ui/Notice'
 import ProjectIcon from '@renderer/features/projects/components/ProjectIcon'
 import { SettingsCard } from './parts'
+import { useTemplates } from '@renderer/hooks/useLiveData'
+import { RowsSkeleton } from '@renderer/components/ui/Skeleton'
 import { errorText } from '@renderer/lib/errors'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
 
@@ -20,12 +22,12 @@ export default function TemplatesSettings() {
   const m = t.templates
   const toast = useToast()
   const navigate = useNavigate()
-  const [list, setList] = useState<UserTemplate[] | null>(null)
+  const templates = useTemplates()
+  const list: UserTemplate[] | null = templates.data ?? (templates.error ? [] : null)
   const [editing, setEditing] = useState<{ id: string; name: string; description: string } | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
 
-  const load = () => window.devforge.templates.list().then(setList).catch(() => setList([]))
-  useEffect(() => { load() }, [])
+  const load = () => { void templates.reload() }
 
   async function refresh(tpl: UserTemplate) {
     setBusy(tpl.id)
@@ -61,6 +63,7 @@ export default function TemplatesSettings() {
         {!!list?.length && <span className="text-sm text-fg-muted">{m.count.replace('{n}', String(list.length))}</span>}
         <Button size="sm" variant="secondary" onClick={() => navigate('/new-project')}>{m.newFrom}</Button>
       </>}>
+        {!list && <div role="status" aria-label={t.common.loading}><RowsSkeleton rows={2} /></div>}
         {list && list.length === 0 && <p className="border-t border-line-subtle px-5 py-4 text-sm text-fg-muted">{m.none}</p>}
         <ul aria-label={m.mine}>
           {list?.map(tpl => (

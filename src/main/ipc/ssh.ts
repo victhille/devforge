@@ -4,6 +4,7 @@ import { loadSshConnections, getSshConnectionWithSecret, saveSshConnection, remo
 import { sshService } from '../services/ssh/sshService'
 import { forgetHost } from '../services/ssh/knownHosts'
 import type { SSHConnection } from '@shared/types'
+import { dataChanged } from '../lib/changes'
 
 export function registerSshHandlers(mainWindow: BrowserWindow): void {
   sshService.setCallbacks(
@@ -13,6 +14,8 @@ export function registerSshHandlers(mainWindow: BrowserWindow): void {
 
   sshConnectionsEvents.on('changed', () => {
     for (const w of BrowserWindow.getAllWindows()) if (!w.isDestroyed()) w.webContents.send('ssh:connections-changed')
+    // The pages keeping the list (useSshConnections) read it again
+    dataChanged('ssh')
   })
 
   ipcMain.handle('ssh:get-connections',    async () => loadSshConnections())

@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { CanvasSkeleton } from '@renderer/components/ui/Skeleton'
 import { createPortal } from 'react-dom'
 import { Eye, KeyRound, LayoutTemplate, Maximize2, Minus, Plus, X } from 'lucide-react'
 import type { DbConnection, DbDiagram, DbTableRef } from '@shared/types'
@@ -11,7 +12,6 @@ import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
-import Spinner from '@renderer/components/ui/Spinner'
 import { errorText } from '@renderer/lib/errors'
 import ErrorState from '@renderer/components/ui/ErrorState'
 
@@ -253,7 +253,7 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
           onPointerDown={e => down(e)} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onDragStart={e => e.preventDefault()}
           data-testid="schema-canvas">
           {error ? <ErrorState className="m-6" title={s.loadFailed} error={error} />
-            : !diagram ? <Spinner className="m-6" />
+            : !diagram ? <CanvasSkeleton />
             : !shown.size ? (
               <p className="absolute inset-x-0 top-1/3 mx-auto max-w-md text-center text-sm text-fg-secondary">
                 {diagram.tables.length === 0 ? s.empty : diagram.tables.length > MANY ? s.tooMany.replace('{n}', String(diagram.tables.length)) : s.noneShown}

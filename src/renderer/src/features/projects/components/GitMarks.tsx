@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import type { FileChangeStatus } from '@shared/types'
 import { parseUnifiedDiff, type ParsedDiff } from '@shared/lib/unifiedDiff'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
-import Spinner from '@renderer/components/ui/Spinner'
 
 /**
  * v3.7 lot 3 (piste A of the mock-up): what Git says of the tree's files:
@@ -66,7 +66,7 @@ export function DiffView({ root, rel }: { root: string; rel: string }) {
     return () => { alive = false }
   }, [root, rel])
   if (error) return <p className="p-4 text-sm text-fg-muted">{f.unreadable}</p>
-  if (!diff) return <Spinner className="m-6" />
+  if (!diff) return <LinesSkeleton lines={8} plain className="p-5" />
   if (diff.binary) return <p className="p-4 text-sm text-fg-muted">{f.diffBinary}</p>
   if (!diff.hunks.length) return <p className="p-4 text-sm text-fg-muted">{f.diffNone}</p>
   return (

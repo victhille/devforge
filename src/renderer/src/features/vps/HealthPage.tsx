@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { CardSkeleton } from '@renderer/components/ui/Skeleton'
 import { Link } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, CircleHelp, Copy, RefreshCw, ShieldAlert, Wrench } from 'lucide-react'
 import type { HealthCheck, HealthFixId, HealthLevel, SSHConnection, VpsHealth } from '@shared/types'
@@ -64,7 +65,7 @@ export default function HealthPage() {
   return (
     <Page className="df-mockup">
       <PageHeader crumb={t.nav.groupServers} title={t.nav.health} subtitle={t.vpsOps.healthSubtitle} />
-      {!connections ? <Spinner /> : <NeedsSetup service="server" />}
+      {!connections ? <CardSkeleton rows={3} /> : <NeedsSetup service="server" />}
     </Page>
   )
 }
@@ -132,7 +133,7 @@ function Health({ conn, picker }: { conn: SSHConnection; picker: ReturnType<type
   )
 
   if (error) return <>{header}<Card className="p-4.5 text-sm text-danger">{error}</Card></>
-  if (!health) return <>{header}<p className="flex items-center gap-2 text-sm text-fg-muted"><Spinner /> {o.checking}</p></>
+  if (!health) return <>{header}<CardSkeleton label={o.checking} rows={4} /></>
 
   const sorted = [...health.checks].sort((a, b) => ORDER[a.level] - ORDER[b.level])
   const count = (...levels: HealthLevel[]) => health.checks.filter(c => levels.includes(c.level)).length

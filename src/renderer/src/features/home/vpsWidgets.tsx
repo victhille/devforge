@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppWindow, ArrowRight, Archive, HeartPulse, ShieldCheck, Workflow, type LucideIcon } from 'lucide-react'
 import type { BackupState, HealthLevel, N8nStatus, SSHConnection, VpnClient, VpsHealth, VpsService } from '@shared/types'
+import { useSshConnections } from '@renderer/hooks/useLiveData'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { formatRelative, formatSize } from '@renderer/lib/format'
@@ -20,13 +21,13 @@ const KEY = 'devforge:vps-server'
 
 /** The server of the VPS pages, else the first one; null when none is saved */
 export function useVpsServer(): SSHConnection | null | undefined {
-  const [conn, setConn] = useState<SSHConnection | null | undefined>(undefined)
-  useEffect(() => {
+  const { data, error } = useSshConnections()
+  return useMemo(() => {
+    if (!data) return error ? null : undefined
     let id = ''
     try { id = localStorage.getItem(KEY) ?? '' } catch { /* none */ }
-    window.devforge.getSshConnections().then(list => setConn(list.find(c => c.id === id) ?? list[0] ?? null)).catch(() => setConn(null))
-  }, [])
-  return conn
+    return data.find(c => c.id === id) ?? data[0] ?? null
+  }, [data, error])
 }
 
 const pick = (id: string) => { try { localStorage.setItem(KEY, id) } catch { /* not kept */ } }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { CardSkeleton, LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { Clock, FolderOpen, HardDriveDownload, Play, Power, RotateCcw } from 'lucide-react'
 import type { BackupCandidates, BackupPlan, BackupState, SSHConnection } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -11,7 +12,6 @@ import Card from '@renderer/components/ui/Card'
 import { Table, Td, Th } from '@renderer/components/ui/Table'
 import Checkbox from '@renderer/components/ui/Checkbox'
 import Modal from '@renderer/components/ui/Modal'
-import Spinner from '@renderer/components/ui/Spinner'
 import { Input } from '@renderer/components/ui/Input'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { ServerSelect, useServerPicker } from './ServerPicker'
@@ -34,7 +34,7 @@ export default function BackupsPage() {
   return (
     <Page className="df-mockup">
       <PageHeader crumb={t.nav.groupServers} title={t.nav.backups} subtitle={t.backups.subtitle} />
-      {!connections ? <Spinner /> : <NeedsSetup service="server" />}
+      {!connections ? <CardSkeleton rows={3} /> : <NeedsSetup service="server" />}
     </Page>
   )
 }
@@ -85,7 +85,7 @@ function Backups({ conn, picker }: { conn: SSHConnection; picker: ReturnType<typ
   )
 
   if (error) return <>{header}<Card className="p-4.5 text-sm text-danger">{error}</Card></>
-  if (!st) return <>{header}<p className="flex items-center gap-2 text-sm text-fg-muted"><Spinner /> {b.loading}</p></>
+  if (!st) return <>{header}<CardSkeleton label={b.loading} rows={3} /></>
 
   const last = st.last
   const ageH = last ? (Date.now() - new Date(last.finishedAt).getTime()) / 3_600_000 : 0
@@ -245,7 +245,7 @@ function Setup({ conn, plan, busy, onSave, onCancel }: {
         </div>
       </div>
 
-      {error ? <p className="text-sm text-danger">{error}</p> : !cands ? <Spinner /> : (
+      {error ? <p className="text-sm text-danger">{error}</p> : !cands ? <LinesSkeleton lines={3} /> : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-1 text-base font-medium text-fg">{b.databases}</legend>

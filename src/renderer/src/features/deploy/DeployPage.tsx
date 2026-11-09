@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { CardGridSkeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate } from 'react-router-dom'
 import { Check, Pencil, Plus, ScrollText, Search, Server, Trash2, UploadCloud, X } from 'lucide-react'
 import type { DeployRun, DeployTarget, SSHConnection } from '@shared/types'
+import { NO_SERVERS, useSshConnections } from '@renderer/hooks/useLiveData'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
@@ -36,7 +38,7 @@ export default function DeployPage() {
   const d = t.deploy
   const toast = useToast()
   const [targets, setTargets] = useState<DeployTarget[] | null>(null)
-  const [connections, setConnections] = useState<SSHConnection[]>([])
+  const connections: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
   const [runs, setRuns] = useState<Record<string, DeployRun[]>>({})
   const [live, setLive] = useState<Live | null>(null)
   const [focus, setFocus] = useState<{ targetId: string; runId?: string } | null>(null)
@@ -54,7 +56,6 @@ export default function DeployPage() {
   }, [loadRuns])
   useEffect(() => {
     reload()
-    window.devforge.getSshConnections().then(setConnections).catch(() => {})
   }, [reload])
 
   // The run is followed by its events: its lines, then its end
@@ -113,7 +114,7 @@ export default function DeployPage() {
         </>}
       />
 
-      {!targets ? <Spinner /> : connections.length === 0 && targets.length === 0 ? (
+      {!targets ? <CardGridSkeleton cards={3} /> : connections.length === 0 && targets.length === 0 ? (
         <EmptyState icon={<Server size={32} />} title={d.needServer} description={d.needServerHint}
           action={<Button onClick={() => navigate('/ssh')}><Plus size={14} aria-hidden /> {t.ssh.addServer}</Button>} />
       ) : targets.length === 0 ? (

@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { CardGridSkeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate } from 'react-router-dom'
 import { FolderPlus, FolderSearch, LayoutList, LayoutGrid, Plus, FolderOpen, TriangleAlert } from 'lucide-react'
 import type { CiStates, DetectedProject, Framework, SubProject } from '@shared/types'
@@ -11,7 +12,6 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
 import SearchInput from '@renderer/components/ui/SearchInput'
-import Spinner from '@renderer/components/ui/Spinner'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
 import { useNoteCounts } from '@renderer/hooks/useLiveData'
 import { ProjectCard, DetectedProjectCard, type CardLayout } from './components/ProjectCard'
@@ -260,7 +260,7 @@ export default function ProjectsPage() {
 
       {/* Empty / scanning */}
       {filteredSaved.length === 0 && filteredDetected.length === 0 && (
-        !loaded ? <div className="flex justify-center py-12"><Spinner /></div>
+        !loaded ? <CardGridSkeleton label={t.common.loading} />
         : scanning
           ? <p className="py-12 text-center text-fg-muted">{t.projects.scanning}</p>
           : <EmptyState

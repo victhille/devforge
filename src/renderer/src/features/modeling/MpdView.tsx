@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { CanvasSkeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AlertTriangle, Check, Copy, FileCode2, KeyRound, LayoutTemplate, Maximize2, Plus, RefreshCw, RotateCcw, Sparkles, Trash2 } from 'lucide-react'
 import type { DbConnection, MpdColumn, MpdModel, MpdTable, MpdType, SqlEngine } from '@shared/types'
@@ -14,7 +15,6 @@ import { formatRelative } from '@renderer/lib/format'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
-import Spinner from '@renderer/components/ui/Spinner'
 import { saveDrawing, schemaColors } from './colors'
 import ModelTabs from './ModelTabs'
 import ModelCrumbs from './ModelCrumbs'
@@ -254,7 +254,7 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
   }
 
   if (error) return <div className="p-8"><ErrorState title={m.loadFailed} error={error} /></div>
-  if (!model || !mpd || !drawn) return <Spinner className="m-8" />
+  if (!model || !mpd || !drawn) return <CanvasSkeleton />
 
   const selTable = mpd.tables.find(x => x.id === sel)
   const tableName = (id: string) => mpd.tables.find(x => x.id === id)?.name ?? '?'

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { CardSkeleton } from '@renderer/components/ui/Skeleton'
 import { AlertTriangle, Bell, ExternalLink, FlaskConical, Plus, RefreshCw, Send, Trash2, X } from 'lucide-react'
 import type {
   SSHConnection, StatusConfig, StatusExposure, StatusIncident, StatusMonitor, StatusOverview, StatusPrecheck
@@ -37,7 +38,7 @@ export default function StatusPage() {
       {!connections || !conn ? (
         <>
           <PageHeader crumb={t.nav.groupOnline} title={t.nav.statusPage} subtitle={t.statusPage.subtitle} />
-          {!connections ? <Spinner /> : <NeedsSetup service="server" />}
+          {!connections ? <CardSkeleton rows={3} /> : <NeedsSetup service="server" />}
         </>
       ) : <Status key={conn.id} conn={conn} select={select} />}
     </Page>
@@ -106,7 +107,7 @@ function Status({ conn, select }: { conn: SSHConnection; select: ReactNode }) {
         </>} />
 
       {error && !data ? <p role="alert" className="text-sm text-danger">{error}</p>
-        : !data ? <Spinner />
+        : !data ? <CardSkeleton rows={4} />
         : !installed ? <Install conn={conn} log={log} setLog={setLog} busy={busy === 'install'} setBusy={b => setBusy(b ? 'install' : null)} onDone={load} />
         : (
           <>

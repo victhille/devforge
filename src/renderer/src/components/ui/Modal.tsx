@@ -64,8 +64,7 @@ export default function Modal({ title, onClose, footer, className, children }: P
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  // On the document itself: a page that moves (its rise as it appears) would otherwise hold it in its own box
-  return createPortal(
+  const dialog = (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-6 backdrop-blur-[3px]"
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
@@ -87,7 +86,9 @@ export default function Modal({ title, onClose, footer, className, children }: P
           <div className="flex justify-end gap-2 border-t border-line-subtle px-5 py-3">{footer}</div>
         )}
       </div>
-    </div>,
-    document.body
+    </div>
   )
+  // On the document itself: a page that moves (its rise as it appears) would otherwise hold it in its own box.
+  // Without a document (a render to text, the tests' markup) it stays where it is
+  return typeof document === 'undefined' ? dialog : createPortal(dialog, document.body)
 }

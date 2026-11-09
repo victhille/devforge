@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { Skeleton } from '@renderer/components/ui/Skeleton'
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import { useI18n } from '@renderer/i18n/I18nContext'
-import Spinner from '@renderer/components/ui/Spinner'
 
 /** Pages drawn at once; the rest on demand */
 const FIRST_PAGES = 20
@@ -52,7 +52,7 @@ export default function PdfView({ bytes }: { bytes: Uint8Array }) {
   if (error) return <p className="p-4 text-sm text-fg-muted">{t.files.unreadable}</p>
   return (
     <div className="p-3">
-      {pages === null && <Spinner className="m-4" />}
+      {pages === null && <Skeleton className="m-4 h-[60vh] rounded-control" />}
       <div ref={box} data-testid="pdf-pages" />
       {pages !== null && pages > shown && (
         <button onClick={() => setShown(pages)} className="mx-auto block rounded-lg border border-line bg-elevated px-3 py-1.5 text-xs text-fg hover:bg-hover">

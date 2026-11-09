@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { CardSkeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate } from 'react-router-dom'
 import { AppWindow, ExternalLink, Globe, RefreshCw } from 'lucide-react'
 import type { SSHConnection, VpsService } from '@shared/types'
@@ -9,7 +10,6 @@ import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
-import Spinner from '@renderer/components/ui/Spinner'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { ServerSelect, useServerPicker } from './ServerPicker'
 import NeedsSetup from '@renderer/components/NeedsSetup'
@@ -36,7 +36,7 @@ export default function ServicesPage() {
   return (
     <Page className="df-mockup">
       <PageHeader crumb={t.nav.groupServers} title={t.nav.services} subtitle={t.vpsOps.servicesSubtitle} />
-      {!connections ? <Spinner /> : <NeedsSetup service="server" />}
+      {!connections ? <CardSkeleton rows={3} /> : <NeedsSetup service="server" />}
     </Page>
   )
 }
@@ -84,7 +84,7 @@ function Services({ conn, picker }: { conn: SSHConnection; picker: ReturnType<ty
   )
 
   if (error) return <>{header}<Card className="p-4.5 text-sm text-danger">{error}</Card></>
-  if (!list) return <>{header}<Spinner /></>
+  if (!list) return <>{header}<CardSkeleton rows={4} /></>
   return (
     <>
       {header}

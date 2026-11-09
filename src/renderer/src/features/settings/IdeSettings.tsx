@@ -8,6 +8,10 @@ import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
 import { Field, Input } from '@renderer/components/ui/Input'
 import { SettingRow } from './parts'
+import { IDES, useIdes } from '@renderer/hooks/useLiveData'
+import { setLive } from '@renderer/lib/live'
+
+const NO_IDES: IdeInfo[] = []
 import { errorText } from '@renderer/lib/errors'
 
 const blank = (): CustomIde => ({ id: '', name: '', path: '', args: '{dir}' })
@@ -19,11 +23,12 @@ export default function IdeSettings({ settings, update }: { settings: AppSetting
   const { t } = useI18n()
   const s = t.settings
   const toast = useToast()
-  const [list, setList] = useState<IdeInfo[]>([])
+  const list: IdeInfo[] = useIdes().data ?? NO_IDES
   const [draft, setDraft] = useState<CustomIde | null>(null)
   const custom = settings.customIdes ?? []
-  const refresh = (fresh = false) => window.devforge.listIdes(fresh).then(setList).catch(() => {})
-  useEffect(() => { refresh(true) }, [])
+  /** Looks again on the disk (an IDE installed or added by hand): every page showing the IDEs gets the new list */
+  const refresh = () => { window.devforge.listIdes(true).then(l => setLive<IdeInfo[]>(IDES, () => l)).catch(() => {}) }
+  useEffect(() => { refresh() }, [])
 
   const found = list.filter(i => i.installed)
   const missing = list.filter(i => !i.installed && !i.custom)

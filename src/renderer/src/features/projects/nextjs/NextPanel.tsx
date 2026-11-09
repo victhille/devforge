@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { ExternalLink, RefreshCw } from 'lucide-react'
 import type { NextCommand, NextInspect, SfEntityDraft, SfWriteResult } from '@shared/types'
 import { nextCommandLine } from '@shared/lib/nextCommands'
@@ -7,7 +8,6 @@ import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
-import Spinner from '@renderer/components/ui/Spinner'
 import EntitiesSection from '../symfony/EntitiesSection'
 import MigrationsSection from '../symfony/MigrationsSection'
 import ApiSection from '../symfony/ApiSection'
@@ -89,7 +89,7 @@ export default function NextPanel({ projectPath }: { projectPath: string }) {
   }
 
   if (!data) {
-    return loadError ? <p role="alert" className="text-sm text-danger">{loadError}</p> : <div className="flex justify-center p-10"><Spinner /></div>
+    return loadError ? <p role="alert" className="text-sm text-danger">{loadError}</p> : <LinesSkeleton lines={4} label={t.common.loading} className="p-2" />
   }
   const st = data.status
   const dbOk = st.database.reachable

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { Boxes, Container, ExternalLink, Play, RotateCcw, Square, Trash2 } from 'lucide-react'
 import type { ComposeAction, ComposeProject, ContainerAction, ContainerStats, DockerContainer } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -59,7 +60,7 @@ function LogsCard({ title, start, stop }: { title: string; start: () => Promise<
         <AskForgy label={t.docker.askForgy} className="h-7 px-2.5 text-xs" />
       </div>
       <div className="[&>div]:max-h-72 [&>div]:rounded-none [&>div]:bg-transparent [&>div]:px-4">
-        {key ? <LogPanel procKey={key} /> : <div className="p-4"><Spinner /></div>}
+        {key ? <LogPanel procKey={key} /> : <LinesSkeleton lines={4} plain className="p-4" />}
       </div>
     </div>
   )

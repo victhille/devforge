@@ -1,9 +1,10 @@
 import { createContext, useContext, useId, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
+import { useI18n } from '@renderer/i18n/I18nContext'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@renderer/lib/cn'
 import StatusDot from '@renderer/components/ui/StatusDot'
 import Badge, { type BadgeColor } from '@renderer/components/ui/Badge'
-import Spinner from '@renderer/components/ui/Spinner'
 
 /** The id of the card's title: its links and buttons are described by it (« Gérer », of which card) */
 const TileTitle = createContext<string | undefined>(undefined)
@@ -50,9 +51,10 @@ export function TileLink({ className, children, ...rest }: ButtonHTMLAttributes<
   )
 }
 
-/** A card while its data is read: the spinner in the middle of a little room, not a dot under the title */
+/** A card while its data is read: lines where its rows will be, not a spinner */
 export function TileLoading() {
-  return <div className="flex min-h-16 items-center justify-center"><Spinner /></div>
+  const { t } = useI18n()
+  return <LinesSkeleton lines={3} label={t.common.loading} className="min-h-16" />
 }
 
 /** A row of a card's list: 39 px, a thin line between rows */

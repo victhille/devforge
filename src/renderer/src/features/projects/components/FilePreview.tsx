@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { Code2, Eye, SquareArrowOutUpRight, X } from 'lucide-react'
 import type { DefaultIDE, FileChangeStatus, FileEntry, FilePreview as Preview } from '@shared/types'
 import { codeLanguage } from '@shared/lib/codeLanguage'
@@ -115,7 +116,7 @@ export default function FilePreview({ file, line, root, ide: own, onClose, chang
       {/* Scrollable: reachable with the keyboard too */}
       <div className="min-h-0 flex-1 overflow-auto" data-testid="file-preview" tabIndex={0}>
         {showDiff ? <DiffView root={root!} rel={rel!} />
-          : !preview ? <Spinner className="m-6" />
+          : !preview ? <LinesSkeleton lines={8} plain className="p-5" />
           : preview.kind === 'markdown' && !source ? <div className="max-w-[860px] px-5 py-4 text-sm leading-relaxed text-fg-secondary"><Markdown text={preview.text} asDocument /></div>
           : text !== null ? <CodeView text={text} name={file.name} line={line} />
           : preview.kind === 'image' ? <div className="flex min-h-full items-center justify-center bg-[repeating-conic-gradient(var(--color-elevated)_0%_25%,transparent_0%_50%)] bg-[length:16px_16px] p-4"><img src={preview.dataUrl} alt={file.name} className="max-h-full max-w-full object-contain" /></div>

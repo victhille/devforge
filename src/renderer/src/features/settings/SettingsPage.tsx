@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Check, ClipboardCopy } from 'lucide-react'
-import type { AppLanguage, AppSettings, PackageManager } from '@shared/types'
+import type { AppSettings, PackageManager } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
-import { applyAppearance } from '@renderer/lib/appearance'
+import { saveSettings, useSettings } from '@renderer/hooks/useLiveData'
+import { CardSkeleton, Skeleton } from '@renderer/components/ui/Skeleton'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Switch from '@renderer/components/ui/Switch'
@@ -31,17 +32,15 @@ import { SETTINGS_SECTIONS as SECTIONS, type SettingsSection as Section } from '
 const PAGE = 'df-mockup mx-0 max-w-[1040px] gap-5'
 
 export default function SettingsPage() {
-  const { t, setLang } = useI18n()
+  const { t } = useI18n()
   const s = t.settings
   const toast = useToast()
-  const [settings, setSettings] = useState<AppSettings | null>(null)
+  const { data: settings } = useSettings()
   const [savedAt, setSavedAt] = useState(0)
   const [query, setQuery] = useState('')
   const [params, setParams] = useSearchParams()
   const notes = params.get('notes')
   const asked = params.get('section')
-
-  useEffect(() => { window.devforge.getSettings().then(setSettings) }, [])
 
   // "Saved" shows for two seconds after each change
   const [savedVisible, setSavedVisible] = useState(false)
@@ -53,24 +52,17 @@ export default function SettingsPage() {
   }, [savedAt])
   const onSaved = () => setSavedAt(Date.now())
 
-  /** Every change is saved at once (the projects folders: when a field loses focus) */
-  async function set<K extends keyof AppSettings>(key: K, value: AppSettings[K], persist = true) {
+  /** Every change is shown at once (language and appearance included, by I18nProvider) and saved */
+  async function set<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
     if (!settings) return
-    const next = { ...settings, [key]: value }
-    setSettings(next)
-    if (!persist) return
-    await window.devforge.saveSettings(next)
-    if (key === 'language') setLang(value as AppLanguage)
-    if (key === 'theme' || key === 'motion' || key === 'density' || key === 'accent' || key === 'textSize') applyAppearance(next)
+    await saveSettings({ ...settings, [key]: value })
     onSaved()
   }
 
   /** Several keys at once (one save, from the latest values) */
   async function update(patch: Partial<AppSettings>) {
     if (!settings) return
-    const next = { ...settings, ...patch }
-    setSettings(next)
-    await window.devforge.saveSettings(next)
+    await saveSettings({ ...settings, ...patch })
     onSaved()
   }
 
@@ -96,7 +88,16 @@ export default function SettingsPage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  if (!settings) return <Page className={PAGE}><p className="text-fg-muted">{t.common.loading}</p></Page>
+  // The first time: the header and two cards as they will be (afterwards, the settings kept show at once)
+  if (!settings) return (
+    <Page className={PAGE}>
+      <div role="status" aria-label={t.common.loading} className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2.5"><Skeleton className="h-3 w-20" /><Skeleton className="h-7 w-48" /><Skeleton className="h-3.5 w-72" /></div>
+        <CardSkeleton label={false} rows={3} />
+        <CardSkeleton label={false} rows={2} />
+      </div>
+    </Page>
+  )
 
   if (notes) return <Page><ReleaseNotes focus={notes === 'all' ? null : notes} onBack={() => setParams({ section: 'updates' }, { replace: true })} /></Page>
 

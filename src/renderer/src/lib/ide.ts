@@ -1,6 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
+import { useIdes, useSettings } from '@renderer/hooks/useLiveData'
 import type { DefaultIDE } from '@shared/types'
 import { IDE_CATALOG, type IdeInfo } from '@shared/data/ides'
+
+const NO_IDES: IdeInfo[] = []
 
 /** The name of an IDE of the catalog (one added by hand: from the list) */
 export const IDE_LABEL: Record<string, string | null> = {
@@ -23,16 +26,10 @@ export interface PreferredIde {
   openFile: (path: string, own?: DefaultIDE, root?: string, line?: number) => Promise<void>
 }
 
-/** The IDE chosen in Settings, read when the page shows (a change in Settings applies on the way back) */
+/** The IDE chosen in Settings (followed at once) and the IDEs found on this PC (a scan kept a few minutes) */
 export function usePreferredIde(): PreferredIde {
-  const [ide, setIde] = useState<DefaultIDE>('vscode')
-  const [list, setList] = useState<IdeInfo[]>([])
-  useEffect(() => {
-    let alive = true
-    window.devforge.getSettings().then(s => { if (alive) setIde(s.defaultIDE) }).catch(() => {})
-    window.devforge.listIdes().then(l => { if (alive) setList(l) }).catch(() => {})
-    return () => { alive = false }
-  }, [])
+  const ide: DefaultIDE = useSettings().data?.defaultIDE ?? 'vscode'
+  const list = useIdes().data ?? NO_IDES
   const nameOf = useCallback((id: DefaultIDE) => id === 'none' ? null : list.find(i => i.id === id)?.name ?? IDE_LABEL[id] ?? null, [list])
   const pick = useCallback((own?: DefaultIDE) => own && (own === 'none' || IDE_LABEL[own] || list.some(i => i.id === own)) ? own : ide, [ide, list])
   const labelFor = useCallback((own?: DefaultIDE) => nameOf(pick(own)), [nameOf, pick])

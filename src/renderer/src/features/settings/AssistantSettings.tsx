@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { CardSkeleton, Skeleton } from '@renderer/components/ui/Skeleton'
 import { Check, KeyRound, Lock, ShieldCheck, Trash2 } from 'lucide-react'
 import type { AppSettings, AssistantActionMode, AssistantConfig, AssistantEffort, AssistantModel, AssistantProvider, AssistantUsage, ConnectionTest, DictationStatus } from '@shared/types'
 import { PROVIDERS, providerInfo } from '@shared/data/assistantProviders'
@@ -79,7 +80,7 @@ export default function AssistantSettings({ onSaved, settings, set }: { onSaved:
     window.devforge.assistant.getConfig().then(c => { setConfig(c); setBudget(String(c.monthlyBudget)) })
     window.devforge.assistant.usage().then(setUsage)
   }, [])
-  if (!config) return null
+  if (!config) return <div role="status" aria-label={t.common.loading} className="flex flex-col gap-5"><Skeleton className="h-20 rounded-card" /><CardSkeleton label={false} rows={2} /><CardSkeleton label={false} rows={3} /></div>
 
   const save = async (u: Parameters<typeof window.devforge.assistant.saveConfig>[0]) => {
     setConfig(await window.devforge.assistant.saveConfig(u))

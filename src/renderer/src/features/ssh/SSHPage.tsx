@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, Trash2, Terminal as TerminalIcon, Wifi, WifiOff, Edit2, X, Server, BarChart2, Database, PanelLeftClose, PanelLeftOpen, LayoutDashboard, FolderOpen } from 'lucide-react'
 import type { SSHConnection, SSHSessionStatus } from '@shared/types'
+import { NO_SERVERS, SSH_CONNECTIONS, useSshConnections } from '@renderer/hooks/useLiveData'
+import { setLive } from '@renderer/lib/live'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Badge from '@renderer/components/ui/Badge'
@@ -33,7 +35,8 @@ function StatusIcon({ status }: { status: SSHSessionStatus['status'] }) {
 export default function SSHPage() {
   const { t }    = useI18n()
   const navigate = useNavigate()
-  const [connections, setConnections] = useState<SSHConnection[]>([])
+  const { data: sshData, reload: reloadServers } = useSshConnections()
+  const connections: SSHConnection[] = sshData ?? NO_SERVERS
   const [sessions,    setSessions]    = useState<ActiveSession[]>([])
   const [activeId,    setActiveId]    = useState<string | null>(null)
   const [form,        setForm]        = useState<{ open: boolean; target?: SSHConnection }>({ open: false })
@@ -45,7 +48,7 @@ export default function SSHPage() {
   const panelCollapsed = narrow ? !openWhileNarrow : foldedByHand
   const togglePanel = () => (narrow ? setOpenWhileNarrow(o => !o) : setFoldedByHand(c => !c))
 
-  const reload = () => window.devforge.getSshConnections().then(setConnections)
+  const reload = () => reloadServers()
   // ?connect=<id> (the dashboard's Terminal button): its terminal opens at once
   const [params, setParams] = useSearchParams()
   const wanted = params.get('connect')
@@ -53,7 +56,6 @@ export default function SSHPage() {
   const active = sessions.find(s => s.sessionId === activeId)
   const activeConn = connections.find(c => c.id === active?.connectionId)
 
-  useEffect(() => { reload() }, [])
   useEffect(() => {
     const conn = wanted ? connections.find(c => c.id === wanted) : undefined
     if (!conn) return
@@ -100,7 +102,7 @@ export default function SSHPage() {
 
   async function deleteConnection(id: string) {
     await window.devforge.removeSshConnection(id)
-    setConnections(prev => prev.filter(c => c.id !== id))
+    setLive<SSHConnection[]>(SSH_CONNECTIONS, prev => (prev ?? []).filter(c => c.id !== id))
   }
 
   return (

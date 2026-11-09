@@ -1,4 +1,5 @@
 import { useState, useEffect, type ReactNode } from 'react'
+import { CardSkeleton, Skeleton } from '@renderer/components/ui/Skeleton'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { RefreshCw, WifiOff, RotateCcw, Terminal, ArrowUpCircle } from 'lucide-react'
 import type { SSHConnection, VpsHealth } from '@shared/types'
@@ -127,10 +128,10 @@ export default function VPSDashboardPage() {
       )}
 
       {status === 'connected' && !stats && (
-        <CenterState>
-          <Spinner className="size-5" />
-          <p>{v.loading}</p>
-        </CenterState>
+        <div role="status" aria-label={v.loading} className="flex flex-col gap-4">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3.5">{[0, 1, 2, 3].map(i => <Skeleton key={i} className="h-24 rounded-card" />)}</div>
+          <CardSkeleton label={false} rows={3} />
+        </div>
       )}
 
       {status === 'connected' && stats && (

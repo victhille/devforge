@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { ArrowUp, Download, File, Folder, FolderSymlink, RefreshCw } from 'lucide-react'
 import type { SftpEntry } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -8,7 +9,6 @@ import { formatSize } from '@renderer/lib/format'
 import { errorText } from '@renderer/lib/errors'
 import IconButton from '@renderer/components/ui/IconButton'
 import Modal from '@renderer/components/ui/Modal'
-import Spinner from '@renderer/components/ui/Spinner'
 import { Input } from '@renderer/components/ui/Input'
 import { Table, Td, Th } from '@renderer/components/ui/Table'
 
@@ -54,7 +54,7 @@ export default function FilesModal({ sessionId, name, onClose }: { sessionId: st
       </form>
       <p role="status" className="sr-only">{path}</p>
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
-      {!entries ? (!error && <Spinner />) : entries.length === 0 ? <p className="text-sm text-fg-muted">{s.emptyDir}</p> : (
+      {!entries ? (!error && <LinesSkeleton lines={6} />) : entries.length === 0 ? <p className="text-sm text-fg-muted">{s.emptyDir}</p> : (
         <div className="max-h-[50vh] overflow-y-auto rounded-control border border-line-subtle">
           <Table>
             <thead>

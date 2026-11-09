@@ -11,6 +11,7 @@ import { SETTINGS_SECTIONS } from '@renderer/features/settings/sections'
 import { useHasServer, useServerName } from '@renderer/hooks/useHasServer'
 import { PANEL_ICON, PanelLabel, ProjectList, onProject, panelRow } from './PanelProjects'
 import { MAX_FAVORITES } from '@shared/lib/favorites'
+import { patchSettings, useSettings } from '@renderer/hooks/useLiveData'
 
 const ENTRIES = [HOME, ...LISTED_PAGES]
 const entry = (path: string) => ENTRIES.find(p => p.path === path)!
@@ -20,13 +21,13 @@ const SettingsIcon = entry('/settings').icon
 /** Ctrl+B stays a key of the field being typed in (bold in a note, a shell shortcut…) */
 const isTyping = (t: EventTarget | null) => t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement || (t instanceof HTMLElement && t.isContentEditable)
 
-/** The pinned pages, saved in the settings */
+/** The pinned pages, saved in the settings (the shared copy: pinned from the palette, they show here at once) */
 function useFavorites() {
-  const [favorites, setLocal] = useState<string[]>(DEFAULT_FAVORITES)
-  useEffect(() => { window.devforge.getSettings().then(s => setLocal(s.favorites ?? DEFAULT_FAVORITES)).catch(() => {}) }, [])
+  const { data: settings } = useSettings()
+  const favorites = settings?.favorites ?? DEFAULT_FAVORITES
   const save = useCallback((next: string[]) => {
-    setLocal(next)
-    window.devforge.setFavorites(next).then(setLocal).catch(() => {})
+    patchSettings({ favorites: next })
+    window.devforge.setFavorites(next).catch(() => {})
   }, [])
   return [favorites, save] as const
 }

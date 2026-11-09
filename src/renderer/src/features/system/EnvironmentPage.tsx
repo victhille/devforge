@@ -1,4 +1,5 @@
-import { useState, useEffect, type CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
+import { setLive, useLive } from '@renderer/lib/live'
 import { Check, Download, RefreshCw } from 'lucide-react'
 import type { EnvironmentTool } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -76,20 +77,25 @@ function ToolRow({ tool, usedBy, t }: { tool: EnvironmentTool; usedBy: string[];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+const ENVIRONMENT = 'environment'
+const NO_TOOLS: EnvironmentTool[] = []
+
 export default function EnvironmentPage() {
   const { t } = useI18n()
   const e = t.environment
-  const [tools, setTools]     = useState<EnvironmentTool[]>([])
-  const [loading, setLoading] = useState(false)
+  // The scan, kept five minutes: the page comes back with it at once
+  const scan = useLive<EnvironmentTool[]>(ENVIRONMENT, () => window.devforge.detectEnvironment(false), { freshMs: 5 * 60_000 })
+  const tools = scan.data ?? NO_TOOLS
+  const [forcing, setForcing] = useState(false)
+  const loading = forcing || !scan.loaded
   const compat = useCompatibility(tools)
 
-  async function refresh(force = false) {
-    setLoading(true)
-    try { setTools(await window.devforge.detectEnvironment(force)) }
-    finally { setLoading(false) }
+  /** Looks again on the disk (a tool just installed) */
+  async function refresh() {
+    setForcing(true)
+    try { const fresh = await window.devforge.detectEnvironment(true); setLive<EnvironmentTool[]>(ENVIRONMENT, () => fresh) }
+    finally { setForcing(false) }
   }
-
-  useEffect(() => { refresh() }, [])
 
   const totalDetected = tools.filter(tool => tool.status === 'detected').length
   // A missing tool that a project asks for: its names beside Install
@@ -111,7 +117,7 @@ export default function EnvironmentPage() {
           ? e.subtitle.replace('{n}', String(totalDetected)).replace('{total}', String(tools.length))
           : e.subtitleLoading}
         actions={
-          <Button variant="secondary" onClick={() => refresh(true)} loading={loading}>
+          <Button variant="secondary" onClick={refresh} loading={loading}>
             <RefreshCw size={14} aria-hidden /> {e.refresh}
           </Button>
         }

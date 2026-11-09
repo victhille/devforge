@@ -15,6 +15,7 @@ import Button from '@renderer/components/ui/Button'
 import type { ShellBackend } from './backends'
 import { useBlockShell, type Block } from './useBlockShell'
 import { lineText } from './snapshot'
+import { useSettings } from '@renderer/hooks/useLiveData'
 import '@xterm/xterm/css/xterm.css'
 
 const SHOWN_LINES = 300
@@ -223,14 +224,14 @@ function InputBar({ shell, historyKey, shellLabel, onAsk }: {
   const [pick, setPick] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   // v3.5: the greyed rest of the line, from the project's scripts, its history and the docs
-  const [suggest, setSuggest] = useState(true)
+  // The greyed rest of the line, unless turned off in Settings (followed at once)
+  const suggest = useSettings().data?.terminalSuggest !== false
   const [scripts, setScripts] = useState<string[]>([])
   const [docs, setDocs] = useState<string[]>([])
   const [atEnd, setAtEnd] = useState(true)
   const local = !historyKey.startsWith('ssh:')
 
   useEffect(() => {
-    window.devforge.getSettings().then(st => setSuggest(st.terminalSuggest !== false)).catch(() => {})
     window.devforge.docs.list()
       .then(own => setDocs([...own.map(c => c.cmd), ...DOCS.flatMap(d => d.sections.flatMap(x => x.entries.map(e => e.cmd)))]))
       .catch(() => setDocs(DOCS.flatMap(d => d.sections.flatMap(x => x.entries.map(e => e.cmd)))))

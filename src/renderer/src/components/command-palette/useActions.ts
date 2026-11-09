@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { AppWindow, ExternalLink, GitPullRequestArrow, HardDriveDownload, HeartPulse, Minimize2, Moon, RefreshCw, RotateCcw, ShieldPlus, Sun, type LucideIcon } from 'lucide-react'
 import type { BackupPlan, N8nInstance, SSHConnection, UpdateStatus, VpnServer, VpsService } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
-import { applyAppearance } from '@renderer/lib/appearance'
+// The shared settings: shown at once everywhere (I18nProvider applies the appearance), then written
+import { saveSettings } from '@renderer/hooks/useLiveData'
 import type { Command } from './useCommands'
 
 /**
@@ -122,18 +123,14 @@ export function useActions(open: boolean): Command[] {
       id: 'act:theme', title: theme === 'light' ? a.themeDark : a.themeLight, icon: theme === 'light' ? Moon : Sun, keywords: 'thème theme clair sombre light dark',
       run: async () => {
         const s = await window.devforge.getSettings()
-        const next = { ...s, theme: theme === 'light' ? 'dark' as const : 'light' as const }
-        await window.devforge.saveSettings(next)
-        applyAppearance(next)
+        await saveSettings({ ...s, theme: theme === 'light' ? 'dark' as const : 'light' as const })
       }
     })
     add({
       id: 'act:density', title: compact ? a.compactOff : a.compactOn, icon: Minimize2, keywords: 'compact densité density petit écran',
       run: async () => {
         const s = await window.devforge.getSettings()
-        const next = { ...s, density: compact ? 'comfortable' as const : 'compact' as const }
-        await window.devforge.saveSettings(next)
-        applyAppearance(next)
+        await saveSettings({ ...s, density: compact ? 'comfortable' as const : 'compact' as const })
       }
     })
     add({

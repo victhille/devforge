@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Skeleton, TableSkeleton } from '@renderer/components/ui/Skeleton'
 import { ArrowUpCircle, ExternalLink, Package, RefreshCw, Search, ShieldAlert, ShieldCheck } from 'lucide-react'
 import type { AuditSummary, PackageInfo, PackageManagerKind, PackageManifest, PackageUpdate, UpdateLevel } from '@shared/types'
 
@@ -105,7 +106,13 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
     } finally { setRunning(null) }
   }
 
-  if (!manifests) return <Spinner />
+  // A manifest's card as it will be: its file and buttons, then its table
+  if (!manifests) return (
+    <div role="status" aria-label={t.common.loading} className="overflow-hidden rounded-card border border-line-subtle bg-surface">
+      <div className="flex items-center gap-3 border-b border-line-subtle px-4.5 py-3.5"><Skeleton className="size-4" /><div className="flex flex-col gap-1.5"><Skeleton className="h-3.5 w-28" /><Skeleton className="h-3 w-40" /></div><Skeleton className="ml-auto h-7 w-36 rounded-control" /></div>
+      <TableSkeleton rows={5} columns={4} />
+    </div>
+  )
   if (!manifests.length) return <EmptyState icon={<Package size={28} />} title={k.none} />
 
   // How many packages each filter keeps, over every file
@@ -183,7 +190,7 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
                 <button onClick={() => window.devforge.openExternal('https://getcomposer.org/download/')} className="inline-flex items-center gap-1 underline">getcomposer.org <ExternalLink size={11} /></button>
               </Notice>
             )}
-            {!versions && <div className="flex items-center gap-2 px-4.5 py-3 text-sm text-fg-muted"><Spinner /> {k.checking}</div>}
+            {!versions && <TableSkeleton label={k.checking} rows={5} columns={4} />}
             {versions && shown.length === 0 && <p className="px-4.5 py-4 text-sm text-fg-muted">{filter === 'all' ? k.empty : k.allCurrent}</p>}
             {versions && shown.length > 0 && (
               <table className="w-full border-collapse text-sm">

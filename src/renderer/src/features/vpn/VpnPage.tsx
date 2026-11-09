@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { CardSkeleton, LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { ArrowDown, ArrowUp, Download, ExternalLink, KeyRound, Laptop, LogOut, Plus, QrCode, RefreshCw, Search, ShieldCheck, Smartphone, Tablet, Trash2 } from 'lucide-react'
 import type { SSHConnection, VpnClient, VpnDetect, VpnServer } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -46,7 +47,7 @@ export default function VpnPage() {
       {!connections || !conn ? (
         <>
           <PageHeader crumb={t.nav.groupOnline} title="VPN" subtitle={t.vpn.subtitle} />
-          {!connections ? <Spinner /> : <NeedsSetup service="server" />}
+          {!connections ? <CardSkeleton rows={3} /> : <NeedsSetup service="server" />}
         </>
       ) : <Server key={conn.id} conn={conn} saved={servers.find(s => s.connectionId === conn.id)} select={select} onChange={refreshServers} />}
     </Page>
@@ -225,7 +226,7 @@ function Clients({ conn, found, select, onForget }: { conn: SSHConnection; found
       <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <Card>
           {error ? <p className="px-4.5 py-4 text-sm text-danger">{error}</p>
-            : !clients ? <div className="p-4.5"><Spinner /></div>
+            : !clients ? <LinesSkeleton lines={4} className="px-4.5 py-4" />
             : shown.length === 0 ? <p className="px-4.5 py-4 text-sm text-fg-muted">{clients.length ? v.noMatch : v.noClients}</p>
             : (
               <Table>

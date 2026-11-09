@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { CanvasSkeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AlertTriangle, ArrowRight, Copy } from 'lucide-react'
 import type { MldNaming, ModelFile } from '@shared/types'
@@ -9,7 +10,6 @@ import { useToast } from '@renderer/app/ToastContext'
 import { errorText } from '@renderer/lib/errors'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
-import Spinner from '@renderer/components/ui/Spinner'
 import ModelTabs from './ModelTabs'
 import ModelCrumbs from './ModelCrumbs'
 import { fill, modelUrl, siblings, useSiblings } from './model'
@@ -75,7 +75,7 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
   }
 
   if (error) return <div className="p-8"><ErrorState title={m.loadFailed} error={error} /></div>
-  if (!model || !mld) return <Spinner className="m-8" />
+  if (!model || !mld) return <CanvasSkeleton />
 
   const ruleText = (r: MldRule): ReactNode => {
     switch (r.kind) {

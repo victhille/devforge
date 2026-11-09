@@ -3,6 +3,7 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { useActiveProject } from '@renderer/hooks/useActiveProject'
 import { cn } from '@renderer/lib/cn'
 import Spinner from '@renderer/components/ui/Spinner'
+import { useSettings } from '@renderer/hooks/useLiveData'
 
 // The terminal (xterm, 400 KB) loads on the dock's first opening, not with the app
 const TerminalTabs = lazy(() => import('./TerminalTabs'))
@@ -22,10 +23,9 @@ export default function TerminalDock() {
   const [open, setOpen] = useState(false)
   const [opened, setOpened] = useState(false)
   const [height, setHeight] = useState(readHeight)
-  const [home, setHome] = useState('')
+  // Where a terminal opens without a project: the first projects folder
+  const home = useSettings().data?.defaultProjectsDir ?? ''
   const drag = useRef<{ y: number; h: number } | null>(null)
-
-  useEffect(() => { window.devforge.getSettings().then(s => setHome(s.defaultProjectsDir)).catch(() => {}) }, [])
 
   useEffect(() => {
     const toggle = () => setOpen(o => { if (!o) setOpened(true); return !o })
