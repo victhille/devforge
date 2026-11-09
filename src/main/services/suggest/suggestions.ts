@@ -3,6 +3,7 @@ import { join } from 'path'
 import type { DomainSuggestion, LogFileSuggestion, PortProject, Project, UrlSuggestion } from '@shared/types'
 import { loadProjects } from '../projects/projectStorage'
 import { scriptsOf } from '../projects/projectScripts'
+import { serverScript } from '@shared/lib/packageManagers'
 import { parseEnv } from '../envfiles/envFiles'
 import { listDomains } from '../domains/domainService'
 import { listMonitors } from '../monitor/urlMonitor'
@@ -79,7 +80,8 @@ export async function explicitPort(p: Project, env: Record<string, string>): Pro
   let parsed: unknown = null
   try { parsed = pkg ? JSON.parse(pkg) : null } catch { /* not JSON */ }
   const scripts = scriptsOf(parsed)
-  const dev = scripts.dev ?? scripts.start ?? scripts.serve ?? ''
+  const server = serverScript(scripts)
+  const dev = server ? scripts[server] : ''
   const m = dev.match(/(?:--port[= ]|-p\s+)(\d{2,5})/)
   if (m) return [Number(m[1]), 'package.json script']
   for (const f of ['vite.config.ts', 'vite.config.js', 'vite.config.mjs']) {
