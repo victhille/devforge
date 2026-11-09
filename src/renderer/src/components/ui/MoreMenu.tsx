@@ -38,9 +38,11 @@ export default function MoreMenu({ label, items, size = 'md' }: { label: string;
       const at = e.target as Node
       if (!box.current?.contains(at) && !menu.current?.contains(at)) setOpen(false)
     }
-    // A scroll or a resize would leave it beside its button: it closes
+    // A scroll or a resize would leave it beside its button: it closes. Only a scroll that moves the button
+    // (the page, or a box holding it): a log scrolling to its end elsewhere on the page leaves it open
     const away = (e: Event) => {
       if (menu.current?.contains(e.target as Node)) return
+      if (e.type === 'scroll' && e.target instanceof Node && button.current && !e.target.contains(button.current)) return
       if (menu.current?.contains(document.activeElement)) button.current?.focus()
       setOpen(false)
     }
