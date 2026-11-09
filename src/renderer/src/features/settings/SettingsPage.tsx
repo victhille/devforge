@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import type { AppSettings, PackageManager, Theme, AppLanguage, MotionSetting, Density } from '@shared/types'
@@ -89,6 +89,17 @@ export default function SettingsPage() {
   const shown = SECTIONS.filter(x => !q || `${s.nav[x.id]} ${x.words}`.toLowerCase().includes(q))
   const section: Section | null = shown.find(x => x.id === asked)?.id ?? shown[0]?.id ?? null
   const go = (id: Section) => setParams({ section: id }, { replace: true })
+  const search = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const typing = e.target instanceof HTMLElement && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))
+      if (e.key !== '/' || typing || e.ctrlKey || e.altKey || e.metaKey) return
+      e.preventDefault()
+      search.current?.querySelector('input')?.focus()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   if (!settings) return <Page><p className="text-fg-muted">{t.common.loading}</p></Page>
 
@@ -98,13 +109,17 @@ export default function SettingsPage() {
     <Page className="gap-5.5">
       <div className={cn('df-rise flex flex-wrap items-end gap-3', SECTION_WIDTH)}>
         <div className="min-w-[220px] flex-1">
-          <h1 className="font-display text-page font-bold tracking-[-.025em] text-fg">{s.title}</h1>
-          <p className="mt-1 text-base text-fg-secondary">{s.subtitle}</p>
+          <p className="mb-1 text-sm text-fg-muted">{s.title}</p>
+          <h1 className="font-display text-page font-bold tracking-[-.025em] text-fg">{section ? s.nav[section] : s.title}</h1>
+          <p className="mt-1 max-w-[560px] text-base text-fg-secondary">{section ? s.intro[section] : s.subtitle}</p>
         </div>
         <span aria-live="polite" className={cn('flex h-[30px] items-center gap-1.5 rounded-full bg-success-soft px-3 text-xs font-medium text-success transition-opacity duration-300', savedVisible ? 'opacity-100' : 'opacity-0')}>
           <Check size={13} strokeWidth={2.6} /> {s.autoSaved}
         </span>
-        <SearchInput className="w-full sm:w-64" value={query} onChange={setQuery} placeholder={s.searchPlaceholder} />
+        <div ref={search} className="relative w-full sm:w-64">
+          <SearchInput value={query} onChange={setQuery} placeholder={s.searchPlaceholder} />
+          {!query && <kbd aria-hidden className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 rounded-md border border-line px-1.5 font-mono text-2xs text-fg-muted">/</kbd>}
+        </div>
       </div>
 
       {/* The sections are in the menu's panel; here they show as a row of chips on a narrow page (a small
@@ -125,7 +140,7 @@ export default function SettingsPage() {
 
           <section key={section ?? 'none'} className={cn('flex min-w-0 flex-1 flex-col gap-4.5', SECTION_WIDTH)}>
             {section === 'general' && (
-              <SettingsCard title={s.nav.general} hint={s.generalHint}>
+              <SettingsCard title={s.groups.projects}>
                 <SettingRow label={s.defaultDir} hint={s.defaultDirHint}>
                   <ProjectFolders key={projectFolders(settings).join('\n')} settings={settings} update={update} />
                 </SettingRow>
@@ -134,15 +149,12 @@ export default function SettingsPage() {
                     items={(['npm', 'pnpm', 'yarn'] as const).map(pm => ({ value: pm, label: pm }))} />
                 </SettingRow>
                 <IdeSettings settings={settings} update={update} />
+              </SettingsCard>
+            )}
+            {section === 'general' && (
+              <SettingsCard title={s.groups.startup}>
                 <SettingRow label={s.startWithWindows} hint={s.startWithWindowsHint}>
                   <Switch checked={settings.startWithWindows} onChange={v => set('startWithWindows', v)} label={s.startWithWindows} />
-                </SettingRow>
-                <SettingRow label={s.terminalSuggest} hint={s.terminalSuggestHint}>
-                  <Switch checked={settings.terminalSuggest !== false} onChange={v => set('terminalSuggest', v)} label={s.terminalSuggest} />
-                </SettingRow>
-                <SettingRow label={s.ciAlerts} hint={s.ciAlertsHint}>
-                  <Segmented<'favorites' | 'all' | 'off'> label={s.ciAlerts} value={settings.ciAlerts ?? 'favorites'} onChange={v => set('ciAlerts', v)}
-                    items={[{ value: 'favorites', label: s.ciAlertsFavorites }, { value: 'all', label: s.ciAlertsAll }, { value: 'off', label: s.ciAlertsOff }]} />
                 </SettingRow>
                 <SettingRow label={s.minimizeToTray} hint={s.minimizeToTrayHint}>
                   <Switch checked={settings.minimizeToTray} onChange={v => set('minimizeToTray', v)} label={s.minimizeToTray} />
@@ -150,12 +162,22 @@ export default function SettingsPage() {
               </SettingsCard>
             )}
             {section === 'general' && <LauncherSettings settings={settings} update={update} />}
+            {section === 'general' && (
+              <SettingsCard title={s.groups.terminal}>
+                <SettingRow label={s.terminalSuggest} hint={s.terminalSuggestHint}>
+                  <Switch checked={settings.terminalSuggest !== false} onChange={v => set('terminalSuggest', v)} label={s.terminalSuggest} />
+                </SettingRow>
+                <SettingRow label={s.ciAlerts} hint={s.ciAlertsHint}>
+                  <Segmented<'favorites' | 'all' | 'off'> label={s.ciAlerts} value={settings.ciAlerts ?? 'favorites'} onChange={v => set('ciAlerts', v)}
+                    items={[{ value: 'favorites', label: s.ciAlertsFavorites }, { value: 'all', label: s.ciAlertsAll }, { value: 'off', label: s.ciAlertsOff }]} />
+                </SettingRow>
+              </SettingsCard>
+            )}
             {section === 'templates' && <TemplatesSettings />}
 
             {section === 'appearance' && (
-              <SettingsCard title={s.nav.appearance} hint={s.appearanceHint}>
+              <SettingsCard title={s.theme}>
                 <div className="px-5 pt-1 pb-4.5">
-                  <div className="mb-2.5 text-base font-medium text-fg">{s.theme}</div>
                   <div role="radiogroup" aria-label={s.theme} className="grid grid-cols-3 gap-3">
                     {THEMES.map(th => {
                       const on = settings.theme === th.id
@@ -182,6 +204,10 @@ export default function SettingsPage() {
                     })}
                   </div>
                 </div>
+              </SettingsCard>
+            )}
+            {section === 'appearance' && (
+              <SettingsCard title={s.groups.display}>
                 <SettingRow label={s.language} hint={s.languageHint}>
                   <Segmented<AppLanguage> label={s.language} value={settings.language} onChange={v => set('language', v)}
                     items={[{ value: 'fr', label: 'Français' }, { value: 'en', label: 'English' }]} />
@@ -204,7 +230,7 @@ export default function SettingsPage() {
             {section === 'updates' && <UpdatesSettings settings={settings} set={set} onNotes={() => setParams({ notes: 'all' }, { replace: true })} />}
 
             {section === 'about' && (
-              <SettingsCard title={s.nav.about}>
+              <SettingsCard title={s.groups.about}>
                 <dl className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] border-t border-line-subtle">
                   {[[s.version, `${__APP_VERSION__} · ${settings.updateChannel === 'beta' ? s.channelBeta : s.channelStable}`], [s.commit, __APP_COMMIT__],
                     [s.builtOnLabel, new Date(__BUILD_DATE__).toLocaleDateString()], ['Electron', navigator.userAgent.match(/Electron\/([\d.]+)/)?.[1] ?? '—']].map(([k, v]) => (

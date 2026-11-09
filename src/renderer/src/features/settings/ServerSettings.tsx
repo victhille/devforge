@@ -29,7 +29,7 @@ export default function ServerSettings({ onSaved }: { onSaved: () => void }) {
   const alertLabel: Record<AlertKind, string> = { disk: s.alertDisk, container: s.alertContainer, server: s.alertServer, site: s.alertSite }
 
   return (
-    <SettingsCard title={s.nav.servers} hint={s.serversHint}>
+    <SettingsCard title={s.groups.servers}>
       <div className="flex flex-col px-5 pb-1.5">
         {connections.length === 0 && <p className="border-t border-line-subtle py-3 text-sm text-fg-muted">{w.noServers}</p>}
         {connections.map(c => {

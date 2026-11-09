@@ -83,7 +83,7 @@ export default function AssistantSettings({ onSaved, settings, set }: { onSaved:
   }
 
   return (
-    <SettingsCard title="Forgy" hint={s.forgyHint}
+    <SettingsCard title={s.groups.forgy}
       icon={<div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-forgy-soft"><Mascot mood="idle" size={32} followCursor={false} /></div>}>
       <SettingRow label={a.provider} hint={a.providerHint}>
         <select aria-label={a.provider} value={config.provider} className="h-9 rounded-lg border border-line bg-canvas px-2.5 text-sm text-fg outline-none focus:border-accent"

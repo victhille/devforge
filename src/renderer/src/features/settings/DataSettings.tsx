@@ -29,7 +29,7 @@ export default function DataSettings({ onCopyReport }: { onCopyReport: () => voi
   }
 
   return (
-    <SettingsCard title={s.nav.data} hint={s.dataHint}>
+    <SettingsCard title={s.groups.data}>
       <SettingRow label={s.dataDir} hint={info && <span className="font-mono text-xs">{info.dir} · {s.dataDirInfo.replace('{size}', formatSize(info.size)).replace('{v}', String(info.schemaVersion))}</span>}>
         <Button size="sm" variant="secondary" onClick={() => window.devforge.data.openDir()}>{s.openFolder}</Button>
       </SettingRow>

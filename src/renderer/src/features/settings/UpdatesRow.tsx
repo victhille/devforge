@@ -36,7 +36,7 @@ export default function UpdatesSettings({ settings, set, onNotes }: {
     : ''
 
   return (
-    <SettingsCard title={u.nav.updates}>
+    <SettingsCard title={u.groups.updates}>
       <div className="flex flex-wrap items-center gap-4 border-t border-line-subtle px-5 py-5">
         <div aria-hidden className="flex size-[52px] shrink-0 items-center justify-center rounded-card bg-accent-soft">
           <svg width="26" height="26" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="6" className="fill-accent" /><path d="M7 15h10 M9 15V9h6l2 3h-8" className="stroke-canvas" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>

@@ -148,7 +148,7 @@ export default function ConnectionsSettings() {
 
   return (
     <>
-      <SettingsCard title={c.accountsTitle} hint={c.accountsHint}>
+      <SettingsCard title={c.accountsTitle}>
         <SettingRow label="GitHub" hint={c.githubHint}>
           <div className="flex flex-[1_1_320px] flex-col gap-2">
             <div className="flex flex-wrap items-center gap-2">

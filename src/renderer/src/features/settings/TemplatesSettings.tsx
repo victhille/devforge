@@ -50,7 +50,7 @@ export default function TemplatesSettings() {
   }
 
   return (
-    <SettingsCard title={t.settings.nav.templates} hint={m.settingsHint}>
+    <SettingsCard title={t.settings.groups.templates}>
       {list && list.length === 0 && <p className="border-t border-line-subtle px-5 py-4 text-sm text-fg-muted">{m.none}</p>}
       <ul aria-label={t.settings.nav.templates}>
         {list?.map(tpl => (

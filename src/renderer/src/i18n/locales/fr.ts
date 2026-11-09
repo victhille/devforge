@@ -1572,7 +1572,6 @@ const fr = {
     files: "{n} fichier(s)",
     fromTemplate: "Nouveau projet depuis « {name} »",
     recapCopy: "Copie du modèle « {name} », le nom du projet remplacé",
-    settingsHint: "Les projets enregistrés comme modèles, proposés dans Nouveau projet. Jamais de fichier .env.",
     none: "Aucun modèle : sur la fiche d'un projet, clique sur « Enregistrer comme modèle ».",
     refresh: "Mettre à jour",
     refreshHint: "Copie de nouveau le projet d'origine",
@@ -2491,7 +2490,6 @@ const fr = {
   settings: {
     connections: {
       accountsTitle: "Comptes et clés",
-      accountsHint: "Les services que DevForge utilise pour toi. Rien n'est configuré d'avance : chacun se branche ici, se teste et se retire.",
       githubHint: "Dépôts, Actions et releases. Par GitHub CLI (gh auth login) ou par un jeton personnel.",
       githubCli: "GitHub CLI : {login}",
       githubNoCli: "GitHub CLI non connecté",
@@ -2650,7 +2648,6 @@ const fr = {
     noMatch: "Aucun réglage ne correspond.",
     newBadge: "Nouveau",
     nav: { connections: "Connexions", general: "Général", templates: "Modèles", appearance: "Apparence", forgy: "Forgy", servers: "Serveurs", data: "Données", updates: "Mises à jour", about: "À propos" },
-    generalHint: "Où sont tes projets et avec quoi les ouvrir.",
     defaultDirHint: "La page Projets les parcourt tous ; le premier reçoit les nouveaux projets par défaut. Retirer un dossier ne supprime rien sur le disque.",
     defaultPMHint: "Utilisé quand le projet n'a pas de fichier de verrou.",
     defaultIDEHint: "Les projets s'ouvrent dans celui-ci, sauf ceux qui ont leur propre IDE (fiche du projet). Seuls les IDE trouvés sur ce PC sont proposés.",
@@ -2663,7 +2660,6 @@ const fr = {
     ciAlertsOff: "Aucune",
     terminalSuggest: "Suggestions dans le terminal",
     terminalSuggestHint: "La suite probable de la ligne, en gris : scripts du projet, son historique, la doc. → l'accepte. Rien ne quitte le PC.",
-    appearanceHint: "Thème, langue et mouvements.",
     themeAuto: "Comme Windows",
     languageHint: "Interface, notes de version et réponses de Forgy.",
     motion: "Animations",
@@ -2684,7 +2680,6 @@ const fr = {
     alertServer: "Un serveur ne répond plus",
     alertSite: "Un site tombe",
     alertsHint: "Notification Windows, et Forgy fait la tête dans le widget.",
-    dataHint: "Tout reste sur cet ordinateur.",
     dataDir: "Dossier des données",
     dataDirInfo: "{size} · format v{v}",
     openFolder: "Ouvrir le dossier",
@@ -2755,6 +2750,29 @@ const fr = {
       done: "C'est parti",
       allNotes: "Toutes les notes de version",
       close: "Fermer"
+    },
+    intro: {
+      general:     'Où sont tes projets et avec quoi les ouvrir.',
+      templates:   'Les projets gardés comme modèles, pour en démarrer de nouveaux.',
+      connections: "Les services que DevForge utilise pour toi. Rien n'est configuré d'avance : chacun se branche ici, se teste et se retire.",
+      appearance:  'Thème, langue et mouvements.',
+      forgy:       "L'assistant, ce qu'il peut faire et combien il coûte.",
+      servers:     "Ce que DevForge surveille sur tes serveurs, et quand il t'alerte.",
+      data:        'Ce que DevForge garde sur ce PC : sauvegardes, journal, rapport.',
+      updates:     'La version de DevForge, son canal et ses nouveautés.',
+      about:       'La version installée, ses liens et ses licences.'
+    },
+    groups: {
+      projects:  'Projets',
+      startup:   'Démarrage et fenêtre',
+      terminal:  'Terminal et alertes',
+      display:   'Affichage',
+      forgy:     'Fournisseur et réponses',
+      servers:   'Surveillance',
+      data:      'Données de DevForge',
+      templates: 'Tes modèles',
+      updates:   'Version et canal',
+      about:     'Cette version'
     }
   },
 

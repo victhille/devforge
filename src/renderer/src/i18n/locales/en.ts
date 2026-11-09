@@ -1579,7 +1579,6 @@ const en = {
     files: "{n} file(s)",
     fromTemplate: "New project from \"{name}\"",
     recapCopy: "Copy of the \"{name}\" template, the project's name replaced",
-    settingsHint: "Projects saved as templates, offered in New project. Never a .env file.",
     none: "No template: on a project's page, click \"Save as template\".",
     refresh: "Update",
     refreshHint: "Copies the original project again",
@@ -2500,7 +2499,6 @@ const en = {
   settings: {
     connections: {
       accountsTitle: "Accounts and keys",
-      accountsHint: "The services DevForge uses for you. Nothing is set up in advance: each one is plugged in here, tested and removed.",
       githubHint: "Repositories, Actions and releases. Through GitHub CLI (gh auth login) or a personal token.",
       githubCli: "GitHub CLI: {login}",
       githubNoCli: "GitHub CLI not signed in",
@@ -2659,7 +2657,6 @@ const en = {
     noMatch: "No setting matches.",
     newBadge: "New",
     nav: { connections: "Connections", general: "General", templates: "Templates", appearance: "Appearance", forgy: "Forgy", servers: "Servers", data: "Data", updates: "Updates", about: "About" },
-    generalHint: "Where your projects live and what opens them.",
     defaultDirHint: "The Projects page scans them all; new projects go to the first one by default. Removing a folder deletes nothing on disk.",
     defaultPMHint: "Used when the project has no lock file.",
     defaultIDEHint: "Projects open in this one, except those with their own IDE (project page). Only IDEs found on this PC are offered.",
@@ -2672,7 +2669,6 @@ const en = {
     ciAlertsOff: "None",
     terminalSuggest: "Terminal suggestions",
     terminalSuggestHint: "The line's likely rest, greyed: the project's scripts, its history, the docs. → accepts it. Nothing leaves the PC.",
-    appearanceHint: "Theme, language and motion.",
     themeAuto: "Like Windows",
     languageHint: "Interface, release notes and Forgy's answers.",
     motion: "Animations",
@@ -2693,7 +2689,6 @@ const en = {
     alertServer: "A server stops answering",
     alertSite: "A site goes down",
     alertsHint: "Windows notification, and Forgy sulks in the widget.",
-    dataHint: "Everything stays on this computer.",
     dataDir: "Data folder",
     dataDirInfo: "{size} · format v{v}",
     openFolder: "Open folder",
@@ -2764,6 +2759,29 @@ const en = {
       done: "Let's go",
       allNotes: "All release notes",
       close: "Close"
+    },
+    intro: {
+      general:     'Where your projects are and what opens them.',
+      templates:   'The projects kept as templates, to start new ones from.',
+      connections: 'The services DevForge uses for you. Nothing is set up in advance: each one is plugged in here, tested and removed.',
+      appearance:  'Theme, language and motion.',
+      forgy:       'The assistant, what it can do and what it costs.',
+      servers:     'What DevForge watches on your servers, and when it alerts you.',
+      data:        'What DevForge keeps on this PC: backups, log, report.',
+      updates:     "DevForge's version, its channel and what's new.",
+      about:       'The installed version, its links and its licences.'
+    },
+    groups: {
+      projects:  'Projects',
+      startup:   'Start-up and window',
+      terminal:  'Terminal and alerts',
+      display:   'Display',
+      forgy:     'Provider and answers',
+      servers:   'Watching',
+      data:      "DevForge's data",
+      templates: 'Your templates',
+      updates:   'Version and channel',
+      about:     'This version'
     }
   },
 
