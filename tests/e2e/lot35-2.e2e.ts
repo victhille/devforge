@@ -48,12 +48,13 @@ test('a group is detected, imported, unfolded on its card, and its page shows it
 
   // Its other actions behind « ⋯ », the removal set apart
   await card.getByRole('button', { name: 'Autres actions' }).click()
-  // (« Groupe dans <IDE> » comes first when an IDE is found on this PC)
-  await expect(card.getByRole('menuitem', { name: 'Terminal' })).toBeVisible()
-  await expect(card.getByRole('menuitem').last()).toHaveText('Retirer de DevForge')
+  // (« Groupe dans <IDE> » comes first when an IDE is found on this PC; the menu opens on the document, out of the card)
+  const menu = page.getByRole('menu', { name: 'Autres actions' })
+  await expect(menu.getByRole('menuitem', { name: 'Terminal' })).toBeVisible()
+  await expect(menu.getByRole('menuitem').last()).toHaveText('Retirer de DevForge')
   expect(await settledAxe(page)).toEqual([])
   await page.keyboard.press('Escape')
-  await expect(card.getByRole('menu')).toHaveCount(0)
+  await expect(menu).toHaveCount(0)
   await expect(card.getByRole('button', { name: 'Autres actions' })).toBeFocused()
 
   // Its page: the projects side by side, the front's scripts, the back's workshop

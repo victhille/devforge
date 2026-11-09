@@ -158,7 +158,8 @@ test('tables are created, changed and dropped, the SQL shown first; rows copy as
   expect(copied.map(c => JSON.parse(c))).toEqual([[{ id: 1, name: 'Ada' }, { id: 2, name: 'Linus' }]])
 
   // A new table: an id ready, one column typed, the SQL before it runs
-  await page.getByRole('button', { name: 'Nouvelle table' }).click()
+  await page.getByRole('button', { name: 'Autres actions sur la base' }).click()
+  await page.getByRole('menuitem', { name: 'Nouvelle table' }).click()
   const dialog = page.getByRole('dialog', { name: 'Nouvelle table' })
   await dialog.getByLabel('Nom de la table').fill('invoice')
   await dialog.getByRole('textbox', { name: 'Nom', exact: true }).nth(1).fill('total')

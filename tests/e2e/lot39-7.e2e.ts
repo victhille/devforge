@@ -29,10 +29,13 @@ test('parts dragged from the palette, links pulled from their points, a foreign 
   const { page, app } = run
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setSize(1440, 900))
   await goTo(page, '/modeling')
-  const create = page.getByRole('region', { name: 'Créer un modèle' })
+  const create = async (kind: RegExp) => {
+    await page.getByRole('button', { name: 'Nouveau modèle', exact: true }).click()
+    await page.getByRole('dialog', { name: 'Quel modèle ?' }).getByRole('button', { name: kind }).click()
+  }
 
   // An MCD: two entities dragged from the palette onto the canvas
-  await create.getByRole('button', { name: /Modèle conceptuel/ }).click()
+  await create(/Modèle conceptuel/)
   await page.getByRole('dialog').getByLabel('Nom').fill('Stock')
   await page.getByRole('dialog').getByRole('button', { name: 'Créer' }).click()
   const palette = page.getByRole('toolbar', { name: 'Palette' })
@@ -62,7 +65,7 @@ test('parts dragged from the palette, links pulled from their points, a foreign 
 
   // A flowchart: a start dropped, then a step pulled out of it into empty space
   await page.getByRole('button', { name: 'Modélisation' }).click()
-  await create.getByRole('button', { name: /Logigramme/ }).click()
+  await create(/Logigramme/)
   await page.getByRole('dialog').getByLabel('Nom').fill('Paiement')
   await page.getByRole('dialog').getByRole('button', { name: 'Créer' }).click()
   await palette.getByRole('button', { name: 'Début', exact: true }).dragTo(page.getByTestId('diagram-canvas'), { targetPosition: { x: 300, y: 120 } })

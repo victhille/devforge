@@ -97,5 +97,6 @@ test('MCD → MLD → MPD → SQL, hand changes kept when the MCD changes', asyn
   await expect(chain.locator('[data-step="mpd"]')).toContainText('7 table(s) · PostgreSQL')
   await expect(chain.locator('[data-step="mpd"]')).toContainText('● À jour')
   await expect(chain.locator('[data-step="sql"]')).toContainText('▲ À mettre à jour')
-  await expect(page.getByRole('region', { name: 'Modèles du projet' }).getByRole('listitem')).toHaveCount(2)
+  // Two models, and the card to start one more
+  await expect(page.getByRole('region', { name: 'Modèles du projet' }).getByRole('listitem')).toHaveCount(3)
 })

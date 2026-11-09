@@ -47,7 +47,7 @@ test('a project page gathers its resources and becomes the active project', asyn
   // The linked connection's card (the explorer below repeats the name once it has loaded)
   await expect(page.getByText('Shop SQLite', { exact: true }).first()).toBeVisible()
   await page.getByRole('table').getByRole('button', { name: 'orders' }).click()
-  await expect(page.getByRole('tab', { name: 'Parcourir', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tab', { name: 'Données', exact: true })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByText('42.5')).toBeVisible()
 
   // Full size: the Database page, which leads back to the project's tab

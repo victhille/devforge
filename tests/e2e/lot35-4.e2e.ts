@@ -49,6 +49,7 @@ test('the tools explain themselves and load examples that save and send nothing'
   await goTo(page, '/webhooks')
   await help.getByRole('button', { name: 'Un paiement Stripe' }).click()
   await expect(page.getByRole('note')).toContainText('.invalid')
-  await expect(page.getByRole('button', { name: 'Envoyer' })).toBeDisabled()
+  // Nothing to replay: no Replay button, no answer of the app
+  await expect(page.getByRole('button', { name: 'Rejouer' })).toHaveCount(0)
   expect(await settledAxe(page)).toEqual([])
 })

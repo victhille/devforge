@@ -99,8 +99,9 @@ test('domains in a table with their state; logs and webhooks say where they stan
   await goTo(page, '/webhooks')
   await expect(page.getByText('Arrêté', { exact: true })).toBeVisible()
   await goTo(page, `/logs?file=${encodeURIComponent(log)}`)
-  await expect(page.getByRole('button', { name: 'Erreurs 1' })).toHaveAttribute('aria-pressed', 'true')
-  await page.getByRole('button', { name: 'Avertissements 1' }).click()
-  await expect(page.getByRole('button', { name: 'Avertissements 1' })).toHaveAttribute('aria-pressed', 'false')
+  // As in the mock-up: one level at a time, every line at first
+  await expect(page.getByRole('radio', { name: 'Tout' })).toHaveAttribute('aria-checked', 'true')
+  await page.getByRole('radio', { name: 'Erreurs 1' }).click()
+  await expect(page.getByRole('radio', { name: 'Erreurs 1' })).toHaveAttribute('aria-checked', 'true')
   await expect(page.getByText('slow mail')).toHaveCount(0)
 })

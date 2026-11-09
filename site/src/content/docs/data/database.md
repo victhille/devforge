@@ -30,15 +30,15 @@ La page **Base de données** est un client pour **PostgreSQL**, **MySQL / MariaD
 
 ## Explorer
 
-![Une table SQLite dans l'onglet Parcourir](../../../assets/screens/database-fr.png)
+![Une table SQLite dans l'onglet Données](../../../assets/screens/database-fr.png)
 
-Choisis une connexion : la liste des tables (filtrable) s'affiche, avec le nombre de lignes de chacune (une estimation sur PostgreSQL et MySQL). Au-dessus du titre, « Données & API / nom de la connexion » ramène à la vue d'ensemble de la base. L'onglet **Base** résume le serveur, la base, le nombre de tables, de vues et de lignes (estimation), les index et clés étrangères.
+Le panneau **Connexions**, à gauche, liste tes bases. Choisis-en une : ses tables (filtrables) se déplient dessous, avec le nombre de lignes de chacune (une estimation sur PostgreSQL et MySQL). En bas du panneau, un rappel : les mots de passe sont chiffrés par Windows. Au-dessus du titre, « Données & API / nom de la connexion » ramène à la vue d'ensemble de la base. Les onglets sont en haut à droite, à côté de **Schéma** et du menu **⋯** (**Actualiser**, **Nouvelle table**, **Nouvelle requête**). L'onglet **Base** résume le serveur, la base, le nombre de tables, de vues et de lignes (estimation), les index et clés étrangères.
 
 Pour une table :
 
 | Onglet | Contenu |
 |---|---|
-| Parcourir | les lignes, page par page, triables en cliquant sur une colonne ; modifiables (voir plus bas), exportables, et un CSV s'y importe |
+| Données | les lignes, page par page, triables en cliquant sur une colonne ; modifiables (voir plus bas), exportables, et un CSV s'y importe |
 | Structure | colonnes (type, null, défaut, clé, extra, commentaire) et index ; ajouter, modifier ou supprimer une colonne, renommer ou supprimer la table (voir plus bas) |
 | Relations | clés étrangères vers d'autres tables, et tables qui pointent vers celle-ci |
 | SQL | une requête sur cette table |
@@ -46,7 +46,7 @@ Pour une table :
 
 ## Le schéma
 
-**Schéma** (en haut de l'explorateur) ouvre la base en plein écran : chaque table en carte, avec ses colonnes, leur type, la clé primaire 🔑 et les colonnes requises (`!`). Une flèche par clé étrangère va de la colonne qui pointe vers la colonne pointée.
+**Schéma** (en haut à droite) ouvre la base en plein écran : chaque table en carte, avec ses colonnes, leur type, la clé primaire 🔑 et les colonnes requises (`!`). Une flèche par clé étrangère va de la colonne qui pointe vers la colonne pointée.
 
 - **Placement automatique** : les tables pointées à gauche, celles qui pointent vers elles à droite, rangées pour que les flèches se croisent peu. Les tables sans lien vont en dessous.
 - **Déplacer** une table : glisse-la par son titre. Les positions sont gardées pour chaque base ; **Réorganiser** revient au placement automatique.
@@ -59,7 +59,7 @@ PostgreSQL (tous les schémas), MySQL / MariaDB et SQLite.
 
 ## Créer et modifier des tables
 
-- **Nouvelle table** (le **+** en haut de la liste des tables) : son nom et ses colonnes. Une colonne `id` auto-incrémentée est prête ; chaque colonne a un **type** (proposés selon la base, ou à taper : `VARCHAR(255)`, `NUMERIC(10, 2)`…), un **défaut**, et les cases **Requis**, **Clé primaire**, **Auto-incrément**.
+- **Nouvelle table** (dans le menu **⋯**, ou le **+** des tables dans l'onglet d'un projet) : son nom et ses colonnes. Une colonne `id` auto-incrémentée est prête ; chaque colonne a un **type** (proposés selon la base, ou à taper : `VARCHAR(255)`, `NUMERIC(10, 2)`…), un **défaut**, et les cases **Requis**, **Clé primaire**, **Auto-incrément**.
 - Dans **Structure** : **Ajouter une colonne**, le crayon d'une colonne pour la modifier (nom, type, défaut, requis), la corbeille pour la supprimer ; **Renommer la table** ; **Supprimer la table**, qui demande de retaper son nom.
 
 Chaque fenêtre montre d'abord la **requête qui va partir** ; rien ne s'exécute avant **Appliquer**. En cas d'erreur de la base, son message reste affiché et rien d'autre ne part.
@@ -70,7 +70,7 @@ Un défaut est pris tel quel s'il s'agit d'un nombre, d'un mot-clé (`CURRENT_TI
 
 ## Modifier les lignes
 
-Dans **Parcourir**, une table qui a une **clé primaire** se modifie sur place :
+Dans **Données**, une table qui a une **clé primaire** se modifie sur place :
 
 - **double-clic** (ou <kbd>Entrée</kbd>) sur une cellule pour la modifier ; **NULL** d'un clic à côté du champ ; <kbd>Échap</kbd> annule ;
 - **Ajouter une ligne** : une ligne vide en haut ; une cellule laissée vide garde la valeur par défaut de la colonne (l'auto-incrément, par exemple) ;
@@ -82,7 +82,7 @@ Les valeurs partent en paramètres, jamais collées dans le SQL. Une table sans 
 
 ## Importer et exporter
 
-- **Exporter** (dans **Parcourir**) écrit **toute la table** dans un fichier, pas seulement la page affichée : **CSV**, **JSON**, **SQL** (des `INSERT`) ou **SQL avec CREATE TABLE**. Les lignes sont lues par paquets de 1 000, dans l'ordre de la clé primaire.
+- **Exporter** (dans **Données**) écrit **toute la table** dans un fichier, pas seulement la page affichée : **CSV**, **JSON**, **SQL** (des `INSERT`) ou **SQL avec CREATE TABLE**. Les lignes sont lues par paquets de 1 000, dans l'ordre de la clé primaire.
 - Les résultats d'une requête s'enregistrent aussi, en CSV ou en JSON, avec le bouton à côté de **Copier**.
 - **Importer un CSV** : choisis le fichier ; le séparateur (`,`, `;`, tabulation, `|`) et l'encodage (UTF-8, ou Windows-1252 comme les CSV d'Excel) sont reconnus. Chaque colonne du fichier va dans la colonne de la table du même nom (casse, espaces, `_` et `-` ignorés) ; sous chaque en-tête, tu la changes ou tu l'ignores. Les 10 premières lignes s'affichent ; **Une cellule vide devient NULL** est coché par défaut.
 - L'import part **en une transaction** : si une ligne est refusée (colonne requise vide, doublon de clé…), aucune n'est gardée et la ligne fautive du fichier est donnée. 50 Mo au plus.
@@ -91,7 +91,7 @@ Les fichiers passent toujours par la fenêtre d'enregistrement ou d'ouverture de
 
 ## Requêtes SQL
 
-**Nouvelle requête** ouvre un éditeur SQL. <kbd>Ctrl</kbd> <kbd>Entrée</kbd> exécute. Les résultats sont limités à 1000 lignes ; une requête d'écriture affiche le nombre de lignes modifiées. Au-dessus des résultats, **CSV** ou **JSON** choisit le format de la copie (le choix est gardé) : en JSON, un objet par ligne.
+L'onglet **SQL** (ou **Nouvelle requête** dans le menu **⋯**) ouvre un éditeur SQL. **Exécuter** ou <kbd>Ctrl</kbd> <kbd>Entrée</kbd> lance la requête ; **Écrire avec Forgy** lui demande de l'écrire ou de la corriger d'après la structure de la base. Les résultats sont limités à 1000 lignes ; une requête d'écriture affiche le nombre de lignes modifiées. Au-dessus des résultats, **CSV** ou **JSON** choisit le format de la copie (le choix est gardé) : en JSON, un objet par ligne.
 
 ## Ailleurs
 

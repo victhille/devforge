@@ -120,7 +120,7 @@ Left out: `node_modules`, `vendor`, builds (`dist`, `build`, `target`…), virtu
 
 ### The project's database
 
-The **Database** tab shows the linked database right there: the tables in a collapsible column, then the same tabs as the [Database](/devforge/en/data/database/#explore) page (**Database** and **SQL**, and for a table **Browse**, **Structure**, **Relations**, **Info**). The connection only opens when the tab shows.
+The **Database** tab shows the linked database right there: the tables in a collapsible column, then the same tabs as the [Database](/devforge/en/data/database/#explore) page (**Database** and **SQL**, and for a table **Data**, **Structure**, **Relations**, **Info**). The connection only opens when the tab shows.
 
 - Several linked databases: the first one shows, **Show** on another row switches.
 - **Open full size** opens the Database page; its **← Back to** *project name* button brings you back to this tab.

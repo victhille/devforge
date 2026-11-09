@@ -14,11 +14,18 @@ Formats reconnus : Laravel, Symfony, nginx, pm2, et les logs JSON (pino, winston
 
 ## Lire
 
-- **Filtrer les lignes…** : n'affiche que les lignes qui contiennent le texte.
+Chaque ligne montre son heure, son niveau (**ERROR**, **WARNING**, **INFO**, **DEBUG**) et son message.
+
+- En haut, le fichier suivi : le menu passe d'un fichier ouvert à l'autre, ou en ouvre un autre.
 - **Pause** / **Suivre** : fige l'affichage ou reprend le suivi.
-- **Retour à la ligne** ou non.
-- **Vider l'affichage**.
-- **Erreurs**, **Avertissements**, **Infos**, **Débogage** : chaque bouton donne le nombre de lignes du niveau et les montre ou les cache.
+- **Filtrer les lignes…** : n'affiche que les lignes qui contiennent le texte.
+- **Tout**, **Erreurs**, **Avertissements**, **Infos** : un niveau à la fois ; les erreurs et les avertissements donnent leur nombre.
+- À droite, le projet, le nombre de lignes et l'état du suivi.
+- Le menu **⋯** : **Retour à la ligne** ou non, **Vider l'affichage**, **Fermer ce fichier**.
+
+## Forgy explique la ligne
+
+Un clic sur une erreur ou un avertissement ouvre à côté la carte **Forgy explique la ligne** : **Expliquer cette ligne** envoie à Forgy la ligne et celles qui l'entourent, pour savoir d'où vient le problème et comment le corriger. **Ouvrir le fichier** l'ouvre dans ton éditeur.
 
 ## Ailleurs
 

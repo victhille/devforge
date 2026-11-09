@@ -15,9 +15,9 @@ For PostgreSQL or MySQL, **Find databases** finds on its own those described in 
 
 ## 2. Browse a table
 
-Pick the connection: the list of tables shows, filterable. Click a table: the **Browse** tab shows the rows page by page. Click a column to sort.
+Pick the connection: the list of tables shows, filterable. Click a table: the **Data** tab shows the rows page by page. Click a column to sort.
 
-![A SQLite table in the Browse tab](../../../../assets/screens/database-en.png)
+![A SQLite table in the Data tab](../../../../assets/screens/database-en.png)
 
 ## 3. Understand the structure
 

@@ -81,8 +81,8 @@ test('cells edited, a row added and one deleted go out together; an error keeps 
   await expect(page.getByRole('cell', { name: 'Grace', exact: true })).toBeVisible()
 
   // A table without a primary key stays read only
-  // The second button opens the table (the first unfolds its columns)
-  await page.getByRole('complementary', { name: 'tables' }).getByRole('button', { name: 'log', exact: true }).last().click()
+  // Its tables are listed under the connection, in the page's panel (its name, then its rows)
+  await page.getByRole('list', { name: /^Tables de / }).getByRole('button', { name: /^log( \d|$)/ }).click()
   await expect(page.getByText(/Sans clé primaire/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Ajouter une ligne' })).toHaveCount(0)
 })

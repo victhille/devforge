@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, Plus, Shapes } from 'lucide-react'
+import { ChevronRight, Plus, Shapes, Sparkles } from 'lucide-react'
 import type { DbConnection, ModelKind, ModelSummary, Project } from '@shared/types'
 import { checkMcd } from '@shared/lib/mcd'
 import { DEFAULT_NAMING, mcdHash, toMld } from '@shared/lib/mpd'
@@ -14,23 +14,26 @@ import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
 import EmptyState from '@renderer/components/ui/EmptyState'
+import Modal from '@renderer/components/ui/Modal'
 import Spinner from '@renderer/components/ui/Spinner'
+import { Select } from '@renderer/components/ui/Input'
 import { Page, PageHeader, SectionTitle } from '@renderer/components/ui/Page'
+import AskForgy from '@renderer/features/assistant/AskForgy'
 import { fill, KIND_TONE, modelUrl, siblings, useLinkedDb, useModels, type ModelTab } from './model'
 import { useDbConnections, useProjectList } from '@renderer/hooks/useLiveData'
 import ModelGrid, { NameDialog } from './ModelGrid'
 import MpdDialog from './MpdDialog'
 
 /** The kinds that can be made (an MPD: blank, or read from a database, in its dialog) */
-const READY: ModelKind[] = ['mcd', 'mpd', 'usecase', 'class', 'sequence', 'flow', 'architecture']
 const KINDS: ModelKind[] = ['mcd', 'mpd', 'usecase', 'class', 'sequence', 'flow', 'architecture']
 const NONE: DbConnection[] = []
 const NO_PROJECTS: Project[] = []
 const NO_MODELS: ModelSummary[] = []
 
 /**
- * v3.9 lot 2: the Modeling page. A project's models (files of its conception/
- * folder), the chain MCD → MLD → MPD → SQL → database, and the kinds to create.
+ * v3.9 lot 2, the mock-up's page: a project's models (files of its conception/
+ * folder) as cards, filtered by kind; Forgy or « New model » above them; the
+ * chain MCD → MLD → MPD → SQL → database below.
  */
 export default function ModelingPage() {
   const { t } = useI18n()
@@ -40,6 +43,8 @@ export default function ModelingPage() {
   const { active } = useActiveProject()
   const [chosen, setChosen] = usePersistentState<string | null>('devforge:modeling-project', null)
   const [creating, setCreating] = useState<ModelKind | null>(null)
+  const [picking, setPicking] = useState(false)
+  const [filter, setFilter] = useState<ModelKind | 'all'>('all')
 
   // v4.2: kept between pages, read again when they change (Forgy, an import…)
   const projectList = useProjectList()
@@ -53,6 +58,8 @@ export default function ModelingPage() {
   const { data: list, error: listError, reload: load } = useModels(project?.path)
   const models = list ?? (listError ? NO_MODELS : null)
   useEffect(() => { if (listError) toast.show({ tone: 'error', title: m.loadFailed, description: errorText(listError) }) }, [listError, toast, m.loadFailed])
+  // A filter on a kind that has no model any more shows them all
+  useEffect(() => { if (filter !== 'all' && models && !models.some(x => x.kind === filter)) setFilter('all') }, [models, filter])
 
   const mcds = (models ?? []).filter(x => x.kind === 'mcd')
   const mcd = mcds[0]
@@ -91,84 +98,96 @@ export default function ModelingPage() {
   })
 
   if (projects && !projects.length) {
-    return <Page><PageHeader crumb={t.nav.groupData} title={m.title} subtitle={m.subtitle} /><EmptyState icon={<Shapes size={22} />} title={m.noProject} description={m.noProjectHint} /></Page>
+    return <Page className="df-mockup"><PageHeader crumb={t.nav.groupData} title={m.title} subtitle={m.subtitle} /><EmptyState icon={<Shapes size={22} />} title={m.noProject} description={m.noProjectHint} /></Page>
   }
 
+  const kindsPresent = KINDS.filter(k => models?.some(x => x.kind === k))
+  const shown = (models ?? []).filter(x => filter === 'all' || x.kind === filter)
+  const chip = (on: boolean) => cn('flex h-8.5 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold transition-colors',
+    on ? 'border-accent/45 bg-accent-soft text-accent' : 'border-line text-fg-secondary hover:text-fg')
+
   return (
-    <Page className="gap-6">
-      <PageHeader
-        crumb={t.nav.groupData}
-        title={m.title}
-        subtitle={m.subtitle}
-        actions={<>
-          {projects && project && (
-            <select aria-label={m.project} value={project.id} onChange={e => setChosen(e.target.value)}
-              className="h-9 max-w-[240px] rounded-lg border border-line bg-surface px-2.5 text-sm text-fg outline-none focus:border-accent">
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          )}
-          <Button onClick={() => setCreating('mcd')} disabled={!project}><Plus size={14} /> {m.newModel}</Button>
-        </>}
-      />
+    <Page className="df-mockup">
+      <PageHeader crumb={t.nav.groupData} title={m.title} subtitle={m.subtitle} />
 
-      {/* The project's chain: the MCD now, the next steps with the next lots */}
-      <section aria-label={m.chain} className="flex flex-col gap-2.5">
-        <SectionTitle>{m.chain}</SectionTitle>
-        <Card className="flex items-stretch p-1">
-          {steps.map(({ step, ready, text, state, onClick }, i) => {
-            const body = (
-              <>
-                <span className={cn('self-start rounded-[5px] px-1.5 py-0.5 font-mono text-xs font-semibold', !ready ? 'bg-elevated text-fg-muted' : step === 'mcd' ? KIND_TONE.mcd : KIND_TONE.mpd)}>{m.chainTag[step]}</span>
-                <span className="font-semibold text-fg">{m.chainName[step]}</span>
-                <span className="truncate text-sm text-fg-secondary">{text}</span>
-                {state && <span className={cn('text-sm', state.warn ? 'text-warning' : 'muted' in state ? 'text-fg-muted' : 'text-success')}>{state.text}</span>}
-              </>
-            )
-            return (
-              <div key={step} className="flex min-w-0 flex-1 items-center">
-                {i > 0 && <ChevronRight size={16} className="shrink-0 text-fg-disabled" aria-hidden />}
-                {onClick && project
-                  ? <button type="button" onClick={onClick} data-step={step}
-                      className="flex min-w-0 flex-1 flex-col gap-1 rounded-lg px-3.5 py-3 text-left transition-colors hover:bg-hover">{body}</button>
-                  : <div className="flex min-w-0 flex-1 flex-col gap-1 px-3.5 py-3">{body}</div>}
-              </div>
-            )
-          })}
-        </Card>
-      </section>
+      {/* As in the mock-up, the two ways to start under the title */}
+      <div className="-mt-1 flex flex-wrap gap-2.5">
+        <AskForgy size="md" label={m.proposeMcd} icon={<Sparkles size={14} aria-hidden />} disabled={!project}
+          question={() => fill(m.proposePrompt, { project: project?.name ?? '' })} />
+        <Button onClick={() => setPicking(true)} disabled={!project}><Plus size={14} aria-hidden /> {m.newModel}</Button>
+      </div>
 
-      <section aria-label={m.models} className="flex flex-col gap-2.5">
-        <SectionTitle>{m.models}</SectionTitle>
-        {!models ? <Spinner className="m-4" /> : !models.length ? (
-          <p className="rounded-xl border border-dashed border-line p-5 text-sm text-fg-secondary">{m.noModels.replace('{name}', project?.name ?? '')}</p>
-        ) : (
-          project && <ModelGrid project={project} models={models} onChanged={load} />
+      {/* The kinds there are, the project on the right */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div role="radiogroup" aria-label={m.filter} className="flex flex-wrap gap-2">
+          <button role="radio" aria-checked={filter === 'all'} onClick={() => setFilter('all')} className={chip(filter === 'all')}>
+            {m.all}{models?.length ? <span className="font-mono text-xs font-medium opacity-70">{models.length}</span> : null}
+          </button>
+          {kindsPresent.map(k => (
+            <button key={k} role="radio" aria-checked={filter === k} onClick={() => setFilter(k)} className={chip(filter === k)}>{m.kindBadge[k]}</button>
+          ))}
+        </div>
+        {projects && project && (
+          <Select aria-label={m.project} value={project.id} onChange={e => setChosen(e.target.value)} className="ml-auto w-[260px] max-w-full">
+            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </Select>
+        )}
+      </div>
+
+      <section aria-label={m.models} className="flex flex-col gap-3">
+        {!models ? <Spinner className="m-4" /> : (
+          <>
+            {!models.length && <p className="text-sm text-fg-secondary">{m.noModels.replace('{name}', project?.name ?? '')}</p>}
+            {project && <ModelGrid project={project} models={shown} onChanged={load} onNew={() => setPicking(true)} />}
+          </>
         )}
       </section>
 
-      <section aria-label={m.create} className="flex flex-col gap-2.5">
-        <SectionTitle>{m.create}</SectionTitle>
-        <ul className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-2.5">
-          {KINDS.map(kind => {
-            const ready = READY.includes(kind)
-            return (
+      {/* The project's chain: from the MCD to the database */}
+      {project && (
+        <section aria-label={m.chain} className="flex flex-col gap-2.5">
+          <SectionTitle>{m.chain}</SectionTitle>
+          <Card className="flex items-stretch overflow-x-auto p-1">
+            {steps.map(({ step, ready, text, state, onClick }, i) => {
+              const body = (
+                <>
+                  <span className={cn('self-start rounded-md px-1.5 py-0.5 text-xs font-semibold', !ready ? 'bg-elevated text-fg-muted' : step === 'mcd' ? KIND_TONE.mcd : KIND_TONE.mpd)}>{m.chainTag[step]}</span>
+                  <span className="font-semibold text-fg">{m.chainName[step]}</span>
+                  <span className="truncate text-sm text-fg-secondary">{text}</span>
+                  {state && <span className={cn('text-sm', state.warn ? 'text-warning' : 'muted' in state ? 'text-fg-muted' : 'text-success')}>{state.text}</span>}
+                </>
+              )
+              return (
+                <div key={step} className="flex min-w-[150px] flex-1 items-center">
+                  {i > 0 && <ChevronRight size={16} className="shrink-0 text-fg-disabled" aria-hidden />}
+                  {onClick
+                    ? <button type="button" onClick={onClick} data-step={step}
+                        className="flex min-w-0 flex-1 flex-col gap-1 rounded-control px-3.5 py-3 text-left transition-colors hover:bg-hover">{body}</button>
+                    : <div className="flex min-w-0 flex-1 flex-col gap-1 px-3.5 py-3">{body}</div>}
+                </div>
+              )
+            })}
+          </Card>
+        </section>
+      )}
+
+      {/* Which model: the kinds and what each is for */}
+      {picking && project && (
+        <Modal title={m.pickTitle} onClose={() => setPicking(false)} className="max-w-2xl">
+          <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            {KINDS.map(kind => (
               <li key={kind}>
-                <button type="button" disabled={!ready || !project} onClick={() => setCreating(kind)}
-                  className={cn('flex h-full w-full flex-col items-start gap-1.5 rounded-xl border border-dashed p-3 text-left transition-colors',
-                    ready ? 'border-line bg-surface hover:border-accent/50 hover:bg-hover' : 'border-line-subtle opacity-60')}>
-                  <span className="flex w-full items-center gap-2">
-                    <span className={cn('rounded-[5px] px-1.5 py-0.5 font-mono text-xs font-semibold', KIND_TONE[kind])}>{m.kindTag[kind]}</span>
-                    {!ready && <span className="ml-auto text-xs text-fg-muted">{m.soon}</span>}
-                  </span>
+                <button type="button" onClick={() => { setPicking(false); setCreating(kind) }}
+                  className="flex h-full w-full flex-col items-start gap-1.5 rounded-xl border border-line bg-surface p-3 text-left transition-colors hover:border-accent/50 hover:bg-hover">
+                  <span className={cn('rounded-md px-1.5 py-0.5 text-xs font-semibold', KIND_TONE[kind])}>{m.kindBadge[kind]}</span>
                   <span className="font-semibold text-fg">{m.kindName[kind]}</span>
                   <span className="text-sm text-fg-secondary">{m.kindHint[kind]}</span>
                 </button>
               </li>
-            )
-          })}
-        </ul>
-      </section>
-
+            ))}
+          </ul>
+        </Modal>
+      )}
       {creating === 'mpd' && project && (
         <MpdDialog project={project} onClose={() => setCreating(null)} onDone={file => navigate(modelUrl(project.path, file, 'mpd'))} />
       )}
