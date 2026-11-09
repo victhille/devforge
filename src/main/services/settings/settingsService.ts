@@ -6,6 +6,7 @@ import { writeJsonFile } from '../../lib/jsonFile'
 import { dataChanged } from '../../lib/changes'
 import { DEFAULT_FAVORITES, cleanFavorites } from '@shared/lib/favorites'
 import { DEFAULT_WIDGETS, cleanWidgets } from '@shared/lib/homeWidgets'
+import { managerOf } from '@shared/lib/packageManagers'
 import type { HomeWidget } from '@shared/types'
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -49,7 +50,8 @@ export function loadSettings(): AppSettings {
     // Never chosen: a pre-release build (2.1.0-beta.2) follows the beta channel
     const channel = raw.updateChannel ?? (app.getVersion().includes('-') ? 'beta' : 'stable')
     const s = { ...DEFAULT_SETTINGS, onboarded: true, ...raw, updateChannel: channel } as AppSettings
-    return { ...s, favorites: cleanFavorites(s.favorites), homeWidgets: cleanWidgets(s.homeWidgets) }
+    // An imported settings file may hold any package manager: it goes into the new projects' commands
+    return { ...s, favorites: cleanFavorites(s.favorites), homeWidgets: cleanWidgets(s.homeWidgets), defaultPackageManager: managerOf(s.defaultPackageManager) }
   } catch {
     return DEFAULT_SETTINGS
   }
