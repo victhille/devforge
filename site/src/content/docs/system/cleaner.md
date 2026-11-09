@@ -17,6 +17,8 @@ Choisis un dossier (le champ en haut à droite, ou l'icône de dossier pour le p
 
 Une carte donne le total **récupérable**, une barre qui le répartit entre dépendances, caches et builds, et le bouton **Supprimer la sélection** avec sa taille. Le tableau donne pour chaque dossier sa catégorie (sa couleur), le projet, la **dernière activité** du projet et la taille. Les projets sans activité depuis plus de 30 jours sont marqués *inactif*.
 
+Les dossiers sont trouvés en une fraction de seconde (DevForge ne regarde jamais dans un `node_modules`), puis leurs tailles arrivent une à une, seize à la fois. Sur Windows, elles sont lues par la liste native du système (`robocopy` en mode liste : rien n'est copié, les liens et jonctions ne sont pas suivis) : quelques secondes pour des centaines de milliers de fichiers, au lieu d'une minute en lisant chaque fichier.
+
 ## Choisir
 
 - Coche les dossiers un à un, ou **Tout sélectionner**.
