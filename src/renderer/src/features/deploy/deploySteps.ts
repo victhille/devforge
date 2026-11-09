@@ -17,7 +17,7 @@ const KINDS: [StepKind, RegExp][] = [
   ['images', /\bdocker[ -]compose\b.*\bpull\b/],
   ['pull', /^git (pull|fetch|checkout|reset)\b/],
   ['install', /\b(npm (ci|install|i)|pnpm (install|i)|yarn( install)?$|composer install|pip3? install|bundle install|poetry install)\b/],
-  ['build', /\b(npm run build|pnpm( run)? build|yarn build|docker[ -]compose\b.*\bbuild$|go build|cargo build|mvn package)\b/],
+  ['build', /\b(npm run build|pnpm( run)? build|yarn( run)? build|docker[ -]compose\b.*\bbuild$|go build|cargo build|mvn package)\b/],
   ['migrate', /\b(migrate|doctrine:migrations)\b/],
   ['cache', /\b(cache:clear|config:cache|route:cache|view:cache|optimize)\b/],
   ['restart', /\b(pm2 (restart|reload|start)|systemctl (restart|reload)|docker[ -]compose\b.*\b(up|restart)\b|supervisorctl restart|service \S+ restart)\b/],
@@ -58,7 +58,7 @@ export function deployMethod(script: string): DeployMethod {
   if (/\bpm2\b/.test(script)) return 'pm2'
   if (/\bartisan\b/.test(script)) return 'laravel'
   if (/\bbin\/console\b/.test(script)) return 'symfony'
-  if (/\b(npm run build|pnpm( run)? build|yarn build)\b/.test(script)) return 'static'
+  if (/\b(npm run build|pnpm( run)? build|yarn( run)? build)\b/.test(script)) return 'static'
   return 'script'
 }
 

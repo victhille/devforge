@@ -28,9 +28,12 @@ describe('v3.5: terminal suggestions', () => {
     expect(suggestRest('NPM run b', sources)).toBe('uild')
   })
 
-  it('writes a script as each package manager runs it', () => {
+  it('writes a script through run with every package manager', () => {
     expect(scriptCommand('npm', 'dev')).toBe('npm run dev')
-    expect(scriptCommand('pnpm', 'dev')).toBe('pnpm dev')
-    expect(scriptCommand('yarn', 'build')).toBe('yarn build')
+    expect(scriptCommand('pnpm', 'dev')).toBe('pnpm run dev')
+    expect(scriptCommand('yarn', 'build')).toBe('yarn run build')
+    // A script named like a command of the package manager stays the script
+    expect(scriptCommand('pnpm', 'publish')).toBe('pnpm run publish')
+    expect(scriptCommand('yarn', 'install')).toBe('yarn run install')
   })
 })
