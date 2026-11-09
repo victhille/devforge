@@ -165,9 +165,14 @@ function readNoteFile(dir: string, id: unknown): ProjectNote | null {
 const byOrder = (a: { pinned: boolean; updatedAt: string; title: string }, b: { pinned: boolean; updatedAt: string; title: string }) =>
   Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt) || a.title.localeCompare(b.title)
 
+/** The notes a folder holds: valid ids only, at most MAX_NOTES (a cloned repository may bring any number of files) */
+function noteIds(dir: string): string[] {
+  return readdirSync(dir).filter(f => f.endsWith('.md')).map(f => f.slice(0, -3)).filter(id => NOTE_ID.test(id)).slice(0, MAX_NOTES)
+}
+
 /** Every note of the folder, pinned ones first, then the last changed (a file that cannot be read, or past READ_BUDGET, is left out) */
 function readAll(dir: string): ProjectNote[] {
-  const ids = readdirSync(dir).filter(f => f.endsWith('.md')).map(f => f.slice(0, -3)).filter(id => NOTE_ID.test(id)).slice(0, MAX_NOTES)
+  const ids = noteIds(dir)
   let budget = READ_BUDGET
   return ids.flatMap(id => {
     try {
@@ -484,7 +489,8 @@ export function openCounts(): Record<string, number> {
  */
 const counted = new Map<string, { stamp: string; n: number }>()
 function folderCount(dir: string): number {
-  const files = readdirSync(dir).filter(f => f.endsWith('.md')).sort()
+  // The same files readAll reads: the stamp never looks at more than MAX_NOTES of them
+  const files = noteIds(dir).map(id => `${id}.md`).sort()
   const stamp = files.map(f => { const st = lstatOrNull(join(dir, f)); return `${f}:${st?.mtimeMs ?? 0}:${st?.size ?? 0}` }).join('|')
   const known = counted.get(dir)
   if (known?.stamp === stamp) return known.n
