@@ -7,6 +7,7 @@ import type { SSHSessionStatus } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Spinner from '@renderer/components/ui/Spinner'
+import { onTextSizeChange, textPx } from '@renderer/lib/appearance'
 import '@xterm/xterm/css/xterm.css'
 
 // v4.3: the same palette as the local terminal (one source)
@@ -26,12 +27,14 @@ export default function TerminalPane({ sessionId, status, error, active }: Props
   const fitRef       = useRef<FitAddon | null>(null)
 
   useEffect(() => {
-    if (!containerRef.current) return
+    const el = containerRef.current
+    if (!el) return
 
     const term = new Terminal({
       theme: XTERM_THEME,
       fontFamily: "'JetBrains Mono Variable', 'Cascadia Code', 'Fira Code', 'Consolas', monospace",
-      fontSize: 13,
+      // The theme's text-base (its container's), times the text size chosen in Settings › Appearance
+      fontSize: textPx(el),
       lineHeight: 1.4,
       cursorBlink: true,
       scrollback: 5000,
@@ -40,21 +43,28 @@ export default function TerminalPane({ sessionId, status, error, active }: Props
     const fit = new FitAddon()
     term.loadAddon(fit)
     term.loadAddon(new WebLinksAddon())
-    term.open(containerRef.current)
+    term.open(el)
     fit.fit()
     fitRef.current = fit
 
     const unsub = window.devforge.onSshData((sid, data) => { if (sid === sessionId) term.write(data) })
     const input = term.onData(data => window.devforge.sshWrite(sessionId, data))
 
-    const ro = new ResizeObserver(() => {
+    const refit = () => {
       fit.fit()
       window.devforge.sshResize(sessionId, term.cols, term.rows)
+    }
+    const ro = new ResizeObserver(refit)
+    ro.observe(el)
+    // The text size changed in Settings: the open terminal follows
+    const stopSize = onTextSizeChange(() => {
+      const px = textPx(el)
+      if (term.options.fontSize !== px) { term.options.fontSize = px; refit() }
     })
-    ro.observe(containerRef.current)
 
     return () => {
       ro.disconnect()
+      stopSize()
       unsub()
       input.dispose()
       term.dispose()
@@ -85,7 +95,7 @@ export default function TerminalPane({ sessionId, status, error, active }: Props
           )}
         </div>
       )}
-      <div ref={containerRef} className={cn('h-full w-full', status !== 'connected' && 'opacity-0')} />
+      <div ref={containerRef} className={cn('h-full w-full text-base', status !== 'connected' && 'opacity-0')} />
     </div>
   )
 }

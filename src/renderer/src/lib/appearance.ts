@@ -48,6 +48,22 @@ export function applyAppearance(s: Appearance): void {
   applyAccent(s)
 }
 
+/**
+ * The size in pixels of an element's text as the theme draws it (`text-base`: 13 px, 12 compact,
+ * times --df-text-scale). xterm draws on a canvas, out of the CSS's reach: it takes its size from its host.
+ */
+export function textPx(el: Element | null, fallback = 13): number {
+  const px = el ? parseFloat(getComputedStyle(el).fontSize) : NaN
+  return px > 0 ? px : fallback
+}
+
+/** Calls back when Settings › Appearance changes the text size or the density (for xterm); gives back what stops it */
+export function onTextSizeChange(callback: () => void): () => void {
+  const observer = new MutationObserver(callback)
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-text-size', 'data-density'] })
+  return () => observer.disconnect()
+}
+
 /** True when animations should stay still (setting, or Windows when it follows the system) */
 export function reducedMotion(): boolean {
   const m = document.documentElement.getAttribute('data-motion')

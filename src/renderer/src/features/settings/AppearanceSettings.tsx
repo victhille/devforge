@@ -108,7 +108,7 @@ export default function AppearanceSettings({ settings, set }: { settings: AppSet
             <div className="pointer-events-none flex flex-col gap-3 rounded-card border border-line bg-canvas p-4">
               <div className="flex items-center gap-2.5">
                 <span className="size-7 shrink-0 rounded-md border border-line bg-elevated" />
-                <span className="min-w-0 flex-1 truncate text-base font-semibold text-fg">boutique-en-ligne</span>
+                <span className="min-w-0 flex-1 truncate text-base font-semibold text-fg">{s.previewName}</span>
                 <Badge color="success" dot>{s.previewRunning}</Badge>
               </div>
               <p className="text-sm text-fg-secondary">{s.previewMeta}</p>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Code2, FolderOpen, Info, Server, Terminal, Play, Rocket, type LucideIcon } from 'lucide-react'
 import type { Project, SSHConnection, Stack } from '@shared/types'
-import { NO_SERVERS, useSshConnections } from '@renderer/hooks/useLiveData'
+import { NO_PROJECTS, NO_SERVERS, useProjectList, useSshConnections } from '@renderer/hooks/useLiveData'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useConsole } from '@renderer/app/ConsoleContext'
 import { usePreferredIde } from '@renderer/lib/ide'
@@ -30,22 +30,23 @@ export function useCommands(open: boolean): Command[] {
   const navigate = useNavigate()
   const { runScript } = useConsole()
   const ide = usePreferredIde()
-  const [projects, setProjects] = useState<Project[]>([])
+  const projects: Project[] = useProjectList().data ?? NO_PROJECTS
   const connections: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
   const [scripts, setScripts] = useState<Record<string, Record<string, string>>>({})
   const [stacks, setStacks] = useState<Stack[]>([])
   const actions = useActions(open)
 
-  // Refresh data each time the palette opens (cheap local reads)
+  // The projects' scripts and the stacks, read each time the palette opens (cheap local reads); the projects are the kept list
   useEffect(() => {
     if (!open) return
-    window.devforge.getProjects().then(list => {
-      setProjects(list)
-      Promise.all(list.map(p =>
-        window.devforge.getProjectScripts(p.path).then(s => [p.id, s] as const).catch(() => [p.id, {}] as const)
-      )).then(entries => setScripts(Object.fromEntries(entries)))
-    })
-    window.devforge.stacks.list().then(setStacks)
+    let alive = true
+    Promise.all(projects.map(p =>
+      window.devforge.getProjectScripts(p.path).then(s => [p.id, s] as const).catch(() => [p.id, {}] as const)
+    )).then(entries => { if (alive) setScripts(Object.fromEntries(entries)) })
+    return () => { alive = false }
+  }, [open, projects])
+  useEffect(() => {
+    if (open) window.devforge.stacks.list().then(setStacks)
   }, [open])
 
   return useMemo(() => {

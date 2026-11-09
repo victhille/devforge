@@ -1,4 +1,4 @@
-import { app, dialog, ipcMain, BrowserWindow } from 'electron'
+import { app, dialog, ipcMain, type BrowserWindow } from 'electron'
 import { join, posix } from 'path'
 import { loadSshConnections, getSshConnectionWithSecret, sshConnectionsEvents } from '../services/ssh/sshStorage'
 import { removeServer, saveServer } from '../services/ssh/serverChanges'
@@ -62,11 +62,8 @@ export function registerSshHandlers(mainWindow: BrowserWindow): void {
     (status)          => mainWindow.webContents.send('ssh:status', status)
   )
 
-  sshConnectionsEvents.on('changed', () => {
-    for (const w of BrowserWindow.getAllWindows()) if (!w.isDestroyed()) w.webContents.send('ssh:connections-changed')
-    // The pages keeping the list (useSshConnections) read it again
-    dataChanged('ssh')
-  })
+  // The pages keeping the list (useSshConnections) read it again
+  sshConnectionsEvents.on('changed', () => dataChanged('ssh'))
 
   ipcMain.handle('ssh:get-connections',    async () => loadSshConnections())
   ipcMain.handle('ssh:save-connection',    async (_e, conn: unknown) => saveServer(parseSshConnection(conn)))

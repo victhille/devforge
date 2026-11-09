@@ -27,7 +27,7 @@ DevForge remembers the fingerprint of the server's key on the first connection, 
 
 ## The terminal
 
-With no open session, the page asks you to pick a connection on the left. Once connected, the header shows the server, its state (*connected*, *Connecting...*, *Disconnected*), `user@host:port` and two buttons:
+With no open session, the page asks you to pick a connection on the left. Once connected, the header shows the server, its state (*connected*, *Connecting…*, *Disconnected*), `user@host:port` and two buttons:
 
 - **Files (SFTP)** browses the server's folders (from your home folder, or a path you type) and **downloads** a file wherever you pick on this PC. You see what the SSH user can read, as in the terminal; nothing is changed on the server.
 - **Dashboard** opens the server's dashboard.

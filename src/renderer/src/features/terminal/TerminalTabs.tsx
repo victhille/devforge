@@ -3,6 +3,7 @@ import { ChevronDown, Plus, X } from 'lucide-react'
 import type { SSHConnection, TerminalShell } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
+import { NO_SERVERS, useSshConnections } from '@renderer/hooks/useLiveData'
 import StatusDot from '@renderer/components/ui/StatusDot'
 import BlockTerminal from './BlockTerminal'
 import { localBackend, sshBackend, type ShellBackend } from './backends'
@@ -54,7 +55,9 @@ export default function TerminalTabs({ cwd, className, withSsh = true, onEmpty, 
   const { t } = useI18n()
   const s = t.terminal
   const [shells, setShells] = useState<TerminalShell[]>([])
-  const [servers, setServers] = useState<SSHConnection[]>([])
+  // The kept list of servers (the sidebar already reads it), offered when the tabs take SSH
+  const known: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
+  const servers = withSsh ? known : NO_SERVERS
   const [tabs, setTabs] = useState<Tab[]>([])
   const [active, setActive] = useState<number | null>(null)
   const [menu, setMenu] = useState(false)
@@ -89,9 +92,8 @@ export default function TerminalTabs({ cwd, className, withSsh = true, onEmpty, 
         return [tab]
       })
     }).catch(() => {})
-    if (withSsh) window.devforge.getSshConnections().then(l => { if (alive) setServers(l) }).catch(() => {})
     return () => { alive = false }
-  }, [cwd, withSsh])
+  }, [cwd])
 
   const handled = useRef(0)
   useEffect(() => {
@@ -158,7 +160,7 @@ export default function TerminalTabs({ cwd, className, withSsh = true, onEmpty, 
             <Plus size={13} />
           </button>
           {menu && (
-            <div role="menu" className="absolute top-full left-0 z-30 mt-1 min-w-[200px] rounded-xl border border-line bg-surface p-1 shadow-lg">
+            <div role="menu" className="absolute top-full left-0 z-30 mt-1 min-w-[200px] rounded-xl border border-line bg-surface p-1 shadow-pop">
               {shells.map(sh => (
                 <button key={sh.kind} role="menuitem" onClick={() => { addLocal(sh); setMenu(false) }} className="block w-full rounded-lg px-3 py-1.5 text-left text-sm text-fg hover:bg-hover">{sh.label}</button>
               ))}

@@ -273,7 +273,7 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
                     </div>
                   ))}
                 </div>
-                <div className="flex flex-col overflow-hidden rounded-card border border-line-subtle bg-surface"><TableSkeleton rows={6} columns={8} /></div>
+                <div className="flex flex-col overflow-hidden rounded-card border border-line-subtle bg-surface"><TableSkeleton label={false} rows={6} columns={8} /></div>
               </div>
             )
           ) : tab === 'search' ? (

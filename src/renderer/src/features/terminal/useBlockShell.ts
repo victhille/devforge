@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { MarkerParser } from '@shared/lib/shellBlocks'
+import { textPx } from '@renderer/lib/appearance'
 import type { ShellBackend } from './backends'
 import { XTERM_THEME, snapshot, type Line } from './snapshot'
 
@@ -92,9 +93,10 @@ export function useBlockShell(backend: ShellBackend) {
 
   const run = useCallback((cmd: string) => {
     if (phase.current !== 'ready' || !cmd.trim()) return
+    // The page's text size (the body's: 13 px times the size chosen in Settings); the block that shows it keeps it in step (LiveBlock)
     const term = new Terminal({
       theme: XTERM_THEME, cols: size.current.cols, rows: size.current.rows, scrollback: 5000,
-      fontFamily: "'JetBrains Mono Variable', 'Cascadia Code', Consolas, monospace", fontSize: 12.5, lineHeight: 1.3,
+      fontFamily: "'JetBrains Mono Variable', 'Cascadia Code', Consolas, monospace", fontSize: textPx(document.body), lineHeight: 1.3,
       cursorBlink: true, convertEol: false, allowProposedApi: true
     })
     const block: Block = { id: nextId.current++, cmd, cwd: cwdRef.current, startedAt: Date.now(), endedAt: null, code: null, lines: null }

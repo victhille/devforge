@@ -110,7 +110,7 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
   if (!manifests) return (
     <div role="status" aria-label={t.common.loading} className="overflow-hidden rounded-card border border-line-subtle bg-surface">
       <div className="flex items-center gap-3 border-b border-line-subtle px-4.5 py-3.5"><Skeleton className="size-4" /><div className="flex flex-col gap-1.5"><Skeleton className="h-3.5 w-28" /><Skeleton className="h-3 w-40" /></div><Skeleton className="ml-auto h-7 w-36 rounded-control" /></div>
-      <TableSkeleton rows={5} columns={4} />
+      <TableSkeleton label={false} rows={5} columns={4} />
     </div>
   )
   if (!manifests.length) return <EmptyState icon={<Package size={28} />} title={k.none} />
@@ -133,7 +133,7 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
           {(['outdated', 'major', 'all'] as Filter[]).map(f => (
             <button key={f} role="radio" aria-checked={filter === f} onClick={() => setFilter(f)}
               className={cn('flex h-7 items-center gap-1.5 rounded-md px-3 text-sm', filter === f ? 'bg-active font-semibold text-fg' : 'text-fg-secondary hover:text-fg')}>
-              {k.filters[f]} <span aria-hidden className="font-mono text-[10.5px] text-fg-muted">{counts[f]}</span>
+              {k.filters[f]} <span aria-hidden className="font-mono text-2xs text-fg-muted">{counts[f]}</span>
             </button>
           ))}
         </div>
@@ -194,7 +194,7 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
             {versions && shown.length === 0 && <p className="px-4.5 py-4 text-sm text-fg-muted">{filter === 'all' ? k.empty : k.allCurrent}</p>}
             {versions && shown.length > 0 && (
               <table className="w-full border-collapse text-sm">
-                <thead className="border-b border-line-subtle text-left text-[11.5px] font-semibold text-fg-muted">
+                <thead className="border-b border-line-subtle text-left text-xs font-semibold text-fg-muted">
                   <tr className="h-8.5">
                     <th className="w-8 px-3.5"><span className="sr-only">{k.select}</span></th>
                     <th className="px-3.5">{k.colName}</th>
