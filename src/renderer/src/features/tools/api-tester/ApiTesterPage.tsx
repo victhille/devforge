@@ -104,7 +104,7 @@ function RowsEditor({ rows, onChange, addLabel, keyLabel, valueLabel, removeLabe
  * (params, headers, body, auth) then the response (JSON, raw, headers, preview).
  */
 export default function ApiTesterPage() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const a = t.apiTester
   // ?method=GET&url=…: a request prepared elsewhere (Symfony workshop, routes)
   const [params] = useSearchParams()
@@ -307,7 +307,7 @@ export default function ApiTesterPage() {
               <div className="flex flex-wrap items-center gap-3">
                 <span key={response.time} className="df-pop"><Badge mono color={statusColor(response.status)}>{response.status} {response.statusText}</Badge></span>
                 <span className="font-mono text-xs text-fg-secondary">
-                  {response.time} ms · {formatSize(response.size)}{response.headers['content-type'] ? ` · ${response.headers['content-type'].split(';')[0]}` : ''}
+                  {response.time} ms · {formatSize(response.size, lang)}{response.headers['content-type'] ? ` · ${response.headers['content-type'].split(';')[0]}` : ''}
                 </span>
                 <span className="ml-auto flex items-center gap-2">
                   <Tabs<ResTab> value={resTab} onChange={setResTab} items={resTabs} label={a.responseView} />

@@ -104,9 +104,13 @@ interface RunOptions {
 
 export class CommandRunner {
   private tasks = new Map<string, { task: CommandTask; process: ChildProcess | null }>()
+  /** Set when DevForge quits: nothing more is started, nothing more is reported (the windows are going) */
+  private quitting = false
 
   run(options: RunOptions): string {
     const taskId = randomUUID()
+    // A step chained to one just killed (create, then install…) starts nothing
+    if (this.quitting) return taskId
     const task: CommandTask = {
       id: taskId,
       executable: options.executable,
@@ -130,6 +134,7 @@ export class CommandRunner {
         cwd: options.cwd,
         shell: true,
         windowsHide: true,
+        detached: process.platform !== 'win32', // own process group, for killTree on unix
         // Nobody can answer a prompt here: it gets end-of-input instead of waiting forever
         stdio: ['ignore', 'pipe', 'pipe'],
         // Prisma's "Update available → 8.0.0-rc" box: DevForge pins the version it installs
@@ -152,6 +157,7 @@ export class CommandRunner {
     child.stderr?.on('data', (data: Buffer) => err.write(data))
 
     child.on('close', (code: number | null) => {
+      if (this.quitting) return
       out.end(); err.end()
       lines.end()
       const stored = this.tasks.get(taskId)
@@ -172,6 +178,7 @@ export class CommandRunner {
     })
 
     child.on('error', (err: Error) => {
+      if (this.quitting) return
       const stored = this.tasks.get(taskId)
       if (!stored || stored.task.status === 'failed') return
       stored.task.status = 'failed'
@@ -194,11 +201,23 @@ export class CommandRunner {
     if (stored.process) killTree(stored.process)
   }
 
+  /**
+   * When DevForge quits: nothing more starts or is reported, and the processes for
+   * stopAllProcessesNow to kill. Cancelled ones too: their async taskkill would die with DevForge.
+   */
+  toKillOnQuit(): ChildProcess[] {
+    this.quitting = true
+    for (const s of this.tasks.values()) if (s.task.status === 'running') s.task.status = 'cancelled'
+    return [...this.tasks.values()].flatMap(s => (s.process ? [s.process] : []))
+  }
+
   getTask(taskId: string): CommandTask | undefined {
     return this.tasks.get(taskId)?.task
   }
 
   private _emit(cb: LogCallback, taskId: string, type: LogLine['type'], text: string): void {
+    // Output read after the kill: the window it would go to is closing
+    if (this.quitting) return
     cb({ taskId, type, text, timestamp: new Date().toISOString() })
   }
 }

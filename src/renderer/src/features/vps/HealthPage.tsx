@@ -93,7 +93,7 @@ function Health({ conn, picker }: { conn: SSHConnection; picker: ReturnType<type
     const raw = c.level === 'unknown' ? o.unknownText : entry?.[c.level] || ''
     return raw.replace(/\{(\w+)\}/g, (_, k: string) => {
       const v = c.values[k]
-      return v === undefined ? '' : SIZES.has(k) ? formatSize(Number(v)) : String(v)
+      return v === undefined ? '' : SIZES.has(k) ? formatSize(Number(v), lang) : String(v)
     })
   }
 

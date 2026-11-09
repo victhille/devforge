@@ -125,7 +125,7 @@ export function BackupsWidget({ i }: { i: number }) {
       aside={last && <Pill tone={!last.ok ? 'danger' : stale ? 'warning' : 'success'}>{last.ok ? (stale ? t.vpsOps.summary.warn : w.backupsOk) : w.backupsFailed}</Pill>}>
       {error ? <p className="text-sm text-danger">{error}</p> : st === null ? <TileLoading /> : st === 'off' ? <p className="text-sm text-fg-muted">{w.backupsOff}</p>
         : !last ? <p className="text-sm text-fg-muted">{w.backupsNone}</p>
-        : <p className="text-base text-fg-secondary">{w.backupsLast.replace('{when}', formatRelative(last.finishedAt, lang)).replace('{size}', formatSize(last.size))}</p>}
+        : <p className="text-base text-fg-secondary">{w.backupsLast.replace('{when}', formatRelative(last.finishedAt, lang)).replace('{size}', formatSize(last.size, lang))}</p>}
       {st !== 'off' && st && st.local.day && <p className="text-sm text-fg-muted">{t.backups.localCopy.replace('{day}', st.local.day)}</p>}
       <TileActions>
         <SmallButton disabled={!conn} onClick={() => { if (conn) pick(conn.id); navigate('/backups') }}>{st === 'off' ? w.backupsSetup : w.backupsOpen}</SmallButton>

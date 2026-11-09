@@ -106,7 +106,7 @@ function Backups({ conn, picker }: { conn: SSHConnection; picker: ReturnType<typ
             unit={!last ? b.statLastNone : (last.ok ? b.statLastOk : b.statLastFailed).replace('{when}', formatRelative(last.finishedAt, lang))}
             tone={level === 'bad' ? 'danger' : level === 'warn' ? 'warning' : undefined} />
           <Stat label={b.statNext} value={plan.time} unit={b.statNextUnit} />
-          <Stat label={b.statKept} value={days} unit={b.statKeptUnit.replace('{size}', formatSize(st.files.reduce((n, f) => n + f.size, 0)))} />
+          <Stat label={b.statKept} value={days} unit={b.statKeptUnit.replace('{size}', formatSize(st.files.reduce((n, f) => n + f.size, 0), lang))} />
         </StatRow>
       )}
 
@@ -194,7 +194,7 @@ function FileList({ files, disabled, onRestore }: { files: BackupState['files'];
               <span className="flex items-center gap-2 font-semibold text-fg">{dayLabel(f.day)} {f.kind === 'weekly' && <Badge mono>{b.weekly}</Badge>}</span>
             </Td>
             <Td className="w-full max-w-0 truncate text-fg-secondary" title={f.path}>{content(f.path)}</Td>
-            <Td align="right" className="font-mono whitespace-nowrap text-fg">{formatSize(f.size)}</Td>
+            <Td align="right" className="font-mono whitespace-nowrap text-fg">{formatSize(f.size, lang)}</Td>
             <Td align="right"><Button size="sm" variant="ghost" disabled={disabled} onClick={() => onRestore(f.path)}><RotateCcw size={13} aria-hidden /> {b.restore}</Button></Td>
           </tr>
         ))}

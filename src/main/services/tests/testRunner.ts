@@ -143,6 +143,7 @@ export async function runTests(dir: string, runner: TestRunner, files: string[] 
   let partial = ''
   const child = spawn(plan.command, {
     cwd: dir, shell: true, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'],
+    detached: process.platform !== 'win32', // own process group, for killTree on unix
     // No watch mode, no colours, nothing waiting for a key
     env: { ...process.env, CI: '1', FORCE_COLOR: '0', NO_COLOR: '1', ...plan.env }
   })
@@ -182,6 +183,13 @@ export async function stopTests(): Promise<void> {
   if (!running) return
   running.stopped = true
   await killTree(running.child)
+}
+
+/** When DevForge quits: the run, for stopAllProcessesNow to kill (and not kept as the last one) */
+export function testsToKillOnQuit(): ChildProcess[] {
+  if (!running) return []
+  running.stopped = true
+  return [running.child]
 }
 
 export function lastRun(dir: string, runner: TestRunner): TestRun | null {

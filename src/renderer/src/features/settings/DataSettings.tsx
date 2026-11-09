@@ -43,7 +43,7 @@ export default function DataSettings() {
       <SettingsCard title={s.groups.storage}>
         <SettingRow label={s.dataDir} hint={info && <span className="font-mono text-sm break-all">{info.dir}</span>}>
           <div className="flex flex-wrap items-center gap-2">
-            {info && <Badge mono>{s.dataDirInfo.replace('{size}', formatSize(info.size)).replace('{v}', String(info.schemaVersion))}</Badge>}
+            {info && <Badge mono>{s.dataDirInfo.replace('{size}', formatSize(info.size, lang)).replace('{v}', String(info.schemaVersion))}</Badge>}
             <Button size="sm" variant="secondary" onClick={() => window.devforge.data.openDir()}><FolderOpen size={13} /> {s.openFolder}</Button>
           </div>
         </SettingRow>
@@ -72,7 +72,7 @@ export default function DataSettings() {
               <li key={b.name} className="flex flex-wrap items-center gap-3 border-t border-line-subtle px-5 py-2.5">
                 <span className="min-w-[160px] flex-1 font-mono text-sm text-fg">{when(b.at)}</span>
                 <Badge color={b.reason === 'manual' ? 'default' : 'info'}>{reason(b)}</Badge>
-                <span className="w-16 text-right font-mono text-xs text-fg-muted">{formatSize(b.size)}</span>
+                <span className="w-16 text-right font-mono text-xs text-fg-muted">{formatSize(b.size, lang)}</span>
                 <Button size="sm" variant="ghost" loading={busy === b.name} aria-label={`${s.restore} · ${when(b.at)}`}
                   onClick={async () => { if ((await confirmDialog(s.restoreConfirm.replace('{date}', when(b.at)), { danger: true }))) run(b.name, () => window.devforge.data.restore(b.name)) }}>
                   {s.restore}

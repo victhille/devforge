@@ -266,8 +266,8 @@ function Clients({ conn, found, select, onForget }: { conn: SSHConnection; found
                         <Td className="font-mono text-xs whitespace-nowrap text-fg">
                           {c.transferRx == null && c.transferTx == null ? <span className="text-fg-muted">—</span> : (
                             <span className="inline-flex items-center gap-2.5">
-                              <span className="inline-flex items-center gap-1" title={v.received}><ArrowDown size={12} aria-hidden />{formatSize(c.transferTx)}</span>
-                              <span className="inline-flex items-center gap-1" title={v.sent}><ArrowUp size={12} aria-hidden />{formatSize(c.transferRx)}</span>
+                              <span className="inline-flex items-center gap-1" title={v.received}><ArrowDown size={12} aria-hidden />{formatSize(c.transferTx, lang)}</span>
+                              <span className="inline-flex items-center gap-1" title={v.sent}><ArrowUp size={12} aria-hidden />{formatSize(c.transferRx, lang)}</span>
                             </span>
                           )}
                         </Td>

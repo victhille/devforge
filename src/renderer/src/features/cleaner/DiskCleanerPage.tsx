@@ -79,7 +79,7 @@ export default function DiskCleanerPage() {
       setSelected(new Set())
       toast.show({
         tone: r.failed.length ? 'error' : 'success',
-        title: c.freed.replace('{size}', formatSize(r.freedBytes)).replace('{n}', String(r.removed.length)),
+        title: c.freed.replace('{size}', formatSize(r.freedBytes, lang)).replace('{n}', String(r.removed.length)),
         description: r.failed.map(f => `${f.path}: ${f.error}`).join('\n') || undefined
       })
     } finally {
@@ -120,25 +120,25 @@ export default function DiskCleanerPage() {
               <div>
                 <h2 id="cleaner-total" className="text-sm text-fg-muted">{c.statReclaimable}</h2>
                 <p className="mt-1 flex items-baseline gap-2">
-                  <span className="font-display text-page leading-none font-bold tracking-[-.025em] text-fg">{formatSize(total)}</span>
+                  <span className="font-display text-page leading-none font-bold tracking-[-.025em] text-fg">{formatSize(total, lang)}</span>
                   <span className="text-sm text-fg-muted">{c.inFolders.replace('{n}', String(rows.length))}</span>
                   {sizing && <Spinner />}
                 </p>
               </div>
               <Button disabled={selected.size === 0} onClick={() => setConfirming(true)}>
-                <Trash2 size={14} aria-hidden /> {selected.size ? c.deleteSelectedSize.replace('{size}', formatSize(selectedBytes)) : c.deleteSelected}
+                <Trash2 size={14} aria-hidden /> {selected.size ? c.deleteSelectedSize.replace('{size}', formatSize(selectedBytes, lang)) : c.deleteSelected}
               </Button>
             </div>
             {total > 0 && (
               <>
-                <div className="flex h-2.5 overflow-hidden rounded-full bg-active" role="img" aria-label={byKind.map(k => `${kindLabel[k.kind]} ${formatSize(k.bytes)}`).join(', ')}>
+                <div className="flex h-2.5 overflow-hidden rounded-full bg-active" role="img" aria-label={byKind.map(k => `${kindLabel[k.kind]} ${formatSize(k.bytes, lang)}`).join(', ')}>
                   {byKind.map(k => <span key={k.kind} className={cn('h-full', KIND_BAR[k.kind])} style={{ width: `${(k.bytes / total) * 100}%` }} />)}
                 </div>
                 <ul className="flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-fg-secondary">
                   {byKind.map(k => (
                     <li key={k.kind} className="flex items-center gap-1.5">
                       <span aria-hidden className={cn('size-2.5 rounded-sm', KIND_BAR[k.kind])} />
-                      {kindLabel[k.kind]} <span className="font-mono text-fg-muted">{formatSize(k.bytes)}</span>
+                      {kindLabel[k.kind]} <span className="font-mono text-fg-muted">{formatSize(k.bytes, lang)}</span>
                     </li>
                   ))}
                 </ul>
@@ -193,7 +193,7 @@ export default function DiskCleanerPage() {
                       <span className="flex items-center gap-2">{formatRelative(r.projectModified, lang)} {isOld(r.projectModified) && <Badge>{c.old}</Badge>}</span>
                     </Td>
                     <Td align="right" className="font-mono font-bold text-fg">
-                      {r.size === null ? <Spinner className="ml-auto" /> : formatSize(r.size)}
+                      {r.size === null ? <Spinner className="ml-auto" /> : formatSize(r.size, lang)}
                     </Td>
                   </tr>
                 ))}
@@ -216,13 +216,13 @@ export default function DiskCleanerPage() {
             <>
               <Button variant="ghost" onClick={() => setConfirming(false)} disabled={deleting}>{t.common.cancel}</Button>
               <Button variant="danger" onClick={confirmDelete} loading={deleting}>
-                {!deleting && <Trash2 size={14} />} {c.confirmDelete.replace('{size}', formatSize(selectedBytes))}
+                {!deleting && <Trash2 size={14} />} {c.confirmDelete.replace('{size}', formatSize(selectedBytes, lang))}
               </Button>
             </>
           }
         >
           <p className="text-fg-secondary">
-            {c.confirmText.replace('{n}', String(selected.size)).replace('{size}', formatSize(selectedBytes))}
+            {c.confirmText.replace('{n}', String(selected.size)).replace('{size}', formatSize(selectedBytes, lang))}
           </p>
           <ul className="max-h-48 overflow-y-auto rounded-lg border border-line-subtle bg-canvas p-2 font-mono text-xs text-fg-muted">
             {selectedRows.map(r => <li key={r.path} className="truncate">{r.path}</li>)}

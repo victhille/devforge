@@ -57,7 +57,7 @@ export default function FilePreview({ file, line, root, ide: own, onClose, chang
   /** Lines added and removed since the last commit */
   stats?: { add: number | null; del: number | null }
 }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const f = t.files
   const toast = useToast()
   const ide = usePreferredIde()
@@ -92,7 +92,7 @@ export default function FilePreview({ file, line, root, ide: own, onClose, chang
         <span className="min-w-0 truncate font-mono text-sm font-semibold text-fg" title={file.path}>{rel || file.name}</span>
         {stats?.add != null && stats.add > 0 && <span className="shrink-0 font-mono text-xs text-success">+{stats.add}</span>}
         {stats?.del != null && stats.del > 0 && <span className="shrink-0 font-mono text-xs text-danger">−{stats.del}</span>}
-        {preview && preview.size > 0 && <span className="shrink-0 font-mono text-2xs text-fg-muted">{formatSize(preview.size)}</span>}
+        {preview && preview.size > 0 && <span className="shrink-0 font-mono text-2xs text-fg-muted">{formatSize(preview.size, lang)}</span>}
         {change && <span className={cn('shrink-0 font-mono text-2xs', TONE[change].replace('line-through', ''))}>{f.gitStatus[change]}</span>}
         <span className="ml-auto flex items-center gap-1">
           {change && change !== 'deleted' && (

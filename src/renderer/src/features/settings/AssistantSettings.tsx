@@ -20,7 +20,7 @@ import { Segmented, SettingRow, SettingsCard } from './parts'
 
 /** Whisper model for voice typing: choice, download, removal */
 function DictationRow({ settings, set }: { settings: AppSettings; set: <K extends keyof AppSettings>(k: K, v: AppSettings[K]) => Promise<void> }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const d = t.dictation
   const [status, setStatus] = useState<DictationStatus | null>(null)
   const [pct, setPct] = useState<number | null>(null)
@@ -37,7 +37,7 @@ function DictationRow({ settings, set }: { settings: AppSettings; set: <K extend
         <Segmented<'base' | 'small'> label={d.setting} value={model} onChange={v => set('dictationModel', v)}
           items={[{ value: 'base', label: d.modelBase }, { value: 'small', label: d.modelSmall }]} />
         {status && (status.downloaded ? <>
-          <span title={formatSize(status.size)}><Badge color="success" dot>{d.downloadedShort}</Badge></span>
+          <span title={formatSize(status.size, lang)}><Badge color="success" dot>{d.downloadedShort}</Badge></span>
           <IconButton size="sm" tone="danger" title={d.removeModel} onClick={async () => setStatus(await window.devforge.dictation.remove())}><Trash2 size={13} /></IconButton>
         </> : (
           <Button size="sm" variant="secondary" loading={busy} onClick={async () => { setBusy(true); try { setStatus(await window.devforge.dictation.prepare()) } finally { setBusy(false); setPct(null) } }}>{d.download}</Button>

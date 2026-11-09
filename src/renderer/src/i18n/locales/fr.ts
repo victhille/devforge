@@ -3111,6 +3111,12 @@ const fr = {
     browse:  'Parcourir'
   },
 
+  // Size and short duration units; Intl writes the number (decimal comma)
+  units: {
+    b: 'o', kb: 'Ko', mb: 'Mo', gb: 'Go',
+    second: 's', minute: 'min', hour: 'h', day: 'j', week: 'sem.', month: 'mois', year: 'ans'
+  },
+
   gitDash: {
     commit:              'Commit',
     commitTitle:         'Commit',

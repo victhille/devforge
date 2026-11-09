@@ -89,6 +89,15 @@ class ProcessManager {
     await Promise.all([...this.procs.keys()].filter(k => k.startsWith(prefix)).map(k => this.stop(k)))
   }
 
+  /**
+   * When DevForge quits: all marked stopped, and the processes for stopAllProcessesNow to kill.
+   * Those being stopped too: their async taskkill would die with DevForge.
+   */
+  toKillOnQuit(): ChildProcess[] {
+    for (const m of this.procs.values()) if (m.info.status === 'running') m.info.status = 'stopped'
+    return [...this.procs.values()].flatMap(m => (m.child ? [m.child] : []))
+  }
+
   list(): ProcessInfo[] {
     return [...this.procs.values()].map(m => ({ ...m.info }))
   }

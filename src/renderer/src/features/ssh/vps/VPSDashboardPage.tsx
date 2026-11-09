@@ -11,7 +11,8 @@ import IconButton from '@renderer/components/ui/IconButton'
 import Spinner from '@renderer/components/ui/Spinner'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
 import { useVPS } from '../VPSContext'
-import { fmtBytes, fmtUptime } from './stats'
+import { formatSize } from '@renderer/lib/format'
+import { fmtUptime } from './stats'
 import { useVpsStats } from './useVpsStats'
 import StatCard from './components/StatCard'
 import { DisksPanel, DockerPanel, ProcessesPanel } from './components/Panels'
@@ -140,12 +141,12 @@ export default function VPSDashboardPage() {
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard label="CPU" pct={stats.cpu} detail={v.load.replace('{v}', stats.load.map(l => l.toFixed(2)).join(' · '))} history={cpuHistory} />
             <StatCard label={v.memory} pct={memPct}
-              value={`${fmtBytes(stats.memory.used)} / ${fmtBytes(stats.memory.total)}`}
+              value={`${formatSize(stats.memory.used, lang)} / ${formatSize(stats.memory.total, lang)}`}
               detail={v.memDetail.replace('{pct}', String(Math.round(memPct))).replace('{swap}', String(Math.round(swapPct)))} />
             {root && (
               <StatCard label={v.disk} pct={root.pct}
-                value={`${fmtBytes(root.used)} / ${fmtBytes(root.total)}`}
-                detail={v.diskFree.replace('{pct}', String(root.pct)).replace('{free}', fmtBytes(root.avail))} />
+                value={`${formatSize(root.used, lang)} / ${formatSize(root.total, lang)}`}
+                detail={v.diskFree.replace('{pct}', String(root.pct)).replace('{free}', formatSize(root.avail, lang))} />
             )}
             <Card className="flex flex-col gap-2.5 p-3.5">
               <span className="text-sm text-fg-muted">{v.uptime}</span>

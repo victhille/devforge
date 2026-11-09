@@ -5,6 +5,7 @@ import { loadSettings, saveSettings, setFavorites, setHomeWidgets } from '../ser
 import { applyLoginItem } from '../lib/loginItem'
 import { applyLauncher } from '../launcher'
 import { log } from '../lib/log'
+import { stopAllProcessesNow } from '../services/system/quitProcesses'
 import { checkForUpdates, getUpdateStatus, installUpdate, setUpdateChannel } from '../services/updates/updater'
 import { DATA_ENTRIES, backupData, parseBackupName, readSchemaVersion, restoreData } from '../services/storage/migrations'
 import { exportConfig, importConfig, wipeData } from '../services/storage/profile'
@@ -12,14 +13,23 @@ import { exportConfig, importConfig, wipeData } from '../services/storage/profil
 /** End-to-end tests: a file path in place of the dialog (never in the installed app) */
 const testPath = (name: string) => (!app.isPackaged && process.env[name]) || undefined
 
-/** After the data changed under the app: start again from the files (skips before-quit, which could write over them) */
+/**
+ * Starts again at once. Skips before-quit: nothing in memory may write over the
+ * files just changed. So the processes DevForge started are stopped here.
+ */
+function relaunchNow(): void {
+  stopAllProcessesNow()
+  app.relaunch()
+  app.exit(0)
+}
+
+/** After the data changed under the app: start again from the files */
 function restartApp(): void {
   if (!app.isPackaged && process.env.DEVFORGE_TEST_NO_RELAUNCH) {
     for (const w of BrowserWindow.getAllWindows()) if (!w.isDestroyed()) w.webContents.reload()
     return
   }
-  app.relaunch()
-  app.exit(0)
+  relaunchNow()
 }
 import { clearHistory } from '../services/monitor/history'
 import type { AppSettings, DataInfo } from '@shared/types'
@@ -86,9 +96,7 @@ export function registerSettingsHandlers(): void {
     if (typeof name !== 'string') throw new Error('Unknown backup')
     const safety = restoreData(app.getPath('userData'), name)
     log('info', 'data', `Restored ${name} (previous data kept in ${safety})`)
-    // Skips before-quit: nothing in memory may write over the restored files
-    app.relaunch()
-    app.exit(0)
+    relaunchNow()
   })
   // v3.0 lot 4: start over, or take one's setup elsewhere
   ipcMain.handle('data:wipe', async () => {

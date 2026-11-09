@@ -179,7 +179,7 @@ export default function WebhooksPage() {
             <div className="flex flex-wrap items-center gap-3">
               {example && !req && <Badge color="warning">{t.toolHelp.example}</Badge>}
               <h2 className="min-w-0 flex-1 truncate font-display text-md font-bold tracking-[-.01em] text-fg" title={`${shown.method} ${shown.url}`}>{call.name}</h2>
-              <span className="text-xs text-fg-muted">{[call.source, formatSize(new Blob([shown.body]).size)].filter(Boolean).join(' · ')}</span>
+              <span className="text-xs text-fg-muted">{[call.source, formatSize(new Blob([shown.body]).size, lang)].filter(Boolean).join(' · ')}</span>
               <span className="flex items-center gap-1 text-xs text-fg-muted">curl <CopyButton text={toCurl(shown, status?.port ?? Number(port))} title={w.copyCurl} /></span>
               {req
                 ? <Button size="sm" variant="secondary" loading={replaying} onClick={() => doReplay(req.id)}>{!replaying && <Repeat size={13} aria-hidden />} {w.replay}</Button>
