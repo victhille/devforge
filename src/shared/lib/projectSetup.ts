@@ -18,7 +18,8 @@ export const SETUP_FRAMEWORKS: Framework[] = ['symfony', 'nextjs', 'laravel']
 export const SETUP_FEATURES: SetupFeature[] = ['api', 'auth', 'docker', 'tests', 'ci']
 export const DEFAULT_DB_PORT = { postgres: 5432, mysql: 3306 } as const
 
-export const REPO_RE = /^[\w.-]+(\/[\w.-]+)?$/
+/** A GitHub repository, "name" or "owner/name": it goes into `gh repo create`, so no part starts with "-" (an option) */
+export const REPO_RE = /^[\w.][\w.-]*(\/[\w.][\w.-]*)?$/
 export const DB_NAME_RE = /^[a-zA-Z_][\w]{0,62}$/
 
 export interface PlanContext {

@@ -7,6 +7,10 @@ import { runSetup } from './projectSetup'
 import { packageName } from '@shared/data/projectLibraries'
 import { extractTemplate } from './userTemplates'
 import { managerOf } from '@shared/lib/packageManagers'
+import { isPackageSpec } from '@shared/lib/packages'
+import { DB_NAME_RE, REPO_RE, SETUP_FEATURES } from '@shared/lib/projectSetup'
+import type { SetupDatabase } from '@shared/types'
+import { API_URL_RE } from '@shared/lib/spaAuthTemplate'
 
 type LogCb = (log: LogLine) => void
 type ResultCb = (result: CommandResult) => void
@@ -29,10 +33,41 @@ function info(onLog: LogCb, taskId: string, text: string): void {
 }
 
 function validateName(name: string): void {
-  if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
+  // Passed to npm create, composer create-project, symfony new: never read as an option
+  if (typeof name !== 'string' || !/^[a-zA-Z0-9_][a-zA-Z0-9_-]*$/.test(name)) {
     throw new Error(`Invalid project name "${name}". Use only letters, numbers, hyphens, and underscores.`)
   }
 }
+
+/**
+ * The libraries and the GitHub repository go into commands run through a shell: only what the
+ * window's own checks let through (the library catalog, REPO_RE), whatever a window or a template sent
+ */
+function validateCommandInputs(options: ProjectCreationOptions): void {
+  for (const list of [options.libraries, options.devLibraries]) {
+    if (list === undefined) continue
+    if (!Array.isArray(list)) throw new Error('Invalid library list')
+    for (const spec of list) if (!isPackageSpec(spec)) throw new Error(`Invalid library "${String(spec)}"`)
+  }
+  const s = options.setup
+  if (!s) return
+  const repo = s.github?.repo
+  if (s.github && (typeof repo !== 'string' || !REPO_RE.test(repo))) {
+    throw new Error(`Invalid GitHub repository "${String(repo)}"`)
+  }
+  // Written into compose.yaml (started at once), the .env files and the welcome page
+  if (!SETUP_DATABASES.includes(s.database)) throw new Error(`Invalid database "${String(s.database)}"`)
+  if (s.database === 'postgres' || s.database === 'mysql') {
+    if (typeof s.dbName !== 'string' || !DB_NAME_RE.test(s.dbName)) throw new Error(`Invalid database name "${String(s.dbName)}"`)
+    if (!isPort(s.dbPort)) throw new Error(`Invalid database port "${String(s.dbPort)}"`)
+  }
+  if (s.appPort !== undefined && !isPort(s.appPort)) throw new Error(`Invalid app port "${String(s.appPort)}"`)
+  if (!Array.isArray(s.features) || s.features.some(f => !SETUP_FEATURES.includes(f))) throw new Error('Invalid project features')
+  if (s.apiUrl !== undefined && (typeof s.apiUrl !== 'string' || !API_URL_RE.test(s.apiUrl))) throw new Error('Invalid API address')
+}
+
+const SETUP_DATABASES: readonly SetupDatabase[] = ['none', 'postgres', 'mysql', 'sqlite']
+const isPort = (n: unknown): boolean => Number.isInteger(n) && (n as number) >= 1 && (n as number) <= 65535
 
 function validatePath(destination: string): void {
   if (!existsSync(destination)) {
@@ -336,8 +371,10 @@ export function createProject(
   onResult: ResultCb
 ): string {
   // The package manager goes into the commands (--use-pnpm…): a known one only, whatever the window or a template sent
-  options = { ...options, packageManager: managerOf(options.packageManager) }
+  // Its language picks the messages and the generated pages' texts: fr or en, nothing else
+  options = { ...options, packageManager: managerOf(options.packageManager), lang: options.lang === 'en' ? 'en' : 'fr' }
   validateName(options.name)
+  validateCommandInputs(options)
   validatePath(options.destination)
   checkNoConflict(options.destination, options.name)
 
