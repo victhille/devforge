@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Code2, Eye, SquareArrowOutUpRight, X } from 'lucide-react'
 import type { DefaultIDE, FileChangeStatus, FileEntry, FilePreview as Preview } from '@shared/types'
 import { codeLanguage } from '@shared/lib/codeLanguage'
+import { HIGHLIGHT_LIMIT, useHighlighted } from '@renderer/lib/useHighlighted'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { usePreferredIde } from '@renderer/lib/ide'
@@ -17,13 +18,10 @@ import { errorText } from '@renderer/lib/errors'
 // pdf.js is heavy: loaded with the first PDF only
 const PdfView = lazy(() => import('./PdfView'))
 
-/** Past this size the code is shown without colours: highlighting it would stall the page */
-const HIGHLIGHT_LIMIT = 300 * 1024
-
 /** v3.5.3: code in colours, as in an IDE (highlight.js loaded with the first one) */
 function CodeView({ text, name, line }: { text: string; name: string; line?: number }) {
   const language = text.length <= HIGHLIGHT_LIMIT ? codeLanguage(name) : null
-  const [html, setHtml] = useState<string | null>(null)
+  const html = useHighlighted(text, language)
   const pre = useRef<HTMLPreElement>(null)
   const [band, setBand] = useState<{ top: number; height: number } | null>(null)
   // v3.6: a search result's line, highlighted and brought into view
@@ -37,12 +35,6 @@ function CodeView({ text, name, line }: { text: string; name: string; line?: num
     const box = el.parentElement
     if (box) box.scrollTop = Math.max(0, top - box.clientHeight / 3)
   }, [line, html, text])
-  useEffect(() => {
-    let alive = true
-    setHtml(null)
-    if (language) import('./highlighter').then(m => { if (alive) setHtml(m.highlight(text, language)) }).catch(() => {})
-    return () => { alive = false }
-  }, [text, language])
   return (
     <pre ref={pre} data-language={language ?? undefined} className="df-code relative min-w-max p-4 font-mono text-xs leading-relaxed text-fg-secondary">
       {band && <span aria-hidden data-testid="line-band" className="pointer-events-none absolute right-0 left-0 bg-warning-soft" style={{ top: band.top, height: band.height }} />}

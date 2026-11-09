@@ -1,166 +1,190 @@
-import { useState, type ReactNode } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { Check, Copy, RefreshCw } from 'lucide-react'
 import { useI18n } from '@renderer/i18n/I18nContext'
+import { useCopy } from '@renderer/hooks/useCopy'
+import { usePersistentState } from '@renderer/hooks/usePersistentState'
+import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
-import Card, { CardHeader, CardTitle } from '@renderer/components/ui/Card'
-import Checkbox from '@renderer/components/ui/Checkbox'
 import CopyButton from '@renderer/components/ui/CopyButton'
-import IconButton from '@renderer/components/ui/IconButton'
+import { Select } from '@renderer/components/ui/Input'
+import Switch from '@renderer/components/ui/Switch'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Page, PageHeader } from '@renderer/components/ui/Page'
-import { generatePassword, generateSecret, generateUuid, laravelAppKey, secretBits, type SecretFormat } from './random'
+import { generatePassword, generateSecret, generateUuid, laravelAppKey, secretBits, type PasswordOptions, type SecretFormat } from './random'
 import ToolHelp from '@renderer/components/ui/ToolHelp'
 
 type T = ReturnType<typeof useI18n>['t']['generator']
+type Kind = 'password' | 'secret' | 'uuid'
 
-function Slider({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
-  const { lang } = useI18n()
-  return (
-    <label className="flex flex-col gap-1.5 text-sm text-fg-muted">
-      <span>{label}{lang === 'fr' ? '\u00a0: ' : ': '}<strong className="text-fg-secondary">{value}</strong></span>
-      <input type="range" min={min} max={max} value={value} onChange={e => onChange(Number(e.target.value))} className="w-52 accent-accent" />
-    </label>
-  )
-}
+/** Characters each kind of password draws from (as random.ts): its strength in bits */
+const POOL = { upper: 26, lower: 26, numbers: 10, symbols: 26 }
+const passwordBits = (length: number, o: PasswordOptions) =>
+  Math.floor(length * Math.log2(Math.max(1, (Object.keys(POOL) as (keyof PasswordOptions)[]).reduce((n, k) => n + (o[k] ? POOL[k] : 0), 0))))
 
-function ResultRow({ value, onGenerate, label }: { value: string; onGenerate: () => void; label: string }) {
-  const { t } = useI18n()
+/** A setting's row: its name, its control on the right, as in the mock-up */
+function Row({ label, children, htmlFor }: { label: ReactNode; children: ReactNode; htmlFor?: string }) {
   return (
-    <div className="flex items-center gap-2">
-      <div className="min-h-8 flex-1 break-all rounded-control border border-line bg-canvas px-3 py-1.5 font-mono text-sm text-fg">
-        {value || <span className="font-sans text-fg-muted">{t.generator.clickGenerate}</span>}
-      </div>
-      <IconButton title={t.generator.regenerate} onClick={onGenerate}><RefreshCw size={14} /></IconButton>
-      {value && <CopyButton text={value} />}
-      <Button onClick={onGenerate}>{label}</Button>
+    <div className="flex items-center justify-between gap-4 border-b border-line-subtle py-3 last:border-0">
+      {htmlFor ? <label htmlFor={htmlFor} className="text-sm font-semibold text-fg">{label}</label> : <span className="text-sm font-semibold text-fg">{label}</span>}
+      {children}
     </div>
   )
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+/** The value moves with the knob; it is kept (and a new value drawn) once the knob is let go */
+function Slider({ id, label, value, unit, min, max, onChange }: { id: string; label: string; value: number; unit: string; min: number; max: number; onChange: (v: number) => void }) {
+  const [shown, setShown] = useState(value)
+  useEffect(() => setShown(value), [value])
+  const commit = () => { if (shown !== value) onChange(shown) }
   return (
-    <Card>
-      <CardHeader><CardTitle>{title}</CardTitle></CardHeader>
-      <div className="flex flex-col gap-4 p-5">{children}</div>
-    </Card>
+    <div className="flex flex-col gap-2 border-b border-line-subtle pb-4">
+      <div className="flex items-baseline justify-between">
+        <label htmlFor={id} className="text-sm font-semibold text-fg">{label}</label>
+        <span className="font-mono text-sm text-fg-secondary">{shown} {unit}</span>
+      </div>
+      <input id={id} type="range" min={min} max={max} value={shown} onChange={e => setShown(Number(e.target.value))} onPointerUp={commit} onKeyUp={commit} onBlur={commit} className="w-full accent-accent" />
+    </div>
   )
 }
 
-// ── Password ─────────────────────────────────────────────────────────────────
-
-function PasswordSection({ t }: { t: T }) {
-  const [length, setLength] = useState(16)
-  const [opts, setOpts] = useState({ upper: true, lower: true, numbers: true, symbols: false })
-  const [result, setResult] = useState('')
-
-  const gen = () => setResult(generatePassword(length, opts))
-  const checks: { key: keyof typeof opts; label: string }[] = [
-    { key: 'upper',   label: t.uppercase },
-    { key: 'lower',   label: t.lowercase },
-    { key: 'numbers', label: t.numbers },
-    { key: 'symbols', label: t.symbols }
-  ]
-
+/** The two cards: what to draw on the left, what was drawn on the right */
+function Layout({ t, settings, result, bits }: { t: T; settings: ReactNode; result: ReactNode; bits: number }) {
   return (
-    <Section title={t.sectionPass}>
-      <div className="flex flex-wrap items-end gap-6">
-        <Slider label={t.length} value={length} min={8} max={64} onChange={setLength} />
-        <div className="flex flex-wrap items-center gap-4">
-          {checks.map(({ key, label }) => (
-            <label key={key} className="flex cursor-pointer items-center gap-1.5 text-fg-secondary">
-              <input
-                type="checkbox"
-                className="accent-accent"
-                checked={opts[key]}
-                onChange={e => setOpts(o => ({ ...o, [key]: e.target.checked }))}
-              />
-              {label}
-            </label>
+    <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+      <section aria-labelledby="gen-settings" className="df-rise flex flex-col gap-3 rounded-card border border-line-subtle bg-surface p-5">
+        <h2 id="gen-settings" className="font-display text-md font-bold text-fg">{t.settings}</h2>
+        {settings}
+      </section>
+      <section aria-labelledby="gen-result" className="df-rise flex flex-col gap-4 rounded-card border border-line-subtle bg-surface p-5" style={{ '--i': 1 } as CSSProperties}>
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="gen-result" className="font-display text-md font-bold text-fg">{t.result}</h2>
+          <Badge color="success"><Check size={12} aria-hidden /> {t.bits.replace('{n}', String(bits))}</Badge>
+        </div>
+        {result}
+        <p className="text-xs text-fg-muted">{t.local}</p>
+      </section>
+    </div>
+  )
+}
+
+/** The value drawn, big, Copy (the accent one) and Draw again under it */
+function Drawn({ value, t, onRegenerate }: { value: string; t: T; onRegenerate: () => void }) {
+  const { copy, copied } = useCopy()
+  return (
+    <>
+      <output className="min-h-24 rounded-card bg-console p-5 font-mono text-xl leading-snug break-all text-fg">{value}</output>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button onClick={() => copy(value)}><Copy size={14} aria-hidden /> {copied ? t.copied : t.copy}</Button>
+        <Button variant="secondary" onClick={onRegenerate}><RefreshCw size={14} aria-hidden /> {t.regenerate}</Button>
+      </div>
+    </>
+  )
+}
+
+function PasswordTool({ t }: { t: T }) {
+  const [length, setLength] = usePersistentState('devforge:gen-pass-length', 16)
+  const [opts, setOpts] = usePersistentState<PasswordOptions>('devforge:gen-pass-opts', { upper: true, lower: true, numbers: true, symbols: false })
+  const [value, setValue] = useState('')
+  const draw = () => setValue(generatePassword(length, opts))
+  // A new one as soon as a setting changes
+  useEffect(draw, [length, opts])
+  const toggles: { key: keyof PasswordOptions; label: string }[] = [
+    { key: 'upper', label: t.uppercase }, { key: 'lower', label: t.lowercase },
+    { key: 'numbers', label: t.numbers }, { key: 'symbols', label: t.symbols }
+  ]
+  return (
+    <Layout t={t} bits={passwordBits(length, opts)}
+      settings={<>
+        <Slider id="gen-length" label={t.length} value={length} unit={t.chars} min={8} max={64} onChange={setLength} />
+        <div>
+          {toggles.map(x => (
+            <Row key={x.key} label={x.label}>
+              <Switch checked={opts[x.key]} label={x.label} disabled={opts[x.key] && Object.values(opts).filter(Boolean).length === 1} title={t.lastKind}
+                onChange={on => setOpts(o => ({ ...o, [x.key]: on }))} />
+            </Row>
           ))}
         </div>
-      </div>
-      <ResultRow value={result} onGenerate={gen} label={t.generate} />
-    </Section>
+      </>}
+      result={<Drawn value={value} t={t} onRegenerate={draw} />} />
   )
 }
 
-// ── Secret / Token ────────────────────────────────────────────────────────────
-
-function SecretSection({ t }: { t: T }) {
-  const [bytes,  setBytes]  = useState(32)
-  const [format, setFormat] = useState<SecretFormat>('hex')
-  const [laravel, setLaravel] = useState(false)
-  const [urlSafe, setUrlSafe] = useState(false)
-  const [result, setResult] = useState('')
+function SecretTool({ t }: { t: T }) {
+  const [format, setFormat] = usePersistentState<SecretFormat>('devforge:gen-secret-format', 'base64')
+  const [bytes, setBytes] = usePersistentState('devforge:gen-secret-bytes', 32)
+  const [laravel, setLaravel] = usePersistentState('devforge:gen-secret-laravel', false)
+  const [urlSafe, setUrlSafe] = usePersistentState('devforge:gen-secret-urlsafe', false)
+  const [value, setValue] = useState('')
   // Laravel's APP_KEY is always 32 bytes in padded base64
   const asLaravel = format === 'base64' && laravel
-  const generate = () => setResult(asLaravel ? laravelAppKey() : generateSecret(bytes, format, { urlSafe: format === 'base64' && urlSafe }))
-
+  const draw = () => setValue(asLaravel ? laravelAppKey() : generateSecret(bytes, format, { urlSafe: format === 'base64' && urlSafe }))
+  useEffect(draw, [format, bytes, laravel, urlSafe]) // eslint-disable-line react-hooks/exhaustive-deps
   return (
-    <Section title={t.sectionSecret}>
-      <div className="flex flex-wrap items-end gap-6">
-        {!asLaravel && <Slider label={t.bytes} value={bytes} min={8} max={64} onChange={setBytes} />}
-        <div className="flex flex-col gap-1.5 text-sm text-fg-muted">
-          <span>{t.format}</span>
-          <Tabs<SecretFormat>
-            value={format}
-            onChange={setFormat}
-            items={[
-              { value: 'hex',    label: t.formatHex },
-              { value: 'base64', label: t.formatBase64 },
-              { value: 'alpha',  label: t.formatAlpha }
-            ]}
-          />
+    <Layout t={t} bits={asLaravel ? 256 : secretBits(bytes, format)}
+      settings={<>
+        <div className="flex flex-col gap-2 border-b border-line-subtle pb-4">
+          <label htmlFor="gen-format" className="text-sm font-semibold text-fg">{t.format}</label>
+          <Select id="gen-format" value={format} onChange={e => setFormat(e.target.value as SecretFormat)}>
+            <option value="base64">{t.formatBase64}</option>
+            <option value="hex">{t.formatHex}</option>
+            <option value="alpha">{t.formatAlpha}</option>
+          </Select>
         </div>
+        {!asLaravel && <Slider id="gen-bytes" label={t.length} value={bytes} unit={t.bytesUnit} min={8} max={64} onChange={setBytes} />}
         {format === 'base64' && (
-          <div className="flex flex-col gap-2">
-            <Checkbox checked={laravel} onChange={setLaravel}>{t.laravelPrefix}</Checkbox>
-            {!laravel && <Checkbox checked={urlSafe} onChange={setUrlSafe}>{t.urlSafe}</Checkbox>}
+          <div>
+            <Row label={t.laravelPrefix}><Switch checked={laravel} onChange={setLaravel} label={t.laravelPrefix} /></Row>
+            {!laravel && <Row label={t.urlSafe}><Switch checked={urlSafe} onChange={setUrlSafe} label={t.urlSafe} /></Row>}
           </div>
         )}
-      </div>
-      <ResultRow value={result} onGenerate={generate} label={t.generate} />
-      <p className="text-xs text-fg-muted">{t.strength.replace('{n}', String(asLaravel ? 256 : secretBits(bytes, format)))}</p>
-    </Section>
+      </>}
+      result={<Drawn value={value} t={t} onRegenerate={draw} />} />
   )
 }
 
-// ── UUID ──────────────────────────────────────────────────────────────────────
-
-function UuidSection({ t }: { t: T }) {
-  const [results, setResults] = useState<string[]>([])
-
+function UuidTool({ t }: { t: T }) {
+  const [count, setCount] = usePersistentState('devforge:gen-uuid-count', 5)
+  const [values, setValues] = useState<string[]>([])
+  const draw = () => setValues(Array.from({ length: count }, generateUuid))
+  useEffect(draw, [count])
+  const { copy, copied } = useCopy()
   return (
-    <Section title={t.sectionUuid}>
-      <div>
-        <Button onClick={() => setResults(prev => [generateUuid(), ...prev.slice(0, 9)])}>{t.generate}</Button>
-      </div>
-      {results.length > 0 && (
-        <div className="flex flex-col divide-y divide-line-subtle rounded-lg border border-line-subtle">
-          {results.map(u => (
-            <div key={u} className="flex items-center justify-between px-3 py-1.5">
+    <Layout t={t} bits={122}
+      settings={<Slider id="gen-count" label={t.count} value={count} unit="" min={1} max={20} onChange={setCount} />}
+      result={<>
+        <ul className="flex flex-col divide-y divide-line-subtle rounded-card bg-console px-4 py-1">
+          {values.map(u => (
+            <li key={u} className="flex items-center justify-between gap-3 py-1.5">
               <span className="font-mono text-sm text-fg">{u}</span>
-              <CopyButton text={u} />
-            </div>
+              <CopyButton text={u} title={t.copyOne.replace('{uuid}', u)} />
+            </li>
           ))}
+        </ul>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={() => copy(values.join('\n'))}><Copy size={14} aria-hidden /> {copied ? t.copied : t.copyAll}</Button>
+          <Button variant="secondary" onClick={draw}><RefreshCw size={14} aria-hidden /> {t.regenerate}</Button>
         </div>
-      )}
-    </Section>
+      </>} />
   )
 }
 
-// ── Page ─────────────────────────────────────────────────────────────────────
-
+/**
+ * As in the mock-up: a tab per kind of value, its settings on the left, the
+ * value already drawn on the right with its strength; it is drawn again as
+ * soon as a setting changes. Everything is drawn on this PC.
+ */
 export default function GeneratorPage() {
   const { t } = useI18n()
+  const g = t.generator
+  const [kind, setKind] = usePersistentState<Kind>('devforge:gen-kind', 'password')
 
   return (
-    <Page className="max-w-4xl">
-      <PageHeader crumb={t.nav.groupTools} title={t.generator.title} subtitle={t.generator.subtitle} />
+    <Page className="df-mockup max-w-none gap-5">
+      <PageHeader crumb={t.nav.groupTools} title={g.title} subtitle={g.subtitle} />
       <ToolHelp id="generator" what={t.toolHelp.generator.what} how={t.toolHelp.generator.how} />
-      <PasswordSection t={t.generator} />
-      <SecretSection   t={t.generator} />
-      <UuidSection     t={t.generator} />
+      <Tabs<Kind> value={kind} onChange={setKind} label={g.kinds} className="self-start"
+        items={[{ value: 'password', label: g.sectionPass }, { value: 'secret', label: g.sectionSecret }, { value: 'uuid', label: g.sectionUuid }]} />
+      {kind === 'password' ? <PasswordTool t={g} /> : kind === 'secret' ? <SecretTool t={g} /> : <UuidTool t={g} />}
     </Page>
   )
 }

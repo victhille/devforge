@@ -2782,7 +2782,7 @@ const en = {
     tsLocal:      'Local time',
     tsRelative:   'Relative',
     title:       'Toolbox',
-    subtitle:    'Quick developer utilities',
+    subtitle:    'The small everyday utilities, with no website or shady copy-paste.',
     tabJson:     'JSON',
     tabBase64:   'Base64',
     tabJwt:      'JWT',
@@ -2790,7 +2790,7 @@ const en = {
     tabUuid:     'UUID',
     tabHash:     'Hash',
     input:       'Input',
-    output:      'Output',
+    output:      'Result',
     format:      'Format',
     minify:      'Minify',
     encode:      'Encode',
@@ -2806,7 +2806,10 @@ const en = {
     flags:       'Flags',
     matches:     'matches',
     noMatch:     'No match',
-    sortKeys: 'Sort keys'
+    sortKeys: 'Sort keys',
+    tools: 'Tools',
+    hints: { json: 'format', base64: 'encode', jwt: 'decode', regex: 'test', uuid: 'generate', hash: 'SHA, MD5', cron: 'explain', timestamp: 'convert', url: 'encode' },
+    validJson: 'Valid JSON'
   },
 
   // v3.5 lot 5: the commands added to the Docs page
@@ -2829,7 +2832,10 @@ const en = {
     newCategoryName: 'Category name',
     suggestions: 'Suggestions',
     found: 'Found on this PC: {path}',
-    notFound: '"{program}" is not on this PC. You can save it anyway (for a remote server, say).'
+    notFound: '"{program}" is not on this PC. You can save it anyway (for a remote server, say).',
+    copyCmd: 'Copy {cmd}',
+    editCmd: 'Edit {cmd}',
+    removeCmd: 'Delete {cmd}'
   },
 
   // v3.5 lot 4: what each tool is for, how to use it, and its examples
@@ -2902,7 +2908,7 @@ const en = {
     },
     generator: {
       what: "Draws at random what you should not make up yourself: passwords, app secrets (APP_KEY, JWT_SECRET), UUIDs.",
-      how: "Set the length and characters, then Generate and copy. Everything is drawn on this PC (crypto.getRandomValues), nothing is sent."
+      how: "Pick what you need and set it: a value is drawn at once, Regenerate draws another, Copy copies it. Everything is drawn on this PC (crypto.getRandomValues), nothing is sent."
     },
     webhooks: {
       what: "A webhook is a call a service (Stripe, GitHub…) sends your app when something happens. Here DevForge receives them so you can see their shape.",
@@ -2971,35 +2977,43 @@ const en = {
     copied:       'Copied!',
     titlePlaceholder: 'Snippet title...',
     tagsPlaceholder:  'react, hook, typescript...',
-    unsaved:      'Unsaved changes'
+    unsaved:      'Unsaved changes',
+    languages: 'Languages',
+    all: 'All',
+    pick: 'Pick a snippet on the left, or make one.',
+    deleteConfirm: 'Delete the snippet "{title}"?',
+    more: 'More actions on the snippet',
+    edit: 'Edit',
+    codeOf: 'Code of {title}'
   },
 
   // ── Diff ──────────────────────────────────────────────────────────────────
   diff: {
     title:    'Text Diff',
-    subtitle: 'Compare two texts side by side',
+    subtitle: 'Compare two versions line by line: two .env files, two configs, a file before and after.',
     original: 'Original',
     modified: 'Modified',
     pasteOriginal: 'Paste the original text…',
     pasteModified: 'Paste the modified text…',
     result:   'Diff Result',
-    added:    'added',
-    removed:  'removed',
-    equal:    'unchanged',
     clear:    'Clear',
     noInput:  'Paste text in both panels to see the diff',
     ignoreSpaces: 'Ignore whitespace',
-    swap: 'Swap'
+    swap: 'Swap',
+    view: 'View',
+    split: 'Side by side',
+    unified: 'Unified',
+    removedCount: '{n} line(s) removed',
+    addedCount: '{n} line(s) added'
   },
 
   // ── Generator ─────────────────────────────────────────────────────────────
   generator: {
     title:         'Generator',
-    subtitle:      'Passwords, secrets & tokens',
+    subtitle:      'Passwords, secrets and tokens drawn at random by the system, never made up by hand.',
     sectionPass:   'Password',
-    sectionSecret: 'Secret / Token',
+    sectionSecret: 'App secret / token',
     sectionUuid:   'UUID',
-    clickGenerate: 'Click Generate',
     length:        'Length',
     uppercase:     'Uppercase (A-Z)',
     lowercase:     'Lowercase (a-z)',
@@ -3012,12 +3026,21 @@ const en = {
     formatHex:     'Hex',
     formatBase64:  'Base64',
     formatAlpha:   'Alphanumeric',
-    bytes:         'Bytes',
     version:       'Version',
     regenerate: 'Regenerate',
     laravelPrefix: 'base64: prefix (Laravel APP_KEY)',
     urlSafe: 'URL-safe',
-    strength: '{n} bits of randomness'
+    settings: 'Settings',
+    result: 'Result',
+    bits: '{n} bits',
+    local: 'Drawn on this PC (crypto.getRandomValues): nothing is sent.',
+    chars: 'characters',
+    bytesUnit: 'bytes',
+    count: 'How many',
+    copyOne: 'Copy {uuid}',
+    copyAll: 'Copy all',
+    kinds: 'What to generate',
+    lastKind: 'At least one kind of characters is needed'
   },
 
   common: {

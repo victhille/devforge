@@ -7,7 +7,7 @@ Le groupe **Outils** réunit les petits utilitaires du quotidien. Tout tourne su
 
 ## Boîte à outils
 
-Une page, un onglet par outil, et **Chercher un outil…** pour aller vite :
+Une page, une carte par outil (son nom et ce qu'il fait), et **Chercher un outil…** pour aller vite (<kbd>Entrée</kbd> ouvre le premier trouvé, les flèches passent d'un outil à l'autre) :
 
 | Outil | Ce qu'il fait |
 |---|---|
@@ -21,7 +21,7 @@ Une page, un onglet par outil, et **Chercher un outil…** pour aller vite :
 | Timestamp | convertit un timestamp Unix (secondes ou millisecondes) en heure locale et en relatif ; **Maintenant** |
 | URL | encode (`encodeURIComponent` ou `encodeURI`), décode, et découpe une URL : protocole, hôte, chemin, paramètres, ancre |
 
-Chaque sortie a son bouton **Copier**.
+Chaque outil a une carte **Entrée**, où l'on tape ou colle, et une carte **Résultat**, sur fond sombre, avec son bouton de copie.
 
 ## Aide et exemples
 
@@ -36,25 +36,27 @@ Un exemple ne fait que remplir des champs : rien n'est enregistré ni envoyé. *
 
 ## Snippets
 
-Tes bouts de code réutilisables : un **titre**, un **langage**, le **code** et des **tags** (`react, hook, typescript`). Recherche, **Copier**, **Supprimer**. Un bloc du [terminal intégré](/devforge/getting-started/interface/#le-terminal-intégré) s'enregistre aussi comme snippet.
+Tes bouts de code réutilisables : un **titre**, un **langage**, le **code** et des **tags** (`react, hook, typescript`). À gauche, une recherche, les langages en filtres (**Tous**, TypeScript, PHP…) et la liste, chaque snippet avec son langage et son premier tag. À droite, le snippet choisi : ses tags, son code en couleurs, **Copier** et **Nouveau snippet** ; le menu **⋯** le **Modifie** (le formulaire, puis **Enregistrer**) ou le **Supprime**, après confirmation. Un bloc du [terminal intégré](/devforge/getting-started/interface/#le-terminal-intégré) s'enregistre aussi comme snippet.
 
 ## Diff texte
 
-Colle un texte **Original** et un texte **Modifié** : le résultat montre côte à côte ce qui est *ajouté*, *supprimé* ou *inchangé*. **Ignorer les espaces** compte comme identiques les lignes qui ne diffèrent que par l'indentation ou des espaces en trop. **Inverser** échange les deux textes.
+Colle un texte **Original** et un texte **Modifié** : le nombre de lignes retirées et ajoutées s'affiche, puis les deux versions **côte à côte**, avec leurs numéros de ligne, les lignes retirées en rouge à gauche et les lignes ajoutées en vert à droite. **Unifié** les montre en une seule liste, avec `+` et `-` (le choix est retenu). **Ignorer les espaces** compte comme identiques les lignes qui ne diffèrent que par l'indentation ou des espaces en trop. **Inverser** échange les deux textes, **Effacer** les vide.
 
 ## Générateur
 
-| Section | Réglages |
+Un onglet par sorte de valeur, avec ses **Réglages** à gauche et le **Résultat** à droite :
+
+| Onglet | Réglages |
 |---|---|
 | Mot de passe | longueur, majuscules, minuscules, chiffres, symboles |
-| Secret / Token | format (Hex, Base64, alphanumérique) et nombre d'octets. En Base64 : **Préfixe base64: (APP_KEY de Laravel)** donne une clé prête pour le `.env` de Laravel, **Sûr pour une URL** remplace `+` et `/` par `-` et `_`. Sous le résultat, le nombre de bits d'aléa |
-| UUID | un UUID v4 par clic, les 10 derniers gardés |
+| Secret d’appli / token | format (Base64, Hex, alphanumérique) et nombre d'octets. En Base64 : **Préfixe base64: (APP_KEY de Laravel)** donne une clé prête pour le `.env` de Laravel, **Sûr pour une URL** remplace `+` et `/` par `-` et `_` |
+| UUID | combien en tirer d'un coup (1 à 20), **Tout copier** |
 
-**Générer**, puis **Copier**.
+Une valeur est tirée dès l'ouverture, et de nouveau quand un réglage change ; **Régénérer** en tire une autre, **Copier** la copie. Le résultat dit sa force en bits. Les réglages sont retenus.
 
 ## Docs
 
-Des aide-mémoire de commandes pour **Docker**, **React**, **Vue**, **Symfony**, **Node.js**, **Git**, **Shell** et **Python**, avec une recherche. Chaque commande se copie d'un clic.
+Des aide-mémoire de commandes pour **Docker**, **React**, **Vue**, **Symfony**, **Node.js**, **Git**, **Shell** et **Python** : à gauche, chaque référence avec son nombre de commandes ; à droite, ses sections en cartes, une ligne par commande (la commande, ce qu'elle fait, la copie). La recherche filtre la référence ouverte.
 
 ### Tes propres commandes
 

@@ -2771,7 +2771,7 @@ const fr = {
     tsLocal:      'Heure locale',
     tsRelative:   'Relatif',
     title:       'Boîte à outils',
-    subtitle:    'Utilitaires développeur rapides',
+    subtitle:    'Les petits utilitaires du quotidien, sans site web ni copier-coller douteux.',
     tabJson:     'JSON',
     tabBase64:   'Base64',
     tabJwt:      'JWT',
@@ -2779,7 +2779,7 @@ const fr = {
     tabUuid:     'UUID',
     tabHash:     'Hash',
     input:       'Entrée',
-    output:      'Sortie',
+    output:      'Résultat',
     format:      'Formater',
     minify:      'Minifier',
     encode:      'Encoder',
@@ -2795,7 +2795,10 @@ const fr = {
     flags:       'Flags',
     matches:     'correspondances',
     noMatch:     'Aucune correspondance',
-    sortKeys: 'Trier les clés'
+    sortKeys: 'Trier les clés',
+    tools: 'Outils',
+    hints: { json: 'formater', base64: 'coder', jwt: 'décoder', regex: 'tester', uuid: 'générer', hash: 'SHA, MD5', cron: 'expliquer', timestamp: 'convertir', url: 'coder' },
+    validJson: 'JSON valide'
   },
 
   // v3.5 lot 5: the commands added to the Docs page
@@ -2818,7 +2821,10 @@ const fr = {
     newCategoryName: 'Nom de la catégorie',
     suggestions: 'Suggestions',
     found: 'Trouvée sur ce PC : {path}',
-    notFound: "« {program} » n'est pas sur ce PC. Tu peux quand même l'enregistrer (pour un serveur distant, par exemple)."
+    notFound: "« {program} » n'est pas sur ce PC. Tu peux quand même l'enregistrer (pour un serveur distant, par exemple).",
+    copyCmd: 'Copier {cmd}',
+    editCmd: 'Modifier {cmd}',
+    removeCmd: 'Supprimer {cmd}'
   },
 
   // v3.5 lot 4: what each tool is for, how to use it, and its examples
@@ -2891,7 +2897,7 @@ const fr = {
     },
     generator: {
       what: "Génère au hasard ce qu'il ne faut pas inventer soi-même : mots de passe, secrets d'application (APP_KEY, JWT_SECRET), UUID.",
-      how: "Règle la longueur et les caractères, puis Générer et copie. Tout est tiré sur ce PC (crypto.getRandomValues), rien n'est envoyé."
+      how: "Choisis ce qu'il te faut et règle-le : une valeur est tirée aussitôt, Régénérer en tire une autre, Copier la copie. Tout est tiré sur ce PC (crypto.getRandomValues), rien n'est envoyé."
     },
     webhooks: {
       what: "Un webhook est un appel qu'un service (Stripe, GitHub…) envoie à ton application quand un événement arrive. Ici, DevForge les reçoit pour que tu voies leur forme.",
@@ -2958,33 +2964,41 @@ const fr = {
     copied:       'Copié !',
     titlePlaceholder: 'Titre du snippet...',
     tagsPlaceholder:  'react, hook, typescript...',
-    unsaved:      'Modifications non enregistrées'
+    unsaved:      'Modifications non enregistrées',
+    languages: 'Langages',
+    all: 'Tous',
+    pick: 'Choisis un snippet à gauche, ou crée-en un.',
+    deleteConfirm: 'Supprimer le snippet « {title} » ?',
+    more: 'Autres actions sur le snippet',
+    edit: 'Modifier',
+    codeOf: 'Code de {title}'
   },
 
   diff: {
     title:    'Diff texte',
-    subtitle: 'Comparer deux textes côte à côte',
+    subtitle: 'Compare deux versions ligne à ligne : deux .env, deux configs, un fichier avant et après.',
     original: 'Original',
     modified: 'Modifié',
     pasteOriginal: 'Colle le texte original…',
     pasteModified: 'Colle le texte modifié…',
     result:   'Résultat',
-    added:    'ajouté',
-    removed:  'supprimé',
-    equal:    'inchangé',
     clear:    'Effacer',
     noInput:  'Colle du texte dans les deux panneaux pour voir les différences',
     ignoreSpaces: 'Ignorer les espaces',
-    swap: 'Inverser'
+    swap: 'Inverser',
+    view: 'Affichage',
+    split: 'Côte à côte',
+    unified: 'Unifié',
+    removedCount: '{n} ligne(s) retirée(s)',
+    addedCount: '{n} ligne(s) ajoutée(s)'
   },
 
   generator: {
     title:         'Générateur',
-    subtitle:      'Mots de passe, secrets & tokens',
+    subtitle:      'Mots de passe, secrets et tokens tirés au hasard par le système, jamais inventés à la main.',
     sectionPass:   'Mot de passe',
-    sectionSecret: 'Secret / Token',
+    sectionSecret: 'Secret d’appli / token',
     sectionUuid:   'UUID',
-    clickGenerate: 'Clique sur Générer',
     length:        'Longueur',
     uppercase:     'Majuscules (A-Z)',
     lowercase:     'Minuscules (a-z)',
@@ -2997,12 +3011,21 @@ const fr = {
     formatHex:     'Hex',
     formatBase64:  'Base64',
     formatAlpha:   'Alphanumérique',
-    bytes:         'Octets',
     version:       'Version',
     regenerate: 'Régénérer',
     laravelPrefix: 'Préfixe base64: (APP_KEY de Laravel)',
     urlSafe: 'Sûr pour une URL',
-    strength: '{n} bits d’aléa'
+    settings: 'Réglages',
+    result: 'Résultat',
+    bits: '{n} bits',
+    local: 'Tiré sur ce PC (crypto.getRandomValues) : rien n’est envoyé.',
+    chars: 'caractères',
+    bytesUnit: 'octets',
+    count: 'Combien',
+    copyOne: 'Copier {uuid}',
+    copyAll: 'Tout copier',
+    kinds: 'Que générer',
+    lastKind: 'Il faut au moins une sorte de caractères'
   },
 
   common: {

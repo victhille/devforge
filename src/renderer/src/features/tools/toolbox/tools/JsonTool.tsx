@@ -4,6 +4,7 @@ import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import CopyButton from '@renderer/components/ui/CopyButton'
 import IconButton from '@renderer/components/ui/IconButton'
+import Badge from '@renderer/components/ui/Badge'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import ToolHelp from '@renderer/components/ui/ToolHelp'
 import { JSON_EXAMPLE } from '../../examples'
@@ -40,7 +41,11 @@ export default function JsonTool({ t }: { t: ToolboxT }) {
         >
           <textarea className={IO_TEXTAREA} value={input} onChange={e => setInput(e.target.value)} placeholder='{"key": "value"}' spellCheck={false} />
         </IoPanel>
-        <IoPanel label={t.output} actions={output && <CopyButton text={output} />}>
+        <IoPanel label={t.output} actions={<>
+          {output && <Badge color="success">{t.validJson}</Badge>}
+          {error && <Badge color="danger">{t.invalid}</Badge>}
+          {output && <CopyButton text={output} />}
+        </>}>
           <textarea className={cn(IO_TEXTAREA, error && 'text-danger')} value={error || output} readOnly aria-label={t.output} spellCheck={false} />
         </IoPanel>
       </IoGrid>
