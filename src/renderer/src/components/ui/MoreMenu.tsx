@@ -21,11 +21,14 @@ export default function MoreMenu({ label, items, size = 'md' }: { label: string;
   const box = useRef<HTMLDivElement>(null)
   const button = useRef<HTMLButtonElement>(null)
   const menu = useRef<HTMLDivElement>(null)
+  // Where the button was when the menu was placed beside it
+  const anchor = useRef<DOMRect | null>(null)
 
   useLayoutEffect(() => {
     if (!open || !button.current) return
     setMockup(!!button.current.closest('.df-mockup'))
     const r = button.current.getBoundingClientRect()
+    anchor.current = r
     const height = menu.current?.offsetHeight ?? 0
     const below = r.bottom + 6 + height <= window.innerHeight - 8
     setPlace({ right: Math.max(8, window.innerWidth - r.right), ...(below ? { top: r.bottom + 6 } : { bottom: window.innerHeight - r.top + 6 }) })
@@ -38,11 +41,16 @@ export default function MoreMenu({ label, items, size = 'md' }: { label: string;
       const at = e.target as Node
       if (!box.current?.contains(at) && !menu.current?.contains(at)) setOpen(false)
     }
-    // A scroll or a resize would leave it beside its button: it closes. Only a scroll that moves the button
-    // (the page, or a box holding it): a log scrolling to its end elsewhere on the page leaves it open
+    // A scroll or a resize would leave it away from its button: it closes. Only a scroll that moved the button:
+    // a log scrolling to its end elsewhere, or the late event of the scroll that brought the button into view
+    // before the click (it arrives once the menu is open), leaves it open
     const away = (e: Event) => {
       if (menu.current?.contains(e.target as Node)) return
-      if (e.type === 'scroll' && e.target instanceof Node && button.current && !e.target.contains(button.current)) return
+      if (e.type === 'scroll') {
+        const now = button.current?.getBoundingClientRect()
+        const was = anchor.current
+        if (now && was && Math.abs(now.top - was.top) < 1 && Math.abs(now.left - was.left) < 1) return
+      }
       if (menu.current?.contains(document.activeElement)) button.current?.focus()
       setOpen(false)
     }
