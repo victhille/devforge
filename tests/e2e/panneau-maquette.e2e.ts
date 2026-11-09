@@ -46,12 +46,10 @@ test('the panel lists the projects, says where things stand, and holds the Setti
   await expect(menu.getByText('Ctrl K mène à n’importe quelle page, projet ou script.')).toBeVisible()
   expect(await settledAxeIssues(page)).toEqual([])
 
-  // Development: every project by name, the one on screen marked
+  // Development: its pages, no list of projects (the Projects page has them all)
   await menu.getByRole('button', { name: 'Développement' }).click()
-  await expect(menu.getByRole('link', { name: /^(Shop|Blog|Api|Docs)/ })).toHaveText([/^Api, à jour$/, /^Blog/, /^Docs/, /^Shop2, 2 fichier/])
-  await menu.getByRole('link', { name: /^Blog/ }).click()
-  await expect(menu.getByRole('link', { name: /^Blog/ })).toHaveAttribute('aria-current', 'page')
-  await expect(menu.locator('[aria-current="page"]')).toHaveCount(1)
+  await expect(menu.getByRole('link', { name: 'Nouveau projet' })).toBeVisible()
+  await expect(menu.getByRole('link', { name: /^(Shop|Blog|Api|Docs)/ })).toHaveCount(0)
   expect(await settledAxeIssues(page)).toEqual([])
 
   // Servers: the server's name at the bottom

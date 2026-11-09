@@ -1,8 +1,10 @@
 import { ipcMain, type BrowserWindow } from 'electron'
 import type { RowChange } from '@shared/lib/rowEdits'
+import type { DbSearchOptions } from '@shared/lib/dbSearch'
 import type { DbBrowseOptions, DbConnection, DbTableRef, ExportFormat } from '@shared/types'
 import { exportTable, importCsv, pickCsv, saveImage, saveResult } from '../services/database/dbTransfer'
 import { closeDb, dbBrowse, dbDetails, dbDiagram, dbOverview, dbQuery, dbSchema, testDb, dbApplyRows } from '../services/database/dbClient'
+import { dbSearchTable } from '../services/database/dbSearch'
 import { listDbConnections, removeDbConnection, saveDbConnection } from '../services/database/dbStorage'
 import { addDetected, detectLocal, detectRemote } from '../services/database/dbDetect'
 
@@ -26,6 +28,7 @@ export function registerDatabaseHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle('db:import-csv', (_e, id: string, t: DbTableRef, token: string, mapping: unknown, emptyIsNull: boolean) =>
     importCsv(id, t, String(token ?? ''), Array.isArray(mapping) ? mapping.map(m => (typeof m === 'string' ? m : null)) : [], emptyIsNull !== false))
   ipcMain.handle('db:browse',   (_e, id: string, t: DbTableRef, o: DbBrowseOptions) => dbBrowse(id, t, o))
+  ipcMain.handle('db:search',   (_e, id: string, t: DbTableRef, o: DbSearchOptions) => dbSearchTable(id, t, o))
   ipcMain.handle('db:detect-remote', (_e, sshId: string) => detectRemote(sshId))
   ipcMain.handle('db:detect-local',  () => detectLocal())
   ipcMain.handle('db:add-detected',  (_e, key: string) => addDetected(key))

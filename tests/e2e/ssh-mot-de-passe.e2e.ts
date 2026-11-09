@@ -27,7 +27,7 @@ test('a new address forgets the saved password and what was kept for the server'
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setSize(1440, 900))
   await goTo(page, '/ssh')
   // The row's buttons show on hover, over its right side: the mouse stays on the left
-  await page.getByText('deploy@203.0.113.10:22').hover({ position: { x: 4, y: 4 } })
+  await page.getByText('deploy@203.0.113.10', { exact: true }).hover({ position: { x: 4, y: 4 } })
   await page.getByRole('button', { name: 'Modifier la connexion' }).click()
   const dialog = page.getByRole('dialog')
   const password = dialog.locator('input[type="password"]')
@@ -59,7 +59,7 @@ test('a new address forgets the saved password and what was kept for the server'
   // Saved with the new host and no password: the old one is gone from the disk, n8n's key and the VPN login too
   await dialog.getByLabel('Hôte / IP').fill('198.51.100.7')
   await dialog.getByRole('button', { name: 'Enregistrer', exact: true }).click()
-  await expect(page.getByText('deploy@198.51.100.7:22')).toBeVisible()
+  await expect(page.getByText('deploy@198.51.100.7', { exact: true })).toBeVisible()
   const saved = read('ssh-connections.json')
   expect(saved).toEqual([expect.objectContaining({ id: 's1', host: '198.51.100.7' })])
   expect(saved[0]).not.toHaveProperty('passwordEnc')

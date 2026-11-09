@@ -6,6 +6,7 @@ import { writeJsonFile } from '../../lib/jsonFile'
 import { log } from '../../lib/log'
 import { runOn } from '../monitor/vpsWatch'
 import { openForward, sshHttp } from '../ssh/localForward'
+import { testApi, testOutput } from '../vps/testOutputs'
 
 /**
  * WireGuard on a VPS, managed through wg-easy (v15) and its REST API. wg-easy
@@ -52,7 +53,7 @@ export function parseDetect(ps: string): VpnDetect {
 }
 
 export async function detect(connectionId: string): Promise<VpnDetect> {
-  return parseDetect(await runOn(connectionId, "docker ps --format '{{.Names}}|{{.Image}}|{{.Ports}}' 2>/dev/null || true", 30_000))
+  return parseDetect(testOutput('vpnDetect') ?? await runOn(connectionId, "docker ps --format '{{.Names}}|{{.Image}}|{{.Ports}}' 2>/dev/null || true", 30_000))
 }
 
 // ─── API ──────────────────────────────────────────────────────────────────────
@@ -60,6 +61,8 @@ export async function detect(connectionId: string): Promise<VpnDetect> {
 const basic = (username: string, password: string) => `Basic ${Buffer.from(`${username}:${password}`, 'utf-8').toString('base64')}`
 
 async function call(connectionId: string, method: string, path: string, body?: unknown, login?: { port: number; username: string; password: string }) {
+  const canned = testApi('vpnApi', method, path)
+  if (canned !== undefined) return { status: 200, headers: {} as Record<string, string | string[] | undefined>, body: Buffer.from(typeof canned === 'string' ? canned : JSON.stringify(canned), 'utf-8') }
   let port: number, auth: string
   if (login) { port = login.port; auth = basic(login.username, login.password) }
   else {

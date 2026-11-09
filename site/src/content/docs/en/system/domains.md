@@ -7,9 +7,9 @@ The **Local domains** page names your dev servers: `shop.test` instead of `local
 
 ## Adding a domain
 
-Type a **domain** ending in `.test` or `.localhost` (for example `shop.test`) and the local **port**, then **Add**. **Detected in your projects** suggests domain / port pairs taken from your projects.
+**New domain** (top right) opens the form: a **domain** ending in `.test` or `.localhost` (for example `shop.test`) and the local **port**, then **Add**. **Detected in your projects** suggests domain / port pairs taken from your projects.
 
-The domains show in a table, with the number of active ones on top ("Active: 2 of 3"). For each: the switch that enables or disables it, the address, the target port, the **project** holding that port and its **state**: *answers* when a server listens on the port, *nothing on the port* otherwise, *disabled* when it is off.
+Three cards sum up the state: the **proxy**, the **hosts file** and the number of domains on ("2 of 3 domain(s) on"). The domains show in a table: the domain, the target port, the **project** holding that port, its **state** (*answers* when a server listens on the port, *nothing on the port* otherwise, *disabled* when it is off) and the actions: open the address, the switch that turns it on or off, the bin on hover.
 
 ## The proxy
 

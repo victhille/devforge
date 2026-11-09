@@ -32,6 +32,7 @@ test('n8n key and ntfy alerts are set from Connections', async () => {
   // n8n: no key yet, its form, the way to its page
   await expect(page.getByText('n8n · mon-serveur')).toBeVisible({ timeout: 20_000 })
   await expect(page.getByText('n8n.example.com')).toBeVisible()
+  await page.getByRole('button', { name: 'Ajouter une clé · n8n · mon-serveur' }).click()
   await expect(page.getByLabel('Clé API n8n')).toBeVisible()
 
   // Alerts: read on the server when asked; a topic ntfy would not take is refused, said plainly

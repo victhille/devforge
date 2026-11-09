@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Code2, FolderOpen, Info, Server, Terminal, Play, Rocket, type LucideIcon } from 'lucide-react'
 import type { Project, SSHConnection, Stack } from '@shared/types'
+import { NO_SERVERS, useSshConnections } from '@renderer/hooks/useLiveData'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useConsole } from '@renderer/app/ConsoleContext'
 import { usePreferredIde } from '@renderer/lib/ide'
@@ -30,7 +31,7 @@ export function useCommands(open: boolean): Command[] {
   const { runScript } = useConsole()
   const ide = usePreferredIde()
   const [projects, setProjects] = useState<Project[]>([])
-  const [connections, setConnections] = useState<SSHConnection[]>([])
+  const connections: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
   const [scripts, setScripts] = useState<Record<string, Record<string, string>>>({})
   const [stacks, setStacks] = useState<Stack[]>([])
   const actions = useActions(open)
@@ -44,7 +45,6 @@ export function useCommands(open: boolean): Command[] {
         window.devforge.getProjectScripts(p.path).then(s => [p.id, s] as const).catch(() => [p.id, {}] as const)
       )).then(entries => setScripts(Object.fromEntries(entries)))
     })
-    window.devforge.getSshConnections().then(setConnections)
     window.devforge.stacks.list().then(setStacks)
   }, [open])
 

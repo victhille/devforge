@@ -33,13 +33,14 @@ DevForge est une application Electron : un processus principal (Node.js) qui fai
 
 ### Données gardées et actualisées
 
-Les listes lues par beaucoup de pages (projets, connexions de base, modèles d'un projet) passent par `useLive` (`src/renderer/src/lib/live.ts`) :
+Les données lues par beaucoup de pages passent par `useLive` (`src/renderer/src/lib/live.ts`) : projets, connexions de base, modèles d'un projet, et aussi les réglages (`useSettings`, toutes les fenêtres : langue et apparence les suivent), les serveurs SSH (`useSshConnections`), les modèles de projet, les IDE trouvés, l'aperçu des Connexions, les versions des outils, le dossier des données. Elles sont :
 
-- gardées en mémoire une fois lues : une page qui revient les montre tout de suite, puis les relit en arrière-plan quand elles ont plus de 10 s ;
+- gardées en mémoire une fois lues : une page qui revient les montre tout de suite, puis les relit en arrière-plan quand elles ont plus de 10 s (`freshMs` pour une lecture lente : 5 min pour les versions des outils et les IDE, 1 min pour le dossier des données) ;
 - deux pages qui les demandent en même temps ne font qu'une requête ;
-- quand le processus principal les écrit (une page, Forgy, un import), il envoie `data:changed` avec un sujet (`dataChanged('projects')`, `'db-connections'`, `'models'` avec le chemin du projet ; `src/main/lib/changes.ts`) : les pages qui les montrent les relisent aussitôt, les autres à leur prochaine visite.
+- quand le processus principal les écrit (une page, Forgy, un import), il envoie `data:changed` avec un sujet (`dataChanged('projects')`, `'db-connections'`, `'models'` avec le chemin du projet, `'settings'`, `'ssh'`, `'templates'` ; `src/main/lib/changes.ts`) : les pages qui les montrent les relisent aussitôt, les autres à leur prochaine visite ; une entrée peut suivre plusieurs sujets (l'aperçu des Connexions : `['ssh', 'db-connections', 'settings']`) ;
+- un changement fait ici (`setLive`, `saveSettings`, `patchSettings`) s'affiche tout de suite, et une relecture partie avant lui ne l'écrase pas : celle qui suit l'écriture le confirme ; un changement annoncé pendant une lecture en route en déclenche une autre juste après.
 
-Pour une nouvelle liste : un sujet dans `DataTopic` (`src/shared/types/index.ts`), `dataChanged(sujet)` dans la fonction du service qui écrit, et un hook `useLive(clé, lecture, { topic })` (voir `src/renderer/src/hooks/useLiveData.ts`). Pas pour ce qu'on est en train de saisir (les notes, un modèle ouvert) : la relecture écraserait la saisie.
+Pour une nouvelle liste : un sujet dans `DataTopic` (`src/shared/types/index.ts`), `dataChanged(sujet)` dans la fonction du service qui écrit, et un hook `useLive(clé, lecture, { topic })` (voir `src/renderer/src/hooks/useLiveData.ts`). Pas pour ce qu'on est en train de saisir (un modèle ouvert) : la relecture écraserait la saisie. Les notes d'un projet font les deux : leur liste et les compteurs de cases passent par `useLive` (sujet `notes`, avec le chemin du projet), la note ouverte n'est relue que si rien de ce qu'on a tapé n'attend d'être enregistré.
 
 ## Interface
 
@@ -51,8 +52,10 @@ Une page se construit avec les composants de `src/renderer/src/components/ui/` p
 | Un mot ou une valeur dans une pastille | `Badge` (`color`, `dot` ; `mono` pour une valeur technique : framework, version, langage, code HTTP) |
 | Une touche ou un raccourci | `Kbd` |
 | Un message dans la page (conseil, alerte, erreur) | `Notice` (`tone` : neutral, info, success, warning, danger ; `live` s'il arrive après une action, `role` pour en garder un) |
+| Ce qui se charge | les blocs de `components/ui/Skeleton.tsx` à la forme de ce qui vient, plutôt qu'un spinner : `CardSkeleton` (une carte et ses lignes), `RowsSkeleton`, `LinesSkeleton` (une tuile, un panneau), `TableSkeleton`, `CardGridSkeleton` (des cartes en grille), `CanvasSkeleton` (un éditeur) ; ils disent « Chargement… » aux lecteurs d'écran (`label={false}` dans un cadre qui le dit déjà). Le spinner reste pour une action en cours (un bouton) |
 | Une lecture qui a échoué | `ErrorState` (avec `onRetry`) — jamais un spinner qui tourne sans fin |
 | Une liste vide | `EmptyState` (une ligne dans un cadre pointillé : l'icône, ce qui manque, l'action) |
+| Un réglage en nombre (un seuil, une longueur) | `Range` (la valeur à droite, enregistrée au relâchement ; `useRange` pour une autre mise en page) |
 | L'état d'un service, d'un conteneur, d'un serveur | `StatusDot` (`on`, `off`, `warn`, `error`, `unknown` ; `live` pour la pulsation) |
 | La sortie d'une commande | `LogBox` |
 | Une question avant une suppression | `await confirmDialog(message, { danger: true })` (`src/renderer/src/app/ConfirmContext.tsx`), jamais `window.confirm` |
@@ -63,11 +66,15 @@ Une page se construit avec les composants de `src/renderer/src/components/ui/` p
 | Des compteurs en haut d'une page | `Stat` dans une `StatRow` (l'intitulé, puis la valeur en grand en `font-display` ; `tone` seulement quand il y a quelque chose à voir, `unit` pour les petits mots après) |
 | Un tableau de données | `Table`, `Th`, `Td` (en-têtes de 34 px, lignes de 42 px séparées d'un trait, la ligne survolée éclairée ; `align="right"` pour les nombres et les actions) |
 
+Une logique servie à deux endroits se met dans un hook ou un module commun, pas en double : le commit (fichiers cochés, message, commit et push) dans `features/git/useCommit.ts`, pour l'onglet Fichiers et Git de la fiche et la fenêtre de la page Git ; l'arbre « Ce qui sera créé » de l'assistant dans `src/shared/data/projectTrees.ts` (avec `drawTree`, testé).
+
 Les valeurs viennent du thème (`src/renderer/src/styles/index.css`) :
 
 - couleurs : `bg-surface`, `text-fg-muted`, `bg-danger-soft`… ; sur un fond plein, `text-accent-fg`, `text-danger-fg`, `text-success-fg` ou `text-forgy-fg`, jamais `text-white` ; avec le thème « Forge » (graphite chaud), l'accent est l'orange de Forgy et une information se dit en bleu (`text-info`, `bg-info-soft`) ;
 - polices embarquées dans l'appli (`@fontsource-variable`, rien n'est chargé en ligne) : Inter pour le texte (`font-sans`), JetBrains Mono pour le code, les chemins, les ports et les raccourcis (`font-mono`), Bricolage Grotesque pour les titres (`font-display`) ;
-- tailles de texte de l'échelle 11 / 12 / 13 / 14 / 16 / 20 / 28 / 34 (`text-xs` à `text-xl`, `text-page` pour un titre de page, `text-hero` pour l'accueil, `text-2xs` pour une touche ou un compteur) et espacements Tailwind (`px-4.5` = 18 px) : une valeur en pixels (`text-[13px]`) ne suit pas la densité compacte ;
+- une page dessinée aux mesures de la maquette porte la classe `df-mockup` (fiche projet, assistant de création) : une unité Tailwind y vaut 4 px (3,36 px en densité compacte) au lieu de 3,25 px, pour reprendre les mesures de la maquette telles quelles ;
+- tailles de texte de l'échelle 11 / 12 / 13 / 14 / 16 / 20 / 28 / 34 (`text-xs` à `text-xl`, `text-page` pour un titre de page, `text-hero` pour l'accueil, `text-2xs` pour une touche ou un compteur) et espacements Tailwind (`px-4.5` = 18 px) : une valeur en pixels (`text-[13px]`) ne suit ni la densité compacte ni la taille du texte choisie (chaque taille du thème est multipliée par `--df-text-scale`) ;
+- la couleur choisie dans Apparence est une palette entière (`PALETTES` de `src/shared/lib/accents.ts` : fonds, bordures, textes et accent, le graphite de Forge tourné vers sa teinte, chaque texte testé à 4,5:1 sur chaque fond) ; `lib/appearance.ts` l'écrit sur les variables du thème (`--bg-*`, `--border*`, `--text-*`, `--accent*`) dans le ton du thème affiché : une page qui s'en tient aux couleurs du thème suit d'elle-même ; `forgy` prend la même couleur que l'accent, seul le logo garde l'orange ;
 - quatre rayons : `rounded-md` 6 px (badge), `rounded-control` 10 px (bouton, champ, comme `rounded-lg`), `rounded-card` 14 px (carte, comme `rounded-xl`), `rounded-window` 18 px (fenêtre) ;
 - le cadre (`components/layout/`) : barre de titre de 44 px, rail d'icônes de 64 px (Accueil, les six groupes, Paramètres en bas) et panneau du groupe de 220 px, replié par Ctrl+B ; il garde sa taille en densité compacte et se construit depuis `app/navigation.ts` (`RAIL`, `MENU_GROUPS`, `railOf`, `railCurrent`), comme le routeur et la palette ; le panneau liste aussi des projets avec l'état de leur dépôt (`components/layout/PanelProjects.tsx`) et, sur les Paramètres, leurs sections, prises dans `features/settings/sections.ts` comme la page ;
 - une couleur de marque trop pâle pour le fond blanc prend `paleClass(couleur)` (`src/renderer/src/lib/brand.ts`), assombrie en thème clair seulement ;

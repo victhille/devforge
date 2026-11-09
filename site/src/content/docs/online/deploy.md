@@ -11,6 +11,10 @@ La page **Déploiement** déploie sur tes serveurs en un clic. Une **cible** = u
 Il faut d'abord un serveur SSH (voir [Connexions](/devforge/getting-started/connections/#serveurs-vps)).
 :::
 
+En haut, la carte du déploiement en cours, ou du dernier : la cible et son serveur, les **étapes** tirées de son script (**Envoi**, **Récupération**, **Installation**, **Build**, **Redémarrage**, **Vérification**…), chacune faite, en cours, en échec ou à venir, puis le journal. Un menu montre les déploiements précédents de la cible.
+
+Dessous, le tableau des cibles : le serveur, la **méthode** (Node.js · PM2, Docker Compose, site statique, Symfony, Laravel ou script), le **dernier déploiement** (réussi ou échec, quand, combien de temps), puis **Journal**, **Déployer** et le menu **⋯** (**Modifier**, **Supprimer**).
+
 ### Créer une cible
 
 **Nouvelle cible** :
@@ -24,7 +28,7 @@ Il faut d'abord un serveur SSH (voir [Connexions](/devforge/getting-started/conn
 | Projet local | facultatif : relie la cible à un projet de DevForge |
 | git push avant de déployer | pousse le projet local avant de lancer le script |
 
-Exemple de script :
+Les boutons sous le script remplissent un modèle : **Node.js · PM2**, **Docker Compose**, **site statique**, **Symfony**, **Laravel**. Exemple de script :
 
 ```bash
 git pull --ff-only
@@ -39,7 +43,7 @@ pm2 restart mon-app
 
 ### Déployer
 
-**Déployer** lance le script ; sa sortie s'affiche en direct. Chaque déploiement est gardé dans l'historique de la cible, avec son journal. Une notification dit s'il a réussi ou échoué.
+**Déployer** lance le script : la carte du haut suit chaque étape et le journal en direct. Chaque déploiement est gardé dans l'historique de la cible, avec son journal (**Journal** sur sa ligne). Une notification dit s'il a réussi ou échoué.
 
 Le déploiement d'un projet se retrouve aussi dans l'onglet **Déploiement** de sa [fiche](/devforge/dev/projects/), avec la [synchronisation du .env](/devforge/dev/projects/#synchroniser-le-env-avec-le-serveur).
 

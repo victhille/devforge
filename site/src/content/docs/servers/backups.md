@@ -25,17 +25,18 @@ Puis règle :
 
 ## Suivre
 
-- **Dernière sauvegarde** : réussie (date et taille) ou en échec. Après plus de 36 h sans sauvegarde, DevForge prévient : vérifie que le serveur tourne et que cron est actif.
-- Si la tâche de nuit a disparu du serveur, **Enregistrer** la remet.
-- **Sauvegarder maintenant** lance une sauvegarde tout de suite.
+En haut, **Planification** rouvre les réglages ci-dessus et **Sauvegarder maintenant** lance une sauvegarde tout de suite.
+
+- **Dernière sauvegarde** : son heure, réussie ou échouée. Après plus de 36 h sans sauvegarde, DevForge prévient : vérifie que le serveur tourne et que cron est actif.
+- Si la tâche de nuit a disparu du serveur, **Planification** puis **Enregistrer** la remet.
 - **Copier sur ce PC** rapatrie la dernière sauvegarde ; **Ouvrir le dossier** l'affiche.
 - **Prochaine** rappelle l'heure de la sauvegarde de nuit ; **Gardées**, combien de jours sont sur le serveur et leur taille.
-- **Fichiers sur le serveur** liste les sauvegardes dans un tableau : date (*jour* ou *semaine*), fichier, taille et **Restaurer**.
+- Le tableau liste les sauvegardes du serveur : date (avec *semaine* pour une hebdomadaire), contenu (**Base …** pour une base, **Données …** pour un volume ou un dossier), taille et **Restaurer**.
 - **Journal** montre le détail de chaque opération.
 
 ## Restaurer
 
-**Restaurer** remet une base ou un volume dans l'état d'un jour donné. Avant, une copie de l'état actuel est faite dans `pre-restore/` ; les conteneurs qui utilisent ces données sont arrêtés pendant la restauration, puis redémarrés.
+**Restaurer** remet une base ou un volume dans l'état d'un jour donné, après confirmation. Avant, une copie de l'état actuel est faite dans `pre-restore/` ; les conteneurs qui utilisent ces données sont arrêtés pendant la restauration, puis redémarrés.
 
 ## Désactiver
 

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { FolderOpen } from 'lucide-react'
 import type { DbConnection, DbType, SSHConnection } from '@shared/types'
+import { NO_SERVERS, useSshConnections } from '@renderer/hooks/useLiveData'
 import { DB_DEFAULT_PORT, sameDbTarget } from '@shared/lib/dbTarget'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import Button from '@renderer/components/ui/Button'
@@ -27,9 +28,8 @@ export default function DbConnectionForm({ initial, onSave, onClose }: Props) {
   const [password, setPassword] = useState('')
   const [test, setTest] = useState<{ ok: boolean; text: string } | null>(null)
   const [testing, setTesting] = useState(false)
-  const [servers, setServers] = useState<SSHConnection[]>([])
+  const servers: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
 
-  useEffect(() => { window.devforge.getSshConnections().then(setServers) }, [])
 
   const set = <K extends keyof DbConnection>(k: K, v: DbConnection[K]) => { setC(x => ({ ...x, [k]: v })); setTest(null) }
   const full = (): DbConnection => ({ ...c, name: c.name.trim() || (c.type === 'sqlite' ? c.file?.split(/[\\/]/).pop() ?? 'SQLite' : `${c.database}@${c.host}`), password: password || undefined })

@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
-import { FolderSearch, HardDrive, Trash2 } from 'lucide-react'
+import { FolderOpen, HardDrive, Search, Trash2 } from 'lucide-react'
 import type { CleanKind } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { cn } from '@renderer/lib/cn'
 import { formatRelative, formatSize } from '@renderer/lib/format'
-import Badge, { type BadgeColor } from '@renderer/components/ui/Badge'
+import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
-import Card from '@renderer/components/ui/Card'
 import Checkbox from '@renderer/components/ui/Checkbox'
 import EmptyState from '@renderer/components/ui/EmptyState'
+import IconButton from '@renderer/components/ui/IconButton'
 import Modal from '@renderer/components/ui/Modal'
+import { Skeleton } from '@renderer/components/ui/Skeleton'
 import Spinner from '@renderer/components/ui/Spinner'
-import Stat, { StatRow } from '@renderer/components/ui/Stat'
 import { Table, Td, Th } from '@renderer/components/ui/Table'
 import ErrorState from '@renderer/components/ui/ErrorState'
 import Tabs from '@renderer/components/ui/Tabs'
@@ -22,7 +22,9 @@ import { useDiskCleaner } from './useDiskCleaner'
 
 type KindFilter = CleanKind | 'all'
 
-const KIND_COLOR: Record<CleanKind, BadgeColor> = { dependencies: 'accent', build: 'warning', cache: 'default' }
+/** Each kind's color in the bar and its legend, as in the mock-up */
+const KIND_BAR: Record<CleanKind, string> = { dependencies: 'bg-accent', cache: 'bg-info', build: 'bg-success' }
+const KINDS: CleanKind[] = ['dependencies', 'cache', 'build']
 const OLD_DAYS = 30
 
 export default function DiskCleanerPage() {
@@ -45,8 +47,10 @@ export default function DiskCleanerPage() {
     .sort((a, b) => (b.size ?? -1) - (a.size ?? -1)), [rows, kind])
 
   const total         = rows.reduce((s, r) => s + (r.size ?? 0), 0)
+  const byKind        = KINDS.map(k => ({ kind: k, bytes: rows.filter(r => r.kind === k).reduce((s, r) => s + (r.size ?? 0), 0) })).filter(x => x.bytes > 0)
   const selectedRows  = rows.filter(r => selected.has(r.path))
   const selectedBytes = selectedRows.reduce((s, r) => s + (r.size ?? 0), 0)
+  const kindLabel: Record<CleanKind, string> = { dependencies: c.kindDependencies, cache: c.kindCache, build: c.kindBuild }
 
   const isOld = (iso: string) => !!iso && Date.now() - new Date(iso).getTime() > OLD_DAYS * 86400e3
 
@@ -85,33 +89,68 @@ export default function DiskCleanerPage() {
   }
 
   return (
-    <Page>
-      <PageHeader icon={<HardDrive size={18} />} crumb={t.nav.groupSystem} title={c.title} subtitle={c.subtitle} />
+    <Page className="df-mockup">
+      <PageHeader crumb={t.nav.groupSystem} title={c.title} subtitle={c.subtitle}
+        actions={
+          <form className="flex items-center gap-2" onSubmit={ev => { ev.preventDefault(); if (root) runScan() }}>
+            <div className="flex h-9 items-center rounded-control border border-line bg-surface focus-within:border-accent">
+              <Input value={root} onChange={e => setRoot(e.target.value)} placeholder="C:\Dev" aria-label={c.folder} className="h-full w-64 border-0 bg-transparent font-mono focus:ring-0" />
+              <IconButton size="sm" title={c.browse} onClick={browse} className="mr-1"><FolderOpen size={14} /></IconButton>
+            </div>
+            <Button type="submit" variant="secondary" loading={scanning} disabled={!root}>
+              {!scanning && <Search size={14} aria-hidden />} {c.scan}
+            </Button>
+          </form>
+        }
+      />
 
-      <div className="flex gap-2">
-        <Input value={root} onChange={e => setRoot(e.target.value)} placeholder="C:\Dev" className="font-mono" />
-        <Button variant="secondary" onClick={browse}>{c.browse}</Button>
-        <Button onClick={runScan} loading={scanning} disabled={!root}>
-          {!scanning && <FolderSearch size={14} />} {c.scan}
-        </Button>
-      </div>
+      {scanning && rows.length === 0 && (
+        <div role="status" aria-label={c.scanning} className="flex flex-col gap-3 rounded-card border border-line-subtle bg-surface p-5">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-2.5 w-full rounded-full" />
+        </div>
+      )}
 
       {rows.length > 0 && (
         <>
-          <StatRow>
-            <Stat label={c.statReclaimable} value={<span className="inline-flex items-center gap-2">{formatSize(total, lang)} {sizing && <Spinner />}</span>} unit={c.reclaimable.replace('{n}', String(rows.length))} />
-            <Stat label={c.statSelected} tone="accent" value={formatSize(selectedBytes, lang)} unit={c.selected.replace('{n}', String(selected.size))} />
-            <Card className="flex items-center justify-center px-4 py-3">
-              <Button variant="danger" size="lg" disabled={selected.size === 0} onClick={() => setConfirming(true)}>
-                <Trash2 size={16} /> {c.deleteSelected}
+          {/* How much can go, by kind, and the selection's button */}
+          <section aria-labelledby="cleaner-total" className="df-rise flex flex-col gap-4 rounded-card border border-line-subtle bg-surface p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 id="cleaner-total" className="text-sm text-fg-muted">{c.statReclaimable}</h2>
+                <p className="mt-1 flex items-baseline gap-2">
+                  <span className="font-display text-page leading-none font-bold tracking-[-.025em] text-fg">{formatSize(total, lang)}</span>
+                  <span className="text-sm text-fg-muted">{c.inFolders.replace('{n}', String(rows.length))}</span>
+                  {sizing && <Spinner />}
+                </p>
+              </div>
+              <Button disabled={selected.size === 0} onClick={() => setConfirming(true)}>
+                <Trash2 size={14} aria-hidden /> {selected.size ? c.deleteSelectedSize.replace('{size}', formatSize(selectedBytes, lang)) : c.deleteSelected}
               </Button>
-            </Card>
-          </StatRow>
+            </div>
+            {total > 0 && (
+              <>
+                <div className="flex h-2.5 overflow-hidden rounded-full bg-active" role="img" aria-label={byKind.map(k => `${kindLabel[k.kind]} ${formatSize(k.bytes, lang)}`).join(', ')}>
+                  {byKind.map(k => <span key={k.kind} className={cn('h-full', KIND_BAR[k.kind])} style={{ width: `${(k.bytes / total) * 100}%` }} />)}
+                </div>
+                <ul className="flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-fg-secondary">
+                  {byKind.map(k => (
+                    <li key={k.kind} className="flex items-center gap-1.5">
+                      <span aria-hidden className={cn('size-2.5 rounded-sm', KIND_BAR[k.kind])} />
+                      {kindLabel[k.kind]} <span className="font-mono text-fg-muted">{formatSize(k.bytes, lang)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </section>
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Tabs<KindFilter>
               value={kind}
               onChange={setKind}
+              label={c.kinds}
               items={[
                 { value: 'all',          label: c.kindAll },
                 { value: 'dependencies', label: c.kindDependencies },
@@ -119,7 +158,7 @@ export default function DiskCleanerPage() {
                 { value: 'cache',        label: c.kindCache }
               ]}
             />
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               <Button variant="ghost" size="sm" onClick={() => setSelected(new Set(visible.map(r => r.path)))}>{c.selectAll}</Button>
               <Button variant="ghost" size="sm" onClick={() => setSelected(new Set(visible.filter(r => isOld(r.projectModified)).map(r => r.path)))}>
                 {c.selectOld.replace('{n}', String(OLD_DAYS))}
@@ -128,14 +167,14 @@ export default function DiskCleanerPage() {
             </div>
           </div>
 
-          <Card className="overflow-hidden">
+          <div className="df-rise overflow-hidden rounded-card border border-line-subtle bg-surface">
             <Table className="table-fixed">
               <thead>
                 <tr>
                   <Th className="w-12"><span className="sr-only">{c.colPick}</span></Th>
-                  <Th className="w-[22%]">{c.colFolder}</Th>
+                  <Th className="w-[24%]">{c.colFolder}</Th>
                   <Th>{c.colProject}</Th>
-                  <Th className="w-40">{c.colActivity}</Th>
+                  <Th className="w-44">{c.colActivity}</Th>
                   <Th className="w-28" align="right">{c.colSize}</Th>
                 </tr>
               </thead>
@@ -146,33 +185,27 @@ export default function DiskCleanerPage() {
                     <Td onClick={e => e.stopPropagation()}>
                       <Checkbox checked={selected.has(r.path)} onChange={on => toggle(r.path, on)}><span className="sr-only">{r.path}</span></Checkbox>
                     </Td>
-                    <Td>
-                      <span className="flex items-center gap-1.5">
-                        <Badge color={KIND_COLOR[r.kind]} className="font-mono">{r.name}</Badge>
-                        {isOld(r.projectModified) && <Badge>{c.old}</Badge>}
-                      </span>
+                    <Td className="truncate font-mono font-semibold text-fg" title={r.path}>
+                      <span className={cn('mr-2 inline-block size-2 rounded-sm align-middle', KIND_BAR[r.kind])} aria-hidden />{r.name}
                     </Td>
-                    <Td className="py-1.5">
-                      <span className="flex min-w-0 flex-col">
-                        <span className="truncate font-medium text-fg">{r.projectName}</span>
-                        <span className="truncate font-mono text-2xs text-fg-muted" title={r.path}>{r.path}</span>
-                      </span>
+                    <Td className="truncate" title={r.path}><span className="font-semibold text-fg">{r.projectName}</span></Td>
+                    <Td className="text-fg-muted">
+                      <span className="flex items-center gap-2">{formatRelative(r.projectModified, lang)} {isOld(r.projectModified) && <Badge>{c.old}</Badge>}</span>
                     </Td>
-                    <Td className="text-xs text-fg-muted">{formatRelative(r.projectModified, lang)}</Td>
-                    <Td align="right" className="font-mono text-sm font-semibold text-fg">
+                    <Td align="right" className="font-mono font-bold text-fg">
                       {r.size === null ? <Spinner className="ml-auto" /> : formatSize(r.size, lang)}
                     </Td>
                   </tr>
                 ))}
               </tbody>
             </Table>
-          </Card>
+          </div>
         </>
       )}
 
       {!scanning && error && <ErrorState error={error} onRetry={runScan} />}
       {!scanning && !error && rows.length === 0 && (
-        <EmptyState icon={<HardDrive size={32} />} title={c.emptyTitle} description={c.emptyHint} />
+        <EmptyState fill icon={<HardDrive size={32} />} title={c.emptyTitle} description={c.emptyHint} />
       )}
 
       {confirming && (

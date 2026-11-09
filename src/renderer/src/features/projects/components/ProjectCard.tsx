@@ -1,8 +1,9 @@
 import type { CSSProperties } from 'react'
-import { ListTodo, Code2, Folder, FolderOpen, GitBranch, Plus, Star, Terminal, Trash2 } from 'lucide-react'
+import { ListTodo, Code2, Folder, FolderOpen, GitBranch, Play, Plus, Star, Terminal, Trash2 } from 'lucide-react'
 import type { DetectedProject, GitStatus, Project } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
+import { formatRelative } from '@renderer/lib/format'
 import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
@@ -11,6 +12,7 @@ import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
 import ProjectIcon from './ProjectIcon'
 import GitBadge from './GitBadge'
 import ScriptsMenu from './ScriptsMenu'
+import MoreMenu, { type MoreItem } from '@renderer/components/ui/MoreMenu'
 
 export type CardLayout = 'list' | 'grid'
 
@@ -35,10 +37,12 @@ function SubNames({ project }: { project: DetectedProject }) {
   )
 }
 
-function FavoriteButton({ active, onClick, title }: { active: boolean; onClick: () => void; title: string }) {
+function FavoriteButton({ active, onClick, title, size }: { active: boolean; onClick: () => void; title: string; size?: 'sm' | 'md' }) {
   return (
     <IconButton
+      size={size}
       title={title}
+      aria-pressed={active}
       onClick={e => { e.stopPropagation(); onClick() }}
       className={cn(active && 'text-accent hover:text-accent')}
     >
@@ -65,6 +69,20 @@ export function TasksChip({ count, onClick }: { count?: number; onClick?: () => 
       <ListTodo size={11} aria-hidden /> {t.notes.toDo.replace('{n}', String(count))}
     </button>
   )
+}
+
+/**
+ * The Git line of a card, as in the mock-up: the branch, then what is waiting
+ * (changed files, commits to push or to pull) or « à jour »; null outside Git.
+ */
+export function useGitLine(status?: GitStatus | null): { text: string; color: string } | null {
+  const { t } = useI18n()
+  if (!status?.branch) return null
+  const n = (s: string, k: number) => s.replace('{n}', String(k)).replace('{s}', k > 1 ? 's' : '')
+  if (status.dirty) return { text: n(t.projects.changedN, status.changes || 1), color: 'text-warning' }
+  if (status.ahead > 0) return { text: n(t.projects.toPushN, status.ahead), color: 'text-info' }
+  if (status.behind > 0) return { text: n(t.projects.toPullN, status.behind), color: 'text-info' }
+  return { text: t.home.upToDate, color: 'text-success' }
 }
 
 // ─── Saved project ────────────────────────────────────────────────────────────
@@ -98,24 +116,28 @@ interface SavedProps {
 
 export function ProjectCard(props: SavedProps) {
   const { project, layout, gitStatus, scripts = {}, ideLabel, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript, index = 0, folder, openTasks, onOpenTasks, ciFailing, active } = props
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const label = FRAMEWORK_LABEL[project.framework] ?? project.framework
+  const git = useGitLine(gitStatus)
 
   if (layout === 'grid') {
-    const git = !gitStatus?.branch ? null
-      : gitStatus.ahead > 0 ? { text: `↑ ${gitStatus.ahead}`, color: 'text-accent' }
-      : gitStatus.dirty ? { text: t.projects.uncommitted, color: 'text-warning' }
-      : { text: t.home.upToDate, color: 'text-success' }
-    // Forge: one main action (Open, in orange for the active project), the others as icons
+    // The less frequent actions behind « ⋯ »: its scripts, then taking it out of DevForge
+    const more: MoreItem[] = [
+      ...(onRunScript ? Object.keys(scripts).slice(0, 8).map(name => ({ label: t.hub.scriptRun.replace('{name}', name), icon: Play, onSelect: () => onRunScript(name) })) : []),
+      ...(onRemove ? [{ label: t.hub.remove, icon: Trash2, danger: true, onSelect: onRemove }] : [])
+    ]
+    const date = project.lastOpenedAt ?? project.createdAt
+    const when = date ? formatRelative(date, lang) : ''
+    // As in the mock-up: one main action (Open, in orange for the active project), the others as icons
     return (
       <Card interactive onClick={onDetail} className={cn('df-rise group flex flex-col gap-3.5 rounded-card p-4.5', active && 'border-accent/35')} style={{ '--i': index } as CSSProperties}>
-        <div className="flex items-start gap-3">
-          <ProjectIcon framework={project.framework} size="lg" />
+        <div className="flex items-start gap-2.5">
+          <ProjectIcon framework={project.framework} />
           <div className="min-w-0 flex-1">
-            <h2 className="flex items-center gap-2 truncate font-display text-md font-bold tracking-[-.01em] text-fg">{project.name}<CiDot failing={ciFailing} /></h2>
+            <h2 className="flex items-center gap-2 truncate text-md font-semibold text-fg">{project.name}<CiDot failing={ciFailing} /></h2>
             <div className="truncate font-mono text-xs text-fg-muted" title={project.path}>{project.path}</div>
           </div>
-          <FavoriteButton active={project.favorite} onClick={onToggleFavorite} title={t.projects.favorite} />
+          <FavoriteButton size="sm" active={project.favorite} onClick={onToggleFavorite} title={t.projects.favorite} />
         </div>
         <div className="flex flex-wrap gap-1.5">
           {[label, project.packageManager].filter(Boolean).map(tag => <Badge key={tag} mono>{tag}</Badge>)}
@@ -123,17 +145,17 @@ export function ProjectCard(props: SavedProps) {
           <TasksChip count={openTasks} onClick={onOpenTasks} />
         </div>
         {project.missing && <div className="text-xs font-medium text-warning">{t.hub.missing}</div>}
-        {git && (
-          <p className="flex items-center gap-1.5 text-sm text-fg-secondary">
-            <GitBranch size={13} aria-hidden /> <span className="font-mono">{gitStatus!.branch}</span> <span className={git.color}>{git.text}</span>
+        {(git || when) && (
+          <p className="flex min-w-0 items-center gap-1.5 text-sm text-fg-secondary">
+            {git && <><GitBranch size={13} aria-hidden className="shrink-0" /><span className="font-mono">{gitStatus!.branch}</span><span className={git.color}>{git.text}</span></>}
+            {when && <span className="truncate text-fg-muted">{git ? '· ' : ''}{when}</span>}
           </p>
         )}
-        <div className="mt-auto flex items-center gap-1" onClick={e => e.stopPropagation()}>
+        <div className="mt-auto flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
           <Button size="sm" variant={active ? 'primary' : 'secondary'} className="flex-1" onClick={onOpen}>{t.projects.open}</Button>
           {ideLabel && <IconButton size="sm" title={ideLabel} onClick={onOpenVSCode}><Code2 size={14} /></IconButton>}
           <IconButton size="sm" title={t.projects.terminal} onClick={onTerminal}><Terminal size={14} /></IconButton>
-          {onRunScript && <ScriptsMenu scripts={scripts} onRun={onRunScript} />}
-          {onRemove && <IconButton size="sm" tone="danger" title={t.projects.remove} onClick={onRemove}><Trash2 size={13} /></IconButton>}
+          {more.length > 0 && <MoreMenu size="sm" label={t.hub.moreActions} items={more} />}
         </div>
       </Card>
     )

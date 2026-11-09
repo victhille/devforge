@@ -49,7 +49,8 @@ export interface TestsAPI {
   /** The test tools of a saved project's folder */
   detect: (path: string) => Promise<TestRunnerInfo[]>
   /** Runs them (only these files when given, relative paths); the output comes through onOutput */
-  run: (path: string, runner: TestRunner, files?: string[]) => Promise<TestRun>
+  /** `testName`: only that test of the files (its name in plain words; otherwise the whole files) */
+  run: (path: string, runner: TestRunner, files?: string[], testName?: string) => Promise<TestRun>
   stop: () => Promise<void>
   /** The last run kept for this folder and tool */
   last: (path: string, runner: TestRunner) => Promise<TestRun | null>

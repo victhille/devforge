@@ -6,6 +6,7 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
+import Spinner from '@renderer/components/ui/Spinner'
 
 /** The step lines the main process writes, "▸ [3/8] label" */
 const STEP_RE = /^▸ \[(\d+)\/(\d+)\] /
@@ -23,6 +24,16 @@ export function useCreationProgress() {
     }
     return 0
   }, [logs])
+  // When each step started: the base project with the creation, then its "[i/n]" line
+  const starts = useMemo(() => {
+    const at: Record<number, number> = {}
+    for (const l of logs) {
+      const m = l.type === 'info' ? STEP_RE.exec(l.text) : null
+      if (m && at[Number(m[1])] === undefined) at[Number(m[1])] = Date.parse(l.timestamp)
+    }
+    return at
+  }, [logs])
+  const lastAt = logs.length ? Date.parse(logs[logs.length - 1].timestamp) : null
   if (!isCreation || !creation) return null
   const ok = result?.status === 'success'
   const failed = !!result && !ok
@@ -30,6 +41,12 @@ export function useCreationProgress() {
   const done = ok ? total : at
   return {
     creation, at, done, total, ok, failed,
+    /** How long a finished step took, in ms (unknown: null) */
+    took: (i: number): number | null => {
+      const start = i === 0 ? creation.startedAt : starts[i]
+      const end = starts[i + 1] ?? (result && i === total - 1 ? lastAt : undefined)
+      return start !== undefined && end !== undefined && end !== null && end >= start ? end - start : null
+    },
     finished: !!result,
     /** Still worth showing: running, or stopped and its log still open */
     shown: !result || (failed && visible),
@@ -39,7 +56,7 @@ export function useCreationProgress() {
 
 /** The creation, followed here: done, running, to come, the time and a bar */
 export default function CreationProgress({ onBack }: { onBack?: () => void }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const s = t.newProject.setup
   const p = useCreationProgress()
   const { projectId, openOnDone, minimized, visible, setMinimized } = useConsole()
@@ -72,16 +89,22 @@ export default function CreationProgress({ onBack }: { onBack?: () => void }) {
           {failed && onBack && <Button variant="secondary" size="sm" onClick={onBack}>{t.newProject.back}</Button>}
           {ok && projectId && !openOnDone && <Button size="sm" onClick={() => navigate(`/project/${projectId}`)}>{t.console.openProject}</Button>}
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-line">
+        <div className="h-1.5 overflow-hidden rounded-full bg-active">
           <div className={cn('h-full transition-[width] duration-500', failed ? 'bg-danger' : ok ? 'bg-success' : 'bg-accent')} style={{ width: `${Math.round(100 * p.ratio)}%` }} />
         </div>
-        <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm lg:grid-cols-4">
+        {/* As in the mock-up: one step per line, its state, and how long it took once done */}
+        <ul className="flex flex-col text-sm">
           {c.planned.map((label, i) => {
             const state = i < done ? 'done' : i === at && !ok ? (failed ? 'failed' : 'running') : 'todo'
+            const took = state === 'done' ? p.took(i) : null
             return (
-              <li key={i} className={cn('flex min-w-0 items-center gap-1.5', state === 'done' ? 'text-success' : state === 'running' ? 'text-warning' : state === 'failed' ? 'text-danger' : 'text-fg-muted')}>
-                {state === 'done' ? <Check size={13} className="shrink-0" /> : state === 'failed' ? <X size={13} className="shrink-0" /> : <span aria-hidden className="w-[13px] shrink-0 text-center">{state === 'running' ? '●' : '○'}</span>}
-                <span className="truncate" title={label}>{label}</span>
+              <li key={i} className={cn('flex min-h-9.5 min-w-0 items-center gap-2.5 border-b border-line-subtle last:border-b-0', state === 'todo' ? 'text-fg-muted' : state === 'failed' ? 'text-danger' : 'text-fg')}>
+                <span className="flex w-3.5 shrink-0 justify-center">
+                  {state === 'done' ? <Check size={14} className="text-success" aria-hidden /> : state === 'failed' ? <X size={14} aria-hidden /> : state === 'running' ? <Spinner /> : <span aria-hidden className="size-2 rounded-full bg-active" />}
+                </span>
+                <span className="min-w-0 flex-1 truncate" title={label}>{label}</span>
+                <span className="sr-only">{s.stepState[state]}</span>
+                {took !== null && <span className="shrink-0 font-mono text-xs text-fg-muted">{took < 10_000 ? `${(took / 1000).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', { maximumFractionDigits: 1 })} s` : `${Math.round(took / 1000)} s`}</span>}
               </li>
             )
           })}

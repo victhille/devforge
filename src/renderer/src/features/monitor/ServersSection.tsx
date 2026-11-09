@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
 import type { SSHConnection, VpsStatus } from '@shared/types'
+import { NO_SERVERS, useSshConnections } from '@renderer/hooks/useLiveData'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import { formatRelative } from '@renderer/lib/format'
@@ -58,8 +58,7 @@ export default function ServersSection() {
   const { t } = useI18n()
   const w = t.watch
   const { statuses, config, saveConfig } = useWatch()
-  const [connections, setConnections] = useState<SSHConnection[]>([])
-  useEffect(() => { window.devforge.getSshConnections().then(setConnections).catch(() => {}) }, [])
+  const connections: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
   if (!config) return null
 
   return (

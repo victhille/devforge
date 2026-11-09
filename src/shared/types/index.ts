@@ -187,6 +187,10 @@ export interface AppSettings {
   motion: MotionSetting
   /** 'compact': smaller spacing and text, for small screens */
   density: Density
+  /** The main colour (buttons, links, selection); Forge's orange unless chosen */
+  accent?: AccentColor
+  /** Text a little smaller or larger across the app, the layout unchanged */
+  textSize?: TextSize
   /** "What's new" window on the first launch after an update */
   showWhatsNew: boolean
   /** Whisper model for voice typing */
@@ -205,6 +209,8 @@ export interface AppSettings {
 
 export type MotionSetting = 'full' | 'reduced' | 'system'
 export type Density = 'comfortable' | 'compact'
+export type AccentColor = 'forge' | 'blue' | 'violet' | 'pink' | 'teal' | 'green'
+export type TextSize = 'small' | 'normal' | 'large' | 'larger'
 
 /** Settings → Data */
 export interface DataInfo {
@@ -212,7 +218,8 @@ export interface DataInfo {
   /** Bytes used by DevForge's own files */
   size: number
   schemaVersion: number
-  backups: { name: string; at: string; reason: 'format' | 'manual' | 'restore'; version: number }[]
+  /** Newest first; size in bytes */
+  backups: { name: string; at: string; reason: 'format' | 'manual' | 'restore'; version: number; size: number }[]
 }
 
 export interface DataAPI {
@@ -310,6 +317,8 @@ export interface GitStatus {
   dirty: boolean
   ahead: number
   behind: number
+  /** Changed, staged or untracked files */
+  changes?: number
 }
 
 // ─── Ports ───────────────────────────────────────────────────────────────────
@@ -325,7 +334,7 @@ export interface ListeningPort {
 export * from './git'
 
 /** v4.2: the data the windows keep and read again when the main process says it changed */
-export type DataTopic = 'projects' | 'db-connections' | 'models'
+export type DataTopic = 'projects' | 'db-connections' | 'models' | 'notes' | 'settings' | 'ssh' | 'templates'
 export * from './cleaner'
 export * from './envfiles'
 export * from './versions'

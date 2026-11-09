@@ -1,9 +1,10 @@
 import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { CanvasSkeleton } from '@renderer/components/ui/Skeleton'
 import {
   ArrowLeftRight, Box as BoxIcon, Circle, Cloud, Component, Database, Diamond, Hexagon, List, ListChecks, ListOrdered, Maximize2, Monitor,
   MoveRight, Play, Plus, RectangleHorizontal, Server, Square, SquareDashed, StickyNote, Trash2, User, X
 } from 'lucide-react'
-import type { DiagramEdgeType, DiagramKind, DiagramModel, DiagramNode, DiagramNodeType, NoteTask } from '@shared/types'
+import type { DiagramEdgeType, DiagramKind, DiagramModel, DiagramNode, DiagramNodeType } from '@shared/types'
 import { noteBox, uid, type Box, type Point } from '@shared/lib/mcd'
 import { caseLinks, diagramBounds, diagramShapes, diagramSvg, EDGE_TYPES, edgeLine, lifelineEnd, NODE_TYPES, nodeBox } from '@shared/lib/uml'
 import { useI18n } from '@renderer/i18n/I18nContext'
@@ -12,7 +13,6 @@ import { errorText } from '@renderer/lib/errors'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
-import Spinner from '@renderer/components/ui/Spinner'
 import { diagramColors, LIVE_DIAGRAM, saveDrawing } from './colors'
 import { fill, KIND_TONE } from './model'
 import { dropZone, Handles, partAt, TARGET_RING, Wire } from './connect'
@@ -278,21 +278,19 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
     try {
       const project = (projectList ?? await window.devforge.getProjects()).find(p => p.path === projectPath)
       if (!project) { toast.show({ tone: 'error', title: g.tasksFailed, description: g.noProject }); return }
-      const notes = await window.devforge.notes.get(project.id)
-      const have = new Set(notes.tasks.map(x => x.text))
-      const now = new Date().toISOString()
-      const fresh: NoteTask[] = dg.nodes.filter(n => n.type === 'case').map(n => {
+      // Boxes at the end of the project's tasks note (made when there is none), those already there left alone
+      const texts = dg.nodes.filter(n => n.type === 'case').map(n => {
         const actors = caseLinks(dg, n.id).actors
         return fill(g.taskText, { name: n.name, actors: actors.length ? ` (${actors.join(', ')})` : '' })
-      }).filter(text => !have.has(text)).map(text => ({ id: uid('k'), text, done: false, createdAt: now }))
-      if (!fresh.length) { toast.show({ tone: 'info', title: g.tasksNone }); return }
-      await window.devforge.notes.save(project.id, { ...notes, tasks: [...notes.tasks, ...fresh] })
-      toast.show({ tone: 'success', title: fill(g.tasksDone, { n: fresh.length }) })
+      })
+      const added = await window.devforge.notes.addTasks(project.id, texts)
+      if (!added) { toast.show({ tone: 'info', title: g.tasksNone }); return }
+      toast.show({ tone: 'success', title: fill(g.tasksDone, { n: added }) })
     } catch (err) { toast.show({ tone: 'error', title: g.tasksFailed, description: errorText(err) }) }
   }
 
   if (error) return <div className="p-8"><ErrorState title={m.loadFailed} error={error} /></div>
-  if (!model || !dg) return <Spinner className="m-8" />
+  if (!model || !dg) return <CanvasSkeleton />
 
   const nameOf = (id: string) => dg.nodes.find(n => n.id === id)?.name ?? ''
   const selNode = sel?.kind === 'node' ? dg.nodes.find(n => n.id === sel.id) : undefined

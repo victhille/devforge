@@ -13,6 +13,7 @@ import { shQuote } from '../ssh/sshClient'
 import { runOn, sessionFor } from '../monitor/vpsWatch'
 import { loadProjects } from '../projects/projectStorage'
 import { loadSshConnections } from '../ssh/sshStorage'
+import { testApi, testOutput } from '../vps/testOutputs'
 
 /**
  * n8n on a VPS, installed and followed from DevForge. Everything lives in
@@ -289,7 +290,7 @@ export function closeTunnel(connectionId: string): void {
 
 export async function status(connectionId: string): Promise<N8nStatus> {
   const s = readStore().find(i => i.connectionId === connectionId)
-  const out = await runOn(connectionId, [
+  const out = testOutput('n8nStatus') ?? await runOn(connectionId, [
     `[ -f ${DIR}/docker-compose.yml ] && echo yes || true`,
     `cd ${DIR} 2>/dev/null && docker compose ps -a --format '{{.Service}}|{{.State}}|{{.Status}}' 2>/dev/null || true`,
     `cd ${DIR} 2>/dev/null && docker compose exec -T n8n n8n --version 2>/dev/null || true`
@@ -374,6 +375,8 @@ function apiKey(connectionId: string): string {
 }
 
 async function api<T>(connectionId: string, method: 'GET' | 'POST', path: string): Promise<T> {
+  const canned = testApi('n8nApi', method, path)
+  if (canned !== undefined) return canned as T
   const key = apiKey(connectionId)
   const sock = asSocket(await sshService.forwardOut(await sessionFor(connectionId), PORT))
   return new Promise<T>((resolve, reject) => {
@@ -403,8 +406,24 @@ async function api<T>(connectionId: string, method: 'GET' | 'POST', path: string
   })
 }
 
-interface RawWorkflow { id: string; name: string; active: boolean; updatedAt: string; tags?: { name: string }[] }
-const toWorkflow = (w: RawWorkflow): N8nWorkflow => ({ id: String(w.id), name: w.name, active: !!w.active, updatedAt: w.updatedAt, tags: (w.tags ?? []).map(t => t.name) })
+interface RawWorkflow { id: string; name: string; active: boolean; updatedAt: string; tags?: { name: string }[]; nodes?: { name?: string; type?: string }[] }
+
+/** What starts a workflow, from its first trigger node: "n8n-nodes-base.scheduleTrigger" → schedule */
+export function triggerOf(nodes: RawWorkflow['nodes']): N8nWorkflow['trigger'] {
+  const node = (Array.isArray(nodes) ? nodes : []).find(n => typeof n?.type === 'string' && /(trigger|\.webhook|\.cron|\.interval)$/i.test(n.type))
+  if (!node?.type) return null
+  const type = node.type.split('.').pop()!.toLowerCase()
+  const kind = type === 'webhook' ? 'webhook'
+    : ['scheduletrigger', 'cron', 'interval'].includes(type) ? 'schedule'
+    : type === 'manualtrigger' ? 'manual'
+    : type === 'errortrigger' ? 'error'
+    : 'other'
+  return { kind, name: typeof node.name === 'string' ? node.name.slice(0, 80) : '' }
+}
+
+const toWorkflow = (w: RawWorkflow): N8nWorkflow => ({
+  id: String(w.id), name: w.name, active: !!w.active, updatedAt: w.updatedAt, tags: (w.tags ?? []).map(t => t.name), trigger: triggerOf(w.nodes)
+})
 
 export async function workflows(connectionId: string): Promise<N8nWorkflow[]> {
   const out: N8nWorkflow[] = []

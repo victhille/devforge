@@ -74,7 +74,8 @@ test('the linked database: its differences, the script applied, then a database 
   // Back on the page: the linked database is up to date; then a database imported as a new model
   await page.getByRole('button', { name: 'Modélisation' }).click()
   await expect(chain.locator('[data-step="base"]')).toContainText('● À jour')
-  await page.getByRole('region', { name: 'Créer un modèle' }).getByRole('button', { name: /Modèle physique/ }).click()
+  await page.getByRole('button', { name: 'Nouveau modèle', exact: true }).click()
+  await page.getByRole('dialog', { name: 'Quel modèle ?' }).getByRole('button', { name: /Modèle physique/ }).click()
   const importing = page.getByRole('dialog', { name: 'Nouveau : Modèle physique' })
   await expect(importing.getByRole('combobox', { name: 'Connexion' })).toHaveValue('')
   await expect(importing.getByRole('button', { name: 'Créer' })).toBeVisible()

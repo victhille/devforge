@@ -1,5 +1,5 @@
 import type { DbTableRef, DbType } from '../types'
-import { quoteColumn, quoteIdent } from './sqlQuote'
+import { quoteColumn, quoteIdent, sqlString } from './sqlQuote'
 
 /**
  * v3.6 lot 3: the rows of a table changed from the Browse tab. Values always
@@ -48,14 +48,14 @@ export function rowStatements(db: DbType, table: DbTableRef, changes: RowChange[
   })
 }
 
-const literal = (v: RowStatement['params'][number]) =>
-  v === null ? 'NULL' : typeof v === 'number' ? String(v) : typeof v === 'boolean' ? (v ? 'TRUE' : 'FALSE') : `'${String(v).replace(/'/g, "''")}'`
+const literal = (db: DbType, v: RowStatement['params'][number]) =>
+  v === null ? 'NULL' : typeof v === 'number' ? String(v) : typeof v === 'boolean' ? (v ? 'TRUE' : 'FALSE') : sqlString(db, String(v))
 
 /** The statement as it reads, values in place (shown before Apply; never run) */
 export function previewStatement(db: DbType, s: RowStatement): string {
-  if (db === 'postgres') return s.sql.replace(/\$(\d+)/g, (_, n: string) => literal(s.params[Number(n) - 1]))
+  if (db === 'postgres') return s.sql.replace(/\$(\d+)/g, (_, n: string) => literal(db, s.params[Number(n) - 1]))
   let i = 0
-  return s.sql.replace(/\?/g, () => literal(s.params[i++]))
+  return s.sql.replace(/\?/g, () => literal(db, s.params[i++]))
 }
 
 /** What is wrong with the changes, checked against the table: unknown columns, a key that is not the primary key */

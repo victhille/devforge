@@ -1,23 +1,30 @@
-import { useState, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import type { Framework, ProjectCreationOptions, AppSettings, ProjectSetup, UserTemplate } from '@shared/types'
 import { JS_FRAMEWORKS } from '@shared/data/projectLibraries'
 import { PROJECT_TEMPLATES } from '@shared/data/projectTemplates'
 import { SETUP_FRAMEWORKS } from '@shared/lib/projectSetup'
 import { useConsole } from '@renderer/app/ConsoleContext'
 import { useI18n } from '@renderer/i18n/I18nContext'
+import Button from '@renderer/components/ui/Button'
 import TechSelector from './TechSelector'
-import ConfigForm from './ConfigForm'
-import StackForm from './StackForm'
+import ConfigForm, { type ConfigHandle } from './ConfigForm'
+import StackForm, { type Stack, type StackHandle } from './StackForm'
 import LibrarySelector from './LibrarySelector'
 import FinishForm from './FinishForm'
-import WizardFrame, { type WizardStep } from './WizardFrame'
+import WizardFrame, { RecapList, type WizardStep } from './WizardFrame'
 import CreationProgress, { useCreationProgress } from './CreationProgress'
+import { useSettings, useTemplates } from '@renderer/hooks/useLiveData'
 
-type Step = 'select' | 'configure' | 'stack' | 'libraries' | 'finish'
-type Stack = Pick<ProjectSetup, 'database' | 'dbName' | 'dbPort' | 'appPort' | 'features'>
-const ORDER: Step[] = ['select', 'configure', 'stack', 'libraries', 'finish']
+const NO_TEMPLATES: UserTemplate[] = []
 
-/** Wizard: technology → name → database and options → libraries (JS) → Git, GitHub and summary */
+type Step = 'select' | 'options' | 'libraries' | 'finish'
+const ORDER: Step[] = ['select', 'options', 'libraries', 'finish']
+
+/**
+ * The new project wizard, as in the mock-up: technology → options and database
+ * (one screen) → libraries (JavaScript, optional) → Git, GitHub and the creation.
+ * The steps stand on the left, what will be made on the right.
+ */
 export default function NewProjectPage() {
   const { startCreation, hide } = useConsole()
   const { t, lang } = useI18n()
@@ -26,16 +33,16 @@ export default function NewProjectPage() {
   const [framework, setFramework] = useState<Framework | null>(null)
   const [pending,   setPending]   = useState<ProjectCreationOptions | null>(null)
   const [stack,     setStack]     = useState<Stack | null>(null)
-  const [settings,  setSettings]  = useState<AppSettings | null>(null)
-  const [templates, setTemplates] = useState<UserTemplate[]>([])
+  const settings: AppSettings | null = useSettings().data ?? null
+  const templates: UserTemplate[] = useTemplates().data ?? NO_TEMPLATES
   const [userTemplate, setUserTemplate] = useState<UserTemplate | null>(null)
   /** Once "Create" is clicked, the steps stay where they are */
   const [creating, setCreating] = useState(false)
-
-  useEffect(() => {
-    window.devforge.getSettings().then(setSettings)
-    window.devforge.templates.list().then(setTemplates).catch(() => {})
-  }, [])
+  // The options screen: its two sections, and what they hold so far (for the summary)
+  const config = useRef<ConfigHandle>(null)
+  const stackForm = useRef<StackHandle>(null)
+  const [draftName, setDraftName] = useState('')
+  const [draftStack, setDraftStack] = useState<Stack | null>(null)
 
   const hasStack = (fw: Framework) => SETUP_FRAMEWORKS.includes(fw)
   const hasLibs  = (fw: Framework) => JS_FRAMEWORKS.includes(fw)
@@ -47,63 +54,71 @@ export default function NewProjectPage() {
     await startCreation({ ...pending, initGit: false, openAfter: false, setup, lang: lang === 'en' ? 'en' : 'fr' }, { openOnDone: makeActive, minimized: true, view })
   }
 
+  /** The steps on the left, from what was chosen so far */
+  function stepsFor(current: Step): WizardStep[] {
+    const own = !userTemplate && !!framework
+    const list: { at: Step | 'create'; label: string; hint?: string }[] = [
+      { at: 'select', label: n.stepTech },
+      { at: 'options', label: n.stepOptions },
+      ...(own && hasStack(framework!) ? [{ at: 'options' as const, label: n.stepDatabase }] : []),
+      ...(own && hasLibs(framework!) ? [{ at: 'libraries' as const, label: n.stepLibs, hint: n.stepOptional }] : []),
+      { at: 'finish', label: n.stepGit },
+      { at: 'create', label: n.stepCreate }
+    ]
+    return list.map(s => {
+      if (s.at === 'create') return { label: s.label, state: creating ? 'current' : 'todo' }
+      const hint = s.hint
+      const before = ORDER.indexOf(s.at) < ORDER.indexOf(current) || (creating && s.at === 'finish')
+      const state = before ? 'done' : s.at === current ? 'current' : 'todo'
+      return { label: s.label, hint, state, onClick: state === 'done' && !creating ? () => setStep(s.at as Step) : undefined }
+    })
+  }
+
   // Back here while a creation runs (or just failed): its progress, not a new wizard
   const progress = useCreationProgress()
   if (step === 'select' && progress?.shown) {
     const last = progress.creation.steps.length - 1
     return (
-      <WizardFrame steps={progress.creation.steps.map((label, i) => ({ label, state: i === last ? 'current' : 'done' }))} subtitle={n.setup.finishSubtitle} onBack={hide}>
+      <WizardFrame steps={progress.creation.steps.map((label, i) => ({ label, state: i === last ? 'current' : 'done' }))}
+        title={n.setup.finishTitle} subtitle={n.setup.finishSubtitle} onBack={hide}
+        asideTitle={n.setup.nextTitle} aside={<p className="text-sm text-fg-secondary">{n.setup.nextText}</p>}>
         <CreationProgress onBack={hide} />
       </WizardFrame>
     )
   }
 
-  function handleConfig(options: ProjectCreationOptions) {
-    setPending({ ...options, libraries: [], devLibraries: [] })
-    // A template of the user: copied as it is, straight to Git and GitHub
-    if (options.template) { setStep('finish'); return }
-    setStep(hasStack(options.framework) ? 'stack' : hasLibs(options.framework) ? 'libraries' : 'finish')
-  }
-
-  /** The steps bar of the page shown, from what was chosen so far */
-  function stepsFor(current: Step): WizardStep[] {
-    if (!framework) return []
-    const fwName = userTemplate?.name ?? n.templateName[framework] ?? PROJECT_TEMPLATES.find(tpl => tpl.id === framework)?.name ?? framework
-    const libCount = (pending?.libraries?.length ?? 0) + (pending?.devLibraries?.length ?? 0)
-    const list: { at: Step; label: string; value?: string }[] = [
-      { at: 'select', label: n.stepFramework, value: fwName },
-      { at: 'configure', label: n.stepName, value: pending?.name }
-    ]
-    // One step per screen: the database goes with its options, Git with the summary
-    if (!userTemplate && hasStack(framework)) {
-      list.push({ at: 'stack', label: n.stepDb, value: stack ? n.stepDbValue.replace('{db}', n.setup.db[stack.database].name).replace('{n}', String(stack.features.length)) : undefined })
+  if (step === 'options' && framework) {
+    const withStack = !userTemplate && hasStack(framework)
+    const server = draftStack?.database === 'postgres' || draftStack?.database === 'mysql'
+    function next() {
+      const options = config.current?.submit()
+      if (!options) return
+      const chosen = withStack ? stackForm.current?.submit() ?? null : null
+      if (withStack && !chosen) return
+      setPending({ ...options, libraries: [], devLibraries: [] })
+      setStack(chosen)
+      // A template of the user: copied as it is, straight to Git and GitHub
+      setStep(options.template ? 'finish' : hasLibs(framework!) ? 'libraries' : 'finish')
     }
-    if (!userTemplate && hasLibs(framework)) list.push({ at: 'libraries', label: n.stepLibs, value: String(libCount) })
-    list.push({ at: 'finish', label: n.stepGit })
-    return list.map(s => {
-      const state = ORDER.indexOf(s.at) < ORDER.indexOf(current) ? 'done' : s.at === current ? 'current' : 'todo'
-      return {
-        label: state === 'done' && s.value ? `${s.label} : ${s.value}` : s.label,
-        state,
-        onClick: state === 'done' && !creating ? () => setStep(s.at) : undefined
-      }
-    })
-  }
-
-  if (step === 'configure' && framework) {
-    return <ConfigForm framework={framework} settings={settings} userTemplate={userTemplate} initial={pending} steps={stepsFor('configure')} onBack={() => setStep('select')} onSubmit={handleConfig} />
-  }
-
-  if (step === 'stack' && framework && pending) {
     return (
-      <StackForm
-        framework={framework}
-        projectName={pending.name}
-        initial={stack}
-        steps={stepsFor('stack')}
-        onBack={() => setStep('configure')}
-        onSubmit={s => { setStack(s); setStep(hasLibs(framework) ? 'libraries' : 'finish') }}
-      />
+      <WizardFrame steps={stepsFor('options')} title={n.optionsTitle}
+        subtitle={userTemplate ? t.templates.fromTemplate.replace('{name}', userTemplate.name) : n.wizardSubtitle.replace('{name}', n.templateName[framework] ?? PROJECT_TEMPLATES.find(x => x.id === framework)?.name ?? framework)}
+        onBack={() => setStep('select')}
+        asideTitle={n.setup.recapShort}
+        aside={
+          <RecapList rows={[
+            { label: n.setup.recapProject, value: draftName || '—', mono: true },
+            ...(withStack && draftStack ? [{ label: n.setup.recapDb, value: n.setup.db[draftStack.database].name }] : []),
+            ...(withStack && server ? [
+              { label: n.setup.dbPort, value: String(draftStack!.dbPort), mono: true },
+              { label: n.setup.recapFiles, value: `compose.yaml${framework === 'nextjs' ? ', prisma/' : ''}`, mono: true }
+            ] : [])
+          ]} />
+        }
+        footer={<Button onClick={next}>{n.continue}</Button>}>
+        <ConfigForm ref={config} framework={framework} settings={settings} userTemplate={userTemplate} initial={pending} onName={setDraftName} />
+        {withStack && <StackForm ref={stackForm} framework={framework} projectName={draftName} initial={stack} onDraft={setDraftStack} />}
+      </WizardFrame>
     )
   }
 
@@ -112,14 +127,14 @@ export default function NewProjectPage() {
       <LibrarySelector
         framework={framework}
         steps={stepsFor('libraries')}
-        onBack={() => setStep(hasStack(framework) ? 'stack' : 'configure')}
+        onBack={() => setStep('options')}
         onSubmit={(pkgs, devPkgs) => { setPending({ ...pending, libraries: pkgs, devLibraries: devPkgs }); setStep('finish') }}
       />
     )
   }
 
   if (step === 'finish' && framework && pending) {
-    const back: Step = userTemplate ? 'configure' : hasLibs(framework) ? 'libraries' : hasStack(framework) ? 'stack' : 'configure'
+    const back: Step = !userTemplate && hasLibs(framework) ? 'libraries' : 'options'
     return (
       <FinishForm
         options={pending}
@@ -134,8 +149,14 @@ export default function NewProjectPage() {
     )
   }
 
+  // A new choice starts the next screens afresh
+  const pick = (fw: Framework, tpl: UserTemplate | null) => {
+    if (fw !== framework || tpl?.id !== userTemplate?.id) { setStack(null); setPending(null); setDraftStack(null) }
+    setFramework(fw)
+    setUserTemplate(tpl)
+  }
   return (
-    <TechSelector templates={templates} onSelect={fw => { setFramework(fw); setUserTemplate(null); setStack(null); setPending(null); setStep('configure') }}
-      onTemplate={tpl => { setFramework(tpl.framework); setUserTemplate(tpl); setStack(null); setPending(null); setStep('configure') }} />
+    <TechSelector steps={stepsFor('select')} templates={templates} framework={framework} template={userTemplate}
+      onPick={fw => pick(fw, null)} onTemplate={tpl => pick(tpl.framework, tpl)} onContinue={() => { if (framework) setStep('options') }} />
   )
 }

@@ -16,6 +16,8 @@ export interface UserTemplate {
   bytes: number
   createdAt: string
   updatedAt: string
+  /** Set when listed: the project it comes from is no longer there */
+  sourceGone?: boolean
 }
 
 export interface TemplatePreview {

@@ -11,6 +11,10 @@ The **Deploy** page ships to your servers in one click. A **target** = a server,
 You need an SSH server first (see [Connections](/devforge/en/getting-started/connections/#servers-vps)).
 :::
 
+At the top, the card of the deploy under way, or of the last one: the target and its server, the **steps** read from its script (**Push**, **Fetch**, **Install**, **Build**, **Restart**, **Check**…), each done, running, failed or to come, then the log. A menu shows the target's earlier deploys.
+
+Below, the table of targets: the server, the **method** (Node.js · PM2, Docker Compose, static site, Symfony, Laravel or script), the **last deploy** (done or failed, when, how long), then **Log**, **Deploy** and the **⋯** menu (**Edit**, **Delete**).
+
 ### Creating a target
 
 **New target**:
@@ -24,7 +28,7 @@ You need an SSH server first (see [Connections](/devforge/en/getting-started/con
 | Local project | optional: links the target to a DevForge project |
 | git push before deploying | pushes the local project before running the script |
 
-Example script:
+The buttons under the script fill in a template: **Node.js · PM2**, **Docker Compose**, **static site**, **Symfony**, **Laravel**. Example script:
 
 ```bash
 git pull --ff-only
@@ -39,7 +43,7 @@ pm2 restart my-app
 
 ### Deploying
 
-**Deploy** runs the script; its output shows live. Each deployment is kept in the target's history, with its log. A notification says whether it succeeded or failed.
+**Deploy** runs the script: the card at the top follows each step and the log live. Each deployment is kept in the target's history, with its log (**Log** on its row). A notification says whether it succeeded or failed.
 
 A project's deployment is also in the **Deploy** tab of its [page](/devforge/en/dev/projects/), with the [.env sync](/devforge/en/dev/projects/#sync-the-env-with-the-server).
 

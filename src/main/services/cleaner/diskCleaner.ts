@@ -1,4 +1,7 @@
+import { execFile, type ChildProcess } from 'child_process'
+import { randomUUID } from 'crypto'
 import { readdir, lstat, rm, stat } from 'fs/promises'
+import { tmpdir } from 'os'
 import { basename, dirname, join } from 'path'
 import type { CleanCandidate, CleanKind, CleanResult } from '@shared/types'
 
@@ -77,13 +80,83 @@ export async function scanForCleanable(root: string): Promise<CleanCandidate[]> 
 
   allowed = new Set(found.map(c => c.path))
   sizeCache.clear()
+  // The last scan's sizes are no longer wanted: their listings stop
+  for (const child of listing) child.kill()
+  listing.clear()
   return found.sort((a, b) => a.projectPath.localeCompare(b.projectPath))
 }
 
-/** Recursive size without following symlinks (pnpm uses many). */
+/**
+ * The total bytes in robocopy's summary. Its words follow Windows' language
+ * (Bytes, Octets…) but not its order: dirs, files, then bytes, each line
+ * « label : total copied… » (with /BYTES, plain numbers).
+ */
+export function robocopyBytes(output: string): number | null {
+  const lines = output.split(/\r?\n/).map(l => /^\s*[^\s\d:][^:]*:\s+(\d+)\s+(\d+)/.exec(l)).filter(m => m !== null)
+  return lines.length >= 3 ? Number(lines[2]![1]) : null
+}
+
+/** robocopy from System32 by its full path: never one dropped in the current folder or earlier in the PATH */
+const ROBOCOPY = join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'robocopy.exe')
+/** Listings at once (the page asks for 16): more would only wait on the disk */
+const MAX_LISTINGS = 16
+/** The listings running, stopped when a new scan starts */
+const listing = new Set<ChildProcess>()
+let busy = 0
+const waiting: (() => void)[] = []
+
+/** A place among the listings that run at once; given back when done (stopped or not) */
+async function slot(): Promise<() => void> {
+  while (busy >= MAX_LISTINGS) await new Promise<void>(go => waiting.push(go))
+  busy++
+  return () => { busy--; waiting.shift()?.() }
+}
+
+/** What robocopy said: the bytes, it could not tell (null: the walk takes over), or it ran out of time */
+type Listed = number | null | 'timeout'
+
+/**
+ * Windows lists a folder with its files' sizes in one native call: robocopy
+ * in list mode (/L: nothing copied, the destination never made), links and
+ * junctions skipped (/XJ, as the walk below). About 20 times faster than a
+ * stat per file on a node_modules.
+ */
+async function robocopySize(path: string): Promise<Listed> {
+  const done = await slot()
+  const nowhere = join(tmpdir(), `devforge-size-${randomUUID()}`)
+  try {
+    return await new Promise<Listed>(resolve => {
+      const child = execFile(ROBOCOPY, [path, nowhere, '/L', '/S', '/NJH', '/NFL', '/NDL', '/NC', '/NS', '/NP', '/BYTES', '/XJ', '/R:0', '/W:0', '/MT:4'],
+        { windowsHide: true, timeout: 300_000, maxBuffer: 1024 * 1024 },
+        (err, stdout) => {
+          listing.delete(child)
+          // Exit codes 0 to 7 are success (1: « files to copy »); 8 and up, or no code (not found), a failure
+          const e = err as { code?: unknown; killed?: boolean } | null
+          if (e?.killed) return resolve('timeout')
+          if (e && (typeof e.code !== 'number' || e.code >= 8)) return resolve(null)
+          resolve(robocopyBytes(stdout))
+        })
+      listing.add(child)
+    })
+  } finally { done() }
+}
+
+/**
+ * Recursive size without following symlinks (pnpm uses many): Windows' own
+ * listing, else a walk. A folder too slow for Windows' listing is not walked
+ * (twenty times slower still): its size stays unknown.
+ */
 export async function folderSize(path: string): Promise<number> {
   if (!allowed.has(path)) throw new Error('Path not found by the last scan')
+  const listed = process.platform === 'win32' ? await robocopySize(path) : null
+  if (listed === 'timeout') throw new Error('Too long to measure')
+  const total = listed ?? await walkSize(path)
+  sizeCache.set(path, total)
+  return total
+}
 
+/** A stat per file, many at a time: everywhere, and when Windows' listing fails */
+async function walkSize(path: string): Promise<number> {
   let total = 0
   const queue: string[] = [path]
   const CONCURRENCY = 32
@@ -107,7 +180,6 @@ export async function folderSize(path: string): Promise<number> {
   while (queue.length > 0) {
     await Promise.all(Array.from({ length: Math.min(CONCURRENCY, queue.length) }, worker))
   }
-  sizeCache.set(path, total)
   return total
 }
 

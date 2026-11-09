@@ -9,6 +9,7 @@ import { detailsFor, diagramFor, overviewFor, type Raw } from './dbMeta'
 import { quoteColumn, quoteIdent } from '@shared/lib/sqlQuote'
 import { rowChangesProblem, rowStatements, type RowChange, type RowStatement } from '@shared/lib/rowEdits'
 import { getDbConnection, saveDbConnection, storedPasswordFor } from './dbStorage'
+import { sqliteFunctions, withRegexp } from './sqliteFunctions'
 import { DB_DEFAULT_PORT } from '@shared/lib/dbTarget'
 import { findInCompose, findOnServer } from './dbDetect'
 import { openTunnel } from '../ssh/sshClient'
@@ -27,6 +28,8 @@ export interface Driver {
   query(sql: string): Promise<Omit<DbQueryResult, 'durationMs'>>
   /** Parameterized catalog query, rows as objects */
   raw: Raw
+  /** Parameterized query, rows as arrays in the columns' order (the search); `regexp`: SQLite's REGEXP on while it runs */
+  rows(sql: string, params: string[], opts?: { regexp?: boolean }): Promise<{ columns: string[]; rows: unknown[][] }>
   /** v3.6: statements with their parameters, all or none (rolled back at the first error, which carries its `statementIndex`); rows affected */
   transaction(statements: RowStatement[]): Promise<number>
   close(): Promise<void>
@@ -62,7 +65,9 @@ function cell(v: unknown): unknown {
 async function mysqlDriver(c: DbConnection): Promise<Driver> {
   const conn = await mysql.createConnection({
     host: c.host, port: c.port ?? 3306, user: c.user, password: c.password, database: c.database,
-    connectTimeout: TIMEOUT_MS, multipleStatements: false, dateStrings: true
+    connectTimeout: TIMEOUT_MS, multipleStatements: false, dateStrings: true,
+    // The search's statements are prepared on the server, whose count is shared with other apps: few kept
+    maxPreparedStatements: 32
   })
   const onLost = lostSignal(conn, ['error', 'end'])
   return {
@@ -91,6 +96,11 @@ async function mysqlDriver(c: DbConnection): Promise<Driver> {
       return { columns: (fields ?? []).map(f => f.name), rows, affected: null, truncated }
     },
     async raw(sql, params = []) { const [rows] = await conn.query({ sql, values: params, timeout: 60_000 }); return rows as Record<string, unknown>[] },
+    // Prepared on the server: the values never go into the SQL text (whatever sql_mode says of backslashes)
+    async rows(sql, params) {
+      const [result, fields] = await conn.execute({ sql, values: params, rowsAsArray: true, timeout: 60_000 })
+      return { columns: (fields ?? []).map(f => f.name), rows: (result as unknown[][]).map(r => r.map(cell)) }
+    },
     async transaction(statements) {
       await conn.beginTransaction()
       try {
@@ -141,6 +151,10 @@ async function postgresDriver(c: DbConnection): Promise<Driver> {
       return { columns: res.fields.map((f: { name: string }) => f.name), rows, affected: null, truncated }
     },
     async raw(sql, params = []) { return (await client.query(sql, params as unknown[])).rows },
+    async rows(sql, params) {
+      const r = await client.query({ text: sql, values: params, rowMode: 'array' })
+      return { columns: r.fields.map((f: { name: string }) => f.name), rows: (r.rows as unknown[][]).map(row => row.map(cell)) }
+    },
     async transaction(statements) {
       await client.query('BEGIN')
       try {
@@ -169,6 +183,9 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
   }
   const file = c.file
   const db: SqlJsDb = new SQL.Database(await readFile(file))
+  sqliteFunctions(db)
+  // export() reopens the database in sql.js, which forgets the functions added: add them again
+  const persist = async () => { const bytes = db.export(); sqliteFunctions(db); await writeFile(file, bytes) }
   return {
     async version() { return `SQLite ${db.exec('select sqlite_version()')[0].values[0][0]}` },
     async schema() {
@@ -187,7 +204,7 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
       const changed = db.getRowsModified() - before
       // sql.js works in memory: persist writes back to the file
       if (changed > 0 || /^\s*(create|drop|alter|insert|update|delete|replace|vacuum)/i.test(sql)) {
-        await writeFile(file, db.export())
+        await persist()
       }
       const last = results[results.length - 1]
       if (!last) return { columns: [], rows: [], affected: changed, truncated: false }
@@ -203,6 +220,19 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
         return rows
       } finally { stmt.free() }
     },
+    async rows(sql, params, opts) {
+      const run = () => {
+        const stmt = db.prepare(sql)
+        try {
+          stmt.bind(params)
+          const columns = stmt.getColumnNames()
+          const rows: unknown[][] = []
+          while (stmt.step()) rows.push(stmt.get().map(cell))
+          return { columns, rows }
+        } finally { stmt.free() }
+      }
+      return opts?.regexp ? withRegexp(db, run) : run()
+    },
     async transaction(statements) {
       db.run('BEGIN')
       try {
@@ -214,7 +244,7 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
           n += db.getRowsModified()
         }
         db.run('COMMIT')
-        await writeFile(file, db.export())
+        await persist()
         return n
       } catch (err) { try { db.run('ROLLBACK') } catch { /* already over */ } throw err }
     },

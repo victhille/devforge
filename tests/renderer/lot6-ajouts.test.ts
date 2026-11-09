@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { computeDiff } from '@renderer/features/tools/diff/diff'
 import { sortKeys } from '@renderer/features/tools/toolbox/lib/json'
 import { generateSecret, laravelAppKey, secretBits } from '@renderer/features/tools/generator/random'
-import { isRegenerable } from '@renderer/features/envfiles/EnvMatrix'
+import { isRegenerable } from '@shared/lib/envKeys'
 
 /** Lot 6: the additions of the mock-up on the Tools and .env pages */
 describe('diff without whitespace', () => {

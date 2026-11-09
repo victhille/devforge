@@ -70,9 +70,26 @@ const SAFE_FILE = /^[\w./@+-]+$/
 
 interface Plan { command: string; report?: string; env?: Record<string, string>; fromOutput?: boolean }
 
-export function planFor(dir: string, runner: TestRunner, files: string[], report: string): Plan {
+/** A single test's name reaches the shell only in plain words; any other name runs its whole file */
+const SAFE_NAME = /^[\p{L}\p{N} _.,:'()[\]@#+\-/›]+$/u
+const asPattern = (name: string) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** The arguments that keep one test of the run (its name), empty when the tool or the name does not allow it */
+export function testFilter(runner: TestRunner, name: string | undefined): string {
+  if (!name || !SAFE_NAME.test(name)) return ''
+  switch (runner) {
+    case 'vitest': case 'jest': return ` -t ${quote(asPattern(name))}`
+    case 'playwright': return ` -g ${quote(asPattern(name))}`
+    case 'phpunit': return ` --filter ${quote(asPattern(name))}`
+    case 'pytest': return /^\w+$/.test(name) ? ` -k ${quote(name)}` : ''
+    case 'go': return /^\w+$/.test(name) ? ` -run ${quote(`^${name}$`)}` : ''
+    case 'cargo': return /^[\w:]+$/.test(name) ? ` ${quote(name)}` : ''
+  }
+}
+
+export function planFor(dir: string, runner: TestRunner, files: string[], report: string, testName?: string): Plan {
   const list = files.filter(f => SAFE_FILE.test(f) && !f.includes('..')).map(quote)
-  const extra = list.length ? ` ${list.join(' ')}` : ''
+  const extra = (list.length ? ` ${list.join(' ')}` : '') + testFilter(runner, testName)
   switch (runner) {
     case 'vitest': return { command: `npx vitest run --reporter=default --reporter=json --outputFile.json=${quote(report)}${extra}`, report }
     case 'jest': return { command: `npx jest --json --outputFile=${quote(report)} --testLocationInResults${extra}`, report }
@@ -82,12 +99,12 @@ export function planFor(dir: string, runner: TestRunner, files: string[], report
     case 'go': {
       // A file's tests: its package (folder)
       const pkgs = [...new Set(files.filter(f => SAFE_FILE.test(f) && !f.includes('..')).map(f => (f === '.' ? '.' : `./${f.replace(/\/[^/]*\.go$/, '')}`)))]
-      return { command: `go test -json ${pkgs.length ? pkgs.map(quote).join(' ') : './...'}`, fromOutput: true }
+      return { command: `go test -json ${pkgs.length ? pkgs.map(quote).join(' ') : './...'}${testFilter(runner, testName)}`, fromOutput: true }
     }
     case 'cargo': {
       // src/… is the library; tests/x.rs is the target "x"
       const targets = files.flatMap(f => (f.startsWith('tests/') ? ['--test', f.slice(6).replace(/\.rs$/, '')] : f.startsWith('src/') ? ['--lib'] : []))
-      return { command: `cargo test --no-fail-fast${targets.length ? ` ${[...new Set(targets)].join(' ')}` : ''}`, fromOutput: true }
+      return { command: `cargo test --no-fail-fast${targets.length ? ` ${[...new Set(targets)].join(' ')}` : ''}${testFilter(runner, testName)}`, fromOutput: true }
     }
   }
 }
@@ -113,12 +130,12 @@ function parseReport(runner: TestRunner, dir: string, report: string | undefined
 
 let running: { child: ChildProcess; stopped: boolean } | null = null
 
-export async function runTests(dir: string, runner: TestRunner, files: string[] | undefined, onOutput: (line: string) => void): Promise<TestRun> {
+export async function runTests(dir: string, runner: TestRunner, files: string[] | undefined, onOutput: (line: string) => void, testName?: string): Promise<TestRun> {
   if (!isInsideProject(dir)) throw new Error('Not a saved project')
   if (running) throw new Error('Tests are already running')
   const report = join(storeDir(), `${keyOf(dir, runner)}.report`)
   rmSync(report, { force: true })
-  const plan = planFor(dir, runner, files ?? [], report)
+  const plan = planFor(dir, runner, files ?? [], report, testName)
   const started = Date.now()
   onOutput(`> ${plan.command}`)
 

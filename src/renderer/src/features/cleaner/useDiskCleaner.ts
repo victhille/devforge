@@ -7,7 +7,11 @@ export interface CleanRow extends CleanCandidate {
   size: number | null
 }
 
-const SIZE_CONCURRENCY = 4
+/**
+ * Folders sized at once. Measured on 67 folders / 815 000 files (21 GB):
+ * 16 at a time, each with Windows' listing on 4 threads, take 3.5 s; 4 at a time, 7 s
+ */
+const SIZE_CONCURRENCY = 16
 
 /** Scan, progressive size computation and deletion of cleanable folders. */
 export function useDiskCleaner() {

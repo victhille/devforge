@@ -55,6 +55,8 @@ export interface N8nWorkflow {
   active: boolean
   updatedAt: string
   tags: string[]
+  /** Its first trigger node: a webhook, a schedule… (null when it only starts by hand from another workflow) */
+  trigger?: { kind: 'webhook' | 'schedule' | 'manual' | 'error' | 'other'; name: string } | null
 }
 
 export interface N8nExecution {

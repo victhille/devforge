@@ -54,7 +54,8 @@ function dataInfo(): DataInfo {
       // 2026-10-19T09-12-03-120Z → ISO
       at: parsed.stamp.replace(/T(\d\d)-(\d\d)-(\d\d)-(\d+)Z$/, 'T$1:$2:$3.$4Z'),
       reason: parsed.reason,
-      version: parsed.version
+      version: parsed.version,
+      size: sizeOf(join(backupsDir, name))
     }))
     .sort((a, b) => b.at.localeCompare(a.at))
   return {

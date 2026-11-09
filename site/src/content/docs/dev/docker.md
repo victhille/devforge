@@ -9,18 +9,19 @@ La page **Docker** pilote le moteur Docker de ce PC (Docker Desktop) et celui de
 Il faut [Docker Desktop](https://www.docker.com/products/docker-desktop/) lancé. Sinon, la page indique « Docker n'est pas disponible » ; l'état se voit aussi dans [Connexions](/devforge/getting-started/connections/#docker).
 :::
 
-## Local
+## Ce PC
 
-En haut : la version de Docker et le nombre de conteneurs en cours. Deux vues :
+En haut : la version de Docker, le nombre de conteneurs en cours et d'images. L'onglet **Ce PC** montre le Docker de ce PC, et chaque serveur a son onglet (au-delà de trois serveurs, un onglet **VPS** et un sélecteur).
 
-- **Compose** : chaque projet Compose avec ses services (image, ports, statut, CPU), son état (*en ligne*, *arrêté*, *Jamais lancé*) et le projet DevForge auquel il appartient. **Démarrer**, **Arrêter**, **Redémarrer**, et **Supprimer les conteneurs** (les volumes, donc les données des bases, sont conservés : le projet pourra être relancé).
-- **Seuls** : les conteneurs indépendants, avec démarrer, arrêter, redémarrer et supprimer (les données hors volume sont alors perdues).
+Le menu de gauche :
 
-Une vue **Images** liste les images.
+- **Compose** : chaque projet Compose, avec le nombre de services en ligne. À droite, ses services (image, ports, CPU, mémoire, état *en ligne* ou *arrêté*) et le projet DevForge auquel il appartient. **Démarrer**, **Redémarrer**, **Arrêter**, et **Supprimer les conteneurs** (les volumes, donc les données des bases, sont conservés : le projet pourra être relancé). Un projet jamais lancé l'indique.
+- **Autres** › **Conteneurs seuls** : les conteneurs lancés sans projet Compose, avec démarrer, arrêter, redémarrer et supprimer (les données hors volume sont alors perdues).
+- **Autres** › **Images** : les images, leur date et leur taille.
 
-### Logs
+### Journaux
 
-**Logs** ouvre les logs d'un conteneur ou de tous les services d'un projet, **en direct**. **Demander à Forgy** lui transmet les logs pour diagnostiquer un conteneur qui plante.
+Sous les services, les **journaux** de tous les services d'un projet, **en direct** ; un clic sur un service n'affiche que les siens. **Demander à Forgy** lui transmet les journaux pour diagnostiquer un conteneur qui plante.
 
 ### Nettoyer
 
@@ -28,7 +29,7 @@ Une vue **Images** liste les images.
 
 ## Sur un serveur
 
-L'onglet **VPS** montre le Docker d'un serveur SSH : ses conteneurs et leurs logs, à travers la connexion SSH. Si Docker n'est pas accessible sur le serveur, la page affiche l'erreur.
+L'onglet d'un serveur montre son Docker, à travers la connexion SSH : ses projets Compose et ses conteneurs, avec démarrer, arrêter et redémarrer ; un clic sur un conteneur affiche ses dernières lignes de journal. Si Docker n'est pas accessible sur le serveur, la page affiche l'erreur.
 
 ## Ailleurs dans DevForge
 

@@ -1,6 +1,6 @@
 ---
 title: Database
-description: A PostgreSQL, MySQL / MariaDB and SQLite client, finding the databases of your projects and servers, with SSH tunnels, editable tables and rows, CSV import and export.
+description: A PostgreSQL, MySQL / MariaDB and SQLite client, finding the databases of your projects and servers, with SSH tunnels, a search through the whole database, editable tables and rows, CSV import and export.
 ---
 
 The **Database** page is a client for **PostgreSQL**, **MySQL / MariaDB** and **SQLite**. Passwords are encrypted by Windows.
@@ -32,23 +32,37 @@ When editing, a password left empty keeps the saved one, as long as the database
 
 ## Explore
 
-![A SQLite table in the Browse tab](../../../../assets/screens/database-en.png)
+![A SQLite table in the Data tab](../../../../assets/screens/database-en.png)
 
-Pick a connection: the list of tables (filterable) shows, with the number of rows of each (an estimate on PostgreSQL and MySQL). Above the title, "Data & API / connection name" leads back to the database overview. The **Database** tab sums up the server, the database, the number of tables, views and rows (estimate), indexes and foreign keys.
+The **Connections** panel, on the left, lists your databases. Pick one: its tables (filterable) unfold under it, with the number of rows of each (an estimate on PostgreSQL and MySQL). At the bottom of the panel, a reminder: passwords are encrypted by Windows. Above the title, "Data & API / connection name" leads back to the database overview. The tabs are top right, next to **Schema** and the **⋯** menu (**Refresh**, **Search the database**, **New table**, **New query**). The **Database** tab sums up the server, the database, the number of tables, views and rows (estimate), indexes and foreign keys.
 
 For a table:
 
 | Tab | Content |
 |---|---|
-| Browse | the rows, page by page, sortable by clicking a column; editable (see below), exportable, and a CSV imports into it |
+| Data | the rows, page by page, sortable by clicking a column; editable (see below), exportable, and a CSV imports into it |
 | Structure | columns (type, null, default, key, extra, comment) and indexes; add, edit or drop a column, rename or drop the table (see below) |
 | Relations | foreign keys to other tables, and tables pointing to this one |
 | SQL | a query on this table |
 | Info | rows, size (data and indexes), engine, collation, encoding, definition (DDL) |
 
+## Searching the database
+
+The **Search** tab (or **Search the database** in the **⋯** menu) looks for a value in **every table at once**, like phpMyAdmin's search, made simpler:
+
+- Type what you are looking for, then <kbd>Enter</kbd>. Every column is read as text: numbers, dates and JSON included.
+- The **mode**: **Contains the text** (the default), **Any of the words**, **All the words** (each word somewhere in the row), **Exact value** or **Regular expression**. For words, quotes keep a phrase whole: `"main street"`.
+- **Match case**: without it, upper and lower case are the same, accented letters included (`élodie` finds `Élodie`).
+- **In the column** narrows the search to the columns of that name (suggested from the tables); only the tables that have it are searched.
+- **Tables**: all of them by default, views left out; unfold the list to tick some.
+
+Tables are searched one by one, and each shows as soon as it has answered; **Stop** ends the search. For each table that holds the term: the number of rows found, the columns it is in, and the first 50 rows, the key and those columns first, the term highlighted. **Show the SQL** puts the query that brings back every row in the **SQL** tab; **Open the table** shows its data. The results are still there when you come back to the tab.
+
+The search only reads, and the term goes in as a parameter, never pasted into the SQL. Each table searched is read whole: on a big database, stick to one column or a few tables. Regular expressions follow the database's syntax: POSIX for PostgreSQL, ICU or PCRE for MySQL / MariaDB, JavaScript for SQLite.
+
 ## The schema
 
-**Schema** (at the top of the explorer) opens the database full screen: each table as a card, with its columns, their type, the primary key 🔑 and the required columns (`!`). One arrow per foreign key goes from the column that points to the column pointed at.
+**Schema** (top right) opens the database full screen: each table as a card, with its columns, their type, the primary key 🔑 and the required columns (`!`). One arrow per foreign key goes from the column that points to the column pointed at.
 
 - **Automatic layout**: the tables pointed at on the left, the ones pointing at them on the right, ordered so arrows cross little. Tables without links go below.
 - **Move** a table: drag it by its title. Positions are kept for each database; **Rearrange** goes back to the automatic layout.
@@ -61,7 +75,7 @@ PostgreSQL (all schemas), MySQL / MariaDB and SQLite.
 
 ## Creating and changing tables
 
-- **New table** (the **+** at the top of the tables list): its name and columns. An auto-incremented `id` column is ready; each column has a **type** (offered per database, or typed: `VARCHAR(255)`, `NUMERIC(10, 2)`…), a **default**, and the boxes **Required**, **Primary key**, **Auto-increment**.
+- **New table** (in the **⋯** menu, or the tables' **+** in a project's tab): its name and columns. An auto-incremented `id` column is ready; each column has a **type** (offered per database, or typed: `VARCHAR(255)`, `NUMERIC(10, 2)`…), a **default**, and the boxes **Required**, **Primary key**, **Auto-increment**.
 - In **Structure**: **Add a column**, a column's pencil to edit it (name, type, default, required), its bin to drop it; **Rename the table**; **Drop the table**, which asks for its name typed again.
 
 Each dialog first shows the **query about to run**; nothing runs before **Apply**. If the database refuses, its message stays on screen and nothing else runs.
@@ -72,7 +86,7 @@ A default is kept as is when it is a number, a keyword (`CURRENT_TIMESTAMP`, `NU
 
 ## Editing rows
 
-In **Browse**, a table with a **primary key** is edited in place:
+In **Data**, a table with a **primary key** is edited in place:
 
 - **double-click** (or <kbd>Enter</kbd>) a cell to edit it; **NULL** in one click next to the field; <kbd>Esc</kbd> cancels;
 - **Add a row**: an empty row at the top; a cell left empty keeps the column's default (an auto-increment, say);
@@ -84,7 +98,7 @@ Values travel as parameters, never pasted into the SQL. A table without a primar
 
 ## Import and export
 
-- **Export** (in **Browse**) writes **the whole table** to a file, not just the page shown: **CSV**, **JSON**, **SQL** (`INSERT`s) or **SQL with CREATE TABLE**. Rows are read 1,000 at a time, in primary key order.
+- **Export** (in **Data**) writes **the whole table** to a file, not just the page shown: **CSV**, **JSON**, **SQL** (`INSERT`s) or **SQL with CREATE TABLE**. Rows are read 1,000 at a time, in primary key order.
 - A query's results can be saved too, as CSV or JSON, with the button next to **Copy**.
 - **Import a CSV**: pick the file; the separator (`,`, `;`, tab, `|`) and the encoding (UTF-8, or Windows-1252 as Excel's CSVs) are recognised. Each column of the file goes into the table's column of the same name (case, spaces, `_` and `-` ignored); under each header you change it or skip it. The first 10 rows show; **An empty cell becomes NULL** is checked by default.
 - The import runs **in one transaction**: if a row is refused (a required column empty, a duplicate key…), none is kept and the file's faulty line is given. 50 MB at most.
@@ -93,7 +107,7 @@ Files always go through Windows' save or open window.
 
 ## SQL queries
 
-**New query** opens an SQL editor. <kbd>Ctrl</kbd> <kbd>Enter</kbd> runs it. Results are limited to 1000 rows; a write query shows the number of rows changed. Above the results, **CSV** or **JSON** picks the copy format (remembered): in JSON, one object per row.
+The **SQL** tab (or **New query** in the **⋯** menu) opens an SQL editor. **Run** or <kbd>Ctrl</kbd> <kbd>Enter</kbd> runs the query; **Write with Forgy** asks it to write or fix it from the database's structure. Results are limited to 1000 rows; a write query shows the number of rows changed. Above the results, **CSV** or **JSON** picks the copy format (remembered): in JSON, one object per row.
 
 ## Elsewhere
 

@@ -20,7 +20,7 @@ Les commits de fusion (merge) ne sont pas comptés.
 
 - **Les plus actifs ce mois-ci** : les projets avec le plus de commits ces 30 derniers jours, avec les lignes ajoutées et supprimées.
 - **Ceux qui dorment** : aucun commit depuis 3 mois, avec la date du dernier. Un dossier qui n'est pas un dépôt Git n'y apparaît pas.
-- **Branches à suivre** : les commits pas encore poussés (↑) ou à récupérer (↓), projet par projet. Un clic ouvre l'onglet Git du projet.
+- **Branches à suivre** : les commits pas encore poussés (↑) ou à récupérer (↓), projet par projet. Un clic ouvre l'onglet **Fichiers et Git** du projet.
 
 Un clic sur un projet ouvre sa [fiche](/devforge/dev/projects/).
 

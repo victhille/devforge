@@ -41,9 +41,10 @@ test('export without secrets, erase everything, import the setup back', async ()
   expect(bundle).not.toContain('chiffre')
   expect(bundle).not.toContain('passwordEnc')
 
-  // Erasing needs the word typed; the page's memory goes too
+  // Erasing asks first, then needs the word typed; the page's memory goes too
   await page.evaluate(() => localStorage.setItem('devforge:test', '1'))
-  const wipe = page.getByRole('button', { name: 'Tout effacer' })
+  await page.getByRole('button', { name: 'Tout effacer…' }).click()
+  const wipe = page.getByRole('button', { name: 'Tout effacer', exact: true })
   await expect(wipe).toBeDisabled()
   await page.getByLabel('Tape « effacer » pour confirmer').fill('effacer')
   await wipe.click()

@@ -5,16 +5,16 @@ description: The dev tools installed on your PC, their versions, and how they ma
 
 The **Environment** page detects the dev tools installed on this PC and their version.
 
-| Category | Tools |
+| Card | Tools |
 |---|---|
 | JavaScript | Node.js, npm, pnpm, Yarn |
-| Version Control | Git |
 | PHP | PHP, Composer, Symfony CLI |
-| Infrastructure | Docker, Python |
+| Tools | Git, Docker |
+| Other languages | Python |
 
-A missing tool is marked *Not detected*, with **Install…**: a link to its install page and, when there is one, the command to run (for example `npm install -g pnpm`).
+A tool found has a check and its version. A missing tool is greyed out, with **Install**: a link to its install page and, next to it, the command to run when there is one (for example `npm install -g pnpm`). When one of your projects needs it, the button turns to the accent color and says which one ("used by online-shop").
 
-Each category says how many of its tools are detected ("3 of 4 detected").
+Each card says how many of its tools are detected ("3 / 4").
 
 Detection is kept in memory (installed tools rarely change); **Refresh** runs it again.
 

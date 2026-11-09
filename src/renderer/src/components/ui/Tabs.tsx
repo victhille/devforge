@@ -44,7 +44,7 @@ export default function Tabs<T extends string>({ items, value, onChange, variant
       onKeyDown={onKey}
       className={cn(
         underline
-          ? 'flex min-w-0 items-end gap-4.5 overflow-x-auto border-b border-line-subtle'
+          ? 'flex min-w-0 items-end gap-4.5 overflow-x-auto overflow-y-hidden border-b border-line-subtle'
           : 'inline-flex h-9 w-fit shrink-0 items-center gap-0.5 rounded-control border border-line bg-surface p-[3px]',
         className
       )}

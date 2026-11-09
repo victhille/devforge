@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate } from 'react-router-dom'
 import { Bot, Database, ExternalLink, Shapes } from 'lucide-react'
 import type { ModelKind, ModelSummary, Project } from '@shared/types'
@@ -8,7 +9,6 @@ import AskForgy from '@renderer/features/assistant/AskForgy'
 import { errorText } from '@renderer/lib/errors'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
-import Spinner from '@renderer/components/ui/Spinner'
 import { fill, modelUrl, useModels } from './model'
 import ModelGrid, { NameDialog } from './ModelGrid'
 import { ImportProgress, useModelImport } from './ImportProgress'
@@ -93,7 +93,7 @@ export default function ProjectModels({ project, databases }: { project: Project
         </Card>
       )}
 
-      {!models ? <Spinner className="m-4" /> : models.length
+      {!models ? <LinesSkeleton lines={3} className="m-4" /> : models.length
         ? <ModelGrid project={project} models={models} onChanged={load} from={project.id} />
         : <p className="rounded-xl border border-dashed border-line p-5 text-sm text-fg-secondary">{databases.length ? p.emptyWithDb : p.empty}</p>}
 

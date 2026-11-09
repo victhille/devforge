@@ -1,11 +1,11 @@
 import { useState } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import type { DbConnection, Project } from '@shared/types'
 import { useDbConnections } from '@renderer/hooks/useLiveData'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { errorText } from '@renderer/lib/errors'
 import Button from '@renderer/components/ui/Button'
 import Modal from '@renderer/components/ui/Modal'
-import Spinner from '@renderer/components/ui/Spinner'
 import { Field, Input } from '@renderer/components/ui/Input'
 import { ImportProgress, useModelImport } from './ImportProgress'
 
@@ -47,7 +47,7 @@ export default function MpdDialog({ project, onClose, onDone }: { project: Proje
         <Button onClick={go} loading={busy || imp.busy} disabled={busy || imp.busy || !name.trim()}>{conn ? l.importButton : m.createButton}</Button>
       </>}>
       <div className="flex flex-col gap-3">
-        {!connections ? <Spinner /> : (
+        {!connections ? <LinesSkeleton lines={2} /> : (
           <Field label={l.importConnection}>
             <select value={conn} onChange={e => { setConn(e.target.value); imp.reset() }}
               className="h-9 rounded-lg border border-line bg-surface px-2.5 text-sm text-fg outline-none focus:border-accent">

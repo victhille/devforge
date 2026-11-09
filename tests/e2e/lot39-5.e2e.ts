@@ -27,10 +27,13 @@ test('a use case drawn, its scenario, its tasks in Notes; a class and a sequence
   const { page, app } = run
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setSize(1440, 900))
   await goTo(page, '/modeling')
-  const create = page.getByRole('region', { name: 'Créer un modèle' })
+  const create = async (kind: RegExp) => {
+    await page.getByRole('button', { name: 'Nouveau modèle', exact: true }).click()
+    await page.getByRole('dialog', { name: 'Quel modèle ?' }).getByRole('button', { name: kind }).click()
+  }
 
   // A use case diagram, from its tile
-  await create.getByRole('button', { name: /Cas d'utilisation/ }).click()
+  await create(/Cas d'utilisation/)
   const dialog = page.getByRole('dialog', { name: "Nouveau : Cas d'utilisation" })
   await dialog.getByLabel('Nom').fill('Parcours client')
   await dialog.getByRole('button', { name: 'Créer' }).click()
@@ -68,12 +71,14 @@ test('a use case drawn, its scenario, its tasks in Notes; a class and a sequence
   await expect(page.getByText('2 tâche(s) ajoutée(s) dans Notes')).toBeVisible()
   await page.getByRole('button', { name: 'Créer les tâches dans Notes' }).click()
   await expect(page.getByText('Les tâches de ces cas sont déjà dans Notes')).toBeVisible()
-  const tasks = await page.evaluate(() => window.devforge.notes.get('s').then(n => n.tasks.map(t => t.text)))
-  expect(tasks).toEqual(['Cas « Passer une commande » (Client)', 'Cas « Payer »'])
+  // Boxes of the project's « Tâches » note, a file of the project
+  const tasks = readFileSync(join(project, '.devforge', 'notes', 'taches.md'), 'utf-8')
+  expect(tasks).toContain('title: Tâches\npinned: true\n')
+  expect([...tasks.matchAll(/<li data-checked="false">(.*)<\/li>/g)].map(m => m[1])).toEqual(['Cas « Passer une commande » (Client)', 'Cas « Payer »'])
 
   // A class with its members
   await page.getByRole('button', { name: 'Modélisation' }).click()
-  await create.getByRole('button', { name: /Diagramme de classes/ }).click()
+  await create(/Diagramme de classes/)
   await page.getByRole('dialog').getByLabel('Nom').fill('Domaine')
   await page.getByRole('dialog').getByRole('button', { name: 'Créer' }).click()
   await palette.getByRole('button', { name: 'Classe', exact: true }).click()
@@ -86,7 +91,7 @@ test('a use case drawn, its scenario, its tasks in Notes; a class and a sequence
 
   // A sequence: two participants, a message below the last one
   await page.getByRole('button', { name: 'Modélisation' }).click()
-  await create.getByRole('button', { name: /Séquence/ }).click()
+  await create(/Séquence/)
   await page.getByRole('dialog').getByLabel('Nom').fill('Commande')
   await page.getByRole('dialog').getByRole('button', { name: 'Créer' }).click()
   await palette.getByRole('button', { name: 'Participant', exact: true }).click()
@@ -106,7 +111,8 @@ test('a use case drawn, its scenario, its tasks in Notes; a class and a sequence
   // The list: every diagram drawn, with its kind and its count
   await page.getByRole('button', { name: 'Modélisation' }).click()
   const cards = page.getByRole('region', { name: 'Modèles du projet' }).getByRole('listitem')
-  await expect(cards).toHaveCount(5)
+  // Five models, and the card to start one more
+  await expect(cards).toHaveCount(6)
   await expect(cards.filter({ hasText: 'Archi' })).toContainText('Architecture · 7 élément(s)')
   await expect(cards.filter({ hasText: 'Parcours client' }).locator('img')).toBeVisible()
   await cards.filter({ hasText: 'Archi' }).getByRole('button', { name: 'Ouvrir Archi' }).click()

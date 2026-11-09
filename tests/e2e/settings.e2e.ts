@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
+import { settledAxeIssues as settledAxe } from './axe'
 
 /** Settings redone: sections, search, saved on change; release notes and "What's new" */
 let run: Launched
@@ -34,11 +35,27 @@ test('settings are found by search and saved on change', async () => {
   await expect.poll(() => JSON.parse(readFileSync(join(userData, 'settings.json'), 'utf-8')).theme).toBe('light')
   await page.getByRole('radio', { name: 'Réduites' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced')
+  // Another colour (the whole look: backgrounds too) and a larger text, applied at once and kept
+  await page.getByRole('radio', { name: 'Bleu' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'blue')
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg-base'))).toBe('#EBF5FF')
+  await page.getByRole('radio', { name: 'Grande', exact: true }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-text-size', 'large')
+  await expect.poll(() => JSON.parse(readFileSync(join(userData, 'settings.json'), 'utf-8'))).toMatchObject({ accent: 'blue', textSize: 'large' })
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).fontSize)).toBe('14.56px')
+  expect(await settledAxe(page)).toEqual([])
 
   // Alerts can be turned off one by one
   await sections.getByRole('link', { name: 'Serveurs' }).click()
   await page.getByRole('switch', { name: 'Un site tombe' }).click()
   await expect.poll(() => JSON.parse(readFileSync(join(userData, 'watch.json'), 'utf-8')).alerts.site).toBe(false)
+  expect(await settledAxe(page)).toEqual([])
+
+  // Updates: the installed version, then its changes filtered by kind
+  await sections.getByRole('link', { name: 'Mises à jour' }).click()
+  await page.getByRole('radio', { name: 'Corrections' }).click()
+  await expect(page.getByRole('radio', { name: 'Corrections' })).toHaveAttribute('aria-checked', 'true')
+  expect(await settledAxe(page)).toEqual([])
 })
 
 test('release notes are cards filtered by kind, and "What\'s new" follows an update', async () => {

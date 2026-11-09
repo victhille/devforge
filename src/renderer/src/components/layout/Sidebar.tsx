@@ -9,8 +9,9 @@ import { DEFAULT_FAVORITES, HOME, LISTED_PAGES, MENU_GROUPS, RAIL, isListed, isO
 import { useProjects } from '@renderer/features/projects/hooks/useProjects'
 import { SETTINGS_SECTIONS } from '@renderer/features/settings/sections'
 import { useHasServer, useServerName } from '@renderer/hooks/useHasServer'
-import { PanelLabel, ProjectList, onProject } from './PanelProjects'
+import { PANEL_ICON, PanelLabel, ProjectList, onProject, panelRow } from './PanelProjects'
 import { MAX_FAVORITES } from '@shared/lib/favorites'
+import { patchSettings, useSettings } from '@renderer/hooks/useLiveData'
 
 const ENTRIES = [HOME, ...LISTED_PAGES]
 const entry = (path: string) => ENTRIES.find(p => p.path === path)!
@@ -20,13 +21,13 @@ const SettingsIcon = entry('/settings').icon
 /** Ctrl+B stays a key of the field being typed in (bold in a note, a shell shortcut…) */
 const isTyping = (t: EventTarget | null) => t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement || (t instanceof HTMLElement && t.isContentEditable)
 
-/** The pinned pages, saved in the settings */
+/** The pinned pages, saved in the settings (the shared copy: pinned from the palette, they show here at once) */
 function useFavorites() {
-  const [favorites, setLocal] = useState<string[]>(DEFAULT_FAVORITES)
-  useEffect(() => { window.devforge.getSettings().then(s => setLocal(s.favorites ?? DEFAULT_FAVORITES)).catch(() => {}) }, [])
+  const { data: settings } = useSettings()
+  const favorites = settings?.favorites ?? DEFAULT_FAVORITES
   const save = useCallback((next: string[]) => {
-    setLocal(next)
-    window.devforge.setFavorites(next).then(setLocal).catch(() => {})
+    patchSettings({ favorites: next })
+    window.devforge.setFavorites(next).catch(() => {})
   }, [])
   return [favorites, save] as const
 }
@@ -44,12 +45,12 @@ function PinButton({ pinned, full, onToggle }: { pinned: boolean; full: boolean;
       disabled={!pinned && full}
       onClick={e => { e.preventDefault(); e.stopPropagation(); onToggle() }}
       className={cn(
-        'absolute top-1/2 right-1 flex size-6 -translate-y-1/2 items-center justify-center rounded-md text-fg-muted opacity-0 transition-opacity',
+        'absolute top-1/2 right-2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-fg-muted opacity-0 transition-opacity',
         'group-hover/row:opacity-100 focus-visible:opacity-100 hover:bg-elevated hover:text-fg disabled:cursor-not-allowed disabled:opacity-40',
         pinned && 'text-accent hover:text-accent'
       )}
     >
-      <Star size={13} strokeWidth={2} fill={pinned ? 'currentColor' : 'none'} />
+      <Star size={14} strokeWidth={2} fill={pinned ? 'currentColor' : 'none'} />
     </button>
   )
 }
@@ -65,13 +66,9 @@ function PanelLink({ to, label, Icon, pin, yields }: { to: string; label: string
     <Link
       to={to}
       aria-current={on ? 'page' : undefined}
-      className={cn(
-        'group/link flex h-8 items-center gap-2.5 rounded-lg pl-2 text-base transition-colors',
-        pin ? 'pr-8' : 'pr-2',
-        on ? 'bg-active font-semibold text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg'
-      )}
+      className={panelRow(on, pin ? 'pr-11' : undefined)}
     >
-      <Icon size={16} strokeWidth={1.8} className={cn('shrink-0 transition-colors', on ? 'text-accent' : 'text-fg-muted group-hover/link:text-fg-secondary')} />
+      <Icon size={PANEL_ICON} strokeWidth={1.8} className={cn('shrink-0 transition-colors', on ? 'text-accent' : 'text-fg-muted group-hover/link:text-fg-secondary')} />
       <span className="truncate">{label}</span>
     </Link>
   )
@@ -79,7 +76,6 @@ function PanelLink({ to, label, Icon, pin, yields }: { to: string; label: string
 
 /** How many projects the panel lists: the last opened under Home, the first by name under Development */
 const RECENT_PROJECTS = 3
-const GROUP_PROJECTS = 6
 
 /** A square of the rail: a group (button) or Settings (link); orange when it holds the page on screen */
 const railItem = (current: boolean, shown: boolean) => cn(
@@ -176,11 +172,10 @@ export default function Sidebar() {
 
   const label = (key: RailKey) => (key === 'home' ? t.nav.home : t.nav[key])
   const group = MENU_GROUPS.find(g => g.key === shown)
-  // The projects the panel lists: the last opened under Home, by name under Development
+  // The projects the panel lists: the last opened, under Home only (Development shows its pages, the Projects page lists them all)
   const when = (p: Project) => p.lastOpenedAt ?? p.createdAt
-  const listed = settingsShown || collapsed ? [] : shown === 'home'
-    ? projects.slice().sort((a, b) => when(b).localeCompare(when(a))).slice(0, RECENT_PROJECTS)
-    : shown === 'groupDev' ? projects.slice().sort((a, b) => a.name.localeCompare(b.name)).slice(0, GROUP_PROJECTS) : []
+  const listed = settingsShown || collapsed || shown !== 'home' ? []
+    : projects.slice().sort((a, b) => when(b).localeCompare(when(a))).slice(0, RECENT_PROJECTS)
   // A listed project on screen is the panel's current page, not Projects as well
   const projectListed = listed.some(p => onProject(pathname, p.id))
   const note = settingsShown ? null
@@ -222,17 +217,17 @@ export default function Sidebar() {
         {/* The panel of the group: 220 px, folds to nothing */}
         <div id="nav-panel" className={cn('shrink-0 overflow-hidden bg-sidebar transition-[width] duration-200', collapsed ? 'w-0' : 'w-[220px] border-r border-line-subtle')}>
           {!collapsed && (
-            <div className="flex h-full w-[219px] flex-col gap-4.5 overflow-y-auto px-3 pt-4.5 pb-3">
-              <p className="truncate px-2 font-display text-lg font-bold tracking-tight text-fg">{settingsShown ? t.nav.settings : label(shown)}</p>
+            <div className="flex h-full w-[219px] flex-col gap-7 overflow-y-auto px-3 pt-6 pb-3">
+              <p className="truncate px-3 font-display text-xl font-bold tracking-tight text-fg">{settingsShown ? t.nav.settings : label(shown)}</p>
 
               {settingsShown ? (
-                <div className="flex flex-col gap-0.5">
+                <div className="flex flex-col gap-1">
                   {SETTINGS_SECTIONS.map(x => {
                     const on = (params.get('notes') ? 'updates' : params.get('section') ?? 'general') === x.id
                     return (
                       <Link key={x.id} to={`/settings?section=${x.id}`} aria-current={on ? 'page' : undefined}
-                        className={cn('group/link flex h-8 items-center gap-2.5 rounded-lg px-2 text-base transition-colors', on ? 'bg-active font-semibold text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg')}>
-                        <x.icon size={16} strokeWidth={1.8} className={cn('shrink-0', on ? 'text-accent' : 'text-fg-muted group-hover/link:text-fg-secondary')} />
+                        className={panelRow(on)}>
+                        <x.icon size={PANEL_ICON} strokeWidth={1.8} className={cn('shrink-0', on ? 'text-accent' : 'text-fg-muted group-hover/link:text-fg-secondary')} />
                         <span className="truncate">{t.settings.nav[x.id]}</span>
                       </Link>
                     )
@@ -241,17 +236,17 @@ export default function Sidebar() {
               ) : shown === 'home' ? (
                 <>
                   <PanelLink to="/" label={t.nav.home} Icon={HOME.icon} />
-                  <div className="flex flex-col gap-0.5">
-                    <div className="group/head flex h-6 items-center justify-between px-2 pb-1">
+                  <div className="flex flex-col gap-1">
+                    <div className="group/head flex h-8 items-center justify-between px-3 pb-1">
                       <PanelLabel>{t.nav.favorites}</PanelLabel>
                       {!isDefault && (
                         <button type="button" title={t.nav.favoritesReset} aria-label={t.nav.favoritesReset} onClick={() => saveFavorites([...DEFAULT_FAVORITES])}
-                          className="flex size-5 items-center justify-center rounded-md text-fg-muted opacity-0 transition-opacity group-hover/head:opacity-100 focus-visible:opacity-100 hover:text-fg">
-                          <RotateCcw size={12} />
+                          className="flex size-7 items-center justify-center rounded-md text-fg-muted opacity-0 transition-opacity group-hover/head:opacity-100 focus-visible:opacity-100 hover:text-fg">
+                          <RotateCcw size={14} />
                         </button>
                       )}
                     </div>
-                    {shownFavorites.length === 0 && <p className="px-2 py-1 text-xs text-fg-muted">{t.nav.favoritesEmpty}</p>}
+                    {shownFavorites.length === 0 && <p className="px-3 py-1 text-sm text-fg-muted">{t.nav.favoritesEmpty}</p>}
                     {shownFavorites.map((path, i) => {
                       const page = entry(path)
                       return (
@@ -269,11 +264,11 @@ export default function Sidebar() {
                       )
                     })}
                   </div>
-                  <ProjectList label={t.nav.recentProjects} projects={listed} more={0} />
+                  <ProjectList label={t.nav.recentProjects} projects={listed} />
                 </>
               ) : (
                 <>
-                <div className="flex flex-col gap-0.5">
+                <div className="flex flex-col gap-1">
                   {paths.map(path => {
                     const page = entry(path)
                     return (
@@ -286,17 +281,16 @@ export default function Sidebar() {
                   {/* The server pages exist: say where they come from */}
                   {waiting > 0 && (
                     <Link to="/settings?section=connections"
-                      className="mt-1 flex h-7 items-center truncate rounded-lg px-2 text-xs text-fg-muted transition-colors hover:bg-hover hover:text-fg">
+                      className="mt-0.5 flex h-9 items-center truncate rounded-control px-3 text-sm text-fg-muted transition-colors hover:bg-hover hover:text-fg">
                       {t.nav.moreWithServer.replace('{n}', String(waiting))}
                     </Link>
                   )}
                 </div>
-                {shown === 'groupDev' && <ProjectList label={t.nav.projects} projects={listed} more={Math.max(0, projects.length - GROUP_PROJECTS)} />}
                 </>
               )}
 
               <div className="mt-auto flex shrink-0 flex-col gap-2 px-2">
-                {note && <p className="-mx-2 rounded-control border border-line-subtle bg-surface p-2.5 text-xs text-fg-secondary">{note}</p>}
+                {note && <p className="-mx-2 rounded-control border border-line-subtle bg-surface p-3.5 text-sm text-fg-secondary">{note}</p>}
                 <span className="font-mono text-xs text-fg-muted">v{__APP_VERSION__}</span>
               </div>
             </div>

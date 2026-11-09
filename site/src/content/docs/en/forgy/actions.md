@@ -26,7 +26,7 @@ Forgy can also **act**. Each action shows as a **card** in the panel: what will 
 | Backup | runs the server's nightly backup right now | no | no |
 | GitHub Actions | re-runs the failed jobs of a run | no | no |
 | Model | creates a [model](/devforge/en/data/modeling/) in `conception/`, shown on the card: an MCD from the project's linked database (with its linked MPD) or from what you described (entities, attributes, associations, cardinalities); an MPD from its tables (columns, types, keys, foreign keys), on the project's engine; a diagram (use cases, classes, sequence, flowchart, architecture) from its parts and their links, laid out on its own | yes (files removed) | no |
-| Task | adds a task to a [project's notes](/devforge/en/dev/projects/#notes-and-tasks), checks or unchecks it | yes (removed, or previous state) | yes |
+| Task | adds a task (a checkbox) to a [project's notes](/devforge/en/dev/projects/#notes-and-tasks), checks, unchecks or removes it | yes (removed, put back, or previous state) | yes, except removing |
 | Packages | updates npm, pnpm, yarn, Composer, Python (pip in the virtual environment, Poetry, uv, Pipenv), Cargo, Go, Bundler or pub [packages](/devforge/en/dev/packages/), within their range or to the latest version (a major is flagged on the card) | yes: manifest and lockfile put back, then reinstall | no |
 
 ## Always ask, or Auto

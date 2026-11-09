@@ -7,9 +7,20 @@ import type { Project } from '@shared/types'
 /** Whether the page on screen is this project's (its overview or one of its tabs) */
 export const onProject = (pathname: string, id: string) => pathname === `/project/${id}` || pathname.startsWith(`/project/${id}/`)
 
+/** A row of the panel (a page, a Settings section, a project): 34 px, 14 px text; the one on screen on the active background
+ *  (the app's rem is 13 px: one spacing unit is 3.25 px) */
+export const panelRow = (on: boolean, className?: string) => cn(
+  'group/link flex h-10.5 items-center gap-3 rounded-control px-3 text-md transition-colors',
+  on ? 'bg-active font-semibold text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg',
+  className
+)
+
+/** The icons of the panel's rows */
+export const PANEL_ICON = 17
+
 /** A heading of the menu's panel (Favorites, Recent projects…) */
 export function PanelLabel({ children }: { children: ReactNode }) {
-  return <span className="truncate text-xs font-semibold tracking-wide text-fg-muted">{children}</span>
+  return <span className="truncate text-sm font-semibold tracking-wide text-fg-muted">{children}</span>
 }
 
 /** A listed project's changed files, null when its folder is not a Git repository; missing while it is read */
@@ -60,31 +71,25 @@ function ProjectLink({ project, state }: { project: Project; state: RepoState | 
     : t.nav.projectClean
   return (
     <Link to={`/project/${project.id}`} aria-current={on ? 'page' : undefined}
-      className={cn('flex h-8 items-center gap-2.5 rounded-lg px-2 text-base transition-colors', on ? 'bg-active font-semibold text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg')}>
+      className={panelRow(on)}>
       {/* Faint while the state is read, grey outside a Git repository */}
       <span aria-hidden title={status ?? undefined}
-        className={cn('mx-1 size-2 shrink-0 rounded-full', state === undefined ? 'bg-line' : state === null ? 'bg-fg-disabled' : changes ? 'bg-warning' : 'bg-success')} />
+        className={cn('mx-1 size-2.5 shrink-0 rounded-full', state === undefined ? 'bg-line' : state === null ? 'bg-fg-disabled' : changes ? 'bg-warning' : 'bg-success')} />
       <span className="flex-1 truncate">{project.name}</span>
-      {changes > 0 && <span aria-hidden title={status ?? undefined} className="font-mono text-2xs text-fg-muted">{changes}</span>}
+      {changes > 0 && <span aria-hidden title={status ?? undefined} className="font-mono text-xs text-fg-muted">{changes}</span>}
       {status && <span className="sr-only">, {status}</span>}
     </Link>
   )
 }
 
-/** A labelled list of projects in the panel, with a link to all of them when there are more */
-export function ProjectList({ label, projects, more }: { label: string; projects: Project[]; more: number }) {
-  const { t } = useI18n()
+/** A labelled list of projects in the panel (the recent ones, under Home) */
+export function ProjectList({ label, projects }: { label: string; projects: Project[] }) {
   const states = useRepoStates(projects)
   if (!projects.length) return null
   return (
-    <div className="flex flex-col gap-0.5">
-      <div className="flex h-6 items-center px-2 pb-1"><PanelLabel>{label}</PanelLabel></div>
+    <div className="flex flex-col gap-1">
+      <div className="flex h-8 items-center px-3 pb-1"><PanelLabel>{label}</PanelLabel></div>
       {projects.map(p => <ProjectLink key={p.id} project={p} state={states[p.id]} />)}
-      {more > 0 && (
-        <Link to="/projects" className="mt-1 flex h-7 items-center truncate rounded-lg px-2 text-xs text-fg-muted transition-colors hover:bg-hover hover:text-fg">
-          {t.nav.moreProjects.replace('{n}', String(more))}
-        </Link>
-      )}
     </div>
   )
 }

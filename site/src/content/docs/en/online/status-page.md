@@ -21,16 +21,20 @@ If the server firewall (ufw) closes 80 and 443, DevForge offers **Open 80 and 44
 
 **Address of the page**: an address ready without DNS setup (`sslip.io`), or **My sub-domain** (for example `status.example.com`, with **Check DNS**). The e-mail for the certificate is optional.
 
-## What is watched
+## The page installed
 
-Add services:
+At the top: the page's state (*online* or *stopped*), its address (a click opens it) and **Report an incident**. The **⋯** menu: **Refresh** and **Uninstall**.
+
+## Services shown
+
+**Add a service**:
 
 | Type | Address |
 |---|---|
 | Site (HTTP) | `https://example.com` |
 | Port (TCP) | `host:port`, for example `127.0.0.1:5432` |
 
-Each service has a **public name**. What is ticked **Public** shows on the page; the rest is only seen in DevForge. Each service shows its availability over the last 90 days.
+Each service has a **public name**. What is ticked **Public** shows on the page; the rest is only seen in DevForge. Each service shows its state, its response time and its uptime over 90 days.
 
 **Test an outage** adds a failing test service: the incident and the alert come at the next check. **Remove the test** closes it.
 
@@ -41,20 +45,16 @@ When a service goes down and comes back, the server warns you itself:
 - **Notification on the phone (ntfy)**: install the [ntfy](https://ntfy.sh) app and subscribe to the topic. Keep it secret: whoever knows it gets the alerts.
 - **Webhook**: a JSON POST on each outage and recovery, for instance to an n8n or Discord webhook.
 
+In the same card: **Failures in a row before the alert** (several failures in a row avoid false alerts on a one-second drop), **Check** every N seconds and the page's **Title**.
+
 **Send a test alert** checks the setup. ntfy alerts can also be set, tested and removed in [Settings › Connections](/devforge/en/getting-started/connections/#n8n-and-alerts).
-
-## The page
-
-- **Title** of the page.
-- **Check** every N seconds.
-- **Failures before "down"**: several failures in a row avoid false alerts on a one-second drop.
 
 Changed settings go to the server with **Save**.
 
 ## Incidents
 
-Incidents are opened and closed on their own by the watch (*automatic*). You can also **write** one (maintenance, explanation): a title, an optional message, **Publish**; it shows on the public page. **Mark resolved** or **Delete this incident**.
+Incidents are opened and closed on their own by the watch (*automatic*). You can also report one with **Report an incident** (maintenance, explanation): a title, an optional message, **Publish**; it shows on the public page. **Mark resolved** or **Delete this incident**.
 
 ## Uninstall
 
-**Uninstall** stops the service and deletes `~/devforge/status` on the server, history included.
+**Uninstall** (**⋯** menu) stops the service and deletes `~/devforge/status` on the server, history included.

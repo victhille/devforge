@@ -1,18 +1,21 @@
 import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Copy, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useI18n } from '@renderer/i18n/I18nContext'
+import { useCopy } from '@renderer/hooks/useCopy'
 import { cn } from '@renderer/lib/cn'
 import Badge from '@renderer/components/ui/Badge'
 import Button from '@renderer/components/ui/Button'
-import CopyButton from '@renderer/components/ui/CopyButton'
+import CodeBlock from '@renderer/components/ui/CodeBlock'
+import { codeLanguageByName as languageOf } from '@shared/lib/codeLanguage'
 import EmptyState from '@renderer/components/ui/EmptyState'
-import IconButton from '@renderer/components/ui/IconButton'
 import { Field, Input, Select, Textarea } from '@renderer/components/ui/Input'
+import MoreMenu from '@renderer/components/ui/MoreMenu'
 import { useSnippets, type Snippet } from './useSnippets'
 import ToolHelp from '@renderer/components/ui/ToolHelp'
 import { SNIPPET_EXAMPLE } from '../examples'
 import SplitPane from '@renderer/components/ui/SplitPane'
 import SearchInput from '@renderer/components/ui/SearchInput'
+import { confirmDialog } from '@renderer/app/ConfirmContext'
 
 const LANGUAGES = [
   'TypeScript', 'JavaScript', 'Python', 'Go', 'Rust', 'PHP', 'Java',
@@ -23,26 +26,42 @@ interface Draft { title: string; language: string; code: string; tags: string }
 
 const toDraft = (s: Snippet): Draft => ({ title: s.title, language: s.language, code: s.code, tags: s.tags.join(', ') })
 
+/**
+ * As in the mock-up: the snippets on the left (a search, the languages as
+ * filters, each with its language and first tag), the chosen one on the
+ * right in colours, Copy at hand; Edit turns it into the form.
+ */
 export default function SnippetsPage() {
   const { t } = useI18n()
+  const s = t.snippets
   const { snippets, create, update, remove } = useSnippets()
   const [selected, setSelected] = useState<string | null>(null)
   const [search,   setSearch]   = useState('')
+  const [lang,     setLang]     = useState<string | null>(null)
   const [draft,    setDraft]    = useState<Draft | null>(null)
   const [dirty,    setDirty]    = useState(false)
+  const { copy, copied } = useCopy()
+  const current = snippets.find(x => x.id === selected) ?? null
 
-  function select(s: Snippet) {
-    setSelected(s.id)
-    setDraft(toDraft(s))
+  function select(x: Snippet) {
+    setSelected(x.id)
+    setDraft(null)
+    setDirty(false)
+  }
+
+  function startNew() {
+    const x = create()
+    setSelected(x.id)
+    setDraft(toDraft(x))
     setDirty(false)
   }
 
   /** The example becomes a snippet only on demand */
   function fromExample() {
-    const s = create()
+    const x = create()
     const patch = { title: SNIPPET_EXAMPLE.title, language: SNIPPET_EXAMPLE.language, code: SNIPPET_EXAMPLE.code, tags: SNIPPET_EXAMPLE.tags }
-    update(s.id, patch)
-    select({ ...s, ...patch })
+    update(x.id, patch)
+    select({ ...x, ...patch })
   }
 
   function edit(patch: Partial<Draft>) {
@@ -59,114 +78,132 @@ export default function SnippetsPage() {
       tags: draft.tags.split(',').map(tag => tag.trim()).filter(Boolean)
     })
     setDirty(false)
+    setDraft(null)
   }
 
-  function del() {
-    if (!selected) return
-    remove(selected)
+  async function del() {
+    if (!current || !(await confirmDialog(s.deleteConfirm.replace('{title}', current.title), { danger: true }))) return
+    remove(current.id)
     setSelected(null)
     setDraft(null)
   }
 
   const q = search.toLowerCase()
-  const filtered = snippets.filter(s =>
-    s.title.toLowerCase().includes(q) ||
-    s.language.toLowerCase().includes(q) ||
-    s.tags.some(tag => tag.toLowerCase().includes(q))
+  const languages = [...new Set(snippets.map(x => x.language))].sort((a, b) => a.localeCompare(b))
+  const filtered = snippets.filter(x =>
+    (!lang || x.language === lang) &&
+    (x.title.toLowerCase().includes(q) || x.language.toLowerCase().includes(q) || x.tags.some(tag => tag.toLowerCase().includes(q)))
   )
 
   return (
-    <SplitPane width="lg" label={t.snippets.title} sideClassName="bg-surface" side={<>
-      {/* ── List ── */}
-        <div className="flex flex-col gap-2 border-b border-line-subtle p-3">
-          <SearchInput value={search} onChange={setSearch} placeholder={t.snippets.search} />
-          <Button size="sm" onClick={() => select(create())}><Plus size={13} /> {t.snippets.newSnippet}</Button>
-        </div>
+    <SplitPane width="lg" label={s.title} sideClassName="df-mockup" side={<>
+      <div className="flex flex-col gap-3 px-4 pt-4 pb-2">
+        <SearchInput value={search} onChange={setSearch} placeholder={s.search} />
+        {snippets.length > 0 && (
+          <div role="radiogroup" aria-label={s.languages} className="flex flex-wrap gap-1.5">
+            {[null, ...languages].map(l => {
+              const on = lang === l
+              return (
+                <button key={l ?? 'all'} type="button" role="radio" aria-checked={on} onClick={() => setLang(l)}
+                  className={cn('h-7 rounded-full border px-3 text-sm transition-colors',
+                    on ? 'border-accent/50 bg-accent-soft font-semibold text-accent' : 'border-line text-fg-secondary hover:bg-hover hover:text-fg')}>
+                  {l ?? <>{s.all} <span className="tabular-nums">{snippets.length}</span></>}
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
 
-        <div className="flex-1 overflow-y-auto p-1.5">
-          {filtered.length === 0 ? (
-            <p className="p-4 text-center text-sm text-fg-muted">{search ? t.snippets.noMatch : t.snippets.noSnippets}</p>
-          ) : filtered.map(s => (
-            <button
-              key={s.id}
-              onClick={() => select(s)}
-              className={cn(
-                'flex w-full flex-col gap-1 rounded-lg px-3 py-2 text-left transition-colors',
-                selected === s.id ? 'bg-accent-soft' : 'hover:bg-hover'
-              )}
-            >
-              <span className={cn('truncate font-medium', selected === s.id ? 'text-accent' : 'text-fg')}>{s.title}</span>
-              <span className="flex flex-wrap gap-1">
-                <Badge color="accent" mono className="py-0 text-2xs">{s.language}</Badge>
-                {s.tags.slice(0, 2).map(tag => <Badge key={tag} mono className="py-0 text-2xs">{tag}</Badge>)}
-              </span>
-            </button>
-          ))}
-        </div>
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
+        {filtered.length === 0 ? (
+          <p className="p-3 text-sm text-fg-muted">{search || lang ? s.noMatch : s.noSnippets}</p>
+        ) : (
+          <ul className="flex flex-col gap-0.5">
+            {filtered.map(x => {
+              const on = selected === x.id
+              return (
+                <li key={x.id}>
+                  <button onClick={() => select(x)} aria-current={on ? 'true' : undefined}
+                    className={cn('flex w-full flex-col gap-0.5 rounded-control px-2.5 py-2 text-left transition-colors', on ? 'bg-accent-soft' : 'hover:bg-hover')}>
+                    <span className={cn('truncate', on ? 'font-semibold text-fg' : 'text-fg-secondary')} title={x.title}>{x.title}</span>
+                    <span className="truncate text-xs text-fg-muted">{[x.language, x.tags[0]].filter(Boolean).join(' · ')}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+    </>}>
+      <section className="df-mockup flex min-h-0 min-w-0 flex-1 flex-col gap-5 overflow-y-auto px-8 pt-6.5 pb-8">
+        {!draft && <ToolHelp id="snippets" what={t.toolHelp.snippets.what} how={t.toolHelp.snippets.how} />}
 
-        <div className="border-t border-line-subtle px-4 py-2 text-xs text-fg-muted">
-          {t.snippets.subtitle.replace('{n}', String(snippets.length)).replace('{s}', snippets.length !== 1 ? 's' : '')}
-        </div>
-      </>}>
-      {/* ── Editor ── */}
-      <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto p-6">
-        <ToolHelp id="snippets" what={t.toolHelp.snippets.what} how={t.toolHelp.snippets.how} />
-        {!draft && snippets.length === 0 ? (
-          // An example to look at, greyed: saved only if the user starts from it
-          <div className="flex flex-col gap-3 rounded-[12px] border border-dashed border-line p-5">
+        {!current && snippets.length === 0 ? (
+          // An example to look at: saved only if the user starts from it
+          <div className="flex flex-col gap-3 rounded-card border border-dashed border-line p-5">
             <div className="flex flex-wrap items-center gap-2">
               <Badge>{t.toolHelp.example}</Badge>
               <span className="font-semibold text-fg-secondary">{SNIPPET_EXAMPLE.title}</span>
-              <Badge color="accent" mono className="py-0 text-2xs">{SNIPPET_EXAMPLE.language}</Badge>
-              {SNIPPET_EXAMPLE.tags.map(tag => <Badge key={tag} mono className="py-0 text-2xs">{tag}</Badge>)}
+              <Badge mono>{SNIPPET_EXAMPLE.language}</Badge>
+              {SNIPPET_EXAMPLE.tags.map(tag => <Badge key={tag}>{tag}</Badge>)}
             </div>
-            <pre aria-label={t.toolHelp.snippets.exampleTitle} className="overflow-auto rounded-control bg-surface p-3 font-mono text-sm text-fg-muted">{SNIPPET_EXAMPLE.code}</pre>
+            <CodeBlock code={SNIPPET_EXAMPLE.code} language={languageOf(SNIPPET_EXAMPLE.language)} label={t.toolHelp.snippets.exampleTitle} />
             <p className="text-xs text-fg-muted">{t.toolHelp.snippets.exampleHint}</p>
             <div className="flex gap-2">
               <Button size="sm" onClick={fromExample}>{t.toolHelp.snippets.useExample}</Button>
-              <Button size="sm" variant="secondary" onClick={() => select(create())}><Plus size={13} /> {t.snippets.newSnippet}</Button>
+              <Button size="sm" variant="secondary" onClick={startNew}><Plus size={13} aria-hidden /> {s.newSnippet}</Button>
             </div>
           </div>
-        ) : !draft ? (
-          <EmptyState
-            className="flex-1"
-            title={t.snippets.noSnippets}
-            action={<Button onClick={() => select(create())}><Plus size={14} /> {t.snippets.newSnippet}</Button>}
-          />
-        ) : (
+        ) : !current ? (
+          <EmptyState fill title={s.pick} action={<Button onClick={startNew}><Plus size={14} aria-hidden /> {s.newSnippet}</Button>} />
+        ) : draft ? (
+          // The form
           <>
-            <div className="flex items-center gap-3">
-              <input
-                value={draft.title}
-                onChange={e => edit({ title: e.target.value })}
-                placeholder={t.snippets.titlePlaceholder}
-                className="min-w-0 flex-1 bg-transparent text-xl font-semibold text-fg outline-none placeholder:text-fg-muted"
-              />
-              {dirty && <span className="text-xs italic text-warning">{t.snippets.unsaved}</span>}
-              <CopyButton text={draft.code} title={t.snippets.copy} />
-              <IconButton size="sm" tone="danger" title={t.snippets.delete} onClick={del}><Trash2 size={14} /></IconButton>
-              <Button size="sm" onClick={save} disabled={!dirty}>{t.snippets.save}</Button>
-            </div>
-
-            <div className="flex gap-3">
-              <Field label={t.snippets.labelLang} className="w-44">
+            <header className="flex flex-wrap items-center gap-3">
+              <input value={draft.title} onChange={e => edit({ title: e.target.value })} placeholder={s.titlePlaceholder} aria-label={s.labelTitle}
+                className="min-w-0 flex-1 bg-transparent font-display text-page font-bold tracking-[-.025em] text-fg outline-none placeholder:text-fg-muted" />
+              {dirty && <span className="text-sm text-warning italic">{s.unsaved}</span>}
+              <Button variant="ghost" onClick={() => { setDraft(null); setDirty(false) }}>{t.common.cancel}</Button>
+              <Button onClick={save} disabled={!dirty}>{s.save}</Button>
+            </header>
+            <div className="flex flex-wrap gap-3">
+              <Field label={s.labelLang} className="w-44">
                 <Select value={draft.language} onChange={e => edit({ language: e.target.value })}>
                   {LANGUAGES.map(l => <option key={l}>{l}</option>)}
                 </Select>
               </Field>
-              <Field label={t.snippets.labelTags} className="flex-1">
-                <Input value={draft.tags} onChange={e => edit({ tags: e.target.value })} placeholder={t.snippets.tagsPlaceholder} />
+              <Field label={s.labelTags} className="min-w-[220px] flex-1">
+                <Input value={draft.tags} onChange={e => edit({ tags: e.target.value })} placeholder={s.tagsPlaceholder} />
               </Field>
             </div>
-
-            <Field label={t.snippets.labelCode} className="min-h-0 flex-1">
-              <Textarea
-                value={draft.code}
-                onChange={e => edit({ code: e.target.value })}
-                spellCheck={false}
-                className="flex-1 resize-none bg-surface"
-              />
+            <Field label={s.labelCode} className="min-h-0 flex-1">
+              <Textarea value={draft.code} onChange={e => edit({ code: e.target.value })} spellCheck={false}
+                className="min-h-72 flex-1 resize-none bg-console font-mono text-sm" />
             </Field>
+          </>
+        ) : (
+          // The snippet as it reads
+          <>
+            <header className="flex flex-wrap items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="mb-1 text-sm text-fg-muted">{t.nav.groupTools} / {s.title}</p>
+                <h1 className="truncate font-display text-page font-bold tracking-[-.025em] text-fg" title={current.title}>{current.title}</h1>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <Badge mono>{current.language}</Badge>
+                  {current.tags.map(tag => <Badge key={tag}>{tag}</Badge>)}
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Button variant="secondary" onClick={() => copy(current.code)}><Copy size={14} aria-hidden /> {copied ? s.copied : s.copy}</Button>
+                <Button onClick={startNew}><Plus size={14} aria-hidden /> {s.newSnippet}</Button>
+                <MoreMenu label={s.more} items={[
+                  { label: s.edit, icon: Pencil, onSelect: () => setDraft(toDraft(current)) },
+                  { label: s.delete, icon: Trash2, danger: true, onSelect: del }
+                ]} />
+              </div>
+            </header>
+            <CodeBlock code={current.code} language={languageOf(current.language)} label={s.codeOf.replace('{title}', current.title)} />
           </>
         )}
       </section>

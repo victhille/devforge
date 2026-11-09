@@ -8,9 +8,10 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
 import Card, { CardTitle } from '@renderer/components/ui/Card'
-import Checkbox from '@renderer/components/ui/Checkbox'
+import Switch from '@renderer/components/ui/Switch'
 import { Field, Input } from '@renderer/components/ui/Input'
-import WizardFrame, { type WizardStep } from './WizardFrame'
+import { PROJECT_TREES } from '@shared/data/projectTrees'
+import WizardFrame, { OptionRow, RecapList, type WizardStep } from './WizardFrame'
 import CreationProgress from './CreationProgress'
 import Notice from '@renderer/components/ui/Notice'
 
@@ -88,31 +89,36 @@ export default function FinishForm({ options, stack, libraries, templateName, st
   }
 
   return (
-    <WizardFrame
-      steps={wizardSteps}
-      subtitle={s.finishSubtitle}
-      onBack={onBack}
+    <WizardFrame steps={wizardSteps} title={s.finishTitle} subtitle={s.finishSubtitle} onBack={creating ? undefined : onBack}
+      asideTitle={creating ? s.nextTitle : s.recapShort}
+      aside={creating
+        ? <p className="text-sm text-fg-secondary">{s.nextText}</p>
+        : <>
+          <RecapList rows={[
+            { label: s.recapProject, value: options.name, mono: true },
+            { label: s.recapStarter, value: templateName ?? PROJECT_TREES[options.framework]?.tool ?? baseLabel },
+            ...(stack && stack.database !== 'none' ? [{ label: s.recapDb, value: s.db[stack.database].name }] : []),
+            ...(libraries > 0 ? [{ label: s.recapLibsShort, value: String(libraries) }] : [])
+          ]} />
+          <p className="text-xs text-fg-muted">{s.estimate.replace('{n}', String(minutes))}</p>
+        </>}
       hint={creating ? undefined : s.recapNote}
-      footer={creating ? undefined : (
-        <Button size="lg" disabled={(github && !repoOk) || !apiOk} onClick={create}>{t.newProject.create}</Button>
-      )}
-    >
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className={cn('flex flex-col gap-3 p-5', creating && 'pointer-events-none opacity-60')} aria-disabled={creating || undefined}>
-          <CardTitle>{s.gitTitle}</CardTitle>
-          <Checkbox checked={git || github} onChange={setGit}>{s.gitInit}</Checkbox>
-          <Checkbox checked={github} onChange={setGithub}>
-            {s.ghCreate}
-            {login && <span className="text-fg-muted">{s.ghAs.replace('{login}', login)}</span>}
-          </Checkbox>
-          {github && login === null && <p className="pl-6 text-sm text-warning">{s.ghNoLogin}</p>}
+      footer={creating ? undefined : <Button disabled={(github && !repoOk) || !apiOk} onClick={create}>{t.newProject.create}</Button>}>
+      <div className={cn('rounded-card border border-line-subtle bg-surface px-3.5', creating && 'pointer-events-none opacity-60')} aria-disabled={creating || undefined}>
+        <OptionRow label={s.gitInit} hint={s.gitInitHint}>
+          <Switch checked={git || github} onChange={setGit} label={s.gitInit} />
+        </OptionRow>
+        <div className="border-b border-line-subtle last:border-b-0">
+          <OptionRow label={s.ghCreate} hint={login ? <span className="font-mono">{`${(repo || options.name).includes('/') ? repo : `${login}/${repo || options.name}`} · ${isPrivate ? s.ghPrivate : s.ghPublic}`.toLowerCase()}</span> : undefined}>
+            <Switch checked={github} onChange={setGithub} label={s.ghCreate} />
+          </OptionRow>
+          {github && login === null && <p className="-mt-1 pb-3 text-sm text-warning">{s.ghNoLogin}</p>}
           {github && (
-            <div className="flex flex-col gap-3 pl-6">
-              <div role="radiogroup" aria-label={s.ghVisibility} className="flex gap-2">
+            <div className="flex flex-col gap-3 pb-3.5">
+              <div role="radiogroup" aria-label={s.ghVisibility} className="flex gap-0.5 self-start rounded-control border border-line bg-surface p-0.5">
                 {([true, false] as const).map(priv => (
                   <button key={String(priv)} type="button" role="radio" aria-checked={isPrivate === priv} onClick={() => setPrivate(priv)}
-                    className={cn('h-8 rounded-lg border-2 bg-canvas px-3 text-sm transition-colors',
-                      isPrivate === priv ? 'border-accent font-semibold text-fg' : 'border-line text-fg-secondary hover:border-fg-disabled')}>
+                    className={cn('h-7 rounded-md px-3 text-sm', isPrivate === priv ? 'bg-active font-semibold text-fg' : 'text-fg-secondary hover:text-fg')}>
                     {priv ? s.ghPrivate : s.ghPublic}
                   </button>
                 ))}
@@ -122,52 +128,43 @@ export default function FinishForm({ options, stack, libraries, templateName, st
               </Field>
             </div>
           )}
-          {!options.template && WELCOME_FRAMEWORKS.includes(options.framework) && (
-            <Checkbox checked={welcome} onChange={setWelcome} className="items-start">
-              <span className="flex flex-col">
-                <span>{s.welcome}</span>
-                <span className="text-sm text-fg-muted">{s.welcomeHint}</span>
-              </span>
-            </Checkbox>
-          )}
-          {spa && (
-            <Checkbox checked={spaAuth} onChange={setSpaAuth} className="items-start">
-              <span className="flex flex-col">
-                <span>{s.spaAuth}</span>
-                <span className="text-sm text-fg-muted">{s.spaAuthHint}</span>
-              </span>
-            </Checkbox>
-          )}
-          {spa && spaAuth && (
-            <div className="pl-6">
-              <Field label={s.apiUrl} hint={s.apiUrlHint} error={apiOk ? undefined : s.apiUrlError}>
-                <Input value={apiUrl} onChange={e => setApiUrl(e.target.value.trim())} className="font-mono" spellCheck={false} invalid={!apiOk} />
-              </Field>
-            </div>
-          )}
-          <Checkbox checked={openVSCode} onChange={setOpenVSCode}>{s.openVSCode}</Checkbox>
-          <Checkbox checked={makeActive} onChange={setMakeActive}>{s.makeActive}</Checkbox>
-        </Card>
-
-        <Card className="flex flex-col gap-2.5 p-5">
-          <CardTitle>{s.recapTitle}</CardTitle>
-          <ol aria-label={s.recapTitle} tabIndex={0} className="flex max-h-[360px] flex-col gap-1.5 overflow-y-auto rounded-control border border-line-subtle bg-console p-3 font-mono text-xs text-fg-secondary">
-            <li className="text-fg-muted"># {baseLabel}{libraries > 0 ? ` · ${s.recapLibs.replace('{n}', String(libraries))}` : ''}</li>
-            {steps.filter(step => step.kind !== 'connection').map((step, i) => step.kind === 'run'
-              ? <li key={i} className="whitespace-pre-wrap break-all"><span className="text-accent">$ </span>{stepCommand(step)}</li>
-              // Written by DevForge: what, then the files or lines
-              : <li key={i} className="whitespace-pre-wrap break-all text-fg-muted"># {step.label}{'\n'}{stepCommand(step).split('\n').map(l => `  ${l}`).join('\n')}</li>)}
-          </ol>
-          <p className="text-sm text-fg-muted">{s.estimate.replace('{n}', String(minutes))}</p>
-          {volumes.length > 0 && (
-            <Notice tone="warning" live className="text-sm">
-              {s.oldVolumes.replace('{list}', volumes.join(', '))}
-            </Notice>
-          )}
-        </Card>
+        </div>
+        {!options.template && WELCOME_FRAMEWORKS.includes(options.framework) && (
+          <OptionRow label={s.welcome} hint={s.welcomeHint}><Switch checked={welcome} onChange={setWelcome} label={s.welcome} /></OptionRow>
+        )}
+        {spa && (
+          <div className="border-b border-line-subtle last:border-b-0">
+            <OptionRow label={s.spaAuth} hint={s.spaAuthHint}><Switch checked={spaAuth} onChange={setSpaAuth} label={s.spaAuth} /></OptionRow>
+            {spaAuth && (
+              <div className="pb-3.5">
+                <Field label={s.apiUrl} hint={s.apiUrlHint} error={apiOk ? undefined : s.apiUrlError}>
+                  <Input value={apiUrl} onChange={e => setApiUrl(e.target.value.trim())} className="font-mono" spellCheck={false} invalid={!apiOk} />
+                </Field>
+              </div>
+            )}
+          </div>
+        )}
+        <OptionRow label={s.openVSCode}><Switch checked={openVSCode} onChange={setOpenVSCode} label={s.openVSCode} /></OptionRow>
+        <OptionRow label={s.makeActive}><Switch checked={makeActive} onChange={setMakeActive} label={s.makeActive} /></OptionRow>
       </div>
 
       {creating && <CreationProgress onBack={onBack} />}
+
+      <Card className="flex flex-col gap-2.5 p-4.5">
+        <CardTitle>{s.recapTitle}</CardTitle>
+        <ol aria-label={s.recapTitle} tabIndex={0} className="flex max-h-[320px] flex-col gap-1.5 overflow-y-auto rounded-control border border-line-subtle bg-console p-3 font-mono text-xs text-fg-secondary">
+          <li className="text-fg-muted"># {baseLabel}{libraries > 0 ? ` · ${s.recapLibs.replace('{n}', String(libraries))}` : ''}</li>
+          {steps.filter(step => step.kind !== 'connection').map((step, i) => step.kind === 'run'
+            ? <li key={i} className="whitespace-pre-wrap break-all"><span className="text-accent">$ </span>{stepCommand(step)}</li>
+            // Written by DevForge: what, then the files or lines
+            : <li key={i} className="whitespace-pre-wrap break-all text-fg-muted"># {step.label}{'\n'}{stepCommand(step).split('\n').map(l => `  ${l}`).join('\n')}</li>)}
+        </ol>
+        {volumes.length > 0 && (
+          <Notice tone="warning" live className="text-sm">
+            {s.oldVolumes.replace('{list}', volumes.join(', '))}
+          </Notice>
+        )}
+      </Card>
     </WizardFrame>
   )
 }

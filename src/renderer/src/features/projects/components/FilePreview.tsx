@@ -1,7 +1,9 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { LinesSkeleton } from '@renderer/components/ui/Skeleton'
 import { Code2, Eye, SquareArrowOutUpRight, X } from 'lucide-react'
 import type { DefaultIDE, FileChangeStatus, FileEntry, FilePreview as Preview } from '@shared/types'
 import { codeLanguage } from '@shared/lib/codeLanguage'
+import { HIGHLIGHT_LIMIT, useHighlighted } from '@renderer/lib/useHighlighted'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import { usePreferredIde } from '@renderer/lib/ide'
@@ -17,13 +19,10 @@ import { errorText } from '@renderer/lib/errors'
 // pdf.js is heavy: loaded with the first PDF only
 const PdfView = lazy(() => import('./PdfView'))
 
-/** Past this size the code is shown without colours: highlighting it would stall the page */
-const HIGHLIGHT_LIMIT = 300 * 1024
-
 /** v3.5.3: code in colours, as in an IDE (highlight.js loaded with the first one) */
 function CodeView({ text, name, line }: { text: string; name: string; line?: number }) {
   const language = text.length <= HIGHLIGHT_LIMIT ? codeLanguage(name) : null
-  const [html, setHtml] = useState<string | null>(null)
+  const html = useHighlighted(text, language)
   const pre = useRef<HTMLPreElement>(null)
   const [band, setBand] = useState<{ top: number; height: number } | null>(null)
   // v3.6: a search result's line, highlighted and brought into view
@@ -37,12 +36,6 @@ function CodeView({ text, name, line }: { text: string; name: string; line?: num
     const box = el.parentElement
     if (box) box.scrollTop = Math.max(0, top - box.clientHeight / 3)
   }, [line, html, text])
-  useEffect(() => {
-    let alive = true
-    setHtml(null)
-    if (language) import('./highlighter').then(m => { if (alive) setHtml(m.highlight(text, language)) }).catch(() => {})
-    return () => { alive = false }
-  }, [text, language])
   return (
     <pre ref={pre} data-language={language ?? undefined} className="df-code relative min-w-max p-4 font-mono text-xs leading-relaxed text-fg-secondary">
       {band && <span aria-hidden data-testid="line-band" className="pointer-events-none absolute right-0 left-0 bg-warning-soft" style={{ top: band.top, height: band.height }} />}
@@ -57,10 +50,12 @@ function CodeView({ text, name, line }: { text: string; name: string; line?: num
  * source one click away), images and PDFs as such, other text in a fixed
  * font, in colours (v3.5.3). The project's IDE opens it.
  */
-export default function FilePreview({ file, line, root, ide: own, onClose, change, rel, startOnChanges }: {
+export default function FilePreview({ file, line, root, ide: own, onClose, change, rel, startOnChanges, stats }: {
   file: FileEntry; line?: number; root?: string; ide?: DefaultIDE; onClose: () => void
   /** v3.7: what Git says of this file, its path in the project; the changes shown first */
   change?: FileChangeStatus; rel?: string; startOnChanges?: boolean
+  /** Lines added and removed since the last commit */
+  stats?: { add: number | null; del: number | null }
 }) {
   const { t, lang } = useI18n()
   const f = t.files
@@ -91,9 +86,12 @@ export default function FilePreview({ file, line, root, ide: own, onClose, chang
   }
 
   return (
-    <section aria-label={f.previewOf.replace('{name}', file.name)} className="flex min-h-0 min-w-0 flex-1 flex-col border-l border-line-subtle">
-      <header className="flex h-10 shrink-0 items-center gap-2 border-b border-line-subtle px-3">
-        <span className="truncate font-mono text-sm font-medium text-fg" title={file.path}>{file.name}</span>
+    <section aria-label={f.previewOf.replace('{name}', file.name)} className="flex min-h-0 min-w-0 flex-1 flex-col">
+      {/* As in the mock-up: the file's path in the project, its changes counted */}
+      <header className="flex min-h-12 shrink-0 flex-wrap items-center gap-2 border-b border-line-subtle px-4 py-2">
+        <span className="min-w-0 truncate font-mono text-sm font-semibold text-fg" title={file.path}>{rel || file.name}</span>
+        {stats?.add != null && stats.add > 0 && <span className="shrink-0 font-mono text-xs text-success">+{stats.add}</span>}
+        {stats?.del != null && stats.del > 0 && <span className="shrink-0 font-mono text-xs text-danger">−{stats.del}</span>}
         {preview && preview.size > 0 && <span className="shrink-0 font-mono text-2xs text-fg-muted">{formatSize(preview.size, lang)}</span>}
         {change && <span className={cn('shrink-0 font-mono text-2xs', TONE[change].replace('line-through', ''))}>{f.gitStatus[change]}</span>}
         <span className="ml-auto flex items-center gap-1">
@@ -118,7 +116,7 @@ export default function FilePreview({ file, line, root, ide: own, onClose, chang
       {/* Scrollable: reachable with the keyboard too */}
       <div className="min-h-0 flex-1 overflow-auto" data-testid="file-preview" tabIndex={0}>
         {showDiff ? <DiffView root={root!} rel={rel!} />
-          : !preview ? <Spinner className="m-6" />
+          : !preview ? <LinesSkeleton lines={8} plain className="p-5" />
           : preview.kind === 'markdown' && !source ? <div className="max-w-[860px] px-5 py-4 text-sm leading-relaxed text-fg-secondary"><Markdown text={preview.text} asDocument /></div>
           : text !== null ? <CodeView text={text} name={file.name} line={line} />
           : preview.kind === 'image' ? <div className="flex min-h-full items-center justify-center bg-[repeating-conic-gradient(var(--color-elevated)_0%_25%,transparent_0%_50%)] bg-[length:16px_16px] p-4"><img src={preview.dataUrl} alt={file.name} className="max-h-full max-w-full object-contain" /></div>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { Folder } from 'lucide-react'
 import type { Framework, PackageManager, ProjectCreationOptions, AppSettings, UserTemplate } from '@shared/types'
 import { PROJECT_TEMPLATES } from '@shared/data/projectTemplates'
@@ -6,11 +6,10 @@ import { folderName, projectFolders } from '@shared/lib/projectFolders'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
-import Card, { CardTitle } from '@renderer/components/ui/Card'
-import Checkbox from '@renderer/components/ui/Checkbox'
+import Switch from '@renderer/components/ui/Switch'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Field, Input } from '@renderer/components/ui/Input'
-import WizardFrame, { type WizardStep } from './WizardFrame'
+import { OptionRow } from './WizardFrame'
 
 interface FormState {
   name:           string
@@ -34,13 +33,15 @@ interface Props {
   userTemplate?: UserTemplate | null
   /** What was typed before coming back to this step */
   initial?:  ProjectCreationOptions | null
-  steps:     WizardStep[]
-  onBack:    () => void
-  onSubmit:  (opts: ProjectCreationOptions) => void
+  /** The name as it is typed (the database's name and the summary follow it) */
+  onName?:   (name: string) => void
 }
 
-/** Step 2: name, destination and options. */
-export default function ConfigForm({ framework, settings, userTemplate, initial, steps, onBack, onSubmit }: Props) {
+/** The screen validates the section: its options, or null (and the errors shown) */
+export interface ConfigHandle { submit: () => ProjectCreationOptions | null }
+
+/** Step 2, first part (the mock-up's Options): name, folder, package manager and the starter's options */
+const ConfigForm = forwardRef<ConfigHandle, Props>(function ConfigForm({ framework, settings, userTemplate, initial, onName }, ref) {
   const { t } = useI18n()
   const template = PROJECT_TEMPLATES.find(tpl => tpl.id === framework)
   // A user's template: only whether to install its dependencies
@@ -81,10 +82,10 @@ export default function ConfigForm({ framework, settings, userTemplate, initial,
     return Object.keys(errs).length === 0
   }
 
-  function submit() {
-    if (!validate()) return
-    onSubmit({ ...form, name: form.name.trim(), destination: form.destination.trim(), framework, ...(userTemplate ? { template: userTemplate.id } : {}) })
-  }
+  useImperativeHandle(ref, () => ({
+    submit: () => validate() ? { ...form, name: form.name.trim(), destination: form.destination.trim(), framework, ...(userTemplate ? { template: userTemplate.id } : {}) } : null
+  }))
+  useEffect(() => { onName?.(form.name.trim()) }, [form.name, onName])
 
   // Git and VS Code are chosen on the last step
   const options: { id: BoolOption; label: string }[] = [
@@ -101,19 +102,10 @@ export default function ConfigForm({ framework, settings, userTemplate, initial,
   const preview = form.destination && form.name ? `${form.destination.replace(/[/\\]$/, '')}${sep}${form.name}` : null
 
   return (
-    <WizardFrame
-      steps={steps}
-      subtitle={userTemplate ? t.templates.fromTemplate.replace('{name}', userTemplate.name) : t.newProject.wizardSubtitle.replace('{name}', t.newProject.templateName[framework] ?? template?.name ?? framework)}
-      onBack={onBack}
-      hint={t.newProject.configSubtitle}
-      footer={<Button size="lg" onClick={submit}>{t.newProject.continue}</Button>}
-    >
-      {/* Two cards side by side, like the other steps: the name and folder, then the tools */}
-      <div className={cn('grid items-start gap-4', (PM_FRAMEWORKS.includes(framework) || options.length > 0) && 'lg:grid-cols-2')}>
-      <Card className="flex flex-col gap-5 p-5">
-        <CardTitle>{t.newProject.cardName}</CardTitle>
+    <>
+      <div className="grid items-start gap-4 sm:grid-cols-2">
         <Field label={t.newProject.labelName} error={errors.name}>
-          <Input value={form.name} onChange={e => set('name', e.target.value)} placeholder="my-project" spellCheck={false} invalid={!!errors.name} autoFocus />
+          <Input value={form.name} onChange={e => set('name', e.target.value)} placeholder="my-project" spellCheck={false} invalid={!!errors.name} autoFocus className="font-mono" />
         </Field>
 
         <Field
@@ -128,6 +120,7 @@ export default function ConfigForm({ framework, settings, userTemplate, initial,
               placeholder="C:\Users\...\Development"
               spellCheck={false}
               invalid={!!errors.destination}
+              className="font-mono"
             />
             <Button variant="secondary" onClick={browse}>{t.newProject.browse}</Button>
           </div>
@@ -143,34 +136,30 @@ export default function ConfigForm({ framework, settings, userTemplate, initial,
             </div>
           )}
         </Field>
-      </Card>
+      </div>
 
       {(PM_FRAMEWORKS.includes(framework) || options.length > 0) && (
-      <Card className="flex flex-col gap-5 p-5">
-        <CardTitle>{t.newProject.cardTools}</CardTitle>
-        {PM_FRAMEWORKS.includes(framework) && (
-          <Field label={t.newProject.labelPM}>
-            <Tabs<PackageManager>
-              value={form.packageManager}
-              onChange={pm => set('packageManager', pm)}
-              items={(['npm', 'pnpm', 'yarn'] as const).map(pm => ({ value: pm, label: pm }))}
-            />
-          </Field>
-        )}
-
-        {options.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <span className="text-xs font-medium text-fg-secondary">{t.newProject.labelOptions}</span>
-            <div className="grid grid-cols-2 gap-2.5">
-              {options.map(o => (
-                <Checkbox key={o.id} checked={form[o.id]} onChange={v => set(o.id, v)}>{t.newProject.option[o.id] ?? o.label}</Checkbox>
-              ))}
-            </div>
-          </div>
-        )}
-      </Card>
+        <div className="rounded-card border border-line-subtle bg-surface px-3.5">
+          {PM_FRAMEWORKS.includes(framework) && (
+            <OptionRow label={t.newProject.labelPM}>
+              <Tabs<PackageManager>
+                label={t.newProject.labelPM}
+                value={form.packageManager}
+                onChange={pm => set('packageManager', pm)}
+                items={(['npm', 'pnpm', 'yarn'] as const).map(pm => ({ value: pm, label: pm }))}
+              />
+            </OptionRow>
+          )}
+          {options.map(o => (
+            <OptionRow key={o.id} label={t.newProject.option[o.id] ?? o.label}
+              hint={o.id === 'typescript' ? t.newProject.optTsHint.replace('{name}', t.newProject.templateName[framework] ?? template?.name ?? framework) : undefined}>
+              <Switch checked={form[o.id]} onChange={v => set(o.id, v)} label={t.newProject.option[o.id] ?? o.label} />
+            </OptionRow>
+          ))}
+        </div>
       )}
-      </div>
-    </WizardFrame>
+    </>
   )
-}
+})
+
+export default ConfigForm

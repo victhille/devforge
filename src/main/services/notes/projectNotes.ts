@@ -1,73 +1,494 @@
-import { readFileSync } from 'fs'
+import { lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, type Stats } from 'fs'
 import { join } from 'path'
-import { randomUUID } from 'crypto'
 import { app } from 'electron'
-import type { NoteTask, ProjectNotes } from '@shared/types'
-import { writeJsonFile } from '../../lib/jsonFile'
+import type { NoteInput, NoteSummary, Project, ProjectNote } from '@shared/types'
+import { blocksOnLines, checklistHtml, checklistItems, countOpen, insertItem, isHtmlNotes, itemHtml, toHtmlBody } from '@shared/lib/notesFormat'
+import { writeJsonFile, writeTextFile } from '../../lib/jsonFile'
+import { dataChanged } from '../../lib/changes'
+import { loadProjects } from '../projects/projectStorage'
+import { loadSettings } from '../settings/settingsService'
 
 /**
- * v3.8 lot 1: each project's tasks and notes, kept in DevForge's data
- * (project-notes.json, by project id), never in the project's folder.
+ * A project's notes live in the project: one file per note,
+ * <project>/.devforge/notes/<id>.md, so they follow Git. A file is a short
+ * header (title, pinned) then the editor's HTML, which Markdown accepts: the
+ * file reads well on GitHub. A file written by hand in Markdown opens too.
+ *
+ * The folder is always the saved project's (the window only names the
+ * project), an id is checked against NOTE_ID before it becomes a file name,
+ * and the notes of v3.8 (project-notes.json in DevForge's data) move into the
+ * project the first time the window reads them (Forgy only reads them where
+ * they are: nothing is written before a click). They were private: once moved,
+ * they say `local: true` and are left out of Git by DevForge's block at the
+ * end of the notes folder's .gitignore, which leaves itself out too: nothing
+ * is written in .git, and it holds for a repository made later and for a
+ * `git add .` in a terminal. When that block cannot be written, they stay
+ * in DevForge's data.
+ *
+ * A note may come from a cloned repository, written by anyone: a file is read
+ * up to MAX_FILE, a folder up to READ_BUDGET, and its text goes through
+ * patterns that run in linear time (notesFormat, and the header read by hand).
  */
 
-const file = () => join(app.getPath('userData'), 'project-notes.json')
-const MAX_TASKS = 500
-const MAX_NOTES = 200_000
+export const NOTE_ID = /^[a-z0-9][a-z0-9-]{0,79}$/
+export const MAX_BODY = 200_000
+export const MAX_NOTES = 500
+const MAX_TITLE = 200
+/** Bigger than any note DevForge writes (200 000 characters, 3 bytes each at most in UTF-8, a line per block): not read */
+const MAX_FILE = 800_000
+/** What a folder's notes may weigh together: the notes after it are left out */
+const READ_BUDGET = 8_000_000
 
-function readAll(): Record<string, ProjectNotes> {
+// ─── The folder and the files ────────────────────────────────────────────────
+
+const lstatOrNull = (path: string): Stats | null => { try { return lstatSync(path) } catch { return null } }
+
+/** A saved project by its id */
+export function savedProject(projectId: unknown): Project {
+  const p = typeof projectId === 'string' && projectId ? loadProjects().find(x => x.id === projectId) : undefined
+  if (!p) throw new Error('Unknown project')
+  return p
+}
+
+/**
+ * <project>/.devforge/notes, made of plain folders (a link could lead out of
+ * the project); null while it does not exist and `create` is false.
+ */
+function notesDir(p: Project, create: boolean): string | null {
+  let root: Stats | null = null
+  try { root = statSync(p.path) } catch { /* moved or deleted */ }
+  if (!root?.isDirectory()) {
+    if (!create) return null
+    throw new Error(`Project folder not found: ${p.path}`)
+  }
+  let dir = p.path
+  for (const part of ['.devforge', 'notes']) {
+    dir = join(dir, part)
+    const st = lstatOrNull(dir)
+    if (!st) {
+      if (!create) return null
+      mkdirSync(dir)
+      continue
+    }
+    if (st.isSymbolicLink() || !st.isDirectory()) throw new Error(`Not a plain folder: ${dir}`)
+  }
+  return dir
+}
+
+function noteFile(dir: string, id: unknown): string {
+  if (typeof id !== 'string' || !NOTE_ID.test(id)) throw new Error('Invalid note id')
+  return join(dir, `${id}.md`)
+}
+
+/** The names already used in the folder (lower-cased: Windows does not tell Notes.md from notes.md) */
+const takenIds = (dir: string) => new Set(readdirSync(dir).filter(f => /\.md$/i.test(f)).map(f => f.slice(0, -3).toLowerCase()))
+
+// ─── The file's format ───────────────────────────────────────────────────────
+
+const FRONT = /^\uFEFF?---[ \t]*\r?\n(?:([\s\S]*?)\r?\n)?---[ \t]*(?:\r?\n|$)/
+
+function unquote(v: string): string {
+  if (v.startsWith('"')) { try { return String(JSON.parse(v)) } catch { return v.slice(1, v.length > 1 && v.endsWith('"') ? -1 : undefined) } }
+  if (v.startsWith("'")) return v.slice(1, v.length > 1 && v.endsWith("'") ? -1 : undefined).replace(/''/g, "'")
+  // A comment after a plain value (found by a search, not by a pattern that backtracks over the spaces)
+  const at = v.search(/[ \t]#/)
+  return at < 0 ? v : v.slice(0, at).trimEnd()
+}
+
+/**
+ * A Markdown file's first heading (`# Title`, closing `#` left out) and the
+ * text after it, read line by line.
+ */
+function firstHeading(body: string): { title: string; rest: string } | null {
+  const start = body.search(/\S/)
+  if (start < 0 || body[start] !== '#') return null
+  const nl = body.indexOf('\n', start)
+  const line = body.slice(start, nl < 0 ? body.length : nl)
+  if (!/^#[ \t]/.test(line)) return null
+  let end = line.length
+  while (end > 1 && ' \t\r#'.includes(line[end - 1])) end--
+  const title = line.slice(1, end).trim()
+  // The blank lines under it go with it (a line at a time: nothing to backtrack over)
+  return title ? { title, rest: nl < 0 ? '' : body.slice(nl + 1).replace(/^(?:[ \t]*\r?\n)+/, '') } : null
+}
+
+const cleanTitle = (t: string) => t.replace(/[\s\p{Cc}]+/gu, ' ').trim().slice(0, MAX_TITLE)
+
+/** A note file's text; `id` and `updatedAt` come from its name and its date */
+export function parseNote(id: string, text: string, updatedAt: string): ProjectNote {
+  const m = FRONT.exec(text)
+  let title: string | null = null
+  let pinned = false
+  let local = false
+  let body = text.replace(/^\uFEFF/, '')
+  if (m) {
+    body = text.slice(m[0].length)
+    for (const line of (m[1] ?? '').split(/\r?\n/)) {
+      // key: value, cut at the first colon (a pattern would backtrack over a value of spaces and a lone \r)
+      const colon = line.indexOf(':')
+      const key = colon > 0 ? line.slice(0, colon).trimEnd().toLowerCase() : ''
+      if (!/^[a-z_][\w-]*$/.test(key)) continue
+      const value = unquote(line.slice(colon + 1).trim())
+      if (key === 'title') title = value
+      else if (key === 'pinned') pinned = /^(true|yes|on)$/i.test(value)
+      else if (key === 'local') local = /^(true|yes|on)$/i.test(value)
+    }
+  }
+  if (title === null) {
+    // Written by hand: its first heading names it, else its file's name
+    const h = isHtmlNotes(body) ? null : firstHeading(body)
+    if (h) { title = h.title; body = h.rest }
+    else title = id.replace(/-/g, ' ')
+  }
+  return { id, title: cleanTitle(title), pinned, body, updatedAt, ...(local ? { local } : {}) }
+}
+
+/** A title YAML reads as it is; any other is quoted */
+const plainTitle = (t: string) => /^[^\s"'#:\-?[\]{}!&*|>%@`,]/.test(t) && !/:\s|:$|\s#/.test(t) && !/^(true|false|yes|no|on|off|null|~|[\d.+-].*)$/i.test(t) && t === t.trim()
+
+/** The body as the file holds it: HTML one block per line, Markdown as it is */
+const fileBody = (body: string) => (isHtmlNotes(body) ? blocksOnLines(body) : body)
+
+export function serializeNote(n: { title: string; pinned: boolean; body: string; local?: boolean }): string {
+  return `---\ntitle: ${plainTitle(n.title) ? n.title : JSON.stringify(n.title)}\npinned: ${n.pinned}\n${n.local ? 'local: true\n' : ''}---\n${fileBody(n.body)}`
+}
+
+function readNoteFile(dir: string, id: unknown): ProjectNote | null {
+  const file = noteFile(dir, id)
+  const st = lstatOrNull(file)
+  // A link is not followed
+  if (!st?.isFile()) return null
+  if (st.size > MAX_FILE) throw new Error('This note is too large to open')
+  return parseNote(id as string, readFileSync(file, 'utf-8'), st.mtime.toISOString())
+}
+
+const byOrder = (a: { pinned: boolean; updatedAt: string; title: string }, b: { pinned: boolean; updatedAt: string; title: string }) =>
+  Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt) || a.title.localeCompare(b.title)
+
+/** Every note of the folder, pinned ones first, then the last changed (a file that cannot be read, or past READ_BUDGET, is left out) */
+function readAll(dir: string): ProjectNote[] {
+  const ids = readdirSync(dir).filter(f => f.endsWith('.md')).map(f => f.slice(0, -3)).filter(id => NOTE_ID.test(id)).slice(0, MAX_NOTES)
+  let budget = READ_BUDGET
+  return ids.flatMap(id => {
+    try {
+      const size = lstatOrNull(noteFile(dir, id))?.size ?? 0
+      if (size > budget) return []
+      budget -= size
+      const n = readNoteFile(dir, id)
+      return n ? [n] : []
+    } catch { return [] }
+  }).sort(byOrder)
+}
+
+function writeNote(file: string, n: { title: string; pinned: boolean; body: string; local?: boolean }): void {
+  writeTextFile(file, serializeNote(n))
+}
+
+/** A safe file name made from a title: « Comptes de test Stripe » → comptes-de-test-stripe */
+export function slugify(title: string): string {
+  const s = title.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/œ/g, 'oe').replace(/æ/g, 'ae').replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+/, '').slice(0, 60).replace(/-+$/, '')
+  return s || 'note'
+}
+
+function freeId(base: string, taken: Set<string>): string {
+  if (!taken.has(base)) return base
+  for (let n = 2; ; n++) if (!taken.has(`${base}-${n}`)) return `${base}-${n}`
+}
+
+/** Its file still says its title (taches, taches-2…): no need to rename it */
+const fitsTitle = (id: string, title: string) => { const base = slugify(title); return id === base || new RegExp(`^${base}-\\d+$`).test(id) }
+
+// ─── The notes of v3.8, moved into the project ───────────────────────────────
+
+interface LegacyNotes { tasks?: { text?: unknown; done?: unknown }[]; notes?: unknown }
+
+const legacyFile = () => join(app.getPath('userData'), 'project-notes.json')
+
+function readLegacy(): Record<string, LegacyNotes> {
   try {
-    const raw = JSON.parse(readFileSync(file(), 'utf-8'))
+    const raw = JSON.parse(readFileSync(legacyFile(), 'utf-8'))
     return raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {}
   } catch { return {} }
 }
 
-const empty = (): ProjectNotes => ({ tasks: [], notes: '', updatedAt: '' })
+const legacyTasks = (n: LegacyNotes | undefined) => (Array.isArray(n?.tasks) ? n.tasks : [])
+  .flatMap(t => (t && typeof t.text === 'string' && t.text.trim() ? [{ text: t.text.trim(), checked: !!t.done }] : []))
 
-export function getNotes(projectId: string): ProjectNotes {
-  return readAll()[projectId] ?? empty()
+/** What the entry of project-notes.json becomes: a « Tâches » checklist, a « Notes » note */
+function legacyNotes(entry: LegacyNotes): { title: string; pinned: boolean; body: string }[] {
+  const tasks = legacyTasks(entry)
+  const text = typeof entry.notes === 'string' ? entry.notes : ''
+  const fresh: { title: string; pinned: boolean; body: string }[] = []
+  if (tasks.length) fresh.push({ title: tasksTitle(), pinned: true, body: checklistHtml(tasks) })
+  if (text.trim()) fresh.push({ title: 'Notes', pinned: false, body: text.slice(0, MAX_BODY) })
+  return fresh
+}
+
+/** The note that holds the project's tasks, in the app's language */
+export const tasksTitle = () => (loadSettings().language === 'en' ? 'Tasks' : 'Tâches')
+const isTasksTitle = (t: string) => ['taches', 'tasks'].includes(t.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase())
+
+/**
+ * The project's entry of project-notes.json becomes notes: its tasks a pinned
+ * « Tâches » checklist (done ones checked), its text a « Notes » note. The
+ * entry leaves the JSON only once the files are written: a write that fails
+ * keeps everything where it was. A note written by an earlier try is not
+ * written twice.
+ */
+export function migrateLegacy(p: Project): void {
+  const all = readLegacy()
+  const entry = all[p.id]
+  if (!entry) return
+  const fresh = legacyNotes(entry)
+  if (fresh.length) {
+    const dir = notesDir(p, true)!
+    const have = readAll(dir)
+    const taken = takenIds(dir)
+    const moved = fresh.filter(n => !have.some(h => h.title === n.title && h.body.trim() === fileBody(n.body).trim()))
+      .map(n => { const id = freeId(slugify(n.title), taken); taken.add(id); return { id, n } })
+    // They were private, in DevForge's data: out of Git before they are written, or they stay where they are
+    if (moved.length && !syncIgnore(dir, { add: moved.map(m => m.id) })) {
+      throw new Error(`The old notes stay in DevForge's data: ${join(dir, IGNORE_FILE)} cannot keep them out of Git`)
+    }
+    for (const { id, n } of moved) writeNote(join(dir, `${id}.md`), { ...n, local: true })
+  }
+  delete all[p.id]
+  if (Object.keys(all).length) writeJsonFile(legacyFile(), all)
+  else rmSync(legacyFile(), { force: true })
+  dataChanged('notes', p.path)
+}
+
+// ─── What the window and Forgy use ───────────────────────────────────────────
+
+/** Every note of a saved project, with its text (its old notes moved in first, the local ones kept out of Git) */
+export function projectNotes(p: Project): ProjectNote[] {
+  migrateLegacy(p)
+  const dir = notesDir(p, false)
+  const notes = dir ? readAll(dir) : []
+  // The block follows the notes as they are (a failure: tried again at the next reading)
+  if (dir) syncIgnore(dir, { add: notes.filter(n => n.local).map(n => n.id), drop: notes.filter(n => !n.local).map(n => n.id) })
+  return notes
+}
+
+/**
+ * The same, read where they are: the old notes of project-notes.json as they
+ * will be once moved (no id yet), and nothing written. For Forgy, which reads
+ * and plans before any click.
+ */
+export function peekNotes(p: Project): ProjectNote[] {
+  let files: ProjectNote[] = []
+  try { const dir = notesDir(p, false); if (dir) files = readAll(dir) } catch { /* out of reach: none */ }
+  const entry = readLegacy()[p.id]
+  if (!entry) return files
+  const old = legacyNotes(entry).filter(n => !files.some(f => f.title === n.title && f.body.trim() === fileBody(n.body).trim()))
+  return [...files, ...old.map(n => ({ id: '', ...n, updatedAt: '' }))].sort(byOrder)
+}
+
+export function listNotes(projectId: unknown): NoteSummary[] {
+  return projectNotes(savedProject(projectId)).map(({ body, ...n }) => ({ ...n, open: countOpen(body) }))
+}
+
+export function readNote(projectId: unknown, id: unknown): ProjectNote {
+  const p = savedProject(projectId)
+  migrateLegacy(p)
+  const dir = notesDir(p, false)
+  const note = dir ? readNoteFile(dir, id) : null
+  if (!note) throw new Error('Note not found')
+  return note
 }
 
 /** What the window sends, kept to its shape */
-function clean(n: ProjectNotes): ProjectNotes {
-  const tasks: NoteTask[] = (Array.isArray(n?.tasks) ? n.tasks : []).slice(0, MAX_TASKS).flatMap(t =>
-    t && typeof t.text === 'string' && t.text.trim()
-      ? [{ id: typeof t.id === 'string' && t.id ? t.id : randomUUID(), text: t.text.trim().slice(0, 500), done: !!t.done, createdAt: String(t.createdAt ?? new Date().toISOString()), ...(t.done && t.doneAt ? { doneAt: String(t.doneAt) } : {}) }]
-      : [])
-  return { tasks, notes: typeof n?.notes === 'string' ? n.notes.slice(0, MAX_NOTES) : '', updatedAt: new Date().toISOString() }
+function cleanInput(n: NoteInput): { title: string; pinned: boolean; body: string } {
+  if (!n || typeof n !== 'object') throw new Error('Invalid note')
+  const body = typeof n.body === 'string' ? n.body : ''
+  if (body.length > MAX_BODY) throw new Error(`A note holds at most ${MAX_BODY} characters`)
+  return { title: cleanTitle(typeof n.title === 'string' ? n.title : ''), pinned: n.pinned === true, body }
 }
 
-export function saveNotes(projectId: string, notes: ProjectNotes): ProjectNotes {
-  if (typeof projectId !== 'string' || !projectId) throw new Error('Unknown project')
-  const all = readAll()
-  const next = clean(notes)
-  if (!next.tasks.length && !next.notes.trim()) delete all[projectId]
-  else all[projectId] = next
-  writeJsonFile(file(), all)
-  return next
+/**
+ * Writes a note: a new one (no id) gets a free name made from its title; a
+ * renamed one moves to its new name (written there first, then the old file
+ * goes).
+ */
+export function saveNote(projectId: unknown, input: NoteInput): ProjectNote {
+  const p = savedProject(projectId)
+  const note = cleanInput(input)
+  migrateLegacy(p)
+  const dir = notesDir(p, true)!
+  const taken = takenIds(dir)
+  const given = input.id == null || input.id === '' ? undefined : input.id
+  if (given !== undefined) noteFile(dir, given)
+  const exists = given !== undefined && !!lstatOrNull(noteFile(dir, given))?.isFile()
+  if (!exists && taken.size >= MAX_NOTES) throw new Error(`A project holds at most ${MAX_NOTES} notes`)
+  // A local note stays local, under any name
+  const local = exists && !!readNoteFile(dir, given)?.local
+  let id: string
+  if (given !== undefined && fitsTitle(given, note.title)) id = given
+  else {
+    if (given !== undefined) taken.delete(given)
+    id = freeId(slugify(note.title), taken)
+  }
+  const file = noteFile(dir, id)
+  // A local note is out of Git under its name before it is written there; any other is in it
+  if (local && !syncIgnore(dir, { add: [id] })) throw new Error('This note is kept on this PC and its .gitignore cannot be written: try again')
+  writeNote(file, { ...note, local })
+  if (exists && given !== id) rmSync(noteFile(dir, given), { force: true })
+  syncIgnore(dir, local ? { drop: given !== undefined && given !== id ? [given] : [] } : { drop: [id] })
+  dataChanged('notes', p.path)
+  return { id, ...note, updatedAt: statSync(file).mtime.toISOString(), ...(local ? { local } : {}) }
 }
 
-/** Open tasks per project, for the project cards */
+/**
+ * Writes a note's text where it is, its title, pin and name unchanged (Forgy,
+ * the Modeling page): a note gone in between is not made again.
+ */
+export function writeNoteBody(p: Project, id: string, body: string): ProjectNote {
+  if (body.length > MAX_BODY) throw new Error(`A note holds at most ${MAX_BODY} characters`)
+  const dir = notesDir(p, false)
+  const current = dir ? readNoteFile(dir, id) : null
+  if (!dir || !current) throw new Error('Note not found')
+  const file = noteFile(dir, id)
+  if (current.local && !syncIgnore(dir, { add: [id] })) throw new Error('This note is kept on this PC and its .gitignore cannot be written: try again')
+  writeNote(file, { title: current.title, pinned: current.pinned, body, local: current.local })
+  dataChanged('notes', p.path)
+  return { ...current, body, updatedAt: statSync(file).mtime.toISOString() }
+}
+
+export function removeNote(projectId: unknown, id: unknown): void {
+  const p = savedProject(projectId)
+  const dir = notesDir(p, false)
+  if (!dir) return
+  const file = noteFile(dir, id)
+  const st = lstatOrNull(file)
+  if (!st) return
+  if (st.isDirectory()) throw new Error('Not a note')
+  rmSync(file, { force: true })
+  // A note made later under this name follows Git
+  syncIgnore(dir, { drop: [id as string] })
+  dataChanged('notes', p.path)
+}
+
+/** The project's tasks note (pinned ones first), if there is one */
+export const findTasksNote = (notes: ProjectNote[]) => notes.find(n => isTasksTitle(n.title))
+
+/** Texts taken at once (the cases of a diagram, Forgy's one) */
+const MAX_ADD = 200
+
+/**
+ * Boxes added at the end of the tasks note (made, pinned, when there is
+ * none; written where it is otherwise); the texts already checkboxes
+ * somewhere in the notes are left alone, and the note stays within MAX_BODY.
+ */
+export function addTasks(p: Project, texts: unknown): { added: string[]; note: ProjectNote | null } {
+  const notes = projectNotes(p)
+  const have = new Set(notes.flatMap(n => checklistItems(toHtmlBody(n.body)).map(i => i.text)))
+  const wanted = [...new Set((Array.isArray(texts) ? texts.slice(0, MAX_ADD) : []).flatMap(t => (typeof t === 'string' ? [t.replace(/\s+/g, ' ').trim().slice(0, 500)] : [])))]
+    .filter(t => t && !have.has(t))
+  const note = findTasksNote(notes)
+  const base = note ? toHtmlBody(note.body) : ''
+  // One insertion for all of them, as long as the note can hold them
+  const added: string[] = []
+  let items = ''
+  for (const t of wanted) {
+    const li = itemHtml(t)
+    if (base.length + items.length + li.length + 40 > MAX_BODY) break
+    items += li
+    added.push(t)
+  }
+  if (!added.length) return { added: [], note: null }
+  const body = insertItem(base, items)
+  const saved = note ? writeNoteBody(p, note.id, body) : saveNote(p.id, { title: tasksTitle(), pinned: true, body })
+  return { added, note: saved }
+}
+
+export const addTasksById = (projectId: unknown, texts: unknown): number => addTasks(savedProject(projectId), texts).added.length
+
+// ─── Notes kept out of Git ───────────────────────────────────────────────────
+
+const IGNORE_FILE = '.gitignore'
+const BLOCK_BEGIN = '# DevForge: notes moved from its data, kept on this PC (this file too)'
+const BLOCK_END = '# DevForge: end of the notes kept on this PC'
+/** A .gitignore bigger than that is not DevForge's to rewrite */
+const MAX_IGNORE = 64_000
+const BLOCK_LINE = /^\/([a-z0-9][a-z0-9-]{0,79})\.md$/
+
+/**
+ * Keeps DevForge's block of the notes folder's .gitignore: the local notes,
+ * and the file itself, left out of Git. The block is rebuilt and put last,
+ * where its rules win over any line before it (a `!*.md` of the repository);
+ * the other lines stay as they are. The folder is the project's own, made of
+ * plain folders (notesDir); a link in the file's place is replaced, never
+ * followed. False when the file cannot be kept: a folder in its place, too
+ * big to rewrite, a write refused.
+ */
+function syncIgnore(dir: string, change: { add?: string[]; drop?: string[] }): boolean {
+  try {
+    const file = join(dir, IGNORE_FILE)
+    const st = lstatOrNull(file)
+    if (st?.isDirectory() || (st?.isFile() && st.size > MAX_IGNORE)) return false
+    const text = st?.isFile() ? readFileSync(file, 'utf-8') : ''
+    const lines = text.split(/\r?\n/)
+    // DevForge's lines only: its markers, /.gitignore and the notes' lines. A line of the user's inside
+    // the block stays; without the end marker (a file edited by hand), the block stops at the first one
+    const begin = lines.indexOf(BLOCK_BEGIN)
+    const hasEnd = begin >= 0 && lines.indexOf(BLOCK_END, begin) > begin
+    const mine = new Set<number>()
+    const ids = new Set<string>()
+    if (begin >= 0) {
+      mine.add(begin)
+      for (let i = begin + 1; i < lines.length; i++) {
+        const l = lines[i]
+        const id = BLOCK_LINE.exec(l)?.[1]
+        if (l === BLOCK_END) { mine.add(i); break }
+        if (id || l === `/${IGNORE_FILE}`) { mine.add(i); if (id) ids.add(id) } else if (!hasEnd) break
+      }
+    }
+    const rest = lines.filter((_, i) => !mine.has(i))
+    for (const id of change.drop ?? []) ids.delete(id)
+    for (const id of change.add ?? []) if (NOTE_ID.test(id)) ids.add(id)
+    // Nothing of DevForge's, before or after: the file is not touched
+    if (!ids.size && begin < 0) return true
+    const head = rest.join('\n').trimEnd()
+    const block = ids.size ? [BLOCK_BEGIN, `/${IGNORE_FILE}`, ...[...ids].sort().map(id => `/${id}.md`), BLOCK_END].join('\n') : ''
+    const next = [head, block].filter(Boolean).join('\n')
+    if (!next) { rmSync(file, { force: true }); return true }
+    if (`${next}\n` !== text) writeTextFile(file, `${next}\n`)
+    return true
+  } catch { return false }
+}
+
+/**
+ * Boxes left to check per project, for the project cards and the Notes tab.
+ * Nothing is moved nor written here: a project whose old notes are still in
+ * project-notes.json counts them from there.
+ */
 export function openCounts(): Record<string, number> {
-  return Object.fromEntries(Object.entries(readAll()).map(([id, n]) => [id, (n.tasks ?? []).filter(t => !t.done).length]).filter(([, c]) => (c as number) > 0))
+  const legacy = readLegacy()
+  const out: Record<string, number> = {}
+  for (const p of loadProjects()) {
+    const old = legacy[p.id]
+    let n = old ? legacyTasks(old).filter(t => !t.checked).length + (typeof old.notes === 'string' ? countOpen(old.notes) : 0) : 0
+    try {
+      const dir = notesDir(p, false)
+      if (dir) n += folderCount(dir)
+    } catch { /* a folder out of reach counts nothing */ }
+    if (n > 0) out[p.id] = n
+  }
+  return out
 }
 
-export function addTask(projectId: string, text: string): NoteTask {
-  const n = getNotes(projectId)
-  const task: NoteTask = { id: randomUUID(), text: text.trim().slice(0, 500), done: false, createdAt: new Date().toISOString() }
-  saveNotes(projectId, { ...n, tasks: [...n.tasks, task] })
-  return task
-}
-
-/** Done or not; returns the task as it was (for an undo) */
-export function setTaskDone(projectId: string, taskId: string, done: boolean): NoteTask | null {
-  const n = getNotes(projectId)
-  const t = n.tasks.find(x => x.id === taskId)
-  if (!t) return null
-  saveNotes(projectId, { ...n, tasks: n.tasks.map(x => (x.id === taskId ? { ...x, done, ...(done ? { doneAt: new Date().toISOString() } : { doneAt: undefined }) } : x)) })
-  return t
-}
-
-export function removeTask(projectId: string, taskId: string): void {
-  const n = getNotes(projectId)
-  saveNotes(projectId, { ...n, tasks: n.tasks.filter(x => x.id !== taskId) })
+/**
+ * The boxes left in a notes folder, read again only when one of its files changed:
+ * every save asks for the counts of all the projects, and only one folder moved.
+ */
+const counted = new Map<string, { stamp: string; n: number }>()
+function folderCount(dir: string): number {
+  const files = readdirSync(dir).filter(f => f.endsWith('.md')).sort()
+  const stamp = files.map(f => { const st = lstatOrNull(join(dir, f)); return `${f}:${st?.mtimeMs ?? 0}:${st?.size ?? 0}` }).join('|')
+  const known = counted.get(dir)
+  if (known?.stamp === stamp) return known.n
+  const n = readAll(dir).reduce((sum, x) => sum + countOpen(x.body), 0)
+  counted.set(dir, { stamp, n })
+  return n
 }

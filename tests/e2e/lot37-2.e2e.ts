@@ -54,7 +54,7 @@ test('a failure shows expected and received, opens at its line, reruns alone onc
   await openProjectTab(page, 'Tests')
   await page.getByRole('button', { name: 'Relancer les échecs (1)' }).click()
   await expect(page.getByTestId('test-failure')).toHaveCount(0, { timeout: 30_000 })
-  await expect(page.getByText('Échoués', { exact: true }).locator('..')).toContainText('0')
+  await expect(page.getByTestId('test-totals')).not.toContainText('échec')
   await expect(page.getByLabel('Sortie des tests')).toContainText('src/cart.test.ts')
   await expect(page.getByLabel('Sortie des tests')).toContainText('"src/cart.test.ts"')
 })

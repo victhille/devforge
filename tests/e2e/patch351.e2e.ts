@@ -54,21 +54,24 @@ test('a group: one-line buttons when folded, the rest of its folder, files previ
   await goTo(page, '/projects')
   const card = page.locator('.df-rise', { has: page.getByRole('heading', { name: 'agenda-app' }) }).last()
 
+  // Folded, as in the mock-up: its projects and the rest of the folder as chips, each button on one line
+  await expect(card.getByText('backend', { exact: true })).toBeVisible()
+  await expect(card.getByText('frontend', { exact: true })).toBeVisible()
+  await expect(card.getByText('+ 1 autre', { exact: true })).toBeVisible()
+  for (const button of await card.locator('button.flex-1').all()) {
+    const { scrollHeight, clientHeight } = await button.evaluate(b => ({ scrollHeight: b.scrollHeight, clientHeight: b.clientHeight }))
+    expect(scrollHeight).toBeLessThanOrEqual(clientHeight)
+  }
+  await expect(card.getByRole('button', { name: 'Ouvrir le groupe' })).toBeVisible()
+
   // Unfolded: the rest of the folder under its projects
+  await card.getByRole('button', { name: 'Déplier le groupe' }).click()
   const extras = card.getByTestId('group-extras')
   await expect(extras).toContainText('Aussi dans le dossier :')
   await expect(extras).toContainText('docs/')
   await expect(extras).toContainText('infra/')
   await expect(extras).toContainText('README.md')
-
-  // Folded: short labels, each button on one line
   await card.getByRole('button', { name: 'Replier le groupe' }).click()
-  await expect(card.getByText('backend · frontend + 3 autres')).toBeVisible()
-  for (const button of await card.locator('button.flex-1').all()) {
-    const { scrollHeight, clientHeight } = await button.evaluate(b => ({ scrollHeight: b.scrollHeight, clientHeight: b.clientHeight }))
-    expect(scrollHeight).toBeLessThanOrEqual(clientHeight)
-  }
-  await expect(card.getByRole('button', { name: 'Ouvrir', exact: true })).toBeVisible()
 
   // A click on the card opens its page, as for a project's card
   await card.getByRole('heading', { name: 'agenda-app' }).click()
@@ -155,7 +158,8 @@ test('tables are created, changed and dropped, the SQL shown first; rows copy as
   expect(copied.map(c => JSON.parse(c))).toEqual([[{ id: 1, name: 'Ada' }, { id: 2, name: 'Linus' }]])
 
   // A new table: an id ready, one column typed, the SQL before it runs
-  await page.getByRole('button', { name: 'Nouvelle table' }).click()
+  await page.getByRole('button', { name: 'Autres actions sur la base' }).click()
+  await page.getByRole('menuitem', { name: 'Nouvelle table' }).click()
   const dialog = page.getByRole('dialog', { name: 'Nouvelle table' })
   await dialog.getByLabel('Nom de la table').fill('invoice')
   await dialog.getByRole('textbox', { name: 'Nom', exact: true }).nth(1).fill('total')

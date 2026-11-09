@@ -29,7 +29,8 @@ test('an MCD drawn, checked and saved in the project, then found again in the li
   expect(await settledAxeIssues(page)).toEqual([])
 
   // Created from its tile: an empty MCD, in conception/
-  await page.getByRole('region', { name: 'Créer un modèle' }).getByRole('button', { name: /Modèle conceptuel/ }).click()
+  await page.getByRole('button', { name: 'Nouveau modèle', exact: true }).click()
+  await page.getByRole('dialog', { name: 'Quel modèle ?' }).getByRole('button', { name: /Modèle conceptuel/ }).click()
   const dialog = page.getByRole('dialog', { name: 'Nouveau : Modèle conceptuel' })
   await dialog.getByLabel('Nom').fill('Boutique')
   await dialog.getByRole('button', { name: 'Créer' }).click()
@@ -81,9 +82,9 @@ test('an MCD drawn, checked and saved in the project, then found again in the li
 
   // Back to the list: the model, its counts and its file
   await page.getByRole('button', { name: 'Modélisation' }).click()
-  const card = page.getByRole('region', { name: 'Modèles du projet' }).getByRole('listitem')
+  const card = page.getByRole('region', { name: 'Modèles du projet' }).getByRole('listitem').filter({ hasText: 'Boutique' })
   await expect(card).toContainText('Boutique')
   await expect(card).toContainText('2 entité(s) · 1 association(s)')
-  await expect(card).toContainText('conception/boutique.mcd.json')
+  await expect(card.getByTitle('conception/boutique.mcd.json')).toBeVisible()
   await expect(page.getByRole('region', { name: 'La chaîne du projet' })).toContainText('● À jour')
 })

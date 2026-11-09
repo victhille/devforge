@@ -1,4 +1,3 @@
-import { Activity, Box, HardDrive } from 'lucide-react'
 import { cn } from '@renderer/lib/cn'
 import Badge from '@renderer/components/ui/Badge'
 import Card, { CardHeader, CardTitle } from '@renderer/components/ui/Card'
@@ -13,7 +12,7 @@ export function DisksPanel({ disks }: { disks: VPSStats['disks'] }) {
   const v = t.vpsDash
   return (
     <Card>
-      <CardHeader><CardTitle><HardDrive size={14} className="text-fg-muted" /> {v.disks}</CardTitle></CardHeader>
+      <CardHeader><CardTitle>{v.disks}</CardTitle></CardHeader>
       <div className="flex flex-col gap-4 p-4">
         {disks.map(d => (
           <div key={d.device + d.mount} className="flex flex-col gap-1.5">
@@ -35,7 +34,7 @@ export function ProcessesPanel({ procs }: { procs: VPSStats['procs'] }) {
   const v = useI18n().t.vpsDash
   return (
     <Card className="overflow-hidden">
-      <CardHeader><CardTitle><Activity size={14} className="text-fg-muted" /> {v.processes}</CardTitle></CardHeader>
+      <CardHeader><CardTitle>{v.processes}</CardTitle></CardHeader>
       <Table>
         <thead>
           <tr>
@@ -67,15 +66,16 @@ export function DockerPanel({ containers }: { containers: VPSStats['docker'] }) 
   const up = containers.filter(c => c.status.toLowerCase().startsWith('up')).length
   const { t } = useI18n()
   const v = t.vpsDash
+  if (n === 0) return null
   return (
     <Card className="overflow-hidden">
       <CardHeader>
-        <CardTitle><Box size={14} className="text-fg-muted" /> {n > 1 ? v.dockerMany.replace('{n}', String(n)) : v.dockerOne}</CardTitle>
-        <Badge mono color={up === n ? 'success' : 'warning'}>{up}/{n}</Badge>
+        <CardTitle>{v.containers}</CardTitle>
+        {n > 0 && <Badge color={up === n ? 'success' : 'warning'}>{v.containersUp.replace('{r}', String(up)).replace('{t}', String(n))}</Badge>}
       </CardHeader>
       <Table>
         <thead>
-          <tr><Th>{t.ssh.labelName}</Th><Th>{v.image}</Th><Th>{v.state}</Th></tr>
+          <tr><Th>{t.ssh.labelName}</Th><Th>{v.image}</Th><Th>{v.since}</Th></tr>
         </thead>
         <tbody>
           {containers.map(c => (

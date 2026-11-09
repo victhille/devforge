@@ -19,11 +19,11 @@ test('tools: diff without whitespace, JSON keys in order, a Laravel APP_KEY', as
   await goTo(page, '/diff')
   await page.getByPlaceholder('Colle le texte original…').fill('services:\n  web:\n    image: node:20 ')
   await page.getByPlaceholder('Colle le texte modifié…').fill('services:\n    web:\n    image: node:20')
-  await expect(page.getByText('+2 ajouté')).toBeVisible()
+  await expect(page.getByText('2 ligne(s) ajoutée(s)')).toBeVisible()
   // The checkbox's input is hidden behind its box: its label takes the click
   await page.getByText('Ignorer les espaces').click()
   await expect(page.getByRole('checkbox', { name: 'Ignorer les espaces' })).toBeChecked()
-  await expect(page.getByText('+0 ajouté')).toBeVisible()
+  await expect(page.getByText('0 ligne(s) ajoutée(s)')).toBeVisible()
   await page.getByRole('button', { name: 'Inverser' }).click()
   await expect(page.getByPlaceholder('Colle le texte original…')).toHaveValue('services:\n    web:\n    image: node:20')
   expect(await settledAxeIssues(page)).toEqual([])
@@ -31,16 +31,17 @@ test('tools: diff without whitespace, JSON keys in order, a Laravel APP_KEY', as
   await goTo(page, '/toolbox')
   await page.getByPlaceholder('{"key": "value"}').fill('{"statut":"ok","client":{"ville":"Nantes","nom":"Ada"}}')
   await page.getByRole('button', { name: 'Trier les clés' }).click()
-  await expect(page.getByRole('textbox', { name: 'Sortie' })).toHaveValue('{\n  "client": {\n    "nom": "Ada",\n    "ville": "Nantes"\n  },\n  "statut": "ok"\n}')
+  await expect(page.getByRole('textbox', { name: 'Résultat' })).toHaveValue('{\n  "client": {\n    "nom": "Ada",\n    "ville": "Nantes"\n  },\n  "statut": "ok"\n}')
 
   await goTo(page, '/generator')
-  const secret = page.locator('div').filter({ has: page.getByRole('heading', { name: 'Secret / Token' }) }).filter({ has: page.getByRole('button', { name: 'Générer', exact: true }) }).last()
-  await secret.getByRole('tab', { name: 'Base64' }).click()
-  await secret.getByText('Préfixe base64: (APP_KEY de Laravel)').click()
-  await expect(secret.getByRole('checkbox', { name: 'Sûr pour une URL' })).toHaveCount(0)
-  await secret.getByRole('button', { name: 'Générer', exact: true }).click()
-  await expect(secret.getByText(/^base64:[A-Za-z0-9+/]{43}=$/)).toBeVisible()
-  await expect(secret.getByText('256 bits d’aléa')).toBeVisible()
+  // A tab per kind; the value is drawn at once, again when a setting changes
+  await page.getByRole('tab', { name: 'Secret d’appli / token' }).click()
+  await page.getByRole('combobox', { name: 'Format' }).selectOption('base64')
+  await page.getByRole('switch', { name: 'Préfixe base64: (APP_KEY de Laravel)' }).click()
+  await expect(page.getByRole('switch', { name: 'Sûr pour une URL' })).toHaveCount(0)
+  await expect(page.getByText(/^base64:[A-Za-z0-9+/]{43}=$/)).toBeVisible()
+  await expect(page.getByText('256 bits')).toBeVisible()
+  expect(await settledAxeIssues(page)).toEqual([])
 })
 
 test('.env: a secret is drawn again after a yes, never an API key', async () => {
@@ -87,7 +88,7 @@ test('domains in a table with their state; logs and webhooks say where they stan
   const { page } = run
 
   await goTo(page, '/domains')
-  await expect(page.getByText('Actifs : 0 sur 1')).toBeVisible()
+  await expect(page.getByText('0 domaine(s) actif(s) sur 1')).toBeVisible()
   const domain = page.getByRole('row').filter({ hasText: 'shop.test' })
   await expect(domain).toContainText('localhost:3999')
   await expect(domain).toContainText('désactivé')
@@ -99,8 +100,9 @@ test('domains in a table with their state; logs and webhooks say where they stan
   await goTo(page, '/webhooks')
   await expect(page.getByText('Arrêté', { exact: true })).toBeVisible()
   await goTo(page, `/logs?file=${encodeURIComponent(log)}`)
-  await expect(page.getByRole('button', { name: 'Erreurs 1' })).toHaveAttribute('aria-pressed', 'true')
-  await page.getByRole('button', { name: 'Avertissements 1' }).click()
-  await expect(page.getByRole('button', { name: 'Avertissements 1' })).toHaveAttribute('aria-pressed', 'false')
+  // As in the mock-up: one level at a time, every line at first
+  await expect(page.getByRole('radio', { name: 'Tout' })).toHaveAttribute('aria-checked', 'true')
+  await page.getByRole('radio', { name: 'Erreurs 1' }).click()
+  await expect(page.getByRole('radio', { name: 'Erreurs 1' })).toHaveAttribute('aria-checked', 'true')
   await expect(page.getByText('slow mail')).toHaveCount(0)
 })

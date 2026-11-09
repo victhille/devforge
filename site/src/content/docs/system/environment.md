@@ -3,18 +3,18 @@ title: Environnement
 description: Les outils de dev installés sur ton PC, leurs versions, et la compatibilité avec ce que demandent tes projets.
 ---
 
-La page **Environnement** détecte les outils de dev installés sur ce PC et leur version.
+La page **Environnement** détecte les outils de dev installés sur ce PC et leur version, en cartes par famille :
 
-| Catégorie | Outils |
+| Carte | Outils |
 |---|---|
 | JavaScript | Node.js, npm, pnpm, Yarn |
-| Contrôle de version | Git |
 | PHP | PHP, Composer, Symfony CLI |
-| Infrastructure | Docker, Python |
+| Outils | Git, Docker |
+| Autres langages | Python |
 
-Un outil absent est marqué *Non détecté*, avec **Installer…** : un lien vers sa page d'installation et, quand il y en a une, la commande à lancer (par exemple `npm install -g pnpm`).
+Un outil trouvé a une coche et sa version. Un outil absent est grisé, avec **Installer** : un lien vers sa page d'installation et, à côté, la commande à lancer quand il y en a une (par exemple `npm install -g pnpm`). Quand un de tes projets en a besoin, le bouton passe en couleur et dit lequel (« utilisé par boutique-en-ligne »).
 
-Chaque catégorie dit combien de ses outils sont détectés (« 3 sur 4 détectés »).
+Chaque carte dit combien de ses outils sont détectés (« 3 / 4 »).
 
 La détection est gardée en mémoire (les outils changent rarement) ; **Actualiser** la relance.
 

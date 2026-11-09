@@ -13,16 +13,20 @@ test('Symfony: database, options, Git and the summary of commands', async () => 
   run = await launch()
   const { page } = run
   await goTo(page, '/new-project')
+  // A technology is picked, then Continue (the card on the right shows what will be made)
   await page.getByRole('button', { name: /Symfony/ }).click()
-  await page.getByLabel('Nom du projet').fill('boutique')
+  await expect(page.getByRole('button', { name: /Symfony/ })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByText('symfony/skeleton')).toBeVisible()
   await page.getByRole('button', { name: 'Continuer' }).click()
 
-  // Step 3: database and options
-  await expect(page.getByRole('list', { name: 'Étapes' }).locator('[aria-current="step"]')).toHaveText('3 · Base et options')
-  await expect(page.getByRole('list', { name: 'Étapes' })).toContainText('2 · Nom : boutique')
+  // Options and database, on one screen
+  const steps = page.getByRole('list', { name: 'Étapes' })
+  await expect(steps.locator('[aria-current="step"]')).toHaveText([/Options/, /Base de données/])
+  await page.getByLabel('Nom du projet').fill('boutique')
   await expect(page.getByRole('radio', { name: /PostgreSQL 16/ })).toHaveAttribute('aria-checked', 'true')
   await expect(page.getByLabel('Nom de la base')).toHaveValue('boutique')
-  await page.getByRole('checkbox', { name: /Utilisateurs et connexion/ }).check({ force: true })
+  await page.getByRole('switch', { name: /Utilisateurs et connexion/ }).click()
+  await expect(page.getByRole('switch', { name: /Utilisateurs et connexion/ })).toHaveAttribute('aria-checked', 'true')
   expect(await axeIssues(page)).toEqual([])
   await page.getByRole('button', { name: 'Continuer' }).click()
 
@@ -36,7 +40,7 @@ test('Symfony: database, options, Git and the summary of commands', async () => 
   await expect(recap).toContainText('git commit -m')
   await expect(recap).not.toContainText('gh repo create')
 
-  await page.getByRole('checkbox', { name: /Créer le dépôt sur GitHub/ }).check({ force: true })
+  await page.getByRole('switch', { name: /Créer le dépôt sur GitHub/ }).click()
   // Under the gh account when one is signed in
   await expect(recap).toContainText(/gh repo create (\S+\/)?boutique --private --source \. --push/)
   await page.getByRole('radio', { name: 'Public' }).click()
@@ -49,7 +53,7 @@ test('Symfony: database, options, Git and the summary of commands', async () => 
 
   // Back keeps the choices
   await page.getByRole('button', { name: 'Retour', exact: true }).first().click()
-  await expect(page.getByRole('checkbox', { name: /Utilisateurs et connexion/ })).toBeChecked()
+  await expect(page.getByRole('switch', { name: /Utilisateurs et connexion/ })).toHaveAttribute('aria-checked', 'true')
 })
 
 test('React: no database step, straight to libraries then Git', async () => {
@@ -57,9 +61,11 @@ test('React: no database step, straight to libraries then Git', async () => {
   const { page } = run
   await goTo(page, '/new-project')
   await page.getByRole('button', { name: /^React/ }).click()
-  await page.getByLabel('Nom du projet').fill('site')
   await page.getByRole('button', { name: 'Continuer' }).click()
-  await expect(page.getByRole('list', { name: 'Étapes' }).locator('[aria-current="step"]')).toHaveText('3 · Librairies')
+  await page.getByLabel('Nom du projet').fill('site')
+  await expect(page.getByRole('list', { name: 'Étapes' })).not.toContainText('Base de données')
+  await page.getByRole('button', { name: 'Continuer' }).click()
+  await expect(page.getByRole('list', { name: 'Étapes' }).locator('[aria-current="step"]')).toContainText('Bibliothèques')
   await page.getByRole('button', { name: 'Passer' }).click()
   const recap = page.getByRole('list', { name: 'Récapitulatif · ce qui va être lancé' })
   await expect(recap).toContainText('Création du projet React')
