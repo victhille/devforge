@@ -4,7 +4,7 @@ import { registerIpcHandlers } from './ipc'
 import { sshService } from './services/ssh/sshService'
 import { loadSettings, savedLanguage } from './services/settings/settingsService'
 import { detectEnvironment } from './services/system/environmentDetector'
-import { processManager } from './services/stacks/processManager'
+import { stopAllProcessesNow } from './services/system/quitProcesses'
 import { stopMonitors } from './services/monitor/urlMonitor'
 import { stopProxy } from './services/domains/domainProxy'
 import { closeAllDbs } from './services/database/dbClient'
@@ -197,8 +197,9 @@ app.whenReady().then(() => {
   })
 })
 
-// Never leave dev servers running after DevForge quits
-app.on('before-quit', () => { disposeWidget(); disposeLauncher(); killTerminals(); processManager.stopAll(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks(); stopUpdater(); stopCiWatch(); stopWatch(); stopHistory(); stopBackupWatch(); closeAllForwards() })
+// Never leave dev servers, log follows, commands or tests running after DevForge quits (killed before it exits).
+// Everything stops here: the windows must close now, not go to the tray (Cmd+Q, an update on Windows…)
+app.on('before-quit', () => { forceQuit = true; disposeWidget(); disposeLauncher(); killTerminals(); stopAllProcessesNow(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks(); stopUpdater(); stopCiWatch(); stopWatch(); stopHistory(); stopBackupWatch(); closeAllForwards() })
 
 app.on('window-all-closed', () => {
   sshService.disconnectAll()
