@@ -4,6 +4,27 @@ Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachange
 
 ## [Non publié]
 
+## [0.2.1](https://github.com/victhille/devforge/compare/v0.2.0...v0.2.1) — 2026-11-09
+
+> Correctifs de sécurité pour le lancement des scripts, et une interface qui suit partout la taille du texte.
+
+### Améliorations
+
+- **Taille du texte** : le terminal (blocs et SSH), l'arbre des fichiers, l'onglet Paquets et les tests de la fiche projet suivent maintenant la taille du texte et la densité choisies
+- **Clavier** : les sélecteurs des Paramètres, comme la taille du texte, se parcourent aux flèches, avec un seul arrêt de Tab
+- **Serveurs et projets** : la palette Ctrl+K, le tableau de bord d'un serveur, le terminal et le widget de Forgy suivent tout de suite un serveur ou un projet ajouté, renommé ou retiré
+- **Lecteurs d'écran** : un tableau en cours de chargement l'annonce, comme les autres squelettes
+
+### Corrections
+
+- **Base de données** : le schéma en plein écran ne recouvre plus le bas de la barre de titre
+
+### Sécurité
+
+- **Scripts** : avec pnpm ou yarn, un script nommé comme une commande du gestionnaire (`publish`, `install`…) lance bien le script ; un clic ne peut plus publier un paquet par erreur
+- **Scripts** : un nom de script avec des caractères qu'un shell interprète, ou un gestionnaire de paquets inconnu venu d'un export importé, n'arrive plus dans le terminal, dans Forgy ni dans la création d'un projet
+- **Dossiers réseau** : les scripts d'un partage réseau ne sont lus que pour un projet enregistré, pour ne pas envoyer l'identifiant Windows à un hôte inconnu
+
 ## [0.2.0](https://github.com/victhille/devforge/compare/v0.1.0...v0.2.0) — 2026-11-09
 
 > Toute l'app passe à l'interface « Forge », avec une couleur au choix, un texte qui s'agrandit et des pages qui s'affichent tout de suite.
