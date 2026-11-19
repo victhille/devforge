@@ -92,6 +92,10 @@ describe('local log', () => {
     expect(redact('C:\\Users\\Public\\x')).toBe('C:\\Users\\Public\\x')
     expect(redact('{"path":"C:\\\\Users\\\\someone\\\\app"}')).toBe('{"path":"C:\\\\Users\\\\***\\\\app"}')
     expect(redact('cd /home/someone/app && ls /Users/other')).toBe('cd /home/***/app && ls /Users/***')
+    // A long run of backslashes that never reaches « Users » is read in linear time (no backtracking)
+    const t = Date.now()
+    expect(redact(`C:${'\\'.repeat(50_000)}x`)).toBe(`C:${'\\'.repeat(50_000)}x`)
+    expect(Date.now() - t).toBeLessThan(2000)
     // Quoted values, prefixed JSON keys, passphrases, and a key glued to a letter
     expect(redact('password="hunter2" DB_PASSWORD=\'x y\'')).toBe('password=*** DB_PASSWORD=***')
     expect(redact("{ password: 'x', token: 'y' }")).toBe('{ password: ***, token: *** }')

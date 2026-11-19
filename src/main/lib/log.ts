@@ -44,9 +44,10 @@ export function redact(text: string): string {
     // E-mail addresses, but not the user part of an SSH remote (git@github.com:…)
     .replace(/(?<![\w.+-])(?!git@)[\w.+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b/g, '***@***')
   if (HOME_RE) out = out.replace(HOME_RE, '~')
-  // Another account's folder: C:\Users\someone (also escaped in JSON), /home/someone, /Users/someone
+  // Another account's folder: C:\Users\someone (also escaped in JSON), /home/someone, /Users/someone.
+  // One class for the separators, not \\\\|\\ (a run of backslashes would split in exponentially many ways)
   return out
-    .replace(/\b([A-Za-z]:(?:\\\\|\\|\/)+Users(?:\\\\|\\|\/)+)(?!Public\b)[^\\/\s"']+/gi, '$1***')
+    .replace(/\b([A-Za-z]:[\\/]+Users[\\/]+)(?!Public\b)[^\\/\s"']+/gi, '$1***')
     .replace(/(^|[\s"'(=])(\/(?:home|Users)\/)(?!Shared\b)[^/\s"']+/g, '$1$2***')
 }
 
