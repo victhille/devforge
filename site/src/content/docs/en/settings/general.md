@@ -69,6 +69,6 @@ The **This version** card gives the version and its channel, the commit, the bui
 
 - **DevForge on GitHub**: **GitHub page** and **Report a problem**;
 - **Release notes**: every version;
-- **License**: DevForge is free software under GPL-3.0, **GPL-3.0 license** opens its text.
+- **License**: DevForge is free software under GPL-3.0 (version 3 only). **GPL-3.0 license** opens its text, and **Third-party licenses** those of the open source components included. Both files ship with the app and open without a connection.
 
 **Diagnostic report › Copy report** copies a **diagnostic report**: version, system and the last lines of the local log, keys and passwords masked. Nothing is sent: paste it wherever you want, for example in a [GitHub issue](https://github.com/victhille/devforge/issues). Read it first: it may contain server or project names.

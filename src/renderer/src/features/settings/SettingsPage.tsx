@@ -208,7 +208,10 @@ export default function SettingsPage() {
                 </SettingRow>
                 {/* GPL-3.0 section 5d: an interactive program shows its legal notices */}
                 <SettingRow label={s.licence} hint={s.legalNotice}>
-                  <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal(`${__REPO_URL__}/blob/main/LICENSE`)}>{s.viewLicense}</Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="ghost" onClick={async () => { if (!(await window.devforge.openLegal('license'))) window.devforge.openExternal(`${__REPO_URL__}/blob/main/LICENSE`) }}>{s.viewLicense}</Button>
+                    <Button size="sm" variant="ghost" onClick={async () => { if (!(await window.devforge.openLegal('notices'))) window.devforge.openExternal(`${__REPO_URL__}/blob/main/THIRD_PARTY_LICENSES.md`) }}>{s.thirdPartyLicenses}</Button>
+                  </div>
                 </SettingRow>
               </SettingsCard>
             )}

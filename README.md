@@ -64,6 +64,6 @@ Versions SemVer, commits conventionnels, `npm run release` pour publier : voir [
 
 ## Licence
 
-© 2026 victhille — [GPL-3.0](LICENSE) : tu peux lire, modifier et redistribuer DevForge, à condition que toute version modifiée reste libre, sous GPL-3.0, avec son code source.
+© 2026 victhille — [GPL-3.0-only](LICENSE) (version 3 uniquement) : tu peux lire, modifier et redistribuer DevForge, à condition que toute version modifiée reste libre, sous GPL-3.0, avec son code source.
 
-Le nom « DevForge », le logo et Forgy ne sont pas sous cette licence : un fork prend un autre nom, voir [TRADEMARKS.md](TRADEMARKS.md). Les contributions passent par un [accord de contribution](CLA.md). Les paquets open source inclus et leurs licences sont listés dans [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+Le nom « DevForge », le logo et Forgy sont des marques réservées (leurs fichiers restent sous GPL) : un fork prend un autre nom, voir [TRADEMARKS.md](TRADEMARKS.md). Les contributions passent par un [accord de contribution](CLA.md). Les paquets open source inclus et leurs licences sont listés dans [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).

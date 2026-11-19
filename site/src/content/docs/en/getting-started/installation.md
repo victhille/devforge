@@ -42,4 +42,6 @@ It is all in **Settings › Updates**: **Stable** channel (final versions) or **
 
 ## Uninstall
 
-Go through **Windows Settings › Apps › Installed apps › DevForge › Uninstall**. To also erase your data first, use **Settings › Data › Erase everything** in DevForge.
+Go through **Windows Settings › Apps › Installed apps › DevForge › Uninstall**. Uninstalling removes the app, the updates already downloaded and the start with Windows.
+
+Your data stays, for a later reinstall: the `%APPDATA%\DevForge` folder (settings, saved projects, connections, dictation models) and the local domains added to the `hosts` file. To erase them, first use **Settings › Data › Erase everything** in DevForge, and remove your domains in **Local domains**.

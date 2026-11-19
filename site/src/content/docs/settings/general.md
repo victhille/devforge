@@ -69,6 +69,6 @@ La carte **Cette version** donne la version et son canal, le commit, la date de 
 
 - **DevForge sur GitHub** : **Page GitHub** et **Signaler un problème** ;
 - **Notes de version** : toutes les versions ;
-- **Licence** : DevForge est un logiciel libre sous GPL-3.0, **Licence GPL-3.0** en ouvre le texte.
+- **Licence** : DevForge est un logiciel libre sous GPL-3.0 (version 3 uniquement). **Licence GPL-3.0** en ouvre le texte, et **Licences tierces** celui des composants open source inclus. Les deux fichiers sont livrés avec l'application et s'ouvrent sans connexion.
 
 **Rapport de diagnostic › Copier le rapport** copie un **rapport de diagnostic** : version, système et dernières lignes du journal local, clés et mots de passe masqués. Rien n'est envoyé : colle-le où tu veux, par exemple dans une [issue GitHub](https://github.com/victhille/devforge/issues). Relis-le avant : il peut contenir des noms de serveurs ou de projets.

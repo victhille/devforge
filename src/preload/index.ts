@@ -245,6 +245,7 @@ const api: DevForgeAPI = {
   tryIde:           (ide)          => ipcRenderer.invoke('ide:try', ide),
   selectProgram:    ()             => ipcRenderer.invoke('select-program'),
   openExternal:     (url)          => ipcRenderer.invoke('open-external', url),
+  openLegal:        (which)        => ipcRenderer.invoke('open-legal', which),
   pathExists:       (path)         => ipcRenderer.invoke('path-exists', path),
   openTerminal:     (path)         => ipcRenderer.invoke('open-terminal', path),
   readDirectory:    (path)         => ipcRenderer.invoke('fs:read-dir', path),

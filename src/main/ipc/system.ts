@@ -96,6 +96,20 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
 
   ipcMain.handle('open-external', async (_event, url: string) => shell.openExternal(assertWebUrl(url)))
 
+  // GPL-3.0 §5d: the license and the third-party notices travel with the app (resources/, see package.json
+  // › build.extraResources). Fixed paths only: the window just says which one. False when the file is
+  // missing (a dev build before `npm run build`): the page then opens the repository's copy.
+  ipcMain.handle('open-legal', async (_event, which: unknown) => {
+    const notices = which === 'notices'
+    const path = app.isPackaged
+      ? join(process.resourcesPath, notices ? 'THIRD_PARTY_NOTICES.txt' : 'LICENSE.txt')
+      : join(app.getAppPath(), notices ? 'out/licenses/THIRD_PARTY_NOTICES.txt' : 'LICENSE')
+    if (!existsSync(path)) return false
+    const error = await shell.openPath(path)
+    if (error) log('warn', 'legal', error)
+    return !error
+  })
+
   ipcMain.handle('open-terminal', async (_event, dirPath: string) => {
     const dir = assertSafeDir(dirPath)
     if (process.platform !== 'win32') { await shell.openPath(dir); return }

@@ -15,10 +15,10 @@
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
-    "build": "electron-vite build",
+    "build": "electron-vite build && node scripts/third-party-licenses.mjs --notices",
     "preview": "electron-vite preview",
     "start": "electron-vite dev",
-    "dist": "electron-vite build && electron-builder --win --x64",
+    "dist": "npm run build && electron-builder --win --x64",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json && tsc -p tsconfig.test.json",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -37,7 +37,10 @@
     },
     "files": [
       "out/**/*",
+      "!out/licenses/**",
+      "!out/*.tsbuildinfo",
       "!node_modules/onnxruntime-web/**",
+      "!node_modules/onnxruntime-node/bin/napi-v*/win32/x64/{DirectML.dll,dxcompiler.dll,dxil.dll}",
       "!node_modules/onnxruntime-node/bin/napi-v*/darwin/**",
       "!node_modules/onnxruntime-node/bin/napi-v*/linux/**",
       "!node_modules/onnxruntime-node/bin/napi-v*/win32/arm64/**",
@@ -55,6 +58,14 @@
       {
         "from": "src/renderer/src/assets/icon.png",
         "to": "icon.png"
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE.txt"
+      },
+      {
+        "from": "out/licenses/THIRD_PARTY_NOTICES.txt",
+        "to": "THIRD_PARTY_NOTICES.txt"
       }
     ],
     "win": {
