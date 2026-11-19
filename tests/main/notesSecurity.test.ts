@@ -25,11 +25,14 @@ beforeEach(() => {
   rmSync(legacy(), { force: true })
 })
 
-/** Runs in well under a second whatever the input: a pattern that backtracks takes minutes on these */
+/**
+ * Runs in well under a second whatever the input: a pattern that backtracks takes minutes on these.
+ * 5 s leaves room for a busy runner measuring coverage, and still catches minutes
+ */
 function fast<T>(fn: () => T): T {
   const t = Date.now()
   const out = fn()
-  expect(Date.now() - t).toBeLessThan(1500)
+  expect(Date.now() - t).toBeLessThan(5000)
   return out
 }
 

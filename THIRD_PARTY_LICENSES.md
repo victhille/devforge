@@ -1,10 +1,10 @@
 # Licences tierces
 
-DevForge 0.2.1 est distribué sous [GPL-3.0-only](LICENSE). Il inclut les 117 paquets open source ci-dessous, chacun sous sa propre licence. Le texte complet de chaque licence est livré avec l'application, dans `THIRD_PARTY_NOTICES.txt` (Paramètres › À propos › Licences tierces).
+DevForge 0.2.1 est distribué sous [GPL-3.0-only](LICENSE). Il inclut les 118 paquets open source ci-dessous, chacun sous sa propre licence. Le texte complet de chaque licence est livré avec l'application, dans `THIRD_PARTY_NOTICES.txt` (Paramètres › À propos › Licences tierces).
 
 Généré par `npm run licenses` à partir de `package-lock.json` (installeur Windows x64) : ne pas modifier à la main.
 
-**Résumé** : MIT (80), BSD-3-Clause (13), Apache-2.0 (7), ISC (7), OFL-1.1 (3), Unlicense (2), Apache-2.0 AND LGPL-3.0-or-later (1), Python-2.0 (1), BlueOak-1.0.0 (1), 0BSD (1), (MIT OR CC0-1.0) (1).
+**Résumé** : MIT (79), BSD-3-Clause (13), Apache-2.0 (9), ISC (7), OFL-1.1 (3), Unlicense (2), Apache-2.0 AND LGPL-3.0-or-later (1), Python-2.0 (1), BlueOak-1.0.0 (1), 0BSD (1), (MIT OR CC0-1.0) (1).
 
 Points d'attention :
 - **Polices Inter, JetBrains Mono et Bricolage Grotesque** : SIL Open Font License 1.1 (OFL-1.1), redistribuables avec l'application, à ne pas vendre seules.
@@ -13,7 +13,7 @@ Points d'attention :
 
 | Paquet | Version | Licence |
 |---|---|---|
-| @anthropic-ai/sdk | 0.131.0 | MIT |
+| @anthropic-ai/sdk | 1.10.0 | Apache-2.0 |
 | @babel/runtime | 7.29.10 | MIT |
 | @emnapi/runtime | 1.11.3 | MIT |
 | @fontsource-variable/bricolage-grotesque | 5.3.0 | OFL-1.1 |
@@ -21,9 +21,10 @@ Points d'attention :
 | @fontsource-variable/jetbrains-mono | 5.3.0 | OFL-1.1 |
 | @huggingface/jinja | 0.5.10 | MIT |
 | @huggingface/tokenizers | 0.2.0 | Apache-2.0 |
-| @huggingface/transformers | 4.3.0 | Apache-2.0 |
+| @huggingface/transformers | 4.3.2 | Apache-2.0 |
 | @img/colour | 1.1.0 | MIT |
 | @img/sharp-win32-x64 | 0.35.5 | Apache-2.0 AND LGPL-3.0-or-later |
+| @opentelemetry/api | 1.10.0 | Apache-2.0 |
 | @protobufjs/aspromise | 1.1.2 | BSD-3-Clause |
 | @protobufjs/base64 | 1.1.2 | BSD-3-Clause |
 | @protobufjs/codegen | 2.0.5 | BSD-3-Clause |

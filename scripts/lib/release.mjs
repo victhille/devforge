@@ -93,12 +93,14 @@ export function parseSemver(v) {
 }
 
 /**
- * Bump implied by a list of changes.
+ * Bump implied by a list of changes. Before 1.0 a breaking change moves the minor version only (SemVer §4):
+ * 1.0.0 comes from an explicit `prepare major`, never from a `feat!:` slipped into the commits.
  * @param {Change[]} changes
+ * @param {string} [current] the version before the bump
  * @returns {'major' | 'minor' | 'patch'}
  */
-export function bumpFor(changes) {
-  if (changes.some(c => c.breaking)) return 'major'
+export function bumpFor(changes, current = '1.0.0') {
+  if (changes.some(c => c.breaking)) return parseSemver(current).major === 0 ? 'minor' : 'major'
   if (changes.some(c => c.kind === 'feat')) return 'minor'
   return 'patch'
 }

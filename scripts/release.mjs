@@ -114,7 +114,8 @@ function prepare() {
   if (!changes.length && !positional) fail(`No change since ${lastTag ?? 'the beginning'}.`)
 
   const pre = option('--pre')
-  const bump = positional ?? bumpFor(changes)
+  const bump = positional ?? bumpFor(changes, current)
+  if (!positional && bump === 'minor' && changes.some(c => c.breaking)) console.log('A breaking change before 1.0 moves the minor version: pass `major` for 1.0.0.')
   const version = nextVersion(current, bump, pre)
   const target = state.branchVersion ? branch : releaseBranch(version)
   if (state.branchVersion && state.branchVersion !== version) {
@@ -174,7 +175,8 @@ function afterCommit(version) {
   console.log([
     'Next:',
     `  git push -u origin ${releaseBranch(version)}`,
-    `  PR ${releaseBranch(version)} → main, merged with a merge commit (CI "check" must pass)`,
+    `  PR ${releaseBranch(version)} → main, merged with a merge commit (CI "check" must pass):`,
+    `    gh pr merge ${releaseBranch(version)} --merge --subject "chore(release): v${version}" --body ""`,
     `  then on main, pulled: npm run release -- tag ${version}`
   ].join('\n'))
 }
@@ -201,5 +203,7 @@ function tag() {
   git('tag', '-a', name, '--cleanup=verbatim', '-m', sections.fr)
   git('push', 'origin', `refs/tags/${name}`)
   console.log(`✔ Pushed ${name}: the Release workflow builds the installer and publishes the release${repoUrl ? ` (${repoUrl}/actions)` : ''}`)
-  console.log('Last step: a PR main → develop, merged with a merge commit, so that develop has the version and the tag.')
+  console.log('Last step: a PR main → develop, merged with a merge commit, so that develop has the version and the tag:')
+  console.log(`  gh pr create --base develop --head main --title "chore(release): v${version} dans develop" --body ""`)
+  console.log(`  gh pr merge main --merge --subject "chore(release): v${version} dans develop" --body ""`)
 }

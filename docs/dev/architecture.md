@@ -100,6 +100,7 @@ Les valeurs viennent du thème (`src/renderer/src/styles/index.css`) :
 | Commande | Ce qui tourne |
 |---|---|
 | `npm test` | Vitest : services, règles, composants |
+| `npm run test:coverage` | Vitest avec la couverture de `src/main` et `src/shared` ; la CI la mesure à chaque run (`CI=true`) et échoue si `src/main/services` passe sous son seuil (`vitest.config.ts`) |
 | `npm run build` puis `npm run test:e2e` | Playwright : chaque test démarre l'app sur un profil vide, hors écran |
 | `npm run check` | types, lint, Vitest, build (avant chaque release) |
 
