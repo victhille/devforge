@@ -25,7 +25,12 @@ SmartScreen se méfie des programmes sans certificat de signature (payant) ou en
 
 ## L'installeur
 
-L'installeur te laisse choisir le dossier d'installation. DevForge s'ajoute au menu Démarrer et sur le Bureau. À la fin, il s'ouvre sur l'[écran de bienvenue](/devforge/getting-started/first-launch/).
+L'installeur demande d'abord pour qui installer :
+
+- **pour moi seulement** (conseillé) : dans ton profil Windows, sans droits d'administrateur ;
+- **pour tous les utilisateurs** du PC : dans `Program Files`, Windows demande alors l'autorisation, à l'installation comme à chaque mise à jour.
+
+Tu choisis ensuite le dossier d'installation. DevForge s'ajoute au menu Démarrer et sur le Bureau. À la fin, il s'ouvre sur l'[écran de bienvenue](/devforge/getting-started/first-launch/).
 
 ## Où sont les données
 
@@ -37,6 +42,10 @@ Tout reste sur ton PC, dans le dossier de données de DevForge (`%APPDATA%\DevFo
 - Une nouvelle version se télécharge en arrière-plan. Elle s'installe **au prochain redémarrage**, ou tout de suite avec **Redémarrer et mettre à jour** : DevForge se ferme, une petite fenêtre montre l'avancement de l'installation (sans rien te demander, sauf l'autorisation de Windows si DevForge est installé pour tous les utilisateurs), puis DevForge se relance sur la nouvelle version.
 - Le menu affiche aussi un bouton **Mettre à jour (vX.Y.Z)** quand une version est prête.
 - Après la mise à jour, une fenêtre **Quoi de neuf** résume la version (désactivable).
+
+:::caution[Tu as une version 1.x à 4.x ?]
+Les numéros sont repartis de 0.x avant la sortie publique. Une ancienne version 1.x à 4.x prend les nouvelles pour des versions plus anciennes et ne se met donc plus à jour seule. Désinstalle-la, puis installe la dernière : tes données restent, dans `%APPDATA%\DevForge`.
+:::
 
 Tout se règle dans **Paramètres › Mises à jour** : canal **Stable** (versions finales) ou **Bêta** (aussi les préversions, plus tôt mais parfois avec des bugs), bouton **Vérifier**, notes de version dans la langue de l'application. Voir [Paramètres](/devforge/settings/general/#mises-à-jour).
 
