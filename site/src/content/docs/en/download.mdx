@@ -34,6 +34,12 @@ The installer's SHA-256 checksum is shown under the button and in the version's 
 Get-FileHash "$env:USERPROFILE\Downloads\DevForge-Setup-vX.Y.Z.exe"
 ```
 
+Or let PowerShell compare them: paste the checksum shown between the quotes, it answers `True` if they match.
+
+```powershell
+(Get-FileHash "$env:USERPROFILE\Downloads\DevForge-Setup-vX.Y.Z.exe").Hash -eq "CHECKSUM"
+```
+
 Both strings must be the same. If they differ, the file was changed or badly downloaded: delete it and download it again.
 
 ## Updates

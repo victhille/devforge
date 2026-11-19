@@ -19,16 +19,8 @@ updates:
         dependency-type: development
         update-types: [minor, patch]
     ignore:
-      # A new major version of these is a lot of its own: done by hand, tested on a real install
-      - dependency-name: electron
-        update-types: [version-update:semver-major]
-      - dependency-name: electron-builder
-        update-types: [version-update:semver-major]
-      - dependency-name: react
-        update-types: [version-update:semver-major]
-      - dependency-name: react-dom
-        update-types: [version-update:semver-major]
-      - dependency-name: "@types/react*"
+      # A new major version (Electron, React, Vite, TypeScript…) breaks things of its own: done by hand, tested on a real install
+      - dependency-name: "*"
         update-types: [version-update:semver-major]
 
   - package-ecosystem: npm
