@@ -1,6 +1,6 @@
 # Contribuer à DevForge
 
-Merci de ton intérêt ! Issues et pull requests sont les bienvenues, en français ou en anglais.
+Merci de ton intérêt ! Issues et pull requests sont les bienvenues, en français ou en anglais. En participant, tu acceptes le [code de conduite](CODE_OF_CONDUCT.md). Une question ? Voir [SUPPORT.md](SUPPORT.md).
 
 ## Signaler un problème
 

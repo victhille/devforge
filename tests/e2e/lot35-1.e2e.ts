@@ -20,10 +20,10 @@ test('projects of two folders show together, each with its folder; a gone folder
   run = await launch({
     seed: dir => {
       project(join(dir, 'Projet Perso', 'blog'), { react: '^19.0.0' })
-      project(join(dir, 'Projet Cefim', 'shop'), { next: '^16.0.0', react: '^19.0.0' })
+      project(join(dir, 'Projet Client', 'shop'), { next: '^16.0.0', react: '^19.0.0' })
       writeFileSync(join(dir, 'settings.json'), JSON.stringify({
         language: 'fr', onboarded: true, launcherEnabled: false,
-        defaultProjectsDir: join(dir, 'Projet Perso'), extraProjectsDirs: [join(dir, 'Projet Cefim'), join(dir, 'Parti')]
+        defaultProjectsDir: join(dir, 'Projet Perso'), extraProjectsDirs: [join(dir, 'Projet Client'), join(dir, 'Parti')]
       }))
     }
   })
@@ -37,7 +37,7 @@ test('projects of two folders show together, each with its folder; a gone folder
 
   // One folder at a time
   const folders = page.getByRole('group', { name: 'Dossier' })
-  await folders.getByRole('button', { name: 'Projet Cefim' }).click()
+  await folders.getByRole('button', { name: 'Projet Client' }).click()
   await expect(page.getByText('shop', { exact: true })).toBeVisible()
   await expect(page.getByText('blog', { exact: true })).toHaveCount(0)
   await folders.getByRole('button', { name: 'Tous les dossiers' }).click()
@@ -50,9 +50,9 @@ test('projects of two folders show together, each with its folder; a gone folder
   await expect(list.getByText('par défaut', { exact: true })).toBeVisible()
   await list.getByRole('button', { name: /^Retirer ce dossier/ }).nth(2).click()
   await expect(list.getByRole('listitem')).toHaveCount(2)
-  await expect.poll(() => JSON.parse(readFileSync(join(userData, 'settings.json'), 'utf-8')).extraProjectsDirs).toEqual([join(userData, 'Projet Cefim')])
+  await expect.poll(() => JSON.parse(readFileSync(join(userData, 'settings.json'), 'utf-8')).extraProjectsDirs).toEqual([join(userData, 'Projet Client')])
   // The second one's folder turns into a star: it becomes the default
   await list.getByRole('button', { name: /^Mettre par défaut/ }).click()
-  await expect.poll(() => JSON.parse(readFileSync(join(userData, 'settings.json'), 'utf-8')).defaultProjectsDir).toBe(join(userData, 'Projet Cefim'))
+  await expect.poll(() => JSON.parse(readFileSync(join(userData, 'settings.json'), 'utf-8')).defaultProjectsDir).toBe(join(userData, 'Projet Client'))
   expect(await settledAxe(page)).toEqual([])
 })

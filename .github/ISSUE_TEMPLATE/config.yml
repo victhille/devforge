@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Poser une question · Ask a question
+    url: https://github.com/victhille/devforge/discussions
+    about: Une question sur DevForge, en français ou en anglais · A question about DevForge, in French or English
   - name: Documentation
     url: https://victhille.github.io/devforge/
     about: Prise en main et une page par fonction · Getting started and a page per feature
