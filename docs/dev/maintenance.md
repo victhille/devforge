@@ -11,7 +11,7 @@ Deux règles, selon ce que fait le paquet :
 | Ce qui est livré et touche au système : `electron`, `electron-updater`, `node-pty`, `ssh2`, les pilotes de base (`mysql2`, `pg`, `sql.js`), `@huggingface/transformers`, `@anthropic-ai/sdk` | version exacte (`44.11.5`) | un module natif ou l'exécutable doit être celui qu'on a testé ; une mise à jour passe par une PR |
 | L'outillage de build et de test, et les bibliothèques de l'interface | `^` (`^5.4.0`) | `package-lock.json` fixe déjà la version installée ; `^` laisse Dependabot proposer les mineures groupées |
 
-`package-lock.json` fait foi dans les deux cas : la CI et la release installent avec `npm ci`. Les versions majeures d'Electron, d'electron-builder et de React se font à la main (Dependabot les ignore).
+`package-lock.json` fait foi dans les deux cas : la CI et la release installent avec `npm ci`. Les versions majeures se font toutes à la main (Dependabot les ignore). `THIRD_PARTY_LICENSES.md` est régénéré à chaque release par `npm run release -- prepare` : une PR de Dependabot n'a pas à le mettre à jour.
 
 ## `overrides`
 
