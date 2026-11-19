@@ -1,8 +1,13 @@
 # Checks run on your PC before a commit (npm install sets them up through « prepare »).
 # Skip them once with: git commit --no-verify. The CI runs the full checks anyway.
 pre-commit:
-  parallel: true
+  # One after another: Prettier rewrites the files the lint then reads
+  piped: true
   commands:
+    format:
+      glob: "{src,tests,scripts}/**/*.{ts,tsx,mjs,cjs,js}"
+      run: npx prettier --write {staged_files}
+      stage_fixed: true
     lint:
       glob: "*.{ts,tsx,mjs,cjs,js}"
       run: npx eslint --no-warn-ignored {staged_files}
