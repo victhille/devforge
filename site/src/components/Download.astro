@@ -14,12 +14,13 @@ const text = {
 }[lang]
 ---
 
-<div class="df-download not-content" data-download data-lang={lang} data-released={text.released} data-notes={text.notes} data-fallback={text.fallback} data-sum-label={text.sum}>
+<div class="df-download not-content" data-download data-lang={lang} data-released={text.released} data-notes={text.notes} data-fallback={text.fallback} data-loading={text.loading} data-sum-label={text.sum}>
   <a class="df-button" href="https://github.com/victhille/devforge/releases/latest" data-link>
     <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14" /></svg>
     <span data-label>{text.button}</span>
   </a>
-  <span class="df-meta" data-meta aria-live="polite">{text.loading}</span>
+  <!-- Without JavaScript the button still leads to the latest release: the line says so instead of « looking for » -->
+  <span class="df-meta" data-meta aria-live="polite">{text.fallback}</span>
   <!-- GitHub's own checksum of the installer: compare with Get-FileHash after the download -->
   <span class="df-sum" data-sum hidden><span data-sum-label></span> <code data-sum-value></code></span>
 </div>
@@ -40,6 +41,7 @@ const text = {
     const link = box.querySelector<HTMLAnchorElement>('[data-link]')!
     const meta = box.querySelector<HTMLElement>('[data-meta]')!
     const lang = box.dataset.lang === 'en' ? 'en' : 'fr'
+    meta.textContent = box.dataset.loading ?? ''
     latest().then(r => {
       const exe = r?.assets.find(a => INSTALLER.test(a.name))
       if (!r || !exe) {

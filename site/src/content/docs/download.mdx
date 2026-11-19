@@ -34,6 +34,12 @@ L'empreinte SHA-256 de l'installeur est affichée sous le bouton et dans les not
 Get-FileHash "$env:USERPROFILE\Downloads\DevForge-Setup-vX.Y.Z.exe"
 ```
 
+Ou laisse PowerShell comparer : colle l'empreinte affichée entre les guillemets, il répond `True` si elles sont identiques.
+
+```powershell
+(Get-FileHash "$env:USERPROFILE\Downloads\DevForge-Setup-vX.Y.Z.exe").Hash -eq "EMPREINTE"
+```
+
 Les deux suites de chiffres et de lettres doivent être identiques. Si elles diffèrent, le fichier a été modifié ou mal téléchargé : supprime-le et télécharge-le à nouveau.
 
 ## Mises à jour
