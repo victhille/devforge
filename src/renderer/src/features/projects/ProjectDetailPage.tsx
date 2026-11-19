@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { CardGridSkeleton, CardSkeleton, Skeleton } from '@renderer/components/ui/Skeleton'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
@@ -17,7 +17,6 @@ import {
   Star,
   Terminal,
   Trash2,
-  X,
   XCircle,
   Maximize2,
   LayoutTemplate,
@@ -25,8 +24,7 @@ import {
   FlaskConical,
   CloudUpload
 } from 'lucide-react'
-import { NO_CONNECTIONS, useDbConnections, useNoteCounts } from '@renderer/hooks/useLiveData'
-import type { DefaultIDE, DockerOverview, GitRepoDetails, LinkKind, ListeningPort, LocalDomain, ProjectHub, TestRun, TestRunnerInfo } from '@shared/types'
+import type { DefaultIDE, LinkKind, ListeningPort } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
 import AskForgy from '@renderer/features/assistant/AskForgy'
@@ -65,6 +63,8 @@ import IdeSelect from './components/IdeSelect'
 import { usePreferredIde } from '@renderer/lib/ide'
 import { errorText } from '@renderer/lib/errors'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
+import { Tile, ROW, Muted, LinkRow, HiddenList } from './detailParts'
+import { useProjectDetail } from './hooks/useProjectDetail'
 
 type Tab =
   | 'overview'
@@ -108,100 +108,6 @@ const TABS: Tab[] = [
 
 const fileName = (p: string) => p.split(/[\\/]/).pop() ?? p
 
-// ─── Small pieces ─────────────────────────────────────────────────────────────
-
-/** A card of the overview, as in the mock-up: icon, title, a link (« Voir ») or a state on the right */
-function Tile({
-  title,
-  icon,
-  onSee,
-  seeLabel,
-  aside,
-  i,
-  className,
-  children
-}: {
-  title: string
-  icon: ReactNode
-  onSee?: () => void
-  seeLabel?: string
-  aside?: ReactNode
-  i: number
-  className?: string
-  children: ReactNode
-}) {
-  const { t } = useI18n()
-  const id = useId()
-  return (
-    <Card role="region" aria-labelledby={id} className={cn('df-rise flex min-w-0 flex-col gap-3.5 p-4.5', className)} style={{ '--i': i } as CSSProperties}>
-      <div className="flex min-h-6 items-center gap-2.5">
-        <span aria-hidden className="text-fg-secondary">
-          {icon}
-        </span>
-        <h2 id={id} className="flex-1 truncate font-display text-md font-bold tracking-[-.01em] text-fg">
-          {title}
-        </h2>
-        {aside}
-        {onSee && (
-          <button type="button" onClick={onSee} aria-describedby={id} className="text-sm font-semibold text-accent hover:text-accent-hover">
-            {seeLabel ?? t.hub.see}
-          </button>
-        )}
-      </div>
-      {children}
-    </Card>
-  )
-}
-
-/** A row of an overview card: a thin line between rows */
-const ROW = 'flex min-h-9 min-w-0 items-center gap-2.5 border-b border-line-subtle last:border-b-0'
-
-function Origin({ origin }: { origin: 'auto' | 'manual' }) {
-  const { t } = useI18n()
-  return <Badge>{origin === 'auto' ? t.hub.auto : t.hub.manual}</Badge>
-}
-
-const Muted = ({ children }: { children: ReactNode }) => <p className="text-sm text-fg-muted">{children}</p>
-
-/** A linked resource row: label, origin, actions, and untie */
-function LinkRow({ children, origin, onUntie, actions }: { children: ReactNode; origin: 'auto' | 'manual'; onUntie: () => void; actions?: ReactNode }) {
-  const { t } = useI18n()
-  return (
-    <div className="group flex items-center gap-3 border-t border-line-subtle px-4.5 py-3 first:border-t-0">
-      <div className="min-w-0 flex-1">{children}</div>
-      <Origin origin={origin} />
-      {actions}
-      <IconButton
-        size="sm"
-        title={t.hub.untie}
-        onClick={onUntie}
-        className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
-      >
-        <X size={13} />
-      </IconButton>
-    </div>
-  )
-}
-
-/** Resources DevForge found but the user hid, with a way back */
-function HiddenList({ items, onShow }: { items: { ref: string; label: string }[]; onShow: (ref: string) => void }) {
-  const { t } = useI18n()
-  if (!items.length) return null
-  return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-xs font-semibold tracking-[.04em] text-fg-muted uppercase">{t.hub.hiddenTitle}</span>
-      {items.map(i => (
-        <div key={i.ref} className="flex items-center gap-2 text-sm text-fg-secondary">
-          <span className="min-w-0 flex-1 truncate">{i.label}</span>
-          <button onClick={() => onShow(i.ref)} className="text-xs font-medium text-accent hover:underline">
-            {t.hub.showAgain}
-          </button>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProjectDetailPage() {
@@ -218,14 +124,24 @@ export default function ProjectDetailPage() {
   const tab: Tab = TABS.includes(asked as Tab) ? (asked as Tab) : 'overview'
   const setTab = (next: Tab) => setParams(next === 'overview' ? {} : { tab: next }, { replace: true })
 
-  const [hub, setHub] = useState<ProjectHub | null>(null)
-  const [git, setGit] = useState<GitRepoDetails | null>(null)
-  const [docker, setDocker] = useState<DockerOverview | null>(null)
-  const [listening, setListening] = useState<ListeningPort[]>([])
-  // The kept list of connections
-  const connections = useDbConnections().data ?? NO_CONNECTIONS
-  const [domains, setDomains] = useState<LocalDomain[]>([])
-  const [scripts, setScripts] = useState<Record<string, string>>({})
+  const {
+    hub,
+    setHub,
+    loadHub,
+    git,
+    loadGit,
+    docker,
+    loadDocker,
+    compose,
+    listening,
+    reloadPorts,
+    connections,
+    domains,
+    scripts,
+    testRunners,
+    testRun,
+    noteCounts
+  } = useProjectDetail(id, tab)
   /** Deploy target whose .env sync panel is open */
   const [envSync, setEnvSync] = useState<string | null>(null)
   const ide = usePreferredIde()
@@ -235,12 +151,6 @@ export default function ProjectDetailPage() {
   /** The linked database shown in the Database tab */
   const [shownDb, setShownDb] = useState<string | null>(null)
   const [newLog, setNewLog] = useState('')
-  /** The project's test tools (no tool, no Tests tab) */
-  const [testRunners, setTestRunners] = useState<TestRunnerInfo[]>([])
-  /** The last test run, on the overview */
-  const [testRun, setTestRun] = useState<TestRun | null>(null)
-  /** The boxes left to check in its notes, on the Notes tab */
-  const noteCounts = useNoteCounts().data
   // The terminal stays once opened: its shells survive a trip to another tab
   const [termOpened, setTermOpened] = useState(tab === 'terminal')
   useEffect(() => {
@@ -249,73 +159,6 @@ export default function ProjectDetailPage() {
   // The project's scripts run in tabs of its terminal: the page sends them, and follows which run
   const [scriptRequest, setScriptRequest] = useState<ScriptRequest | null>(null)
   const [scriptRuns, setScriptRuns] = useState<Record<string, number | null>>({})
-
-  const loadHub = useCallback(() => {
-    if (!id) return
-    window.devforge.hub
-      .get(id)
-      .then(setHub)
-      .catch(() => navigate('/projects'))
-  }, [id, navigate])
-  const loadGit = useCallback(
-    (fresh = false) => {
-      if (hub)
-        window.devforge.git
-          .details(hub.project.path, fresh)
-          .then(setGit)
-          .catch(() => setGit(null))
-    },
-    [hub]
-  )
-  const loadDocker = useCallback(() => {
-    window.devforge.docker
-      .overview()
-      .then(setDocker)
-      .catch(() => {})
-  }, [])
-
-  useEffect(() => {
-    loadHub()
-    // Opening a project makes it the active one (Forgy, widget, home)
-    if (id) window.devforge.hub.setActive(id).catch(() => {})
-  }, [id, loadHub])
-
-  useEffect(() => {
-    if (!hub) return
-    loadGit()
-    loadDocker()
-    window.devforge
-      .getListeningPorts()
-      .then(setListening)
-      .catch(() => {})
-    window.devforge.domains
-      .list()
-      .then(setDomains)
-      .catch(() => {})
-    window.devforge
-      .getProjectScripts(hub.project.path)
-      .then(setScripts)
-      .catch(() => {})
-  }, [hub, loadGit, loadDocker])
-
-  const projectPath = hub?.project.path
-  useEffect(() => {
-    if (!projectPath) return
-    window.devforge.tests
-      .detect(projectPath)
-      .then(setTestRunners)
-      .catch(() => setTestRunners([]))
-  }, [projectPath])
-  const firstRunner = testRunners[0]?.runner
-  useEffect(() => {
-    if (!projectPath || !firstRunner) return
-    window.devforge.tests
-      .last(projectPath, firstRunner)
-      .then(r => setTestRun(r ?? null))
-      .catch(() => setTestRun(null))
-  }, [projectPath, firstRunner, tab])
-
-  const compose = useMemo(() => docker?.compose.find(c => (hub?.composeDir && c.dir === hub.composeDir) || c.name === hub?.composeName) ?? null, [docker, hub])
 
   if (!hub)
     return (
@@ -378,10 +221,7 @@ export default function ProjectDetailPage() {
     } catch (err) {
       toast.show({ tone: 'error', title: t.ports.freeFailed.replace('{port}', String(port.port)), description: errorText(err) })
     } finally {
-      window.devforge
-        .getListeningPorts()
-        .then(setListening)
-        .catch(() => {})
+      reloadPorts()
     }
   }
 
