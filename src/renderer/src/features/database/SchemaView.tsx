@@ -236,7 +236,7 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
               const k = tableKey(tb)
               return (
                 <li key={k}>
-                  <label className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 hover:bg-hover">
+                  <label className="flex min-h-[26px] cursor-pointer items-center gap-2 rounded px-1.5 hover:bg-hover">
                     <input type="checkbox" checked={shown.has(k)} onChange={e => toggle(k, e.target.checked)} className="accent-[var(--color-accent)]" />
                     {tb.type === 'view' && <Eye size={11} className="shrink-0 text-fg-muted" />}
                     <span className={cn('truncate font-mono text-xs', shown.has(k) ? 'text-fg' : 'text-fg-secondary')}>{label(tb)}</span>

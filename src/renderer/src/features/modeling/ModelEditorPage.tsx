@@ -334,7 +334,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
               {mcd.entities.map(x => (
                 <li key={x.id}>
                   <button type="button" onClick={() => { pick([x.id]); const b = boxes.get(x.id)!; canvas.centerOn({ x: b.x + b.w / 2, y: b.y + b.h / 2 }) }}
-                    className={cn('w-full truncate rounded px-1.5 py-0.5 text-left font-mono text-xs', sel?.id === x.id || multi.includes(x.id) ? 'bg-active text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg')}>{x.name || '—'}</button>
+                    className={cn('min-h-[24px] w-full truncate rounded px-1.5 py-0.5 text-left font-mono text-xs', sel?.id === x.id || multi.includes(x.id) ? 'bg-active text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg')}>{x.name || '—'}</button>
                 </li>
               ))}
             </ul>
@@ -453,7 +453,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
                         <div className="flex items-center gap-1.5">
                           {isEntity && (
                             <input type="checkbox" checked={!!a.identifier} title={e.identifier} aria-label={e.identifierOf.replace('{name}', a.name)}
-                              onChange={ev => setAttr(a.id, { identifier: ev.target.checked || undefined })} className="accent-[var(--diagram-violet)]" />
+                              onChange={ev => setAttr(a.id, { identifier: ev.target.checked || undefined })} className="size-5 shrink-0 cursor-pointer accent-[var(--diagram-violet)]" />
                           )}
                           <input value={a.name} aria-label={e.attrName} onChange={ev => setAttr(a.id, { name: ev.target.value }, `attr:${a.id}`)} spellCheck={false}
                             className={cn('h-7 min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 font-mono text-sm text-fg outline-none focus:border-accent', a.identifier && 'underline')} />
