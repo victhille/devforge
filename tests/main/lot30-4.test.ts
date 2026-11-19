@@ -16,6 +16,10 @@ function profile(): string {
   mkdirSync(join(dir, 'models'))
   writeFileSync(join(dir, 'models', 'ggml-base.bin'), 'model')
   mkdirSync(join(dir, 'Local Storage'))
+  // Kept outside the data format: CI alerts, log files opened by hand, test reports
+  writeFileSync(join(dir, 'ci-watch.json'), '{}')
+  writeFileSync(join(dir, 'log-files.json'), '[]')
+  mkdirSync(join(dir, 'tests'))
   return dir
 }
 

@@ -36,7 +36,7 @@ export function readJson(path: string): Record<string, any> | null {
 }
 
 /** The lockfile next to the manifest, or the nearest one up to the project's root (workspaces) */
-export function managerOf(dir: string, root: string): PackageManagerKind {
+export function detectManager(dir: string, root: string): PackageManagerKind {
   for (let d = dir; ; d = dirname(d)) {
     if (existsSync(join(d, 'pnpm-lock.yaml'))) return 'pnpm'
     if (existsSync(join(d, 'yarn.lock'))) return 'yarn'
@@ -67,7 +67,7 @@ export function readManifest(root: string, dir: string): PackageManifest | null 
     }
   }
   packages.sort((a, b) => Number(a.dev) - Number(b.dev) || a.name.localeCompare(b.name))
-  return { dir: relative(root, dir).split(sep).join('/'), file: 'package.json', name: typeof pkg.name === 'string' ? pkg.name : null, manager: managerOf(dir, root), packages }
+  return { dir: relative(root, dir).split(sep).join('/'), file: 'package.json', name: typeof pkg.name === 'string' ? pkg.name : null, manager: detectManager(dir, root), packages }
 }
 
 export function listManifests(root: string): PackageManifest[] {

@@ -174,7 +174,7 @@ app.whenReady().then(() => {
   applyLoginItem(settings)
 
   createWindow()
-  if (mainWindow) initUpdater(mainWindow, settings.updateChannel === 'beta')
+  if (mainWindow) initUpdater(mainWindow, settings.updateChannel === 'beta', settings.autoUpdate !== false)
   // Copies the night's VPS backup to this PC, warns about a missed one
   startBackupWatch()
 

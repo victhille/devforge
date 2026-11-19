@@ -77,6 +77,9 @@ export default function UpdatesSettings({ settings, set, onNotes }: {
           <Segmented<'stable' | 'beta'> label={u.channel} value={settings.updateChannel ?? 'stable'} onChange={c => set('updateChannel', c)}
             items={[{ value: 'stable', label: u.channelStable }, { value: 'beta', label: u.channelBeta }]} />
         </SettingRow>
+        <SettingRow label={u.autoUpdate} hint={u.autoUpdateHint}>
+          <Switch checked={settings.autoUpdate !== false} onChange={v => set('autoUpdate', v)} label={u.autoUpdate} />
+        </SettingRow>
         <SettingRow label={u.showWhatsNew} hint={u.showWhatsNewHint}>
           <div className="flex items-center gap-3">
             {!!current?.items.length && <Button size="sm" variant="ghost" onClick={() => setTour(true)}>{u.seeAgain}</Button>}

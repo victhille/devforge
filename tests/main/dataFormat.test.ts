@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'fs'
-import { tmpdir } from 'os'
+import { homedir, tmpdir } from 'os'
 import { join } from 'path'
 import { writeJsonFile } from '../../src/main/lib/jsonFile'
 import { backupData, migrateData, readSchemaVersion, type Migration } from '../../src/main/services/storage/migrations'
@@ -73,6 +73,33 @@ describe('local log', () => {
     expect(redact('Authorization: Bearer eyJhbGci.x.y')).toBe('Authorization: Bearer ***')
     expect(redact('postgres://user:hunter2@db:5432/app')).toBe('postgres://user:***@db:5432/app')
     expect(redact('DB_PASSWORD=hunter2 next')).toBe('DB_PASSWORD=*** next')
+  })
+
+  it("masks the other providers' keys, JSON secrets, e-mails and user folders", () => {
+    // Fake keys of the right shape (never real ones)
+    expect(redact('openai sk-proj-AbCdEf0123456789xyz')).toBe('openai sk-proj-***')
+    expect(redact('legacy sk-AbCdEf0123456789AbCdEf01')).toBe('legacy sk-***')
+    expect(redact('google AIzaSyA0123456789abcdefghij')).toBe('google AIza***')
+    expect(redact('grok xai-0123456789abcdefghij')).toBe('grok xai-***')
+    expect(redact('groq gsk_0123456789abcdefghij')).toBe('groq gsk_***')
+    expect(redact('gh ghp_0123456789abcdefghijABCD')).toBe('gh ghp_***')
+    expect(redact('fine github_pat_11AAAA0000bbbbCCCCdddd')).toBe('fine github_pat_***')
+    expect(redact('{"token": "abc", "apiKey":"xyz", "name":"ok"}')).toBe('{"token": "***", "apiKey":"***", "name":"ok"}')
+    expect(redact('from alice@example.org to bob.smith+dev@mail.example.com')).toBe('from ***@*** to ***@***')
+    // An SSH remote keeps its git@ part, it is not an address
+    expect(redact('git@github.com:owner/repo.git')).toBe('git@github.com:owner/repo.git')
+    expect(redact('C:\\Users\\someone\\project\\.env')).toBe('C:\\Users\\***\\project\\.env')
+    expect(redact('C:\\Users\\Public\\x')).toBe('C:\\Users\\Public\\x')
+    expect(redact('{"path":"C:\\\\Users\\\\someone\\\\app"}')).toBe('{"path":"C:\\\\Users\\\\***\\\\app"}')
+    expect(redact('cd /home/someone/app && ls /Users/other')).toBe('cd /home/***/app && ls /Users/***')
+    // Quoted values, prefixed JSON keys, passphrases, and a key glued to a letter
+    expect(redact('password="hunter2" DB_PASSWORD=\'x y\'')).toBe('password=*** DB_PASSWORD=***')
+    expect(redact("{ password: 'x', token: 'y' }")).toBe('{ password: ***, token: *** }')
+    expect(redact('{"access_token":"a","client_secret":"b","X-N8N-API-KEY":"c"}')).toBe('{"access_token":"***","client_secret":"***","X-N8N-API-KEY":"***"}')
+    expect(redact('passphrase=open sesame')).toBe('passphrase=*** sesame')
+    expect(redact('?api_key%3Dsk-ant-api03-abcdef')).toBe('?api_key%3Dsk-ant-***')
+    // This PC's own folder becomes ~ (the account name stays out of a shared report)
+    expect(redact(`${homedir()}\\Dev\\shop`)).toBe('~\\Dev\\shop')
   })
 
   it('appends lines and returns the tail', () => {

@@ -8,7 +8,8 @@ import { DATA_ENTRIES, backupData, readSchemaVersion } from './migrations'
  */
 
 /** Everything personal: the data, DevForge's own backups (copies of it) and the log. The dictation models stay (downloads, nothing personal). */
-export const WIPED = [...DATA_ENTRIES, 'storage.json', 'backups', 'logs']
+// Also the files kept outside the data format: CI alerts, the log files opened by hand, the test reports
+export const WIPED = [...DATA_ENTRIES, 'storage.json', 'backups', 'logs', 'ci-watch.json', 'log-files.json', 'tests']
 
 export function wipeData(dataDir: string): string[] {
   const gone = WIPED.filter(e => existsSync(join(dataDir, e)))

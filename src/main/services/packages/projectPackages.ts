@@ -1,5 +1,5 @@
 import type { AuditSummary, ManifestFile, PackageManifest, PackageUpdate } from '@shared/types'
-import { audit, installCommand, latestVersions, listManifests, manifestDir, managerOf, restoreBackup, runLogged, testData, update, type PackagesBackup } from './npmPackages'
+import { audit, installCommand, latestVersions, listManifests, manifestDir, detectManager, restoreBackup, runLogged, testData, update, type PackagesBackup } from './npmPackages'
 import { composer, composerAudit, composerAvailable, composerLatest, composerUpdate, listComposerManifests } from './composerPackages'
 import { listOtherManifests, otherLatest, registryOf } from './otherPackages'
 import { missingTool, otherAudit, otherReinstall, otherUpdate } from './otherUpdates'
@@ -45,7 +45,7 @@ export function auditFor(root: string, dir: string, file: ManifestFile): Promise
     return m.readOnly ? Promise.resolve(null) : otherAudit(manifestDir(root, dir, file), m.manager, file)
   }
   const full = manifestDir(root, dir, file)
-  return file === 'composer.json' ? composerAudit(full) : audit(root, full, managerOf(full, root))
+  return file === 'composer.json' ? composerAudit(full) : audit(root, full, detectManager(full, root))
 }
 
 export function updateFor(root: string, dir: string, file: ManifestFile, updates: PackageUpdate[], onLog: (line: string) => void):
@@ -55,7 +55,7 @@ export function updateFor(root: string, dir: string, file: ManifestFile, updates
     return otherUpdate(manifestDir(root, dir, file), m, updates, onLog)
   }
   const full = manifestDir(root, dir, file)
-  return file === 'composer.json' ? composerUpdate(full, updates, onLog) : update(root, full, managerOf(full, root), updates, onLog)
+  return file === 'composer.json' ? composerUpdate(full, updates, onLog) : update(root, full, detectManager(full, root), updates, onLog)
 }
 
 /** Undo of an update: the saved manifest and lockfile back, then the dependencies installed from them */
@@ -64,7 +64,7 @@ export async function restoreAndInstall(root: string, dir: string, file: Manifes
   restoreBackup(full, saved)
   const fake = testData()?.install as string | undefined
   const other = writable(file) ? null : otherManifest(root, dir, file)
-  const cmd = fake ?? (other ? otherReinstall(full, other.manager, file) : file === 'composer.json' ? composer(full, 'install --no-interaction') : installCommand(managerOf(full, root)))
+  const cmd = fake ?? (other ? otherReinstall(full, other.manager, file) : file === 'composer.json' ? composer(full, 'install --no-interaction') : installCommand(detectManager(full, root)))
   if (!cmd) return true
   return runLogged(cmd, full, () => {})
 }

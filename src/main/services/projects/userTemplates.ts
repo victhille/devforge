@@ -109,6 +109,8 @@ export function renameTemplate(id: string, name: string, description: string): v
 }
 
 export function removeTemplate(id: string): void {
+  // A saved template only: the id comes from the window, and archive(id) builds a path from it
+  find(id)
   rmSync(archive(id), { force: true })
   saveList(listTemplates().filter(x => x.id !== id))
 }

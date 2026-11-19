@@ -6,7 +6,7 @@ import { applyLoginItem } from '../lib/loginItem'
 import { applyLauncher } from '../launcher'
 import { log } from '../lib/log'
 import { stopAllProcessesNow } from '../services/system/quitProcesses'
-import { checkForUpdates, getUpdateStatus, installUpdate, setUpdateChannel } from '../services/updates/updater'
+import { checkForUpdates, getUpdateStatus, installUpdate, setAutoUpdate, setUpdateChannel } from '../services/updates/updater'
 import { DATA_ENTRIES, backupData, parseBackupName, readSchemaVersion, restoreData } from '../services/storage/migrations'
 import { exportConfig, importConfig, wipeData } from '../services/storage/profile'
 
@@ -75,6 +75,7 @@ export function registerSettingsHandlers(): void {
     applyLoginItem(settings)
     if (before.launcherEnabled !== settings.launcherEnabled || before.launcherShortcut !== settings.launcherShortcut) applyLauncher(loadSettings())
     setUpdateChannel(settings.updateChannel === 'beta')
+    setAutoUpdate(settings.autoUpdate !== false)
   })
 
   ipcMain.handle('settings:favorites', (_event, paths: unknown) => setFavorites(paths))

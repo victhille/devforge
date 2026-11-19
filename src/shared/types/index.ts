@@ -183,6 +183,8 @@ export interface AppSettings {
   minimizeToTray: boolean
   /** 'beta' also installs pre-releases (2.0.0-beta.1…) */
   updateChannel: 'stable' | 'beta'
+  /** Looks for a new version by itself (15 s after startup, then every 6 h); off, only Settings › Updates › Check does */
+  autoUpdate?: boolean
   /** 'system' follows Windows' "animation effects" */
   motion: MotionSetting
   /** 'compact': smaller spacing and text, for small screens */

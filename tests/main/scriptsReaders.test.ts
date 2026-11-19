@@ -100,6 +100,12 @@ describe('Forgy runs a script', () => {
     for (const script of ['dev', 'start']) expect(await plan(script)).toMatchObject({ safe: true, reversible: true })
   })
 
+  it('a dev server with a command substitution or node --run waits for a click', async () => {
+    // sh (macOS, Linux) runs $(…) and `…` first: a second program
+    project({ scripts: { dev: 'vite --port $(node scripts/reset-db.js)', start: 'node `echo server.js`', serve: 'node --run db:reset' } })
+    for (const script of ['dev', 'start', 'serve']) expect(await plan(script)).toMatchObject({ safe: false, reversible: false })
+  })
+
   it('names only a known package manager', async () => {
     project({ scripts: SCRIPTS }, 'pnpm')
     expect((await plan('dev')).preview).toBe('pnpm run dev\nvite --port 5174')

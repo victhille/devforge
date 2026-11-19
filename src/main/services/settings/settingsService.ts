@@ -19,6 +19,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   startWithWindows: false,
   minimizeToTray: false,
   updateChannel: 'stable',
+  autoUpdate: true,
   motion: 'system',
   density: 'comfortable',
   showWhatsNew: true,
