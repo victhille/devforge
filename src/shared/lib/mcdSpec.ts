@@ -108,7 +108,7 @@ export function mcdFromSpec(spec: unknown): McdModel {
       const card = String(leg.card ?? '')
         .replace(/\s/g, '')
         .replace(/^(\d)\.\.([\dn*])$/i, '$1,$2')
-        .replace('*', 'n')
+        .replace(/\*/g, 'n')
         .toLowerCase() as Cardinality
       if (!CARDINALITIES.includes(card)) throw new McdSpecError(`Association ${name}: cardinality "${leg.card}" must be one of ${CARDINALITIES.join(', ')}`)
       mcd.links.push({ id: next('l'), entity, association: id, card })

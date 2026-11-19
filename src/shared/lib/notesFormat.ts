@@ -136,6 +136,16 @@ function joinLines(part: string): string {
   return out.join('')
 }
 
+/** Every tag out, again until none is left: one pass turns `<scr<b>ipt>` into a `<script` */
+function stripTags(html: string): string {
+  let out = html
+  for (let prev = ''; prev !== out;) {
+    prev = out
+    out = out.replace(/<[^<>]*>/g, '')
+  }
+  return out
+}
+
 /** The notes as plain text (Forgy, searches): line breaks kept, headings, lists and checkboxes marked */
 export function notesToText(notes: string): string {
   if (!isHtmlNotes(notes)) return notes
@@ -150,8 +160,7 @@ export function notesToText(notes: string): string {
     })
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/(p|div|h[1-6]|blockquote|pre|ul|ol)>/gi, '\n')
-    .replace(/<[^<>]+>/g, '')
-  return decode(text)
+  return decode(stripTags(text))
     .split('\n')
     .map(l => l.trimEnd())
     .join('\n')
