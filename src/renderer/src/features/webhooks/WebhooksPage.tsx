@@ -127,7 +127,7 @@ export default function WebhooksPage() {
           <span className="text-fg-muted">→ {w.replayTo}</span>
           <Input value={replayUrl} onChange={e => setReplayUrl(e.target.value)} aria-label={w.replayTarget} className="h-8 w-[300px] max-w-full font-mono text-sm" spellCheck={false} />
           <span className="text-fg-muted">· {w.responseShort}</span>
-          <Button size="sm" variant="secondary" onClick={() => setEditingResponse(true)} disabled={!status} aria-label={w.editResponse}>
+          <Button size="sm" variant="secondary" onClick={() => setEditingResponse(true)} disabled={!status} aria-label={`${status?.response.status ?? '—'} · ${w.editResponse}`}>
             <span className="font-mono">{status?.response.status ?? '—'}</span>
           </Button>
         </div>

@@ -16,8 +16,10 @@ export function sqliteFunctions(db: SqlJsDb): void {
 
 const fr = () => loadSettings().language === 'fr'
 
+// Two parameters, like the real one: sql.js registers a function for the number of arguments it declares
+// (since 1.15), so an off switch with none would sit beside the real REGEXP instead of replacing it
 function regexpOff(db: SqlJsDb): void {
-  db.create_function('regexp', () => {
+  db.create_function('regexp', (_pattern: unknown, _value: unknown) => {
     throw new Error(fr() ? 'REGEXP ne sert qu’à l’onglet Rechercher de DevForge.' : 'REGEXP only works in DevForge’s Search tab.')
   })
 }
