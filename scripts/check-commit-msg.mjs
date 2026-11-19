@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // The commit message format of the repository (CONTRIBUTING.md › Conventions), checked before the
 // commit is made (lefthook › commit-msg):
-//   type(zone): title            one line, Conventional Commits, 100 characters at most
+//   type(zone): title            one line, Conventional Commits, 72 characters at most (git log and GitHub cut longer ones)
 //                                a blank line, then the details if any
 //   node scripts/check-commit-msg.mjs <file with the message>
 import { readFileSync } from 'fs'
@@ -23,5 +23,5 @@ if (/^(Merge|Revert) |^(fixup|squash|amend)! /.test(title)) process.exit(0)
 const m = /^(\w+)(\([\w./ -]+\))?!?: \S/.exec(title)
 if (!m) fail('the first line must read type(zone): title')
 if (!TYPES.includes(m[1])) fail(`unknown type "${m[1]}"`)
-if (title.length > 100) fail(`the title is ${title.length} characters long (100 at most)`)
+if (title.length > 72) fail(`the title is ${title.length} characters long (72 at most)`)
 if (second.trim() !== '') fail('the title must be followed by a blank line')

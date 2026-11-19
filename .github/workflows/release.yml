@@ -71,6 +71,15 @@ jobs:
       - name: Build installer
         run: npx electron-builder --win --x64 --publish never
 
+      # Size budget: an installer past 150 MB stops the release (docs/dev/maintenance.md says how to raise it)
+      - name: Installer size
+        run: |
+          for f in dist/*.exe; do
+            size=$(stat -c %s "$f")
+            echo "$f: $((size / 1048576)) MB (limit 150 MB)"
+            [ "$size" -le $((150 * 1048576)) ] || { echo "The installer is past its budget"; exit 1; }
+          done
+
       - name: Release notes
         run: |
           node scripts/release-notes.mjs "$GITHUB_REF_NAME" > dist/notes.md
