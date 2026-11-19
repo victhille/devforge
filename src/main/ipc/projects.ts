@@ -7,6 +7,7 @@ import { groupContents, scanDirectory } from '../services/projects/projectScanne
 import { loadProjects, saveProject, removeProject, updateLastOpened, toggleFavorite } from '../services/projects/projectStorage'
 import { commandRunner } from '../services/system/commandRunner'
 import { assertScriptName } from '../lib/safe'
+import { managerOf } from '@shared/lib/packageManagers'
 import type { Project, ProjectCreationOptions, LogLine, CommandResult, PackageManager, LinkKind } from '@shared/types'
 import { getActiveProject, getProjectHub, linkResource, setActiveProject } from '../services/projects/projectHub'
 import { assertScriptsDir, readScripts } from '../services/projects/projectScripts'
@@ -56,9 +57,8 @@ export function registerProjectHandlers(mainWindow: BrowserWindow): void {
     const scripts = readScripts(projectPath)
     assertScriptName(script)
     if (!Object.hasOwn(scripts, script)) throw new Error(`Unknown script: ${script}`)
-    const pmExe = pm === 'pnpm' ? 'pnpm' : pm === 'yarn' ? 'yarn' : 'npm'
     return commandRunner.run({
-      executable: pmExe,
+      executable: managerOf(pm),
       args: ['run', script],
       cwd: projectPath,
       onLog:    (log)    => mainWindow.webContents.send('task-log', log),
@@ -82,7 +82,7 @@ export function registerProjectHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle('scripts:install', async (_event, projectPath: string, pm: PackageManager): Promise<string> => {
     assertScriptsDir(projectPath)
     return commandRunner.run({
-      executable: pm === 'pnpm' ? 'pnpm' : pm === 'yarn' ? 'yarn' : 'npm',
+      executable: managerOf(pm),
       args: ['install'],
       cwd: projectPath,
       onLog:    (log)    => mainWindow.webContents.send('task-log', log),

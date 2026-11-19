@@ -14,6 +14,7 @@ import { Table, Td, Th } from '@renderer/components/ui/Table'
 import LogPanel from '@renderer/components/process/LogPanel'
 import AskForgy from '@renderer/features/assistant/AskForgy'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
+import { visibleInterval } from '@renderer/lib/visibleInterval'
 
 /** Compose project and container details: the Docker page and the project page */
 
@@ -26,7 +27,7 @@ export function hostPorts(ports: string): number[] {
 export const serviceName = (c: DockerContainer) =>
   c.composeProject ? c.name.replace(new RegExp(`^${c.composeProject}[-_]`), '').replace(/[-_]\d+$/, '') : c.name
 
-/** CPU and memory of the running containers, every 5 s while they are shown */
+/** CPU and memory of the running containers, every 5 s while they are shown (the window too) */
 function useStats(containers: DockerContainer[]): Record<string, ContainerStats> {
   const runningIds = containers.filter(c => c.state === 'running').map(c => c.id).join(',')
   const [stats, setStats] = useState<Record<string, ContainerStats>>({})
@@ -35,8 +36,8 @@ function useStats(containers: DockerContainer[]): Record<string, ContainerStats>
     let alive = true
     const load = () => window.devforge.docker.stats(runningIds.split(',')).then(s => { if (alive) setStats(s) }).catch(() => {})
     load()
-    const id = setInterval(load, 5000)
-    return () => { alive = false; clearInterval(id) }
+    const stop = visibleInterval(load, 5000)
+    return () => { alive = false; stop() }
   }, [runningIds])
   return stats
 }

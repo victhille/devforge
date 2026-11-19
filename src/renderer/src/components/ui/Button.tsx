@@ -44,6 +44,8 @@ const Button = forwardRef<HTMLButtonElement, Props>(function Button(
         'inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap',
         'transition-[background-color,border-color,color,transform] duration-150 active:translate-y-px',
         'disabled:pointer-events-none disabled:opacity-40',
+        // Windows high contrast erases the fill: an edge shows the button
+        'forced-colors:border',
         VARIANTS[variant],
         SIZES[size],
         loading && 'cursor-wait',

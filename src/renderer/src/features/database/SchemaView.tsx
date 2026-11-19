@@ -223,7 +223,7 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
         <aside aria-label={s.tables} className="flex w-[240px] shrink-0 flex-col border-r border-line-subtle bg-sidebar">
           <div className="flex flex-col gap-2 border-b border-line-subtle p-2.5">
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder={s.search} aria-label={s.search}
-              className="h-8 w-full rounded-md border border-line-subtle bg-canvas px-2.5 text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent" />
+              className="h-8 w-full rounded-md border border-line-strong bg-canvas px-2.5 text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent" />
             <div className="flex gap-1">
               <button onClick={() => setShown(new Set([...shown, ...listed.map(tableKey)]))} className="rounded-md border border-line px-2 py-0.5 text-xs text-fg-secondary hover:text-fg">{s.all}</button>
               <button onClick={() => setShown(new Set([...shown].filter(k => !listed.some(tb => tableKey(tb) === k))))} className="rounded-md border border-line px-2 py-0.5 text-xs text-fg-secondary hover:text-fg">{s.none}</button>
@@ -236,7 +236,7 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
               const k = tableKey(tb)
               return (
                 <li key={k}>
-                  <label className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 hover:bg-hover">
+                  <label className="flex min-h-[26px] cursor-pointer items-center gap-2 rounded px-1.5 hover:bg-hover">
                     <input type="checkbox" checked={shown.has(k)} onChange={e => toggle(k, e.target.checked)} className="accent-[var(--color-accent)]" />
                     {tb.type === 'view' && <Eye size={11} className="shrink-0 text-fg-muted" />}
                     <span className={cn('truncate font-mono text-xs', shown.has(k) ? 'text-fg' : 'text-fg-secondary')}>{label(tb)}</span>

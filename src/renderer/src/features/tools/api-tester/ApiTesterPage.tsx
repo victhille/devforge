@@ -232,7 +232,7 @@ export default function ApiTesterPage() {
 
         {/* Method and URL in one field, then Send */}
         <div className="flex flex-wrap gap-2.5">
-          <div className="flex h-11.5 min-w-[300px] flex-1 items-center overflow-hidden rounded-card border border-line bg-surface focus-within:border-accent/60">
+          <div className="flex h-11.5 min-w-[300px] flex-1 items-center overflow-hidden rounded-card border border-line-strong bg-surface focus-within:border-accent/60">
             <label className="flex h-full items-center border-r border-line">
               <span className="sr-only">{a.method}</span>
               <select value={method} onChange={e => setMethod(e.target.value as Method)}

@@ -88,7 +88,7 @@ export function Gauge({ label, pct, i }: { label: string; pct: number; i: number
       </div>
       <div role="meter" aria-label={label} aria-valuenow={value} aria-valuemin={0} aria-valuemax={100} aria-valuetext={`${value} %`} className="h-2 overflow-hidden rounded-full bg-active">
         <div
-          className={cn('df-grow h-full rounded-full', pct >= 80 ? 'bg-warning' : 'bg-accent')}
+          className={cn('df-grow df-fill h-full rounded-full', pct >= 80 ? 'bg-warning' : 'bg-accent')}
           style={{ width: `${Math.min(100, pct)}%`, animationDelay: `${i * 0.15}s` }}
         />
       </div>

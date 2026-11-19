@@ -35,7 +35,19 @@ DevForge ships with nothing personal: on first launch you pick your language and
 - **Deployments**: Vercel and servers.
 - **Forgy** (Ctrl+J): an assistant using your own key (Anthropic by default, or OpenAI, Gemini, Mistral, Grok, OpenRouter, Groq, DeepSeek, a local model with Ollama), read-only tools, controlled cost. See [docs/guide/forgy.md](docs/guide/forgy.md).
 
+<p align="center">
+  <img src="site/src/assets/screens/project-en.png" alt="A project's page" width="32%" />
+  <img src="site/src/assets/screens/git-en.png" alt="The Git page" width="32%" />
+  <img src="site/src/assets/screens/database-en.png" alt="The database" width="32%" />
+</p>
+
+## Status
+
+DevForge is at **0.x**: it is used every day, but the interface and some settings may still change before **1.0**, which will go through a public beta first. Updates keep your data. What comes next is on the [roadmap](https://victhille.github.io/devforge/en/roadmap/), and bugs go in the [issues](https://github.com/victhille/devforge/issues/new/choose).
+
 ## Install
+
+You need **Windows 10 or 11, 64-bit**, and nothing else: no account, no other software. Git, Docker, Node or PHP are only needed by the pages that use them.
 
 Download the `DevForge-Setup-vx.y.z.exe` installer from the [Download page](https://victhille.github.io/devforge/en/download/) or the [releases](https://github.com/victhille/devforge/releases). DevForge then updates itself. [Getting started](https://victhille.github.io/devforge/en/getting-started/installation/) covers the install and every page of the app.
 
@@ -64,6 +76,6 @@ SemVer versions, conventional commits, `npm run release` to publish: see [docs/d
 
 ## License
 
-© 2026 victhille — [GPL-3.0](LICENSE): you may read, change and redistribute DevForge, as long as any modified version stays free, under the GPL-3.0, with its source code.
+© 2026 victhille — [GPL-3.0-only](LICENSE) (version 3 only): you may read, change and redistribute DevForge, as long as any modified version stays free, under the GPL-3.0, with its source code.
 
-The "DevForge" name, the logo and Forgy are not under this license: a fork takes another name, see [TRADEMARKS.md](TRADEMARKS.md). Contributions go through a [contributor agreement](CLA.md). The open source packages included and their licenses are listed in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+The "DevForge" name, the logo and Forgy are reserved trademarks (their files stay under the GPL): a fork takes another name, see [TRADEMARKS.md](TRADEMARKS.md). Contributions go through a [contributor agreement](CLA.md). The open source packages included and their licenses are listed in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).

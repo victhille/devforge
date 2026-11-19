@@ -53,7 +53,7 @@ export function ImportProgress({ progress, details, error, className }: {
         <span className="font-mono text-xs text-fg-muted">{pct} %</span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-active" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
-        <div className={cn('h-full rounded-full transition-[width] duration-300', error ? 'bg-danger' : done ? 'bg-success' : 'bg-accent')} style={{ width: `${pct}%` }} />
+        <div className={cn('df-fill h-full rounded-full transition-[width] duration-300', error ? 'bg-danger' : done ? 'bg-success' : 'bg-accent')} style={{ width: `${pct}%` }} />
       </div>
       <ol className="flex flex-col gap-1 text-sm">
         {STEPS.map((s, i) => {

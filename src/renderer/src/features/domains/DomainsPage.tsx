@@ -98,7 +98,7 @@ export default function DomainsPage() {
   const stateOf = (dom: LocalDomain) => !dom.enabled
     ? <span className="text-sm text-fg-muted">{d.stateOff}</span>
     : listening === null
-      ? <span className="text-fg-disabled">—</span>
+      ? <span className="text-fg-muted">—</span>
       : listening.some(l => l.port === dom.port)
         ? <Badge color="success" dot>{d.stateUp}</Badge>
         : <Badge>{d.stateDown}</Badge>
@@ -192,7 +192,7 @@ export default function DomainsPage() {
                     <Td>
                       {owner
                         ? <Link to={`/project/${owner.projectId}`} className={cn('hover:text-accent', dom.enabled ? 'text-fg' : 'text-fg-muted')}>{owner.projectName}</Link>
-                        : <span className="text-fg-disabled">—</span>}
+                        : <span className="text-fg-muted">—</span>}
                     </Td>
                     <Td>{stateOf(dom)}</Td>
                     <Td align="right">

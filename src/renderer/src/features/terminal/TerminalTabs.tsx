@@ -150,7 +150,7 @@ export default function TerminalTabs({ cwd, className, withSsh = true, onEmpty, 
               className={cn('flex items-center gap-1.5 px-3', page ? 'h-8 text-sm' : 'h-8 text-xs font-medium', active === tab.key ? cn('text-fg', page && 'font-semibold') : 'text-fg-secondary hover:text-fg')}>
               {busy[tab.key] != null && <StatusDot state="on" live />}{tab.label}
             </button>
-            <button aria-label={s.closeTab.replace('{name}', tab.label)} onClick={() => closeTab(tab.key)} className="mr-1 rounded p-0.5 text-fg-secondary hover:bg-hover hover:text-fg">
+            <button aria-label={s.closeTab.replace('{name}', tab.label)} onClick={() => closeTab(tab.key)} className="mr-0.5 grid size-[24px] place-items-center rounded text-fg-secondary hover:bg-hover hover:text-fg">
               <X size={11} />
             </button>
           </div>

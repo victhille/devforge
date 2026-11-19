@@ -95,7 +95,7 @@ function createReactProject(
   const template = typescript ? 'react-ts' : 'react'
 
   // npm create vite@latest <name> -- --template react-ts
-  const pmExe = pm === 'npm' ? 'npm' : pm === 'pnpm' ? 'pnpm' : 'yarn'
+  const pmExe = managerOf(pm)
   let args: string[]
 
   if (pm === 'npm') {
@@ -145,7 +145,7 @@ function createNextjsProject(
 ): string {
   const { name, destination, packageManager, typescript } = options
   const pm = packageManager
-  const pmExe = pm === 'npm' ? 'npm' : pm === 'pnpm' ? 'pnpm' : 'yarn'
+  const pmExe = managerOf(pm)
 
   // npm keeps the flags before "--" for itself: create-next-app would then ask its questions
   const flags = ['--yes', typescript ? '--ts' : '--js', `--use-${pm}`]
@@ -168,7 +168,7 @@ function createVueProject(
 ): string {
   const { name, destination, packageManager, typescript } = options
   const pm = packageManager
-  const pmExe = pm === 'npm' ? 'npm' : pm === 'pnpm' ? 'pnpm' : 'yarn'
+  const pmExe = managerOf(pm)
   const template = typescript ? 'vue-ts' : 'vue'
 
   const args =
@@ -331,7 +331,7 @@ function withLibraryInstall(
 ): ResultCb {
   const { packageManager: pm, name, destination } = options
   const projPath = join(destination, name)
-  const pmExe    = pm === 'pnpm' ? 'pnpm' : pm === 'yarn' ? 'yarn' : 'npm'
+  const pmExe    = managerOf(pm)
 
   if (!options.libraries?.length && !options.devLibraries?.length) return innerOnResult
 

@@ -1,5 +1,6 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'fs'
 import { join } from 'path'
+import { execFileSync } from 'child_process'
 import { describe, expect, it, vi } from 'vitest'
 import { TOOLS, ToolError, isSecretFile, runTool } from '../../src/main/services/assistant/assistantTools'
 import { getApiKey, getConfig, saveConfig } from '../../src/main/services/assistant/assistantStorage'
@@ -19,10 +20,13 @@ function project() {
 }
 
 describe('secret files', () => {
-  it.each(['.env', '.env.local', '.env.production', 'id_rsa', 'server.pem', 'cert.key', '.npmrc', 'credentials.json'])('%s is secret', f => {
+  it.each(['.env', '.env.local', '.env.production', 'id_rsa', 'server.pem', 'cert.key', '.npmrc', 'credentials.json',
+    'secrets.json', 'appsettings.Development.json', 'wp-config.php', '.dev.vars', 'prod.tfvars', '.git-credentials', '.pgpass',
+    'service-account.json', 'master.key', '.envrc', 'terraform.tfstate.backup', 'prod.tfvars.json', 'app-firebase-adminsdk-x1.json',
+    'secrets.local.json', 'secrets.env', '.yarnrc.yml', '_netrc'])('%s is secret', f => {
     expect(isSecretFile(`/p/${f}`)).toBe(true)
   })
-  it.each(['.env.example', '.env.sample', 'app.ts', 'keys.ts', 'README.md'])('%s is not', f => {
+  it.each(['.env.example', '.env.sample', 'app.ts', 'keys.ts', 'README.md', 'package.json', 'settings.ts', 'vars.ts'])('%s is not', f => {
     expect(isSecretFile(`/p/${f}`)).toBe(false)
   })
 })
@@ -72,6 +76,34 @@ describe('assistant tools', () => {
     expect(hits).toMatch(/src[\\/]app\.ts:1:/)
     expect(hits).not.toContain('node_modules')
     expect(await runTool('search_code', { project: 'Shop', query: 'hunter2' })).toBe('No match.')
+  })
+
+  it('leaves secret files out of the whole diff, at any depth', async () => {
+    const dir = project()
+    const git = (...args: string[]) => execFileSync('git', args, { cwd: dir, stdio: 'pipe' })
+    mkdirSync(join(dir, 'apps', 'web'), { recursive: true })
+    writeFileSync(join(dir, 'apps', 'web', '.env.local'), 'API_KEY=old\n')
+    writeFileSync(join(dir, 'appsettings.json'), '{"db":"old"}\n')
+    git('init', '-q'); git('add', '-A'); git('-c', 'user.name=t', '-c', 'user.email=t@example.com', 'commit', '-qm', 'init')
+    writeFileSync(join(dir, 'apps', 'web', '.env.local'), 'API_KEY=hunter2\n')
+    writeFileSync(join(dir, 'appsettings.json'), '{"db":"hunter2"}\n')
+    writeFileSync(join(dir, 'src', 'app.ts'), 'export const greeting = "salut"\n')
+    const diff = await runTool('git_diff', { project: 'Shop' })
+    expect(diff).toContain('salut')
+    expect(diff).not.toContain('hunter2')
+    expect(diff).toContain('2 file(s) that may contain secrets left out')
+    // A pattern given as the file is read as a plain name: it matches nothing
+    for (const file of ['*', '[.]env*', ':(glob)**/.env*']) {
+      expect(await runTool('git_diff', { project: 'Shop', file }).catch(e => String(e))).not.toContain('hunter2')
+    }
+  })
+
+  it('never follows a link while searching', async () => {
+    const dir = project()
+    writeFileSync(join(dir, 'outside.txt'), 'token hunter2\n')
+    try { symlinkSync(join(dir, 'outside.txt'), join(dir, 'src', 'notes.md')) } catch { return /* links need a right Windows may not grant */ }
+    const hits = await runTool('search_code', { project: 'Shop', query: 'hunter2' })
+    expect(hits).not.toContain('notes.md')
   })
 
   it('declares a fixed, cache-friendly tool list with eager input streaming', () => {

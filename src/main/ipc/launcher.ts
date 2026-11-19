@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
-import type { LauncherToMain } from '@shared/types'
+import type { LauncherToMain, PackageManager } from '@shared/types'
+import { PACKAGE_MANAGERS, managerOf } from '@shared/lib/packageManagers'
 import { hide, launcherState, toMain } from '../launcher'
 
 /** Only these, with plain strings: the launcher cannot make the main window do anything else */
@@ -8,8 +9,8 @@ function clean(m: unknown): LauncherToMain | null {
   const s = (v: unknown) => typeof v === 'string' ? v : ''
   if (x.kind === 'navigate' && s(x.path).startsWith('/')) return { kind: 'navigate', path: s(x.path) }
   if (x.kind === 'ask' && s(x.text).trim()) return { kind: 'ask', text: s(x.text).slice(0, 4000) }
-  if (x.kind === 'script' && s(x.projectPath) && s(x.script) && ['npm', 'pnpm', 'yarn'].includes(s(x.pm))) {
-    return { kind: 'script', projectPath: s(x.projectPath), script: s(x.script), pm: x.pm as 'npm' | 'pnpm' | 'yarn', name: s(x.name) }
+  if (x.kind === 'script' && s(x.projectPath) && s(x.script) && PACKAGE_MANAGERS.includes(s(x.pm) as PackageManager)) {
+    return { kind: 'script', projectPath: s(x.projectPath), script: s(x.script), pm: managerOf(x.pm), name: s(x.name) }
   }
   return null
 }

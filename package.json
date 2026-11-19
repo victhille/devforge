@@ -1,5 +1,6 @@
 {
   "name": "devforge",
+  "private": true,
   "version": "0.2.1",
   "description": "Developer Project Launcher",
   "license": "GPL-3.0-only",
@@ -15,10 +16,10 @@
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
-    "build": "electron-vite build",
+    "build": "electron-vite build && node scripts/third-party-licenses.mjs --notices",
     "preview": "electron-vite preview",
     "start": "electron-vite dev",
-    "dist": "electron-vite build && electron-builder --win --x64",
+    "dist": "npm run build && electron-builder --win --x64",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json && tsc -p tsconfig.test.json",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -27,7 +28,8 @@
     "lint": "eslint .",
     "check": "npm run typecheck && npm run lint && npm run test && npm run build",
     "release": "node scripts/release.mjs",
-    "licenses": "node scripts/third-party-licenses.mjs"
+    "licenses": "node scripts/third-party-licenses.mjs",
+    "prepare": "lefthook install"
   },
   "build": {
     "appId": "com.devforge.app",
@@ -38,7 +40,10 @@
     },
     "files": [
       "out/**/*",
+      "!out/licenses/**",
+      "!out/*.tsbuildinfo",
       "!node_modules/onnxruntime-web/**",
+      "!node_modules/onnxruntime-node/bin/napi-v*/win32/x64/{DirectML.dll,dxcompiler.dll,dxil.dll}",
       "!node_modules/onnxruntime-node/bin/napi-v*/darwin/**",
       "!node_modules/onnxruntime-node/bin/napi-v*/linux/**",
       "!node_modules/onnxruntime-node/bin/napi-v*/win32/arm64/**",
@@ -56,6 +61,14 @@
       {
         "from": "src/renderer/src/assets/icon.png",
         "to": "icon.png"
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE.txt"
+      },
+      {
+        "from": "out/licenses/THIRD_PARTY_NOTICES.txt",
+        "to": "THIRD_PARTY_NOTICES.txt"
       }
     ],
     "win": {
@@ -143,6 +156,7 @@
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "17.13.0",
     "highlight.js": "11.12.0",
+    "lefthook": "2.2.2",
     "lucide-react": "^1.51.0",
     "pdfjs-dist": "6.3.289",
     "react": "^18.2.0",

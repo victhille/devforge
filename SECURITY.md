@@ -6,9 +6,9 @@
 
 **Never in a public issue.** Use GitHub's private reporting: the repository's **Security** tab, then **Report a vulnerability** ([direct link](https://github.com/victhille/devforge/security/advisories/new)). Only the maintainers can see it.
 
-Indique ce que tu as trouvé, comment le reproduire, et la version de DevForge concernée. Une réponse arrive dès que possible ; le correctif sort dans une version, et le signalement est rendu public une fois les installations mises à jour.
+Indique ce que tu as trouvé, comment le reproduire, et la version de DevForge concernée. Une première réponse arrive en général sous une semaine ; le correctif sort dans une version, et le signalement est rendu public une fois les installations mises à jour.
 
-Say what you found, how to reproduce it and which DevForge version is affected. You will get an answer as soon as possible; the fix ships in a release, and the report is made public once installs have updated.
+Say what you found, how to reproduce it and which DevForge version is affected. You will usually get a first answer within a week; the fix ships in a release, and the report is made public once installs have updated.
 
 ## Versions suivies · Supported versions
 

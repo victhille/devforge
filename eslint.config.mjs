@@ -4,7 +4,8 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import globals from 'globals'
 
 export default tseslint.config(
-  { ignores: ['out/**', 'dist/**', 'node_modules/**', 'resources/**', '**/*.d.ts', '.claude/**', 'site/**', 'conception/**', 'graphify-out/**'] },
+  // Hidden folders (local tools, editor settings) are never linted
+  { ignores: ['out/**', 'dist/**', 'node_modules/**', 'resources/**', '**/*.d.ts', '**/.*/**', 'site/**', 'conception/**', 'graphify-out/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

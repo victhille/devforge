@@ -90,7 +90,7 @@ export default function ReleaseNotes({ focus, onBack }: { focus?: string | null;
               <a key={v.version} href={`#${anchor(v.version)}`}
                 onClick={e => { e.preventDefault(); document.getElementById(anchor(v.version))?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}
                 className="relative flex items-center gap-3 rounded-lg px-2 py-1.5 text-fg-secondary transition-colors hover:bg-surface hover:text-fg">
-                <span className={cn('relative size-2.5 rounded-full border-2', current ? 'border-accent bg-accent' : 'border-fg-disabled bg-canvas')} />
+                <span className={cn('relative size-2.5 rounded-full border-2', current ? 'df-fill border-accent bg-accent' : 'border-fg-disabled bg-canvas')} />
                 <span>
                   <span className={cn('block font-mono text-base font-medium', current && 'text-fg')}>{v.version}</span>
                   <span className="block text-xs text-fg-muted">{date(v.date)}</span>

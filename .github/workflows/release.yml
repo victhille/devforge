@@ -7,34 +7,44 @@ on:
   # when the tag push started nothing: GITHUB_REF_NAME is then the tag, as on a push
   workflow_dispatch:
 
-permissions:
-  contents: write
-  # To start the site rebuild below
-  actions: write
+# Nothing by default: each job asks for what it needs
+permissions: {}
 
 jobs:
-  release:
+  # Builds the installer with a read-only token: the code of the dependencies (npm ci, the build)
+  # never runs next to a token that can write to the repository
+  build:
     runs-on: windows-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
     defaults:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
-      # The CI's packages (same key, same folders): restored instead of installed again
-      - id: lock
-        run: echo "key=$(node scripts/deps-key.mjs)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache/restore@v4
-        id: deps
-        with:
-          path: |
-            node_modules
-            ~\AppData\Local\electron\Cache
-          key: deps-${{ runner.os }}-node22-electron-${{ steps.lock.outputs.key }}
-      - if: steps.deps.outputs.cache-hit != 'true'
-        run: npm ci
+
+      - name: Tag matches package.json
+        run: |
+          [ "$GITHUB_REF_TYPE" = tag ] || { echo "Start the release on a tag (vX.Y.Z), not on $GITHUB_REF_NAME"; exit 1; }
+          v=$(node -p "require('./package.json').version")
+          [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME but package.json says $v"; exit 1; }
+
+      # Personal words: the CI skips the release commit, whose changelogs hold new
+      # text (the summaries shown in the app and on the site). Nothing is built if one is found.
+      # Before npm ci: no dependency's install script has run yet when the secret list is read
+      - run: node scripts/check-personal.mjs
+        env:
+          PERSONAL_PATTERNS: ${{ secrets.PERSONAL_PATTERNS }}
+
+      # Installed from the lock file, not restored from the CI's cache: what ships is built from
+      # exactly what package-lock.json names
+      - run: npm ci
       # Electron's binary (see the CI, npmmirror copy included): electron-builder takes its zip
       # from the Electron cache, and from the same mirror when GitHub did not answer
       - name: Electron binary
@@ -53,35 +63,76 @@ jobs:
           done
           exit 1
 
-      - name: Tag matches package.json
-        run: |
-          [ "$GITHUB_REF_TYPE" = tag ] || { echo "Start the release on a tag (vX.Y.Z), not on $GITHUB_REF_NAME"; exit 1; }
-          v=$(node -p "require('./package.json').version")
-          [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME but package.json says $v"; exit 1; }
-
-      # Personal words: the CI skips the release commit, whose changelogs hold new
-      # text (the summaries shown in the app and on the site). Nothing is built if one is found.
-      - run: node scripts/check-personal.mjs
-        env:
-          PERSONAL_PATTERNS: ${{ secrets.PERSONAL_PATTERNS }}
-
       # No `npm run check` here: `npm run release -- prepare` ran it on the release branch, and
-      # the CI ran it with the e2e on the release PR (the same code). The installer is built below.
+      # the CI ran it with the e2e on the release PR (the same code). The installer is built below,
+      # with the license and the third-party notices (npm run build writes them).
       - run: npm run build
 
       - name: Build installer
         run: npx electron-builder --win --x64 --publish never
 
+      # Size budget: an installer past 150 MB stops the release (docs/dev/maintenance.md says how to raise it)
+      - name: Installer size
+        run: |
+          for f in dist/*.exe; do
+            size=$(stat -c %s "$f")
+            echo "$f: $((size / 1048576)) MB (limit 150 MB)"
+            [ "$size" -le $((150 * 1048576)) ] || { echo "The installer is past its budget"; exit 1; }
+          done
+
+      - name: Release notes
+        run: |
+          node scripts/release-notes.mjs "$GITHUB_REF_NAME" > dist/notes.md
+          # The installer's checksum, to compare with Get-FileHash after a download
+          for f in dist/*.exe; do printf '\n**SHA-256** `%s` : `%s`\n' "$(basename "$f")" "$(sha256sum "$f" | cut -d' ' -f1)" >> dist/notes.md; done
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release
+          path: |
+            dist/*.exe
+            dist/*.exe.blockmap
+            dist/latest.yml
+            dist/beta.yml
+            dist/notes.md
+          retention-days: 3
+          if-no-files-found: error
+
+  # Publishes what the build made: no checkout, no dependency, only the files and the release
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      # The build provenance: a signed statement that this installer comes from this workflow and tag
+      id-token: write
+      attestations: write
+      # To start the site rebuild below
+      actions: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release
+          path: dist
+
+      - uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        with:
+          # The installer, and the update file electron-updater reads (with the installer's sha512)
+          subject-path: |
+            dist/*.exe
+            dist/latest.yml
+
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          node scripts/release-notes.mjs "$GITHUB_REF_NAME" > notes.md
-          # The installer's checksum, to compare with Get-FileHash after a download
-          for f in dist/*.exe; do printf '\n**SHA-256** `%s` : `%s`\n' "$(basename "$f")" "$(sha256sum "$f" | cut -d' ' -f1)" >> notes.md; done
           pre=""; case "$GITHUB_REF_NAME" in *-*) pre="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" dist/*.exe dist/*.exe.blockmap dist/latest.yml \
-            --title "DevForge ${GITHUB_REF_NAME#v}" --notes-file notes.md $pre
+          # A pre-release (1.0.0-beta.1) also has its channel file, read by the beta channel
+          files=(dist/*.exe dist/*.exe.blockmap dist/latest.yml)
+          [ -f dist/beta.yml ] && files+=(dist/beta.yml)
+          gh release create "$GITHUB_REF_NAME" "${files[@]}" \
+            --repo "$GITHUB_REPOSITORY" --verify-tag --title "DevForge ${GITHUB_REF_NAME#v}" --notes-file dist/notes.md $pre
 
       # A release made with this token starts no workflow of its own (GitHub's rule),
       # except a dispatch: the site rebuilds its « What's new » page and download button

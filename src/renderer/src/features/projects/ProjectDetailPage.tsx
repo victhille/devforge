@@ -297,7 +297,7 @@ export default function ProjectDetailPage() {
         <Badge color={totals.failed ? 'danger' : 'success'}>{h.testsFailed.replace('{n}', String(totals.failed))}</Badge>
       </div>
       <div role="meter" aria-label={h.testsPassed} aria-valuenow={totals.passed} aria-valuemin={0} aria-valuemax={ran || 1} className="h-1.5 overflow-hidden rounded-full bg-active">
-        <div className={cn('h-full rounded-full', totals.failed ? 'bg-danger' : 'bg-success')} style={{ width: `${ran ? (totals.passed / ran) * 100 : 0}%` }} />
+        <div className={cn('df-fill h-full rounded-full', totals.failed ? 'bg-danger' : 'bg-success')} style={{ width: `${ran ? (totals.passed / ran) * 100 : 0}%` }} />
       </div>
       <p className="truncate text-xs text-fg-muted">
         {[TEST_TOOL[testRun.runner], h.testsLast.replace('{when}', formatRelative(testRun.startedAt, lang)), `${(testRun.durationMs / 1000).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', { maximumFractionDigits: 1 })} s`].join(' · ')}
@@ -498,7 +498,7 @@ export default function ProjectDetailPage() {
           <label className="flex-1">
             <span className="sr-only">{h.logsAddPlaceholder}</span>
             <input value={newLog} onChange={e => setNewLog(e.target.value)} placeholder={h.logsAddPlaceholder}
-              className="h-9 w-full rounded-control border border-line bg-canvas px-3 font-mono text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent/60" />
+              className="h-9 w-full rounded-control border border-line-strong bg-canvas px-3 font-mono text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent/60" />
           </label>
           <Button type="submit" variant="secondary" disabled={!newLog.trim()}>{h.tie}</Button>
         </form>

@@ -4,10 +4,27 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
-.claude/settings.local.json
 *.tsbuildinfo
 test-results/
 playwright-report/
+coverage/
+
+# Secrets and data that must never be committed
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+*.db
+*.sqlite
+*.sqlite3
+
+# DevForge's own data when it is run on this folder
+.devforge/
 
 # Personal words checked by scripts/check-personal.mjs (never committed)
 .personal-patterns

@@ -3,7 +3,7 @@ import { join } from 'path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { tempDir } from '../helpers'
 import {
-  findManifestDirs, latestVersions, listManifests, managerOf, manifestDir, parseAudit, parseYarnAudit, update, updateCommands
+  findManifestDirs, latestVersions, listManifests, detectManager, manifestDir, parseAudit, parseYarnAudit, update, updateCommands
 } from '../../src/main/services/packages/npmPackages'
 
 /** v3.3 lot 2: a project's npm packages, main side */
@@ -43,9 +43,9 @@ describe('v3.3 lot 2: npm packages', () => {
   it('picks the manager from the lockfile', () => {
     const root = tempDir('mgr')
     json(join(root, 'package.json'), {})
-    expect(managerOf(root, root)).toBe('npm')
+    expect(detectManager(root, root)).toBe('npm')
     writeFileSync(join(root, 'yarn.lock'), '')
-    expect(managerOf(root, root)).toBe('yarn')
+    expect(detectManager(root, root)).toBe('yarn')
   })
 
   it('refuses a folder outside the project, or without a package.json', () => {

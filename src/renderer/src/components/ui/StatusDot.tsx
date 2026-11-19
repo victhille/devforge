@@ -32,7 +32,8 @@ export default function StatusDot({ state, live, size = 'sm', label, className, 
       aria-label={label}
       aria-hidden={label ? undefined : true}
       style={style}
-      className={cn('inline-block shrink-0 rounded-full', size === 'sm' ? 'size-2' : 'size-2.5', COLORS[state], live && state !== 'unknown' && 'df-ping', className)}
+      data-state={state}
+      className={cn('df-dot inline-block shrink-0 rounded-full', size === 'sm' ? 'size-2' : 'size-2.5', COLORS[state], live && state !== 'unknown' && 'df-ping', className)}
     />
   )
 }

@@ -50,7 +50,7 @@ export default function MpdDialog({ project, onClose, onDone }: { project: Proje
         {!connections ? <LinesSkeleton lines={2} /> : (
           <Field label={l.importConnection}>
             <select value={conn} onChange={e => { setConn(e.target.value); imp.reset() }}
-              className="h-9 rounded-lg border border-line bg-surface px-2.5 text-sm text-fg outline-none focus:border-accent">
+              className="h-9 rounded-lg border border-line-strong bg-surface px-2.5 text-sm text-fg outline-none focus:border-accent">
               <option value="">{l.blankOption}</option>
               {connections.map(c => <option key={c.id} value={c.id}>{c.name} · {m.mpd.engines[c.type]}</option>)}
             </select>

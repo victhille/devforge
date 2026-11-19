@@ -2733,6 +2733,8 @@ const en = {
     seeAllVersions: "See all versions →",
     channel: "Channel",
     channelHint: "Betas come earlier and may have bugs.",
+    autoUpdate: "Look for updates by itself",
+    autoUpdateHint: "15 s after startup, then every 6 h, on GitHub. Off, only the Check button looks for a new version.",
     showWhatsNew: "Show “What's new” after an update",
     showWhatsNewHint: "A window sums up the version on first launch.",
     commit: "Commit",
@@ -2740,7 +2742,8 @@ const en = {
     githubPage: "GitHub page",
     reportIssue: "Report a problem",
     viewLicense: "GPL-3.0 license",
-    legalNotice: "DevForge © 2026 victhille. Free software under the GPL-3.0 license: you may redistribute and modify it under its terms. It comes with absolutely no warranty.",
+    thirdPartyLicenses: "Third-party licenses",
+    legalNotice: "DevForge © 2026 victhille. Free software under the GPL-3.0 license (version 3 only): you may redistribute and modify it under its terms. It comes with absolutely no warranty. It includes open source components, each under its own license.",
     notes: {
       back: "Settings",
       all: "All",

@@ -162,7 +162,7 @@ export default function PortsPage() {
                               <span className="font-mono text-fg-secondary">{port.address}</span>
                               {network && <Badge color="warning">{p.network}</Badge>}
                             </span>
-                          ) : <span className="text-fg-disabled">—</span>}
+                          ) : <span className="text-fg-muted">—</span>}
                         </Td>
                         <Td align="right">
                           <span className="inline-flex items-center gap-1.5">

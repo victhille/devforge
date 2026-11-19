@@ -83,7 +83,7 @@ const railItem = (current: boolean, shown: boolean) => cn(
   current ? 'bg-accent-soft text-accent' : shown ? 'bg-active text-fg' : 'text-fg-muted hover:bg-elevated hover:text-fg'
 )
 /** The orange bar on the left edge of the window, beside the group of the page on screen */
-const RailMark = () => <span aria-hidden className="absolute top-2.5 bottom-2.5 -left-[11px] w-[3px] rounded-r-full bg-accent" />
+const RailMark = () => <span aria-hidden className="df-fill absolute top-2.5 bottom-2.5 -left-[11px] w-[3px] rounded-r-full bg-accent" />
 
 /**
  * Forge: an icon rail (Home, the six groups, Settings at the bottom)
@@ -202,6 +202,8 @@ export default function Sidebar() {
                   tabIndex={(stop ?? shown) === key ? 0 : -1}
                   aria-label={label(key)}
                   aria-pressed={isShown}
+                  // The group of the page on screen, told even when its panel is closed
+                  aria-current={current === key ? 'true' : undefined}
                   aria-controls="nav-panel"
                   title={label(key)}
                   className={railItem(current === key, isShown)}

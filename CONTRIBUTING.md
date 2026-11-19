@@ -1,6 +1,6 @@
 # Contribuer à DevForge
 
-Merci de ton intérêt ! Issues et pull requests sont les bienvenues, en français ou en anglais.
+Merci de ton intérêt ! Issues et pull requests sont les bienvenues, en français ou en anglais. En participant, tu acceptes le [code de conduite](CODE_OF_CONDUCT.md). Une question ? Voir [SUPPORT.md](SUPPORT.md).
 
 ## Signaler un problème
 
@@ -42,7 +42,9 @@ L'architecture du code est décrite dans [docs/dev/architecture.md](docs/dev/arc
 
 ## Conventions
 
-- **Commits conventionnels** : `feat(zone): …`, `fix(zone): …`, `docs: …`, `test: …`, `ci: …`. Le CHANGELOG en est tiré, voir [docs/dev/versions.md](docs/dev/versions.md).
+- **Commits conventionnels** : `feat(zone): …`, `fix(zone): …`, `docs: …`, `test: …`, `ci: …`, avec le titre seul sur la première ligne (72 caractères au plus), puis une ligne vide avant le détail. Le CHANGELOG en est tiré, voir [docs/dev/versions.md](docs/dev/versions.md).
+- **Vérifications avant un commit** : `npm install` installe des hooks git ([lefthook](lefthook.yml)). Ils lancent le lint des fichiers modifiés et la recherche de mots personnels, et contrôlent le format du message. `git commit --no-verify` les saute une fois ; la CI refait tout de toute façon.
+- **Dépendances** : Dependabot propose chaque lundi, vers `develop`, les mises à jour mineures groupées des paquets et des actions de la CI. Les versions majeures d'Electron, d'electron-builder et de React se font à la main.
 - **Textes de l'interface** : toujours dans `src/renderer/src/i18n/locales/fr.ts` et `en.ts`, jamais en dur.
 - **Secrets** : jamais envoyés au renderer, jamais affichés, jamais écrits en clair (chiffrés avec `safeStorage`).
 - **Rien de personnel** : pas d'IP, de nom de serveur ou de compte réels dans le code, les tests ou la doc. Pour les exemples : `203.0.113.10` (adresse de documentation), `mon-serveur`, `example.com`.

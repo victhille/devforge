@@ -45,6 +45,10 @@ description: Every DevForge setting, section by section, from General to About.
 
 Beside it, the **Preview** card shows a project card with these choices, before you look at the pages.
 
+### Accessibility
+
+**Windows high contrast** is followed: the app then takes the colors chosen in Windows, and focus, chosen tabs, switches, gauges and buttons stay visible. Input fields have a border of at least 3:1 in every color, and screen readers are told the chosen language.
+
 ## Servers
 
 One sample a minute in the background, kept 7 days. Two cards:
@@ -59,6 +63,7 @@ Alerts arrive as Windows notifications, and Forgy sulks in the desktop widget (t
 - The first card shows the **installed version**, its build date and commit, and "DevForge is up to date" when it is.
 - **Channel**: *Stable* (final versions) or *Beta* (pre-releases too, earlier but sometimes with bugs).
 - **Check** looks for a new version right away; otherwise it is automatic, 15 s after startup then every 6 h.
+- **Look for updates by itself**: off, DevForge asks GitHub only when you click **Check**.
 - A ready version installs on the next restart, or with **Restart and update**: a small window shows the installation's progress, then DevForge starts again by itself.
 - **Show "What's new" after an update**: a window sums up the version on first launch; **See again** opens it again.
 - **What's new in the version**: the installed version's changes, filtered by **All**, **New**, **Improvements** or **Fixes**. **See all versions →** opens the **release notes**: every version, in the app's language.
@@ -69,6 +74,6 @@ The **This version** card gives the version and its channel, the commit, the bui
 
 - **DevForge on GitHub**: **GitHub page** and **Report a problem**;
 - **Release notes**: every version;
-- **License**: DevForge is free software under GPL-3.0, **GPL-3.0 license** opens its text.
+- **License**: DevForge is free software under GPL-3.0 (version 3 only). **GPL-3.0 license** opens its text, and **Third-party licenses** those of the open source components included. Both files ship with the app and open without a connection.
 
 **Diagnostic report › Copy report** copies a **diagnostic report**: version, system and the last lines of the local log, keys and passwords masked. Nothing is sent: paste it wherever you want, for example in a [GitHub issue](https://github.com/victhille/devforge/issues). Read it first: it may contain server or project names.

@@ -363,7 +363,7 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
                   <button key={l.id} type="button" aria-label={`${g.edges[l.type]} : ${nameOf(l.from)} → ${nameOf(l.to)}`} data-edge={`${nameOf(l.from)}>${nameOf(l.to)}`}
                     onPointerDown={ev => down(ev, { kind: 'edge', id: l.id }, kind === 'sequence' ? 'message' : 'move')}
                     className={cn('absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface',
-                      on ? 'bg-accent' : 'bg-fg-muted opacity-60 hover:opacity-100', kind === 'sequence' && 'cursor-ns-resize')}
+                      on ? 'df-fill bg-accent' : 'bg-fg-muted opacity-60 hover:opacity-100', kind === 'sequence' && 'cursor-ns-resize')}
                     style={{ left: line.handle.x, top: line.handle.y }} />
                 )
               })}
@@ -396,7 +396,7 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
               <label className="flex flex-col gap-1 text-sm text-fg-secondary">
                 {g.edgeType}
                 <select value={selEdge.type} onChange={ev => change(x => ({ ...x, edges: x.edges.map(l => (l.id === selEdge.id ? { ...l, type: ev.target.value as DiagramEdgeType } : l)) }))}
-                  className="h-8 rounded-md border border-line bg-canvas px-2 text-sm text-fg outline-none focus:border-accent">
+                  className="h-8 rounded-md border border-line-strong bg-canvas px-2 text-sm text-fg outline-none focus:border-accent">
                   {EDGE_TYPES[kind].map(type => <option key={type} value={type}>{g.edges[type]}</option>)}
                 </select>
               </label>
@@ -404,7 +404,7 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
                 <label className="flex flex-col gap-1 text-sm text-fg-secondary">
                   {g.label}
                   <input value={selEdge.label ?? ''} onChange={ev => change(x => ({ ...x, edges: x.edges.map(l => (l.id === selEdge.id ? { ...l, label: ev.target.value.slice(0, 120) || undefined } : l)) }), `l-${selEdge.id}`)}
-                    className="h-8 rounded-md border border-line bg-canvas px-2 text-sm text-fg outline-none focus:border-accent" />
+                    className="h-8 rounded-md border border-line-strong bg-canvas px-2 text-sm text-fg outline-none focus:border-accent" />
                 </label>
               )}
               {kind === 'sequence' && <p className="text-xs text-fg-muted">{g.messageHint}</p>}
@@ -415,7 +415,7 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
             </> : selNote ? <>
               <PanelTitle>{e.note}</PanelTitle>
               <textarea aria-label={e.note} value={selNote.text} rows={6} onChange={ev => change(x => ({ ...x, notes: x.notes.map(n => (n.id === selNote.id ? { ...n, text: ev.target.value.slice(0, 2000) } : n)) }), `t-${selNote.id}`)}
-                className="rounded-md border border-line bg-canvas p-2 text-sm text-fg outline-none focus:border-accent" />
+                className="rounded-md border border-line-strong bg-canvas p-2 text-sm text-fg outline-none focus:border-accent" />
               <Button size="sm" variant="danger" onClick={removeSel} className="self-start"><Trash2 size={13} /> {g.remove}</Button>
             </> : <>
               <p className="text-sm text-fg-muted">{g.nothing}</p>
@@ -433,7 +433,7 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
 function NodePanel({ node, kind, dg, onEdit, onRemove }: { node: DiagramNode; kind: DiagramKind; dg: DiagramModel; onEdit: (patch: Partial<DiagramNode>, key?: string | null) => void; onRemove: () => void }) {
   const { t } = useI18n()
   const g = t.modeling.diagram
-  const input = 'rounded-md border border-line bg-canvas px-2 text-sm text-fg outline-none focus:border-accent'
+  const input = 'rounded-md border border-line-strong bg-canvas px-2 text-sm text-fg outline-none focus:border-accent'
   const lines = (v: string) => v.split('\n').slice(0, 200).map(x => x.slice(0, 200))
   const links = node.type === 'case' ? caseLinks(dg, node.id) : null
   const steps = node.steps ?? []

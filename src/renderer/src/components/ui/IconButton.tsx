@@ -22,7 +22,8 @@ const IconButton = forwardRef<HTMLButtonElement, Props>(function IconButton(
         'hover:bg-elevated hover:text-fg disabled:opacity-40',
         size === 'sm' ? 'size-7' : 'size-8',
         tone === 'danger' && 'hover:bg-danger-soft hover:text-danger',
-        active && 'bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent',
+        // On: a tint, and an outline in Windows high contrast where the tint is erased
+        active && 'bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent forced-colors:outline-1 forced-colors:-outline-offset-1',
         className
       )}
     />

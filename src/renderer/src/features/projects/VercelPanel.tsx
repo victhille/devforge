@@ -12,6 +12,7 @@ import { Input } from '@renderer/components/ui/Input'
 import ErrorState from '@renderer/components/ui/ErrorState'
 import { errorText } from '@renderer/lib/errors'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
+import { visibleInterval } from '@renderer/lib/visibleInterval'
 
 const STATE_TONE: Record<string, string> = {
   READY: 'bg-success-soft text-success', ERROR: 'bg-danger-soft text-danger', BUILDING: 'bg-warning-soft text-warning',
@@ -64,8 +65,7 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
   const building = deps?.some(d => ['BUILDING', 'QUEUED', 'INITIALIZING'].includes(d.state))
   useEffect(() => {
     if (!building) return
-    const id = setInterval(() => window.devforge.vercel.deployments(projectId).then(setDeps).catch(() => {}), 5000)
-    return () => clearInterval(id)
+    return visibleInterval(() => { window.devforge.vercel.deployments(projectId).then(setDeps).catch(() => {}) }, 5000)
   }, [building, projectId])
 
   async function connect() {
@@ -120,7 +120,7 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
             <h2 className="text-md font-semibold text-fg">{info.name}</h2>
             {info.framework && <span className="rounded-full bg-elevated px-2 py-0.5 font-mono text-xs text-fg-muted">{info.framework}</span>}
           </div>
-          <div className="mt-0.5 text-xs text-fg-muted">{v.connectedAs.replace('{user}', acc.username ?? '?')} · <button className="hover:text-danger" onClick={async () => setAcc(await window.devforge.vercel.saveToken(null))}>{v.disconnect}</button></div>
+          <div className="mt-0.5 text-xs text-fg-muted">{v.connectedAs.replace('{user}', acc.username ?? '?')} · <button type="button" className="-my-1 rounded px-1 py-1 hover:text-danger" onClick={async () => setAcc(await window.devforge.vercel.saveToken(null))}>{v.disconnect}</button></div>
         </div>
         {info.productionUrl && <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(info.productionUrl!)}><ExternalLink size={13} /> {v.openSite}</Button>}
         <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal(`https://vercel.com/${acc.username ?? ''}/${info.name}`)}>{v.openDashboard}</Button>

@@ -114,7 +114,7 @@ export default function ActivityPage() {
                 <ul className="flex flex-col gap-1.5 text-sm">
                   {active.slice(0, 6).map(p => (
                     <li key={p.id} className="flex items-center gap-3">
-                      <button onClick={() => navigate(`/project/${p.id}`)} className="min-w-0 flex-1 truncate text-left text-fg hover:text-accent">{p.name}</button>
+                      <button onClick={() => navigate(`/project/${p.id}`)} className="min-h-[24px] min-w-0 flex-1 truncate text-left text-fg hover:text-accent">{p.name}</button>
                       <span className="font-mono text-xs text-fg-muted">{k.commits.replace('{n}', String(p.commits))}</span>
                       <span className="w-16 text-right font-mono text-xs text-success">+{p.added.toLocaleString(lang)}</span>
                       <span className="w-14 text-right font-mono text-xs text-danger">−{p.removed.toLocaleString(lang)}</span>
@@ -129,7 +129,7 @@ export default function ActivityPage() {
                 <ul className="flex flex-col gap-1.5 text-sm">
                   {asleep(projects, now).slice(0, 8).map(p => (
                     <li key={p.id} className="flex items-center gap-3">
-                      <button onClick={() => navigate(`/project/${p.id}`)} className="min-w-0 flex-1 truncate text-left text-fg hover:text-accent">{p.name}</button>
+                      <button onClick={() => navigate(`/project/${p.id}`)} className="min-h-[24px] min-w-0 flex-1 truncate text-left text-fg hover:text-accent">{p.name}</button>
                       <span className="text-xs text-fg-muted">{k.since.replace('{date}', new Date(p.lastCommitAt! * 1000).toLocaleDateString(lang))}</span>
                     </li>
                   ))}

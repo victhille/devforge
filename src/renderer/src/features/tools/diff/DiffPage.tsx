@@ -100,7 +100,7 @@ export default function DiffPage() {
           <label key={panel.label} className="flex flex-col gap-2">
             <span className="text-sm font-semibold text-fg">{panel.label}</span>
             <textarea value={panel.value} onChange={e => panel.set(e.target.value)} spellCheck={false} placeholder={panel.placeholder}
-              className="h-36 resize-y rounded-card border border-line-subtle bg-surface p-3.5 font-mono text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent" />
+              className="h-36 resize-y rounded-card border border-line-strong bg-surface p-3.5 font-mono text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent" />
           </label>
         ))}
       </div>

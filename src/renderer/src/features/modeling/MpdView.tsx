@@ -293,7 +293,7 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
           <SaveStatus state={saveState} file={file} className="hidden max-w-[220px] truncate text-xs 2xl:block" />
           <UndoRedo undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo} />
           <select aria-label={p.engine} value={mpd.engine} onChange={ev => change(x => ({ ...x, engine: ev.target.value as SqlEngine }))}
-            className="h-8 rounded-md border border-line bg-canvas px-2 text-sm text-fg outline-none focus:border-accent">
+            className="h-8 rounded-md border border-line-strong bg-canvas px-2 text-sm text-fg outline-none focus:border-accent">
             {SQL_ENGINES.map(x => <option key={x} value={x}>{p.engines[x]}</option>)}
           </select>
           {tab === 'mpd' && <>
@@ -442,7 +442,7 @@ function TablePanel({ table, engine, tableName, canReset, onTable, onColumn, onR
 }) {
   const { t } = useI18n()
   const p = t.modeling.mpd
-  const input = 'h-7 min-w-0 rounded-md border border-line bg-canvas px-2 font-mono text-xs text-fg outline-none focus:border-accent'
+  const input = 'h-7 min-w-0 rounded-md border border-line-strong bg-canvas px-2 font-mono text-xs text-fg outline-none focus:border-accent'
   const addIndex = () => {
     const col = table.columns.find(c => !c.pk && !c.ref) ?? table.columns[0]
     if (!col) return
@@ -462,7 +462,7 @@ function TablePanel({ table, engine, tableName, canReset, onTable, onColumn, onR
     <label className="flex flex-col gap-1 text-sm text-fg-secondary">
       {p.tableName}
       <input value={table.name} onChange={ev => onTable(x => ({ ...x, name: ev.target.value.slice(0, 64), edited: true }), `t-${table.id}`)}
-        className="h-8 rounded-md border border-line bg-canvas px-2 font-mono text-sm text-fg outline-none focus:border-accent" />
+        className="h-8 rounded-md border border-line-strong bg-canvas px-2 font-mono text-sm text-fg outline-none focus:border-accent" />
     </label>
 
     <section aria-label={p.columns} className="flex flex-col gap-2">

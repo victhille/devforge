@@ -60,13 +60,13 @@ export default function ProjectModels({ project, databases }: { project: Project
         <Shapes size={16} className="text-fg-muted" />
         <h3 className="mr-auto font-display text-md font-bold tracking-[-.01em] text-fg">{p.title}{models?.length ? <span className="ml-2 font-mono text-xs text-fg-muted">{models.length}</span> : null}</h3>
         <select aria-label={m.newModel} value="" onChange={e => e.target.value && setCreating(e.target.value as ModelKind)}
-          className="h-8 rounded-lg border border-line bg-surface px-2 text-sm text-fg outline-none focus:border-accent">
+          className="h-8 rounded-lg border border-line-strong bg-surface px-2 text-sm text-fg outline-none focus:border-accent">
           <option value="">{m.newModel}…</option>
           {KINDS.map(k => <option key={k} value={k}>{m.kindName[k]}</option>)}
         </select>
         {databases.length > 1 && (
           <select aria-label={m.linked.importConnection} value={db} onChange={e => setDb(e.target.value)}
-            className="h-8 max-w-[180px] rounded-lg border border-line bg-surface px-2 text-sm text-fg outline-none focus:border-accent">
+            className="h-8 max-w-[180px] rounded-lg border border-line-strong bg-surface px-2 text-sm text-fg outline-none focus:border-accent">
             {databases.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
         )}
@@ -101,7 +101,7 @@ export default function ProjectModels({ project, databases }: { project: Project
         <h3 className="flex items-center gap-2 font-display text-md font-bold tracking-[-.01em] text-fg"><Bot size={16} className="text-forgy" /> {p.forgyTitle}</h3>
         <p className="text-sm text-fg-secondary">{p.forgyHint}</p>
         <textarea value={brief} onChange={e => setBrief(e.target.value)} rows={3} placeholder={p.forgyPlaceholder} aria-label={p.forgyTitle}
-          className="resize-y rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent" />
+          className="resize-y rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent" />
         <div className="flex flex-wrap gap-2">
           <AskForgy solid label={p.forgyAsk} disabled={!brief.trim()} question={() => { const q = fill(p.forgyPrompt, { project: project.name, text: brief.trim() }); setBrief(''); return q }} />
           {databases.length > 0 && (

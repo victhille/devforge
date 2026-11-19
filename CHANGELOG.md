@@ -4,7 +4,7 @@ Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachange
 
 ## [Non publié]
 
-## [0.2.1](https://github.com/victhille/devforge/compare/v0.2.0...v0.2.1) — 2026-11-09
+## [0.2.1](https://github.com/victhille/devforge/compare/v0.2.0...v0.2.1) — 2026-11-10
 
 > Correctifs de sécurité pour le lancement des scripts, et une interface qui suit partout la taille du texte.
 
