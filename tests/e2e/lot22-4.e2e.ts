@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
 
-/** v2.2 lot 4: the status page in DevForge (canned server outputs, no real VPS) */
+/** The status page in DevForge (canned server outputs, no real VPS) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

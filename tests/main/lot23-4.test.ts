@@ -4,7 +4,7 @@ import { parseSchema, toEntities } from '../../src/main/services/nextjs/prismaSc
 
 const BASE = 'datasource db {\n  provider = "postgresql"\n}\n\nmodel Note {\n  id    Int    @id @default(autoincrement())\n  texte String\n}\n'
 
-/** v2.3 lot 4: Auth.js in the Next.js workshop */
+/** Auth.js in the Next.js workshop */
 describe('v2.3 lot 4: Auth.js files', () => {
   it('adds the adapter\'s models once, refuses a User of another shape', () => {
     expect(af.authModels(BASE)).toBe('missing')

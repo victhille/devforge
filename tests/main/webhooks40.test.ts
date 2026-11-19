@@ -4,7 +4,7 @@ import type { AddressInfo } from 'net'
 import { afterAll, afterEach, describe, expect, it } from 'vitest'
 import { clearRequests, listRequests, replay, setResponse, startWebhooks, stopWebhooks } from '../../src/main/services/webhooks/webhookServer'
 
-/** v4.0: the webhook receiver, a server listening on this PC */
+/** The webhook receiver, a server listening on this PC */
 
 // A port of its own per test: fetch keeps sockets to the previous server alive
 let PORT = 40000 + (process.pid % 2000) * 10

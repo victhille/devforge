@@ -16,7 +16,7 @@ import { listPages as statusPages, overview as statusOverview, saveConfig as sav
 import type { StatusAlertsState } from '@shared/types'
 
 /**
- * Settings › Connections (v3.0 lot 1): every service DevForge can reach, in
+ * Settings › Connections: every service DevForge can reach, in
  * one place. Reads whether each one is configured (never a secret), tests it
  * for real, and forgets it. Each service keeps its own storage.
  */
@@ -86,7 +86,7 @@ export async function test(kind: ConnectionKind, id?: string): Promise<Connectio
           const res = await fetch('https://api.anthropic.com/v1/models?limit=1', { headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' }, signal: AbortSignal.timeout(15_000) })
           return res.ok ? { ok: true, detail: 'Anthropic' } : { ok: false, detail: res.status === 401 ? 'BAD_KEY' : `Anthropic ${res.status}` }
         }
-        // v4.2: another provider — its list of models, read with its key
+        // Another provider — its list of models, read with its key
         if (!c.hasKey) return { ok: false, detail: 'NO_KEY' }
         try {
           const models = await compatModels(endpointOf(c.provider), keyFor(c.provider))

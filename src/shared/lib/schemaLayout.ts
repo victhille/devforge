@@ -1,7 +1,7 @@
 import type { DbDiagramLink, DbDiagramTable, DbTableRef } from '../types/database'
 
 /**
- * v3.8 lot 4: the schema's layout. Tables as cards of known size; the ones
+ * the schema's layout. Tables as cards of known size; the ones
  * pointed at (parents) on the left, those that point at them to the right,
  * each column ordered by its neighbours' places so arrows cross little.
  */

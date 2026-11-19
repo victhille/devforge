@@ -38,7 +38,7 @@ export default function ProjectsPage() {
   const { active } = useActiveProject()
   /** The boxes left to check in each project's notes */
   const openTasks = useNoteCounts().data ?? NO_COUNTS
-  /** v3.8: the GitHub workflows failing now, per project */
+  /** The GitHub workflows failing now, per project */
   const [ci, setCi] = useState<CiStates>({})
   useEffect(() => {
     window.devforge.github.ciStates().then(setCi).catch(() => {})

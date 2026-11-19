@@ -8,7 +8,7 @@ import { writeJsonFile } from '../../lib/jsonFile'
 import { isInsideProject } from '../../lib/safe'
 
 /**
- * v4.0: the window may follow a file of a saved project, or one the user
+ * The window may follow a file of a saved project, or one the user
  * picked in the file dialog (remembered, so the page reopens it next time);
  * never any other file of the disk.
  */

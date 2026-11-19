@@ -5,7 +5,7 @@ import { tempDir } from './../helpers'
 import * as conn from '../../src/main/services/connections/connectionsService'
 import { saveConfig } from '../../src/main/services/assistant/assistantStorage'
 
-/** v3.0 lot 1: Settings › Connections, main side (Git's global config redirected to a temp file) */
+/** Settings › Connections, main side (Git's global config redirected to a temp file) */
 describe('v3.0 lot 1: connections', () => {
   const before = process.env.GIT_CONFIG_GLOBAL
   const gitconfig = join(tempDir('git'), 'gitconfig')

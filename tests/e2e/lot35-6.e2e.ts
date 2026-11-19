@@ -4,7 +4,7 @@ import { join } from 'path'
 import { launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
 
-/** v3.5 lot 6: the greyed rest of a terminal line, accepted with → */
+/** The greyed rest of a terminal line, accepted with → */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

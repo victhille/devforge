@@ -10,7 +10,7 @@ function hidden(): Set<string> {
 }
 
 /**
- * v3.5 lot 4: the line at the top of a tool, for whoever does not know it:
+ * the line at the top of a tool, for whoever does not know it:
  * what it is for, how to use it, and examples to load (an example only fills
  * the fields: nothing is saved or sent). Can be hidden, per tool.
  */

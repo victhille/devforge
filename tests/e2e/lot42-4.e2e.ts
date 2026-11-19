@@ -4,7 +4,7 @@ import { join } from 'path'
 import { settledAxeIssues as settledAxe } from './axe'
 import { goTo, launch, type Launched } from './launch'
 
-/** v4.2: the kept lists follow what the main process writes (Forgy, another window), and come back at once */
+/** The kept lists follow what the main process writes (Forgy, another window), and come back at once */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

@@ -19,13 +19,13 @@ import { errorText } from '@renderer/lib/errors'
 // pdf.js is heavy: loaded with the first PDF only
 const PdfView = lazy(() => import('./PdfView'))
 
-/** v3.5.3: code in colours, as in an IDE (highlight.js loaded with the first one) */
+/** Code in colours, as in an IDE (highlight.js loaded with the first one) */
 function CodeView({ text, name, line }: { text: string; name: string; line?: number }) {
   const language = text.length <= HIGHLIGHT_LIMIT ? codeLanguage(name) : null
   const html = useHighlighted(text, language)
   const pre = useRef<HTMLPreElement>(null)
   const [band, setBand] = useState<{ top: number; height: number } | null>(null)
-  // v3.6: a search result's line, highlighted and brought into view
+  // A search result's line, highlighted and brought into view
   useEffect(() => {
     const el = pre.current
     if (!el || !line) { setBand(null); return }
@@ -46,13 +46,13 @@ function CodeView({ text, name, line }: { text: string; name: string; line?: num
 }
 
 /**
- * v3.5.1: the file picked in the tree. Markdown is shown formatted (its
+ * The file picked in the tree. Markdown is shown formatted (its
  * source one click away), images and PDFs as such, other text in a fixed
- * font, in colours (v3.5.3). The project's IDE opens it.
+ * font, in colours. The project's IDE opens it.
  */
 export default function FilePreview({ file, line, root, ide: own, onClose, change, rel, startOnChanges, stats }: {
   file: FileEntry; line?: number; root?: string; ide?: DefaultIDE; onClose: () => void
-  /** v3.7: what Git says of this file, its path in the project; the changes shown first */
+  /** What Git says of this file, its path in the project; the changes shown first */
   change?: FileChangeStatus; rel?: string; startOnChanges?: boolean
   /** Lines added and removed since the last commit */
   stats?: { add: number | null; del: number | null }

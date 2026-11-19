@@ -1,5 +1,5 @@
 /**
- * v3.6 lot 4: a CSV read for import: its separator guessed, quotes and line
+ * a CSV read for import: its separator guessed, quotes and line
  * breaks inside quotes kept (RFC 4180), columns matched to the table's by name.
  */
 

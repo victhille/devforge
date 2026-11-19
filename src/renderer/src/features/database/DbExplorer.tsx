@@ -30,7 +30,7 @@ const sameTable = (a: DbTableRef | null, b: DbTableRef | null) => !!a && !!b && 
 
 /**
  * One database: its tables, then overview, rows, structure, relations, info
- * and SQL. On the Database page, and in a project's Database tab (v3.3 lot 1).
+ * and SQL. On the Database page, and in a project's Database tab.
  * Mount it with `key={conn.id}`: a new connection starts from its overview.
  * On the Database page its tables go under the connection, in the page's
  * panel (`tablesSlot`), as in the mock-up; elsewhere they have their own.
@@ -123,7 +123,7 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
     setRev(r => r + 1)
   }
 
-  /** v3.5.1: a table created, renamed or dropped here */
+  /** A table created, renamed or dropped here */
   function afterTableChange(next: DbTableRef | null) {
     refresh()
     if (next) openTable(next, 'structure')

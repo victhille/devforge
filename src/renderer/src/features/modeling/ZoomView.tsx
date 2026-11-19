@@ -4,7 +4,7 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import IconButton from '@renderer/components/ui/IconButton'
 
 /**
- * v4.1: a picture of a model to look at like the editor's canvas: the wheel
+ * A picture of a model to look at like the editor's canvas: the wheel
  * zooms where the pointer is, a drag moves it, − / + / Fit in the corner.
  * Fitted whole when the picture changes.
  */

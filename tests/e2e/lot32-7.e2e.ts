@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 
-/** v3.2 lot 7: no language mix (New project, project dates) and Forgy with ANTHROPIC_API_KEY */
+/** No language mix (New project, project dates) and Forgy with ANTHROPIC_API_KEY */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

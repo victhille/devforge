@@ -1,5 +1,5 @@
 /**
- * v3.5 lot 4: the examples the tools load on demand. They only fill fields:
+ * the examples the tools load on demand. They only fill fields:
  * nothing here is saved, and the addresses use .invalid, a name that never
  * exists (RFC 2606), so nothing could be sent anywhere for real.
  */

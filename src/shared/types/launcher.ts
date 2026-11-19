@@ -1,4 +1,4 @@
-// ─── Global launcher (v2.2 lot 3) ─────────────────────────────────────────────
+// ─── Global launcher ─────────────────────────────────────────────
 
 /** What the launcher asks the main window to do */
 export type LauncherToMain =

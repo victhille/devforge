@@ -9,7 +9,7 @@ import CopyButton from '@renderer/components/ui/CopyButton'
 import { formatResult, type ResultFormat } from '@shared/lib/resultExport'
 import Notice from '@renderer/components/ui/Notice'
 
-/** v3.5.1: copy the rows as CSV or JSON (the choice is kept) */
+/** Copy the rows as CSV or JSON (the choice is kept) */
 function CopyAs({ result }: { result: DbQueryResult }) {
   const { t } = useI18n()
   const [format, setFormat] = usePersistentState<ResultFormat>('devforge:db-copy-format', 'csv')
@@ -22,7 +22,7 @@ function CopyAs({ result }: { result: DbQueryResult }) {
         ))}
       </span>
       <CopyButton text={formatResult(result, format)} title={t.database.copyFormat.replace('{f}', format.toUpperCase())} />
-      {/* v3.6: the same, into a file */}
+      {/* The same, into a file */}
       <IconButton size="sm" title={t.database.saveFormat.replace('{f}', format.toUpperCase())}
         onClick={() => { void window.devforge.db.saveResult('result', formatResult(result, format), format) }}><Save size={13} /></IconButton>
     </span>
@@ -34,7 +34,7 @@ export interface GridSort { column: string; desc: boolean }
 /** A cell's value while editing: text, NULL, or (a new row) left to its default */
 export type CellValue = string | null | undefined
 
-/** v3.6 lot 3: what makes the grid editable (Browse tab, a table with a primary key) */
+/** What makes the grid editable (Browse tab, a table with a primary key) */
 export interface GridEditing {
   /** The cell's pending value, undefined when unchanged */
   pending: (row: number, col: number) => CellValue
@@ -72,7 +72,7 @@ interface Props {
   onSort?: (sort: GridSort | null) => void
   /** Replaces the row count on the left of the toolbar (pagination) */
   toolbar?: ReactNode
-  /** v3.6: cells edited in place */
+  /** Cells edited in place */
   editing?: GridEditing
 }
 

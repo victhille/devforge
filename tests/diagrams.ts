@@ -1,6 +1,6 @@
 import type { DiagramEdge, DiagramKind, DiagramModel, DiagramNode } from '../src/shared/types/modeling'
 
-/** v3.9 lot 5: one sample of each diagram (unit tests and e2e) */
+/** One sample of each diagram (unit tests and e2e) */
 
 const n = (id: string, type: DiagramNode['type'], name: string, x: number, y: number, more: Partial<DiagramNode> = {}): DiagramNode => ({ id, type, name, x, y, ...more })
 const e = (id: string, type: DiagramEdge['type'], from: string, to: string, more: Partial<DiagramEdge> = {}): DiagramEdge => ({ id, type, from, to, ...more })

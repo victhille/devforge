@@ -232,7 +232,7 @@
   /* The home page's greeting */
   --text-hero: calc(34px * var(--df-text-scale, 1)); --text-hero--line-height: 1.1;
 
-  /* v4.3: the terminal stays dark in both themes, its colors in one place (and XTERM_THEME in features/terminal/snapshot.ts) */
+  /* The terminal stays dark in both themes, its colors in one place (and XTERM_THEME in features/terminal/snapshot.ts) */
   --color-term:       #0B0A09;
   --color-term-block: #141210;
   --color-term-fg:    #E8E2DA;
@@ -323,7 +323,7 @@
 @utility df-rise { animation: df-rise .45s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 60ms); }
 /* A live service dot */
 @utility df-ping { position: relative; &::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: inherit; animation: df-ping 2s ease-out infinite; } }
-/* v4.3: a pale brand color (yellow, light gray…), darkened on the light theme's white (lib/brand.ts) */
+/* A pale brand color (yellow, light gray…), darkened on the light theme's white (lib/brand.ts) */
 [data-theme='light'] .df-pale { filter: brightness(.62) saturate(1.3); }
 @media (prefers-color-scheme: light) {
   [data-theme='system'] .df-pale { filter: brightness(.62) saturate(1.3); }
@@ -367,7 +367,7 @@
 }
 @utility df-fill { @media (forced-colors: active) { forced-color-adjust: none; background: Highlight; } }
 
-/* ─── Code in file previews (highlight.js classes, v3.5.3) ─────────────────── */
+/* ─── Code in file previews (highlight.js classes) ─────────────────── */
 .df-code .hljs-comment, .df-code .hljs-quote { color: var(--color-fg-muted); font-style: italic; }
 .df-code .hljs-keyword, .df-code .hljs-selector-tag, .df-code .hljs-meta .hljs-keyword, .df-code .hljs-doctag { color: var(--syntax-keyword); }
 .df-code .hljs-string, .df-code .hljs-regexp, .df-code .hljs-template-tag, .df-code .hljs-addition { color: var(--syntax-string); }

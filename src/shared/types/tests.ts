@@ -1,4 +1,4 @@
-// ─── A project's tests (v3.7) ─────────────────────────────────────────────────
+// ─── A project's tests ─────────────────────────────────────────────────
 
 export type TestRunner = 'vitest' | 'jest' | 'playwright' | 'phpunit' | 'pytest' | 'go' | 'cargo'
 

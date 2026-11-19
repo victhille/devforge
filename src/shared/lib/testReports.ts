@@ -1,7 +1,7 @@
 import type { TestCase, TestFile, TestStatus, TestTotals } from '../types/tests'
 
 /**
- * v3.7: each test tool's report read into one shape: files, their tests,
+ * Each test tool's report read into one shape: files, their tests,
  * and for a failure its message, "expected" and "received", and where.
  * Pure functions: the main process runs the tool and reads the report.
  */

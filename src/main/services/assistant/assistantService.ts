@@ -110,7 +110,7 @@ export async function sendToAssistant(req: AssistantSendRequest): Promise<string
       id, title: text.slice(0, 70), createdAt: now, updatedAt: now,
       projectPath: project?.path ?? null, projectName: project?.name ?? null, items: [], api: [], contextProject: null,
       skill: skill.id,
-      // v4.2: the provider chosen then answers the whole conversation; another one than Anthropic, with its own model
+      // The provider chosen then answers the whole conversation; another one than Anthropic, with its own model
       provider: config.provider,
       model: config.provider !== 'anthropic' ? config.providerModel : config.model === 'auto' ? skill.model : config.model,
       effort: req.effort && EFFORTS.includes(req.effort as AssistantEffort) ? req.effort as AssistantEffort
@@ -147,7 +147,7 @@ export async function sendToAssistant(req: AssistantSendRequest): Promise<string
 }
 
 /**
- * v4.2: the models a provider offers, read from it with its key: Claude's
+ * The models a provider offers, read from it with its key: Claude's
  * from Anthropic, the others' from their OpenAI-compatible list. Nothing is
  * sent to a model, nothing is billed.
  */
@@ -277,7 +277,7 @@ async function anthropicRound(
 const providerOf = (conv: StoredConversation): AssistantProvider => (isProvider(conv.provider) ? conv.provider : 'anthropic')
 
 /**
- * v4.2: one request to another provider (OpenAI's chat API): the same
+ * One request to another provider (OpenAI's chat API): the same
  * instructions and tools, the answer put back in Claude's shape. Its tokens
  * are counted; its price is not known, so it costs nothing in the budget.
  */
@@ -311,7 +311,7 @@ async function runTurn(conv: StoredConversation, signal: AbortSignal): Promise<v
   const anthropic = provider === 'anthropic' ? client() : null
   if (provider === 'anthropic' && !anthropic) { fail('no-key', 'No API key'); finish(conv, send, false); return }
   if (provider !== 'anthropic') {
-    // v4.2: another provider needs its key (not Ollama), its address, and a model
+    // Another provider needs its key (not Ollama), its address, and a model
     if (providerInfo(provider).needsKey && !keyFor(provider)) { fail('no-key', 'No API key'); finish(conv, send, false); return }
     if (!endpointOf(provider)) { fail('other', lang === 'fr' ? 'Donne l’adresse du serveur dans Paramètres › Forgy.' : 'Give the server address in Settings › Forgy.'); finish(conv, send, false); return }
     if (!conv.model) { fail('other', lang === 'fr' ? 'Choisis un modèle dans Paramètres › Forgy.' : 'Pick a model in Settings › Forgy.'); finish(conv, send, false); return }
@@ -383,7 +383,7 @@ async function runTurn(conv: StoredConversation, signal: AbortSignal): Promise<v
       // The unfinished assistant turn is not kept in the API history
       conv.items.push({ kind: 'notice', tone: 'info', text: lang === 'fr' ? 'Réponse arrêtée.' : 'Answer stopped.' })
     } else if (err instanceof CompatError) {
-      // v4.2: another provider's failure, in the same words as Claude's
+      // Another provider's failure, in the same words as Claude's
       const label = provider === 'custom' ? (lang === 'fr' ? 'le serveur compatible OpenAI' : 'the OpenAI-compatible server') : providerInfo(provider).label
       if (err.code === 'auth') fail('auth', lang === 'fr' ? `Clé API refusée par ${label}.` : `API key rejected by ${label}.`)
       else if (err.code === 'rate') fail('rate', lang === 'fr' ? 'Trop de requêtes : réessaie dans un instant.' : 'Rate limited: try again in a moment.')

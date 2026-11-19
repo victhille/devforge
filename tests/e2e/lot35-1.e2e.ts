@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.5 lot 1: several projects folders, scanned together */
+/** Several projects folders, scanned together */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

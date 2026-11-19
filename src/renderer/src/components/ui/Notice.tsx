@@ -29,7 +29,7 @@ interface Props {
 }
 
 /**
- * v4.3: a message set in the page (a warning, an error, a hint), the same
+ * A message set in the page (a warning, an error, a hint), the same
  * everywhere: its tone shown by an icon as well as a color.
  */
 export default function Notice({ tone = 'info', title, children, action, live, role, className }: Props) {

@@ -2,7 +2,7 @@ import { AUTH_RULES } from '../data/authContract'
 import { ANVIL, DEVFORGE_CSS } from './devforgeStyle'
 
 /**
- * v3.4 lot 3: sign-up, sign-in and a protected page for a Next.js project,
+ * sign-up, sign-in and a protected page for a Next.js project,
  * following the shared contract (src/shared/data/authContract.ts).
  * A JWT signed with AUTH_SECRET (jose) goes both in an httpOnly cookie, for
  * the pages, and in the login's JSON, for any client using Bearer. Passwords

@@ -6,7 +6,7 @@ import { settledAxeIssues } from './axe'
 import { pullLink } from './pull'
 import { samples } from '../diagrams'
 
-/** v3.9 lot 5: the diagrams — a use case drawn and turned into tasks, a class, a sequence, the others from the list */
+/** The diagrams — a use case drawn and turned into tasks, a class, a sequence, the others from the list */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

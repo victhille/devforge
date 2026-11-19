@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { folderName, folderOf, projectFolders, withProjectFolders } from '../../src/shared/lib/projectFolders'
 
-/** v3.5 lot 1: several projects folders, the first one the default */
-describe('v3.5: projects folders', () => {
+/** Several projects folders, the first one the default */
+describe('Projects folders', () => {
   it('keeps the settings from before as the only folder', () => {
     expect(projectFolders({ defaultProjectsDir: 'C:\\Dev' })).toEqual(['C:\\Dev'])
     expect(projectFolders({ defaultProjectsDir: '' })).toEqual([])

@@ -10,7 +10,7 @@ import Spinner from '@renderer/components/ui/Spinner'
 import { onTextSizeChange, textPx } from '@renderer/lib/appearance'
 import '@xterm/xterm/css/xterm.css'
 
-// v4.3: the same palette as the local terminal (one source)
+// The same palette as the local terminal (one source)
 import { XTERM_THEME } from '@renderer/features/terminal/snapshot'
 
 interface Props {

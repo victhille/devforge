@@ -3,7 +3,7 @@ import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 import { acceptConfirms } from './confirm'
 
-/** v3.0: the pages that need a server wait for one in the menu and the palette, and show up as soon as one is added */
+/** The pages that need a server wait for one in the menu and the palette, and show up as soon as one is added */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

@@ -1,5 +1,5 @@
 /**
- * v3.8 lot 5: a project saved as a template. What is left out (secrets
+ * a project saved as a template. What is left out (secrets
  * always), and the project's name replaced in the copy.
  */
 

@@ -2,7 +2,7 @@ import type { Cardinality, McdAssociation, McdAttribute, McdEntity, McdLink, Mcd
 import { cleanMpd, cleanNaming } from './mpd'
 import { cleanDiagram, isDiagramKind } from './uml'
 
-/** v3.9 lot 2: the MCD (Merise) — sizes, the lines between boxes, the checks, the SVG drawing, the file */
+/** The MCD (Merise) — sizes, the lines between boxes, the checks, the SVG drawing, the file */
 
 export interface Point { x: number; y: number }
 export interface Box extends Point { w: number; h: number }
@@ -105,7 +105,7 @@ export function checkMcd(m: McdModel): McdIssue[] {
   for (const e of m.entities) {
     if (m.entities.length > 1 && !m.links.some(l => l.entity === e.id)) out.push({ level: 'warning', code: 'lonelyEntity', target: e.id, name: e.name })
   }
-  // v4.1: two boxes one on another (one line each, the first twenty)
+  // Two boxes one on another (one line each, the first twenty)
   const boxes = [...m.entities.map(e => ({ id: e.id, name: e.name, b: entityBox(e) })), ...m.associations.map(a => ({ id: a.id, name: a.name, b: associationBox(a) }))]
   let overlaps = 0
   for (let i = 0; i < boxes.length && overlaps < 20; i++) for (let j = i + 1; j < boxes.length && overlaps < 20; j++) {

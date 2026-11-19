@@ -1,7 +1,7 @@
 import type { AppSettings } from '../types'
 
 /**
- * v3.5 lot 1: several projects folders. The first stays defaultProjectsDir
+ * several projects folders. The first stays defaultProjectsDir
  * (the terminal, the cleaner and the first-launch tour keep reading it); the
  * others follow in extraProjectsDirs. Settings from before need nothing.
  */

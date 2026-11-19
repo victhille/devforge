@@ -12,7 +12,7 @@ interface Props {
   className?: string
 }
 
-/** v4.3: the search field of a list (Docs, Snippets, Logs, Settings…): an icon, the field, a button to clear it */
+/** The search field of a list (Docs, Snippets, Logs, Settings…): an icon, the field, a button to clear it */
 export default function SearchInput({ value, onChange, placeholder, autoFocus, className }: Props) {
   const { t } = useI18n()
   const field = useRef<HTMLInputElement>(null)

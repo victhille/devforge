@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { readAllRequirements, readRequirements } from '../../src/main/services/versions/projectVersions'
 import { tempDir } from '../helpers'
 
-/** v4.2 lot 4: the versions a project asks for (Node, PHP, Python), the first file that says winning */
+/** The versions a project asks for (Node, PHP, Python), the first file that says winning */
 
 const project = (files: Record<string, string>) => {
   const dir = tempDir('versions')

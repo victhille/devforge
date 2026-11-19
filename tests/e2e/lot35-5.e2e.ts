@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.5 lot 5: a command added to the docs, checked and completed while typed */
+/** A command added to the docs, checked and completed while typed */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

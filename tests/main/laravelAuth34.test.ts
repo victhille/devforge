@@ -9,7 +9,7 @@ import { LARAVEL_API_ROUTES, laravelAuthFiles, laravelAuthPatches } from '../../
 import { patchText } from '../../src/main/services/projects/projectSetup'
 import { tempDir } from '../helpers'
 
-/** v3.4 lot 4: authentication of a Laravel project, on the shared contract */
+/** Authentication of a Laravel project, on the shared contract */
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
   database: 'postgres', dbName: 'shop', dbPort: 5433, features: ['auth'], git: false, github: null, openVSCode: false, ...s
 })
@@ -26,7 +26,7 @@ const PROVIDER = `    public function boot(): void
 `
 const CONFIG = `    'home' => '/home',\n`
 
-describe('v3.4: Laravel authentication', () => {
+describe('Laravel authentication', () => {
   const files = laravelAuthFiles('shop', 'fr')
   const [views, home] = laravelAuthPatches({ views: 'v', home: 'h', routes: 'r' }) as Extract<SetupStep, { kind: 'patch' }>[]
 

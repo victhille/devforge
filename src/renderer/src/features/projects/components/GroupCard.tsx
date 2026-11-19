@@ -37,10 +37,10 @@ interface Props {
   index?: number
   /** The name of its projects folder, shown when there are several */
   folder?: string | null
-  /** v3.8: its open tasks, and the way to them */
+  /** Its open tasks, and the way to them */
   openTasks?: number
   onOpenTasks?: () => void
-  /** v3.8: its GitHub workflows failing now */
+  /** Its GitHub workflows failing now */
   ciFailing?: string[]
 }
 
@@ -81,7 +81,7 @@ function SubRow({ sub, ideLabel, onOpenIde, onTerminal, onRunScript }: { sub: Su
   )
 }
 
-/** v3.5: a folder holding several projects (back + front): folded, its projects as chips; unfolded, each with its actions */
+/** A folder holding several projects (back + front): folded, its projects as chips; unfolded, each with its actions */
 export default function GroupCard(props: Props) {
   const { project, gitStatus, ide, onTerminal, onRunScript, onToggleFavorite, onDetail, onRemove, index = 0, folder, openTasks, onOpenTasks, ciFailing } = props
   const { t } = useI18n()

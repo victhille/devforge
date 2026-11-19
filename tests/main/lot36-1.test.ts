@@ -4,9 +4,9 @@ import {
   pythonRange, reinstallCommand, rewriteVersion, rubyRange
 } from '../../src/shared/lib/manifestUpdates'
 
-/** v3.6 lot 1: updating and auditing Python, Rust, Go, Ruby and Dart packages */
+/** Updating and auditing Python, Rust, Go, Ruby and Dart packages */
 
-describe('v3.6: each language\'s ranges', () => {
+describe('Each language\'s ranges', () => {
   it('reads PEP 440 specifiers', () => {
     expect(pythonRange('>=4.2,<5')).toBe('>=4.2 <5')
     expect(pythonRange('~=1.4')).toBe('>=1.4 <2.0.0')
@@ -39,7 +39,7 @@ describe('v3.6: each language\'s ranges', () => {
   })
 })
 
-describe('v3.6: the steps of an update', () => {
+describe('The steps of an update', () => {
   const both = [{ name: 'Django', dev: false, target: 'latest' as const }, { name: 'requests', dev: false, target: 'compatible' as const }]
   const latest = { Django: '5.1.2', requests: '2.32.3', pytest: '8.3.3' }
 
@@ -103,7 +103,7 @@ describe('v3.6: the steps of an update', () => {
   })
 })
 
-describe('v3.6: a version rewritten in its file', () => {
+describe('A version rewritten in its file', () => {
   it('requirements.txt and pyproject.toml: the name as written, its extras and markers kept', () => {
     const req = '# web\nDjango>=4.2,<5  # LTS\ndjango-cors-headers==4.3.1\nrequests[socks]==2.31.0 ; python_version > "3.8"\n'
     expect(rewriteVersion('pip', req, 'django', '5.1.2')).toBe('# web\nDjango>=5.1.2  # LTS\ndjango-cors-headers==4.3.1\nrequests[socks]==2.31.0 ; python_version > "3.8"\n')
@@ -117,7 +117,7 @@ describe('v3.6: a version rewritten in its file', () => {
   })
 })
 
-describe('v3.6: audit reports', () => {
+describe('Audit reports', () => {
   it('pip-audit (both formats)', () => {
     const r = parsePipAudit(JSON.stringify({ dependencies: [{ name: 'django', version: '4.2.0', vulns: [{ id: 'PYSEC-1' }, { id: 'GHSA-2' }] }, { name: 'idna', version: '3.7', vulns: [] }] }))
     expect(r).toMatchObject({ total: 2, packages: { django: 'unknown' } })

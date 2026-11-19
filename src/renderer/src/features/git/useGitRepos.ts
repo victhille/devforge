@@ -11,7 +11,7 @@ export interface RepoRow {
 
 /** Saved projects with their git details, plus fetch/pull/push actions. */
 export function useGitRepos() {
-  // v4.2: the shared project list: a project added or removed shows up here at once
+  // The shared project list: a project added or removed shows up here at once
   const { data: projects, error } = useProjectList()
   const [rows, setRows] = useState<RepoRow[]>([])
   /** Readings of the repositories under way (two may overlap: a refresh during a reading) */

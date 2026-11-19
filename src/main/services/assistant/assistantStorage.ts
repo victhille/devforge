@@ -19,10 +19,10 @@ const conversationsDir = () => join(dir(), 'conversations')
 interface StoredConfig {
   /** Anthropic's key (where it always was) */
   keyEnc?: string
-  /** v4.2: the other providers' keys, each encrypted */
+  /** The other providers' keys, each encrypted */
   keysEnc?: Partial<Record<AssistantProvider, string>>
   provider?: AssistantProvider
-  /** v4.2: the model and the endpoint chosen for each provider */
+  /** The model and the endpoint chosen for each provider */
   models?: Partial<Record<AssistantProvider, string>>
   baseUrls?: Partial<Record<AssistantProvider, string>>
   model?: AssistantModel | 'auto'; effort?: AssistantEffort | 'auto'; monthlyBudget?: number; desktopWidget?: boolean; actionMode?: AssistantActionMode
@@ -52,7 +52,7 @@ const savedKey = (c: StoredConfig, p: AssistantProvider) => (p === 'anthropic' ?
 const activeOf = (c: StoredConfig): AssistantProvider => (isProvider(c.provider) ? c.provider : 'anthropic')
 
 /**
- * v4.2: the endpoint a provider is reached at. Only a local or custom
+ * The endpoint a provider is reached at. Only a local or custom
  * server's address can be chosen: a known provider is always reached at its
  * own, so that its key never goes anywhere else.
  */

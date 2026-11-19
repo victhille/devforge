@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as axeIssues } from './axe'
 
-/** v2.2 lot 1: the wizard up to the summary (nothing is created) */
+/** The wizard up to the summary (nothing is created) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -34,7 +34,7 @@ test('Symfony: database, options, Git and the summary of commands', async () => 
   const recap = page.getByRole('list', { name: 'Récapitulatif · ce qui va être lancé' })
   await expect(recap).toContainText('composer require symfony/orm-pack')
   await expect(recap).toContainText('docker compose up -d --wait database')
-  // v3.4: the contract's User entity is written, then migrated
+  // The contract's User entity is written, then migrated
   await expect(recap).toContainText('src/Entity/User.php')
   await expect(recap).toContainText('doctrine:migrations:migrate')
   await expect(recap).toContainText('git commit -m')

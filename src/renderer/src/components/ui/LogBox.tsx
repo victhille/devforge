@@ -21,7 +21,7 @@ interface Props {
 }
 
 /**
- * v4.3: the output of a command (an install, a backup, a compose up…): the
+ * The output of a command (an install, a backup, a compose up…): the
  * same box on every page, its height capped, kept at its last line.
  */
 export default function LogBox({ text, title, running, actions, follow = true, placeholder = '…', label, className }: Props) {

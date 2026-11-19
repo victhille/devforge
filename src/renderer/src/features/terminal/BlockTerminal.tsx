@@ -232,7 +232,7 @@ function InputBar({ shell, historyKey, shellLabel, onAsk }: {
   const [searching, setSearching] = useState(false)
   const [pick, setPick] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
-  // v3.5: the greyed rest of the line, from the project's scripts, its history and the docs
+  // The greyed rest of the line, from the project's scripts, its history and the docs
   // The greyed rest of the line, unless turned off in Settings (followed at once)
   const suggest = useSettings().data?.terminalSuggest !== false
   const [scripts, setScripts] = useState<string[]>([])

@@ -17,7 +17,7 @@ const COLORS = ['var(--color-accent)', 'var(--color-success)', 'var(--color-warn
 const OTHERS = 'var(--color-fg-muted)'
 
 /**
- * v3.8 lot 3 (piste A): commits across all projects over 12 weeks, the most
+ * Commits across all projects over 12 weeks, the most
  * active, those asleep, the branches to push or pull. Read from Git on this PC.
  */
 export default function ActivityPage() {

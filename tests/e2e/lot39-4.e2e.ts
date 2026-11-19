@@ -7,7 +7,7 @@ import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
 import { shop } from '../shopMcd'
 
-/** v3.9 lot 4: the MPD against its linked database — differences, the catch-up script, the import */
+/** The MPD against its linked database — differences, the catch-up script, the import */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

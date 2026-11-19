@@ -139,7 +139,7 @@ async function listDir(path: string): Promise<Dir | null> {
   try { return { path, files: new Set(await readdir(path)) } } catch { return null }
 }
 
-// ─── Groups (v3.5) ────────────────────────────────────────────────────────────
+// ─── Groups ────────────────────────────────────────────────────────────
 
 /** Files that make a folder a project of its own (loose .php or .html files do not) */
 const MARKERS = [
@@ -177,7 +177,7 @@ export async function findSubProjects(path: string, depth = 2, prefix = ''): Pro
 }
 
 /**
- * v3.5.1: what a group holds besides its projects (docs/, infra/, README.md,
+ * What a group holds besides its projects (docs/, infra/, README.md,
  * Dockerfile…), folders first with a trailing slash. Hidden entries and
  * build or dependency folders are left out.
  */

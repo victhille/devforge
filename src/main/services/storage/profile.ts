@@ -3,7 +3,7 @@ import { dirname, join } from 'path'
 import { DATA_ENTRIES, backupData, readSchemaVersion } from './migrations'
 
 /**
- * Start over, or take one's setup to another PC (v3.0 lot 4). Pure file work
+ * Start over, or take one's setup to another PC. Pure file work
  * on the data folder; the IPC asks first and restarts the app.
  */
 
@@ -65,7 +65,7 @@ export function importConfig(dataDir: string, raw: string): string[] {
     let content = stripSecrets(bundle.files[name])
     // The tour is for a new user: someone who imports a setup is not one
     if (name === 'settings.json' && content && typeof content === 'object') content = { ...content, onboarded: true }
-    // v4.2: Forgy's server addresses are given again by hand, never taken from a file (it could send the conversations elsewhere)
+    // Forgy's server addresses are given again by hand, never taken from a file (it could send the conversations elsewhere)
     if (name === 'assistant/config.json' && content && typeof content === 'object') {
       const { baseUrls: _baseUrls, ...rest } = content as Record<string, unknown>
       content = rest

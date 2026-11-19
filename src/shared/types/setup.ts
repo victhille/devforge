@@ -1,4 +1,4 @@
-// ─── Project setup (v2.2 lot 1): what DevForge adds after the framework's own creation ───
+// ─── Project setup: what DevForge adds after the framework's own creation ───
 
 export type SetupDatabase = 'none' | 'postgres' | 'mysql' | 'sqlite'
 export type SetupFeature = 'api' | 'auth' | 'docker' | 'tests' | 'ci'
@@ -16,9 +16,9 @@ export interface ProjectSetup {
   /** Repository created with GitHub CLI: "name" or "owner/name" */
   github: { repo: string; private: boolean } | null
   openVSCode: boolean
-  /** v3.4: DevForge's welcome page in place of the framework's */
+  /** DevForge's welcome page in place of the framework's */
   welcome?: boolean
-  /** v3.4: the server a React or Vue front with authentication talks to (Vite proxies /api to it) */
+  /** The server a React or Vue front with authentication talks to (Vite proxies /api to it) */
   apiUrl?: string
 }
 

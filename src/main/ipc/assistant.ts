@@ -17,7 +17,7 @@ export function registerAssistantHandlers(win: BrowserWindow): void {
     if (typeof u?.desktopWidget === 'boolean') setWidgetEnabled(config.desktopWidget)
     return config
   })
-  // v4.2: the models a provider offers, read with its key
+  // The models a provider offers, read with its key
   ipcMain.handle('assistant:models',      (_e, provider: unknown) => providerModels(provider))
   ipcMain.handle('assistant:send',        (_e, req: AssistantSendRequest) => sendToAssistant(req))
   ipcMain.handle('assistant:stop',        (_e, id: string) => stopAssistant(id))

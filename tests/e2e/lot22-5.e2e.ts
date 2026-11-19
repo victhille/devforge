@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
 
-/** v2.2 lot 5: the terminal in blocks, with a real PowerShell */
+/** The terminal in blocks, with a real PowerShell */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

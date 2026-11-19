@@ -21,7 +21,7 @@ export function DatabaseSection({ projectPath, status, exec, onChanged }: { proj
   const { t } = useI18n()
   const s = t.symfony
   const db = status.database
-  // v4.2: the kept list of connections (the local ones: Symfony reaches them itself)
+  // The kept list of connections (the local ones: Symfony reaches them itself)
   const all = useDbConnections().data
   const connections = useMemo(() => (all ?? []).filter(c => !c.sshConnectionId), [all])
   const [picked, setPicked] = useState('')

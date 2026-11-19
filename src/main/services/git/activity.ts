@@ -7,7 +7,7 @@ import { loadProjects } from '../projects/projectStorage'
 import { git } from './gitRepo'
 
 /**
- * v3.8 lot 3: the commits of every saved project over the last weeks, read
+ * the commits of every saved project over the last weeks, read
  * from Git on this PC (no online service), a few projects at a time, kept a
  * few minutes. Two git calls per repository, none that scans the files.
  */

@@ -32,7 +32,7 @@ function persist(projects: Project[]): void {
   const path = getStoragePath()
   mkdirSync(dirname(path), { recursive: true })
   writeJsonFile(path, projects.map(({ missing: _missing, subprojects: _subprojects, extras: _extras, ...p }) => p))
-  // v4.2: every list of projects in the windows follows
+  // Every list of projects in the windows follows
   dataChanged('projects')
 }
 

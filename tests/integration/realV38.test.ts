@@ -11,7 +11,7 @@ import { extractTemplate, removeTemplate, saveTemplate } from '../../src/main/se
 import { tempDir } from '../helpers'
 
 /**
- * v3.8 lot 6: on this PC's real projects, read only. Opt-in:
+ * on this PC's real projects, read only. Opt-in:
  *   DEVFORGE_REAL_V38="<projects folder>;<another folder>"  the activity of every folder in them
  *   DEVFORGE_REAL_V38_TEMPLATE=<a project>                    saved as a template, then a renamed copy that installs
  * The CI check reads this repository's GitHub Actions (GitHub CLI connected).
@@ -46,7 +46,7 @@ describe.skipIf(!dirs.length)('v3.8 on real projects', () => {
   })
 })
 
-describe.skipIf(!source)('v3.8: a template from a real project', () => {
+describe.skipIf(!source)('A template from a real project', () => {
   it('gives a renamed copy without .env, node_modules or Git history, which installs', async () => {
     const tpl = await saveTemplate({ projectPath: source, name: 'real', description: '', framework: 'nodejs', packageManager: 'npm', exclude: DEFAULT_EXCLUDE })
     const dest = join(tempDir('real-tpl'), 'copy-of-real')

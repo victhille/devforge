@@ -2875,7 +2875,7 @@ const fr = {
     validJson: 'JSON valide'
   },
 
-  // v3.5 lot 5: the commands added to the Docs page
+  // The commands added to the Docs page
   docsCustom: {
     reference: 'Référence rapide',
     searchIn: 'Rechercher dans {name}…',
@@ -2901,7 +2901,7 @@ const fr = {
     removeCmd: 'Supprimer {cmd}'
   },
 
-  // v3.5 lot 4: what each tool is for, how to use it, and its examples
+  // What each tool is for, how to use it, and its examples
   toolHelp: {
     label: "Aide de l'outil",
     hide: "Masquer l'aide",

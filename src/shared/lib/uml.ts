@@ -2,7 +2,7 @@ import type { DiagramEdge, DiagramEdgeType, DiagramKind, DiagramModel, DiagramNo
 import { bounds, center, edgePoint, noteBox, uid, wrap, type Box, type Point } from './mcd'
 
 /**
- * v3.9 lot 5: the diagrams of the Modeling page — use cases, classes,
+ * the diagrams of the Modeling page — use cases, classes,
  * sequence, flowchart, architecture. One model (nodes, edges, notes), one
  * drawing shared by the editor, the thumbnails and the export.
  */

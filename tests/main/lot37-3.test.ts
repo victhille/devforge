@@ -7,7 +7,7 @@ import { getFileDiff, getFileStates } from '../../src/main/services/git/gitRepo'
 import { saveProject } from '../../src/main/services/projects/projectStorage'
 import { tempDir } from '../helpers'
 
-/** v3.7 lot 3: Git in the file tree */
+/** Git in the file tree */
 const file = (path: string, content: string) => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
 const git = (cwd: string, ...args: string[]) => execFileSync('git', ['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', ...args], { cwd })
 

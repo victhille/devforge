@@ -63,7 +63,7 @@ export default function AssistantSettings({ onSaved, settings, set }: { onSaved:
   const [budget, setBudget] = useState('')
   const [shortcut, setShortcut] = useState<string | null>(null)
   const { walker, setWalker, walkerDog, setWalkerDog } = useAssistant()
-  // v4.2: another provider's address and model, and the models it offers
+  // Another provider's address and model, and the models it offers
   const [url, setUrl] = useState('')
   const [model, setModel] = useState('')
   const [models, setModels] = useState<string[] | null>(null)

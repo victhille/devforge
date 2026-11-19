@@ -3,7 +3,7 @@ import { join } from 'path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { userData } from '../helpers'
 
-/** v4.2 lot 4: voice typing — silence left out, Whisper's loops cut, the model on disk (Whisper itself faked) */
+/** Voice typing — silence left out, Whisper's loops cut, the model on disk (Whisper itself faked) */
 
 const whisper = vi.hoisted(() => ({ loads: 0, calls: [] as Record<string, unknown>[], answer: '' as string | { text: string }[], fail: false }))
 vi.mock('@huggingface/transformers', () => ({

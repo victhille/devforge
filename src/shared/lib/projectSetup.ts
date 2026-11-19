@@ -7,7 +7,7 @@ import { API_URL_RE, DEFAULT_API_URL, spaAuthFiles, spaAuthPatches } from './spa
 import type { Framework, PackageManager, ProjectCreationOptions, ProjectSetup, SetupFeature, SetupStep } from '../types'
 
 /**
- * v2.2 lot 1: what DevForge does after the framework's own creation command.
+ * what DevForge does after the framework's own creation command.
  * Pure, so the summary shows the very steps the main process then runs.
  * In written paths, {app} is the Next.js app folder (app or src/app) and {src}
  * the alias root ("" or "src/"); the main process resolves them.
@@ -267,7 +267,7 @@ function symfonySteps(o: Opts, ctx: PlanContext): SetupStep[] {
   if (has('auth')) {
     steps.push({ kind: 'run', label: l.authDeps, exe: 'composer', args: ['require', 'symfony/security-bundle'], skipIf: 'vendor/symfony/security-bundle' })
     steps.push({ kind: 'run', label: l.maker, exe: 'composer', args: ['require', '--dev', 'symfony/maker-bundle'], skipIf: 'vendor/symfony/maker-bundle' })
-    // v3.4: the contract's User (with a name, which make:user lacks), its pages and its API, written as a whole
+    // The contract's User (with a name, which make:user lacks), its pages and its API, written as a whole
     for (const [pkg, dir] of SYMFONY_AUTH_PACKAGES) steps.push({ kind: 'run', label: l.sfAuthDeps, exe: 'composer', args: ['require', pkg], skipIf: dir })
     steps.push({ kind: 'write', label: l.sfAuthFiles, files: symfonyAuthFiles(o.name, ctx.lang) })
   }
@@ -289,7 +289,7 @@ export function laravelEnv(s: ProjectSetup, password: string): Record<string, st
 }
 
 /**
- * Sail's .env (v2.3 lot 5): the app reaches its database by the service's
+ * Sail's .env: the app reaches its database by the service's
  * name; the ports on this PC are the ones chosen here; WWWUSER and WWWGROUP
  * are what Sail's script would give (DevForge drives docker compose itself).
  */
@@ -329,7 +329,7 @@ function laravelSteps(o: Opts, ctx: PlanContext): SetupStep[] {
   if (has('auth')) {
     steps.push({ kind: 'run', label: l.fortify, exe: 'composer', args: ['require', 'laravel/fortify'], skipIf: 'vendor/laravel/fortify' })
     steps.push({ kind: 'run', label: l.fortifyInstall, exe: 'php', args: ['artisan', 'fortify:install', '--no-interaction'], skipIf: 'config/fortify.php' })
-    // v3.4: Fortify's pages in DevForge's look, and the contract's API on Sanctum
+    // Fortify's pages in DevForge's look, and the contract's API on Sanctum
     steps.push({ kind: 'write', label: l.authViews, files: laravelAuthFiles(o.name, ctx.lang) })
     steps.push(...laravelAuthPatches({ views: l.fortifyViews, home: l.fortifyHome, routes: l.authRoutes }))
   }
@@ -388,7 +388,7 @@ function nextSteps(o: Opts, ctx: PlanContext): SetupStep[] {
     steps.push({ kind: 'write', label: l.api, files: [{ path: `{app}/api/health/route.${ext}`, content: "export function GET() {\n  return Response.json({ status: 'ok' })\n}\n" }] })
   }
   if (has('auth') && o.typescript) {
-    // v3.4: the DevForge contract (JWT in a cookie and in the login's JSON), accounts in Prisma
+    // The DevForge contract (JWT in a cookie and in the login's JSON), accounts in Prisma
     steps.push({ kind: 'run', label: l.authNext, exe: pm, args: pmAdd(pm, NEXT_AUTH_PACKAGES) })
     steps.push({ kind: 'write', label: l.authPages, files: nextAuthFiles(o.name, ctx.lang) })
     steps.push({ kind: 'env', label: 'AUTH_SECRET', file: '.env.local', vars: { AUTH_SECRET: ctx.secret } })
@@ -457,7 +457,7 @@ function commonSteps(o: Opts, ctx: PlanContext): SetupStep[] {
     steps.push({ kind: 'run', label: l.tailwindDeps, exe: pm, args: pmAdd(pm, ['@tailwindcss/vite'], true), skipIf: 'node_modules/@tailwindcss/vite' })
     steps.push({ kind: 'tailwind', label: l.tailwind })
   }
-  // v3.4: a React or Vue front, client of the contract (TypeScript templates)
+  // A React or Vue front, client of the contract (TypeScript templates)
   if ((o.framework === 'react' || o.framework === 'vue') && o.typescript && o.setup.features.includes('auth')) {
     const apiUrl = o.setup.apiUrl && API_URL_RE.test(o.setup.apiUrl) ? o.setup.apiUrl.replace(/\/+$/, '') : DEFAULT_API_URL
     steps.push({ kind: 'write', label: l.spaAuth, files: spaAuthFiles(o.framework, o.name, ctx.lang, apiUrl) })
@@ -466,13 +466,13 @@ function commonSteps(o: Opts, ctx: PlanContext): SetupStep[] {
   return steps
 }
 
-/** v3.4: accounts need somewhere to live: authentication without a database takes SQLite (no Docker), on the servers (a React or Vue front keeps none) */
+/** Accounts need somewhere to live: authentication without a database takes SQLite (no Docker), on the servers (a React or Vue front keeps none) */
 export function withAuthDatabase(s: ProjectSetup, fw: Framework): ProjectSetup {
   return SETUP_FRAMEWORKS.includes(fw) && s.features.includes('auth') && s.database === 'none' ? { ...s, database: 'sqlite' } : s
 }
 
 /** Every step after the framework's creation, in order */
-/** v3.8: a project from one of the user's templates: its dependencies, then Git, GitHub and the IDE */
+/** A project from one of the user's templates: its dependencies, then Git, GitHub and the IDE */
 function templateSteps(o: Opts, ctx: PlanContext): SetupStep[] {
   const l = LABELS[ctx.lang], steps: SetupStep[] = []
   if (o.installDeps !== false) {

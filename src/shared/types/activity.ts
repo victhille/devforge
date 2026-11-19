@@ -1,4 +1,4 @@
-// ─── Activity across projects (v3.8 lot 3) ────────────────────────────────────
+// ─── Activity across projects ────────────────────────────────────
 
 export interface ActivityCommit {
   /** Unix seconds */

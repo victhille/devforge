@@ -37,7 +37,7 @@ export default function ActionCard({ action, onChange }: { action: ActionView; o
   const [deciding, setDeciding] = useState(false)
   const { status } = action
 
-  // v4.3: one decision only (a double click sent two), and one that does not arrive gives the choice back
+  // One decision only (a double click sent two), and one that does not arrive gives the choice back
   const decide = async (approve: boolean) => {
     if (deciding) return
     setDeciding(true)

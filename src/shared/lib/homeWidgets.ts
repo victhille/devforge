@@ -8,7 +8,7 @@ export interface HomeWidget {
   size: 'half' | 'full'
 }
 
-/** The Home page of v2.0, until the user composes their own */
+/** The first Home page, until the user composes their own */
 export const DEFAULT_WIDGETS: HomeWidget[] = [
   { id: 'active-project', size: 'full' },
   { id: 'docker', size: 'half' },

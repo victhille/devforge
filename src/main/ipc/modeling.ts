@@ -4,7 +4,7 @@ import { createModel, listModels, projectDatabase, projectEngine, readModel, rem
 import { applyScript, doctrineMigration } from '../services/modeling/linked'
 import { mcdFromMpdFile, modelFromDatabase } from '../services/modeling/fromDatabase'
 
-/** v3.9: the project's models, in its conception/ folder */
+/** The project's models, in its conception/ folder */
 export function registerModelingHandlers(): void {
   ipcMain.handle('modeling:list', (_e, projectPath: unknown) => listModels(String(projectPath ?? '')))
   ipcMain.handle('modeling:read', (_e, projectPath: unknown, file: unknown) => readModel(String(projectPath ?? ''), String(file ?? '')))
@@ -18,10 +18,10 @@ export function registerModelingHandlers(): void {
     applyScript(String(connectionId ?? ''), Array.isArray(statements) ? statements.map(String) : []))
   ipcMain.handle('modeling:doctrine', (_e, projectPath: unknown, statements: unknown, description: unknown) =>
     doctrineMigration(String(projectPath ?? ''), Array.isArray(statements) ? statements.map(String) : [], String(description ?? '')))
-  // v4.1: each step reported to the window that asked, under its job name
+  // Each step reported to the window that asked, under its job name
   ipcMain.handle('modeling:from-db', (e, projectPath: unknown, connectionId: unknown, name: unknown, job: unknown) =>
     modelFromDatabase(String(projectPath ?? ''), String(connectionId ?? ''), String(name ?? ''), p => { if (!e.sender.isDestroyed()) e.sender.send('modeling:progress', { ...p, job: String(job ?? '') }) }))
-  // v4.2: an MPD drawn by hand gets its MCD
+  // An MPD drawn by hand gets its MCD
   ipcMain.handle('modeling:mcd-from-mpd', (_e, projectPath: unknown, file: unknown) => mcdFromMpdFile(String(projectPath ?? ''), String(file ?? '')))
   ipcMain.handle('modeling:write-sql', (_e, projectPath: unknown, file: unknown, sql: unknown) => writeSql(String(projectPath ?? ''), String(file ?? ''), String(sql ?? '')))
 }

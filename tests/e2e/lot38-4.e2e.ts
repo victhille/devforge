@@ -5,7 +5,7 @@ import initSqlJs from 'sql.js'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.8 lot 4: the database schema, full screen (piste B) */
+/** The database schema, full screen (piste B) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -42,7 +42,7 @@ test('the schema shows tables and links, hides and adds tables, moves a card, ex
   const canvas = dialog.getByTestId('schema-canvas')
   const card = (name: string) => canvas.locator(`[data-table=".${name}"]`)
   await expect(canvas.locator('[data-table]')).toHaveCount(7)
-  // v3.8.1: over the whole window, never inside the page (whose animation would hold a fixed element)
+  // Over the whole window, never inside the page (whose animation would hold a fixed element)
   await expect(page.locator('body > [role=dialog]')).toHaveCount(1)
   await expect(card('order_item')).toContainText('product_id')
   // 5 links, each with its arrow head

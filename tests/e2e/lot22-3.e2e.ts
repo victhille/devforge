@@ -4,7 +4,7 @@ import { join } from 'path'
 import { launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
 
-/** v2.2 lot 3: the global launcher (an odd shortcut, so the tests never take the user's Ctrl+Alt+Space) */
+/** The global launcher (an odd shortcut, so the tests never take the user's Ctrl+Alt+Space) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

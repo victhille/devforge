@@ -1,7 +1,7 @@
 import type { PackageManager } from '../types'
 
 /**
- * v3.5 lot 6: the likely rest of a terminal line, shown greyed after the
+ * the likely rest of a terminal line, shown greyed after the
  * caret (like fish). From, in order: the project's scripts, its history
  * (latest first), then the Docs page's commands. Pure and cheap: it runs on
  * every keystroke, over lists already in memory.

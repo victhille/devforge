@@ -4,7 +4,7 @@ import { satisfies } from './semver'
 import { pyName } from './manifests'
 
 /**
- * v3.6 lot 1: updating and auditing the packages of Python, Rust, Go, Ruby
+ * updating and auditing the packages of Python, Rust, Go, Ruby
  * and Dart projects. Pure functions (the main process runs what they write):
  * each language's ranges read as npm ones, the commands of an update, the
  * version rewritten in a file, the audit reports read.

@@ -7,7 +7,7 @@ import {
   composerCommands, composerUpdate, isSail, listComposerManifests, newestStable, parseComposerAudit
 } from '../../src/main/services/packages/composerPackages'
 
-/** v3.3 lot 3: a project's Composer packages, main side */
+/** A project's Composer packages, main side */
 const json = (path: string, data: unknown) => writeFileSync(path, JSON.stringify(data))
 
 function laravel(): string {

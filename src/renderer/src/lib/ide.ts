@@ -22,7 +22,7 @@ export interface PreferredIde {
   pick: (own?: DefaultIDE) => DefaultIDE
   labelFor: (own?: DefaultIDE) => string | null
   open: (path: string, own?: DefaultIDE) => Promise<void>
-  /** v3.5.3: a project's file, in the window of the project at `root` */
+  /** A project's file, in the window of the project at `root` */
   openFile: (path: string, own?: DefaultIDE, root?: string, line?: number) => Promise<void>
 }
 

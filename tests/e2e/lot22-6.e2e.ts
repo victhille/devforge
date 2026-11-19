@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v2.2 lot 6: the Next.js and Laravel workshops (CLI answers canned, files really written) */
+/** The Next.js and Laravel workshops (CLI answers canned, files really written) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -80,7 +80,7 @@ test('Next.js: a model written in schema.prisma, a migration prepared before it 
   await page.getByLabel('Nom de la migration (minuscules, chiffres, _)').fill('Ajout Produit')
   await expect(page.getByText('npx prisma migrate dev --create-only --name ajout_produit')).toBeVisible()
   await expect(page.getByText('npx prisma migrate deploy && npx prisma generate')).toBeVisible()
-  // v2.3 lot 3: Prisma's undoing is prepared as a migration, then applied
+  // Prisma's undoing is prepared as a migration, then applied
   await expect(page.getByRole('button', { name: 'Préparer le retour en arrière' })).toBeEnabled()
   await expect(page.getByText('npx prisma migrate diff --from-config-datasource --to-migrations <toutes sauf la dernière> --script')).toBeVisible()
   await expect(page.getByLabel('SQL de la migration')).toContainText('CREATE TABLE "Produit"')

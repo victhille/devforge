@@ -6,7 +6,7 @@ import { saveProjects, tempDir } from '../helpers'
 import { shop } from '../shopMcd'
 import { samples } from '../diagrams'
 
-/** v3.9 lot 6: Forgy reads the Modeling page's models */
+/** Forgy reads the Modeling page's models */
 
 describe("Forgy's modeling tools", () => {
   it('lists the models, then reads an MCD, an MPD and a diagram as text', async () => {

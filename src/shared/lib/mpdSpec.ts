@@ -3,7 +3,7 @@ import { DEFAULT_NAMING, MPD_TYPES, placeNew } from './mpd'
 import { McdSpecError as SpecError } from './mcdSpec'
 
 /**
- * v4.2 lot 3: an MPD from a description (what Forgy writes from the user's
+ * an MPD from a description (what Forgy writes from the user's
  * words): tables, their columns and keys, a foreign key named by the table it
  * points at. Checked, a key `id` added where none is given, then laid out.
  */

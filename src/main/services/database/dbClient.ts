@@ -30,7 +30,7 @@ export interface Driver {
   raw: Raw
   /** Parameterized query, rows as arrays in the columns' order (the search); `regexp`: SQLite's REGEXP on while it runs */
   rows(sql: string, params: string[], opts?: { regexp?: boolean }): Promise<{ columns: string[]; rows: unknown[][] }>
-  /** v3.6: statements with their parameters, all or none (rolled back at the first error, which carries its `statementIndex`); rows affected */
+  /** Statements with their parameters, all or none (rolled back at the first error, which carries its `statementIndex`); rows affected */
   transaction(statements: RowStatement[]): Promise<number>
   close(): Promise<void>
   /** Called once if the server drops the connection (restart, container stopped…) */
@@ -454,7 +454,7 @@ export async function dbDetails(id: string, t: DbTableRef): Promise<DbTableDetai
 }
 
 /**
- * v3.6 lot 3: rows changed from the Browse tab, checked against the table's
+ * rows changed from the Browse tab, checked against the table's
  * real columns and primary key, then run in one transaction.
  */
 export async function dbApplyRows(id: string, t: DbTableRef, changes: RowChange[]): Promise<{ affected: number; error?: string }> {

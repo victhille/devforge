@@ -22,7 +22,7 @@ const FIELDS = 'input:not([disabled]):not([type=hidden]), select:not([disabled])
 
 /**
  * Centered dialog over a dimmed backdrop. Closes on Escape or backdrop click.
- * v4.3: the focus goes inside when it opens, stays there (Tab goes round),
+ * The focus goes inside when it opens, stays there (Tab goes round),
  * and comes back to where it was when it closes.
  */
 export default function Modal({ title, onClose, footer, className, children }: Props) {

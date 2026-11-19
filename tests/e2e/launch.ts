@@ -54,7 +54,7 @@ export async function goTo(page: Page, route: string): Promise<void> {
   await page.evaluate(r => { location.hash = `#${r}` }, route)
 }
 
-/** v3.8.1: a project's tab, on the bar or in its "More" menu when the window is narrow */
+/** A project's tab, on the bar or in its "More" menu when the window is narrow */
 export async function openProjectTab(page: Page, name: string): Promise<void> {
   // The name, then its count if it has one ("Déploiement 1")
   const label = new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}( \\d+)?$`)

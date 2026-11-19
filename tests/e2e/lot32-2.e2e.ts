@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.2 lot 2: the help is one click (or F1) away. Nothing is clicked: that would open the real browser */
+/** The help is one click (or F1) away. Nothing is clicked: that would open the real browser */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

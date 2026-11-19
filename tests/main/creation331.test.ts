@@ -7,7 +7,7 @@ import { packageName } from '../../src/shared/data/projectLibraries'
 import { runSetup, withTrait, withVitePlugin } from '../../src/main/services/projects/projectSetup'
 import { tempDir } from '../helpers'
 
-/** v3.3.1: what the creation tests on real projects turned up (Node, React, Next.js, Laravel) */
+/** What the creation tests on real projects turned up (Node, React, Next.js, Laravel) */
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
   database: 'none', dbName: 'boutique', dbPort: 5433, features: [], git: true, github: null, openVSCode: false, ...s
 })
@@ -17,7 +17,7 @@ const opts = (framework: Framework, s: Partial<ProjectSetup> = {}, extra: Partia
 const ctx = { password: 'pw', secret: 'sec', lang: 'fr' as const, composeName: 'boutique-a1b2c3' }
 const commands = (steps: SetupStep[]) => steps.map(s => s.kind === 'run' ? stepCommand(s) : s.kind)
 
-describe('v3.3.1: creation plan', () => {
+describe('Creation plan', () => {
   it('Node: an entry file, dev and start scripts, node_modules ignored before the first commit', () => {
     const steps = planSetup(opts('nodejs'), ctx)
     expect(steps.find(s => s.kind === 'write')).toMatchObject({ files: [{ path: 'index.js' }, { path: 'test/index.test.js' }] })
@@ -69,7 +69,7 @@ describe('v3.3.1: creation plan', () => {
   })
 })
 
-describe('v3.3.1: Tailwind wired in', () => {
+describe('Tailwind wired in', () => {
   it('adds the Vite plugin to the config once', () => {
     const config = "import { defineConfig } from 'vite'\nimport react from '@vitejs/plugin-react'\n\nexport default defineConfig({\n  plugins: [react()],\n})\n"
     const out = withVitePlugin(config)
@@ -109,7 +109,7 @@ describe('v3.3.1: Tailwind wired in', () => {
   })
 })
 
-describe('v3.3.1: Laravel after its creation', () => {
+describe('Laravel after its creation', () => {
   it('migrates the chosen database (on this PC, or in the Sail container) and gives User its API tokens', () => {
     const local = planSetup(opts('laravel', { database: 'postgres', features: ['api'] }), ctx)
     expect(commands(local)).toContain('php artisan migrate --force')

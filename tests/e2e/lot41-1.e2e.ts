@@ -4,7 +4,7 @@ import { join } from 'path'
 import initSqlJs from 'sql.js'
 import { goTo, launch, openProjectTab, type Launched } from './launch'
 
-/** v4.1 lot 1: the project's Modeling tab — its models, the schema made from its database step by step, Forgy */
+/** The project's Modeling tab — its models, the schema made from its database step by step, Forgy */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

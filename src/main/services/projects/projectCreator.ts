@@ -279,7 +279,7 @@ function createEmptyProject(
   return 'init'
 }
 
-// ─── One of the user's templates (v3.8) ───────────────────────────────────────
+// ─── One of the user's templates ───────────────────────────────────────
 
 function createFromTemplate(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const projectPath = join(options.destination, options.name)

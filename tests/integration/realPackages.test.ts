@@ -7,10 +7,10 @@ import { missingTool, otherUpdate, venvPython } from '../../src/main/services/pa
 import { tempDir } from '../helpers'
 
 /**
- * v3.6 lot 6: Python and Rust packages updated with the real tools (PyPI and
+ * Python and Rust packages updated with the real tools (PyPI and
  * crates.io reached). Opt-in: DEVFORGE_REAL_PKG=1, with Python and Cargo on the PATH.
  */
-describe.skipIf(!process.env.DEVFORGE_REAL_PKG)('v3.6: real package updates', () => {
+describe.skipIf(!process.env.DEVFORGE_REAL_PKG)('Real package updates', () => {
   it('pip: through the project\'s .venv, a pinned package moved to the latest, the file rewritten', { timeout: 240_000 }, async () => {
     const root = tempDir('realpy')
     execFileSync('python', ['-m', 'venv', '.venv'], { cwd: root })

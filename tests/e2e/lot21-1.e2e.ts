@@ -27,7 +27,7 @@ const vps = (dir: string) => {
   }))
 }
 
-/** v2.1 lot 1: the update button next to Forgy */
+/** The update button next to Forgy */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

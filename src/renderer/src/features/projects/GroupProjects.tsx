@@ -85,7 +85,7 @@ function SubPanel({ group, sub, scripts, ide, onIde }: { group: Project; sub: Su
   )
 }
 
-/** v3.5: a group's projects side by side on its page, each with its scripts, workshop, .env and files */
+/** A group's projects side by side on its page, each with its scripts, workshop, .env and files */
 export default function GroupProjects({ group, ide, onSave }: { group: Project; ide: PreferredIde; onSave: (patch: { subIdes: Record<string, DefaultIDE> }) => void }) {
   const { t } = useI18n()
   const h = t.hub

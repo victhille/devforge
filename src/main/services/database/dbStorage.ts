@@ -20,7 +20,7 @@ function read(): Stored[] {
 function write(list: Stored[]): void {
   mkdirSync(dirname(path()), { recursive: true })
   writeJsonFile(path(), list)
-  // v4.2: every list of connections in the windows follows
+  // Every list of connections in the windows follows
   dataChanged('db-connections')
 }
 

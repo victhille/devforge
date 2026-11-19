@@ -293,7 +293,7 @@ async function fromEnvFiles(dir: string, files: string[]): Promise<{ db: NonNull
   return db ? { db, file } : null
 }
 
-/** Where a saved project keeps its configuration: itself, or each project of a group (v3.5) */
+/** Where a saved project keeps its configuration: itself, or each project of a group */
 export async function configDirs(p: Pick<Project, 'name' | 'path' | 'framework'>): Promise<{ dir: string; label: string }[]> {
   if (p.framework !== 'group') return [{ dir: p.path, label: p.name }]
   return (await findSubProjects(p.path)).map(s => ({ dir: s.path, label: `${p.name}/${s.name}` }))

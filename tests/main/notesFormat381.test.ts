@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { blocksOnLines, checklistHtml, checklistItems, cleanStyle, countOpen, insertItem, isHtmlNotes, itemHtml, markdownToHtml, notesToText, removeItem, setItemChecked } from '@shared/lib/notesFormat'
 
-/** v3.8.1: notes as formatted text; their checklists */
+/** Notes as formatted text; their checklists */
 describe('notes format', () => {
   it('converts Markdown: headings, lists, checkboxes, quotes, code, inline formats', () => {
     expect(markdownToHtml('# Mise en ligne\n\nVider le **cache** et *relancer*\n- un\n- [x] deux\n- [ ] trois\n1. a\n> attention\n```\nnpm run build\n```'))

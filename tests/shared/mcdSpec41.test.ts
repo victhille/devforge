@@ -3,7 +3,7 @@ import { checkMcd } from '@shared/lib/mcd'
 import { toMld } from '@shared/lib/mpd'
 import { mcdFromSpec, McdSpecError } from '@shared/lib/mcdSpec'
 
-/** v4.1: an MCD from a description, as Forgy writes it */
+/** An MCD from a description, as Forgy writes it */
 
 const SHOP = {
   entities: [

@@ -5,7 +5,7 @@ import { join } from 'path'
 import { launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.8 lot 3: the Activity page (piste A), read from real Git repositories */
+/** The Activity page (piste A), read from real Git repositories */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

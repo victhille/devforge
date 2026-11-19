@@ -8,14 +8,14 @@ import { venvPython } from '../../src/main/services/packages/otherUpdates'
 import { tempDir } from '../helpers'
 
 /**
- * v3.7 lot 4: the Tests tab's service with the real tools: Vitest (on
+ * the Tests tab's service with the real tools: Vitest (on
  * DevForge itself), Cargo, pytest in a .venv (pytest comes from PyPI).
  * Opt-in: DEVFORGE_REAL_TESTS=1, with Cargo and Python on the PATH.
  */
 const file = (path: string, content: string) => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
 const save = (id: string, path: string) => saveProject({ id, name: id, path, framework: 'unknown', packageManager: 'npm', createdAt: '', lastOpenedAt: null, favorite: false })
 
-describe.skipIf(!process.env.DEVFORGE_REAL_TESTS)('v3.7: real test runs', () => {
+describe.skipIf(!process.env.DEVFORGE_REAL_TESTS)('Real test runs', () => {
   it('vitest: one of DevForge\'s own test files, every test read', { timeout: 180_000 }, async () => {
     const repo = resolve(__dirname, '..', '..')
     save('devforge', repo)

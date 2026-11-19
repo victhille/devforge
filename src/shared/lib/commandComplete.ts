@@ -1,5 +1,5 @@
 /**
- * v3.5 lot 5: completion while typing a command: the PATH's programs for the
+ * completion while typing a command: the PATH's programs for the
  * first word, then the known sub-commands of the usual tools, and the
  * commands already in the Docs page. Pure: the lists come from the caller.
  */

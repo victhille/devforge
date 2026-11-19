@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.3 lot 2: the Packages tab (registry, audit and the update command simulated) */
+/** The Packages tab (registry, audit and the update command simulated) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

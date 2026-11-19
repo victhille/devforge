@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { composeFile, composeName, composeSlug, isDbAuthError, oldVolumes, planSetup } from '../../src/shared/lib/projectSetup'
 
-/** v2.3 lot 1: each project's own Docker database */
+/** Each project's own Docker database */
 describe('v2.3 lot 1: Docker databases of their own', () => {
   const setup = { database: 'postgres' as const, dbName: 'boutique', dbPort: 5433, features: [], git: false, github: null, openVSCode: false }
 

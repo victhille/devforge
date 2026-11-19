@@ -4,7 +4,7 @@ import { join } from 'path'
 import { settledAxeIssues as settledAxe } from './axe'
 import { goTo, launch, openProjectTab, type Launched } from './launch'
 
-/** v4.2 lot 3: an MPD drawn by hand gets its MCD in one click, and the two stay tied; the model lists follow what is written meanwhile */
+/** An MPD drawn by hand gets its MCD in one click, and the two stay tied; the model lists follow what is written meanwhile */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

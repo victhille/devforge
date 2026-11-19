@@ -31,7 +31,7 @@ import xml from 'highlight.js/lib/languages/xml'
 import yaml from 'highlight.js/lib/languages/yaml'
 import type { CodeLanguage } from '@shared/lib/codeLanguage'
 
-/** v3.5.3: highlight.js with the grammars DevForge's projects use (loaded with the first code preview) */
+/** Highlight.js with the grammars DevForge's projects use (loaded with the first code preview) */
 const GRAMMARS = {
   bash, c, cpp, csharp, css, dart, dockerfile, go, graphql, ini, java, javascript, json, kotlin, makefile, markdown,
   nginx, php, powershell, properties, python, ruby, rust, scss, sql, swift, twig, typescript, xml, yaml

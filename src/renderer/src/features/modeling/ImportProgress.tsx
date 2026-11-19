@@ -8,7 +8,7 @@ import { fill } from './model'
 
 const STEPS = ['connect', 'read', 'mcd', 'mpd', 'write'] as const
 
-/** v4.1: a model made from a database, step by step (the main process reports each one) */
+/** A model made from a database, step by step (the main process reports each one) */
 export function useModelImport() {
   const [progress, setProgress] = useState<ModelProgress | null>(null)
   const [error, setError] = useState('')

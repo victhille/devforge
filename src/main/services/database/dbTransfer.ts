@@ -10,7 +10,7 @@ import { decodeCsv, guessSeparator, matchColumns, parseCsv } from '@shared/lib/c
 import { closeDb, connOf, dbDetails, driverFor } from './dbClient'
 
 /**
- * v3.6 lot 4: a table exported to a file (CSV, JSON or SQL), page by page so
+ * a table exported to a file (CSV, JSON or SQL), page by page so
  * a large one never sits whole in memory; a CSV imported into a table in one
  * transaction. Files go through Windows' dialogs: the window never names a path.
  */
@@ -71,7 +71,7 @@ export async function saveResult(win: BrowserWindow, name: string, content: stri
   return pick.filePath
 }
 
-/** v3.8: the schema as an image; a PNG comes as a data URL */
+/** The schema as an image; a PNG comes as a data URL */
 export async function saveImage(win: BrowserWindow, name: string, content: string, ext: 'png' | 'svg'): Promise<string | null> {
   const pick = await dialog.showSaveDialog(win, { defaultPath: `${name.replace(/[^\w.-]+/g, '_') || 'schema'}.${ext}`, filters: [{ name: ext.toUpperCase(), extensions: [ext] }] })
   if (pick.canceled || !pick.filePath) return null

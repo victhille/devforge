@@ -10,7 +10,7 @@ import { planAction } from '../../src/main/services/assistant/assistantActions'
 import { undoModels } from '../../src/main/services/assistant/modelingTools'
 import { saveProjects, tempDir } from '../helpers'
 
-/** v4.2 lot 3: Forgy draws MPDs and diagrams; an MPD drawn by hand gets its MCD; the windows hear of each model written */
+/** Forgy draws MPDs and diagrams; an MPD drawn by hand gets its MCD; the windows hear of each model written */
 
 const samePath = (a: string, b: string) => resolve(a).toLowerCase() === resolve(b).toLowerCase()
 

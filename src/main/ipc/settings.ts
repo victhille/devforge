@@ -99,7 +99,7 @@ export function registerSettingsHandlers(): void {
     log('info', 'data', `Restored ${name} (previous data kept in ${safety})`)
     relaunchNow()
   })
-  // v3.0 lot 4: start over, or take one's setup elsewhere
+  // Start over, or take one's setup elsewhere
   ipcMain.handle('data:wipe', async () => {
     const gone = wipeData(app.getPath('userData'))
     // The page empties its own storage before asking (clearStorageData can hang for good, then the reload never ends)

@@ -7,9 +7,9 @@ import { ToolError } from './assistantTools'
 import { UPDATE_HINT } from '@shared/lib/manifests'
 
 /**
- * Forgy and a project's packages (v3.3 lot 4): `project_packages` tells what
+ * Forgy and a project's packages: `project_packages` tells what
  * is behind or vulnerable; `update_packages` is an action, so it goes through
- * a card the user approves, and its undo puts the saved files back. v3.6: the
+ * a card the user approves, and its undo puts the saved files back. The
  * same for Python, Rust, Go, Ruby and Dart; .NET and Java are reported only.
  */
 

@@ -46,7 +46,7 @@ const ICONS: Record<DiagramNodeType, ReactNode> = {
 const inside = (b: Box, s: Box) => b.x >= s.x && b.y >= s.y && b.x + b.w <= s.x + s.w && b.y + b.h <= s.y + s.h
 
 /**
- * v3.9 lot 5: the diagrams — use cases, classes, sequence, flowchart,
+ * the diagrams — use cases, classes, sequence, flowchart,
  * architecture. The MCD's canvas with a palette per kind; drawn by the same
  * function as the thumbnails and the export, saved in conception/ as it changes.
  */
@@ -74,7 +74,7 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
   const parts = useMemo(() => new Map<string, Box>(dg ? [...dg.nodes.map(n => [n.id, nodeBox(n)] as const), ...dg.notes.map(n => [n.id, noteBox(n)] as const)] : []), [dg])
   const canvas = useCanvasView({ open: dg !== null, all })
   const { viewport, view, size, fit, zoom, toWorld } = canvas
-  /** v4.1: the parts picked together (a zone, Shift+click), moved and removed as one */
+  /** The parts picked together (a zone, Shift+click), moved and removed as one */
   const picker = useCanvasPick(canvas, { tool, parts, onPick: ids => setSel(ids.length === 1 ? { kind: dg?.notes.some(n => n.id === ids[0]) ? 'note' : 'node', id: ids[0] } : null) })
   const { multi, setMulti, zone, pick } = picker
 
@@ -187,7 +187,7 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
     setSel(null)
     setMulti([])
   }
-  // ── v4.2 lot 2: copy, paste, duplicate; line up, spread out (a sequence's participants stay in their row) ──
+  // ── Copy, paste, duplicate; line up, spread out (a sequence's participants stay in their row) ──
   const rowOnly = kind === 'sequence'
   const clip = useClipboard<DiagramModel>(canvas, {
     kind: `diagram:${kind}`, selected: multi.length ? multi : sel && sel.kind !== 'edge' ? [sel.id] : [], boxes: parts,
@@ -371,7 +371,7 @@ export default function DiagramEditor({ projectPath, file, kind }: { projectPath
             </div>
             <ZoneRect box={zone} />
 
-            {/* v4.1: the cursors and the parts, in a bar at the bottom */}
+            {/* The cursors and the parts, in a bar at the bottom */}
             <CanvasBar tool={tool} onTool={setTool}>
               {NODE_TYPES[kind].map(type => <BarItem key={type} onClick={() => addNode(type)} drag={type} label={g.nodes[type]} icon={ICONS[type]} />)}
               <BarItem onClick={() => addNote()} drag={NOTE} label={e.addNote} icon={<StickyNote size={15} className="text-[var(--diagram-yellow)]" />} />

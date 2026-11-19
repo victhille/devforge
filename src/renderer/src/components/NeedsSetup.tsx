@@ -8,7 +8,7 @@ import EmptyState from '@renderer/components/ui/EmptyState'
 export type SetupService = 'server' | 'github' | 'vercel' | 'forgy'
 
 /**
- * A page that needs a service nobody has set up yet (v3.0 lot 2): what it
+ * A page that needs a service nobody has set up yet: what it
  * needs, and the way to Settings › Connections. No error, nothing missing.
  */
 export default function NeedsSetup({ service, why, compact }: { service: SetupService; why?: string; compact?: boolean }) {

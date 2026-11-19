@@ -5,7 +5,7 @@ import initSqlJs from 'sql.js'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.6 lot 3: rows edited in the Browse tab, applied in one transaction */
+/** Rows edited in the Browse tab, applied in one transaction */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

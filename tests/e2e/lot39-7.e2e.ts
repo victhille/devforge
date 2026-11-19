@@ -7,7 +7,7 @@ import { settledAxeIssues } from './axe'
 import { pullLink, pullToEmpty } from './pull'
 import { shop } from '../shopMcd'
 
-/** v3.9: links pulled from the parts' points, the palette dragged onto the canvas (MCD, flowchart, MPD) */
+/** Links pulled from the parts' points, the palette dragged onto the canvas (MCD, flowchart, MPD) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

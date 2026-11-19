@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { isSailCompose, laravelCommandLine } from '../../src/shared/lib/laravelCommands'
 import { planSetup, sailEnv, stepCommand } from '../../src/shared/lib/projectSetup'
 
-/** v2.3 lot 5: Laravel Sail, driven through docker compose */
+/** Laravel Sail, driven through docker compose */
 describe('v2.3 lot 5: Laravel Sail', () => {
   it('runs PHP in the app container, starts and stops with docker compose', () => {
     expect(laravelCommandLine('migrate', '', true)).toBe('docker compose exec -T -u sail laravel.test php artisan migrate --no-interaction')

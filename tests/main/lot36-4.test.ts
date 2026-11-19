@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { decodeCsv, guessSeparator, matchColumns, parseCsv } from '../../src/shared/lib/csvImport'
 
-/** v3.6 lot 4: a CSV read for import */
+/** A CSV read for import */
 describe('v3.6 lot 4: CSV import', () => {
   it('guesses the separator from the header, quotes ignored', () => {
     expect(guessSeparator('id;name;"a;b"\n1;x;y')).toBe(';')

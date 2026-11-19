@@ -1,6 +1,6 @@
 import type { Framework, PackageManager } from './index'
 
-/** v3.8 lot 5: a project saved as a template, kept in DevForge's data */
+/** A project saved as a template, kept in DevForge's data */
 export interface UserTemplate {
   id: string
   name: string

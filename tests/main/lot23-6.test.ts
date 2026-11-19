@@ -7,7 +7,7 @@ import { workshopModelsText, workshopOf } from '../../src/main/services/assistan
 
 const project = (path: string, name = 'site'): Project => ({ id: 'p', name, path, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null } as unknown as Project)
 
-/** v2.3 lot 6: Forgy in the three workshops */
+/** Forgy in the three workshops */
 describe('v2.3 lot 6: Forgy and the workshops', () => {
   afterEach(() => { delete process.env.DEVFORGE_TEST_NEXTJS })
 

@@ -45,7 +45,7 @@ describe('v2.2 lot 5: shell markers', () => {
     expect(parse(`${A}${D(127)}`)).toEqual([{ type: 'prompt-start' }, { type: 'exit-code', code: 127 }])
   })
 
-  // v2.3 lot 2: cmd's code carries the block it belongs to
+  // Cmd's code carries the block it belongs to
   it('cmd: a tagged exit code, and the line that asks for it', () => {
     expect(new MarkerParser().feed('\x1b]633;D;3;7\x1b\\')).toEqual([{ type: 'exit-code', code: 3, tag: '7' }])
     expect(new MarkerParser().feed('\x1b]633;D;;7\x1b\\')).toEqual([])
@@ -116,7 +116,7 @@ describe.runIf(process.platform === 'win32')('v2.2 lot 5: real shells mark their
     expect(r[3].cwd).toBe('/')
   }, 60_000)
 
-  // v2.3 lot 2: the code comes with the line DevForge types; a line that never reaches it (rem) says nothing
+  // The code comes with the line DevForge types; a line that never reaches it (rem) says nothing
   it('cmd: exit codes of each line, the folder', async () => {
     const r = await runAll('cmd', ['echo bonjour', 'cmd /c exit 3', 'dir C:\\nope-devforge', 'rem rien', 'cd ..'])
     expect(plain(r[0].out)).toContain('bonjour')

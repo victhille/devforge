@@ -12,14 +12,14 @@ interface Props<T extends string> {
   items: TabItem<T>[]
   value: T
   onChange: (value: T) => void
-  /** `segmented`: a recessed track with one raised segment; `underline` (v4.3): a row of words, the chosen one underlined */
+  /** `segmented`: a recessed track with one raised segment; `underline`: a row of words, the chosen one underlined */
   variant?: 'segmented' | 'underline'
   /** Names the group for screen readers */
   label?: string
   className?: string
 }
 
-/** Tabs: two looks, one behavior (the arrows move from one tab to the next, v4.3) */
+/** Tabs: two looks, one behavior (the arrows move from one tab to the next) */
 export default function Tabs<T extends string>({ items, value, onChange, variant = 'segmented', label, className }: Props<T>) {
   const usable = items.filter(i => !i.disabled)
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {

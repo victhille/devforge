@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v2.3 lot 4: Auth.js from the Next.js workshop (packages faked, files really written) */
+/** Auth.js from the Next.js workshop (packages faked, files really written) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

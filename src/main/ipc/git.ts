@@ -4,7 +4,7 @@ import { getChanges, getFileDiff, getFileStates, getRepoDetails, gitCommit, gitF
 import { assertProjectPath as repo } from '../lib/safe'
 
 export function registerGitHandlers(): void {
-  // v4.0: only the repositories of saved projects
+  // Only the repositories of saved projects
   ipcMain.handle('git:details', (_e, path: string, fresh?: boolean) => getRepoDetails(repo(path), fresh === true))
   ipcMain.handle('git:fetch',   (_e, path: string) => gitFetch(repo(path)))
   ipcMain.handle('git:pull',    (_e, path: string) => gitPull(repo(path)))

@@ -7,7 +7,7 @@ import { loadSettings } from '../settings/settingsService'
 import { CMD_META, assertSafeDir, findExecutable, isInsideProject } from '../../lib/safe'
 
 /**
- * v3.5 lot 3: finds the IDEs on this PC and opens a folder with one: an IDE
+ * finds the IDEs on this PC and opens a folder with one: an IDE
  * of the catalog, or one added by hand in Settings (a program and its
  * arguments). Programs run without a shell; a .cmd or .bat needs one, so its
  * path and arguments must hold no character cmd.exe would interpret.
@@ -92,7 +92,7 @@ const FOLDER_THEN_FILE = new Set(['vscode', 'cursor', 'windsurf', 'antigravity',
 const JETBRAINS = new Set(['phpstorm', 'webstorm', 'intellij', 'pycharm', 'rider', 'goland', 'rustrover'])
 
 /**
- * The catalog IDE's arguments for a file of the project at `root`; v3.6 lot 5:
+ * The catalog IDE's arguments for a file of the project at `root`; 
  * at a line, each IDE its own way (VS Code -g file:line, JetBrains --line…)
  */
 export function fileArgs(ideId: string, filePath: string, root: string | null, line?: number): string[] {
@@ -108,7 +108,7 @@ export function fileArgs(ideId: string, filePath: string, root: string | null, l
 }
 
 /**
- * v3.5.3: one file of a saved project, in an IDE. v3.5.4: with the project's
+ * One file of a saved project, in an IDE. With the project's
  * folder (`root`) for the editors of the VS Code family and Zed, so the file
  * opens in that project's window, not in the last one used. Others get the
  * file alone; one added by hand gets its arguments, {dir} being the file.

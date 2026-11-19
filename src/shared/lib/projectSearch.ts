@@ -1,5 +1,5 @@
 /**
- * v3.6 lot 5: searching a whole project from its Files tab. Pure parts: the
+ * searching a whole project from its Files tab. Pure parts: the
  * pattern built from what is typed, the file filter, the lines found.
  */
 

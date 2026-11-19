@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { confirmDialog, cancelButton } from './confirm'
 
-/** v2.1 lot 3: customizable Home, palette actions, compact mode */
+/** Customizable Home, palette actions, compact mode */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

@@ -2886,7 +2886,7 @@ const en = {
     validJson: 'Valid JSON'
   },
 
-  // v3.5 lot 5: the commands added to the Docs page
+  // The commands added to the Docs page
   docsCustom: {
     reference: 'Quick reference',
     searchIn: 'Search in {name}…',
@@ -2912,7 +2912,7 @@ const en = {
     removeCmd: 'Delete {cmd}'
   },
 
-  // v3.5 lot 4: what each tool is for, how to use it, and its examples
+  // What each tool is for, how to use it, and its examples
   toolHelp: {
     label: "Tool help",
     hide: 'Hide the help',

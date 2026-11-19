@@ -2,7 +2,7 @@ import { ipcMain, type BrowserWindow } from 'electron'
 import type { TestRunner } from '@shared/types'
 import { detectRunners, lastRun, runTests, stopTests } from '../services/tests/testRunner'
 
-/** v3.7: a project's tests */
+/** A project's tests */
 const RUNNERS: TestRunner[] = ['vitest', 'jest', 'playwright', 'phpunit', 'pytest', 'go', 'cargo']
 const runnerOf = (v: unknown): TestRunner => {
   if (!RUNNERS.includes(v as TestRunner)) throw new Error('Unknown test tool')

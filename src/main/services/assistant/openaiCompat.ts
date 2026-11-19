@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto'
 import type Anthropic from '@anthropic-ai/sdk'
 
 /**
- * v4.2: Forgy on a provider other than Anthropic, through OpenAI's chat API
+ * Forgy on a provider other than Anthropic, through OpenAI's chat API
  * (OpenAI, Gemini, Mistral, xAI, OpenRouter, Groq, DeepSeek, Ollama, any
  * compatible server). The conversation stays stored as Anthropic messages:
  * it is turned into chat messages for each request, and the answer comes

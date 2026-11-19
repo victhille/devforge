@@ -1,5 +1,5 @@
 /**
- * v3.5 lot 3: the IDEs DevForge knows. Each is found by its usual install
+ * the IDEs DevForge knows. Each is found by its usual install
  * folders on Windows (a %VAR% stands for that environment variable, a `*`
  * for any version folder), then by its command in PATH.
  */

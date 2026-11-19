@@ -48,7 +48,7 @@ export default function ModelEditorPage() {
 }
 
 /**
- * v3.9 lot 2: the MCD editor. Entities, associations, the legs between them and
+ * the MCD editor. Entities, associations, the legs between them and
  * their cardinalities, notes; the same canvas as the schema (pan, zoom, fit,
  * minimap). Saved in the project's conception/ folder as it changes.
  */
@@ -66,7 +66,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
   const [pull, setPull] = useState<Pull | null>(null)
   /** Parts moved (the one pressed, or the selection it is in), or a line pulled from a part's point */
   const drag = useRef<{ kind: 'move' | 'pull'; ids?: string[]; solo?: string; sel?: Sel; sx: number; sy: number; moved: boolean; before?: McdModel } | null>(null)
-  /** v4.1: the tidy MCD suggestion, and a refit once it is taken */
+  /** The tidy MCD suggestion, and a refit once it is taken */
   const [tidying, setTidying] = useState(false)
   const [refit, setRefit] = useState(0)
 
@@ -81,7 +81,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
   const all = bounds([...boxes.values()])
   const canvas = useCanvasView({ open: mcd !== null, all, refit })
   const { viewport, view, size, touched, fit, zoom, toWorld } = canvas
-  /** v4.1: the parts picked together (a zone, Shift+click), moved and removed as one */
+  /** The parts picked together (a zone, Shift+click), moved and removed as one */
   const picker = useCanvasPick(canvas, { tool, parts: boxes, onPick: ids => setSel(ids.length === 1 ? selOf(ids[0]) : null) })
   const { multi, setMulti, zone, pick } = picker
 
@@ -112,7 +112,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
     if (centered) { const b = associationBox(asso); asso.x = Math.round(p.x - b.w / 2); asso.y = Math.round(p.y - b.h / 2) }
     return asso
   }
-  /** v4.1: an association made between parts goes to the free spot nearest that middle, never on a part (`also`: one being added) */
+  /** An association made between parts goes to the free spot nearest that middle, never on a part (`also`: one being added) */
   const freeAssociation = (middle: Point, also: Box[] = []) => {
     const asso = newAssociation(middle, true)
     const b = associationBox(asso)
@@ -199,7 +199,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
   /** The part an id is, for the side panel */
   const selOf = (id: string): Sel => !mcd ? null : mcd.entities.some(x => x.id === id) ? { kind: 'entity', id } : mcd.associations.some(x => x.id === id) ? { kind: 'association', id } : { kind: 'note', id }
 
-  // ── v4.2 lot 2: copy, paste, duplicate; line up, spread out ─────────────────
+  // ── Copy, paste, duplicate; line up, spread out ─────────────────
   /** The parts picked (a leg alone is not copied) */
   const picked = multi.length ? multi : sel && sel.kind !== 'link' ? [sel.id] : []
   const clip = useClipboard<McdModel>(canvas, {
@@ -217,7 +217,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
   })
 
   // ── Pointer: the view or a zone (shared), move parts, pull a line from a part's point ──
-  /** v4.1: on a part, Shift+click adds or takes it out, and a part of a selection moves the whole selection */
+  /** On a part, Shift+click adds or takes it out, and a part of a selection moves the whole selection */
   const down = (ev: ReactPointerEvent, target?: Sel) => {
     if (!picker.press(ev) || picker.background(ev, !!target) || !target) return
     if (ev.shiftKey && target.kind !== 'link') { picker.toggle(target.id); return }

@@ -20,7 +20,7 @@ export type Framework =
   | 'docker'
   // Generic
   | 'typescript' | 'empty' | 'unknown'
-  // v3.5: a folder that is not a project but holds several (backend/ + frontend/)
+  // A folder that is not a project but holds several (backend/ + frontend/)
   | 'group'
 
 export type PackageManager = 'npm' | 'pnpm' | 'yarn'
@@ -31,13 +31,13 @@ export interface DetectedProject {
   path: string
   framework: Framework
   packageManager: PackageManager
-  /** v3.5: a group's projects (framework 'group'); a name is its path inside the group (api, apps/web) */
+  /** A group's projects (framework 'group'); a name is its path inside the group (api, apps/web) */
   subprojects?: SubProject[]
-  /** v3.5.1: the rest of a group's folder (docs/, README.md…) */
+  /** The rest of a group's folder (docs/, README.md…) */
   extras?: string[]
 }
 
-/** v3.5: one project of a group */
+/** One project of a group */
 export interface SubProject {
   name: string
   path: string
@@ -54,15 +54,15 @@ export interface Project {
   createdAt: string
   lastOpenedAt: string | null
   favorite: boolean
-  /** v3.3.1: its folder no longer exists (worked out on load, never saved) */
+  /** Its folder no longer exists (worked out on load, never saved) */
   missing?: boolean
-  /** v3.5: a group's projects, as on disk now (worked out on load, never saved) */
+  /** A group's projects, as on disk now (worked out on load, never saved) */
   subprojects?: SubProject[]
-  /** v3.5.1: the rest of a group's folder (docs/, README.md…), worked out on load, never saved */
+  /** The rest of a group's folder (docs/, README.md…), worked out on load, never saved */
   extras?: string[]
-  /** v3.5: the IDE this project opens in, in place of the default one */
+  /** The IDE this project opens in, in place of the default one */
   ide?: DefaultIDE
-  /** v3.5: a group's projects' own IDEs, by their name in the group */
+  /** A group's projects' own IDEs, by their name in the group */
   subIdes?: Record<string, DefaultIDE>
 }
 
@@ -80,11 +80,11 @@ export interface ProjectCreationOptions {
   openAfter: boolean
   libraries?: string[]
   devLibraries?: string[]
-  /** v2.2: database, options, Git and GitHub after the creation */
+  /** Database, options, Git and GitHub after the creation */
   setup?: ProjectSetup
-  /** v3.3.1: the interface's language, for the creation's messages (French when absent) */
+  /** The interface's language, for the creation's messages (French when absent) */
   lang?: 'fr' | 'en'
-  /** v3.8: one of the user's templates (its id), copied in place of the framework's starter */
+  /** One of the user's templates (its id), copied in place of the framework's starter */
   template?: string
 }
 
@@ -131,10 +131,10 @@ export interface LogLine {
 // ─── Settings ────────────────────────────────────────────────────────────────
 
 export type Theme = 'dark' | 'light' | 'system'
-/** v3.5: an IDE of the catalog (shared/data/ides), one added by hand (its id), or 'none' */
+/** An IDE of the catalog (shared/data/ides), one added by hand (its id), or 'none' */
 export type DefaultIDE = string
 
-/** v3.5: a command added to the Docs page */
+/** A command added to the Docs page */
 export interface CustomCommand {
   id: string
   cmd: string
@@ -144,14 +144,14 @@ export interface CustomCommand {
   createdAt: string
 }
 
-/** v3.5: whether a command's program is on this PC */
+/** Whether a command's program is on this PC */
 export interface CommandCheck {
   program: string
   found: boolean
   path?: string
 }
 
-/** v3.5: an IDE added by hand in Settings */
+/** An IDE added by hand in Settings */
 export interface CustomIde {
   id: string
   name: string
@@ -166,15 +166,15 @@ export type AppLanguage = 'en' | 'fr'
 export interface AppSettings {
   /** The first projects folder: new projects go there by default */
   defaultProjectsDir: string
-  /** v3.5: the other projects folders, scanned too (see shared/lib/projectFolders) */
+  /** The other projects folders, scanned too (see shared/lib/projectFolders) */
   extraProjectsDirs?: string[]
   defaultPackageManager: PackageManager
   defaultIDE: DefaultIDE
-  /** v3.5: IDEs added by hand */
+  /** IDEs added by hand */
   customIdes?: CustomIde[]
-  /** v3.5: the greyed rest of a terminal line (on unless turned off) */
+  /** The greyed rest of a terminal line (on unless turned off) */
   terminalSuggest?: boolean
-  /** v3.8: GitHub CI alerts: favourite projects (default), all of them, or none */
+  /** GitHub CI alerts: favourite projects (default), all of them, or none */
   ciAlerts?: 'favorites' | 'all' | 'off'
   theme: Theme
   defaultTerminal: DefaultTerminal
@@ -203,7 +203,7 @@ export interface AppSettings {
   favorites: string[]
   /** Widgets of the Home page, in order (only written by `setHomeWidgets`) */
   homeWidgets: HomeWidget[]
-  /** Global launcher (v2.2): floating search over any application */
+  /** Global launcher: floating search over any application */
   launcherEnabled: boolean
   /** Electron accelerator, e.g. CommandOrControl+Alt+Space */
   launcherShortcut: string
@@ -305,7 +305,7 @@ export interface FileEntry {
   extension: string | null
 }
 
-/** v3.5.1: a project's file, ready to show */
+/** A project's file, ready to show */
 export type FilePreview =
   | { kind: 'markdown' | 'text'; size: number; text: string }
   | { kind: 'image'; size: number; dataUrl: string }
@@ -335,7 +335,7 @@ export interface ListeningPort {
 
 export * from './git'
 
-/** v4.2: the data the windows keep and read again when the main process says it changed */
+/** The data the windows keep and read again when the main process says it changed */
 export type DataTopic = 'projects' | 'db-connections' | 'models' | 'notes' | 'settings' | 'ssh' | 'templates'
 export * from './cleaner'
 export * from './envfiles'
@@ -447,7 +447,7 @@ export interface DevForgeAPI {
   db: DatabaseAPI
   logs: LogsAPI
   webhooks: WebhooksAPI
-  /** v3.5: the commands added to the Docs page */
+  /** The commands added to the Docs page */
   docs: {
     list: () => Promise<CustomCommand[]>
     save: (c: Partial<CustomCommand>) => Promise<CustomCommand[]>
@@ -497,15 +497,15 @@ export interface DevForgeAPI {
   selectFile: () => Promise<string | null>
   openDirectory: (path: string) => Promise<void>
   openInIDE: (path: string, ide: DefaultIDE) => Promise<void>
-  /** v3.5.3: a file of a saved project; `root`, its project's folder, opens in that project's window */
+  /** A file of a saved project; `root`, its project's folder, opens in that project's window */
   openFileInIDE: (path: string, ide: DefaultIDE, root?: string, line?: number) => Promise<void>
-  /** v3.6: a text or a regex in every file of a saved project */
+  /** A text or a regex in every file of a saved project */
   searchProject: (root: string, query: string, options: import('../lib/projectSearch').SearchOptions) => Promise<import('../lib/projectSearch').SearchResult>
-  /** v3.5: the IDEs of the catalog and those added by hand, with which are on this PC */
+  /** The IDEs of the catalog and those added by hand, with which are on this PC */
   listIdes: (fresh?: boolean) => Promise<IdeInfo[]>
-  /** v3.5: opens the projects folder with an IDE being added by hand, before it is saved */
+  /** Opens the projects folder with an IDE being added by hand, before it is saved */
   tryIde: (ide: CustomIde) => Promise<void>
-  /** v3.5: picks a program (.exe, .cmd, .bat) */
+  /** Picks a program (.exe, .cmd, .bat) */
   selectProgram: () => Promise<string | null>
   openExternal: (url: string) => Promise<void>
   /** The GPL-3.0 license or the third-party notices shipped with the app; false when the file is not there */
@@ -513,7 +513,7 @@ export interface DevForgeAPI {
   pathExists: (path: string) => Promise<boolean>
   openTerminal: (path: string) => Promise<void>
   readDirectory: (path: string) => Promise<FileEntry[]>
-  /** v3.5.1: a file of a saved project, for the Files tab's preview */
+  /** A file of a saved project, for the Files tab's preview */
   previewFile: (path: string) => Promise<FilePreview>
 
   // Project creation
@@ -523,7 +523,7 @@ export interface DevForgeAPI {
   // Project scanner
   scanDirectory: (directory: string) => Promise<DetectedProject[]>
 
-  /** v4.2: a kind of data changed in the main process (by a page, Forgy, an import): the pages showing it read it again */
+  /** A kind of data changed in the main process (by a page, Forgy, an import): the pages showing it read it again */
   onDataChanged: (cb: (e: { topic: DataTopic; scope?: string }) => void) => () => void
 
   // Project storage
@@ -559,15 +559,15 @@ export interface DevForgeAPI {
   laravel: LaravelAPI
   connections: ConnectionsAPI
   packages: PackagesAPI
-  /** v3.7: a project's tests */
+  /** A project's tests */
   tests: TestsAPI
-  /** v3.8: a project's tasks and notes */
+  /** A project's tasks and notes */
   notes: NotesAPI
-  /** v3.8: commits across projects */
+  /** Commits across projects */
   activity: ActivityAPI
-  /** v3.8: the user's project templates */
+  /** The user's project templates */
   templates: TemplatesAPI
-  /** v3.9: the project's models (MCD, MPD, UML…), in its conception/ folder */
+  /** The project's models (MCD, MPD, UML…), in its conception/ folder */
   modeling: ModelingAPI
   dictation: DictationAPI
 
@@ -588,7 +588,7 @@ export interface DevForgeAPI {
   // Scripts
   getProjectScripts: (path: string) => Promise<Record<string, string>>
   runProjectScript: (path: string, script: string, pm: PackageManager) => Promise<string>
-  /** v3.3.1: package.json declares packages and node_modules is missing */
+  /** Package.json declares packages and node_modules is missing */
   scriptNeedsInstall: (path: string) => Promise<boolean>
   installProjectDeps: (path: string, pm: PackageManager) => Promise<string>
 

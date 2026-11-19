@@ -10,15 +10,15 @@ import { Field, Input } from '@renderer/components/ui/Input'
 import { ImportProgress, useModelImport } from './ImportProgress'
 
 /**
- * v4.1: a new physical model. No database: a blank MPD, drawn table by table;
+ * A new physical model. No database: a blank MPD, drawn table by table;
  * a connection: its tables read into an MPD linked to it, and the MCD worked
- * out from it (v3.9 lot 4), step by step. Resolves with the MPD's file name.
+ * out from it, step by step. Resolves with the MPD's file name.
  */
 export default function MpdDialog({ project, onClose, onDone }: { project: Project; onClose: () => void; onDone: (file: string) => void }) {
   const { t } = useI18n()
   const m = t.modeling
   const l = m.linked
-  // v4.2: the kept list of connections
+  // The kept list of connections
   const list = useDbConnections()
   const connections: DbConnection[] | null = list.data ?? (list.error ? [] : null)
   /** '' : none, a blank MPD */

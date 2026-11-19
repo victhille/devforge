@@ -10,7 +10,7 @@ import { addColumnSql, alterColumnSql, createTableSql, dropColumnSql, dropTableS
 import { tempDir } from '../helpers'
 
 /**
- * v3.6 lot 6: tables, rows, export and import on real servers. Opt-in: start
+ * tables, rows, export and import on real servers. Opt-in: start
  * the two containers, then run with DEVFORGE_REAL_DB=1
  *   docker run -d --rm --name df-verify-pg -e POSTGRES_PASSWORD=verify -e POSTGRES_DB=verify -p 55432:5432 postgres:16-alpine
  *   docker run -d --rm --name df-verify-maria -e MARIADB_ROOT_PASSWORD=verify -e MARIADB_DATABASE=verify -p 53306:3306 mariadb:11.4
@@ -22,7 +22,7 @@ const SERVERS: { type: DbType; port: number; user: string; id: string }[] = [
 
 afterAll(() => closeAllDbs())
 
-describe.skipIf(!process.env.DEVFORGE_REAL_DB)('v3.6: on real PostgreSQL and MariaDB', () => {
+describe.skipIf(!process.env.DEVFORGE_REAL_DB)('On real PostgreSQL and MariaDB', () => {
   for (const s of SERVERS) {
     it(`${s.type}: a table created and changed, its rows edited in one transaction, exported and imported`, async () => {
       const conn: DbConnection = { id: s.id, name: s.id, type: s.type, host: '127.0.0.1', port: s.port, user: s.user, password: 'verify', database: 'verify', color: '#5B9BFF' }
@@ -43,7 +43,7 @@ describe.skipIf(!process.env.DEVFORGE_REAL_DB)('v3.6: on real PostgreSQL and Mar
       expect(state.type).toMatch(/varchar|character varying/i)
       expect(state.default).toMatch(/new/)
 
-      // v3.6 lot 3: rows, all or none
+      // Rows, all or none
       expect(await dbApplyRows(s.id, t, [
         { kind: 'insert', values: { label: "O'Brien" } }, { kind: 'insert', values: { label: 'Ada', state: null } }, { kind: 'insert', values: { label: 'Linus' } }
       ])).toEqual({ affected: 3 })
@@ -55,7 +55,7 @@ describe.skipIf(!process.env.DEVFORGE_REAL_DB)('v3.6: on real PostgreSQL and Mar
       expect(failed.error).toBeTruthy()
       expect(await rows()).toEqual([[1, "O'Brien", 'new'], [2, 'Ada', 'paid']])
 
-      // v3.6 lot 4: export, then import
+      // Export, then import
       const dir = tempDir('real')
       dialog.next = join(dir, 'invoice.csv')
       expect(await exportTable({} as never, s.id, t, 'csv')).toEqual({ path: dialog.next, rows: 2 })

@@ -79,7 +79,7 @@ export default function TitleBar() {
         <Kbd>Ctrl K</Kbd>
       </button>
 
-      {/* v3.9: a project being created, from any page */}
+      {/* A project being created, from any page */}
       <CreationBadge />
 
       {/* The documentation of this page, on the site (F1) */}

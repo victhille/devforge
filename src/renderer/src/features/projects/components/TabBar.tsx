@@ -8,7 +8,7 @@ export interface TabItem<T extends string> { id: T; label: string; count?: numbe
 const MORE_WIDTH = 120
 
 /**
- * v3.8.1: underlined tabs on one line, never a scrollbar: those that do not
+ * Underlined tabs on one line, never a scrollbar: those that do not
  * fit go in a "More" menu; the open tab always stays on the bar.
  */
 export default function TabBar<T extends string>({ items, active, onSelect, moreLabel }: {

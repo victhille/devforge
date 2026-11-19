@@ -1,7 +1,7 @@
 import type { ActivityCommit, ProjectActivity } from '../types/activity'
 
 /**
- * v3.8 lot 3: the Activity page's figures, from each project's commits:
+ * the Activity page's figures, from each project's commits:
  * commits per week, the most active, those asleep, the branches to follow.
  */
 

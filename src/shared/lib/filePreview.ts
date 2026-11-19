@@ -1,4 +1,4 @@
-/** v3.5.1: how a project's file is shown in the Files tab */
+/** How a project's file is shown in the Files tab */
 export type PreviewKind = 'markdown' | 'image' | 'pdf' | 'text'
 
 const IMAGE: Record<string, string> = {

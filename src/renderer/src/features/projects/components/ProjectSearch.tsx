@@ -18,7 +18,7 @@ function Toggle({ on, onChange, title, children }: { on: boolean; onChange: (v: 
 }
 
 /**
- * v3.6 lot 5: the search of the Files tab: a text or a regex in the whole
+ * the search of the Files tab: a text or a regex in the whole
  * project, 300 ms after the last key; the results replace the tree.
  */
 export function useProjectSearch(root: string) {

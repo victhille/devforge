@@ -8,7 +8,7 @@ import { planSetup } from '../../src/shared/lib/projectSetup'
 import { welcomeFiles, welcomeItems, type WelcomeInfo } from '../../src/shared/lib/welcomePage'
 import { tempDir } from '../helpers'
 
-/** v3.4 lot 1: DevForge's welcome page in each created project */
+/** DevForge's welcome page in each created project */
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
   database: 'postgres', dbName: 'shop', dbPort: 5433, features: ['api', 'auth'], git: true, github: null, openVSCode: false, welcome: true, ...s
 })
@@ -24,7 +24,7 @@ function tsxErrors(source: string): string[] {
 
 const hasPhp = (() => { try { execFileSync('php', ['-v'], { stdio: 'ignore' }); return true } catch { return false } })()
 
-describe('v3.4: welcome page', () => {
+describe('Welcome page', () => {
   it('lists what the creation set up', () => {
     expect(welcomeItems(info('nextjs'))).toEqual(['Base PostgreSQL (Docker)', 'Première route d\'API', 'Connexion et inscription', 'Dépôt Git (branche main)'])
     expect(welcomeItems(info('react', { database: 'none', features: [], git: false }))).toEqual(['Le projet de base, prêt à recevoir votre code'])

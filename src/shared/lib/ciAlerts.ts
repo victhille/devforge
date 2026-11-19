@@ -1,7 +1,7 @@
 import type { GithubRun } from '../types'
 
 /**
- * v3.8 lot 2: what the CI watch makes of a project's latest workflow runs:
+ * what the CI watch makes of a project's latest workflow runs:
  * each workflow's last finished run, and what changed since the last look.
  */
 

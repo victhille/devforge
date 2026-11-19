@@ -7,7 +7,7 @@ import { saveProject } from '../../src/main/services/projects/projectStorage'
 import { fileArgs } from '../../src/main/services/system/ides'
 import { tempDir } from '../helpers'
 
-/** v3.6 lot 5: searching a whole project */
+/** Searching a whole project */
 const file = (path: string, content: string | Buffer) => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
 const opts = { regex: false, caseSensitive: false, wholeWord: false, include: '' }
 

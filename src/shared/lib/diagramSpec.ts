@@ -3,7 +3,7 @@ import { EDGE_TYPES, nextMessageY, NODE_TYPES, nodeBox } from './uml'
 import { McdSpecError as SpecError } from './mcdSpec'
 
 /**
- * v4.2 lot 3: a diagram from a description (what Forgy writes from the
+ * a diagram from a description (what Forgy writes from the
  * user's words): its parts, named, and the links between them by those
  * names. Checked against the kind's parts and links, then laid out the way
  * that kind reads: a sequence in a row with its messages in order, use cases

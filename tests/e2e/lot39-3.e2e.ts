@@ -5,7 +5,7 @@ import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
 import { shop } from '../shopMcd'
 
-/** v3.9 lot 3: the MLD worked out from the MCD, the MPD made and touched up, the SQL written in the project */
+/** The MLD worked out from the MCD, the MPD made and touched up, the SQL written in the project */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

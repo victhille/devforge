@@ -8,7 +8,7 @@ import { dbDiagram } from '../database/dbClient'
 import { createModel, modelsChanged, projectDir, readModel, saveModel } from './models'
 
 /**
- * v4.1: a project's database read into its conception/ folder — the MPD, linked
+ * A project's database read into its conception/ folder — the MPD, linked
  * to the connection, and the MCD worked out from it — one step at a time, so
  * the window (or Forgy's card) can show how far it is.
  */
@@ -52,7 +52,7 @@ export async function modelFromDatabase(projectPath: string, connectionId: strin
 }
 
 /**
- * v4.2 lot 3: an MPD drawn by hand gets its MCD, written next to it (same
+ * an MPD drawn by hand gets its MCD, written next to it (same
  * name, .mcd.json); the MPD is made again from it so that the two stay tied,
  * with its places, indexes and connection kept. An MCD of that name is never
  * written over.

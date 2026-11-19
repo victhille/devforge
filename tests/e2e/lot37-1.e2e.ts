@@ -5,7 +5,7 @@ import { goTo, launch, type Launched } from './launch'
 import { seedVitestProject } from './fakeVitest'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.7 lot 1: the Tests tab (a stand-in "vitest" writes a real-format report) */
+/** The Tests tab (a stand-in "vitest" writes a real-format report) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

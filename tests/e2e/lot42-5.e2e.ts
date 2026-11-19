@@ -4,7 +4,7 @@ import type { AddressInfo } from 'net'
 import { settledAxeIssues as settledAxe } from './axe'
 import { goTo, launch, type Launched } from './launch'
 
-/** v4.2: Forgy on another provider than Anthropic — chosen in the settings, its models listed, and it answers */
+/** Forgy on another provider than Anthropic — chosen in the settings, its models listed, and it answers */
 let run: Launched
 let http: Server
 test.afterEach(async () => {

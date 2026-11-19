@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 
-/** v4.1 lot 3: the floating bar — the selection cursor picks a zone, its parts move together; the hand moves the view */
+/** The floating bar — the selection cursor picks a zone, its parts move together; the hand moves the view */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

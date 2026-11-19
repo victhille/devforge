@@ -25,7 +25,7 @@ const PAGE_SIZES = [25, 50, 100, 250, 500]
 // ─── Parcourir ────────────────────────────────────────────────────────────────
 
 /**
- * The table's rows, page by page. v3.6 lot 3: with a primary key, cells are
+ * The table's rows, page by page. With a primary key, cells are
  * edited in place, rows added and deleted, then applied in one transaction
  * after the SQL is shown.
  */
@@ -143,7 +143,7 @@ const KEY_COLOR = { PRI: 'warning', UNI: 'accent', MUL: 'default' } as const
 type Editing = { kind: 'add' } | { kind: 'edit'; column: DbColumnInfo } | { kind: 'dropColumn'; column: string } | { kind: 'rename' } | { kind: 'drop' }
 
 /**
- * Columns and indexes. v3.5.1: a table (not a view) can be changed here:
+ * Columns and indexes. A table (not a view) can be changed here:
  * columns added, changed, dropped; the table renamed or dropped.
  */
 export function StructureTab({ details, conn, table, onChanged, onRenamed, onDropped }: {

@@ -5,7 +5,7 @@ import { buildPattern, fileFilter, findInText, MAX_MATCHES, type SearchFile, typ
 import { isInsideProject } from '../../lib/safe'
 
 /**
- * v3.6 lot 5: a text or a regex looked for in every file of a saved project,
+ * a text or a regex looked for in every file of a saved project,
  * dependencies, builds, virtual environments and binary files left out.
  * The files are listed first, then read 32 at a time (OneDrive folders are
  * slow one by one). A newer search stops the one running.

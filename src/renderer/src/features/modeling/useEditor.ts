@@ -8,7 +8,7 @@ import { errorText } from '@renderer/lib/errors'
 import { announce, boxOf, isTyping, leaveFields, touches, type CanvasTool } from './canvasTools'
 
 /**
- * v4.2 lot 1: what the three editors (MCD, diagrams, MPD) share, written once:
+ * what the three editors (MCD, diagrams, MPD) share, written once:
  * the model file (loaded, saved as it changes, its history), the view (size,
  * fit, zoom), picking (a zone, Shift+click, the hand) and the keyboard.
  */
@@ -266,7 +266,7 @@ export function shifted<T extends { id: string; x: number; y: number }>(list: T[
 }
 
 /**
- * v4.2: the parts picked lined up or spread out (`parts`: their boxes;
+ * The parts picked lined up or spread out (`parts`: their boxes;
  * `place`: gives them their new places, one step of the history).
  */
 export function arranging(parts: Map<string, Box>, ids: string[], place: (to: Map<string, Point>) => void) {
@@ -278,7 +278,7 @@ export function arranging(parts: Map<string, Box>, ids: string[], place: (to: Ma
   }
 }
 
-// ── Copy, paste, duplicate (v4.2 lot 2) ──────────────────────────────────────
+// ── Copy, paste, duplicate ──────────────────────────────────────
 
 /** What was copied, kept while the app is open: pasted in the same model, or in another of its kind */
 let clipboard: { kind: string; data: unknown; box: Box; times: number; count: number } | null = null
@@ -335,7 +335,7 @@ export function useClipboard<C>(canvas: CanvasView, { kind, selected, boxes, cop
 
 /**
  * Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z), Ctrl+A, Delete on what is picked, Escape;
- * Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+D (v4.2). Never while typing, and Ctrl+C
+ * Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+D. Never while typing, and Ctrl+C
  * leaves a text picked on the page to the system.
  */
 export function useEditorKeys(on: {

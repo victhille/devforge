@@ -4,7 +4,7 @@ import { join, resolve } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.6 lot 5: searching a whole project from its Files tab (this repository, read only) */
+/** Searching a whole project from its Files tab (this repository, read only) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

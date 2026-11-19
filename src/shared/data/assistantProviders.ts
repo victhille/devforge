@@ -1,5 +1,5 @@
 /**
- * v4.2: who answers for Forgy. Anthropic (Claude) is the default and the
+ * Who answers for Forgy. Anthropic (Claude) is the default and the
  * only one with web search and a known price; the others speak OpenAI's chat
  * API (their own, or a compatible one), so one adapter serves them all.
  */

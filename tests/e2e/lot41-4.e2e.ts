@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, openProjectTab, type Launched } from './launch'
 import { pullLink } from './pull'
 
-/** v4.1 lot 4: an MPD drawn by hand, in a project with no database — tables from the bar, columns, keys, removed */
+/** An MPD drawn by hand, in a project with no database — tables from the bar, columns, keys, removed */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

@@ -29,7 +29,7 @@ export default function StackEditor({ initial, onSave, onClose }: Props) {
   const [name, setName] = useState(initial?.name ?? '')
   const [color, setColor] = useState(initial?.color ?? CONNECTION_COLORS[0])
   const [steps, setSteps] = useState<StackStep[]>(initial?.steps ?? [])
-  // v4.2: the kept list of projects, shown at once
+  // The kept list of projects, shown at once
   const projects = useProjectList().data ?? NO_PROJECTS
 
 

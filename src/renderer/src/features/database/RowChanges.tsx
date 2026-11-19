@@ -11,7 +11,7 @@ import Notice from '@renderer/components/ui/Notice'
 const BINARY = /blob|binary|bytea|varbinary|image/i
 
 /**
- * v3.6 lot 3: the changes made in the Browse tab before they are applied:
+ * the changes made in the Browse tab before they are applied:
  * cells edited, rows added, rows marked for deletion. Rows are told apart by
  * their primary key, read as they came from the page.
  */
