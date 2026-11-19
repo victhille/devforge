@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { HistorySeries, VpsStatus, WatchConfig } from '@shared/types'
+import { visibleInterval } from '@renderer/lib/visibleInterval'
 
 /** Watched servers, live from the main process (one sample a minute) */
 export function useWatch(): { statuses: VpsStatus[]; config: WatchConfig | null; saveConfig: (c: Partial<WatchConfig>) => Promise<void> } {
@@ -14,7 +15,7 @@ export function useWatch(): { statuses: VpsStatus[]; config: WatchConfig | null;
   return { statuses, config, saveConfig }
 }
 
-/** A history series, reloaded every few minutes while shown */
+/** A history series, reloaded every few minutes while shown (the window too) */
 export function useHistory(key: string | null, hours = 24, bucketMin = 15): HistorySeries | null {
   const [series, setSeries] = useState<HistorySeries | null>(null)
   useEffect(() => {
@@ -22,8 +23,8 @@ export function useHistory(key: string | null, hours = 24, bucketMin = 15): Hist
     let alive = true
     const load = () => window.devforge.watch.history(key, hours, bucketMin).then(s => { if (alive) setSeries(s) }).catch(() => {})
     load()
-    const id = setInterval(load, 2 * 60_000)
-    return () => { alive = false; clearInterval(id) }
+    const stop = visibleInterval(load, 2 * 60_000)
+    return () => { alive = false; stop() }
   }, [key, hours, bucketMin])
   return series
 }

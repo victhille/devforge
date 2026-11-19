@@ -123,7 +123,7 @@ export default function PackagesPanel({ projectId }: { projectId: string }) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center gap-2.5">
-        <label className="flex h-9 w-full items-center gap-2 rounded-control border border-line bg-surface px-3 focus-within:border-accent sm:w-[280px]">
+        <label className="flex h-9 w-full items-center gap-2 rounded-control border border-line-strong bg-surface px-3 focus-within:border-accent sm:w-[280px]">
           <Search size={14} aria-hidden className="shrink-0 text-fg-muted" />
           <span className="sr-only">{k.search}</span>
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder={k.search}

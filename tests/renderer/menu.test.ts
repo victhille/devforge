@@ -70,7 +70,8 @@ describe('Sidebar', () => {
   afterAll(() => { vi.restoreAllMocks() })
   const at = (path: string) => renderToStaticMarkup(h(MemoryRouter, { initialEntries: [path] }, h(Sidebar)))
   const button = (out: string, name: string) => out.match(new RegExp(`<button[^>]*aria-label="${name}"[^>]*>`))?.[0] ?? ''
-  const link = (out: string, name: string) => out.match(new RegExp(`<a[^>]*>(?:(?!</a>).)*<span[^>]*>${name}</span></a>`))?.[0] ?? ''
+  // `<a\b`: an <a> tag, not the <aside> around the menu
+  const link = (out: string, name: string) => out.match(new RegExp(`<a\\b[^>]*>(?:(?!</a>).)*<span[^>]*>${name}</span></a>`))?.[0] ?? ''
 
   it('shows the group of the page on screen in the panel, its page marked, the others one click away', () => {
     const out = at('/git')
@@ -81,6 +82,9 @@ describe('Sidebar', () => {
     expect(button(out, 'Development')).toContain('tabindex="0"')
     expect(button(out, 'Tools')).toContain('aria-pressed="false"')
     expect(button(out, 'Tools')).toContain('tabindex="-1"')
+    // The group of the page on screen is told as current, even when its panel is closed
+    expect(button(out, 'Development')).toContain('aria-current="true"')
+    expect(button(out, 'Tools')).not.toContain('aria-current')
     // Its five pages, Git marked as the page on screen
     for (const name of ['Projects', 'New Project', 'Git', 'Activity', 'Launcher']) expect(link(out, name)).not.toBe('')
     expect(link(out, 'Git')).toContain('aria-current="page"')

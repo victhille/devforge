@@ -45,6 +45,10 @@ description: Tous les réglages de DevForge, section par section, de Général �
 
 À côté, la carte **Aperçu** montre une carte de projet avec ces choix, avant d'aller voir les pages.
 
+### Accessibilité
+
+Le **contraste élevé de Windows** est suivi : l'application prend alors les couleurs choisies dans Windows, et les focus, onglets choisis, interrupteurs, jauges et boutons restent visibles. Les champs de saisie ont une bordure d'au moins 3:1 dans chaque couleur, et la langue choisie est annoncée aux lecteurs d'écran.
+
 ## Serveurs
 
 Un relevé par minute en arrière-plan, gardé 7 jours. Deux cartes :

@@ -50,11 +50,13 @@ test('keyboard: the first Tab skips to the content', async () => {
   await expect(page.locator('main#main')).toBeFocused()
 })
 
-for (const theme of ['dark', 'light']) {
-  test(`no serious WCAG problem on the main pages (${theme})`, async () => {
+// Each theme in one language: the dark one in French, the light one in English (longer words, another page language)
+for (const [theme, language] of [['dark', 'fr'], ['light', 'en']]) {
+  test(`no serious WCAG problem on the main pages (${theme}, ${language})`, async () => {
     test.setTimeout(180_000)
     // Reduced motion: no element is caught half-faded by an entrance animation
-    run = await launch({ settings: { theme, motion: 'reduced' } })
+    run = await launch({ settings: { theme, language, motion: 'reduced' } })
+    expect(await run.page.evaluate(() => document.documentElement.lang)).toBe(language)
     const { page } = run
     const found: string[] = []
     for (const route of ['/', '/projects', '/docker', '/database', '/api-tester', '/monitor', '/n8n', '/settings', '/settings?section=data', '/settings?notes=all', '/ssh', '/toolbox', '/webhooks']) {

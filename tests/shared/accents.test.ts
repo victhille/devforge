@@ -28,6 +28,26 @@ describe('colour palettes', () => {
     expect(low).toEqual([])
   })
 
+  it("draw a field's edge at 3:1 at least on every background (WCAG 1.4.11)", () => {
+    // index.css mixes the muted text into the surface (srgb): the same mix here
+    const css = readFileSync('src/renderer/src/styles/index.css', 'utf8')
+    const m = /--color-line-strong:\s*color-mix\(in srgb, var\(--text-muted\) (\d+)%, var\(--bg-surface\)\)/.exec(css)
+    expect(m, '--color-line-strong in index.css').not.toBeNull()
+    const share = Number(m![1]) / 100
+    const low: string[] = []
+    for (const id of ACCENT_COLORS) {
+      for (const theme of ['dark', 'light'] as const) {
+        const p = PALETTES[id][theme]
+        const edge = mix(rgb(p.fgMuted), rgb(p.surface), share)
+        for (const bg of ['base', 'surface', 'elevated', 'sidebar', 'console'] as const) {
+          const r = ratio(edge, rgb(p[bg]))
+          if (r < 3) low.push(`${id} ${theme} bord sur ${bg} : ${r.toFixed(2)}`)
+        }
+      }
+    }
+    expect(low).toEqual([])
+  })
+
   it("keep Forge as the stylesheet has it, and write every theme variable", () => {
     const css = readFileSync('src/renderer/src/styles/index.css', 'utf8')
     for (const theme of ['dark', 'light'] as const) {

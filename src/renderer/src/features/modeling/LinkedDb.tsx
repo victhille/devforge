@@ -47,7 +47,7 @@ export default function LinkedPanel({ mpd, connections, suggested, diagram, load
       <div className="flex flex-wrap items-center gap-2 px-4 py-2">
         <Database size={14} className="text-fg-muted" />
         <select aria-label={l.label} value={mpd.connection ?? ''} onChange={e => onLink(e.target.value || undefined)}
-          className="h-8 max-w-[220px] rounded-md border border-line bg-canvas px-2 text-sm text-fg outline-none focus:border-accent">
+          className="h-8 max-w-[220px] rounded-md border border-line-strong bg-canvas px-2 text-sm text-fg outline-none focus:border-accent">
           <option value="">{l.none}</option>
           {usable.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>

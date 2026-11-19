@@ -3,11 +3,12 @@ import {
   CMD_CPU, CMD_DISK, CMD_DOCKER, CMD_MEM, CMD_PROCS, CMD_SYSINFO, CMD_UPTIME,
   parseStats, parseSysInfo, type SysInfo, type VPSStats
 } from './stats'
+import { visibleInterval } from '@renderer/lib/visibleInterval'
 
 const REFRESH_MS = 10_000
 const HISTORY_LEN = 30
 
-/** Poll system stats over an SSH session every 10s while `sessionId` is set. */
+/** Poll system stats over an SSH session every 10s while `sessionId` is set and the window is shown. */
 export function useVpsStats(sessionId: string | null) {
   const [sysInfo,     setSysInfo]     = useState<SysInfo | null>(null)
   const [stats,       setStats]       = useState<VPSStats | null>(null)
@@ -51,8 +52,7 @@ export function useVpsStats(sessionId: string | null) {
   useEffect(() => {
     if (!sessionId) return
     refresh(sessionId)
-    const id = setInterval(() => refresh(sessionId), REFRESH_MS)
-    return () => clearInterval(id)
+    return visibleInterval(() => { refresh(sessionId) }, REFRESH_MS)
   }, [sessionId, refresh])
 
   const reset = useCallback(() => {

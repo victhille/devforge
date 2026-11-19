@@ -16,7 +16,7 @@ import { errorText } from '@renderer/lib/errors'
 
 const blank = (): CustomIde => ({ id: '', name: '', path: '', args: '{dir}' })
 
-const SELECT = 'h-9 min-w-[220px] rounded-control border border-line bg-canvas px-3 text-base text-fg outline-none focus:border-accent/60'
+const SELECT = 'h-9 min-w-[220px] rounded-control border border-line-strong bg-canvas px-3 text-base text-fg outline-none focus:border-accent/60'
 
 /** The default IDE among those found on this PC, « Ajouter un IDE » beside it, and the IDEs added by hand under it */
 export default function IdeSettings({ settings, update }: { settings: AppSettings; update: (patch: Partial<AppSettings>) => Promise<void> }) {

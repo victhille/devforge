@@ -145,7 +145,7 @@ export default function Onboarding() {
         <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-3 px-6 pt-5">
           <div role="progressbar" aria-valuemin={1} aria-valuemax={STEPS} aria-valuenow={step + 1} aria-label={o.progress.replace('{n}', String(step + 1)).replace('{t}', String(STEPS))} className="flex flex-1 gap-1.5 sm:invisible">
-            {Array.from({ length: STEPS }, (_, i) => <span key={i} className={cn('h-1 flex-1 rounded-full transition-colors', i <= step ? 'bg-accent' : 'bg-active')} />)}
+            {Array.from({ length: STEPS }, (_, i) => <span key={i} className={cn('h-1 flex-1 rounded-full transition-colors', i <= step ? 'df-fill bg-accent' : 'bg-active')} />)}
           </div>
           {step < STEPS - 1 && <button onClick={finish} className="text-xs text-fg-muted hover:text-fg">{o.skip}</button>}
         </div>

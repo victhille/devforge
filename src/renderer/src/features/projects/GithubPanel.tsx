@@ -11,6 +11,7 @@ import Card from '@renderer/components/ui/Card'
 import IconButton from '@renderer/components/ui/IconButton'
 import { Input } from '@renderer/components/ui/Input'
 import { errorText } from '@renderer/lib/errors'
+import { visibleInterval } from '@renderer/lib/visibleInterval'
 
 /** While a run is going, the panel looks again this often */
 const LIVE_MS = 20_000
@@ -43,8 +44,7 @@ export default function GithubPanel({ projectPath, repo }: { projectPath: string
   const live = !!st?.runs.some(r => r.status !== 'completed')
   useEffect(() => {
     if (!live) return
-    const id = setInterval(() => { if (document.visibilityState === 'visible') load() }, LIVE_MS)
-    return () => clearInterval(id)
+    return visibleInterval(() => { load() }, LIVE_MS)
   }, [live, load])
 
   async function saveToken() {

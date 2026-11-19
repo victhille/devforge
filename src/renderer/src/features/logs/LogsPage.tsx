@@ -165,7 +165,7 @@ export default function LogsPage() {
             <span className="sr-only">{l.file}</span>
             <select value={file.id} title={file.path}
               onChange={e => { if (e.target.value === '+') addFile(); else { setActive(e.target.value); setPicked(null) } }}
-              className="h-9 max-w-[320px] truncate rounded-control border border-line bg-surface px-3 text-sm font-semibold text-fg outline-none focus:border-accent">
+              className="h-9 max-w-[320px] truncate rounded-control border border-line-strong bg-surface px-3 text-sm font-semibold text-fg outline-none focus:border-accent">
               {files.map(f => <option key={f.id} value={f.id}>{shortPath(f.path)}</option>)}
               <option value="+">{l.openOther}</option>
             </select>

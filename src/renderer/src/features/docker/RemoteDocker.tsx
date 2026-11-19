@@ -16,6 +16,7 @@ import { Table, Td, Th } from '@renderer/components/ui/Table'
 import NeedsSetup from '@renderer/components/NeedsSetup'
 import { errorText } from '@renderer/lib/errors'
 import LogBox from '@renderer/components/ui/LogBox'
+import { visibleInterval } from '@renderer/lib/visibleInterval'
 
 /** "app-backend-1" in project "app" → "backend" */
 const shortName = (c: RemoteContainer) => (c.composeProject ? c.name.replace(new RegExp(`^${c.composeProject}[-_]`), '').replace(/[-_]\d+$/, '') : c.name)
@@ -52,12 +53,12 @@ export default function RemoteDocker({ connections, connectionId }: { connection
     try { setLogs({ name, text: await window.devforge.watch.dockerLogs(serverId, name, 200) }) }
     catch (err) { setLogs({ name, text: errorText(err) }) }
   }, [serverId])
-  // Followed every 5 s while shown
+  // Followed every 5 s while shown: one timer per container, not one per load (each load makes a new `logs`)
+  const followed = logs?.name
   useEffect(() => {
-    if (!logs) return
-    const id = setInterval(() => loadLogs(logs.name), 5000)
-    return () => clearInterval(id)
-  }, [logs, loadLogs])
+    if (!followed) return
+    return visibleInterval(() => { loadLogs(followed) }, 5000)
+  }, [followed, loadLogs])
 
   const act = async (key: string, target: { container?: string; compose?: RemoteCompose }, action: 'start' | 'stop' | 'restart' | 'up') => {
     setBusy(key)
@@ -85,7 +86,7 @@ export default function RemoteDocker({ connections, connectionId }: { connection
         {!connectionId && (
           <label className="flex items-center">
             <span className="sr-only">{d.server}</span>
-            <select value={picked} onChange={e => setPicked(e.target.value)} className="h-9 rounded-control border border-line bg-canvas px-3 text-sm text-fg outline-none">
+            <select value={picked} onChange={e => setPicked(e.target.value)} className="h-9 rounded-control border border-line-strong bg-canvas px-3 text-sm text-fg outline-none focus:border-accent">
               {connections.map(c => <option key={c.id} value={c.id}>{c.name} · {c.host}</option>)}
             </select>
           </label>

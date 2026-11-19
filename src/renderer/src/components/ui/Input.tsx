@@ -1,9 +1,9 @@
 import { forwardRef, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, type ReactNode } from 'react'
 import { cn } from '@renderer/lib/cn'
 
-/** Forge: on the surface, an orange border and a soft halo when focused */
+/** Forge: on the surface, a border that reads at 3:1 (a field is found by its edge), orange with a soft halo when focused */
 const FIELD =
-  'w-full rounded-control border border-line bg-surface px-3 text-base text-fg placeholder:text-fg-muted ' +
+  'w-full rounded-control border border-line-strong bg-surface px-3 text-base text-fg placeholder:text-fg-muted ' +
   'outline-none transition-[border-color,box-shadow] focus:border-accent focus:ring-3 focus:ring-accent-soft focus-visible:outline-none disabled:opacity-50'
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }>(
