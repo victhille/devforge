@@ -25,7 +25,10 @@ export default function ScriptsMenu({ scripts, onRun }: { scripts: Record<string
           {entries.map(([name, cmd]) => (
             <button
               key={name}
-              onClick={() => { onRun(name); setOpen(false) }}
+              onClick={() => {
+                onRun(name)
+                setOpen(false)
+              }}
               className="flex w-full flex-col items-start gap-0.5 rounded-md px-2.5 py-1.5 text-left transition-colors hover:bg-hover"
             >
               <span className="font-medium text-fg">{name}</span>

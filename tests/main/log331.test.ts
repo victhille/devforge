@@ -13,7 +13,7 @@ describe('Log lines', () => {
     expect(stripAnsi('\x1b[32mok\x1b[39m')).toBe('ok')
   })
 
-  it.runIf(process.platform === 'win32')('reads cmd\'s own messages in code page 850', () => {
+  it.runIf(process.platform === 'win32')("reads cmd's own messages in code page 850", () => {
     expect(decodeLine(Buffer.from([0x65, 0x78, 0x82, 0x63]))).toBe('exéc')
     expect(decodeLine(Buffer.from('déjà', 'utf8'))).toBe('déjà')
   })
@@ -36,10 +36,7 @@ describe('Log lines', () => {
     c.push('done', 'stdout')
     c.push('done', 'stdout')
     c.end()
-    expect(out).toEqual([
-      "warning: in the working copy of 'f0.js', LF will be replaced by CRLF the next time Git touches it", '… (+299)',
-      'done', '… (+1)'
-    ])
+    expect(out).toEqual(["warning: in the working copy of 'f0.js', LF will be replaced by CRLF the next time Git touches it", '… (+299)', 'done', '… (+1)'])
   })
 
   it('shows the first deprecation notice, counts the scattered others, and drops progress bars', () => {
@@ -57,13 +54,19 @@ describe('Log lines', () => {
     expect(out).toEqual([notice, 'Updating dependencies', 'Writing lock file', '… (+2) Deprecation Notice — composer self-update'])
   })
 
-  it('keeps a Docker build step\'s title and end, counts what runs inside', () => {
+  it("keeps a Docker build step's title and end, counts what runs inside", () => {
     const out: string[] = []
     const c = lineCollapser(text => out.push(text))
     for (const l of [
-      '#11 [ 5/15] RUN apt-get update', '#11 0.370 Get:1 http://archive.ubuntu.com noble InRelease', '#11 0.500 Get:2 http://security.ubuntu.com',
-      '(Reading database ... 5%', '(Reading database ... 100%', '#11 33.33 Unpacking libexpat1', '#11 DONE 177.9s'
-    ]) c.push(l, 'stdout')
+      '#11 [ 5/15] RUN apt-get update',
+      '#11 0.370 Get:1 http://archive.ubuntu.com noble InRelease',
+      '#11 0.500 Get:2 http://security.ubuntu.com',
+      '(Reading database ... 5%',
+      '(Reading database ... 100%',
+      '#11 33.33 Unpacking libexpat1',
+      '#11 DONE 177.9s'
+    ])
+      c.push(l, 'stdout')
     c.end()
     expect(out).toEqual(['#11 [ 5/15] RUN apt-get update', '#11 0.370 Get:1 http://archive.ubuntu.com noble InRelease', '… (+2)', '#11 DONE 177.9s'])
   })
@@ -79,7 +82,17 @@ describe('Log lines', () => {
 
 describe('Projects whose folder is gone', () => {
   it('never saves the "missing" flag worked out on load', () => {
-    saveProject({ id: 'p1', name: 'gone', path: join(userData(), 'nowhere'), framework: 'nodejs', packageManager: 'npm', createdAt: '', lastOpenedAt: null, favorite: false, missing: true })
+    saveProject({
+      id: 'p1',
+      name: 'gone',
+      path: join(userData(), 'nowhere'),
+      framework: 'nodejs',
+      packageManager: 'npm',
+      createdAt: '',
+      lastOpenedAt: null,
+      favorite: false,
+      missing: true
+    })
     const file = join(userData(), 'projects.json')
     expect(existsSync(file)).toBe(true)
     expect(readFileSync(file, 'utf-8')).not.toContain('missing')

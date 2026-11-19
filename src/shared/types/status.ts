@@ -53,7 +53,11 @@ export interface StatusIncident {
   cause?: string | null
 }
 
-export interface StatusDay { total: number; ok: number; ms: number }
+export interface StatusDay {
+  total: number
+  ok: number
+  ms: number
+}
 
 export interface StatusOverview {
   installed: boolean

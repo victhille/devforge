@@ -24,12 +24,18 @@ export async function forgetServerSecrets(connectionId: string): Promise<void> {
     () => forgetDetectedThrough(connectionId),
     () => forgetApiKey(connectionId),
     () => forgetVpnLogin(connectionId),
-    async () => { await Promise.all(forgetPasswordsThrough(connectionId).map(closeDb)) }
+    async () => {
+      await Promise.all(forgetPasswordsThrough(connectionId).map(closeDb))
+    }
   ]
   // Every step runs even when one before failed, so that as much as possible is forgotten; the first error is then told
   let failure: unknown = null
   for (const step of steps) {
-    try { await step() } catch (err) { failure ??= err }
+    try {
+      await step()
+    } catch (err) {
+      failure ??= err
+    }
   }
   if (failure) throw failure
 }

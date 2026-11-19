@@ -10,7 +10,22 @@ import { autoLayout, boxSize, bounds } from './schemaLayout'
  */
 
 export const SQL_ENGINES: SqlEngine[] = ['postgres', 'mysql', 'sqlite']
-export const MPD_TYPES: MpdType[] = ['int', 'bigint', 'smallint', 'decimal', 'float', 'varchar', 'char', 'text', 'bool', 'date', 'datetime', 'time', 'uuid', 'json']
+export const MPD_TYPES: MpdType[] = [
+  'int',
+  'bigint',
+  'smallint',
+  'decimal',
+  'float',
+  'varchar',
+  'char',
+  'text',
+  'bool',
+  'date',
+  'datetime',
+  'time',
+  'uuid',
+  'json'
+]
 export const DEFAULT_NAMING: MldNaming = { tables: 'snake', pk: 'id', fk: 'table_id', join: 'tables' }
 
 const maxOne = (c: Cardinality) => c.endsWith(',1')
@@ -49,11 +64,20 @@ export type MldRule =
   | { kind: 'table'; association: string; relation: string; legs: number; columns: string[] }
   | { kind: 'skipped'; association: string }
 
-export interface Mld { relations: MldRelation[]; rules: MldRule[] }
+export interface Mld {
+  relations: MldRelation[]
+  rules: MldRule[]
+}
 
 /** Words of a name, without accents: "Ligne de commande" → ["ligne", "de", "commande"] */
 function words(s: string): string[] {
-  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean)
+  return s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
 }
 export const snake = (s: string) => words(s).join('_') || 'x'
 
@@ -95,20 +119,36 @@ export function toMld(m: McdModel): Mld {
   const entityName = new Map(m.entities.map(e => [e.id, e.name]))
   const fkColumns = (into: string, leg: { id: string; entity: string }, role: string, pk: boolean, nullable: boolean, unique: boolean): MldColumn[] =>
     ids.get(leg.entity)!.map(a => ({
-      name: free(taken.get(into)!, a.name, role), key: `${leg.id}:${a.id}`, attr: a, pk, fk: { relation: leg.entity, attr: a.id }, nullable, unique, role
+      name: free(taken.get(into)!, a.name, role),
+      key: `${leg.id}:${a.id}`,
+      attr: a,
+      pk,
+      fk: { relation: leg.entity, attr: a.id },
+      nullable,
+      unique,
+      role
     }))
 
   for (const a of m.associations) {
     const legs = m.links.filter(l => l.association === a.id && relations.has(l.entity))
-    if (legs.length < 2) { rules.push({ kind: 'skipped', association: a.name }); continue }
+    if (legs.length < 2) {
+      rules.push({ kind: 'skipped', association: a.name })
+      continue
+    }
     const carried = a.attributes.filter(named)
     if (legs.length === 2) {
       const [l1, l2] = legs
       // The foreign key goes to the side that has at most one partner (1,1 before 0,1 when both have)
-      const child = maxOne(l1.card) && !maxOne(l2.card) ? l1
-        : maxOne(l2.card) && !maxOne(l1.card) ? l2
-        : maxOne(l1.card) && maxOne(l2.card) ? (l1.card === '0,1' && l2.card === '1,1' ? l2 : l1)
-        : null
+      const child =
+        maxOne(l1.card) && !maxOne(l2.card)
+          ? l1
+          : maxOne(l2.card) && !maxOne(l1.card)
+            ? l2
+            : maxOne(l1.card) && maxOne(l2.card)
+              ? l1.card === '0,1' && l2.card === '1,1'
+                ? l2
+                : l1
+              : null
       if (child) {
         const parent = child === l1 ? l2 : l1
         const both = maxOne(parent.card)
@@ -117,10 +157,15 @@ export function toMld(m: McdModel): Mld {
         const role = snake(a.name)
         const fks = fkColumns(child.entity, parent, role, false, nullable, both)
         rel.columns.push(...fks)
-        for (const x of carried) rel.columns.push({ name: free(taken.get(child.entity)!, x.name, role), key: x.id, attr: x, pk: false, nullable: true, unique: false })
+        for (const x of carried)
+          rel.columns.push({ name: free(taken.get(child.entity)!, x.name, role), key: x.id, attr: x, pk: false, nullable: true, unique: false })
         rules.push({
-          kind: both ? 'oneToOne' : 'fk', association: a.name, child: entityName.get(child.entity)!, parent: entityName.get(parent.entity)!,
-          cards: `${parent.card} — ${child.card}`, columns: fks.map(c => c.name)
+          kind: both ? 'oneToOne' : 'fk',
+          association: a.name,
+          child: entityName.get(child.entity)!,
+          parent: entityName.get(parent.entity)!,
+          cards: `${parent.card} — ${child.card}`,
+          columns: fks.map(c => c.name)
         })
         continue
       }
@@ -160,8 +205,16 @@ export function tableName(name: string, how: MldNaming['tables']): string {
 }
 
 const TYPE_OF: Record<McdType, Pick<MpdColumn, 'type' | 'length' | 'scale'>> = {
-  int: { type: 'int' }, decimal: { type: 'decimal', length: 10, scale: 2 }, varchar: { type: 'varchar', length: 255 }, text: { type: 'text' },
-  bool: { type: 'bool' }, date: { type: 'date' }, datetime: { type: 'datetime' }, time: { type: 'time' }, uuid: { type: 'uuid' }, json: { type: 'json' }
+  int: { type: 'int' },
+  decimal: { type: 'decimal', length: 10, scale: 2 },
+  varchar: { type: 'varchar', length: 255 },
+  text: { type: 'text' },
+  bool: { type: 'bool' },
+  date: { type: 'date' },
+  datetime: { type: 'datetime' },
+  time: { type: 'time' },
+  uuid: { type: 'uuid' },
+  json: { type: 'json' }
 }
 function typeOf(a: McdAttribute): Pick<MpdColumn, 'type' | 'length' | 'scale'> {
   if (!a.type) return { type: 'varchar', length: 255 }
@@ -191,9 +244,10 @@ export function generateMpd(m: McdModel, naming: MldNaming, engine: SqlEngine, p
   const tables: MpdTable[] = mld.relations.map(r => {
     const id = tid(r.id)
     const old = oldTables.get(id)
-    let name = r.from === 'entity' || naming.join === 'association'
-      ? tableName(r.name, naming.tables)
-      : tableName([...new Set(r.columns.filter(c => c.fk).map(c => entityTable.get(c.fk!.relation)!))].join(' '), naming.tables)
+    let name =
+      r.from === 'entity' || naming.join === 'association'
+        ? tableName(r.name, naming.tables)
+        : tableName([...new Set(r.columns.filter(c => c.fk).map(c => entityTable.get(c.fk!.relation)!))].join(' '), naming.tables)
     name = free(takenTables, name)
     const takenCols = new Set<string>()
     const ownPk = r.columns.filter(c => c.pk && !c.fk).length
@@ -203,13 +257,14 @@ export function generateMpd(m: McdModel, naming: MldNaming, engine: SqlEngine, p
         const parentPk = ids(mld, c.fk.relation)
         const parent = snake(entityTable.get(c.fk.relation)!)
         const target = pkName.get(`${c.fk.relation}:${c.fk.attr}`)!
-        colName = parentPk === 1
-          ? (naming.fk === 'table_id' ? `${parent}_id` : `id_${parent}`)
-          : `${parent}_${target}`
+        colName = parentPk === 1 ? (naming.fk === 'table_id' ? `${parent}_id` : `id_${parent}`) : `${parent}_${target}`
       } else colName = c.pk ? pkName.get(`${r.id}:${c.attr.id}`)! : snake(c.name)
       const col: MpdColumn = {
         // Same table twice (a reflexive association): the role tells them apart
-        id: cid(c.key), name: free(takenCols, colName, c.role), ...typeOf(c.attr), from: c.key,
+        id: cid(c.key),
+        name: free(takenCols, colName, c.role),
+        ...typeOf(c.attr),
+        from: c.key,
         ...(c.pk ? { pk: true } : {}),
         ...(c.nullable ? { nullable: true } : {}),
         ...(c.unique ? { unique: true } : {}),
@@ -217,7 +272,9 @@ export function generateMpd(m: McdModel, naming: MldNaming, engine: SqlEngine, p
         ...(c.fk ? { ref: { table: tid(c.fk.relation), column: cid(c.fk.attr) } } : {})
       }
       const was = old?.columns.find(x => x.id === col.id)
-      return was?.edited ? { ...col, name: was.name, type: was.type, length: was.length, scale: was.scale, nullable: was.nullable, unique: was.unique, edited: true } : col
+      return was?.edited
+        ? { ...col, name: was.name, type: was.type, length: was.length, scale: was.scale, nullable: was.nullable, unique: was.unique, edited: true }
+        : col
     })
     // Columns added by hand (or taken from the database) stay
     columns.push(...(old?.columns ?? []).filter(c => !c.from))
@@ -227,8 +284,11 @@ export function generateMpd(m: McdModel, naming: MldNaming, engine: SqlEngine, p
   })
   // So do tables that come from no part of the MCD
   tables.push(...(prev?.tables ?? []).filter(t => !t.from))
-  const kept = (prev?.connection ? { connection: prev.connection } : {})
-  return placeNew(syncForeignKeys({ engine, naming, tables, ...(source ? { source } : {}), sourceHash: mcdHash(m, naming), ...kept }), new Set(oldTables.keys()))
+  const kept = prev?.connection ? { connection: prev.connection } : {}
+  return placeNew(
+    syncForeignKeys({ engine, naming, tables, ...(source ? { source } : {}), sourceHash: mcdHash(m, naming), ...kept }),
+    new Set(oldTables.keys())
+  )
 }
 
 /** Tables without a place laid out like the database schema: all of them the first time, else to the right of the others */
@@ -275,42 +335,73 @@ export function syncForeignKeys(mpd: MpdModel): MpdModel {
 
 /** A column's type for one engine */
 export function sqlType(c: Pick<MpdColumn, 'type' | 'length' | 'scale'>, engine: SqlEngine): string {
-  const n = c.length, s = c.scale ?? 0
+  const n = c.length,
+    s = c.scale ?? 0
   if (engine === 'sqlite') {
-    const lite: Partial<Record<MpdType, string>> = { int: 'INTEGER', bigint: 'INTEGER', smallint: 'INTEGER', bool: 'INTEGER', decimal: 'NUMERIC', float: 'REAL' }
+    const lite: Partial<Record<MpdType, string>> = {
+      int: 'INTEGER',
+      bigint: 'INTEGER',
+      smallint: 'INTEGER',
+      bool: 'INTEGER',
+      decimal: 'NUMERIC',
+      float: 'REAL'
+    }
     return lite[c.type] ?? 'TEXT'
   }
   const pg = engine === 'postgres'
   switch (c.type) {
-    case 'int': return pg ? 'INTEGER' : 'INT'
-    case 'bigint': return 'BIGINT'
-    case 'smallint': return 'SMALLINT'
-    case 'decimal': return `${pg ? 'NUMERIC' : 'DECIMAL'}(${n ?? 10},${s})`
-    case 'float': return pg ? 'DOUBLE PRECISION' : 'DOUBLE'
-    case 'varchar': return `VARCHAR(${n ?? 255})`
-    case 'char': return `CHAR(${n ?? 1})`
-    case 'text': return 'TEXT'
-    case 'bool': return pg ? 'BOOLEAN' : 'TINYINT(1)'
-    case 'date': return 'DATE'
-    case 'datetime': return pg ? 'TIMESTAMP' : 'DATETIME'
-    case 'time': return 'TIME'
-    case 'uuid': return pg ? 'UUID' : 'CHAR(36)'
-    case 'json': return pg ? 'JSONB' : 'JSON'
+    case 'int':
+      return pg ? 'INTEGER' : 'INT'
+    case 'bigint':
+      return 'BIGINT'
+    case 'smallint':
+      return 'SMALLINT'
+    case 'decimal':
+      return `${pg ? 'NUMERIC' : 'DECIMAL'}(${n ?? 10},${s})`
+    case 'float':
+      return pg ? 'DOUBLE PRECISION' : 'DOUBLE'
+    case 'varchar':
+      return `VARCHAR(${n ?? 255})`
+    case 'char':
+      return `CHAR(${n ?? 1})`
+    case 'text':
+      return 'TEXT'
+    case 'bool':
+      return pg ? 'BOOLEAN' : 'TINYINT(1)'
+    case 'date':
+      return 'DATE'
+    case 'datetime':
+      return pg ? 'TIMESTAMP' : 'DATETIME'
+    case 'time':
+      return 'TIME'
+    case 'uuid':
+      return pg ? 'UUID' : 'CHAR(36)'
+    case 'json':
+      return pg ? 'JSONB' : 'JSON'
   }
 }
 
 /** Words the engines keep for themselves: such a name is quoted */
-const RESERVED = new Set(('add all alter and as asc between by case check column constraint create cross current_date current_time current_user ' +
-  'default delete desc distinct drop else end exists false fetch for foreign from full grant group having in index inner insert interval into is ' +
-  'join key left like limit natural not null offset on or order outer primary references right row rows select session_user set table then to ' +
-  'true union unique update user using values when where window with').split(' '))
+const RESERVED = new Set(
+  (
+    'add all alter and as asc between by case check column constraint create cross current_date current_time current_user ' +
+    'default delete desc distinct drop else end exists false fetch for foreign from full grant group having in index inner insert interval into is ' +
+    'join key left like limit natural not null offset on or order outer primary references right row rows select session_user set table then to ' +
+    'true union unique update user using values when where window with'
+  ).split(' ')
+)
 
 export function quoteName(name: string, engine: SqlEngine): string {
   if (/^[a-z_][a-z0-9_]*$/i.test(name) && !RESERVED.has(name.toLowerCase())) return name
   return engine === 'mysql' ? `\`${name.replace(/`/g, '``')}\`` : `"${name.replace(/"/g, '""')}"`
 }
 
-export interface ForeignKey { table: MpdTable; columns: MpdColumn[]; to: MpdTable; refColumns: MpdColumn[] }
+export interface ForeignKey {
+  table: MpdTable
+  columns: MpdColumn[]
+  to: MpdTable
+  refColumns: MpdColumn[]
+}
 
 /** A table's foreign keys, the columns of one key together (a key of several columns) */
 export function foreignKeys(mpd: MpdModel, t: MpdTable): ForeignKey[] {
@@ -348,9 +439,13 @@ export function mpdSql(mpd: MpdModel, header: string[] = []): string {
 export function columnSql(c: MpdColumn, e: SqlEngine, lone: boolean): string {
   const q = (s: string) => quoteName(s, e)
   if (lone && c.auto && ['int', 'bigint', 'smallint'].includes(c.type)) {
-    return `${q(c.name)} ${e === 'sqlite' ? 'INTEGER PRIMARY KEY AUTOINCREMENT'
-      : e === 'mysql' ? `${sqlType(c, e)} AUTO_INCREMENT PRIMARY KEY`
-      : `${sqlType(c, e)} GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY`}`
+    return `${q(c.name)} ${
+      e === 'sqlite'
+        ? 'INTEGER PRIMARY KEY AUTOINCREMENT'
+        : e === 'mysql'
+          ? `${sqlType(c, e)} AUTO_INCREMENT PRIMARY KEY`
+          : `${sqlType(c, e)} GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY`
+    }`
   }
   let line = `${q(c.name)} ${sqlType(c, e)}`
   if (!c.nullable || c.pk) line += ' NOT NULL'
@@ -380,7 +475,10 @@ export function mpdStatements(mpd: MpdModel, only?: Set<string>): { tables: stri
   while (left.length) {
     const ready = left.filter(t => fks.get(t.id)!.every(f => f.to.id === t.id || done.has(f.to.id)))
     const next = ready.length ? ready : [left[0]]
-    for (const t of next) { order.push(t); done.add(t.id) }
+    for (const t of next) {
+      order.push(t)
+      done.add(t.id)
+    }
     left = left.filter(t => !done.has(t.id))
   }
 
@@ -408,7 +506,12 @@ export function mpdStatements(mpd: MpdModel, only?: Set<string>): { tables: stri
 // ── Check ────────────────────────────────────────────────────────────────────
 
 export type MpdIssueCode = 'noPk' | 'noName' | 'sameTable' | 'sameColumn' | 'fkType' | 'uniqueText'
-export interface MpdIssue { level: 'error' | 'warning'; code: MpdIssueCode; table: string; name: string }
+export interface MpdIssue {
+  level: 'error' | 'warning'
+  code: MpdIssueCode
+  table: string
+  name: string
+}
 
 export function checkMpd(mpd: MpdModel): MpdIssue[] {
   const out: MpdIssue[] = []
@@ -425,8 +528,10 @@ export function checkMpd(mpd: MpdModel): MpdIssue[] {
       else if (names.has(c.name.toLowerCase())) out.push({ level: 'error', code: 'sameColumn', table: t.id, name: `${t.name}.${c.name}` })
       names.add(c.name.toLowerCase())
       const target = c.ref && cols.get(`${c.ref.table}:${c.ref.column}`)
-      if (target && sqlType(target, mpd.engine) !== sqlType(c, mpd.engine)) out.push({ level: 'error', code: 'fkType', table: t.id, name: `${t.name}.${c.name}` })
-      if (mpd.engine === 'mysql' && (c.unique || c.pk) && (c.type === 'text' || c.type === 'json')) out.push({ level: 'error', code: 'uniqueText', table: t.id, name: `${t.name}.${c.name}` })
+      if (target && sqlType(target, mpd.engine) !== sqlType(c, mpd.engine))
+        out.push({ level: 'error', code: 'fkType', table: t.id, name: `${t.name}.${c.name}` })
+      if (mpd.engine === 'mysql' && (c.unique || c.pk) && (c.type === 'text' || c.type === 'json'))
+        out.push({ level: 'error', code: 'uniqueText', table: t.id, name: `${t.name}.${c.name}` })
     }
   }
   return out
@@ -437,7 +542,7 @@ export function checkMpd(mpd: MpdModel): MpdIssue[] {
 const str = (v: unknown, max = 200) => (typeof v === 'string' ? v.slice(0, max) : '')
 const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.round(v) : 0)
 const arr = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])
-const pick = <T extends string>(v: unknown, list: readonly T[], fallback: T): T => (list.includes(v as T) ? v as T : fallback)
+const pick = <T extends string>(v: unknown, list: readonly T[], fallback: T): T => (list.includes(v as T) ? (v as T) : fallback)
 
 export function cleanNaming(v: unknown): MldNaming {
   const n = (v ?? {}) as Record<string, unknown>
@@ -458,28 +563,54 @@ export function cleanMpd(v: unknown): MpdModel {
     const columns: MpdColumn[] = arr(t.columns).map(y => {
       const c = (y ?? {}) as Record<string, unknown>
       const r = (c.ref ?? null) as Record<string, unknown> | null
-      const length = size(c.length, 65535), scale = typeof c.scale === 'number' && c.scale >= 0 ? Math.min(30, Math.round(c.scale)) : null
+      const length = size(c.length, 65535),
+        scale = typeof c.scale === 'number' && c.scale >= 0 ? Math.min(30, Math.round(c.scale)) : null
       return {
-        id: str(c.id, 90) || `c-${Math.random().toString(36).slice(2, 9)}`, name: str(c.name, 64), type: pick(c.type, MPD_TYPES, 'varchar'),
-        ...(length ? { length: length.v } : {}), ...(scale !== null ? { scale } : {}),
-        ...(c.pk ? { pk: true } : {}), ...(c.auto ? { auto: true } : {}), ...(c.nullable ? { nullable: true } : {}), ...(c.unique ? { unique: true } : {}),
+        id: str(c.id, 90) || `c-${Math.random().toString(36).slice(2, 9)}`,
+        name: str(c.name, 64),
+        type: pick(c.type, MPD_TYPES, 'varchar'),
+        ...(length ? { length: length.v } : {}),
+        ...(scale !== null ? { scale } : {}),
+        ...(c.pk ? { pk: true } : {}),
+        ...(c.auto ? { auto: true } : {}),
+        ...(c.nullable ? { nullable: true } : {}),
+        ...(c.unique ? { unique: true } : {}),
         ...(r && str(r.table, 90) && str(r.column, 90) ? { ref: { table: str(r.table, 90), column: str(r.column, 90) } } : {}),
-        ...(str(c.from, 90) ? { from: str(c.from, 90) } : {}), ...(c.edited ? { edited: true } : {})
+        ...(str(c.from, 90) ? { from: str(c.from, 90) } : {}),
+        ...(c.edited ? { edited: true } : {})
       }
     })
     const colIds = new Set(columns.map(c => c.id))
-    const indexes: MpdIndex[] = arr(t.indexes).map(y => {
-      const i = (y ?? {}) as Record<string, unknown>
-      return { id: str(i.id, 40) || `i-${Math.random().toString(36).slice(2, 9)}`, name: str(i.name, 64), columns: arr(i.columns).map(c => str(c, 90)).filter(c => colIds.has(c)), ...(i.unique ? { unique: true } : {}) }
-    }).filter(i => i.columns.length)
+    const indexes: MpdIndex[] = arr(t.indexes)
+      .map(y => {
+        const i = (y ?? {}) as Record<string, unknown>
+        return {
+          id: str(i.id, 40) || `i-${Math.random().toString(36).slice(2, 9)}`,
+          name: str(i.name, 64),
+          columns: arr(i.columns)
+            .map(c => str(c, 90))
+            .filter(c => colIds.has(c)),
+          ...(i.unique ? { unique: true } : {})
+        }
+      })
+      .filter(i => i.columns.length)
     return {
-      id: str(t.id, 90) || `t-${Math.random().toString(36).slice(2, 9)}`, name: str(t.name, 64), x: num(t.x), y: num(t.y), columns, indexes,
-      ...(str(t.from, 40) ? { from: str(t.from, 40) } : {}), ...(t.edited ? { edited: true } : {})
+      id: str(t.id, 90) || `t-${Math.random().toString(36).slice(2, 9)}`,
+      name: str(t.name, 64),
+      x: num(t.x),
+      y: num(t.y),
+      columns,
+      indexes,
+      ...(str(t.from, 40) ? { from: str(t.from, 40) } : {}),
+      ...(t.edited ? { edited: true } : {})
     }
   })
   return {
-    engine: pick(m.engine, SQL_ENGINES, 'postgres'), naming: cleanNaming(m.naming), tables,
-    ...(str(m.source, 80) ? { source: str(m.source, 80) } : {}), ...(str(m.sourceHash, 20) ? { sourceHash: str(m.sourceHash, 20) } : {}),
+    engine: pick(m.engine, SQL_ENGINES, 'postgres'),
+    naming: cleanNaming(m.naming),
+    tables,
+    ...(str(m.source, 80) ? { source: str(m.source, 80) } : {}),
+    ...(str(m.sourceHash, 20) ? { sourceHash: str(m.sourceHash, 20) } : {}),
     ...(str(m.connection, 80) ? { connection: str(m.connection, 80) } : {})
   }
 }
@@ -488,10 +619,17 @@ export function cleanMpd(v: unknown): MpdModel {
 export function mpdDiagram(mpd: MpdModel): { diagram: DbDiagram; positions: Record<string, Point> } {
   const ref = (t: MpdTable) => ({ schema: t.id, name: t.name })
   const tables: DbDiagramTable[] = mpd.tables.map(t => ({
-    ...ref(t), type: 'table', columns: t.columns.map(c => ({ name: c.name, type: sqlType(c, mpd.engine), nullable: !!c.nullable && !c.pk, pk: !!c.pk }))
+    ...ref(t),
+    type: 'table',
+    columns: t.columns.map(c => ({ name: c.name, type: sqlType(c, mpd.engine), nullable: !!c.nullable && !c.pk, pk: !!c.pk }))
   }))
-  const links: DbDiagramLink[] = mpd.tables.flatMap(t => foreignKeys(mpd, t).map(f => ({
-    from: ref(t), columns: f.columns.map(c => c.name), to: ref(f.to), refColumns: f.refColumns.map(c => c.name)
-  })))
+  const links: DbDiagramLink[] = mpd.tables.flatMap(t =>
+    foreignKeys(mpd, t).map(f => ({
+      from: ref(t),
+      columns: f.columns.map(c => c.name),
+      to: ref(f.to),
+      refColumns: f.refColumns.map(c => c.name)
+    }))
+  )
   return { diagram: { tables, links }, positions: Object.fromEntries(mpd.tables.map(t => [`${t.id}.${t.name}`, { x: t.x, y: t.y }])) }
 }

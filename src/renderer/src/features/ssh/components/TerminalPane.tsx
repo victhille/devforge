@@ -24,7 +24,7 @@ interface Props {
 export default function TerminalPane({ sessionId, status, error, active }: Props) {
   const { t } = useI18n()
   const containerRef = useRef<HTMLDivElement>(null)
-  const fitRef       = useRef<FitAddon | null>(null)
+  const fitRef = useRef<FitAddon | null>(null)
 
   useEffect(() => {
     const el = containerRef.current
@@ -47,7 +47,9 @@ export default function TerminalPane({ sessionId, status, error, active }: Props
     fit.fit()
     fitRef.current = fit
 
-    const unsub = window.devforge.onSshData((sid, data) => { if (sid === sessionId) term.write(data) })
+    const unsub = window.devforge.onSshData((sid, data) => {
+      if (sid === sessionId) term.write(data)
+    })
     const input = term.onData(data => window.devforge.sshWrite(sessionId, data))
 
     const refit = () => {
@@ -59,7 +61,10 @@ export default function TerminalPane({ sessionId, status, error, active }: Props
     // The text size changed in Settings: the open terminal follows
     const stopSize = onTextSizeChange(() => {
       const px = textPx(el)
-      if (term.options.fontSize !== px) { term.options.fontSize = px; refit() }
+      if (term.options.fontSize !== px) {
+        term.options.fontSize = px
+        refit()
+      }
     })
 
     return () => {
@@ -84,12 +89,15 @@ export default function TerminalPane({ sessionId, status, error, active }: Props
       {status !== 'connected' && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 text-sm">
           {status === 'connecting' ? (
-            <><Spinner className="size-5" /><span className="text-fg-secondary">{t.ssh.connecting}</span></>
+            <>
+              <Spinner className="size-5" />
+              <span className="text-fg-secondary">{t.ssh.connecting}</span>
+            </>
           ) : (
             <>
               <WifiOff size={20} className={status === 'error' ? 'text-danger' : 'text-fg-muted'} />
               <span className={status === 'error' ? 'text-danger' : 'text-fg-muted'}>
-                {status === 'error' ? error ?? t.ssh.disconnected : t.ssh.disconnected}
+                {status === 'error' ? (error ?? t.ssh.disconnected) : t.ssh.disconnected}
               </span>
             </>
           )}

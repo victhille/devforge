@@ -19,6 +19,10 @@ describe('home masonry', () => {
 
   it('left on a tie, a guess for a card not measured yet', () => {
     const p = masonryPlaces(['half', 'half', 'half'], [undefined, undefined, undefined])
-    expect(p.map(x => [x.column, x.row])).toEqual([[1, 1], [2, 1], [1, 55]])
+    expect(p.map(x => [x.column, x.row])).toEqual([
+      [1, 1],
+      [2, 1],
+      [1, 55]
+    ])
   })
 })

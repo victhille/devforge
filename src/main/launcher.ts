@@ -49,8 +49,12 @@ function create(): void {
   w.setAlwaysOnTop(true, 'pop-up-menu')
   guardNavigation(w)
   // Clicking elsewhere closes it, like Windows' own search
-  w.on('blur', () => { if (!testOffscreen) hide() })
-  w.on('closed', () => { if (win === w) win = null })
+  w.on('blur', () => {
+    if (!testOffscreen) hide()
+  })
+  w.on('closed', () => {
+    if (win === w) win = null
+  })
   const devUrl = !app.isPackaged && process.env['ELECTRON_RENDERER_URL']
   if (devUrl) w.loadURL(`${devUrl}/launcher.html`)
   else w.loadFile(join(__dirname, '../renderer/launcher.html'))
@@ -89,13 +93,19 @@ function unregister(): void {
 export function applyLauncher(settings: Pick<AppSettings, 'launcherEnabled' | 'launcherShortcut'>): void {
   unregister()
   shortcutTaken = false
-  if (!settings.launcherEnabled) { launcherWindow()?.destroy(); win = null; return }
+  if (!settings.launcherEnabled) {
+    launcherWindow()?.destroy()
+    win = null
+    return
+  }
   create()
   const accel = settings.launcherShortcut || DEFAULT_LAUNCHER_SHORTCUT
   try {
     if (globalShortcut.register(accel, toggle)) shortcut = accel
     else shortcutTaken = true
-  } catch { shortcutTaken = true }
+  } catch {
+    shortcutTaken = true
+  }
 }
 
 export const launcherState = () => ({ shortcut: shortcut?.replace('CommandOrControl', 'Ctrl') ?? null, taken: shortcutTaken })
@@ -112,7 +122,10 @@ export function toMain(message: LauncherToMain): void {
 
 export function initLauncher(main: BrowserWindow, settings: AppSettings): void {
   mainWin = main
-  main.on('closed', () => { mainWin = null; disposeLauncher() })
+  main.on('closed', () => {
+    mainWin = null
+    disposeLauncher()
+  })
   applyLauncher(settings)
 }
 

@@ -6,7 +6,11 @@ import IconButton from './IconButton'
 const KEY = 'tool-help-hidden'
 
 function hidden(): Set<string> {
-  try { return new Set(JSON.parse(localStorage.getItem(KEY) ?? '[]') as string[]) } catch { return new Set() }
+  try {
+    return new Set(JSON.parse(localStorage.getItem(KEY) ?? '[]') as string[])
+  } catch {
+    return new Set()
+  }
 }
 
 /**
@@ -14,12 +18,7 @@ function hidden(): Set<string> {
  * what it is for, how to use it, and examples to load (an example only fills
  * the fields: nothing is saved or sent). Can be hidden, per tool.
  */
-export default function ToolHelp({ id, what, how, examples }: {
-  id: string
-  what: string
-  how: string
-  examples?: { label: string; onPick: () => void }[]
-}) {
+export default function ToolHelp({ id, what, how, examples }: { id: string; what: string; how: string; examples?: { label: string; onPick: () => void }[] }) {
   const { t } = useI18n()
   const h = t.toolHelp
   const [closed, setClosed] = useState(() => hidden().has(id))
@@ -27,7 +26,11 @@ export default function ToolHelp({ id, what, how, examples }: {
     const all = hidden()
     if (next) all.add(id)
     else all.delete(id)
-    try { localStorage.setItem(KEY, JSON.stringify([...all])) } catch { /* ignore */ }
+    try {
+      localStorage.setItem(KEY, JSON.stringify([...all]))
+    } catch {
+      /* ignore */
+    }
     setClosed(next)
   }
 
@@ -48,15 +51,20 @@ export default function ToolHelp({ id, what, how, examples }: {
           <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
             <span className="text-xs text-fg-muted">{h.examples}</span>
             {examples.map(e => (
-              <button key={e.label} onClick={e.onPick}
-                className="rounded-full border border-line bg-elevated px-2.5 py-0.5 text-xs font-medium text-fg-secondary hover:border-accent/50 hover:text-fg">
+              <button
+                key={e.label}
+                onClick={e.onPick}
+                className="rounded-full border border-line bg-elevated px-2.5 py-0.5 text-xs font-medium text-fg-secondary hover:border-accent/50 hover:text-fg"
+              >
                 {e.label}
               </button>
             ))}
           </div>
         )}
       </div>
-      <IconButton size="sm" title={h.hide} onClick={() => toggle(true)}><X size={13} /></IconButton>
+      <IconButton size="sm" title={h.hide} onClick={() => toggle(true)}>
+        <X size={13} />
+      </IconButton>
     </aside>
   )
 }

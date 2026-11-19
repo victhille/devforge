@@ -11,8 +11,8 @@ import Spinner from '@renderer/components/ui/Spinner'
 const LOG_COLOR: Record<LogLine['type'], string> = {
   stdout: 'text-fg-secondary',
   stderr: 'text-warning',
-  info:   'text-accent',
-  error:  'text-danger'
+  info: 'text-accent',
+  error: 'text-danger'
 }
 
 const HEADER = 38
@@ -23,7 +23,11 @@ const HEIGHT_KEY = 'df.console.height'
 const STEP_RE = /^▸ \[(\d+)\/(\d+)\] (.+)$/
 
 function readHeight(): number {
-  try { return Math.max(MIN_HEIGHT, Number(localStorage.getItem(HEIGHT_KEY)) || 280) } catch { return 280 }
+  try {
+    return Math.max(MIN_HEIGHT, Number(localStorage.getItem(HEIGHT_KEY)) || 280)
+  } catch {
+    return 280
+  }
 }
 
 function FooterButton({ onClick, className, children }: { onClick: () => void; className?: string; children: ReactNode }) {
@@ -47,7 +51,9 @@ function Line({ log }: { log: LogLine }) {
   if (step) {
     return (
       <div className="mb-1 mt-3 flex items-center gap-2 border-t border-line-subtle pt-2.5 font-sans first:mt-0 first:border-t-0 first:pt-0">
-        <span className="rounded bg-accent-soft px-1.5 py-px font-mono text-2xs font-semibold text-accent">{step[1]}/{step[2]}</span>
+        <span className="rounded bg-accent-soft px-1.5 py-px font-mono text-2xs font-semibold text-accent">
+          {step[1]}/{step[2]}
+        </span>
         <span className="text-sm font-semibold text-fg">{step[3]}</span>
       </div>
     )
@@ -55,7 +61,8 @@ function Line({ log }: { log: LogLine }) {
   if (log.type === 'info' && log.text.startsWith('> ')) {
     return (
       <div className="whitespace-pre-wrap break-all text-fg">
-        <span className="select-none text-accent">❯ </span>{log.text.slice(2)}
+        <span className="select-none text-accent">❯ </span>
+        {log.text.slice(2)}
       </div>
     )
   }
@@ -65,10 +72,8 @@ function Line({ log }: { log: LogLine }) {
 
 export default function BottomPanel() {
   const { t } = useI18n()
-  const {
-    visible, minimized, label, logs, result, isCreation, taskId, projectId, openOnDone,
-    cancelTask, hide, setMinimized, openFolder, openVSCode
-  } = useConsole()
+  const { visible, minimized, label, logs, result, isCreation, taskId, projectId, openOnDone, cancelTask, hide, setMinimized, openFolder, openVSCode } =
+    useConsole()
 
   const navigate = useNavigate()
   const logEndRef = useRef<HTMLDivElement>(null)
@@ -105,7 +110,8 @@ export default function BottomPanel() {
   function startResize(e: ReactPointerEvent) {
     if (minimized) return
     e.preventDefault()
-    const startY = e.clientY, startH = maximized ? Math.round(window.innerHeight * 0.85) : height
+    const startY = e.clientY,
+      startH = maximized ? Math.round(window.innerHeight * 0.85) : height
     setMaximized(false)
     setDragging(true)
     const move = (ev: PointerEvent) => {
@@ -115,7 +121,14 @@ export default function BottomPanel() {
       setDragging(false)
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', up)
-      setHeight(h => { try { localStorage.setItem(HEIGHT_KEY, String(h)) } catch { /* ignore */ } return h })
+      setHeight(h => {
+        try {
+          localStorage.setItem(HEIGHT_KEY, String(h))
+        } catch {
+          /* ignore */
+        }
+        return h
+      })
     }
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', up)
@@ -126,18 +139,14 @@ export default function BottomPanel() {
       await navigator.clipboard.writeText(logs.map(l => l.text).join('\n'))
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
-  const statusClass = !result ? 'text-accent'
-    : result.status === 'success'   ? 'text-success'
-    : result.status === 'cancelled' ? 'text-warning'
-    : 'text-danger'
+  const statusClass = !result ? 'text-accent' : result.status === 'success' ? 'text-success' : result.status === 'cancelled' ? 'text-warning' : 'text-danger'
 
-  const statusLabel = !result ? null
-    : result.status === 'success'   ? t.console.done
-    : result.status === 'cancelled' ? t.console.cancelled
-    : t.console.failed
+  const statusLabel = !result ? null : result.status === 'success' ? t.console.done : result.status === 'cancelled' ? t.console.cancelled : t.console.failed
 
   const progress = !step ? null : result?.status === 'success' ? 1 : (step.at - (running ? 1 : 0)) / step.of
   const panelHeight = !visible ? 0 : minimized ? HEADER : maximized ? '85vh' : height
@@ -162,7 +171,9 @@ export default function BottomPanel() {
 
       {/* Header / status bar */}
       <div
-        onClick={() => { if (minimized) setMinimized(false) }}
+        onClick={() => {
+          if (minimized) setMinimized(false)
+        }}
         style={{ height: HEADER }}
         className={cn('relative flex shrink-0 items-center justify-between border-b border-line-subtle bg-surface px-3', minimized && 'cursor-pointer')}
       >
@@ -181,42 +192,78 @@ export default function BottomPanel() {
 
         <div className="ml-2 flex shrink-0 items-center gap-0.5">
           {running && (
-            <IconButton size="sm" title={t.console.cancel} onClick={e => { e.stopPropagation(); cancelTask() }}>
+            <IconButton
+              size="sm"
+              title={t.console.cancel}
+              onClick={e => {
+                e.stopPropagation()
+                cancelTask()
+              }}
+            >
               <X size={12} />
             </IconButton>
           )}
           {!minimized && logs.length > 0 && (
-            <IconButton size="sm" title={copied ? t.console.copied : t.console.copy} onClick={e => { e.stopPropagation(); copyLog() }}>
+            <IconButton
+              size="sm"
+              title={copied ? t.console.copied : t.console.copy}
+              onClick={e => {
+                e.stopPropagation()
+                copyLog()
+              }}
+            >
               {copied ? <Check size={12} className="text-success" /> : <Copy size={12} />}
             </IconButton>
           )}
           {!minimized && (
-            <IconButton size="sm" title={maximized ? t.console.restore : t.console.maximize} onClick={e => { e.stopPropagation(); setMaximized(m => !m) }}>
+            <IconButton
+              size="sm"
+              title={maximized ? t.console.restore : t.console.maximize}
+              onClick={e => {
+                e.stopPropagation()
+                setMaximized(m => !m)
+              }}
+            >
               {maximized ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
             </IconButton>
           )}
           <IconButton
             size="sm"
             title={minimized ? t.console.expand : t.console.minimize}
-            onClick={e => { e.stopPropagation(); setMinimized(!minimized) }}
+            onClick={e => {
+              e.stopPropagation()
+              setMinimized(!minimized)
+            }}
           >
             {minimized ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </IconButton>
-          <IconButton size="sm" title={t.console.close} onClick={e => { e.stopPropagation(); hide() }}>
+          <IconButton
+            size="sm"
+            title={t.console.close}
+            onClick={e => {
+              e.stopPropagation()
+              hide()
+            }}
+          >
             <X size={12} />
           </IconButton>
         </div>
 
         {progress !== null && (
           <div className="absolute inset-x-0 bottom-0 h-0.5 bg-line-subtle">
-            <div className={cn('h-full transition-[width] duration-300', result?.status === 'failed' ? 'bg-danger' : result ? 'bg-success' : 'bg-accent')} style={{ width: `${Math.round(progress * 100)}%` }} />
+            <div
+              className={cn('h-full transition-[width] duration-300', result?.status === 'failed' ? 'bg-danger' : result ? 'bg-success' : 'bg-accent')}
+              style={{ width: `${Math.round(progress * 100)}%` }}
+            />
           </div>
         )}
       </div>
 
       {/* Log output */}
       <div role="log" tabIndex={0} aria-label={t.console.output} className="flex-1 overflow-y-auto px-4 py-2.5 font-mono text-xs leading-[1.7]">
-        {logs.map((log, i) => <Line key={i} log={log} />)}
+        {logs.map((log, i) => (
+          <Line key={i} log={log} />
+        ))}
         <div ref={logEndRef} />
       </div>
 
@@ -225,9 +272,22 @@ export default function BottomPanel() {
         <div className="flex shrink-0 items-center gap-1.5 border-t border-line-subtle bg-surface px-3 py-1.5">
           {result.status === 'success' && isCreation && (
             <>
-              <FooterButton onClick={openFolder}><FolderOpen size={11} /> {t.console.openFolder}</FooterButton>
-              <FooterButton onClick={openVSCode}><Code2 size={11} /> {t.console.openVSCode}</FooterButton>
-              {projectId && <FooterButton onClick={() => { navigate(`/project/${projectId}`); setMinimized(true) }}><ArrowRight size={11} /> {t.console.openProject}</FooterButton>}
+              <FooterButton onClick={openFolder}>
+                <FolderOpen size={11} /> {t.console.openFolder}
+              </FooterButton>
+              <FooterButton onClick={openVSCode}>
+                <Code2 size={11} /> {t.console.openVSCode}
+              </FooterButton>
+              {projectId && (
+                <FooterButton
+                  onClick={() => {
+                    navigate(`/project/${projectId}`)
+                    setMinimized(true)
+                  }}
+                >
+                  <ArrowRight size={11} /> {t.console.openProject}
+                </FooterButton>
+              )}
             </>
           )}
           <span className="ml-auto font-mono text-xs text-fg-muted">{t.console.lines.replace('{n}', String(logs.length))}</span>

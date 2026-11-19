@@ -21,7 +21,12 @@ import { samePath } from '@renderer/lib/live'
 import '@xterm/xterm/css/xterm.css'
 
 const SHOWN_LINES = 300
-const duration = (ms: number) => ms < 1000 ? `${ms} ms` : ms < 60_000 ? `${(ms / 1000).toFixed(1).replace('.', ',')} s` : `${Math.floor(ms / 60_000)} min ${Math.round(ms % 60_000 / 1000)} s`
+const duration = (ms: number) =>
+  ms < 1000
+    ? `${ms} ms`
+    : ms < 60_000
+      ? `${(ms / 1000).toFixed(1).replace('.', ',')} s`
+      : `${Math.floor(ms / 60_000)} min ${Math.round((ms % 60_000) / 1000)} s`
 const blockText = (b: Block) => (b.lines ?? []).map(lineText).join('\n')
 
 /** Adds a snippet to the Snippets page (same storage) */
@@ -30,7 +35,9 @@ function saveSnippet(title: string, code: string, language: string): void {
     const list = JSON.parse(localStorage.getItem('devforge:snippets') || '[]') as unknown[]
     list.unshift({ id: crypto.randomUUID(), title, language, code, tags: ['terminal'], createdAt: new Date().toISOString() })
     localStorage.setItem('devforge:snippets', JSON.stringify(list))
-  } catch { /* storage full or off */ }
+  } catch {
+    /* storage full or off */
+  }
 }
 
 interface Props {
@@ -61,11 +68,18 @@ export default function BlockTerminal({ backend, shellLabel, snippetLanguage, on
   const ran = useRef(false)
   const { state, run, interrupt, blocks } = shell
   useEffect(() => {
-    if (autoRun && !ran.current && state === 'ready') { ran.current = true; run(autoRun) }
+    if (autoRun && !ran.current && state === 'ready') {
+      ran.current = true
+      run(autoRun)
+    }
   }, [autoRun, state, run])
-  useEffect(() => { onControl?.({ run, interrupt }) }, [onControl, run, interrupt])
-  const since = state === 'running' ? blocks.find(b => b.endedAt === null)?.startedAt ?? null : null
-  useEffect(() => { onBusy?.(since) }, [onBusy, since])
+  useEffect(() => {
+    onControl?.({ run, interrupt })
+  }, [onControl, run, interrupt])
+  const since = state === 'running' ? (blocks.find(b => b.endedAt === null)?.startedAt ?? null) : null
+  useEffect(() => {
+    onBusy?.(since)
+  }, [onBusy, since])
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set())
 
   // Follows the output, unless the user scrolled up to read
@@ -77,30 +91,70 @@ export default function BlockTerminal({ backend, shellLabel, snippetLanguage, on
 
   function explain(b: Block) {
     const out = blockText(b).slice(-3500)
-    ask(s.explainPrompt.replace('{cmd}', b.cmd).replace('{code}', String(b.code ?? '?')).replace('{cwd}', b.cwd || '—').replace('{shell}', shellLabel) + `\n\n\`\`\`\n${out}\n\`\`\``)
+    ask(
+      s.explainPrompt
+        .replace('{cmd}', b.cmd)
+        .replace('{code}', String(b.code ?? '?'))
+        .replace('{cwd}', b.cwd || '—')
+        .replace('{shell}', shellLabel) + `\n\n\`\`\`\n${out}\n\`\`\``
+    )
   }
 
   return (
     <div className={cn('flex min-h-0 flex-col bg-term', className)}>
-      <div ref={scrollRef} role="log" aria-label={s.blocksLabel} tabIndex={0}
-        onScroll={e => { const el = e.currentTarget; stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 40 }}
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        {shell.state === 'starting' && <p className="flex items-center gap-2 px-4 py-3 text-sm text-fg-secondary"><Spinner /> {s.starting.replace('{shell}', shellLabel)}</p>}
+      <div
+        ref={scrollRef}
+        role="log"
+        aria-label={s.blocksLabel}
+        tabIndex={0}
+        onScroll={e => {
+          const el = e.currentTarget
+          stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 40
+        }}
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+      >
+        {shell.state === 'starting' && (
+          <p className="flex items-center gap-2 px-4 py-3 text-sm text-fg-secondary">
+            <Spinner /> {s.starting.replace('{shell}', shellLabel)}
+          </p>
+        )}
         {shell.blocks.length === 0 && shell.state === 'ready' && <p className="px-4 py-3 text-sm text-fg-secondary">{s.empty}</p>}
-        {shell.blocks.map(b => b.endedAt === null
-          ? <LiveBlock key={b.id} block={b} term={shell.live} onKeys={shell.send} onResize={shell.resize} onStop={shell.interrupt} />
-          : (
-            <DoneBlock key={b.id} block={b} collapsed={collapsed.has(b.id)}
-              onToggle={() => setCollapsed(c => { const n = new Set(c); if (n.has(b.id)) n.delete(b.id); else n.add(b.id); return n })}
-              onCopy={() => { navigator.clipboard.writeText(blockText(b)).catch(() => {}); toast.show({ tone: 'success', title: s.copied }) }}
-              onRerun={() => shell.run(b.cmd)} rerunDisabled={shell.state !== 'ready'}
+        {shell.blocks.map(b =>
+          b.endedAt === null ? (
+            <LiveBlock key={b.id} block={b} term={shell.live} onKeys={shell.send} onResize={shell.resize} onStop={shell.interrupt} />
+          ) : (
+            <DoneBlock
+              key={b.id}
+              block={b}
+              collapsed={collapsed.has(b.id)}
+              onToggle={() =>
+                setCollapsed(c => {
+                  const n = new Set(c)
+                  if (n.has(b.id)) n.delete(b.id)
+                  else n.add(b.id)
+                  return n
+                })
+              }
+              onCopy={() => {
+                navigator.clipboard.writeText(blockText(b)).catch(() => {})
+                toast.show({ tone: 'success', title: s.copied })
+              }}
+              onRerun={() => shell.run(b.cmd)}
+              rerunDisabled={shell.state !== 'ready'}
               onExplain={() => explain(b)}
-              onSnippet={() => { saveSnippet(b.cmd.slice(0, 60), b.cmd, snippetLanguage); toast.show({ tone: 'success', title: s.snippetSaved }) }} />
-          ))}
+              onSnippet={() => {
+                saveSnippet(b.cmd.slice(0, 60), b.cmd, snippetLanguage)
+                toast.show({ tone: 'success', title: s.snippetSaved })
+              }}
+            />
+          )
+        )}
         {shell.state === 'exited' && (
           <div className="m-3 flex flex-wrap items-center gap-3 rounded-xl border border-line-subtle p-3 text-sm text-fg-secondary">
             <span className="flex-1">{s.exited.replace('{shell}', shellLabel)}</span>
-            <Button size="sm" variant="secondary" onClick={onRestart}><RotateCcw size={13} /> {s.restart}</Button>
+            <Button size="sm" variant="secondary" onClick={onRestart}>
+              <RotateCcw size={13} /> {s.restart}
+            </Button>
           </div>
         )}
       </div>
@@ -111,8 +165,24 @@ export default function BlockTerminal({ backend, shellLabel, snippetLanguage, on
 
 // ─── A finished block ─────────────────────────────────────────────────────────
 
-function DoneBlock({ block: b, collapsed, onToggle, onCopy, onRerun, rerunDisabled, onExplain, onSnippet }: {
-  block: Block; collapsed: boolean; onToggle: () => void; onCopy: () => void; onRerun: () => void; rerunDisabled: boolean; onExplain: () => void; onSnippet: () => void
+function DoneBlock({
+  block: b,
+  collapsed,
+  onToggle,
+  onCopy,
+  onRerun,
+  rerunDisabled,
+  onExplain,
+  onSnippet
+}: {
+  block: Block
+  collapsed: boolean
+  onToggle: () => void
+  onCopy: () => void
+  onRerun: () => void
+  rerunDisabled: boolean
+  onExplain: () => void
+  onSnippet: () => void
 }) {
   const { t } = useI18n()
   const s = t.terminal
@@ -123,20 +193,38 @@ function DoneBlock({ block: b, collapsed, onToggle, onCopy, onRerun, rerunDisabl
   return (
     <article aria-label={b.cmd} className={cn('border-b border-white/[.06]', failed && 'bg-danger/[.05]')}>
       <header className="group flex items-center gap-2 px-3 py-2">
-        <IconButton size="sm" title={collapsed ? s.expand : s.collapse} onClick={onToggle}>{collapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}</IconButton>
-        <span role="img" aria-label={b.code === null ? s.codeUnknown : failed ? s.codeFailed.replace('{code}', String(b.code)) : s.codeOk}
-          className={cn('flex size-4 items-center justify-center', failed ? 'text-danger' : b.code === 0 ? 'text-success' : 'text-fg-secondary')}>
+        <IconButton size="sm" title={collapsed ? s.expand : s.collapse} onClick={onToggle}>
+          {collapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
+        </IconButton>
+        <span
+          role="img"
+          aria-label={b.code === null ? s.codeUnknown : failed ? s.codeFailed.replace('{code}', String(b.code)) : s.codeOk}
+          className={cn('flex size-4 items-center justify-center', failed ? 'text-danger' : b.code === 0 ? 'text-success' : 'text-fg-secondary')}
+        >
           {failed ? <X size={13} /> : b.code === 0 ? <Check size={13} /> : '–'}
         </span>
-        <span aria-hidden className="font-mono text-base text-accent">›</span>
-        <code className="min-w-0 flex-1 truncate font-mono text-base text-term-fg" title={b.cmd}>{b.cmd}</code>
-        <span className={cn('shrink-0 font-mono text-xs', failed ? 'text-danger' : 'text-term-dim')}>
-          {failed ? `${s.code} ${b.code} · ` : ''}{duration((b.endedAt ?? b.startedAt) - b.startedAt)} · {new Date(b.startedAt).toLocaleTimeString().slice(0, 5)}
+        <span aria-hidden className="font-mono text-base text-accent">
+          ›
         </span>
-        <IconButton size="sm" title={s.copy} onClick={onCopy}><Copy size={13} /></IconButton>
-        <IconButton size="sm" title={s.rerun} onClick={onRerun} disabled={rerunDisabled}><RotateCcw size={13} /></IconButton>
-        <IconButton size="sm" title={s.snippet} onClick={onSnippet}><Bookmark size={13} /></IconButton>
-        <IconButton size="sm" title={s.explain} onClick={onExplain} className={cn(failed && 'text-forgy')}><Bot size={13} /></IconButton>
+        <code className="min-w-0 flex-1 truncate font-mono text-base text-term-fg" title={b.cmd}>
+          {b.cmd}
+        </code>
+        <span className={cn('shrink-0 font-mono text-xs', failed ? 'text-danger' : 'text-term-dim')}>
+          {failed ? `${s.code} ${b.code} · ` : ''}
+          {duration((b.endedAt ?? b.startedAt) - b.startedAt)} · {new Date(b.startedAt).toLocaleTimeString().slice(0, 5)}
+        </span>
+        <IconButton size="sm" title={s.copy} onClick={onCopy}>
+          <Copy size={13} />
+        </IconButton>
+        <IconButton size="sm" title={s.rerun} onClick={onRerun} disabled={rerunDisabled}>
+          <RotateCcw size={13} />
+        </IconButton>
+        <IconButton size="sm" title={s.snippet} onClick={onSnippet}>
+          <Bookmark size={13} />
+        </IconButton>
+        <IconButton size="sm" title={s.explain} onClick={onExplain} className={cn(failed && 'text-forgy')}>
+          <Bot size={13} />
+        </IconButton>
       </header>
       {!collapsed && lines.length > 0 && (
         <>
@@ -147,7 +235,15 @@ function DoneBlock({ block: b, collapsed, onToggle, onCopy, onRerun, rerunDisabl
           )}
           <pre className="max-h-[480px] overflow-auto px-4 pb-2.5 font-mono text-base leading-[1.6] whitespace-pre-wrap break-words text-term-fg">
             {shown.map((l, i) => (
-              <div key={i}>{l.length ? l.map((seg, j) => <span key={j} style={{ color: seg.fg, fontWeight: seg.bold ? 600 : undefined }}>{seg.text}</span>) : ' '}</div>
+              <div key={i}>
+                {l.length
+                  ? l.map((seg, j) => (
+                      <span key={j} style={{ color: seg.fg, fontWeight: seg.bold ? 600 : undefined }}>
+                        {seg.text}
+                      </span>
+                    ))
+                  : ' '}
+              </div>
             ))}
           </pre>
         </>
@@ -155,12 +251,19 @@ function DoneBlock({ block: b, collapsed, onToggle, onCopy, onRerun, rerunDisabl
       {/* A failure: Forgy reads it, or the output is copied */}
       {failed && !collapsed && (
         <div className="flex flex-wrap gap-2 px-4 pb-3">
-          <button type="button" onClick={onExplain} title={s.failedHint}
-            className="inline-flex h-7.5 items-center gap-1.5 rounded-md bg-accent-soft px-3 text-sm font-semibold text-accent hover:bg-accent/20">
+          <button
+            type="button"
+            onClick={onExplain}
+            title={s.failedHint}
+            className="inline-flex h-7.5 items-center gap-1.5 rounded-md bg-accent-soft px-3 text-sm font-semibold text-accent hover:bg-accent/20"
+          >
             <Bot size={13} aria-hidden /> {s.explain}
           </button>
-          <button type="button" onClick={onCopy}
-            className="inline-flex h-7.5 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-term-dim hover:bg-white/5 hover:text-term-fg">
+          <button
+            type="button"
+            onClick={onCopy}
+            className="inline-flex h-7.5 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-term-dim hover:bg-white/5 hover:text-term-fg"
+          >
             <Copy size={13} aria-hidden /> {s.copy}
           </button>
         </div>
@@ -171,8 +274,18 @@ function DoneBlock({ block: b, collapsed, onToggle, onCopy, onRerun, rerunDisabl
 
 // ─── The running block: a real terminal ───────────────────────────────────────
 
-function LiveBlock({ block: b, term, onKeys, onResize, onStop }: {
-  block: Block; term: Terminal | null; onKeys: (d: string) => void; onResize: (cols: number, rows: number) => void; onStop: () => void
+function LiveBlock({
+  block: b,
+  term,
+  onKeys,
+  onResize,
+  onStop
+}: {
+  block: Block
+  term: Terminal | null
+  onKeys: (d: string) => void
+  onResize: (cols: number, rows: number) => void
+  onStop: () => void
 }) {
   const { t } = useI18n()
   const s = t.terminal
@@ -192,7 +305,10 @@ function LiveBlock({ block: b, term, onKeys, onResize, onStop }: {
     if (!term.element) term.open(el)
     const fit = new FitAddon()
     term.loadAddon(fit)
-    const refit = () => { const d = fit.proposeDimensions(); if (d && d.cols > 10) onResize(d.cols, term.rows) }
+    const refit = () => {
+      const d = fit.proposeDimensions()
+      if (d && d.cols > 10) onResize(d.cols, term.rows)
+    }
     refit()
     term.focus()
     const keys = term.onData(onKeys)
@@ -200,19 +316,32 @@ function LiveBlock({ block: b, term, onKeys, onResize, onStop }: {
     ro.observe(el)
     const stopSize = onTextSizeChange(() => {
       const px = textPx(el)
-      if (term.options.fontSize !== px) { term.options.fontSize = px; refit() }
+      if (term.options.fontSize !== px) {
+        term.options.fontSize = px
+        refit()
+      }
     })
-    return () => { keys.dispose(); ro.disconnect(); stopSize() }
+    return () => {
+      keys.dispose()
+      ro.disconnect()
+      stopSize()
+    }
   }, [term, onKeys, onResize])
 
   return (
     <article aria-label={b.cmd} aria-busy="true" className="border-b border-white/[.06]">
       <header className="flex items-center gap-2 px-3 py-2">
         <Spinner />
-        <span aria-hidden className="font-mono text-base text-accent">›</span>
+        <span aria-hidden className="font-mono text-base text-accent">
+          ›
+        </span>
         <code className="min-w-0 flex-1 truncate font-mono text-base text-term-fg">{b.cmd}</code>
-        <span className="font-mono text-xs text-term-dim">{s.running} · {duration(elapsed)}</span>
-        <Button size="sm" variant="ghost" onClick={onStop}><Square size={11} /> {s.stop}</Button>
+        <span className="font-mono text-xs text-term-dim">
+          {s.running} · {duration(elapsed)}
+        </span>
+        <Button size="sm" variant="ghost" onClick={onStop}>
+          <Square size={11} /> {s.stop}
+        </Button>
       </header>
       <div ref={host} className="h-[340px] px-2 py-1 text-base" />
     </article>
@@ -221,8 +350,16 @@ function LiveBlock({ block: b, term, onKeys, onResize, onStop }: {
 
 // ─── Input ────────────────────────────────────────────────────────────────────
 
-function InputBar({ shell, historyKey, shellLabel, onAsk }: {
-  shell: ReturnType<typeof useBlockShell>; historyKey: string; shellLabel: string; onAsk: (q: string) => void
+function InputBar({
+  shell,
+  historyKey,
+  shellLabel,
+  onAsk
+}: {
+  shell: ReturnType<typeof useBlockShell>
+  historyKey: string
+  shellLabel: string
+  onAsk: (q: string) => void
 }) {
   const { t } = useI18n()
   const s = t.terminal
@@ -241,7 +378,8 @@ function InputBar({ shell, historyKey, shellLabel, onAsk }: {
   const local = !historyKey.startsWith('ssh:')
 
   useEffect(() => {
-    window.devforge.docs.list()
+    window.devforge.docs
+      .list()
       .then(own => setDocs([...own.map(c => c.cmd), ...DOCS.flatMap(d => d.sections.flatMap(x => x.entries.map(e => e.cmd)))]))
       .catch(() => setDocs(DOCS.flatMap(d => d.sections.flatMap(x => x.entries.map(e => e.cmd)))))
   }, [])
@@ -251,34 +389,54 @@ function InputBar({ shell, historyKey, shellLabel, onAsk }: {
   const pm: PackageManager = (local && shell.cwd && projects.find(p => samePath(p.path, shell.cwd))?.packageManager) || 'npm'
   // The scripts of the folder the shell is in, with that package manager
   useEffect(() => {
-    if (!local || !shell.cwd) { setScripts([]); return }
+    if (!local || !shell.cwd) {
+      setScripts([])
+      return
+    }
     let alive = true
-    window.devforge.getProjectScripts(shell.cwd).catch(() => ({} as Record<string, string>)).then(found => {
-      if (alive) setScripts(Object.keys(found).map(name => scriptCommand(pm, name)))
-    })
-    return () => { alive = false }
+    window.devforge
+      .getProjectScripts(shell.cwd)
+      .catch(() => ({}) as Record<string, string>)
+      .then(found => {
+        if (alive) setScripts(Object.keys(found).map(name => scriptCommand(pm, name)))
+      })
+    return () => {
+      alive = false
+    }
   }, [local, shell.cwd, pm])
 
   const rest = useMemo(
-    () => suggest && atEnd ? suggestRest(value, { scripts, history: history.map(h => h.cmd), docs }) : '',
+    () => (suggest && atEnd ? suggestRest(value, { scripts, history: history.map(h => h.cmd), docs }) : ''),
     [suggest, atEnd, value, scripts, history, docs]
   )
 
   // Read again after each command
   useEffect(() => {
-    window.devforge.terminal.history(historyKey).then(setHistory).catch(() => {})
+    window.devforge.terminal
+      .history(historyKey)
+      .then(setHistory)
+      .catch(() => {})
   }, [historyKey, shell.blocks.length, shell.state])
-  useEffect(() => { if (shell.state === 'ready') inputRef.current?.focus() }, [shell.state])
+  useEffect(() => {
+    if (shell.state === 'ready') inputRef.current?.focus()
+  }, [shell.state])
 
   const matches = useMemo(() => {
     const q = value.toLowerCase()
-    return [...history].reverse().filter(h => !q || h.cmd.toLowerCase().includes(q)).slice(0, 8)
+    return [...history]
+      .reverse()
+      .filter(h => !q || h.cmd.toLowerCase().includes(q))
+      .slice(0, 8)
   }, [history, value])
 
   function submit(cmd = value) {
     const text = cmd.trim()
     if (!text) return
-    if (text.startsWith('#')) { onAsk(text.slice(1).trim()); setValue(''); return }
+    if (text.startsWith('#')) {
+      onAsk(text.slice(1).trim())
+      setValue('')
+      return
+    }
     shell.run(text)
     setValue('')
     setCursor(null)
@@ -286,19 +444,47 @@ function InputBar({ shell, historyKey, shellLabel, onAsk }: {
   }
 
   function onKey(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'r' && e.ctrlKey) { e.preventDefault(); setSearching(v => !v); setPick(0); return }
-    if (e.key.toLowerCase() === 'l' && e.ctrlKey) { e.preventDefault(); shell.clear(); return }
+    if (e.key === 'r' && e.ctrlKey) {
+      e.preventDefault()
+      setSearching(v => !v)
+      setPick(0)
+      return
+    }
+    if (e.key.toLowerCase() === 'l' && e.ctrlKey) {
+      e.preventDefault()
+      shell.clear()
+      return
+    }
     if (searching) {
-      if (e.key === 'Escape') { e.preventDefault(); setSearching(false) }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); setPick(p => Math.min(p + 1, matches.length - 1)) }
-      else if (e.key === 'ArrowDown') { e.preventDefault(); setPick(p => Math.max(p - 1, 0)) }
-      else if (e.key === 'Enter') { e.preventDefault(); if (matches[pick]) { setValue(matches[pick].cmd); setSearching(false) } }
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setSearching(false)
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setPick(p => Math.min(p + 1, matches.length - 1))
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setPick(p => Math.max(p - 1, 0))
+      } else if (e.key === 'Enter') {
+        e.preventDefault()
+        if (matches[pick]) {
+          setValue(matches[pick].cmd)
+          setSearching(false)
+        }
+      }
       return
     }
     // → or End at the end of the line takes the greyed rest
-    if ((e.key === 'ArrowRight' || e.key === 'End') && rest) { e.preventDefault(); setValue(value + rest); setCursor(null); return }
-    if (e.key === 'Enter') { e.preventDefault(); submit() }
-    else if (e.key === 'ArrowUp' && history.length) {
+    if ((e.key === 'ArrowRight' || e.key === 'End') && rest) {
+      e.preventDefault()
+      setValue(value + rest)
+      setCursor(null)
+      return
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      submit()
+    } else if (e.key === 'ArrowUp' && history.length) {
       e.preventDefault()
       const next = cursor === null ? history.length - 1 : Math.max(0, cursor - 1)
       setCursor(next)
@@ -306,50 +492,111 @@ function InputBar({ shell, historyKey, shellLabel, onAsk }: {
     } else if (e.key === 'ArrowDown' && cursor !== null) {
       e.preventDefault()
       const next = cursor + 1
-      if (next >= history.length) { setCursor(null); setValue('') } else { setCursor(next); setValue(history[next].cmd) }
+      if (next >= history.length) {
+        setCursor(null)
+        setValue('')
+      } else {
+        setCursor(next)
+        setValue(history[next].cmd)
+      }
     }
   }
 
   const disabled = shell.state !== 'ready'
-  const placeholder = shell.state === 'running' ? s.busy : shell.state === 'starting' ? s.startingShort : shell.state === 'exited' ? s.exitedShort : s.placeholder
+  const placeholder =
+    shell.state === 'running' ? s.busy : shell.state === 'starting' ? s.startingShort : shell.state === 'exited' ? s.exitedShort : s.placeholder
 
   return (
     <div className="relative border-t border-line-subtle bg-term-block px-3 py-2">
       {searching && (
-        <ul role="listbox" aria-label={s.historyLabel} className="absolute right-3 bottom-full left-3 mb-1 flex max-h-72 flex-col-reverse overflow-y-auto rounded-xl border border-line bg-surface p-1 shadow-pop">
+        <ul
+          role="listbox"
+          aria-label={s.historyLabel}
+          className="absolute right-3 bottom-full left-3 mb-1 flex max-h-72 flex-col-reverse overflow-y-auto rounded-xl border border-line bg-surface p-1 shadow-pop"
+        >
           {matches.length === 0 && <li className="px-3 py-2 text-sm text-fg-secondary">{s.historyEmpty}</li>}
           {matches.map((h, i) => (
-            <li key={h.cmd} role="option" aria-selected={i === pick} onMouseDown={e => { e.preventDefault(); setValue(h.cmd); setSearching(false) }}
-              className={cn('flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 font-mono text-sm', i === pick ? 'bg-active text-fg' : 'text-fg-secondary')}>
-              <span className={cn('size-1.5 shrink-0 rounded-full', h.code === 0 ? 'bg-success' : h.code === null ? 'bg-fg-disabled' : 'bg-danger')} aria-hidden />
+            <li
+              key={h.cmd}
+              role="option"
+              aria-selected={i === pick}
+              onMouseDown={e => {
+                e.preventDefault()
+                setValue(h.cmd)
+                setSearching(false)
+              }}
+              className={cn(
+                'flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 font-mono text-sm',
+                i === pick ? 'bg-active text-fg' : 'text-fg-secondary'
+              )}
+            >
+              <span
+                className={cn('size-1.5 shrink-0 rounded-full', h.code === 0 ? 'bg-success' : h.code === null ? 'bg-fg-disabled' : 'bg-danger')}
+                aria-hidden
+              />
               <span className="truncate">{h.cmd}</span>
             </li>
           ))}
         </ul>
       )}
       <div className="flex items-center gap-2 font-mono text-xs text-fg-secondary">
-        <span className="truncate" title={shell.cwd}>{shell.cwd || '…'}</span>
+        <span className="truncate" title={shell.cwd}>
+          {shell.cwd || '…'}
+        </span>
         <span className="ml-auto shrink-0">{shellLabel}</span>
       </div>
       <div className="relative mt-1">
         {/* The greyed rest, drawn behind the typed text at the same place */}
         {rest && !disabled && (
           <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden font-mono text-base whitespace-pre">
-            <span className="invisible">{value}</span><span data-testid="terminal-suggestion" className="text-term-dim">{rest}</span>
+            <span className="invisible">{value}</span>
+            <span data-testid="terminal-suggestion" className="text-term-dim">
+              {rest}
+            </span>
           </div>
         )}
-        <input ref={inputRef} value={value} disabled={disabled} onKeyDown={onKey}
-          onChange={e => { setValue(e.target.value); setCursor(null); setAtEnd(e.target.selectionStart === e.target.value.length) }}
-          onSelect={e => { const el = e.currentTarget; setAtEnd(el.selectionStart === el.value.length && el.scrollWidth <= el.clientWidth) }}
-          aria-label={s.inputLabel} aria-describedby={rest ? 'terminal-suggest' : undefined} placeholder={placeholder} spellCheck={false} autoComplete="off"
-          className="relative w-full bg-transparent font-mono text-base text-fg outline-none placeholder:text-fg-secondary disabled:cursor-not-allowed" />
-        {rest && <span id="terminal-suggest" className="sr-only">{s.suggestion.replace('{cmd}', value + rest)}</span>}
+        <input
+          ref={inputRef}
+          value={value}
+          disabled={disabled}
+          onKeyDown={onKey}
+          onChange={e => {
+            setValue(e.target.value)
+            setCursor(null)
+            setAtEnd(e.target.selectionStart === e.target.value.length)
+          }}
+          onSelect={e => {
+            const el = e.currentTarget
+            setAtEnd(el.selectionStart === el.value.length && el.scrollWidth <= el.clientWidth)
+          }}
+          aria-label={s.inputLabel}
+          aria-describedby={rest ? 'terminal-suggest' : undefined}
+          placeholder={placeholder}
+          spellCheck={false}
+          autoComplete="off"
+          className="relative w-full bg-transparent font-mono text-base text-fg outline-none placeholder:text-fg-secondary disabled:cursor-not-allowed"
+        />
+        {rest && (
+          <span id="terminal-suggest" className="sr-only">
+            {s.suggestion.replace('{cmd}', value + rest)}
+          </span>
+        )}
       </div>
       <div className="mt-1 flex flex-wrap gap-x-4 text-xs text-fg-secondary">
-        {suggest && <span><kbd className="font-mono">→</kbd> {s.hintAccept}</span>}
-        <span><kbd className="font-mono">↑↓</kbd> {s.hintHistory}</span>
-        <span><kbd className="font-mono">Ctrl+R</kbd> {s.hintSearch}</span>
-        <span><kbd className="font-mono">#</kbd> {s.hintForgy}</span>
+        {suggest && (
+          <span>
+            <kbd className="font-mono">→</kbd> {s.hintAccept}
+          </span>
+        )}
+        <span>
+          <kbd className="font-mono">↑↓</kbd> {s.hintHistory}
+        </span>
+        <span>
+          <kbd className="font-mono">Ctrl+R</kbd> {s.hintSearch}
+        </span>
+        <span>
+          <kbd className="font-mono">#</kbd> {s.hintForgy}
+        </span>
       </div>
     </div>
   )

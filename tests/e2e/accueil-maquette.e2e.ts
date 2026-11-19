@@ -12,23 +12,50 @@ test.afterEach(async () => {
   await run.close()
 })
 
-const git = (cwd: string, ...args: string[]) => execFileSync('git', args, { cwd, stdio: 'pipe', env: { ...process.env, GIT_AUTHOR_NAME: 'Alex', GIT_AUTHOR_EMAIL: 'alex@example.com', GIT_COMMITTER_NAME: 'Alex', GIT_COMMITTER_EMAIL: 'alex@example.com' } })
+const git = (cwd: string, ...args: string[]) =>
+  execFileSync('git', args, {
+    cwd,
+    stdio: 'pipe',
+    env: { ...process.env, GIT_AUTHOR_NAME: 'Alex', GIT_AUTHOR_EMAIL: 'alex@example.com', GIT_COMMITTER_NAME: 'Alex', GIT_COMMITTER_EMAIL: 'alex@example.com' }
+  })
 
 test('home: chips under the greeting, the last projects to pick up again, Forgy at hand', async () => {
   run = await launch({
     settings: { onboarded: true, motion: 'reduced' },
     seed: dir => {
-      const shop = join(dir, 'shop'), blog = join(dir, 'blog')
+      const shop = join(dir, 'shop'),
+        blog = join(dir, 'blog')
       for (const p of [shop, blog]) mkdirSync(p)
       writeFileSync(join(shop, 'package.json'), JSON.stringify({ name: 'shop', dependencies: { next: '15.0.0' } }))
       git(shop, 'init', '-q', '-b', 'main')
       git(shop, 'add', '-A')
       git(shop, 'commit', '-q', '-m', 'first')
       writeFileSync(join(shop, 'README.md'), '# shop\n')
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([
-        { id: 'p1', name: 'Shop', path: shop, framework: 'nextjs', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: '2026-11-07T10:00:00.000Z' },
-        { id: 'p2', name: 'Blog', path: blog, framework: 'node', packageManager: 'npm', favorite: false, createdAt: '2026-01-02T00:00:00.000Z', lastOpenedAt: '2026-11-01T10:00:00.000Z' }
-      ]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'p1',
+            name: 'Shop',
+            path: shop,
+            framework: 'nextjs',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: '2026-11-07T10:00:00.000Z'
+          },
+          {
+            id: 'p2',
+            name: 'Blog',
+            path: blog,
+            framework: 'node',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-02T00:00:00.000Z',
+            lastOpenedAt: '2026-11-01T10:00:00.000Z'
+          }
+        ])
+      )
       writeFileSync(join(dir, 'active-project.json'), JSON.stringify({ id: 'p1' }))
     }
   })
@@ -36,7 +63,10 @@ test('home: chips under the greeting, the last projects to pick up again, Forgy 
   await goTo(page, '/')
 
   await expect(page.getByRole('list', { name: 'En ce moment' })).toContainText('1 dépôt modifié')
-  const resume = page.locator('section, div').filter({ has: page.getByRole('heading', { name: 'Reprendre', exact: true }) }).last()
+  const resume = page
+    .locator('section, div')
+    .filter({ has: page.getByRole('heading', { name: 'Reprendre', exact: true }) })
+    .last()
   // The project opened last comes first, its button the main one
   await expect(page.getByRole('button', { name: /^Ouvrir (Shop|Blog)$/ })).toHaveText(['Ouvrir', 'Ouvrir'])
   await expect(page.getByRole('article').first()).toContainText('Shop')

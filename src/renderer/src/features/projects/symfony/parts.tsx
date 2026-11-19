@@ -8,9 +8,20 @@ import Card from '@renderer/components/ui/Card'
 import { isDbAuthError } from '@shared/lib/projectSetup'
 import { useI18n } from '@renderer/i18n/I18nContext'
 
-
 /** A workshop panel: title, a line of help, actions on the right */
-export function Section({ title, help, actions, children, className }: { title: string; help?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string }) {
+export function Section({
+  title,
+  help,
+  actions,
+  children,
+  className
+}: {
+  title: string
+  help?: ReactNode
+  actions?: ReactNode
+  children: ReactNode
+  className?: string
+}) {
   return (
     <Card className={cn('flex min-w-0 flex-col gap-4 p-5', className)}>
       <div className="flex flex-wrap items-start gap-3">
@@ -39,21 +50,52 @@ export function DbAuthHint({ error, envFile }: { error: string | null | undefine
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
 /** A button with the exact command line it runs under it (any workshop) */
-export function RunButton({ label, line, onRun, variant = 'secondary', disabled, title }: {
-  label: string; line: string; onRun: () => void; variant?: Variant; disabled?: boolean; title?: string
+export function RunButton({
+  label,
+  line,
+  onRun,
+  variant = 'secondary',
+  disabled,
+  title
+}: {
+  label: string
+  line: string
+  onRun: () => void
+  variant?: Variant
+  disabled?: boolean
+  title?: string
 }) {
   return (
     <span className="inline-flex flex-col items-start gap-1">
-      <Button size="sm" variant={variant} disabled={disabled} title={title} onClick={onRun}>{label}</Button>
-      {line && <code className="max-w-[360px] truncate font-mono text-xs text-fg-secondary" title={line}>{line}</code>}
+      <Button size="sm" variant={variant} disabled={disabled} title={title} onClick={onRun}>
+        {label}
+      </Button>
+      {line && (
+        <code className="max-w-[360px] truncate font-mono text-xs text-fg-secondary" title={line}>
+          {line}
+        </code>
+      )}
     </span>
   )
 }
 
 /** A Symfony command button */
-export function CommandButton({ command, arg, label, onRun, variant = 'secondary', disabled, title }: {
-  command: SfCommand; arg?: string; label: string; onRun: (command: SfCommand, arg?: string) => void
-  variant?: Variant; disabled?: boolean; title?: string
+export function CommandButton({
+  command,
+  arg,
+  label,
+  onRun,
+  variant = 'secondary',
+  disabled,
+  title
+}: {
+  command: SfCommand
+  arg?: string
+  label: string
+  onRun: (command: SfCommand, arg?: string) => void
+  variant?: Variant
+  disabled?: boolean
+  title?: string
 }) {
   return <RunButton label={label} line={sfCommandLine(command, arg)} onRun={() => onRun(command, arg)} variant={variant} disabled={disabled} title={title} />
 }
@@ -69,21 +111,38 @@ export function useSfTasks(projectPath: string, label: (command: string) => stri
   const done = useRef(onDone)
   done.current = onDone
 
-  useEffect(() => window.devforge.onTaskResult(r => {
-    if (mine.current.delete(r.taskId)) done.current(r.status === 'success')
-    else { early.current.set(r.taskId, r); if (early.current.size > 20) early.current.delete(early.current.keys().next().value!) }
-  }), [])
+  useEffect(
+    () =>
+      window.devforge.onTaskResult(r => {
+        if (mine.current.delete(r.taskId)) done.current(r.status === 'success')
+        else {
+          early.current.set(r.taskId, r)
+          if (early.current.size > 20) early.current.delete(early.current.keys().next().value!)
+        }
+      }),
+    []
+  )
 
-  const track = useCallback(async (title: string, start: () => Promise<string>) => {
-    try {
-      const id = await runTask(title, projectPath, start)
-      const r = early.current.get(id)
-      if (r) { early.current.delete(id); done.current(r.status === 'success') } else mine.current.add(id)
-    } catch { /* the console shows the error */ }
-  }, [projectPath, runTask])
+  const track = useCallback(
+    async (title: string, start: () => Promise<string>) => {
+      try {
+        const id = await runTask(title, projectPath, start)
+        const r = early.current.get(id)
+        if (r) {
+          early.current.delete(id)
+          done.current(r.status === 'success')
+        } else mine.current.add(id)
+      } catch {
+        /* the console shows the error */
+      }
+    },
+    [projectPath, runTask]
+  )
 
-  const exec = useCallback((command: SfCommand, arg?: string) =>
-    track(label(sfCommandLine(command, arg)), () => window.devforge.symfony.run(projectPath, command, arg)), [label, projectPath, track])
+  const exec = useCallback(
+    (command: SfCommand, arg?: string) => track(label(sfCommandLine(command, arg)), () => window.devforge.symfony.run(projectPath, command, arg)),
+    [label, projectPath, track]
+  )
 
   return { exec, track }
 }

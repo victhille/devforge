@@ -15,7 +15,11 @@ export type GitStates = Record<string, FileChangeStatus>
 
 export const LETTER: Record<FileChangeStatus, string> = { modified: 'M', added: 'A', untracked: 'A', deleted: 'D', renamed: 'R' }
 export const TONE: Record<FileChangeStatus, string> = {
-  modified: 'text-warning', added: 'text-success', untracked: 'text-success', deleted: 'text-danger line-through', renamed: 'text-accent'
+  modified: 'text-warning',
+  added: 'text-success',
+  untracked: 'text-success',
+  deleted: 'text-danger line-through',
+  renamed: 'text-accent'
 }
 
 /** Does this folder (relative path, "" for the root) hold a change? */
@@ -24,15 +28,23 @@ export const holdsChange = (states: GitStates, dir: string) => Object.keys(state
 export function GitLetter({ status }: { status: FileChangeStatus }) {
   const { t } = useI18n()
   return (
-    <span title={t.files.gitStatus[status]} aria-label={t.files.gitStatus[status]}
-      className={cn('ml-auto shrink-0 pl-2 font-mono text-2xs font-semibold no-underline', TONE[status].replace('line-through', ''))}>
+    <span
+      title={t.files.gitStatus[status]}
+      aria-label={t.files.gitStatus[status]}
+      className={cn('ml-auto shrink-0 pl-2 font-mono text-2xs font-semibold no-underline', TONE[status].replace('line-through', ''))}
+    >
       {LETTER[status]}
     </span>
   )
 }
 
 /** The changed files as a tree of their own, every folder open ("Modified only") */
-export interface ChangedNode { name: string; path: string; status?: FileChangeStatus; children: ChangedNode[] }
+export interface ChangedNode {
+  name: string
+  path: string
+  status?: FileChangeStatus
+  children: ChangedNode[]
+}
 
 export function changedTree(states: GitStates): ChangedNode[] {
   const root: ChangedNode = { name: '', path: '', children: [] }
@@ -42,12 +54,18 @@ export function changedTree(states: GitStates): ChangedNode[] {
     parts.forEach((part, i) => {
       const sub = parts.slice(0, i + 1).join('/')
       let next = node.children.find(c => c.path === sub)
-      if (!next) { next = { name: part, path: sub, children: [], ...(i === parts.length - 1 ? { status } : {}) }; node.children.push(next) }
+      if (!next) {
+        next = { name: part, path: sub, children: [], ...(i === parts.length - 1 ? { status } : {}) }
+        node.children.push(next)
+      }
       node = next
     })
   }
   // Folders first
-  const sort = (n: ChangedNode) => { n.children.sort((a, b) => Number(!!a.status) - Number(!!b.status) || a.name.localeCompare(b.name)); n.children.forEach(sort) }
+  const sort = (n: ChangedNode) => {
+    n.children.sort((a, b) => Number(!!a.status) - Number(!!b.status) || a.name.localeCompare(b.name))
+    n.children.forEach(sort)
+  }
   sort(root)
   return root.children
 }
@@ -62,8 +80,17 @@ export function DiffView({ root, rel }: { root: string; rel: string }) {
     let alive = true
     setDiff(null)
     setError(false)
-    window.devforge.git.fileDiff(root, rel).then(r => { if (alive) setDiff(parseUnifiedDiff(r.diff)) }).catch(() => { if (alive) setError(true) })
-    return () => { alive = false }
+    window.devforge.git
+      .fileDiff(root, rel)
+      .then(r => {
+        if (alive) setDiff(parseUnifiedDiff(r.diff))
+      })
+      .catch(() => {
+        if (alive) setError(true)
+      })
+    return () => {
+      alive = false
+    }
   }, [root, rel])
   if (error) return <p className="p-4 text-sm text-fg-muted">{f.unreadable}</p>
   if (!diff) return <LinesSkeleton lines={8} plain className="p-5" />
@@ -76,10 +103,11 @@ export function DiffView({ root, rel }: { root: string; rel: string }) {
         <div key={i}>
           <div className="px-3 py-1 text-xs text-term-dim">{h.header}</div>
           {h.lines.map((l, j) => (
-            <div key={j} data-kind={l.kind}
-              className={cn('flex whitespace-pre', l.kind === 'add' && 'bg-success/12', l.kind === 'del' && 'bg-danger/12')}>
+            <div key={j} data-kind={l.kind} className={cn('flex whitespace-pre', l.kind === 'add' && 'bg-success/12', l.kind === 'del' && 'bg-danger/12')}>
               <span className="w-10 shrink-0 pr-2 text-right text-term-dim select-none">{l.newNo ?? l.oldNo ?? ''}</span>
-              <span className={cn('w-4.5 shrink-0 text-center select-none', l.kind === 'add' && 'text-success', l.kind === 'del' && 'text-danger')}>{l.kind === 'add' ? '+' : l.kind === 'del' ? '−' : ' '}</span>
+              <span className={cn('w-4.5 shrink-0 text-center select-none', l.kind === 'add' && 'text-success', l.kind === 'del' && 'text-danger')}>
+                {l.kind === 'add' ? '+' : l.kind === 'del' ? '−' : ' '}
+              </span>
               <span className="pr-4">{l.text}</span>
             </div>
           ))}

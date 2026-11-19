@@ -31,7 +31,14 @@ export default function SplitPane({ side, children, width = 'md', label, sideCla
   return (
     <div className={cn('@container h-full min-h-0', className)}>
       <div className="flex h-full min-h-0 flex-col @min-[720px]:flex-row">
-        <aside aria-label={label} className={cn('flex max-h-56 shrink-0 flex-col border-b border-line-subtle bg-sidebar @min-[720px]:max-h-none @min-[720px]:border-r @min-[720px]:border-b-0', WIDTH[width], sideClassName)}>
+        <aside
+          aria-label={label}
+          className={cn(
+            'flex max-h-56 shrink-0 flex-col border-b border-line-subtle bg-sidebar @min-[720px]:max-h-none @min-[720px]:border-r @min-[720px]:border-b-0',
+            WIDTH[width],
+            sideClassName
+          )}
+        >
           {side}
         </aside>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">{children}</div>

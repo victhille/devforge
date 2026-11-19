@@ -19,9 +19,20 @@ test('a use case drawn, its scenario, its tasks in Notes; a class and a sequence
     seed: dir => {
       project = join(dir, 'shop')
       mkdirSync(join(project, 'conception'), { recursive: true })
-      writeFileSync(join(project, 'conception', 'archi.architecture.json'), JSON.stringify({ v: 1, kind: 'architecture', name: 'Archi', updatedAt: '2026-10-01T10:00:00.000Z', diagram: samples.architecture() }))
-      writeFileSync(join(project, 'conception', 'parcours.flow.json'), JSON.stringify({ v: 1, kind: 'flow', name: 'Parcours', updatedAt: '2026-10-01T10:00:00.000Z', diagram: samples.flow() }))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 's', name: 'shop', path: project, framework: 'other', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(project, 'conception', 'archi.architecture.json'),
+        JSON.stringify({ v: 1, kind: 'architecture', name: 'Archi', updatedAt: '2026-10-01T10:00:00.000Z', diagram: samples.architecture() })
+      )
+      writeFileSync(
+        join(project, 'conception', 'parcours.flow.json'),
+        JSON.stringify({ v: 1, kind: 'flow', name: 'Parcours', updatedAt: '2026-10-01T10:00:00.000Z', diagram: samples.flow() })
+      )
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          { id: 's', name: 'shop', path: project, framework: 'other', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page, app } = run
@@ -60,10 +71,19 @@ test('a use case drawn, its scenario, its tasks in Notes; a class and a sequence
   await panel.getByRole('button', { name: 'Étape' }).click()
   await panel.getByLabel('Étape 1', { exact: true }).fill('Le client valide son panier')
   const file = join(project, 'conception', 'parcours-client.usecase.json')
-  await expect.poll(() => {
-    const d = JSON.parse(readFileSync(file, 'utf-8')).diagram
-    return [d.nodes.map((n: { name: string }) => n.name).join(','), d.edges.map((e: { type: string }) => e.type).join(','), d.nodes.find((n: { name: string }) => n.name === 'Passer une commande')?.steps]
-  }, { timeout: 10_000 }).toEqual(['Boutique,Client,Passer une commande,Payer', 'association,include', ['Le client valide son panier']])
+  await expect
+    .poll(
+      () => {
+        const d = JSON.parse(readFileSync(file, 'utf-8')).diagram
+        return [
+          d.nodes.map((n: { name: string }) => n.name).join(','),
+          d.edges.map((e: { type: string }) => e.type).join(','),
+          d.nodes.find((n: { name: string }) => n.name === 'Passer une commande')?.steps
+        ]
+      },
+      { timeout: 10_000 }
+    )
+    .toEqual(['Boutique,Client,Passer une commande,Payer', 'association,include', ['Le client valide son panier']])
   expect(await settledAxeIssues(page)).toEqual([])
 
   // One task per case in the project's Notes, not twice
@@ -102,10 +122,15 @@ test('a use case drawn, its scenario, its tasks in Notes; a class and a sequence
   await pullLink(page, 'Front', page.locator('[data-node="API"]'), 'right', { x: 40, y: 140 })
   await panel.getByLabel('Libellé').fill('POST /commandes')
   await expect(canvas).toContainText('POST /commandes')
-  await expect.poll(() => {
-    const d = JSON.parse(readFileSync(join(project, 'conception', 'commande.sequence.json'), 'utf-8')).diagram
-    return d.nodes.length < 2 || !d.edges.length ? [] : [d.nodes[0].y === d.nodes[1].y, d.edges[0].y > d.nodes[0].y + 40, d.edges[0].label]
-  }, { timeout: 10_000 }).toEqual([true, true, 'POST /commandes'])
+  await expect
+    .poll(
+      () => {
+        const d = JSON.parse(readFileSync(join(project, 'conception', 'commande.sequence.json'), 'utf-8')).diagram
+        return d.nodes.length < 2 || !d.edges.length ? [] : [d.nodes[0].y === d.nodes[1].y, d.edges[0].y > d.nodes[0].y + 40, d.edges[0].label]
+      },
+      { timeout: 10_000 }
+    )
+    .toEqual([true, true, 'POST /commandes'])
   expect(await settledAxeIssues(page)).toEqual([])
 
   // The list: every diagram drawn, with its kind and its count

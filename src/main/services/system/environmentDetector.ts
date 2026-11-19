@@ -18,7 +18,7 @@ const TOOL_DEFINITIONS: ToolDef[] = [
     command: 'node',
     args: ['--version'],
     required: false,
-    parseVersion: (o) => o.trim()
+    parseVersion: o => o.trim()
   },
   {
     id: 'npm',
@@ -26,7 +26,7 @@ const TOOL_DEFINITIONS: ToolDef[] = [
     command: 'npm',
     args: ['--version'],
     required: false,
-    parseVersion: (o) => `v${o.trim()}`
+    parseVersion: o => `v${o.trim()}`
   },
   {
     id: 'pnpm',
@@ -34,7 +34,7 @@ const TOOL_DEFINITIONS: ToolDef[] = [
     command: 'pnpm',
     args: ['--version'],
     required: false,
-    parseVersion: (o) => `v${o.trim()}`
+    parseVersion: o => `v${o.trim()}`
   },
   {
     id: 'yarn',
@@ -42,7 +42,7 @@ const TOOL_DEFINITIONS: ToolDef[] = [
     command: 'yarn',
     args: ['--version'],
     required: false,
-    parseVersion: (o) => `v${o.trim()}`
+    parseVersion: o => `v${o.trim()}`
   },
   {
     id: 'python',
@@ -50,7 +50,7 @@ const TOOL_DEFINITIONS: ToolDef[] = [
     command: 'python',
     args: ['--version'],
     required: false,
-    parseVersion: (o) => {
+    parseVersion: o => {
       const m = o.match(/Python ([\d.]+)/)
       return m ? `v${m[1]}` : o.trim()
     }
@@ -61,7 +61,7 @@ const TOOL_DEFINITIONS: ToolDef[] = [
     command: 'git',
     args: ['--version'],
     required: false,
-    parseVersion: (o) => {
+    parseVersion: o => {
       // "git version 2.45.1.windows.1" → v2.45.1
       const m = o.match(/\d+(?:\.\d+)+/)
       return m ? `v${m[0]}` : o.trim()
@@ -73,7 +73,7 @@ const TOOL_DEFINITIONS: ToolDef[] = [
     command: 'php',
     args: ['--version'],
     required: false,
-    parseVersion: (o) => {
+    parseVersion: o => {
       const m = o.match(/PHP ([\d.]+)/)
       return m ? `v${m[1]}` : o.split('\n')[0].trim()
     }
@@ -84,7 +84,7 @@ const TOOL_DEFINITIONS: ToolDef[] = [
     command: 'composer',
     args: ['--version'],
     required: false,
-    parseVersion: (o) => {
+    parseVersion: o => {
       const m = o.match(/Composer version ([\d.]+)/)
       return m ? `v${m[1]}` : o.split('\n')[0].trim()
     }
@@ -95,7 +95,7 @@ const TOOL_DEFINITIONS: ToolDef[] = [
     command: 'symfony',
     args: ['version'],
     required: false,
-    parseVersion: (o) => {
+    parseVersion: o => {
       const m = o.match(/version ([\d.]+)/)
       return m ? `v${m[1]}` : o.split('\n')[0].trim()
     }
@@ -106,7 +106,7 @@ const TOOL_DEFINITIONS: ToolDef[] = [
     command: 'docker',
     args: ['--version'],
     required: false,
-    parseVersion: (o) => {
+    parseVersion: o => {
       const m = o.match(/Docker version ([\d.]+)/)
       return m ? `v${m[1]}` : o.trim()
     }
@@ -143,7 +143,9 @@ let cache: Promise<EnvironmentTool[]> | null = null
 export function detectEnvironment(force = false): Promise<EnvironmentTool[]> {
   if (!cache || force) {
     cache = Promise.all(TOOL_DEFINITIONS.map(detect))
-    cache.catch(() => { cache = null })
+    cache.catch(() => {
+      cache = null
+    })
   }
   return cache
 }
@@ -154,7 +156,10 @@ export function detectTool(id: string): EnvironmentTool | null {
   if (!def) return null
   try {
     const output = execSync(`${def.command} ${def.args.join(' ')}`, {
-      timeout: 5000, encoding: 'utf8', windowsHide: true, stdio: ['ignore', 'pipe', 'ignore']
+      timeout: 5000,
+      encoding: 'utf8',
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'ignore']
     })
     return toTool(def, output)
   } catch {

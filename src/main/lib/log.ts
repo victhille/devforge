@@ -19,7 +19,13 @@ export function initLog(logDir: string): void {
 const file = (n = 0) => join(dir!, n === 0 ? 'devforge.log' : `devforge.${n}.log`)
 
 /** This PC's user folder, written as `~` in the log (it carries the Windows account name) */
-const home = (() => { try { return homedir() } catch { return '' } })()
+const home = (() => {
+  try {
+    return homedir()
+  } catch {
+    return ''
+  }
+})()
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const HOME_RE = home ? new RegExp(`${escape(home).replace(/\\\\/g, '[\\\\/]')}(?=[\\\\/]|\\b|$)`, 'gi') : null
 
@@ -61,7 +67,12 @@ export function log(level: 'info' | 'warn' | 'error', scope: string, message: un
   const line = `${new Date().toISOString()} ${level.toUpperCase()} [${scope}] ${redact(text)}\n`
   if (level === 'error') console.error(line.trimEnd())
   if (!dir) return
-  try { rotate(); appendFileSync(file(), line, 'utf-8') } catch { /* never let logging crash the app */ }
+  try {
+    rotate()
+    appendFileSync(file(), line, 'utf-8')
+  } catch {
+    /* never let logging crash the app */
+  }
 }
 
 /** The last lines of the log, newest last */

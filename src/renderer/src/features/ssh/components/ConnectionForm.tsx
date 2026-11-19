@@ -10,10 +10,7 @@ import Notice from '@renderer/components/ui/Notice'
 import Tabs from '@renderer/components/ui/Tabs'
 import { Field, Input } from '@renderer/components/ui/Input'
 
-export const CONNECTION_COLORS = [
-  '#4F8EF7', '#3DD68C', '#F5A623', '#F7615A',
-  '#A78BFA', '#34D399', '#60A5FA', '#F472B6'
-]
+export const CONNECTION_COLORS = ['#4F8EF7', '#3DD68C', '#F5A623', '#F7615A', '#A78BFA', '#34D399', '#60A5FA', '#F472B6']
 
 interface Props {
   initial?: SSHConnection
@@ -23,15 +20,15 @@ interface Props {
 
 export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
   const { t } = useI18n()
-  const [name,       setName]       = useState(initial?.name ?? '')
-  const [host,       setHost]       = useState(initial?.host ?? '')
-  const [port,       setPort]       = useState(String(initial?.port ?? 22))
-  const [username,   setUsername]   = useState(initial?.username ?? '')
+  const [name, setName] = useState(initial?.name ?? '')
+  const [host, setHost] = useState(initial?.host ?? '')
+  const [port, setPort] = useState(String(initial?.port ?? 22))
+  const [username, setUsername] = useState(initial?.username ?? '')
   const [authMethod, setAuthMethod] = useState<SSHAuthMethod>(initial?.authMethod ?? 'password')
-  const [password,   setPassword]   = useState('')
-  const [keyPath,    setKeyPath]    = useState(initial?.privateKeyPath ?? '')
-  const [color,      setColor]      = useState(initial?.color ?? CONNECTION_COLORS[0])
-  const [errors,     setErrors]     = useState<Record<string, string>>({})
+  const [password, setPassword] = useState('')
+  const [keyPath, setKeyPath] = useState(initial?.privateKeyPath ?? '')
+  const [color, setColor] = useState(initial?.color ?? CONNECTION_COLORS[0])
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [fingerprint, setFingerprint] = useState(initial?.fingerprint ?? null)
 
   async function browseKey() {
@@ -47,8 +44,8 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
 
   function validate(): boolean {
     const errs: Record<string, string> = {}
-    if (!name.trim())     errs.name     = t.ssh.required
-    if (!host.trim())     errs.host     = t.ssh.required
+    if (!name.trim()) errs.name = t.ssh.required
+    if (!host.trim()) errs.host = t.ssh.required
     else if (!isSshHost(host.trim())) errs.host = t.ssh.invalidHost
     if (!username.trim()) errs.username = t.ssh.required
     const p = Number(port)
@@ -61,17 +58,17 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
   function save() {
     if (!validate()) return
     onSave({
-      id:             initial?.id ?? crypto.randomUUID(),
-      name:           name.trim(),
-      host:           host.trim(),
-      port:           Number(port),
-      username:       username.trim(),
+      id: initial?.id ?? crypto.randomUUID(),
+      name: name.trim(),
+      host: host.trim(),
+      port: Number(port),
+      username: username.trim(),
       authMethod,
       // Empty password on edit = keep the stored one, for the same address (handled in main process)
-      password:       authMethod === 'password' && password ? password : undefined,
+      password: authMethod === 'password' && password ? password : undefined,
       privateKeyPath: authMethod === 'privateKey' ? keyPath : undefined,
       color,
-      createdAt:      initial?.createdAt ?? new Date().toISOString()
+      createdAt: initial?.createdAt ?? new Date().toISOString()
     })
   }
 
@@ -81,7 +78,9 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
       onClose={onCancel}
       footer={
         <>
-          <Button variant="ghost" onClick={onCancel}>{t.ssh.cancel}</Button>
+          <Button variant="ghost" onClick={onCancel}>
+            {t.ssh.cancel}
+          </Button>
           <Button onClick={save}>{t.ssh.save}</Button>
         </>
       }
@@ -104,7 +103,11 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
       </Field>
 
       {/* Said once when it appears, not on each key typed: its text stays the same */}
-      {moved && <Notice tone="warning" role="status">{t.ssh.addressChanged}</Notice>}
+      {moved && (
+        <Notice tone="warning" role="status">
+          {t.ssh.addressChanged}
+        </Notice>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-fg-secondary">{t.ssh.labelAuth}</span>
@@ -112,8 +115,8 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
           value={authMethod}
           onChange={setAuthMethod}
           items={[
-            { value: 'password',   label: t.ssh.authPassword, icon: <Lock size={13} /> },
-            { value: 'privateKey', label: t.ssh.authKey,      icon: <Key size={13} /> }
+            { value: 'password', label: t.ssh.authPassword, icon: <Lock size={13} /> },
+            { value: 'privateKey', label: t.ssh.authKey, icon: <Key size={13} /> }
           ]}
         />
       </div>
@@ -131,7 +134,9 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
         <Field label={t.ssh.labelKeyPath} error={errors.keyPath}>
           <div className="flex gap-2">
             <Input value={keyPath} onChange={e => setKeyPath(e.target.value)} placeholder="~/.ssh/id_rsa" className="font-mono" invalid={!!errors.keyPath} />
-            <Button variant="secondary" onClick={browseKey}>{t.ssh.browseKey}</Button>
+            <Button variant="secondary" onClick={browseKey}>
+              {t.ssh.browseKey}
+            </Button>
           </div>
         </Field>
       )}
@@ -144,7 +149,13 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
             <span className="truncate font-mono text-2xs text-fg-muted">{shownFingerprint ?? t.ssh.hostKeyUnknown}</span>
           </div>
           {shownFingerprint && (
-            <Button size="sm" variant="ghost" onClick={async () => { if (await window.devforge.forgetSshHostKey(initial.id)) setFingerprint(null) }}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={async () => {
+                if (await window.devforge.forgetSshHostKey(initial.id)) setFingerprint(null)
+              }}
+            >
               {t.ssh.forgetHostKey}
             </Button>
           )}
@@ -160,10 +171,7 @@ export default function ConnectionForm({ initial, onSave, onCancel }: Props) {
               type="button"
               aria-label={c}
               onClick={() => setColor(c)}
-              className={cn(
-                'size-6 rounded-full transition-transform hover:scale-110',
-                color === c && 'ring-2 ring-fg ring-offset-2 ring-offset-surface'
-              )}
+              className={cn('size-6 rounded-full transition-transform hover:scale-110', color === c && 'ring-2 ring-fg ring-offset-2 ring-offset-surface')}
               style={{ background: c }}
             />
           ))}

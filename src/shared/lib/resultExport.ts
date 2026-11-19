@@ -26,5 +26,4 @@ export function toJson(r: Pick<DbQueryResult, 'columns' | 'rows'>): string {
   return JSON.stringify(objects, (_k, v) => (typeof v === 'bigint' ? v.toString() : v), 2)
 }
 
-export const formatResult = (r: Pick<DbQueryResult, 'columns' | 'rows'>, format: ResultFormat) =>
-  format === 'json' ? toJson(r) : toCsv(r)
+export const formatResult = (r: Pick<DbQueryResult, 'columns' | 'rows'>, format: ResultFormat) => (format === 'json' ? toJson(r) : toCsv(r))

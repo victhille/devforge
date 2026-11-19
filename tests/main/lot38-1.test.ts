@@ -1,7 +1,18 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import { addTasks, addTasksById, listNotes, openCounts, parseNote, readNote, removeNote, saveNote, serializeNote, slugify } from '../../src/main/services/notes/projectNotes'
+import {
+  addTasks,
+  addTasksById,
+  listNotes,
+  openCounts,
+  parseNote,
+  readNote,
+  removeNote,
+  saveNote,
+  serializeNote,
+  slugify
+} from '../../src/main/services/notes/projectNotes'
 import { notesText, taskPlan, undoNotes } from '../../src/main/services/assistant/notesTools'
 import { saveProjects, tempDir, userData } from '../helpers'
 
@@ -16,7 +27,10 @@ const file = (id: string) => readFileSync(join(notesDir(), `${id}.md`), 'utf-8')
 beforeEach(() => {
   shop = tempDir('shop')
   blog = tempDir('blog')
-  saveProjects([{ name: 'shop', path: shop }, { name: 'blog', path: blog }])
+  saveProjects([
+    { name: 'shop', path: shop },
+    { name: 'blog', path: blog }
+  ])
   rmSync(legacy(), { force: true })
 })
 
@@ -32,16 +46,34 @@ describe('notes in the project', () => {
     // Same title: a free name; pinned: first
     const b = saveNote('p0', { title: 'Comptes de test Stripe', pinned: true, body: '' })
     expect(b.id).toBe('comptes-de-test-stripe-2')
-    const c = saveNote('p0', { title: 'À faire : mise en ligne', pinned: false, body: '<ul data-checklist><li data-checked="false">DNS</li><li data-checked="true">TLS</li></ul>' })
+    const c = saveNote('p0', {
+      title: 'À faire : mise en ligne',
+      pinned: false,
+      body: '<ul data-checklist><li data-checked="false">DNS</li><li data-checked="true">TLS</li></ul>'
+    })
     expect(c.id).toBe('a-faire-mise-en-ligne')
     // A title YAML would misread is quoted; the HTML one block per line
-    expect(file(c.id)).toBe('---\ntitle: "À faire : mise en ligne"\npinned: false\n---\n<ul data-checklist>\n<li data-checked="false">DNS</li>\n<li data-checked="true">TLS</li>\n</ul>\n')
+    expect(file(c.id)).toBe(
+      '---\ntitle: "À faire : mise en ligne"\npinned: false\n---\n<ul data-checklist>\n<li data-checked="false">DNS</li>\n<li data-checked="true">TLS</li>\n</ul>\n'
+    )
     const list = listNotes('p0')
     expect(list[0]).toMatchObject({ id: 'comptes-de-test-stripe-2', pinned: true, open: 0 })
-    expect(list.slice(1).map(n => [n.id, n.open]).sort()).toEqual([['a-faire-mise-en-ligne', 1], ['comptes-de-test-stripe', 0]])
+    expect(
+      list
+        .slice(1)
+        .map(n => [n.id, n.open])
+        .sort()
+    ).toEqual([
+      ['a-faire-mise-en-ligne', 1],
+      ['comptes-de-test-stripe', 0]
+    ])
 
     // Read back as written
-    expect(readNote('p0', c.id)).toMatchObject({ title: 'À faire : mise en ligne', pinned: false, body: '<ul data-checklist>\n<li data-checked="false">DNS</li>\n<li data-checked="true">TLS</li>\n</ul>\n' })
+    expect(readNote('p0', c.id)).toMatchObject({
+      title: 'À faire : mise en ligne',
+      pinned: false,
+      body: '<ul data-checklist>\n<li data-checked="false">DNS</li>\n<li data-checked="true">TLS</li>\n</ul>\n'
+    })
     expect(openCounts()).toEqual({ p0: 1 })
   })
 
@@ -86,10 +118,15 @@ describe('notes in the project', () => {
     writeFileSync(join(notesDir(), 'sans-entete.md'), 'Juste du texte')
     // Not a note: its name is not one DevForge would write
     writeFileSync(join(notesDir(), 'Notes Perso.md'), 'x')
-    expect(listNotes('p0').map(n => [n.id, n.title, n.open])).toEqual(expect.arrayContaining([['deploiement', 'Déploiement', 1], ['sans-entete', 'sans entete', 0]]))
+    expect(listNotes('p0').map(n => [n.id, n.title, n.open])).toEqual(
+      expect.arrayContaining([
+        ['deploiement', 'Déploiement', 1],
+        ['sans-entete', 'sans entete', 0]
+      ])
+    )
     expect(listNotes('p0')).toHaveLength(2)
     expect(readNote('p0', 'deploiement').body).toBe('- [ ] DNS\n- [x] pm2\n\nSur vps-demo.\n')
-    expect(parseNote('x', '---\ntitle: \'l\'\'été\'\npinned: yes\n---\n<p>a</p>', '')).toMatchObject({ title: 'l\'été', pinned: true, body: '<p>a</p>' })
+    expect(parseNote('x', "---\ntitle: 'l''été'\npinned: yes\n---\n<p>a</p>", '')).toMatchObject({ title: "l'été", pinned: true, body: '<p>a</p>' })
     expect(parseNote('x', serializeNote({ title: '#1: "go"', pinned: false, body: '' }), '').title).toBe('#1: "go"')
   })
 
@@ -99,7 +136,9 @@ describe('notes in the project', () => {
     const tasks = listNotes('p0').find(n => n.title === 'Tâches')!
     expect(tasks).toMatchObject({ id: 'taches', pinned: true, open: 1 })
     expect(addTasks(project(), ['Livrer']).added).toEqual(['Livrer'])
-    expect(readNote('p0', 'taches').body).toBe('<ul data-checklist>\n<li data-checked="false">Passer une commande</li>\n<li data-checked="false">Livrer</li>\n</ul>\n')
+    expect(readNote('p0', 'taches').body).toBe(
+      '<ul data-checklist>\n<li data-checked="false">Passer une commande</li>\n<li data-checked="false">Livrer</li>\n</ul>\n'
+    )
     expect(addTasksById('p0', ['Livrer'])).toBe(0)
     expect(openCounts()).toEqual({ p0: 3 })
   })
@@ -121,8 +160,13 @@ describe('the notes of v3.8 move into the project', () => {
     // Counted from the JSON before they move
     expect(openCounts()).toEqual({ p0: 1, p1: 1 })
 
-    expect(listNotes('p0').map(n => [n.id, n.title, n.pinned, n.open])).toEqual([['taches', 'Tâches', true, 1], ['notes', 'Notes', false, 0]])
-    expect(readNote('p0', 'taches').body).toBe('<ul data-checklist>\n<li data-checked="false">Brancher Stripe</li>\n<li data-checked="true">Mettre à jour &lt;Symfony&gt;</li>\n</ul>\n')
+    expect(listNotes('p0').map(n => [n.id, n.title, n.pinned, n.open])).toEqual([
+      ['taches', 'Tâches', true, 1],
+      ['notes', 'Notes', false, 0]
+    ])
+    expect(readNote('p0', 'taches').body).toBe(
+      '<ul data-checklist>\n<li data-checked="false">Brancher Stripe</li>\n<li data-checked="true">Mettre à jour &lt;Symfony&gt;</li>\n</ul>\n'
+    )
     // The Markdown stays Markdown (the editor converts it when it opens)
     expect(readNote('p0', 'notes').body).toBe('# Mise en ligne\n\n- vider le **cache**')
     // The other project's entry stays until its notes are read
@@ -160,7 +204,11 @@ describe('the notes of v3.8 move into the project', () => {
 
 describe('Forgy and the notes', () => {
   beforeEach(() => {
-    saveNote('p0', { title: 'Tâches', pinned: true, body: '<ul data-checklist><li data-checked="false">Brancher Stripe</li><li data-checked="true">Corriger la TVA</li></ul>' })
+    saveNote('p0', {
+      title: 'Tâches',
+      pinned: true,
+      body: '<ul data-checklist><li data-checked="false">Brancher Stripe</li><li data-checked="true">Corriger la TVA</li></ul>'
+    })
     saveNote('p0', { title: 'Serveur', pinned: false, body: '<p>vps-1, <b>pm2</b></p><ul data-checklist><li data-checked="false">Certificat</li></ul>' })
   })
 

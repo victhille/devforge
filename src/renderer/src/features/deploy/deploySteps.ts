@@ -8,10 +8,17 @@ import type { DeployStatus, DeployTarget } from '@shared/types'
 
 export type StepKind = 'push' | 'pull' | 'install' | 'build' | 'images' | 'migrate' | 'cache' | 'restart' | 'clean' | 'check' | 'command'
 export type StepState = 'done' | 'running' | 'failed' | 'pending'
-export interface DeployStep { kind: StepKind; cmd: string }
+export interface DeployStep {
+  kind: StepKind
+  cmd: string
+}
 
 /** The script's lines that run, as the main process reads them (no blank line, no comment) */
-export const scriptLines = (script: string) => script.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'))
+export const scriptLines = (script: string) =>
+  script
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(l => l && !l.startsWith('#'))
 
 const KINDS: [StepKind, RegExp][] = [
   ['images', /\bdocker[ -]compose\b.*\bpull\b/],

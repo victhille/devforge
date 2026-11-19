@@ -31,7 +31,9 @@ test('tools: diff without whitespace, JSON keys in order, a Laravel APP_KEY', as
   await goTo(page, '/toolbox')
   await page.getByPlaceholder('{"key": "value"}').fill('{"statut":"ok","client":{"ville":"Nantes","nom":"Ada"}}')
   await page.getByRole('button', { name: 'Trier les clés' }).click()
-  await expect(page.getByRole('textbox', { name: 'Résultat' })).toHaveValue('{\n  "client": {\n    "nom": "Ada",\n    "ville": "Nantes"\n  },\n  "statut": "ok"\n}')
+  await expect(page.getByRole('textbox', { name: 'Résultat' })).toHaveValue(
+    '{\n  "client": {\n    "nom": "Ada",\n    "ville": "Nantes"\n  },\n  "statut": "ok"\n}'
+  )
 
   await goTo(page, '/generator')
   // A tab per kind; the value is drawn at once, again when a setting changes
@@ -52,7 +54,21 @@ test('.env: a secret is drawn again after a yes, never an API key', async () => 
       app = join(dir, 'shop')
       mkdirSync(app)
       writeFileSync(join(app, '.env'), 'APP_KEY=base64:old\nSTRIPE_KEY=sk_test_1\n')
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'Shop', path: app, framework: 'laravel', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'p1',
+            name: 'Shop',
+            path: app,
+            framework: 'laravel',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
     }
   })
   const { page } = run
@@ -79,9 +95,26 @@ test('domains in a table with their state; logs and webhooks say where they stan
       // A log is opened only inside a project's folder
       const api = join(dir, 'api')
       mkdirSync(join(api, 'storage', 'logs'), { recursive: true })
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'Api', path: api, framework: 'laravel', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'p1',
+            name: 'Api',
+            path: api,
+            framework: 'laravel',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
       log = join(api, 'storage', 'logs', 'laravel.log')
-      writeFileSync(log, '[2026-11-08 10:00:00] local.ERROR: SQLSTATE[23000]\n[2026-11-08 10:00:01] local.WARNING: slow mail\n[2026-11-08 10:00:02] local.INFO: invoice sent\n')
+      writeFileSync(
+        log,
+        '[2026-11-08 10:00:00] local.ERROR: SQLSTATE[23000]\n[2026-11-08 10:00:01] local.WARNING: slow mail\n[2026-11-08 10:00:02] local.INFO: invoice sent\n'
+      )
       writeFileSync(join(dir, 'domains.json'), JSON.stringify([{ id: 'd1', domain: 'shop.test', port: 3999, enabled: false }]))
     }
   })

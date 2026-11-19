@@ -47,5 +47,11 @@ export interface EnvAPI {
   /** Keys of a local .env against the same file of a deploy target */
   syncDiff: (targetId: string, localName: string, remoteName: string) => Promise<EnvSyncDiff>
   /** 'push' sends the chosen keys to the server, 'pull' brings them here; the file written is saved first */
-  syncApply: (targetId: string, localName: string, remoteName: string, direction: 'push' | 'pull', keys: string[]) => Promise<{ changed: number; backup: string | null }>
+  syncApply: (
+    targetId: string,
+    localName: string,
+    remoteName: string,
+    direction: 'push' | 'pull',
+    keys: string[]
+  ) => Promise<{ changed: number; backup: string | null }>
 }

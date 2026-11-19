@@ -15,8 +15,17 @@ const pkg = JSON.parse(readFileSync('package.json', 'utf-8'))
 
 // Bundled into the renderer by Vite (devDependencies in package.json, but shipped in the app)
 const RENDERER = [
-  '@xterm/addon-fit', '@xterm/addon-web-links', '@xterm/xterm',
-  'clsx', 'highlight.js', 'lucide-react', 'pdfjs-dist', 'react', 'react-dom', 'react-router-dom', 'tailwind-merge'
+  '@xterm/addon-fit',
+  '@xterm/addon-web-links',
+  '@xterm/xterm',
+  'clsx',
+  'highlight.js',
+  'lucide-react',
+  'pdfjs-dist',
+  'react',
+  'react-dom',
+  'react-router-dom',
+  'tailwind-merge'
 ]
 // Left out of the installer by package.json › build.files
 const NOT_SHIPPED = ['onnxruntime-web', '@img/sharp-wasm32']
@@ -51,7 +60,10 @@ for (const name of deps) {
 
 const rows = [...entries.values()].sort((a, b) => a.name.localeCompare(b.name))
 const byLicense = rows.reduce((acc, r) => ({ ...acc, [r.license]: (acc[r.license] ?? 0) + 1 }), /** @type {Record<string, number>} */ ({}))
-const summary = Object.entries(byLicense).sort((a, b) => b[1] - a[1]).map(([l, n]) => `${l} (${n})`).join(', ')
+const summary = Object.entries(byLicense)
+  .sort((a, b) => b[1] - a[1])
+  .map(([l, n]) => `${l} (${n})`)
+  .join(', ')
 
 // ─── The license text of each package ─────────────────────────────────────────
 
@@ -79,11 +91,17 @@ const holderOf = row => {
     const author = JSON.parse(readFileSync(join(row.path, 'package.json'), 'utf-8')).author
     const name = typeof author === 'string' ? author.replace(/\s*[<(].*$/, '') : author?.name
     if (name) return name
-  } catch { /* no package.json: generic holder below */ }
+  } catch {
+    /* no package.json: generic holder below */
+  }
   return `the ${row.name} authors`
 }
 const textOf = row => {
-  const files = existsSync(row.path) ? readdirSync(row.path).filter(f => LICENSE_FILE.test(f)).sort() : []
+  const files = existsSync(row.path)
+    ? readdirSync(row.path)
+        .filter(f => LICENSE_FILE.test(f))
+        .sort()
+    : []
   if (files.length) return files.map(f => readFileSync(join(row.path, f), 'utf-8').replace(/\r/g, '').trim()).join('\n\n')
   // The package ships no license file: its declared license, with its author as the holder
   if (row.license === 'MIT') return MIT(holderOf(row))
@@ -145,7 +163,9 @@ ${lgpl}
   mkdirSync('out/licenses', { recursive: true })
   writeFileSync('out/licenses/THIRD_PARTY_NOTICES.txt', out)
   const missing = rows.filter(r => !(existsSync(r.path) && readdirSync(r.path).some(f => LICENSE_FILE.test(f))))
-  console.log(`out/licenses/THIRD_PARTY_NOTICES.txt: ${rows.length} packages, ${Math.round(out.length / 1024)} KB — texts written from the SPDX license for ${missing.length}: ${missing.map(r => r.name).join(', ') || 'none'}`)
+  console.log(
+    `out/licenses/THIRD_PARTY_NOTICES.txt: ${rows.length} packages, ${Math.round(out.length / 1024)} KB — texts written from the SPDX license for ${missing.length}: ${missing.map(r => r.name).join(', ') || 'none'}`
+  )
 } else if (process.argv.includes('--check')) {
   const current = readFileSync('THIRD_PARTY_LICENSES.md', 'utf-8').replace(/\r/g, '')
   if (current !== list) {

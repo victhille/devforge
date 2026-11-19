@@ -22,14 +22,16 @@ const REAL = sections(
 
 describe('VPS services', () => {
   it('finds the web interfaces, their port, and the ones open to the internet', () => {
-    const s = parseServices([
-      'portainer|portainer/portainer-ce:2.45.1|8000/tcp, 9443/tcp, 127.0.0.1:9000->9000/tcp|running|Up 2 weeks',
-      'dbadmin|phpmyadmin:5.2.3|127.0.0.1:8080->80/tcp|running|Up 2 weeks',
-      'db|mariadb:11.4|3306/tcp|running|Up 2 weeks',
-      'wg-easy|ghcr.io/wg-easy/wg-easy:15.2.2|0.0.0.0:51820->51820/udp, [::]:51820->51820/udp, 127.0.0.1:51821->51821/tcp|running|Up',
-      'blog|nginx:1.27|0.0.0.0:8081->80/tcp, [::]:8081->80/tcp|exited|Exited (0) 2 days ago',
-      'cache|redis:7|0.0.0.0:6379->6379/tcp|running|Up'
-    ].join('\n'))
+    const s = parseServices(
+      [
+        'portainer|portainer/portainer-ce:2.45.1|8000/tcp, 9443/tcp, 127.0.0.1:9000->9000/tcp|running|Up 2 weeks',
+        'dbadmin|phpmyadmin:5.2.3|127.0.0.1:8080->80/tcp|running|Up 2 weeks',
+        'db|mariadb:11.4|3306/tcp|running|Up 2 weeks',
+        'wg-easy|ghcr.io/wg-easy/wg-easy:15.2.2|0.0.0.0:51820->51820/udp, [::]:51820->51820/udp, 127.0.0.1:51821->51821/tcp|running|Up',
+        'blog|nginx:1.27|0.0.0.0:8081->80/tcp, [::]:8081->80/tcp|exited|Exited (0) 2 days ago',
+        'cache|redis:7|0.0.0.0:6379->6379/tcp|running|Up'
+      ].join('\n')
+    )
     expect(s.map(x => [x.name, x.port, x.exposed, x.running])).toEqual([
       ['phpMyAdmin', 8080, false, true],
       ['Portainer', 9000, false, true],
@@ -63,12 +65,15 @@ describe('VPS health', () => {
 
   it('flags an exposed port, password logins, a crashed container, no fail2ban', () => {
     const bad = sections(
-      'no', '3\n2', 'no',
+      'no',
+      '3\n2',
+      'no',
       '/dev/sda1 100 92 8 92% /\n/dev/sda1 100 10 90 10% /',
       'Mem: 1000 950 10 0 40 50',
       'tcp 0.0.0.0:22\ntcp 0.0.0.0:3306\ntcp 0.0.0.0:443',
       'PermitRootLogin yes\nPasswordAuthentication yes\nPasswordAuthentication no',
-      'inactive', '120',
+      'inactive',
+      '120',
       'api|exited|Exited (1) 3 hours ago\nweb|running|Up 1 hour\n--\n/api|0\n/web|9',
       'Images|2.5GB (80%)\nBuild Cache|1.2GB',
       ''

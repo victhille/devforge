@@ -25,58 +25,111 @@ export interface WelcomeInfo {
 export const WELCOME_FRAMEWORKS: Framework[] = ['nextjs', 'react', 'vue', 'symfony', 'laravel']
 
 const LABEL: Partial<Record<Framework, string>> = {
-  nextjs: 'Next.js', react: 'React', vue: 'Vue', symfony: 'Symfony', laravel: 'Laravel'
+  nextjs: 'Next.js',
+  react: 'React',
+  vue: 'Vue',
+  symfony: 'Symfony',
+  laravel: 'Laravel'
 }
 
 const DOCS: Partial<Record<Framework, string>> = {
-  nextjs: 'https://nextjs.org/docs', react: 'https://react.dev/learn', vue: 'https://vuejs.org/guide/introduction.html',
-  symfony: 'https://symfony.com/doc/current/index.html', laravel: 'https://laravel.com/docs'
+  nextjs: 'https://nextjs.org/docs',
+  react: 'https://react.dev/learn',
+  vue: 'https://vuejs.org/guide/introduction.html',
+  symfony: 'https://symfony.com/doc/current/index.html',
+  laravel: 'https://laravel.com/docs'
 }
 
 /** The view to edit, named on the page */
 const VIEW: Partial<Record<Framework, string>> = {
-  nextjs: '{app}/page.tsx', react: 'src/pages/Home.tsx', vue: 'src/pages/Home.vue',
-  symfony: 'templates/home/index.html.twig', laravel: 'resources/views/welcome.blade.php'
+  nextjs: '{app}/page.tsx',
+  react: 'src/pages/Home.tsx',
+  vue: 'src/pages/Home.vue',
+  symfony: 'templates/home/index.html.twig',
+  laravel: 'resources/views/welcome.blade.php'
 }
 
 /** Where devforge.css lives in each project */
 export const STYLESHEET: Partial<Record<Framework, string>> = {
-  nextjs: '{app}/devforge.css', react: 'src/styles/devforge.css', vue: 'src/styles/devforge.css',
-  symfony: 'public/devforge.css', laravel: 'public/devforge.css'
+  nextjs: '{app}/devforge.css',
+  react: 'src/styles/devforge.css',
+  vue: 'src/styles/devforge.css',
+  symfony: 'public/devforge.css',
+  laravel: 'public/devforge.css'
 }
 
 const TEXT = {
   fr: {
-    ready: 'prêt', online: 'en ligne', what: 'Ce qui est en place', next: 'Pour continuer',
-    login: 'Se connecter', register: 'Créer un compte', dashboard: 'Tableau de bord', logout: 'Se déconnecter',
-    app: 'app', base: 'base', branch: 'branche',
-    edit: 'Modifiez {file} pour remplacer cette page.', docs: 'Documentation {fw}', health: 'Route de santé {path}',
+    ready: 'prêt',
+    online: 'en ligne',
+    what: 'Ce qui est en place',
+    next: 'Pour continuer',
+    login: 'Se connecter',
+    register: 'Créer un compte',
+    dashboard: 'Tableau de bord',
+    logout: 'Se déconnecter',
+    app: 'app',
+    base: 'base',
+    branch: 'branche',
+    edit: 'Modifiez {file} pour remplacer cette page.',
+    docs: 'Documentation {fw}',
+    health: 'Route de santé {path}',
     db: { postgres: 'Base PostgreSQL', mysql: 'Base MySQL', sqlite: 'Base SQLite' } as Record<string, string>,
-    docker: ' (Docker)', api: 'Première route d\'API', auth: 'Connexion et inscription', dockerApp: 'Docker pour l\'application',
-    tests: 'Tests', ci: 'CI GitHub Actions', git: 'Dépôt Git (branche main)', tailwind: 'Tailwind CSS', nothing: 'Le projet de base, prêt à recevoir votre code'
+    docker: ' (Docker)',
+    api: "Première route d'API",
+    auth: 'Connexion et inscription',
+    dockerApp: "Docker pour l'application",
+    tests: 'Tests',
+    ci: 'CI GitHub Actions',
+    git: 'Dépôt Git (branche main)',
+    tailwind: 'Tailwind CSS',
+    nothing: 'Le projet de base, prêt à recevoir votre code'
   },
   en: {
-    ready: 'ready', online: 'online', what: 'What is set up', next: 'Next steps',
-    login: 'Sign in', register: 'Create an account', dashboard: 'Dashboard', logout: 'Sign out',
-    app: 'app', base: 'database', branch: 'branch',
-    edit: 'Edit {file} to replace this page.', docs: '{fw} documentation', health: 'Health route {path}',
+    ready: 'ready',
+    online: 'online',
+    what: 'What is set up',
+    next: 'Next steps',
+    login: 'Sign in',
+    register: 'Create an account',
+    dashboard: 'Dashboard',
+    logout: 'Sign out',
+    app: 'app',
+    base: 'database',
+    branch: 'branch',
+    edit: 'Edit {file} to replace this page.',
+    docs: '{fw} documentation',
+    health: 'Health route {path}',
     db: { postgres: 'PostgreSQL database', mysql: 'MySQL database', sqlite: 'SQLite database' } as Record<string, string>,
-    docker: ' (Docker)', api: 'First API route', auth: 'Sign-in and sign-up', dockerApp: 'Docker for the app',
-    tests: 'Tests', ci: 'GitHub Actions CI', git: 'Git repository (main branch)', tailwind: 'Tailwind CSS', nothing: 'The base project, ready for your code'
+    docker: ' (Docker)',
+    api: 'First API route',
+    auth: 'Sign-in and sign-up',
+    dockerApp: 'Docker for the app',
+    tests: 'Tests',
+    ci: 'GitHub Actions CI',
+    git: 'Git repository (main branch)',
+    tailwind: 'Tailwind CSS',
+    nothing: 'The base project, ready for your code'
   }
 }
 type T = typeof TEXT.fr
 
 /** Where the app answers in development */
 const APP_ADDRESS: Partial<Record<Framework, string>> = {
-  nextjs: 'localhost:3000', react: 'localhost:5173', vue: 'localhost:5173', symfony: 'localhost:8000', laravel: 'localhost:8000'
+  nextjs: 'localhost:3000',
+  react: 'localhost:5173',
+  vue: 'localhost:5173',
+  symfony: 'localhost:8000',
+  laravel: 'localhost:8000'
 }
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&apos;')
 
 /** What the page lists as set up, from the creation's choices */
 export function welcomeItems(info: WelcomeInfo): string[] {
-  const t = TEXT[info.lang], s = info.setup, items: string[] = []
+  const t = TEXT[info.lang],
+    s = info.setup,
+    items: string[] = []
   if (s.database !== 'none') items.push(t.db[s.database] + (s.database !== 'sqlite' ? t.docker : ''))
   if (s.features.includes('api')) items.push(t.api)
   if (s.features.includes('auth')) items.push(t.auth)
@@ -97,8 +150,7 @@ type Engine = 'jsx' | 'vue' | 'twig' | 'blade'
 export const accountAware = (info: WelcomeInfo) =>
   info.setup.features.includes('auth') && (info.framework === 'symfony' || info.framework === 'laravel' || !!info.typescript)
 
-const btn = (cls: string, kind: string, href: string, label: string) =>
-  `<a ${cls}="df-btn${kind}" href="${href}">${esc(label)}</a>`
+const btn = (cls: string, kind: string, href: string, label: string) => `<a ${cls}="df-btn${kind}" href="${href}">${esc(label)}</a>`
 
 /** The account links: per template engine, or a component asking /api/auth/me */
 function accountNav(info: WelcomeInfo, engine: Engine, t: T): string[] {
@@ -142,13 +194,24 @@ function accountNav(info: WelcomeInfo, engine: Engine, t: T): string[] {
 
 /** The page's markup for a template engine */
 function markup(info: WelcomeInfo, engine: Engine): string {
-  const t = TEXT[info.lang], fw = LABEL[info.framework] ?? info.framework, s = info.setup
+  const t = TEXT[info.lang],
+    fw = LABEL[info.framework] ?? info.framework,
+    s = info.setup
   const cls = engine === 'jsx' ? 'className' : 'class'
   const sail = info.framework === 'laravel' && s.features.includes('docker')
-  const address = sail ? `localhost:${s.appPort ?? 8000}` : APP_ADDRESS[info.framework] ?? ''
+  const address = sail ? `localhost:${s.appPort ?? 8000}` : (APP_ADDRESS[info.framework] ?? '')
   const base = s.database === 'none' ? '' : s.database === 'sqlite' ? 'sqlite' : `${s.database} :${s.dbPort}`
-  const facts: [string, string][] = [[t.app, address], ...(base ? [[t.base, base] as [string, string]] : []), ...(s.git ? [[t.branch, 'main'] as [string, string]] : [])]
-  const tags = [...(info.tailwind ? ['tailwind'] : []), ...(s.features.includes('docker') ? ['docker'] : []), ...(s.features.includes('tests') ? ['tests'] : []), ...(s.features.includes('ci') ? ['ci'] : [])]
+  const facts: [string, string][] = [
+    [t.app, address],
+    ...(base ? [[t.base, base] as [string, string]] : []),
+    ...(s.git ? [[t.branch, 'main'] as [string, string]] : [])
+  ]
+  const tags = [
+    ...(info.tailwind ? ['tailwind'] : []),
+    ...(s.features.includes('docker') ? ['docker'] : []),
+    ...(s.features.includes('tests') ? ['tests'] : []),
+    ...(s.features.includes('ci') ? ['ci'] : [])
+  ]
   const health = info.framework === 'laravel' ? '/up' : '/api/health'
   const docs = DOCS[info.framework] ?? '#'
   const file = (VIEW[info.framework] ?? '').replace('{app}/', 'app/')
@@ -170,7 +233,9 @@ function markup(info: WelcomeInfo, engine: Engine): string {
     `    <div ${cls}="df-main">`,
     `      <section ${cls}="df-card">`,
     `        <h2>${esc(t.what)}</h2>`,
-    `        <div ${cls}="df-tiles">${welcomeItems(info).map(i => `<div>${esc(i)}</div>`).join('')}</div>`,
+    `        <div ${cls}="df-tiles">${welcomeItems(info)
+      .map(i => `<div>${esc(i)}</div>`)
+      .join('')}</div>`,
     '      </section>',
     `      <section ${cls}="df-card">`,
     `        <h2>${esc(t.next)}</h2>`,
@@ -203,7 +268,11 @@ function serverDocument(info: WelcomeInfo, engine: 'twig' | 'blade'): string {
   ].join('\n')
 }
 
-const indent = (text: string, by: string) => text.split('\n').map(l => l ? by + l : l).join('\n')
+const indent = (text: string, by: string) =>
+  text
+    .split('\n')
+    .map(l => (l ? by + l : l))
+    .join('\n')
 
 /** A React component (Next.js page or Vite page) */
 function jsxComponent(name: string, info: WelcomeInfo, imports: string[]): string {
@@ -238,20 +307,32 @@ export function welcomeFiles(input: WelcomeInfo, typescript: boolean): { path: s
   switch (info.framework) {
     case 'nextjs':
       return [
-        { path: `{app}/page.${ext}`, content: jsxComponent('Home', info, ["import './devforge.css'", ...(live ? ["import AccountNav from './account-nav'"] : [])]) },
+        {
+          path: `{app}/page.${ext}`,
+          content: jsxComponent('Home', info, ["import './devforge.css'", ...(live ? ["import AccountNav from './account-nav'"] : [])])
+        },
         stylesheet
       ]
     case 'react':
       return [
-        { path: `src/pages/Home.${ext}`, content: jsxComponent('Home', info, ["import '../styles/devforge.css'", ...(live ? ["import AccountNav from '../components/AccountNav'"] : [])]) },
+        {
+          path: `src/pages/Home.${ext}`,
+          content: jsxComponent('Home', info, ["import '../styles/devforge.css'", ...(live ? ["import AccountNav from '../components/AccountNav'"] : [])])
+        },
         { path: `src/App.${ext}`, content: `/** The app's first page: DevForge's welcome (src/pages/Home) */\nexport { default } from './pages/Home'\n` },
         stylesheet
       ]
     case 'vue': {
       const lang = typescript ? ' lang="ts"' : ''
       return [
-        { path: 'src/pages/Home.vue', content: `<script setup${lang}>\nimport '../styles/devforge.css'\n${live ? "import AccountNav from '../components/AccountNav.vue'\n" : ''}</script>\n\n<template>\n${indent(markup(info, 'vue'), '  ')}\n</template>\n` },
-        { path: 'src/App.vue', content: `<script setup${lang}>\n// The app's first page: DevForge's welcome (src/pages/Home.vue)\nimport Home from './pages/Home.vue'\n</script>\n\n<template>\n  <Home />\n</template>\n` },
+        {
+          path: 'src/pages/Home.vue',
+          content: `<script setup${lang}>\nimport '../styles/devforge.css'\n${live ? "import AccountNav from '../components/AccountNav.vue'\n" : ''}</script>\n\n<template>\n${indent(markup(info, 'vue'), '  ')}\n</template>\n`
+        },
+        {
+          path: 'src/App.vue',
+          content: `<script setup${lang}>\n// The app's first page: DevForge's welcome (src/pages/Home.vue)\nimport Home from './pages/Home.vue'\n</script>\n\n<template>\n  <Home />\n</template>\n`
+        },
         stylesheet
       ]
     }
@@ -262,10 +343,7 @@ export function welcomeFiles(input: WelcomeInfo, typescript: boolean): { path: s
         stylesheet
       ]
     case 'laravel':
-      return [
-        { path: 'resources/views/welcome.blade.php', content: serverDocument(info, 'blade') },
-        stylesheet
-      ]
+      return [{ path: 'resources/views/welcome.blade.php', content: serverDocument(info, 'blade') }, stylesheet]
     default:
       return []
   }

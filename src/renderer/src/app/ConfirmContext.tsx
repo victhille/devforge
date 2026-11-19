@@ -53,12 +53,16 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   /** When the last question was answered: one asked right after (chained questions) is a follow-up too */
   const lastAnswer = useRef(-Infinity)
 
-  const confirm = useCallback<Confirm>((message, options = {}) => new Promise<boolean>(resolve => {
-    const waited = waiting.current.length > 0 || performance.now() - lastAnswer.current < SETTLE_MS
-    const question = { id: ++count.current, message, options, resolve, waited }
-    waiting.current = [...waiting.current, question]
-    setQueue(waiting.current)
-  }), [])
+  const confirm = useCallback<Confirm>(
+    (message, options = {}) =>
+      new Promise<boolean>(resolve => {
+        const waited = waiting.current.length > 0 || performance.now() - lastAnswer.current < SETTLE_MS
+        const question = { id: ++count.current, message, options, resolve, waited }
+        waiting.current = [...waiting.current, question]
+        setQueue(waiting.current)
+      }),
+    []
+  )
 
   const answer = useCallback((ok: boolean) => {
     const [first, ...rest] = waiting.current
@@ -71,7 +75,9 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     mounted = confirm
-    return () => { if (mounted === confirm) mounted = null }
+    return () => {
+      if (mounted === confirm) mounted = null
+    }
   }, [confirm])
 
   const asked = queue[0]
@@ -98,11 +104,20 @@ export function QuestionDialog({ question, onAnswer }: { question: Question; onA
   }, [settled])
 
   return (
-    <Modal title={options.title ?? t.common.confirmTitle} onClose={() => onAnswer(false)}
-      footer={<>
-        <Button variant="ghost" onClick={() => onAnswer(false)}>{t.common.cancel}</Button>
-        <Button variant={options.danger ? 'danger' : 'primary'} disabled={!settled} onClick={() => onAnswer(true)}>{options.confirmLabel ?? t.common.confirm}</Button>
-      </>}>
+    <Modal
+      title={options.title ?? t.common.confirmTitle}
+      onClose={() => onAnswer(false)}
+      footer={
+        <>
+          <Button variant="ghost" onClick={() => onAnswer(false)}>
+            {t.common.cancel}
+          </Button>
+          <Button variant={options.danger ? 'danger' : 'primary'} disabled={!settled} onClick={() => onAnswer(true)}>
+            {options.confirmLabel ?? t.common.confirm}
+          </Button>
+        </>
+      }
+    >
       <p className="text-base whitespace-pre-line text-fg-secondary">{message}</p>
     </Modal>
   )

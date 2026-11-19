@@ -16,9 +16,15 @@ const TOOLS: { id: AiToolId; name: string; command: string; installUrl: string }
 ]
 
 export async function listAiTools(): Promise<AiToolInfo[]> {
-  return Promise.all(TOOLS.map(async t => ({
-    id: t.id, name: t.name, command: t.command, installUrl: t.installUrl, installed: !!(await findExecutable(t.command))
-  })))
+  return Promise.all(
+    TOOLS.map(async t => ({
+      id: t.id,
+      name: t.name,
+      command: t.command,
+      installUrl: t.installUrl,
+      installed: !!(await findExecutable(t.command))
+    }))
+  )
 }
 
 /** Folder to start in: a saved project, or the home folder */
@@ -33,7 +39,10 @@ function trySpawn(cmd: string, args: string[], cwd: string): Promise<boolean> {
   return new Promise(res => {
     const child = spawn(cmd, args, { detached: true, stdio: 'ignore', cwd, windowsHide: false })
     child.once('error', () => res(false))
-    child.once('spawn', () => { child.unref(); res(true) })
+    child.once('spawn', () => {
+      child.unref()
+      res(true)
+    })
   })
 }
 

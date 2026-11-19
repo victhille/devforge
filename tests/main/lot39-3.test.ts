@@ -97,7 +97,10 @@ describe('the MPD', () => {
   it('reads back what it wrote, and draws like the schema', () => {
     const mpd = generateMpd(shop(), DEFAULT_NAMING, 'sqlite')
     expect(cleanMpd(JSON.parse(JSON.stringify(mpd)))).toEqual(mpd)
-    expect(cleanMpd({ engine: 'oracle', tables: [{ columns: [{ type: 'blob' }] }] })).toMatchObject({ engine: 'postgres', tables: [{ columns: [{ type: 'varchar' }] }] })
+    expect(cleanMpd({ engine: 'oracle', tables: [{ columns: [{ type: 'blob' }] }] })).toMatchObject({
+      engine: 'postgres',
+      tables: [{ columns: [{ type: 'varchar' }] }]
+    })
     const { diagram, positions } = mpdDiagram(mpd)
     expect(diagram.tables).toHaveLength(7)
     expect(diagram.links).toHaveLength(6)
@@ -189,7 +192,11 @@ describe('the MPD and its SQL, in the project', () => {
 
     // The MCD renamed: its MPD and its SQL follow
     expect(renameModel(project, mcdFile, 'Magasin')).toBe('magasin.mcd.json')
-    expect(listModels(project).map(x => x.file).sort()).toEqual(['magasin.mcd.json', 'magasin.mpd.json'])
+    expect(
+      listModels(project)
+        .map(x => x.file)
+        .sort()
+    ).toEqual(['magasin.mcd.json', 'magasin.mpd.json'])
     expect(readModel(project, 'magasin.mpd.json')).toMatchObject({ name: 'Magasin', mpd: { source: 'magasin.mcd.json' } })
     expect(existsSync(join(project, 'conception', 'magasin.sql'))).toBe(true)
   })

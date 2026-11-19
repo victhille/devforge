@@ -6,7 +6,9 @@ import { sameDbTarget } from '@shared/lib/dbTarget'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { dataChanged } from '../../lib/changes'
 
-interface Stored extends Omit<DbConnection, 'password' | 'hasPassword'> { passwordEnc?: string }
+interface Stored extends Omit<DbConnection, 'password' | 'hasPassword'> {
+  passwordEnc?: string
+}
 
 function path(): string {
   return join(app.getPath('userData'), 'databases.json')
@@ -14,7 +16,11 @@ function path(): string {
 
 function read(): Stored[] {
   if (!existsSync(path())) return []
-  try { return JSON.parse(readFileSync(path(), 'utf-8')) as Stored[] } catch { return [] }
+  try {
+    return JSON.parse(readFileSync(path(), 'utf-8')) as Stored[]
+  } catch {
+    return []
+  }
 }
 
 function write(list: Stored[]): void {
@@ -52,7 +58,8 @@ export function saveDbConnection(c: DbConnection): void {
     passwordEnc = safeStorage.encryptString(password).toString('base64')
   }
   const stored: Stored = { ...rest, ...(passwordEnc ? { passwordEnc } : {}) }
-  if (i >= 0) list[i] = stored; else list.push(stored)
+  if (i >= 0) list[i] = stored
+  else list.push(stored)
   write(list)
 }
 

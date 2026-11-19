@@ -22,7 +22,9 @@ function handle(req: http.IncomingMessage, res: http.ServerResponse): void {
   const host = hostOf(req)
   const port = routes.get(host)
   if (!port) {
-    const list = [...routes.keys()].map(d => `<a style="color:#4F8EF7" href="http://${d}${listeningPort === 80 ? '' : ':' + listeningPort}">${d}</a>`).join(' · ')
+    const list = [...routes.keys()]
+      .map(d => `<a style="color:#4F8EF7" href="http://${d}${listeningPort === 80 ? '' : ':' + listeningPort}">${d}</a>`)
+      .join(' · ')
     return page(res, 404, `Unknown domain: ${host}`, list ? `Configured: ${list}` : 'No domain configured in DevForge.')
   }
   const upstream = http.request(
@@ -39,9 +41,14 @@ function handle(req: http.IncomingMessage, res: http.ServerResponse): void {
 /** WebSocket passthrough (Vite / webpack HMR, socket.io…) */
 function upgrade(req: http.IncomingMessage, socket: net.Socket, head: Buffer): void {
   const port = routes.get(hostOf(req))
-  if (!port) { socket.destroy(); return }
+  if (!port) {
+    socket.destroy()
+    return
+  }
   const target = net.connect(port, '127.0.0.1', () => {
-    const headers = Object.entries(req.headers).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join('\r\n')
+    const headers = Object.entries(req.headers)
+      .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+      .join('\r\n')
     target.write(`${req.method} ${req.url} HTTP/${req.httpVersion}\r\n${headers}\r\n\r\n`)
     if (head.length) target.write(head)
     socket.pipe(target).pipe(socket)
@@ -54,8 +61,15 @@ function listen(port: number): Promise<boolean> {
   return new Promise(resolve => {
     const s = http.createServer(handle)
     s.on('upgrade', upgrade)
-    s.once('error', (err: NodeJS.ErrnoException) => { lastError = `${err.code ?? err.message} on port ${port}`; resolve(false) })
-    s.listen(port, '127.0.0.1', () => { server = s; listeningPort = port; resolve(true) })
+    s.once('error', (err: NodeJS.ErrnoException) => {
+      lastError = `${err.code ?? err.message} on port ${port}`
+      resolve(false)
+    })
+    s.listen(port, '127.0.0.1', () => {
+      server = s
+      listeningPort = port
+      resolve(true)
+    })
   })
 }
 

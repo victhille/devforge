@@ -6,10 +6,16 @@ import { tempDir } from '../helpers'
 // No server here: any SSH call would fail the test
 vi.mock('../../src/main/services/ssh/sshService', () => ({
   sshService: {
-    connectForDashboard: async () => { throw new Error('no SSH in this test') },
+    connectForDashboard: async () => {
+      throw new Error('no SSH in this test')
+    },
     disconnect: () => {},
-    exec: async () => { throw new Error('no SSH in this test') },
-    forwardOut: async () => { throw new Error('no SSH in this test') }
+    exec: async () => {
+      throw new Error('no SSH in this test')
+    },
+    forwardOut: async () => {
+      throw new Error('no SSH in this test')
+    }
   }
 }))
 
@@ -18,7 +24,12 @@ const { testApi, testOutput } = await import('../../src/main/services/vps/testOu
 
 describe('n8n workflow trigger', () => {
   it('reads what starts a workflow from its first trigger node', () => {
-    expect(triggerOf([{ name: 'Set', type: 'n8n-nodes-base.set' }, { name: 'Webhook boutique', type: 'n8n-nodes-base.webhook' }])).toEqual({ kind: 'webhook', name: 'Webhook boutique' })
+    expect(
+      triggerOf([
+        { name: 'Set', type: 'n8n-nodes-base.set' },
+        { name: 'Webhook boutique', type: 'n8n-nodes-base.webhook' }
+      ])
+    ).toEqual({ kind: 'webhook', name: 'Webhook boutique' })
     expect(triggerOf([{ name: 'Chaque jour', type: 'n8n-nodes-base.scheduleTrigger' }])?.kind).toBe('schedule')
     expect(triggerOf([{ name: 'Cron', type: 'n8n-nodes-base.cron' }])?.kind).toBe('schedule')
     expect(triggerOf([{ name: 'Manuel', type: 'n8n-nodes-base.manualTrigger' }])?.kind).toBe('manual')
@@ -35,7 +46,9 @@ describe('n8n workflow trigger', () => {
 })
 
 describe('canned answers of the e2e tests', () => {
-  afterEach(() => { delete process.env.DEVFORGE_TEST_VPS })
+  afterEach(() => {
+    delete process.env.DEVFORGE_TEST_VPS
+  })
 
   it('answers an API call by its method and path, the query left out', () => {
     const file = join(tempDir(), 'vps.json')

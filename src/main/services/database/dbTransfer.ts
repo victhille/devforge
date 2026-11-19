@@ -29,7 +29,10 @@ function createFrom(type: Parameters<typeof quoteIdent>[0], t: DbTableRef, colum
 
 export async function exportTable(win: BrowserWindow, id: string, t: DbTableRef, format: ExportFormat): Promise<{ path: string; rows: number } | null> {
   const c = connOf(id)
-  const pick = await dialog.showSaveDialog(win, { defaultPath: `${t.name}.${EXT[format]}`, filters: [{ name: format.toUpperCase(), extensions: [EXT[format]] }] })
+  const pick = await dialog.showSaveDialog(win, {
+    defaultPath: `${t.name}.${EXT[format]}`,
+    filters: [{ name: format.toUpperCase(), extensions: [EXT[format]] }]
+  })
   if (pick.canceled || !pick.filePath) return null
   const details = await dbDetails(id, t)
   const driver = await driverFor(id)
@@ -44,12 +47,19 @@ export async function exportTable(win: BrowserWindow, id: string, t: DbTableRef,
     if (format === 'json') await write('[')
     for (let offset = 0; ; offset += PAGE) {
       const page = await driver.query(`SELECT * FROM ${quoteIdent(c.type, t)}${order} LIMIT ${PAGE} OFFSET ${offset}`)
-      if (format === 'csv') await write(offset === 0 ? toCsv(page) : page.rows.length ? `\n${toCsv({ columns: page.columns, rows: page.rows }).split('\n').slice(1).join('\n')}` : '')
+      if (format === 'csv')
+        await write(
+          offset === 0 ? toCsv(page) : page.rows.length ? `\n${toCsv({ columns: page.columns, rows: page.rows }).split('\n').slice(1).join('\n')}` : ''
+        )
       else if (format === 'json') {
         const objects = page.rows.map(r => JSON.stringify(Object.fromEntries(page.columns.map((col, i) => [col, r[i] ?? null]))))
         if (objects.length) await write(`${rows ? ',' : ''}\n  ${objects.join(',\n  ')}`)
       } else {
-        const inserts = rowStatements(c.type, t, page.rows.map(r => ({ kind: 'insert' as const, values: Object.fromEntries(page.columns.map((col, i) => [col, r[i] as RowValues[string]])) })))
+        const inserts = rowStatements(
+          c.type,
+          t,
+          page.rows.map(r => ({ kind: 'insert' as const, values: Object.fromEntries(page.columns.map((col, i) => [col, r[i] as RowValues[string]])) }))
+        )
         if (inserts.length) await write(inserts.map(s => `${previewStatement(c.type, s)};`).join('\n') + '\n')
       }
       rows += page.rows.length
@@ -64,7 +74,10 @@ export async function exportTable(win: BrowserWindow, id: string, t: DbTableRef,
 
 /** A query's result (what the SQL tab shows) saved as it is */
 export async function saveResult(win: BrowserWindow, name: string, content: string, ext: 'csv' | 'json'): Promise<string | null> {
-  const pick = await dialog.showSaveDialog(win, { defaultPath: `${name.replace(/[^\w.-]+/g, '_') || 'result'}.${ext}`, filters: [{ name: ext.toUpperCase(), extensions: [ext] }] })
+  const pick = await dialog.showSaveDialog(win, {
+    defaultPath: `${name.replace(/[^\w.-]+/g, '_') || 'result'}.${ext}`,
+    filters: [{ name: ext.toUpperCase(), extensions: [ext] }]
+  })
   if (pick.canceled || !pick.filePath) return null
   const out = createWriteStream(pick.filePath, { encoding: 'utf-8' })
   await new Promise<void>((res, rej) => out.end(content, () => res()).on('error', rej))
@@ -73,7 +86,10 @@ export async function saveResult(win: BrowserWindow, name: string, content: stri
 
 /** The schema as an image; a PNG comes as a data URL */
 export async function saveImage(win: BrowserWindow, name: string, content: string, ext: 'png' | 'svg'): Promise<string | null> {
-  const pick = await dialog.showSaveDialog(win, { defaultPath: `${name.replace(/[^\w.-]+/g, '_') || 'schema'}.${ext}`, filters: [{ name: ext.toUpperCase(), extensions: [ext] }] })
+  const pick = await dialog.showSaveDialog(win, {
+    defaultPath: `${name.replace(/[^\w.-]+/g, '_') || 'schema'}.${ext}`,
+    filters: [{ name: ext.toUpperCase(), extensions: [ext] }]
+  })
   if (pick.canceled || !pick.filePath) return null
   const data = ext === 'png' ? Buffer.from(content.replace(/^data:image\/png;base64,/, ''), 'base64') : Buffer.from(content, 'utf-8')
   await writeFile(pick.filePath, data)
@@ -98,7 +114,16 @@ export async function pickCsv(win: BrowserWindow, id: string, t: DbTableRef): Pr
   const token = randomUUID()
   picked.set(token, { rows })
   const columns = (await dbDetails(id, t)).columns.map(c => c.name)
-  return { token, name: path.split(/[\\/]/).pop()!, separator, encoding, headers, sample: rows.slice(0, 10), total: rows.length, mapping: matchColumns(headers, columns) }
+  return {
+    token,
+    name: path.split(/[\\/]/).pop()!,
+    separator,
+    encoding,
+    headers,
+    sample: rows.slice(0, 10),
+    total: rows.length,
+    mapping: matchColumns(headers, columns)
+  }
 }
 
 /**
@@ -106,7 +131,13 @@ export async function pickCsv(win: BrowserWindow, id: string, t: DbTableRef): Pr
  * column's table column (null: left out); an empty cell is NULL when asked.
  * A failure names its CSV line (the header is line 1).
  */
-export async function importCsv(id: string, t: DbTableRef, token: string, mapping: (string | null)[], emptyIsNull: boolean): Promise<{ inserted: number; error?: string; line?: number }> {
+export async function importCsv(
+  id: string,
+  t: DbTableRef,
+  token: string,
+  mapping: (string | null)[],
+  emptyIsNull: boolean
+): Promise<{ inserted: number; error?: string; line?: number }> {
   const csv = picked.get(token)
   if (!csv) return { inserted: 0, error: 'The file is no longer picked: choose it again' }
   const c = connOf(id)
@@ -115,10 +146,14 @@ export async function importCsv(id: string, t: DbTableRef, token: string, mappin
   const known = new Set(details.columns.map(x => x.name))
   const used = mapping.map((m, i) => [m, i] as const).filter((x): x is readonly [string, number] => !!x[0] && known.has(x[0]))
   if (!used.length) return { inserted: 0, error: 'No column matches the table' }
-  const statements = rowStatements(c.type, t, csv.rows.map(r => ({
-    kind: 'insert' as const,
-    values: Object.fromEntries(used.map(([col, i]) => [col, (r[i] ?? '') === '' && emptyIsNull ? null : r[i] ?? '']))
-  })))
+  const statements = rowStatements(
+    c.type,
+    t,
+    csv.rows.map(r => ({
+      kind: 'insert' as const,
+      values: Object.fromEntries(used.map(([col, i]) => [col, (r[i] ?? '') === '' && emptyIsNull ? null : (r[i] ?? '')]))
+    }))
+  )
   try {
     const inserted = await (await driverFor(id)).transaction(statements)
     picked.delete(token)

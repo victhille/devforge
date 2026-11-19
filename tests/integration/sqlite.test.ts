@@ -12,7 +12,7 @@ beforeAll(async () => {
   writeFileSync(file, Buffer.alloc(0))
   saveDbConnection({ id: ID, name: 'lite', type: 'sqlite', file, color: '' })
   for (const sql of [
-    'CREATE TABLE client (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, name TEXT DEFAULT \'anon\')',
+    "CREATE TABLE client (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, name TEXT DEFAULT 'anon')",
     'CREATE INDEX idx_name ON client (name)',
     'CREATE TABLE invoice (id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL REFERENCES client(id) ON DELETE CASCADE, total REAL)',
     'CREATE VIEW big AS SELECT * FROM invoice WHERE total > 10',
@@ -47,7 +47,11 @@ describe('SQLite connection', () => {
 
   it('lists tables and views with their columns', async () => {
     const schema = await dbSchema(ID)
-    expect(schema.map(t => [t.name, t.type])).toEqual([['big', 'view'], ['client', 'table'], ['invoice', 'table']])
+    expect(schema.map(t => [t.name, t.type])).toEqual([
+      ['big', 'view'],
+      ['client', 'table'],
+      ['invoice', 'table']
+    ])
   })
 })
 
@@ -60,7 +64,11 @@ describe('explorer', () => {
 
   it('details: columns, keys, indexes, foreign keys both ways, DDL', async () => {
     const client = await dbDetails(ID, { name: 'client', schema: '' })
-    expect(client.columns.map(c => [c.name, c.key, c.nullable])).toEqual([['id', 'PRI', false], ['email', 'UNI', false], ['name', 'MUL', true]])
+    expect(client.columns.map(c => [c.name, c.key, c.nullable])).toEqual([
+      ['id', 'PRI', false],
+      ['email', 'UNI', false],
+      ['name', 'MUL', true]
+    ])
     expect(client.columns[0].extra).toBe('autoincrement')
     expect(client.columns[2].default).toBe("'anon'")
     expect(client.referencedBy).toEqual([expect.objectContaining({ table: 'invoice', columns: ['client_id'], refColumns: ['id'], onDelete: 'CASCADE' })])

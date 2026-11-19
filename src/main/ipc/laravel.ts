@@ -2,7 +2,7 @@ import { ipcMain, type BrowserWindow } from 'electron'
 import type { LaravelCommand, SfApiConfig, SfEntityDraft } from '@shared/types'
 import { apiConfig, applyApi, inspect, routes, run, writeModel, writeSeed } from '../services/laravel/laravelService'
 
-const str = (v: unknown) => typeof v === 'string' ? v : ''
+const str = (v: unknown) => (typeof v === 'string' ? v : '')
 
 export function registerLaravelHandlers(mainWindow: BrowserWindow): void {
   const onLog = (log: unknown) => mainWindow.webContents.send('task-log', log)

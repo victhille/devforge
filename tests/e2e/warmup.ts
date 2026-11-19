@@ -9,5 +9,7 @@ export default async function warmup(): Promise<void> {
   try {
     const run = await launch()
     await run.close()
-  } catch { /* the tests will say it */ }
+  } catch {
+    /* the tests will say it */
+  }
 }

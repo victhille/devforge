@@ -7,15 +7,26 @@ import { USER_MODEL, nextAuthFiles } from '../../src/shared/lib/nextAuthTemplate
 
 /** Authentication of a Next.js project, on the shared contract */
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
-  database: 'postgres', dbName: 'shop', dbPort: 5433, features: ['auth'], git: false, github: null, openVSCode: false, ...s
+  database: 'postgres',
+  dbName: 'shop',
+  dbPort: 5433,
+  features: ['auth'],
+  git: false,
+  github: null,
+  openVSCode: false,
+  ...s
 })
 const ctx = { password: 'pw', secret: 'c2VjcmV0', lang: 'fr' as const, composeName: 'shop-a1b2c3' }
 const plan = (s: Partial<ProjectSetup> = {}, typescript = true) =>
   planSetup({ name: 'shop', framework: 'nextjs', packageManager: 'npm', typescript, eslint: true, setup: setup(s) }, ctx)
-const line = (step: SetupStep) => step.kind === 'run' ? stepCommand(step) : `${step.kind}:${step.label}`
+const line = (step: SetupStep) => (step.kind === 'run' ? stepCommand(step) : `${step.kind}:${step.label}`)
 
 function syntaxErrors(path: string, source: string): string[] {
-  const out = ts.transpileModule(source, { reportDiagnostics: true, fileName: path, compilerOptions: { jsx: ts.JsxEmit.Preserve, target: ts.ScriptTarget.ES2022 } })
+  const out = ts.transpileModule(source, {
+    reportDiagnostics: true,
+    fileName: path,
+    compilerOptions: { jsx: ts.JsxEmit.Preserve, target: ts.ScriptTarget.ES2022 }
+  })
   return (out.diagnostics ?? []).map(d => `${path}: ${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`)
 }
 
@@ -36,8 +47,12 @@ describe('Next.js authentication', () => {
     expect(files.find(f => f.path.endsWith('/logout/route.ts'))!.content).toContain('status: 204')
   })
 
-  it('adds the contract\'s pages, the dashboard redirecting to /login', () => {
-    for (const page of Object.values(AUTH_PAGES)) expect(files.some(f => f.path === `{app}${page}/page.tsx`), page).toBe(true)
+  it("adds the contract's pages, the dashboard redirecting to /login", () => {
+    for (const page of Object.values(AUTH_PAGES))
+      expect(
+        files.some(f => f.path === `{app}${page}/page.tsx`),
+        page
+      ).toBe(true)
     const dashboard = files.find(f => f.path === '{app}/dashboard/page.tsx')!.content
     expect(dashboard).toContain("redirect('/login')")
     // Next.js 16 (Cache Components): the cookie is read inside <Suspense>

@@ -4,15 +4,29 @@ import type { DataTopic } from '@shared/types'
 /** The data kept between pages — one request for many pages, shown at once, read again when the main process says it changed */
 
 let emit: (e: { topic: DataTopic; scope?: string }) => void = () => {}
-vi.stubGlobal('window', { devforge: { onDataChanged: (cb: typeof emit) => { emit = cb; return () => {} } } })
+vi.stubGlobal('window', {
+  devforge: {
+    onDataChanged: (cb: typeof emit) => {
+      emit = cb
+      return () => {}
+    }
+  }
+})
 
 let live: typeof import('@renderer/lib/live')
-beforeAll(async () => { live = await import('@renderer/lib/live') })
+beforeAll(async () => {
+  live = await import('@renderer/lib/live')
+})
 
 /** A load that counts its calls and answers when told */
 function loader<T>(values: T[]) {
   const calls = { n: 0 }
-  const load = vi.fn(async () => { const v = values[Math.min(calls.n, values.length - 1)]; calls.n++; if (v instanceof Error) throw v; return v })
+  const load = vi.fn(async () => {
+    const v = values[Math.min(calls.n, values.length - 1)]
+    calls.n++
+    if (v instanceof Error) throw v
+    return v
+  })
   return { load, calls }
 }
 const settle = () => new Promise(r => setTimeout(r, 0))
@@ -27,7 +41,8 @@ describe('kept data', () => {
     expect(calls.n).toBe(1)
     expect(live.liveSnapshot('k1')).toEqual({ data: ['a', 'b'], error: undefined, loaded: true })
     expect(heard).toEqual([1, 1])
-    stopA(); stopB()
+    stopA()
+    stopB()
   })
 
   it('shows what it kept at once when a page comes back, without asking again while fresh', async () => {
@@ -55,7 +70,8 @@ describe('kept data', () => {
     emit({ topic: 'projects' })
     await settle()
     expect(shown.calls.n).toBe(2)
-    stop(); stopOther()
+    stop()
+    stopOther()
   })
 
   it('marks what is not shown, and reads it on its next showing', async () => {
@@ -116,7 +132,12 @@ describe('kept data', () => {
 
   it('keeps a change made here over an answer asked before it (the next read brings what was written)', async () => {
     let answer: (v: string[]) => void = () => {}
-    const load = vi.fn(() => new Promise<string[]>(r => { answer = r }))
+    const load = vi.fn(
+      () =>
+        new Promise<string[]>(r => {
+          answer = r
+        })
+    )
     const stop = live.watchLive('settings-like', load, () => {}, { topic: 'settings' })
     answer(['disk'])
     await settle()
@@ -137,7 +158,12 @@ describe('kept data', () => {
 
   it('reads again after the read on its way when a change is told meanwhile (its answer may be older)', async () => {
     const answers: ((v: string[]) => void)[] = []
-    const load = vi.fn(() => new Promise<string[]>(r => { answers.push(r) }))
+    const load = vi.fn(
+      () =>
+        new Promise<string[]>(r => {
+          answers.push(r)
+        })
+    )
     const stop = live.watchLive('lists', load, () => {}, { topic: 'models' })
     // The first read is on its way when a model is written
     emit({ topic: 'models' })

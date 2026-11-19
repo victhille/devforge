@@ -11,7 +11,13 @@ const TerminalTabs = lazy(() => import('./TerminalTabs'))
 export const TOGGLE_TERMINAL = 'devforge:toggle-terminal'
 const HEIGHT_KEY = 'devforge:terminal-height'
 
-const readHeight = () => { try { return Number(localStorage.getItem(HEIGHT_KEY)) || 360 } catch { return 360 } }
+const readHeight = () => {
+  try {
+    return Number(localStorage.getItem(HEIGHT_KEY)) || 360
+  } catch {
+    return 360
+  }
+}
 
 /**
  * The terminal docked at the bottom of the window (Ctrl+`). Opened in the
@@ -28,11 +34,23 @@ export default function TerminalDock() {
   const drag = useRef<{ y: number; h: number } | null>(null)
 
   useEffect(() => {
-    const toggle = () => setOpen(o => { if (!o) setOpened(true); return !o })
-    const onKey = (e: KeyboardEvent) => { if (e.ctrlKey && (e.key === '`' || e.code === 'Backquote')) { e.preventDefault(); toggle() } }
+    const toggle = () =>
+      setOpen(o => {
+        if (!o) setOpened(true)
+        return !o
+      })
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && (e.key === '`' || e.code === 'Backquote')) {
+        e.preventDefault()
+        toggle()
+      }
+    }
     window.addEventListener('keydown', onKey)
     window.addEventListener(TOGGLE_TERMINAL, toggle)
-    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener(TOGGLE_TERMINAL, toggle) }
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener(TOGGLE_TERMINAL, toggle)
+    }
   }, [])
 
   useEffect(() => {
@@ -43,25 +61,51 @@ export default function TerminalDock() {
     const up = () => {
       if (!drag.current) return
       drag.current = null
-      try { localStorage.setItem(HEIGHT_KEY, String(height)) } catch { /* not kept */ }
+      try {
+        localStorage.setItem(HEIGHT_KEY, String(height))
+      } catch {
+        /* not kept */
+      }
     }
     window.addEventListener('mousemove', move)
     window.addEventListener('mouseup', up)
-    return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
+    return () => {
+      window.removeEventListener('mousemove', move)
+      window.removeEventListener('mouseup', up)
+    }
   }, [height])
 
   const cwd = active?.path || home
   // Nothing starts before the first opening
   if (!opened || !cwd) return null
   return (
-    <section aria-label={t.terminal.dockLabel} className={cn('relative flex shrink-0 flex-col border-t border-line bg-term', !open && 'hidden')} style={{ height }}>
-      <div role="separator" aria-orientation="horizontal" aria-label={t.terminal.resize}
-        onMouseDown={e => { drag.current = { y: e.clientY, h: height }; e.preventDefault() }}
-        className="absolute -top-1 right-0 left-0 z-10 h-2 cursor-row-resize" />
+    <section
+      aria-label={t.terminal.dockLabel}
+      className={cn('relative flex shrink-0 flex-col border-t border-line bg-term', !open && 'hidden')}
+      style={{ height }}
+    >
+      <div
+        role="separator"
+        aria-orientation="horizontal"
+        aria-label={t.terminal.resize}
+        onMouseDown={e => {
+          drag.current = { y: e.clientY, h: height }
+          e.preventDefault()
+        }}
+        className="absolute -top-1 right-0 left-0 z-10 h-2 cursor-row-resize"
+      />
       {/* The shells already open stay where they are; new tabs open in the active project */}
       {/* Closing the last tab closes the dock: the next opening starts afresh */}
       <Suspense fallback={<Spinner className="m-4" />}>
-        <TerminalTabs cwd={cwd} className="h-full" onHide={() => setOpen(false)} onEmpty={() => { setOpen(false); setOpened(false) }} />
+        <TerminalTabs
+          cwd={cwd}
+          className="h-full"
+          onHide={() => setOpen(false)}
+          onEmpty={() => {
+            setOpen(false)
+            setOpened(false)
+          }}
+        />
       </Suspense>
     </section>
   )

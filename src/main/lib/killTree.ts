@@ -9,7 +9,11 @@ const taskkillArgs = (pids: number[]) => [...pids.flatMap(pid => ['/PID', String
 
 /** Unix: the child was started detached, so its pid is the group of the whole tree */
 function signalTree(child: Live): void {
-  try { process.kill(-child.pid, 'SIGTERM') } catch { child.kill('SIGTERM') }
+  try {
+    process.kill(-child.pid, 'SIGTERM')
+  } catch {
+    child.kill('SIGTERM')
+  }
 }
 
 /**
@@ -39,5 +43,7 @@ export function killTreesSync(children: ChildProcess[]): void {
   if (process.platform !== 'win32') return live.forEach(signalTree)
   try {
     execFileSync('taskkill', taskkillArgs(live.map(c => c.pid)), { windowsHide: true, stdio: 'ignore', timeout: 10_000 })
-  } catch { /* one already gone fails the whole call, the others are killed all the same */ }
+  } catch {
+    /* one already gone fails the whole call, the others are killed all the same */
+  }
 }

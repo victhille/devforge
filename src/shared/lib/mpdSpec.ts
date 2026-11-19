@@ -9,19 +9,38 @@ import { McdSpecError as SpecError } from './mcdSpec'
  */
 
 export interface MpdSpecColumn {
-  name: string; type?: string; length?: number; scale?: number
-  pk?: boolean; nullable?: boolean; unique?: boolean
+  name: string
+  type?: string
+  length?: number
+  scale?: number
+  pk?: boolean
+  nullable?: boolean
+  unique?: boolean
   /** A foreign key: "table" (its key) or "table.column" */
   references?: string
 }
-export interface MpdSpec { tables: { name: string; columns?: MpdSpecColumn[] }[] }
+export interface MpdSpec {
+  tables: { name: string; columns?: MpdSpecColumn[] }[]
+}
 
 const MAX = { tables: 80, columns: 60 }
 const TYPES = new Set<string>(MPD_TYPES)
 /** Words the model may use for a type */
 const ALIASES: Record<string, MpdType> = {
-  integer: 'int', number: 'int', serial: 'int', bigserial: 'bigint', double: 'float', real: 'float', numeric: 'decimal', money: 'decimal',
-  string: 'varchar', boolean: 'bool', timestamp: 'datetime', 'date-time': 'datetime', timestamptz: 'datetime', jsonb: 'json'
+  integer: 'int',
+  number: 'int',
+  serial: 'int',
+  bigserial: 'bigint',
+  double: 'float',
+  real: 'float',
+  numeric: 'decimal',
+  money: 'decimal',
+  string: 'varchar',
+  boolean: 'bool',
+  timestamp: 'datetime',
+  'date-time': 'datetime',
+  timestamptz: 'datetime',
+  jsonb: 'json'
 }
 
 const clean = (v: unknown, max = 60) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
@@ -29,9 +48,9 @@ const clean = (v: unknown, max = 60) => (typeof v === 'string' ? v.trim().slice(
 /** A type in the MPD's terms, with the sizes it needs */
 function typed(c: MpdSpecColumn, owner: string): Pick<MpdColumn, 'type' | 'length' | 'scale'> {
   const raw = clean(c.type).toLowerCase()
-  const type = TYPES.has(raw) ? raw as MpdType : ALIASES[raw]
+  const type = TYPES.has(raw) ? (raw as MpdType) : ALIASES[raw]
   if (!type) throw new SpecError(`Unknown type "${c.type}" for ${owner}: use ${MPD_TYPES.join(', ')}`)
-  const int = (v: unknown, fallback: number, max: number) => Math.min(Math.max(Number.isInteger(v) ? v as number : fallback, 1), max)
+  const int = (v: unknown, fallback: number, max: number) => Math.min(Math.max(Number.isInteger(v) ? (v as number) : fallback, 1), max)
   if (type === 'varchar') return { type, length: int(c.length, 255, 65535) }
   if (type === 'char') return { type, length: int(c.length, 1, 255) }
   if (type === 'decimal') return { type, length: int(c.length, 10, 65), scale: Math.min(Math.max(Number.isInteger(c.scale) ? c.scale! : 2, 0), 30) }
@@ -62,7 +81,8 @@ export function mpdFromSpec(spec: unknown, engine: SqlEngine): MpdModel {
       if (seen.has(col.toLowerCase())) throw new SpecError(`${name} has two columns named ${col}`)
       seen.add(col.toLowerCase())
       const out: MpdColumn = {
-        id: next('c'), name: col,
+        id: next('c'),
+        name: col,
         // A foreign key without a type takes the one of the key it points at (below)
         ...(c.type || !c.references ? typed(c, `${name}.${col}`) : { type: 'int' as MpdType }),
         ...(c.pk === true ? { pk: true } : c.nullable === false ? {} : { nullable: true }),
@@ -86,7 +106,12 @@ export function mpdFromSpec(spec: unknown, engine: SqlEngine): MpdModel {
     if (!target) throw new SpecError(`${table}.${column.name} references an unknown table "${to}" (declare it in "tables")`)
     const pks = target.columns.filter(c => c.pk)
     const ref = col ? target.columns.find(c => c.name.toLowerCase() === col.trim().toLowerCase()) : pks.length === 1 ? pks[0] : undefined
-    if (!ref) throw new SpecError(col ? `${table}.${column.name}: ${target.name} has no column "${col}"` : `${table}.${column.name}: give "${target.name}.column" (its key has several columns)`)
+    if (!ref)
+      throw new SpecError(
+        col
+          ? `${table}.${column.name}: ${target.name} has no column "${col}"`
+          : `${table}.${column.name}: give "${target.name}.column" (its key has several columns)`
+      )
     if (!spec.type) Object.assign(column, { type: ref.type, length: ref.length, scale: ref.scale })
     column.ref = { table: target.id, column: ref.id }
   }

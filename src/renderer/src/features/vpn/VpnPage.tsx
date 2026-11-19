@@ -1,6 +1,22 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { CardSkeleton, LinesSkeleton } from '@renderer/components/ui/Skeleton'
-import { ArrowDown, ArrowUp, Download, ExternalLink, KeyRound, Laptop, LogOut, Plus, QrCode, RefreshCw, Search, ShieldCheck, Smartphone, Tablet, Trash2 } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowUp,
+  Download,
+  ExternalLink,
+  KeyRound,
+  Laptop,
+  LogOut,
+  Plus,
+  QrCode,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  Smartphone,
+  Tablet,
+  Trash2
+} from 'lucide-react'
 import type { SSHConnection, VpnClient, VpnDetect, VpnServer } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -39,8 +55,17 @@ export default function VpnPage() {
   const { connections, conn } = picker
   const [servers, setServers] = useState<VpnServer[]>([])
 
-  const refreshServers = useCallback(() => window.devforge.vpn.servers().then(setServers).catch(() => {}), [])
-  useEffect(() => { refreshServers() }, [refreshServers])
+  const refreshServers = useCallback(
+    () =>
+      window.devforge.vpn
+        .servers()
+        .then(setServers)
+        .catch(() => {}),
+    []
+  )
+  useEffect(() => {
+    refreshServers()
+  }, [refreshServers])
   const select = <ServerSelect connections={connections} value={picker.serverId} onChange={picker.setServerId} />
 
   return (
@@ -50,7 +75,9 @@ export default function VpnPage() {
           <PageHeader crumb={t.nav.groupOnline} title="VPN" subtitle={t.vpn.subtitle} />
           {!connections ? <CardSkeleton rows={3} /> : <NeedsSetup service="server" />}
         </>
-      ) : <Server key={conn.id} conn={conn} saved={servers.find(s => s.connectionId === conn.id)} select={select} onChange={refreshServers} />}
+      ) : (
+        <Server key={conn.id} conn={conn} saved={servers.find(s => s.connectionId === conn.id)} select={select} onChange={refreshServers} />
+      )}
     </Page>
   )
 }
@@ -61,18 +88,40 @@ function Server({ conn, saved, select, onChange }: { conn: SSHConnection; saved:
   const [found, setFound] = useState<VpnDetect | null>(null)
   const [error, setError] = useState('')
 
-  useEffect(() => { window.devforge.vpn.detect(conn.id).then(setFound).catch(err => setError(errorText(err))) }, [conn.id])
+  useEffect(() => {
+    window.devforge.vpn
+      .detect(conn.id)
+      .then(setFound)
+      .catch(err => setError(errorText(err)))
+  }, [conn.id])
 
   if (saved && found?.found && found.supported && found.port) return <Clients conn={conn} found={found} select={select} onForget={onChange} />
   return (
     <>
       <PageHeader crumb={`${t.nav.groupOnline} · ${conn.name}`} title="VPN" subtitle={v.subtitle} actions={select} />
-      {error ? <Notice tone="warning" className="max-w-2xl">{error}</Notice>
-        : !found ? <p className="flex items-center gap-2 text-sm text-fg-muted"><Spinner /> {v.checking}</p>
-        : !found.found ? <Notice tone="warning" className="max-w-2xl">{v.notFound}</Notice>
-        : !found.supported ? <Notice tone="warning" className="max-w-2xl">{v.unsupported.replace('{version}', found.version ?? '?')}</Notice>
-        : !found.port ? <Notice tone="warning" className="max-w-2xl">{v.noPort}</Notice>
-        : <Login conn={conn} port={found.port} onDone={onChange} />}
+      {error ? (
+        <Notice tone="warning" className="max-w-2xl">
+          {error}
+        </Notice>
+      ) : !found ? (
+        <p className="flex items-center gap-2 text-sm text-fg-muted">
+          <Spinner /> {v.checking}
+        </p>
+      ) : !found.found ? (
+        <Notice tone="warning" className="max-w-2xl">
+          {v.notFound}
+        </Notice>
+      ) : !found.supported ? (
+        <Notice tone="warning" className="max-w-2xl">
+          {v.unsupported.replace('{version}', found.version ?? '?')}
+        </Notice>
+      ) : !found.port ? (
+        <Notice tone="warning" className="max-w-2xl">
+          {v.noPort}
+        </Notice>
+      ) : (
+        <Login conn={conn} port={found.port} onDone={onChange} />
+      )}
     </>
   )
 }
@@ -88,33 +137,57 @@ function Login({ conn, port, onDone }: { conn: SSHConnection; port: number; onDo
   const [error, setError] = useState('')
 
   async function connect() {
-    setBusy(true); setError('')
-    try { await window.devforge.vpn.saveLogin(conn.id, port, username, password); setPassword(''); onDone() }
-    catch (err) { const e = errorText(err); setError(e === 'BAD_LOGIN' ? v.badLogin : e) }
-    finally { setBusy(false) }
+    setBusy(true)
+    setError('')
+    try {
+      await window.devforge.vpn.saveLogin(conn.id, port, username, password)
+      setPassword('')
+      onDone()
+    } catch (err) {
+      const e = errorText(err)
+      setError(e === 'BAD_LOGIN' ? v.badLogin : e)
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
     <Card className="df-rise flex max-w-xl flex-col gap-4 p-5">
       <div className="flex items-center gap-3">
-        <div className="flex size-11 items-center justify-center rounded-xl bg-forgy-soft"><ShieldCheck size={22} aria-hidden className="text-forgy" /></div>
+        <div className="flex size-11 items-center justify-center rounded-xl bg-forgy-soft">
+          <ShieldCheck size={22} aria-hidden className="text-forgy" />
+        </div>
         <div className="min-w-0 flex-1">
           <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{v.loginTitle}</h2>
           <p className="mt-0.5 text-sm text-fg-secondary">{v.loginHint}</p>
         </div>
       </div>
-      <form className="flex flex-col gap-3" onSubmit={e => { e.preventDefault(); if (username.trim() && password) connect() }}>
+      <form
+        className="flex flex-col gap-3"
+        onSubmit={e => {
+          e.preventDefault()
+          if (username.trim() && password) connect()
+        }}
+      >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label className="flex flex-col gap-1.5 text-base text-fg-secondary">{v.username}
+          <label className="flex flex-col gap-1.5 text-base text-fg-secondary">
+            {v.username}
             <Input value={username} onChange={e => setUsername(e.target.value)} autoComplete="off" />
           </label>
-          <label className="flex flex-col gap-1.5 text-base text-fg-secondary">{v.password}
+          <label className="flex flex-col gap-1.5 text-base text-fg-secondary">
+            {v.password}
             <Input type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="off" />
           </label>
         </div>
-        {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+        {error && (
+          <p role="alert" className="text-sm text-danger">
+            {error}
+          </p>
+        )}
         <div className="flex justify-end">
-          <Button type="submit" disabled={!username.trim() || !password} loading={busy}>{!busy && <KeyRound size={14} aria-hidden />} {v.connect}</Button>
+          <Button type="submit" disabled={!username.trim() || !password} loading={busy}>
+            {!busy && <KeyRound size={14} aria-hidden />} {v.connect}
+          </Button>
         </div>
       </form>
     </Card>
@@ -128,8 +201,7 @@ const isLive = (c: VpnClient) => !!c.latestHandshakeAt && Date.now() - new Date(
 
 /** A phone, a tablet or a computer, guessed from its name */
 function DeviceIcon({ name }: { name: string }) {
-  const Icon = /phone|t[ée]l[ée]phone|iphone|android|pixel|galaxy|mobile/i.test(name) ? Smartphone
-    : /ipad|tablet|tablette/i.test(name) ? Tablet : Laptop
+  const Icon = /phone|t[ée]l[ée]phone|iphone|android|pixel|galaxy|mobile/i.test(name) ? Smartphone : /ipad|tablet|tablette/i.test(name) ? Tablet : Laptop
   return <Icon size={14} aria-hidden className="shrink-0 text-fg-muted" />
 }
 
@@ -152,14 +224,34 @@ function Clients({ conn, found, select, onForget }: { conn: SSHConnection; found
       if (sessionStorage.getItem('devforge:vpn-new') !== conn.id) return false
       sessionStorage.removeItem('devforge:vpn-new')
       return true
-    } catch { return false }
+    } catch {
+      return false
+    }
   })
 
-  const say = useCallback((err: unknown) => { const e = errorText(err); return e === 'BAD_LOGIN' ? v.badLogin : e }, [v.badLogin])
-  const load = useCallback(() => window.devforge.vpn.clients(conn.id).then(c => { setClients(c); setError('') }).catch(err => setError(say(err))), [conn.id, say])
+  const say = useCallback(
+    (err: unknown) => {
+      const e = errorText(err)
+      return e === 'BAD_LOGIN' ? v.badLogin : e
+    },
+    [v.badLogin]
+  )
+  const load = useCallback(
+    () =>
+      window.devforge.vpn
+        .clients(conn.id)
+        .then(c => {
+          setClients(c)
+          setError('')
+        })
+        .catch(err => setError(say(err))),
+    [conn.id, say]
+  )
   useEffect(() => {
     load()
-    return visibleInterval(() => { load() }, REFRESH_MS)
+    return visibleInterval(() => {
+      load()
+    }, REFRESH_MS)
   }, [load])
 
   const shown = useMemo(() => {
@@ -169,15 +261,24 @@ function Clients({ conn, found, select, onForget }: { conn: SSHConnection; found
   }, [clients, filter])
 
   async function act(fn: () => Promise<unknown>) {
-    try { await fn() } catch (err) { toast.show({ tone: 'error', title: say(err) }) }
-    finally { load() }
+    try {
+      await fn()
+    } catch (err) {
+      toast.show({ tone: 'error', title: say(err) })
+    } finally {
+      load()
+    }
   }
 
   // A QR code asked from elsewhere (Forgy created the client): that device is picked
   useEffect(() => {
     const check = () => {
       let wanted: { connectionId: string; clientId: number } | null = null
-      try { wanted = JSON.parse(sessionStorage.getItem('devforge:vpn-qr') ?? 'null') } catch { /* none */ }
+      try {
+        wanted = JSON.parse(sessionStorage.getItem('devforge:vpn-qr') ?? 'null')
+      } catch {
+        /* none */
+      }
       if (!wanted || wanted.connectionId !== conn.id) return
       sessionStorage.removeItem('devforge:vpn-qr')
       load()
@@ -189,111 +290,182 @@ function Clients({ conn, found, select, onForget }: { conn: SSHConnection; found
   }, [conn.id, load])
 
   async function openWeb() {
-    try { window.devforge.openExternal(await window.devforge.vpn.openWeb(conn.id)) }
-    catch (err) { toast.show({ tone: 'error', title: say(err) }) }
+    try {
+      window.devforge.openExternal(await window.devforge.vpn.openWeb(conn.id))
+    } catch (err) {
+      toast.show({ tone: 'error', title: say(err) })
+    }
   }
   async function forget() {
-    if ((await confirmDialog(v.forgetConfirm.replace('{name}', conn.name), { danger: true }))) { await window.devforge.vpn.forget(conn.id); onForget() }
+    if (await confirmDialog(v.forgetConfirm.replace('{name}', conn.name), { danger: true })) {
+      await window.devforge.vpn.forget(conn.id)
+      onForget()
+    }
   }
 
   const count = clients?.length ?? 0
   const pickedClient = clients?.find(c => c.id === picked) ?? null
   const title = (
-    <span className="flex min-w-0 items-center gap-3">VPN <span title={v.found.replace('{version}', found.version ?? 'latest').replace('{port}', String(found.port))}><Badge dot color="success">{v.active}</Badge></span></span>
+    <span className="flex min-w-0 items-center gap-3">
+      VPN{' '}
+      <span title={v.found.replace('{version}', found.version ?? 'latest').replace('{port}', String(found.port))}>
+        <Badge dot color="success">
+          {v.active}
+        </Badge>
+      </span>
+    </span>
   )
 
   return (
     <>
-      <PageHeader crumb={`${t.nav.groupOnline} · ${conn.name}`} title={title}
-        subtitle={clients ? `${v.subtitle} ${(count === 1 || (lang !== 'en' && count === 0) ? v.devicesOne : v.devicesMany).replace('{n}', String(count))}` : v.subtitle}
-        actions={<>
-          {select}
-          {count > SEARCH_FROM && (
-            <label className="relative">
-              <span className="sr-only">{v.search}</span>
-              <Search size={14} aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-fg-muted" />
-              <Input value={filter} onChange={e => setFilter(e.target.value)} placeholder={v.search} className="w-56 pl-8" />
-            </label>
-          )}
-          <Button onClick={() => setCreating(true)}><Plus size={14} aria-hidden /> {v.newClient}</Button>
-          <MoreMenu label={v.more} items={[
-            { label: v.openWeb, icon: ExternalLink, onSelect: openWeb },
-            { label: v.refresh, icon: RefreshCw, onSelect: () => { load() } },
-            { label: v.forget, icon: LogOut, danger: true, onSelect: forget }
-          ]} />
-        </>} />
+      <PageHeader
+        crumb={`${t.nav.groupOnline} · ${conn.name}`}
+        title={title}
+        subtitle={
+          clients ? `${v.subtitle} ${(count === 1 || (lang !== 'en' && count === 0) ? v.devicesOne : v.devicesMany).replace('{n}', String(count))}` : v.subtitle
+        }
+        actions={
+          <>
+            {select}
+            {count > SEARCH_FROM && (
+              <label className="relative">
+                <span className="sr-only">{v.search}</span>
+                <Search size={14} aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-fg-muted" />
+                <Input value={filter} onChange={e => setFilter(e.target.value)} placeholder={v.search} className="w-56 pl-8" />
+              </label>
+            )}
+            <Button onClick={() => setCreating(true)}>
+              <Plus size={14} aria-hidden /> {v.newClient}
+            </Button>
+            <MoreMenu
+              label={v.more}
+              items={[
+                { label: v.openWeb, icon: ExternalLink, onSelect: openWeb },
+                {
+                  label: v.refresh,
+                  icon: RefreshCw,
+                  onSelect: () => {
+                    load()
+                  }
+                },
+                { label: v.forget, icon: LogOut, danger: true, onSelect: forget }
+              ]}
+            />
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <Card>
-          {error ? <p className="px-4.5 py-4 text-sm text-danger">{error}</p>
-            : !clients ? <LinesSkeleton lines={4} className="px-4.5 py-4" />
-            : shown.length === 0 ? <p className="px-4.5 py-4 text-sm text-fg-muted">{clients.length ? v.noMatch : v.noClients}</p>
-            : (
-              <Table>
-                <thead>
-                  <tr>
-                    <Th className="pl-4.5">{v.colDevice}</Th>
-                    <Th>{v.colAddress}</Th>
-                    <Th>{v.colLast}</Th>
-                    <Th>{v.colTransfer}</Th>
-                    <Th align="right" className="pr-4.5">{v.colActive}</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {shown.map(c => {
-                    const expired = !!c.expiresAt && new Date(c.expiresAt).getTime() < Date.now()
-                    const live = isLive(c)
-                    const choose = () => setPicked(p => (p === c.id ? null : c.id))
-                    return (
-                      <tr key={c.id} onClick={choose} {...pressable(choose)} aria-selected={picked === c.id}
-                        className={cn('cursor-pointer', picked === c.id && '[&>td]:bg-elevated')}>
-                        <Td className="min-w-[200px] pl-4.5">
-                          <span className={cn('flex items-center gap-2.5', c.enabled ? 'font-semibold text-fg' : 'text-fg-secondary')}>
-                            <DeviceIcon name={c.name} />
-                            <span className="truncate">{c.name}</span>
+          {error ? (
+            <p className="px-4.5 py-4 text-sm text-danger">{error}</p>
+          ) : !clients ? (
+            <LinesSkeleton lines={4} className="px-4.5 py-4" />
+          ) : shown.length === 0 ? (
+            <p className="px-4.5 py-4 text-sm text-fg-muted">{clients.length ? v.noMatch : v.noClients}</p>
+          ) : (
+            <Table>
+              <thead>
+                <tr>
+                  <Th className="pl-4.5">{v.colDevice}</Th>
+                  <Th>{v.colAddress}</Th>
+                  <Th>{v.colLast}</Th>
+                  <Th>{v.colTransfer}</Th>
+                  <Th align="right" className="pr-4.5">
+                    {v.colActive}
+                  </Th>
+                </tr>
+              </thead>
+              <tbody>
+                {shown.map(c => {
+                  const expired = !!c.expiresAt && new Date(c.expiresAt).getTime() < Date.now()
+                  const live = isLive(c)
+                  const choose = () => setPicked(p => (p === c.id ? null : c.id))
+                  return (
+                    <tr
+                      key={c.id}
+                      onClick={choose}
+                      {...pressable(choose)}
+                      aria-selected={picked === c.id}
+                      className={cn('cursor-pointer', picked === c.id && '[&>td]:bg-elevated')}
+                    >
+                      <Td className="min-w-[200px] pl-4.5">
+                        <span className={cn('flex items-center gap-2.5', c.enabled ? 'font-semibold text-fg' : 'text-fg-secondary')}>
+                          <DeviceIcon name={c.name} />
+                          <span className="truncate">{c.name}</span>
+                        </span>
+                        {c.expiresAt && (
+                          <span className={cn('mt-0.5 block pl-6 text-xs', expired ? 'text-danger' : 'text-fg-muted')}>
+                            {expired ? v.expired : v.expires.replace('{date}', formatDate(c.expiresAt, lang))}
                           </span>
-                          {c.expiresAt && (
-                            <span className={cn('mt-0.5 block pl-6 text-xs', expired ? 'text-danger' : 'text-fg-muted')}>
-                              {expired ? v.expired : v.expires.replace('{date}', formatDate(c.expiresAt, lang))}
+                        )}
+                      </Td>
+                      <Td className={cn('font-mono whitespace-nowrap', c.enabled ? 'text-fg' : 'text-fg-muted')}>{c.ipv4}</Td>
+                      <Td className="whitespace-nowrap">
+                        {live ? (
+                          <Badge dot color="success">
+                            {v.connected}
+                          </Badge>
+                        ) : (
+                          <span className="text-fg-secondary">{c.latestHandshakeAt ? formatRelative(c.latestHandshakeAt, lang) : v.never}</span>
+                        )}
+                      </Td>
+                      <Td className="font-mono text-xs whitespace-nowrap text-fg">
+                        {c.transferRx == null && c.transferTx == null ? (
+                          <span className="text-fg-muted">—</span>
+                        ) : (
+                          <span className="inline-flex items-center gap-2.5">
+                            <span className="inline-flex items-center gap-1" title={v.received}>
+                              <ArrowDown size={12} aria-hidden />
+                              {formatSize(c.transferTx, lang)}
                             </span>
-                          )}
-                        </Td>
-                        <Td className={cn('font-mono whitespace-nowrap', c.enabled ? 'text-fg' : 'text-fg-muted')}>{c.ipv4}</Td>
-                        <Td className="whitespace-nowrap">
-                          {live ? <Badge dot color="success">{v.connected}</Badge>
-                            : <span className="text-fg-secondary">{c.latestHandshakeAt ? formatRelative(c.latestHandshakeAt, lang) : v.never}</span>}
-                        </Td>
-                        <Td className="font-mono text-xs whitespace-nowrap text-fg">
-                          {c.transferRx == null && c.transferTx == null ? <span className="text-fg-muted">—</span> : (
-                            <span className="inline-flex items-center gap-2.5">
-                              <span className="inline-flex items-center gap-1" title={v.received}><ArrowDown size={12} aria-hidden />{formatSize(c.transferTx, lang)}</span>
-                              <span className="inline-flex items-center gap-1" title={v.sent}><ArrowUp size={12} aria-hidden />{formatSize(c.transferRx, lang)}</span>
+                            <span className="inline-flex items-center gap-1" title={v.sent}>
+                              <ArrowUp size={12} aria-hidden />
+                              {formatSize(c.transferRx, lang)}
                             </span>
-                          )}
-                        </Td>
-                        <Td align="right" className="pr-4.5" onClick={e => e.stopPropagation()}>
-                          <span className="inline-flex">
-                            <Switch checked={c.enabled} label={v.enable.replace('{name}', c.name)}
-                              onChange={enabled => act(() => window.devforge.vpn.setEnabled(conn.id, c.id, enabled))} />
                           </span>
-                        </Td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </Table>
-            )}
+                        )}
+                      </Td>
+                      <Td align="right" className="pr-4.5" onClick={e => e.stopPropagation()}>
+                        <span className="inline-flex">
+                          <Switch
+                            checked={c.enabled}
+                            label={v.enable.replace('{name}', c.name)}
+                            onChange={enabled => act(() => window.devforge.vpn.setEnabled(conn.id, c.id, enabled))}
+                          />
+                        </span>
+                      </Td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </Table>
+          )}
         </Card>
 
-        <QrPanel key={pickedClient?.id ?? 'none'} conn={conn} client={pickedClient} say={say}
-          onRemoved={() => { setPicked(null); load() }} />
+        <QrPanel
+          key={pickedClient?.id ?? 'none'}
+          conn={conn}
+          client={pickedClient}
+          say={say}
+          onRemoved={() => {
+            setPicked(null)
+            load()
+          }}
+        />
       </div>
 
-      {creating && <CreateClient conn={conn} onClose={() => setCreating(false)} onCreated={async id => {
-        setCreating(false)
-        await load()
-        setPicked(id)
-      }} />}
+      {creating && (
+        <CreateClient
+          conn={conn}
+          onClose={() => setCreating(false)}
+          onCreated={async id => {
+            setCreating(false)
+            await load()
+            setPicked(id)
+          }}
+        />
+      )}
     </>
   )
 }
@@ -311,20 +483,32 @@ function QrPanel({ conn, client, say, onRemoved }: { conn: SSHConnection; client
     if (!client) return
     setClosed(false)
     setBusy(true)
-    try { setQr(await window.devforge.vpn.qrcode(conn.id, client.id)) } catch (err) { toast.show({ tone: 'error', title: say(err) }) }
-    finally { setBusy(false) }
+    try {
+      setQr(await window.devforge.vpn.qrcode(conn.id, client.id))
+    } catch (err) {
+      toast.show({ tone: 'error', title: say(err) })
+    } finally {
+      setBusy(false)
+    }
   }, [client, conn.id, say, toast])
-  useEffect(() => { show() }, [show])
+  useEffect(() => {
+    show()
+  }, [show])
   useEffect(() => {
     if (!qr) return
-    const id = setTimeout(() => { setQr(null); setClosed(true) }, QR_MS)
+    const id = setTimeout(() => {
+      setQr(null)
+      setClosed(true)
+    }, QR_MS)
     return () => clearTimeout(id)
   }, [qr])
 
   if (!client) {
     return (
       <Card className="flex flex-col items-center gap-3 px-6 py-10 text-center">
-        <span className="flex size-11 items-center justify-center rounded-xl bg-active text-fg-secondary"><QrCode size={20} aria-hidden /></span>
+        <span className="flex size-11 items-center justify-center rounded-xl bg-active text-fg-secondary">
+          <QrCode size={20} aria-hidden />
+        </span>
         <p className="max-w-[240px] text-sm text-fg-secondary">{v.pickClient}</p>
       </Card>
     )
@@ -334,12 +518,19 @@ function QrPanel({ conn, client, say, onRemoved }: { conn: SSHConnection; client
     try {
       const file = await window.devforge.vpn.saveConfig(conn.id, client!.id)
       if (file) toast.show({ tone: 'success', title: v.saved.replace('{file}', file) })
-    } catch (err) { toast.show({ tone: 'error', title: say(err) }) }
+    } catch (err) {
+      toast.show({ tone: 'error', title: say(err) })
+    }
   }
   async function remove() {
     if (!(await confirmDialog(v.removeConfirm.replace('{name}', client!.name), { danger: true }))) return
-    try { await window.devforge.vpn.remove(conn.id, client!.id); toast.show({ tone: 'success', title: v.removed.replace('{name}', client!.name) }); onRemoved() }
-    catch (err) { toast.show({ tone: 'error', title: say(err) }) }
+    try {
+      await window.devforge.vpn.remove(conn.id, client!.id)
+      toast.show({ tone: 'success', title: v.removed.replace('{name}', client!.name) })
+      onRemoved()
+    } catch (err) {
+      toast.show({ tone: 'error', title: say(err) })
+    }
   }
 
   return (
@@ -351,13 +542,25 @@ function QrPanel({ conn, client, say, onRemoved }: { conn: SSHConnection; client
         </div>
       ) : (
         <div className="flex size-54 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-line">
-          {busy ? <Spinner /> : <Button size="sm" variant="secondary" onClick={show}><QrCode size={13} aria-hidden /> {v.showQr}</Button>}
+          {busy ? (
+            <Spinner />
+          ) : (
+            <Button size="sm" variant="secondary" onClick={show}>
+              <QrCode size={13} aria-hidden /> {v.showQr}
+            </Button>
+          )}
         </div>
       )}
-      <p role="status" className="text-sm text-fg-secondary">{closed ? v.qrClosed : v.qrScan}</p>
+      <p role="status" className="text-sm text-fg-secondary">
+        {closed ? v.qrClosed : v.qrScan}
+      </p>
       <div className="flex flex-wrap justify-center gap-2">
-        <Button size="sm" variant="secondary" onClick={download}><Download size={13} aria-hidden /> {v.downloadConf}</Button>
-        <Button size="sm" variant="ghost" className="text-danger" onClick={remove}><Trash2 size={13} aria-hidden /> {v.remove}</Button>
+        <Button size="sm" variant="secondary" onClick={download}>
+          <Download size={13} aria-hidden /> {v.downloadConf}
+        </Button>
+        <Button size="sm" variant="ghost" className="text-danger" onClick={remove}>
+          <Trash2 size={13} aria-hidden /> {v.remove}
+        </Button>
       </div>
     </Card>
   )
@@ -372,27 +575,53 @@ function CreateClient({ conn, onClose, onCreated }: { conn: SSHConnection; onClo
   const [error, setError] = useState('')
 
   async function create() {
-    setBusy(true); setError('')
-    try { onCreated(await window.devforge.vpn.create(conn.id, name, expiresAt || null)) }
-    catch (err) { setError(errorText(err)) }
-    finally { setBusy(false) }
+    setBusy(true)
+    setError('')
+    try {
+      onCreated(await window.devforge.vpn.create(conn.id, name, expiresAt || null))
+    } catch (err) {
+      setError(errorText(err))
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
-    <Modal title={v.createTitle} onClose={onClose}
-      footer={<>
-        <Button variant="ghost" onClick={onClose}>{v.cancel}</Button>
-        <Button disabled={!name.trim()} loading={busy} onClick={create}>{v.create}</Button>
-      </>}>
-      <form className="flex flex-col gap-3" onSubmit={e => { e.preventDefault(); if (name.trim()) create() }}>
-        <label className="flex flex-col gap-1.5 text-base text-fg-secondary">{v.name}
+    <Modal
+      title={v.createTitle}
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {v.cancel}
+          </Button>
+          <Button disabled={!name.trim()} loading={busy} onClick={create}>
+            {v.create}
+          </Button>
+        </>
+      }
+    >
+      <form
+        className="flex flex-col gap-3"
+        onSubmit={e => {
+          e.preventDefault()
+          if (name.trim()) create()
+        }}
+      >
+        <label className="flex flex-col gap-1.5 text-base text-fg-secondary">
+          {v.name}
           <Input autoFocus value={name} maxLength={64} onChange={e => setName(e.target.value)} placeholder={v.namePlaceholder} />
         </label>
-        <label className="flex flex-col gap-1.5 text-base text-fg-secondary">{v.expiresAt}
+        <label className="flex flex-col gap-1.5 text-base text-fg-secondary">
+          {v.expiresAt}
           <Input type="date" value={expiresAt} min={new Date().toISOString().slice(0, 10)} onChange={e => setExpiresAt(e.target.value)} />
           <span className="text-xs text-fg-muted">{v.expiresHint}</span>
         </label>
-        {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+        {error && (
+          <p role="alert" className="text-sm text-danger">
+            {error}
+          </p>
+        )}
       </form>
     </Modal>
   )

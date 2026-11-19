@@ -23,7 +23,8 @@ test('the schema shows tables and links, hides and adds tables, moves a card, ex
     'CREATE TABLE "order" (id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES user(id), total REAL)',
     'CREATE TABLE order_item (id INTEGER PRIMARY KEY, order_id INTEGER REFERENCES "order"(id), product_id INTEGER REFERENCES product(id))',
     'CREATE TABLE coupon (code TEXT PRIMARY KEY, rate REAL)'
-  ]) db.run(sql)
+  ])
+    db.run(sql)
   let dir = ''
   run = await launch({
     seed: d => {
@@ -90,15 +91,33 @@ test('the schema shows tables and links, hides and adds tables, moves a card, ex
   expect(await stored()).toEqual(moved)
 
   // Exports
-  await app.evaluate(({ dialog: d }, p) => { d.showSaveDialog = (async () => ({ canceled: false, filePath: p })) as never }, join(dir, 'schema.svg'))
+  await app.evaluate(
+    ({ dialog: d }, p) => {
+      d.showSaveDialog = (async () => ({ canceled: false, filePath: p })) as never
+    },
+    join(dir, 'schema.svg')
+  )
   await dialog.getByRole('button', { name: 'SVG' }).click()
   await expect(page.getByRole('status').filter({ hasText: 'Schéma enregistré' })).toBeVisible()
   const svg = readFileSync(join(dir, 'schema.svg'), 'utf-8')
   expect(svg).toContain('>order_item</text>')
   expect(svg).not.toContain('>category</text>')
-  await app.evaluate(({ dialog: d }, p) => { d.showSaveDialog = (async () => ({ canceled: false, filePath: p })) as never }, join(dir, 'schema.png'))
+  await app.evaluate(
+    ({ dialog: d }, p) => {
+      d.showSaveDialog = (async () => ({ canceled: false, filePath: p })) as never
+    },
+    join(dir, 'schema.png')
+  )
   await dialog.getByRole('button', { name: 'PNG' }).click()
-  await expect.poll(() => { try { return readFileSync(join(dir, 'schema.png')).subarray(1, 4).toString() } catch { return '' } }).toBe('PNG')
+  await expect
+    .poll(() => {
+      try {
+        return readFileSync(join(dir, 'schema.png')).subarray(1, 4).toString()
+      } catch {
+        return ''
+      }
+    })
+    .toBe('PNG')
 
   // A click on a card opens its structure
   await card('order').getByRole('button', { name: 'Ouvrir la structure de order' }).click()

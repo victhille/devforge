@@ -51,17 +51,20 @@ export default function VPSDashboardPage() {
   const known = connection !== null
   const [health, setHealth] = useState<VpsHealth | null>(null)
 
-  const session   = sessions.get(connectionId ?? '')
-  const status    = session?.status ?? 'connecting'
+  const session = sessions.get(connectionId ?? '')
+  const status = session?.status ?? 'connecting'
   const sessionId = status === 'connected' ? session!.sessionId : null
-  const lost      = status === 'error' || status === 'disconnected'
+  const lost = status === 'error' || status === 'disconnected'
 
   const { sysInfo, stats, cpuHistory, lastUpdated, refreshing, refreshNow, reset } = useVpsStats(sessionId)
 
   // Once the list is there: connect to a known server (the context keeps the session alive)
   useEffect(() => {
     if (!connectionId || !listed) return
-    if (!known) { navigate('/ssh'); return }
+    if (!known) {
+      navigate('/ssh')
+      return
+    }
     getOrConnect(connectionId).catch(() => {})
   }, [connectionId, listed, known, getOrConnect, navigate])
 
@@ -69,7 +72,10 @@ export default function VPSDashboardPage() {
   useEffect(() => {
     if (!connectionId) return
     setHealth(null)
-    window.devforge.vpsOps.health(connectionId).then(setHealth).catch(() => {})
+    window.devforge.vpsOps
+      .health(connectionId)
+      .then(setHealth)
+      .catch(() => {})
   }, [connectionId])
 
   function handleReconnect() {
@@ -79,39 +85,85 @@ export default function VPSDashboardPage() {
   }
 
   // The Health page opens on this server
-  const pickServer = () => { try { if (connectionId) localStorage.setItem('devforge:vps-server', connectionId) } catch { /* not kept */ } }
+  const pickServer = () => {
+    try {
+      if (connectionId) localStorage.setItem('devforge:vps-server', connectionId)
+    } catch {
+      /* not kept */
+    }
+  }
 
-  const memPct  = stats && stats.memory.total > 0 ? (stats.memory.used / stats.memory.total) * 100 : 0
+  const memPct = stats && stats.memory.total > 0 ? (stats.memory.used / stats.memory.total) * 100 : 0
   const swapPct = stats && stats.swap.total > 0 ? (stats.swap.used / stats.swap.total) * 100 : 0
-  const root    = stats?.disks.find(d => d.mount === '/') ?? stats?.disks[0]
+  const root = stats?.disks.find(d => d.mount === '/') ?? stats?.disks[0]
   const updates = health?.checks.find(c => c.id === 'updates' && (c.level === 'warn' || c.level === 'bad'))
   const pending = Number(updates?.values.count ?? 0)
   const upShort = stats ? fmtUptime(stats.uptime, v.dayShort).split(' ')[0] : ''
 
-  const state = status === 'connected'
-    ? <Badge dot color="success">{stats ? v.online.replace('{up}', upShort) : v.connected}</Badge>
-    : lost ? <Badge dot color="danger">{v.lost}</Badge>
-    : <Badge dot color="warning">{t.ssh.connecting}</Badge>
+  const state =
+    status === 'connected' ? (
+      <Badge dot color="success">
+        {stats ? v.online.replace('{up}', upShort) : v.connected}
+      </Badge>
+    ) : lost ? (
+      <Badge dot color="danger">
+        {v.lost}
+      </Badge>
+    ) : (
+      <Badge dot color="warning">
+        {t.ssh.connecting}
+      </Badge>
+    )
 
   return (
     <Page className="df-mockup">
       <PageHeader
-        crumb={<nav aria-label={t.nav.breadcrumb} className="flex min-w-0 items-center gap-1.5"><Link to="/ssh" className="hover:text-fg">{t.nav.ssh}</Link><span aria-hidden>/</span><span className="truncate">{connection?.name ?? '…'}</span></nav>}
-        title={<span className="flex min-w-0 items-center gap-3"><span className="truncate">{connection?.name ?? '…'}</span>{state}</span>}
+        crumb={
+          <nav aria-label={t.nav.breadcrumb} className="flex min-w-0 items-center gap-1.5">
+            <Link to="/ssh" className="hover:text-fg">
+              {t.nav.ssh}
+            </Link>
+            <span aria-hidden>/</span>
+            <span className="truncate">{connection?.name ?? '…'}</span>
+          </nav>
+        }
+        title={
+          <span className="flex min-w-0 items-center gap-3">
+            <span className="truncate">{connection?.name ?? '…'}</span>
+            {state}
+          </span>
+        }
         subtitle={
           <span className="block truncate font-mono text-sm text-fg-secondary">
             {[connection?.host, sysInfo?.os, sysInfo?.hostname].filter(Boolean).join(' · ')}
           </span>
         }
-        actions={<>
-          {lastUpdated && <span className="text-xs text-fg-muted">{lastUpdated.toLocaleTimeString(lang)}</span>}
-          {lost && <IconButton title={v.reconnect} onClick={handleReconnect}><RotateCcw size={14} /></IconButton>}
-          <IconButton title={v.refresh} onClick={refreshNow} disabled={refreshing || status !== 'connected'}>
-            <RefreshCw size={14} className={cn(refreshing && 'animate-spin')} />
-          </IconButton>
-          <Button variant="secondary" onClick={() => navigate(`/ssh?connect=${connectionId}`)}><Terminal size={14} aria-hidden /> {v.terminal}</Button>
-          {pending > 0 && <Button onClick={() => { pickServer(); navigate('/health') }}><ArrowUpCircle size={14} aria-hidden /> {v.updateN.replace('{n}', String(pending))}</Button>}
-        </>}
+        actions={
+          <>
+            {lastUpdated && <span className="text-xs text-fg-muted">{lastUpdated.toLocaleTimeString(lang)}</span>}
+            {lost && (
+              <IconButton title={v.reconnect} onClick={handleReconnect}>
+                <RotateCcw size={14} />
+              </IconButton>
+            )}
+            <IconButton title={v.refresh} onClick={refreshNow} disabled={refreshing || status !== 'connected'}>
+              <RefreshCw size={14} className={cn(refreshing && 'animate-spin')} />
+            </IconButton>
+            <Button variant="secondary" onClick={() => navigate(`/ssh?connect=${connectionId}`)}>
+              <Terminal size={14} aria-hidden /> {v.terminal}
+            </Button>
+            {pending > 0 && (
+              <Button
+                onClick={() => {
+                  pickServer()
+                  navigate('/health')
+                }}
+              >
+                <ArrowUpCircle size={14} aria-hidden /> {v.updateN.replace('{n}', String(pending))}
+              </Button>
+            )}
+          </>
+        }
       />
 
       {lost && (
@@ -119,7 +171,9 @@ export default function VPSDashboardPage() {
           <WifiOff size={32} className="text-danger" />
           <p className="text-md font-medium text-fg">{v.lost}</p>
           {session?.error && <span className="max-w-md text-sm text-fg-muted">{session.error}</span>}
-          <Button variant="secondary" onClick={handleReconnect}><RotateCcw size={14} /> {v.reconnect}</Button>
+          <Button variant="secondary" onClick={handleReconnect}>
+            <RotateCcw size={14} /> {v.reconnect}
+          </Button>
         </CenterState>
       )}
 
@@ -132,7 +186,11 @@ export default function VPSDashboardPage() {
 
       {status === 'connected' && !stats && (
         <div role="status" aria-label={v.loading} className="flex flex-col gap-4">
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3.5">{[0, 1, 2, 3].map(i => <Skeleton key={i} className="h-24 rounded-card" />)}</div>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3.5">
+            {[0, 1, 2, 3].map(i => (
+              <Skeleton key={i} className="h-24 rounded-card" />
+            ))}
+          </div>
           <CardSkeleton label={false} rows={3} />
         </div>
       )}
@@ -142,13 +200,19 @@ export default function VPSDashboardPage() {
           {/* The four meters of the mock-up */}
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard label="CPU" pct={stats.cpu} detail={v.load.replace('{v}', stats.load.map(l => l.toFixed(2)).join(' · '))} history={cpuHistory} />
-            <StatCard label={v.memory} pct={memPct}
+            <StatCard
+              label={v.memory}
+              pct={memPct}
               value={`${formatSize(stats.memory.used, lang)} / ${formatSize(stats.memory.total, lang)}`}
-              detail={v.memDetail.replace('{pct}', String(Math.round(memPct))).replace('{swap}', String(Math.round(swapPct)))} />
+              detail={v.memDetail.replace('{pct}', String(Math.round(memPct))).replace('{swap}', String(Math.round(swapPct)))}
+            />
             {root && (
-              <StatCard label={v.disk} pct={root.pct}
+              <StatCard
+                label={v.disk}
+                pct={root.pct}
                 value={`${formatSize(root.used, lang)} / ${formatSize(root.total, lang)}`}
-                detail={v.diskFree.replace('{pct}', String(root.pct)).replace('{free}', formatSize(root.avail, lang))} />
+                detail={v.diskFree.replace('{pct}', String(root.pct)).replace('{free}', formatSize(root.avail, lang))}
+              />
             )}
             <Card className="flex flex-col gap-2.5 p-3.5">
               <span className="text-sm text-fg-muted">{v.uptime}</span>
@@ -167,7 +231,17 @@ export default function VPSDashboardPage() {
                 <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{v.shortcuts}</h2>
                 <div className="grid grid-cols-2 gap-2">
                   {SHORTCUTS.map(s => (
-                    <Button key={s.to} size="sm" variant="secondary" onClick={() => { pickServer(); navigate(s.to) }}>{t.nav[s.key]}</Button>
+                    <Button
+                      key={s.to}
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        pickServer()
+                        navigate(s.to)
+                      }}
+                    >
+                      {t.nav[s.key]}
+                    </Button>
                   ))}
                 </div>
               </Card>

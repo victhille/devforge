@@ -24,9 +24,9 @@ export interface AuthRoute {
 
 export const AUTH_ROUTES: Record<AuthRouteName, AuthRoute> = {
   register: { method: 'POST', path: '/api/auth/register', body: ['name', 'email', 'password'], auth: false, ok: 201 },
-  login:    { method: 'POST', path: '/api/auth/login',    body: ['email', 'password'],         auth: false, ok: 200 },
-  logout:   { method: 'POST', path: '/api/auth/logout',   body: [],                            auth: true,  ok: 204 },
-  me:       { method: 'GET',  path: '/api/auth/me',       body: [],                            auth: true,  ok: 200 }
+  login: { method: 'POST', path: '/api/auth/login', body: ['email', 'password'], auth: false, ok: 200 },
+  logout: { method: 'POST', path: '/api/auth/logout', body: [], auth: true, ok: 204 },
+  me: { method: 'GET', path: '/api/auth/me', body: [], auth: true, ok: 200 }
 }
 
 /** The user as the API returns it: never the password nor its hash */
@@ -37,12 +37,21 @@ export interface AuthUser {
 }
 
 /** register → 201 { user }; login → 200 { user, token }; me → 200 { user } */
-export interface AuthUserResponse { user: AuthUser }
-export interface AuthLoginResponse { user: AuthUser; token: string }
+export interface AuthUserResponse {
+  user: AuthUser
+}
+export interface AuthLoginResponse {
+  user: AuthUser
+  token: string
+}
 
 /** 422: one or more messages per field; 401: identifiers refused or token missing */
-export interface AuthValidationError { errors: Partial<Record<'name' | 'email' | 'password', string[]>> }
-export interface AuthUnauthorized { message: string }
+export interface AuthValidationError {
+  errors: Partial<Record<'name' | 'email' | 'password', string[]>>
+}
+export interface AuthUnauthorized {
+  message: string
+}
 
 /** Rules the three servers apply in the same way */
 export const AUTH_RULES = {

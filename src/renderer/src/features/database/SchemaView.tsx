@@ -4,7 +4,19 @@ import { createPortal } from 'react-dom'
 import { Eye, KeyRound, LayoutTemplate, Maximize2, Minus, Plus, X } from 'lucide-react'
 import type { DbConnection, DbDiagram, DbTableRef } from '@shared/types'
 import {
-  arrowHead, autoLayout, boxSize, bounds, diagramSvg, HEADER, linkPath, ROW, shownLinks, tableKey, withNeighbours, type Box, type Point
+  arrowHead,
+  autoLayout,
+  boxSize,
+  bounds,
+  diagramSvg,
+  HEADER,
+  linkPath,
+  ROW,
+  shownLinks,
+  tableKey,
+  withNeighbours,
+  type Box,
+  type Point
 } from '@shared/lib/schemaLayout'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -19,7 +31,10 @@ import ErrorState from '@renderer/components/ui/ErrorState'
 const MANY = 60
 const MINI = { w: 200, h: 130 }
 
-interface Saved { pos: Record<string, Point>; shown: string[] | null }
+interface Saved {
+  pos: Record<string, Point>
+  shown: string[] | null
+}
 
 /**
  * The database's schema, full screen. The tables to
@@ -27,7 +42,12 @@ interface Saved { pos: Record<string, Point>; shown: string[] | null }
  * database); zoom, fit, a minimap, PNG or SVG export. A click on a card opens
  * its Structure.
  */
-export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
+export default function SchemaView({
+  conn,
+  dbName,
+  onClose,
+  onOpenTable
+}: {
   conn: DbConnection
   dbName: string
   onClose: () => void
@@ -50,11 +70,16 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
   const fitted = useRef(false)
 
   useEffect(() => {
-    window.devforge.db.diagram(conn.id).then(setDiagram).catch(err => setError(errorText(err)))
+    window.devforge.db
+      .diagram(conn.id)
+      .then(setDiagram)
+      .catch(err => setError(errorText(err)))
   }, [conn.id])
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !e.defaultPrevented) onClose() }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !e.defaultPrevented) onClose()
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
@@ -71,11 +96,17 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
 
   // The wheel zooms the schema only, never scrolls the page under it (a native listener: React's is passive)
   const zoomAt = useRef<(e: WheelEvent) => void>(() => {})
-  zoomAt.current = e => { const r = viewport.current!.getBoundingClientRect(); zoom(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top) }
+  zoomAt.current = e => {
+    const r = viewport.current!.getBoundingClientRect()
+    zoom(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top)
+  }
   useEffect(() => {
     const el = viewport.current
     if (!el) return
-    const onWheel = (e: WheelEvent) => { e.preventDefault(); zoomAt.current(e) }
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      zoomAt.current(e)
+    }
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
   }, [diagram])
@@ -119,18 +150,32 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
     setView({ k, x: (size.w - all.w * k) / 2 - all.x * k, y: (size.h - all.h * k) / 2 - all.y * k })
   }
   // Fitted once, when the first cards are placed
-  useEffect(() => { if (!fitted.current && boxes.size && size.w > 100) { fitted.current = true; fit() } }, [boxes.size, size.w]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!fitted.current && boxes.size && size.w > 100) {
+      fitted.current = true
+      fit()
+    }
+  }, [boxes.size, size.w]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const zoom = (factor: number, cx = size.w / 2, cy = size.h / 2) => setView(v => {
-    const k = Math.min(2, Math.max(0.15, v.k * factor))
-    return { k, x: cx - (cx - v.x) * (k / v.k), y: cy - (cy - v.y) * (k / v.k) }
-  })
+  const zoom = (factor: number, cx = size.w / 2, cy = size.h / 2) =>
+    setView(v => {
+      const k = Math.min(2, Math.max(0.15, v.k * factor))
+      return { k, x: cx - (cx - v.x) * (k / v.k), y: cy - (cy - v.y) * (k / v.k) }
+    })
 
   const setShown = (keys: Set<string>) => setSaved(v => ({ ...v, shown: [...keys] }))
-  const toggle = (k: string, on: boolean) => { const n = new Set(shown); if (on) n.add(k); else n.delete(k); setShown(n) }
+  const toggle = (k: string, on: boolean) => {
+    const n = new Set(shown)
+    if (on) n.add(k)
+    else n.delete(k)
+    setShown(n)
+  }
   const relayout = () => {
     if (!diagram) return
-    const next = autoLayout([...shown].map(k => byKey.get(k)!), links)
+    const next = autoLayout(
+      [...shown].map(k => byKey.get(k)!),
+      links
+    )
     setPos(next)
     setSaved(v => ({ ...v, pos: next }))
     fitted.current = false
@@ -149,7 +194,8 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
   const move = (e: ReactPointerEvent) => {
     const d = drag.current
     if (!d) return
-    const dx = e.clientX - d.sx, dy = e.clientY - d.sy
+    const dx = e.clientX - d.sx,
+      dy = e.clientY - d.sy
     if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true
     if (d.kind === 'pan') setView(v => ({ ...v, x: d.ox + dx, y: d.oy + dy }))
     else if (d.moved) setPos(p => ({ ...p, [d.key!]: { x: Math.round(d.ox + dx / view.k), y: Math.round(d.oy + dy / view.k) } }))
@@ -165,10 +211,21 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
     if (!diagram) return
     const css = getComputedStyle(document.documentElement)
     const v = (name: string) => css.getPropertyValue(name).trim() || '#888'
-    const svg = diagramSvg([...shown].map(k => byKey.get(k)!), pos, links, {
-      canvas: v('--color-canvas'), card: v('--color-surface'), header: v('--color-elevated'), line: v('--color-line'),
-      text: v('--color-fg'), muted: v('--color-fg-muted'), key: v('--color-warning'), link: v('--color-accent')
-    })
+    const svg = diagramSvg(
+      [...shown].map(k => byKey.get(k)!),
+      pos,
+      links,
+      {
+        canvas: v('--color-canvas'),
+        card: v('--color-surface'),
+        header: v('--color-elevated'),
+        line: v('--color-line'),
+        text: v('--color-fg'),
+        muted: v('--color-fg-muted'),
+        key: v('--color-warning'),
+        link: v('--color-accent')
+      }
+    )
     let content = svg
     if (ext === 'png') {
       const img = new Image()
@@ -185,7 +242,9 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
     try {
       const path = await window.devforge.db.saveImage(`${dbName}-schema`, content, ext)
       if (path) toast.show({ tone: 'success', title: s.exported, description: path })
-    } catch (err) { toast.show({ tone: 'error', title: s.exportFailed, description: errorText(err) }) }
+    } catch (err) {
+      toast.show({ tone: 'error', title: s.exportFailed, description: errorText(err) })
+    }
   }
 
   // The minimap: everything shown and the part on screen, both in it
@@ -199,62 +258,126 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
 
   return (
     // On the body: inside a page with a transform (its entry animation), "fixed" would stay in the page
-    createPortal(<div role="dialog" aria-modal="true" aria-label={s.title.replace('{db}', dbName)} className="fixed inset-x-0 top-[44px] bottom-0 z-40 flex flex-col overscroll-contain bg-canvas">
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-line-subtle px-4">
-        <h2 className="min-w-0 truncate font-display text-md font-bold tracking-[-.01em] text-fg">{s.title.replace('{db}', dbName)}</h2>
-        <span className="hidden items-center gap-3 text-xs text-fg-muted md:flex">
-          <span className="flex items-center gap-1"><KeyRound size={11} className="text-warning" /> {s.legendKey}</span>
-          <span><span className="font-mono">!</span> {s.legendRequired}</span>
-        </span>
-        <span className="flex-1" />
-        <span className="flex items-center gap-0.5 rounded-lg border border-line px-0.5">
-          <IconButton size="sm" title={s.zoomOut} onClick={() => zoom(1 / 1.2)}><Minus size={13} /></IconButton>
-          <span className="w-11 text-center font-mono text-xs text-fg-secondary" aria-live="polite">{Math.round(view.k * 100)} %</span>
-          <IconButton size="sm" title={s.zoomIn} onClick={() => zoom(1.2)}><Plus size={13} /></IconButton>
-        </span>
-        <Button variant="secondary" size="sm" onClick={fit} disabled={!boxes.size}><Maximize2 size={13} /> {s.fit}</Button>
-        <Button variant="secondary" size="sm" onClick={relayout} disabled={!boxes.size}><LayoutTemplate size={13} /> {s.relayout}</Button>
-        <Button variant="secondary" size="sm" onClick={() => exportAs('png')} disabled={!boxes.size}>PNG</Button>
-        <Button variant="secondary" size="sm" onClick={() => exportAs('svg')} disabled={!boxes.size}>SVG</Button>
-        <Button size="sm" onClick={onClose}><X size={13} /> {t.common.close}</Button>
-      </header>
+    createPortal(
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={s.title.replace('{db}', dbName)}
+        className="fixed inset-x-0 top-[44px] bottom-0 z-40 flex flex-col overscroll-contain bg-canvas"
+      >
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-line-subtle px-4">
+          <h2 className="min-w-0 truncate font-display text-md font-bold tracking-[-.01em] text-fg">{s.title.replace('{db}', dbName)}</h2>
+          <span className="hidden items-center gap-3 text-xs text-fg-muted md:flex">
+            <span className="flex items-center gap-1">
+              <KeyRound size={11} className="text-warning" /> {s.legendKey}
+            </span>
+            <span>
+              <span className="font-mono">!</span> {s.legendRequired}
+            </span>
+          </span>
+          <span className="flex-1" />
+          <span className="flex items-center gap-0.5 rounded-lg border border-line px-0.5">
+            <IconButton size="sm" title={s.zoomOut} onClick={() => zoom(1 / 1.2)}>
+              <Minus size={13} />
+            </IconButton>
+            <span className="w-11 text-center font-mono text-xs text-fg-secondary" aria-live="polite">
+              {Math.round(view.k * 100)} %
+            </span>
+            <IconButton size="sm" title={s.zoomIn} onClick={() => zoom(1.2)}>
+              <Plus size={13} />
+            </IconButton>
+          </span>
+          <Button variant="secondary" size="sm" onClick={fit} disabled={!boxes.size}>
+            <Maximize2 size={13} /> {s.fit}
+          </Button>
+          <Button variant="secondary" size="sm" onClick={relayout} disabled={!boxes.size}>
+            <LayoutTemplate size={13} /> {s.relayout}
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => exportAs('png')} disabled={!boxes.size}>
+            PNG
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => exportAs('svg')} disabled={!boxes.size}>
+            SVG
+          </Button>
+          <Button size="sm" onClick={onClose}>
+            <X size={13} /> {t.common.close}
+          </Button>
+        </header>
 
-      <div className="flex min-h-0 flex-1">
-        <aside aria-label={s.tables} className="flex w-[240px] shrink-0 flex-col border-r border-line-subtle bg-sidebar">
-          <div className="flex flex-col gap-2 border-b border-line-subtle p-2.5">
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={s.search} aria-label={s.search}
-              className="h-8 w-full rounded-md border border-line-strong bg-canvas px-2.5 text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent" />
-            <div className="flex gap-1">
-              <button onClick={() => setShown(new Set([...shown, ...listed.map(tableKey)]))} className="rounded-md border border-line px-2 py-0.5 text-xs text-fg-secondary hover:text-fg">{s.all}</button>
-              <button onClick={() => setShown(new Set([...shown].filter(k => !listed.some(tb => tableKey(tb) === k))))} className="rounded-md border border-line px-2 py-0.5 text-xs text-fg-secondary hover:text-fg">{s.none}</button>
-              <button onClick={() => setShown(withNeighbours(shown, diagram?.links ?? []))} disabled={!shown.size} title={s.neighboursHint}
-                className="rounded-md border border-line px-2 py-0.5 text-xs text-fg-secondary hover:text-fg disabled:opacity-40">{s.neighbours}</button>
+        <div className="flex min-h-0 flex-1">
+          <aside aria-label={s.tables} className="flex w-[240px] shrink-0 flex-col border-r border-line-subtle bg-sidebar">
+            <div className="flex flex-col gap-2 border-b border-line-subtle p-2.5">
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder={s.search}
+                aria-label={s.search}
+                className="h-8 w-full rounded-md border border-line-strong bg-canvas px-2.5 text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent"
+              />
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setShown(new Set([...shown, ...listed.map(tableKey)]))}
+                  className="rounded-md border border-line px-2 py-0.5 text-xs text-fg-secondary hover:text-fg"
+                >
+                  {s.all}
+                </button>
+                <button
+                  onClick={() => setShown(new Set([...shown].filter(k => !listed.some(tb => tableKey(tb) === k))))}
+                  className="rounded-md border border-line px-2 py-0.5 text-xs text-fg-secondary hover:text-fg"
+                >
+                  {s.none}
+                </button>
+                <button
+                  onClick={() => setShown(withNeighbours(shown, diagram?.links ?? []))}
+                  disabled={!shown.size}
+                  title={s.neighboursHint}
+                  className="rounded-md border border-line px-2 py-0.5 text-xs text-fg-secondary hover:text-fg disabled:opacity-40"
+                >
+                  {s.neighbours}
+                </button>
+              </div>
             </div>
-          </div>
-          <ul className="flex-1 overflow-y-auto p-1.5">
-            {listed.map(tb => {
-              const k = tableKey(tb)
-              return (
-                <li key={k}>
-                  <label className="flex min-h-[26px] cursor-pointer items-center gap-2 rounded px-1.5 hover:bg-hover">
-                    <input type="checkbox" checked={shown.has(k)} onChange={e => toggle(k, e.target.checked)} className="accent-[var(--color-accent)]" />
-                    {tb.type === 'view' && <Eye size={11} className="shrink-0 text-fg-muted" />}
-                    <span className={cn('truncate font-mono text-xs', shown.has(k) ? 'text-fg' : 'text-fg-secondary')}>{label(tb)}</span>
-                  </label>
-                </li>
-              )
-            })}
-          </ul>
-          {diagram && <p className="border-t border-line-subtle px-3 py-2 text-xs text-fg-muted">{s.count.replace('{n}', String(shown.size)).replace('{total}', String(diagram.tables.length))}</p>}
-        </aside>
+            <ul className="flex-1 overflow-y-auto p-1.5">
+              {listed.map(tb => {
+                const k = tableKey(tb)
+                return (
+                  <li key={k}>
+                    <label className="flex min-h-[26px] cursor-pointer items-center gap-2 rounded px-1.5 hover:bg-hover">
+                      <input type="checkbox" checked={shown.has(k)} onChange={e => toggle(k, e.target.checked)} className="accent-[var(--color-accent)]" />
+                      {tb.type === 'view' && <Eye size={11} className="shrink-0 text-fg-muted" />}
+                      <span className={cn('truncate font-mono text-xs', shown.has(k) ? 'text-fg' : 'text-fg-secondary')}>{label(tb)}</span>
+                    </label>
+                  </li>
+                )
+              })}
+            </ul>
+            {diagram && (
+              <p className="border-t border-line-subtle px-3 py-2 text-xs text-fg-muted">
+                {s.count.replace('{n}', String(shown.size)).replace('{total}', String(diagram.tables.length))}
+              </p>
+            )}
+          </aside>
 
-        <div ref={viewport} className="relative min-w-0 flex-1 cursor-grab touch-none overflow-hidden bg-canvas select-none active:cursor-grabbing"
-          style={{ backgroundImage: 'radial-gradient(var(--color-line-subtle) 1px, transparent 1px)', backgroundSize: `${20 * view.k}px ${20 * view.k}px`, backgroundPosition: `${view.x}px ${view.y}px` }}
-          onPointerDown={e => down(e)} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onDragStart={e => e.preventDefault()}
-          data-testid="schema-canvas">
-          {error ? <ErrorState className="m-6" title={s.loadFailed} error={error} />
-            : !diagram ? <CanvasSkeleton />
-            : !shown.size ? (
+          <div
+            ref={viewport}
+            className="relative min-w-0 flex-1 cursor-grab touch-none overflow-hidden bg-canvas select-none active:cursor-grabbing"
+            style={{
+              backgroundImage: 'radial-gradient(var(--color-line-subtle) 1px, transparent 1px)',
+              backgroundSize: `${20 * view.k}px ${20 * view.k}px`,
+              backgroundPosition: `${view.x}px ${view.y}px`
+            }}
+            onPointerDown={e => down(e)}
+            onPointerMove={move}
+            onPointerUp={up}
+            onPointerCancel={up}
+            onDragStart={e => e.preventDefault()}
+            data-testid="schema-canvas"
+          >
+            {error ? (
+              <ErrorState className="m-6" title={s.loadFailed} error={error} />
+            ) : !diagram ? (
+              <CanvasSkeleton />
+            ) : !shown.size ? (
               <p className="absolute inset-x-0 top-1/3 mx-auto max-w-md text-center text-sm text-fg-secondary">
                 {diagram.tables.length === 0 ? s.empty : diagram.tables.length > MANY ? s.tooMany.replace('{n}', String(diagram.tables.length)) : s.noneShown}
               </p>
@@ -262,7 +385,8 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
               <div className="absolute top-0 left-0 origin-top-left" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})` }}>
                 <svg className="pointer-events-none absolute top-0 left-0 overflow-visible" width="1" height="1" aria-hidden>
                   {links.map((l, i) => {
-                    const a = boxes.get(tableKey(l.from)), b = boxes.get(tableKey(l.to))
+                    const a = boxes.get(tableKey(l.from)),
+                      b = boxes.get(tableKey(l.to))
                     if (!a || !b) return null
                     const p = linkPath(a, byKey.get(tableKey(l.from))!, b, byKey.get(tableKey(l.to))!, l)
                     const lit = hover !== null && (hover === tableKey(l.from) || hover === tableKey(l.to))
@@ -278,11 +402,24 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
                 {[...boxes].map(([k, b]) => {
                   const tb = byKey.get(k)!
                   return (
-                    <div key={k} data-table={k} className={cn('absolute overflow-hidden rounded-control border bg-surface shadow-sm', hover === k ? 'border-accent' : 'border-line')}
-                      style={{ left: b.x, top: b.y, width: b.w, height: b.h }} onPointerEnter={() => setHover(k)} onPointerLeave={() => setHover(h => (h === k ? null : h))}>
-                      <button className="flex w-full cursor-move items-center gap-2 border-b border-line bg-elevated px-3 text-left" style={{ height: HEADER }}
-                        aria-label={s.open.replace('{name}', label(tb))} onPointerDown={e => down(e, k)}
-                        onClick={() => { if (!dragged.current) onOpenTable({ name: tb.name, schema: tb.schema }); dragged.current = false }}>
+                    <div
+                      key={k}
+                      data-table={k}
+                      className={cn('absolute overflow-hidden rounded-control border bg-surface shadow-sm', hover === k ? 'border-accent' : 'border-line')}
+                      style={{ left: b.x, top: b.y, width: b.w, height: b.h }}
+                      onPointerEnter={() => setHover(k)}
+                      onPointerLeave={() => setHover(h => (h === k ? null : h))}
+                    >
+                      <button
+                        className="flex w-full cursor-move items-center gap-2 border-b border-line bg-elevated px-3 text-left"
+                        style={{ height: HEADER }}
+                        aria-label={s.open.replace('{name}', label(tb))}
+                        onPointerDown={e => down(e, k)}
+                        onClick={() => {
+                          if (!dragged.current) onOpenTable({ name: tb.name, schema: tb.schema })
+                          dragged.current = false
+                        }}
+                      >
                         {tb.type === 'view' && <Eye size={12} className="shrink-0 text-fg-muted" />}
                         <span className="truncate font-mono text-base font-semibold text-fg">{label(tb)}</span>
                       </button>
@@ -290,7 +427,10 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
                         <div key={c.name} className="flex items-center gap-1.5 px-3 font-mono text-xs" style={{ height: ROW }}>
                           {c.pk ? <KeyRound size={10} className="shrink-0 text-warning" /> : <span className="w-[10px] shrink-0" />}
                           <span className={cn('truncate', c.pk ? 'text-fg' : 'text-fg-secondary')}>{c.name}</span>
-                          <span className="ml-auto shrink-0 pl-2 text-xs text-fg-muted">{c.type}{c.nullable ? '' : ' !'}</span>
+                          <span className="ml-auto shrink-0 pl-2 text-xs text-fg-muted">
+                            {c.type}
+                            {c.nullable ? '' : ' !'}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -299,24 +439,47 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
               </div>
             )}
 
-          {boxes.size > 0 && (
-            <svg width={MINI.w} height={MINI.h} role="img" aria-label={s.minimap} data-testid="schema-minimap"
-              className="absolute right-3 bottom-3 cursor-pointer rounded-lg border border-line bg-surface/90"
-              onPointerDown={e => {
-                e.stopPropagation()
-                const r = e.currentTarget.getBoundingClientRect()
-                const wx = world.x + (e.clientX - r.left - 6) / mini, wy = world.y + (e.clientY - r.top - 6) / mini
-                setView(v => ({ ...v, x: size.w / 2 - wx * v.k, y: size.h / 2 - wy * v.k }))
-              }}>
-              {[...boxes].map(([k, b]) => {
-                const p = toMini(b)
-                return <rect key={k} x={p.x} y={p.y} width={Math.max(2, b.w * mini)} height={Math.max(2, b.h * mini)} rx={1.5} fill={hover === k ? 'var(--color-accent)' : 'var(--color-fg-muted)'} opacity={0.6} />
-              })}
-              {(() => { const p = toMini(seen); return <rect x={p.x} y={p.y} width={seen.w * mini} height={seen.h * mini} fill="none" stroke="var(--color-accent)" strokeWidth={1.5} /> })()}
-            </svg>
-          )}
+            {boxes.size > 0 && (
+              <svg
+                width={MINI.w}
+                height={MINI.h}
+                role="img"
+                aria-label={s.minimap}
+                data-testid="schema-minimap"
+                className="absolute right-3 bottom-3 cursor-pointer rounded-lg border border-line bg-surface/90"
+                onPointerDown={e => {
+                  e.stopPropagation()
+                  const r = e.currentTarget.getBoundingClientRect()
+                  const wx = world.x + (e.clientX - r.left - 6) / mini,
+                    wy = world.y + (e.clientY - r.top - 6) / mini
+                  setView(v => ({ ...v, x: size.w / 2 - wx * v.k, y: size.h / 2 - wy * v.k }))
+                }}
+              >
+                {[...boxes].map(([k, b]) => {
+                  const p = toMini(b)
+                  return (
+                    <rect
+                      key={k}
+                      x={p.x}
+                      y={p.y}
+                      width={Math.max(2, b.w * mini)}
+                      height={Math.max(2, b.h * mini)}
+                      rx={1.5}
+                      fill={hover === k ? 'var(--color-accent)' : 'var(--color-fg-muted)'}
+                      opacity={0.6}
+                    />
+                  )
+                })}
+                {(() => {
+                  const p = toMini(seen)
+                  return <rect x={p.x} y={p.y} width={seen.w * mini} height={seen.h * mini} fill="none" stroke="var(--color-accent)" strokeWidth={1.5} />
+                })()}
+              </svg>
+            )}
+          </div>
         </div>
-      </div>
-    </div>, document.body)
+      </div>,
+      document.body
+    )
   )
 }

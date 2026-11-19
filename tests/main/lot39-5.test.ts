@@ -7,20 +7,49 @@ import { samples } from '../diagrams'
 
 /** Use cases, classes, sequence, flowchart, architecture */
 
-const COLORS = { canvas: '#000', card: '#111', line: '#888', text: '#fff', muted: '#999', accent: '#c7f', actor: '#fc6', system: '#59f', note: '#330', noteText: '#fff' }
+const COLORS = {
+  canvas: '#000',
+  card: '#111',
+  line: '#888',
+  text: '#fff',
+  muted: '#999',
+  accent: '#c7f',
+  actor: '#fc6',
+  system: '#59f',
+  note: '#330',
+  noteText: '#fff'
+}
 
 describe('the diagrams', () => {
   it('each sample is only made of its kind’s parts, and reads back as it is', () => {
     for (const kind of DIAGRAM_KINDS) {
       const d = samples[kind]()
-      expect(d.nodes.every(n => NODE_TYPES[kind].includes(n.type)), kind).toBe(true)
-      expect(d.edges.every(e => EDGE_TYPES[kind].includes(e.type)), kind).toBe(true)
+      expect(
+        d.nodes.every(n => NODE_TYPES[kind].includes(n.type)),
+        kind
+      ).toBe(true)
+      expect(
+        d.edges.every(e => EDGE_TYPES[kind].includes(e.type)),
+        kind
+      ).toBe(true)
       expect(cleanDiagram(JSON.parse(JSON.stringify(d)), kind)).toEqual(d)
     }
   })
 
   it('a part of another kind, a link to nothing, are put right or dropped', () => {
-    const d = cleanDiagram({ nodes: [{ id: 'a', type: 'database', name: 'x' }, { id: 'b', type: 'case', name: 'y' }], edges: [{ id: 'l', type: 'flow', from: 'a', to: 'b' }, { id: 'm', from: 'a', to: 'zz' }] }, 'usecase')
+    const d = cleanDiagram(
+      {
+        nodes: [
+          { id: 'a', type: 'database', name: 'x' },
+          { id: 'b', type: 'case', name: 'y' }
+        ],
+        edges: [
+          { id: 'l', type: 'flow', from: 'a', to: 'b' },
+          { id: 'm', from: 'a', to: 'zz' }
+        ]
+      },
+      'usecase'
+    )
     expect(d.nodes.map(n => n.type)).toEqual(['actor', 'case'])
     expect(d.edges).toEqual([{ id: 'l', type: 'association', from: 'a', to: 'b' }])
     expect(cleanDiagram(null, 'flow')).toEqual({ nodes: [], edges: [], notes: [] })

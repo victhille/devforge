@@ -14,7 +14,11 @@ function path(): string {
 
 function read(): Store {
   if (!existsSync(path())) return {}
-  try { return JSON.parse(readFileSync(path(), 'utf-8')) as Store } catch { return {} }
+  try {
+    return JSON.parse(readFileSync(path(), 'utf-8')) as Store
+  } catch {
+    return {}
+  }
 }
 
 function write(store: Store): void {
@@ -32,13 +36,15 @@ export function fingerprintOf(key: Buffer): string {
 
 export class HostKeyMismatchError extends Error {
   constructor(host: string, expected: string, got: string) {
-    super(loadSettings().language === 'fr'
-      ? `La clé SSH de ${host} a changé (attendue ${expected}, reçue ${got}). ` +
-        "Le serveur a peut-être été réinstallé, ou quelqu'un intercepte la connexion. " +
-        "Si le changement est normal, oubliez l'ancienne clé dans la fiche du serveur."
-      : `The SSH key of ${host} has changed (expected ${expected}, got ${got}). ` +
-        'The server may have been reinstalled, or someone may be intercepting the connection. ' +
-        'If you trust the change, forget the old key in the server settings.')
+    super(
+      loadSettings().language === 'fr'
+        ? `La clé SSH de ${host} a changé (attendue ${expected}, reçue ${got}). ` +
+            "Le serveur a peut-être été réinstallé, ou quelqu'un intercepte la connexion. " +
+            "Si le changement est normal, oubliez l'ancienne clé dans la fiche du serveur."
+        : `The SSH key of ${host} has changed (expected ${expected}, got ${got}). ` +
+            'The server may have been reinstalled, or someone may be intercepting the connection. ' +
+            'If you trust the change, forget the old key in the server settings.'
+    )
     this.name = 'HostKeyMismatchError'
   }
 }

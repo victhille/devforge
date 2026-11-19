@@ -28,10 +28,7 @@ export default function Switch({ checked, onChange, label, disabled, title, clas
       )}
     >
       <span
-        className={cn(
-          'absolute top-0.75 left-0.75 size-3.5 rounded-full transition-transform',
-          checked ? 'translate-x-3.5 bg-accent-fg' : 'bg-fg-secondary'
-        )}
+        className={cn('absolute top-0.75 left-0.75 size-3.5 rounded-full transition-transform', checked ? 'translate-x-3.5 bg-accent-fg' : 'bg-fg-secondary')}
       />
     </button>
   )

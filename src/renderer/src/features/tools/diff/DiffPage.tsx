@@ -17,10 +17,14 @@ import { DIFF_EXAMPLE } from '../examples'
 type View = 'split' | 'unified'
 
 /** A line with its number on its side (or both, unified) */
-interface Numbered extends DiffLine { left: number | null; right: number | null }
+interface Numbered extends DiffLine {
+  left: number | null
+  right: number | null
+}
 
 function numbered(diff: DiffLine[]): Numbered[] {
-  let l = 0, r = 0
+  let l = 0,
+    r = 0
   return diff.map(d => ({ ...d, left: d.type === 'add' ? null : ++l, right: d.type === 'remove' ? null : ++r }))
 }
 
@@ -34,14 +38,23 @@ function Lines({ lines, side, label }: { lines: Numbered[]; side: 'left' | 'righ
         <div key={i} className={cn('flex min-w-max', ROW[line.type])}>
           {side === 'both' ? (
             <>
-              <span aria-hidden className="w-10 shrink-0 pr-2 text-right text-fg-muted select-none">{line.left ?? ''}</span>
-              <span aria-hidden className="w-10 shrink-0 pr-3 text-right text-fg-muted select-none">{line.right ?? ''}</span>
-              <span aria-hidden className={cn('w-4 shrink-0 select-none', line.type === 'add' ? 'text-success' : line.type === 'remove' ? 'text-danger' : 'text-fg-muted')}>
+              <span aria-hidden className="w-10 shrink-0 pr-2 text-right text-fg-muted select-none">
+                {line.left ?? ''}
+              </span>
+              <span aria-hidden className="w-10 shrink-0 pr-3 text-right text-fg-muted select-none">
+                {line.right ?? ''}
+              </span>
+              <span
+                aria-hidden
+                className={cn('w-4 shrink-0 select-none', line.type === 'add' ? 'text-success' : line.type === 'remove' ? 'text-danger' : 'text-fg-muted')}
+              >
                 {line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' '}
               </span>
             </>
           ) : (
-            <span aria-hidden className="w-11 shrink-0 pr-4 text-right text-fg-muted select-none">{side === 'left' ? line.left : line.right}</span>
+            <span aria-hidden className="w-11 shrink-0 pr-4 text-right text-fg-muted select-none">
+              {side === 'left' ? line.left : line.right}
+            </span>
           )}
           <span className="pr-4 whitespace-pre text-fg">
             {line.type !== 'equal' && <span className="sr-only">{line.type === 'add' ? '+' : '-'}</span>}
@@ -61,13 +74,13 @@ function Lines({ lines, side, label }: { lines: Numbered[]; side: 'left' | 'righ
 export default function DiffPage() {
   const { t } = useI18n()
   const d = t.diff
-  const [left,  setLeft]  = useState('')
+  const [left, setLeft] = useState('')
   const [right, setRight] = useState('')
   const [ignoreSpaces, setIgnoreSpaces] = useState(false)
   const [view, setView] = usePersistentState<View>('devforge:diff-view', 'split')
 
-  const diff    = useMemo(() => numbered(left || right ? computeDiff(left, right, { ignoreWhitespace: ignoreSpaces }) : []), [left, right, ignoreSpaces])
-  const added   = diff.filter(x => x.type === 'add').length
+  const diff = useMemo(() => numbered(left || right ? computeDiff(left, right, { ignoreWhitespace: ignoreSpaces }) : []), [left, right, ignoreSpaces])
+  const added = diff.filter(x => x.type === 'add').length
   const removed = diff.filter(x => x.type === 'remove').length
 
   return (
@@ -78,29 +91,69 @@ export default function DiffPage() {
         subtitle={d.subtitle}
         actions={
           <>
-            <Tabs<View> value={view} onChange={setView} label={d.view} items={[{ value: 'split', label: d.split }, { value: 'unified', label: d.unified }]} />
-            <Button variant="secondary" disabled={!left && !right} onClick={() => { setLeft(right); setRight(left) }}>
+            <Tabs<View>
+              value={view}
+              onChange={setView}
+              label={d.view}
+              items={[
+                { value: 'split', label: d.split },
+                { value: 'unified', label: d.unified }
+              ]}
+            />
+            <Button
+              variant="secondary"
+              disabled={!left && !right}
+              onClick={() => {
+                setLeft(right)
+                setRight(left)
+              }}
+            >
               <ArrowLeftRight size={14} aria-hidden /> {d.swap}
             </Button>
             {(left || right) && (
-              <IconButton title={d.clear} onClick={() => { setLeft(''); setRight('') }}><Trash2 size={15} /></IconButton>
+              <IconButton
+                title={d.clear}
+                onClick={() => {
+                  setLeft('')
+                  setRight('')
+                }}
+              >
+                <Trash2 size={15} />
+              </IconButton>
             )}
           </>
         }
       />
-      <ToolHelp id="diff" what={t.toolHelp.diff.what} how={t.toolHelp.diff.how}
-        examples={[{ label: t.toolHelp.diff.sample, onPick: () => { setLeft(DIFF_EXAMPLE.left); setRight(DIFF_EXAMPLE.right) } }]} />
+      <ToolHelp
+        id="diff"
+        what={t.toolHelp.diff.what}
+        how={t.toolHelp.diff.how}
+        examples={[
+          {
+            label: t.toolHelp.diff.sample,
+            onPick: () => {
+              setLeft(DIFF_EXAMPLE.left)
+              setRight(DIFF_EXAMPLE.right)
+            }
+          }
+        ]}
+      />
 
       {/* The two texts */}
       <div className="grid shrink-0 gap-4 lg:grid-cols-2">
         {[
-          { label: d.original, value: left,  set: setLeft,  placeholder: d.pasteOriginal },
+          { label: d.original, value: left, set: setLeft, placeholder: d.pasteOriginal },
           { label: d.modified, value: right, set: setRight, placeholder: d.pasteModified }
         ].map(panel => (
           <label key={panel.label} className="flex flex-col gap-2">
             <span className="text-sm font-semibold text-fg">{panel.label}</span>
-            <textarea value={panel.value} onChange={e => panel.set(e.target.value)} spellCheck={false} placeholder={panel.placeholder}
-              className="h-36 resize-y rounded-card border border-line-strong bg-surface p-3.5 font-mono text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent" />
+            <textarea
+              value={panel.value}
+              onChange={e => panel.set(e.target.value)}
+              spellCheck={false}
+              placeholder={panel.placeholder}
+              className="h-36 resize-y rounded-card border border-line-strong bg-surface p-3.5 font-mono text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent"
+            />
           </label>
         ))}
       </div>
@@ -113,7 +166,9 @@ export default function DiffPage() {
             <Badge color="success">{d.addedCount.replace('{n}', String(added))}</Badge>
           </>
         )}
-        <Checkbox checked={ignoreSpaces} onChange={setIgnoreSpaces} className="ml-auto text-sm">{d.ignoreSpaces}</Checkbox>
+        <Checkbox checked={ignoreSpaces} onChange={setIgnoreSpaces} className="ml-auto text-sm">
+          {d.ignoreSpaces}
+        </Checkbox>
       </div>
 
       {diff.length === 0 ? (

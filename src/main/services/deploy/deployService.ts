@@ -12,7 +12,10 @@ import { writeJsonFile } from '../../lib/jsonFile'
 const MAX_LOG = 100_000
 const MAX_RUNS = 20
 
-interface Store { targets: DeployTarget[]; runs: DeployRun[] }
+interface Store {
+  targets: DeployTarget[]
+  runs: DeployRun[]
+}
 
 function storePath(): string {
   return join(app.getPath('userData'), 'deploy.json')
@@ -21,7 +24,11 @@ function storePath(): string {
 function load(): Store {
   const p = storePath()
   if (!existsSync(p)) return { targets: [], runs: [] }
-  try { return { targets: [], runs: [], ...JSON.parse(readFileSync(p, 'utf-8')) } } catch { return { targets: [], runs: [] } }
+  try {
+    return { targets: [], runs: [], ...JSON.parse(readFileSync(p, 'utf-8')) }
+  } catch {
+    return { targets: [], runs: [] }
+  }
 }
 
 function persist(store: Store): void {
@@ -35,7 +42,8 @@ export const listTargets = () => load().targets
 export function saveTarget(target: DeployTarget): void {
   const store = load()
   const i = store.targets.findIndex(t => t.id === target.id)
-  if (i >= 0) store.targets[i] = target; else store.targets.push(target)
+  if (i >= 0) store.targets[i] = target
+  else store.targets.push(target)
   persist(store)
 }
 
@@ -45,7 +53,9 @@ export function removeTarget(id: string): void {
 }
 
 export const history = (targetId: string) =>
-  load().runs.filter(r => r.targetId === targetId).sort((a, b) => b.startedAt.localeCompare(a.startedAt))
+  load()
+    .runs.filter(r => r.targetId === targetId)
+    .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
 
 function saveRun(run: DeployRun): void {
   const store = load()
@@ -61,7 +71,10 @@ function saveRun(run: DeployRun): void {
  * stop at the first failing line, echo each command before running it.
  */
 export function buildRemoteCommand(target: DeployTarget): string {
-  const lines = target.script.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'))
+  const lines = target.script
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(l => l && !l.startsWith('#'))
   const body = ['set -e', `cd ${shq(target.remotePath)}`, ...lines.flatMap(l => [`echo ${shq('$ ' + l)}`, l])].join('\n')
   return `bash -lc ${shq(body)}`
 }
@@ -71,15 +84,23 @@ type StatusCb = (run: DeployRun) => void
 
 let onLog: LogCb = () => {}
 let onStatus: StatusCb = () => {}
-export function setDeployCallbacks(log: LogCb, status: StatusCb): void { onLog = log; onStatus = status }
+export function setDeployCallbacks(log: LogCb, status: StatusCb): void {
+  onLog = log
+  onStatus = status
+}
 
 export async function runDeploy(targetId: string): Promise<string> {
   const target = load().targets.find(t => t.id === targetId)
   if (!target) throw new Error('Unknown deploy target')
 
   const run: DeployRun = {
-    id: randomUUID(), targetId, status: 'running',
-    startedAt: new Date().toISOString(), finishedAt: null, exitCode: null, log: ''
+    id: randomUUID(),
+    targetId,
+    status: 'running',
+    startedAt: new Date().toISOString(),
+    finishedAt: null,
+    exitCode: null,
+    log: ''
   }
   const write = (text: string) => {
     run.log = (run.log + text).slice(-MAX_LOG)

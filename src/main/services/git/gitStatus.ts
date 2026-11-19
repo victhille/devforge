@@ -24,7 +24,10 @@ export async function getGitStatus(projectPath: string): Promise<GitStatus> {
       branch = head === '(detached)' ? 'HEAD' : head
     } else if (line.startsWith('# branch.ab ')) {
       const m = line.match(/\+(\d+) -(\d+)/)
-      if (m) { ahead = parseInt(m[1]); behind = parseInt(m[2]) }
+      if (m) {
+        ahead = parseInt(m[1])
+        behind = parseInt(m[2])
+      }
     } else if (line && !line.startsWith('#')) {
       dirty = true
       changes++

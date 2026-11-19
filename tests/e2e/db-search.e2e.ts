@@ -15,8 +15,12 @@ test.afterEach(async () => {
 test('a term found in every table, the case, the words, a column and the tables chosen; the SQL and the table from a result', async () => {
   const SQL = await initSqlJs()
   const db = new SQL.Database()
-  db.run("CREATE TABLE client (id INTEGER PRIMARY KEY, name TEXT, email TEXT, city TEXT); INSERT INTO client (name, email, city) VALUES ('Élodie Martin', 'elodie@example.com', 'Paris'), ('Ada Lovelace', 'ada@example.org', 'Londres'), ('Linus', NULL, 'Paris 11e')")
-  db.run("CREATE TABLE invoice (id INTEGER PRIMARY KEY, client_id INTEGER, note TEXT); INSERT INTO invoice (client_id, note) VALUES (1, 'Envoyée à elodie@example.com'), (2, 'Payée')")
+  db.run(
+    "CREATE TABLE client (id INTEGER PRIMARY KEY, name TEXT, email TEXT, city TEXT); INSERT INTO client (name, email, city) VALUES ('Élodie Martin', 'elodie@example.com', 'Paris'), ('Ada Lovelace', 'ada@example.org', 'Londres'), ('Linus', NULL, 'Paris 11e')"
+  )
+  db.run(
+    "CREATE TABLE invoice (id INTEGER PRIMARY KEY, client_id INTEGER, note TEXT); INSERT INTO invoice (client_id, note) VALUES (1, 'Envoyée à elodie@example.com'), (2, 'Payée')"
+  )
   db.run("CREATE TABLE log (at TEXT, line TEXT); INSERT INTO log VALUES ('t1', 'rien')")
   run = await launch({
     seed: dir => {

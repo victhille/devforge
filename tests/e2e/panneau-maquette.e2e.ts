@@ -12,7 +12,12 @@ test.afterEach(async () => {
   await run.close()
 })
 
-const git = (cwd: string, ...args: string[]) => execFileSync('git', args, { cwd, stdio: 'pipe', env: { ...process.env, GIT_AUTHOR_NAME: 'Alex', GIT_AUTHOR_EMAIL: 'alex@example.com', GIT_COMMITTER_NAME: 'Alex', GIT_COMMITTER_EMAIL: 'alex@example.com' } })
+const git = (cwd: string, ...args: string[]) =>
+  execFileSync('git', args, {
+    cwd,
+    stdio: 'pipe',
+    env: { ...process.env, GIT_AUTHOR_NAME: 'Alex', GIT_AUTHOR_EMAIL: 'alex@example.com', GIT_COMMITTER_NAME: 'Alex', GIT_COMMITTER_EMAIL: 'alex@example.com' }
+  })
 
 test('the panel lists the projects, says where things stand, and holds the Settings sections', async () => {
   run = await launch({
@@ -26,13 +31,30 @@ test('the panel lists the projects, says where things stand, and holds the Setti
         git(p, 'init', '-q', '-b', 'main')
         git(p, 'add', '-A')
         git(p, 'commit', '-q', '-m', 'first')
-        if (i === 0) { writeFileSync(join(p, 'a.txt'), 'a'); writeFileSync(join(p, 'b.txt'), 'b') }
+        if (i === 0) {
+          writeFileSync(join(p, 'a.txt'), 'a')
+          writeFileSync(join(p, 'b.txt'), 'b')
+        }
       })
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify(names.map((name, i) => ({
-        id: `p${i + 1}`, name, path: join(dir, name.toLowerCase()), framework: 'node', packageManager: 'npm', favorite: false,
-        createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: `2026-11-0${7 - i}T10:00:00.000Z`
-      }))))
-      writeFileSync(join(dir, 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'Prod', host: '127.0.0.1', port: 1, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify(
+          names.map((name, i) => ({
+            id: `p${i + 1}`,
+            name,
+            path: join(dir, name.toLowerCase()),
+            framework: 'node',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: `2026-11-0${7 - i}T10:00:00.000Z`
+          }))
+        )
+      )
+      writeFileSync(
+        join(dir, 'ssh-connections.json'),
+        JSON.stringify([{ id: 'v1', name: 'Prod', host: '127.0.0.1', port: 1, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }])
+      )
     }
   })
   const { page } = run

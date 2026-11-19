@@ -21,26 +21,41 @@ export function useProjects({ withDetails = false }: Options = {}) {
   const projects = live.data ?? NO_PROJECTS
   const loaded = live.loaded
   const [gitStatuses, setGitStatuses] = useState<Record<string, GitStatus>>({})
-  const [scripts,     setScripts]     = useState<Record<string, Record<string, string>>>({})
+  const [scripts, setScripts] = useState<Record<string, Record<string, string>>>({})
 
   // Git and scripts again only when the projects themselves change, not when one is opened or starred
   const which = projects.map(p => `${p.id}=${p.path}`).join('|')
   useEffect(() => {
     if (!withDetails || !which) return
-    const list = which.split('|').map(x => { const at = x.indexOf('='); return { id: x.slice(0, at), path: x.slice(at + 1) } })
+    const list = which.split('|').map(x => {
+      const at = x.indexOf('=')
+      return { id: x.slice(0, at), path: x.slice(at + 1) }
+    })
     let alive = true
-    Promise.all(list.map(p =>
-      window.devforge.getGitStatus(p.path)
-        .then(s => [p.id, s] as const)
-        .catch(() => [p.id, NO_GIT] as const)
-    )).then(entries => { if (alive) setGitStatuses(Object.fromEntries(entries)) })
+    Promise.all(
+      list.map(p =>
+        window.devforge
+          .getGitStatus(p.path)
+          .then(s => [p.id, s] as const)
+          .catch(() => [p.id, NO_GIT] as const)
+      )
+    ).then(entries => {
+      if (alive) setGitStatuses(Object.fromEntries(entries))
+    })
 
-    Promise.all(list.map(p =>
-      window.devforge.getProjectScripts(p.path)
-        .then(s => [p.id, s] as const)
-        .catch(() => [p.id, {}] as const)
-    )).then(entries => { if (alive) setScripts(Object.fromEntries(entries)) })
-    return () => { alive = false }
+    Promise.all(
+      list.map(p =>
+        window.devforge
+          .getProjectScripts(p.path)
+          .then(s => [p.id, s] as const)
+          .catch(() => [p.id, {}] as const)
+      )
+    ).then(entries => {
+      if (alive) setScripts(Object.fromEntries(entries))
+    })
+    return () => {
+      alive = false
+    }
   }, [which, withDetails])
 
   const open = useCallback(async (p: Project | DetectedProject) => {
@@ -82,8 +97,15 @@ export function useProjects({ withDetails = false }: Options = {}) {
   }, [])
 
   return {
-    projects, loaded, gitStatuses, scripts,
-    open, openTerminal, toggleFavorite, remove, importDetected
+    projects,
+    loaded,
+    gitStatuses,
+    scripts,
+    open,
+    openTerminal,
+    toggleFavorite,
+    remove,
+    importDetected
   }
 }
 

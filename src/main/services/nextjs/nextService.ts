@@ -3,7 +3,20 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, 
 import { tmpdir } from 'os'
 import { randomBytes } from 'crypto'
 import { dirname, join, relative } from 'path'
-import type { AuthProvider, CommandResult, LogLine, NextAuthStatus, NextCommand, NextInspect, NextRevertResult, NextRoute, SfApiConfig, SfEntityDraft, SfMigration, SfWriteResult } from '@shared/types'
+import type {
+  AuthProvider,
+  CommandResult,
+  LogLine,
+  NextAuthStatus,
+  NextCommand,
+  NextInspect,
+  NextRevertResult,
+  NextRoute,
+  SfApiConfig,
+  SfEntityDraft,
+  SfMigration,
+  SfWriteResult
+} from '@shared/types'
 import { ADAPTER, nextCommand } from '@shared/lib/nextCommands'
 import { assertSafeDir, isInsideProject } from '../../lib/safe'
 import { quote, runCapture, runFile } from '../../lib/exec'
@@ -12,9 +25,31 @@ import { checkDraft } from '../symfony/sfEntityWriter'
 import { isDangerous } from '../symfony/sfInspect'
 import { OPERATIONS } from '../symfony/sfApi'
 import { parseSchema, toEntities, writeModel as writePrismaModel } from './prismaSchema'
-import { AUTH_KEYS, authFile, authModels, handlerFile, meRouteFile, rewritable, signInPageFile, signUpPageFile, signUpRouteFile, withAuthModels } from './authFiles'
+import {
+  AUTH_KEYS,
+  authFile,
+  authModels,
+  handlerFile,
+  meRouteFile,
+  rewritable,
+  signInPageFile,
+  signUpPageFile,
+  signUpRouteFile,
+  withAuthModels
+} from './authFiles'
 import { mergeEnv } from '../projects/projectSetup'
-import { cleanDiff, createDatabaseSql, databaseName, dropDatabaseSql, findConfig, prismaStamp, revertConfig, revertFolder, revertMigration, shadowUrl } from './prismaRevert'
+import {
+  cleanDiff,
+  createDatabaseSql,
+  databaseName,
+  dropDatabaseSql,
+  findConfig,
+  prismaStamp,
+  revertConfig,
+  revertFolder,
+  revertMigration,
+  shadowUrl
+} from './prismaRevert'
 import { GENERATED_MARK, prismaClientFile, routeFiles, routeFolder, seedFile } from './nextFiles'
 
 type LogCb = (log: LogLine) => void
@@ -27,7 +62,7 @@ function projectDir(path: unknown): string {
   return dir
 }
 
-const read = (file: string) => existsSync(file) ? readFileSync(file, 'utf-8') : ''
+const read = (file: string) => (existsSync(file) ? readFileSync(file, 'utf-8') : '')
 function write(file: string, content: string): void {
   mkdirSync(dirname(file), { recursive: true })
   writeFileSync(file, content)
@@ -41,9 +76,14 @@ function importPath(fromFile: string, to: string): string {
 // ─── The project's layout ─────────────────────────────────────────────────────
 
 function pkg(dir: string): { dependencies?: Record<string, string>; devDependencies?: Record<string, string> } {
-  try { return JSON.parse(read(join(dir, 'package.json')) || '{}') } catch { return {} }
+  try {
+    return JSON.parse(read(join(dir, 'package.json')) || '{}')
+  } catch {
+    return {}
+  }
 }
-const pmOf = (dir: string) => existsSync(join(dir, 'pnpm-lock.yaml')) ? 'pnpm' as const : existsSync(join(dir, 'yarn.lock')) ? 'yarn' as const : 'npm' as const
+const pmOf = (dir: string) =>
+  existsSync(join(dir, 'pnpm-lock.yaml')) ? ('pnpm' as const) : existsSync(join(dir, 'yarn.lock')) ? ('yarn' as const) : ('npm' as const)
 const installed = (dir: string, name: string) => existsSync(join(dir, 'node_modules', ...name.split('/'), 'package.json'))
 
 function layout(dir: string) {
@@ -52,19 +92,19 @@ function layout(dir: string) {
   const schemaFile = join(dir, 'prisma', 'schema.prisma')
   const schema = existsSync(schemaFile) ? parseSchema(read(schemaFile)) : null
   let version: number | null
-  try { version = Number(JSON.parse(read(join(dir, 'node_modules', 'prisma', 'package.json'))).version.split('.')[0]) } catch {
+  try {
+    version = Number(JSON.parse(read(join(dir, 'node_modules', 'prisma', 'package.json'))).version.split('.')[0])
+  } catch {
     const spec = pkg(dir).devDependencies?.prisma ?? pkg(dir).dependencies?.prisma
     version = spec ? Number(spec.replace(/^\D*/, '').split('.')[0]) || null : null
   }
   const lib = join(base, 'lib', `prisma.${ts ? 'ts' : 'js'}`)
   // The generated client: Prisma 7 writes it in the project (output), older ones in node_modules
-  const clientAt = schema?.output
-    ? join(dir, 'prisma', schema.output, schema.generator === 'prisma-client' ? 'client' : '')
-    : null
+  const clientAt = schema?.output ? join(dir, 'prisma', schema.output, schema.generator === 'prisma-client' ? 'client' : '') : null
   return { base, appDir: join(base, 'app'), ts, schemaFile, schema, version, lib, clientAt }
 }
 
-const clientImport = (from: string, l: ReturnType<typeof layout>) => l.clientAt ? importPath(from, l.clientAt) : '@prisma/client'
+const clientImport = (from: string, l: ReturnType<typeof layout>) => (l.clientAt ? importPath(from, l.clientAt) : '@prisma/client')
 const libImport = (from: string, l: ReturnType<typeof layout>) => importPath(from, l.lib.replace(/\.(ts|js)$/, ''))
 
 /**
@@ -75,7 +115,11 @@ const libImport = (from: string, l: ReturnType<typeof layout>) => importPath(fro
 function testData<K extends 'database' | 'migrations'>(key: K): { database: NextInspect['status']['database']; migrations: SfMigration[] }[K] | undefined {
   const file = process.env.DEVFORGE_TEST_NEXTJS
   if (!file || app.isPackaged) return undefined
-  try { return JSON.parse(readFileSync(file, 'utf-8'))[key] } catch { return undefined }
+  try {
+    return JSON.parse(readFileSync(file, 'utf-8'))[key]
+  } catch {
+    return undefined
+  }
 }
 
 // ─── Reading ──────────────────────────────────────────────────────────────────
@@ -84,9 +128,17 @@ function testData<K extends 'database' | 'migrations'>(key: K): { database: Next
 function parseMigrateStatus(out: string): { reachable: boolean; pending: string[]; error: string | null } {
   const pending: string[] = []
   const m = out.match(/have not yet been applied:\s*\n([\s\S]*?)(\n\s*\n|$)/)
-  if (m) for (const line of m[1].split('\n')) { const name = line.trim(); if (/^\d{14}_\w+$/.test(name)) pending.push(name) }
+  if (m)
+    for (const line of m[1].split('\n')) {
+      const name = line.trim()
+      if (/^\d{14}_\w+$/.test(name)) pending.push(name)
+    }
   const error = out.match(/(P1\d{3}[^\n]*)/)?.[1] ?? out.match(/Error: ([^\n]+)/)?.[1] ?? null
-  return { reachable: !/P100[0-3]|Can't reach database|ECONNREFUSED/i.test(out), pending, error: /P100[0-3]|Can't reach|ECONNREFUSED/i.test(out) ? error : null }
+  return {
+    reachable: !/P100[0-3]|Can't reach database|ECONNREFUSED/i.test(out),
+    pending,
+    error: /P100[0-3]|Can't reach|ECONNREFUSED/i.test(out) ? error : null
+  }
 }
 
 export async function inspect(projectPath: string): Promise<NextInspect> {
@@ -95,14 +147,17 @@ export async function inspect(projectPath: string): Promise<NextInspect> {
   const deps = { ...pkg(dir).dependencies, ...pkg(dir).devDependencies }
   const provider = l.schema?.provider ?? null
   const status: NextInspect['status'] = {
-    prisma: !!deps.prisma && !!l.schema, provider, prismaVersion: l.version,
+    prisma: !!deps.prisma && !!l.schema,
+    provider,
+    prismaVersion: l.version,
     client: installed(dir, '@prisma/client') && (!(l.version && l.version >= 7) || !provider || !ADAPTER[provider] || installed(dir, ADAPTER[provider].pkg)),
     libPrisma: existsSync(l.lib),
     database: { reachable: false, error: null },
     composeDatabase: /^\s{2}database:\s*$/m.test(read(join(dir, 'compose.yaml'))),
     seedTools: installed(dir, 'tsx') && installed(dir, '@faker-js/faker'),
     authjs: installed(dir, 'next-auth'),
-    packageManager: pmOf(dir), typescript: l.ts
+    packageManager: pmOf(dir),
+    typescript: l.ts
   }
   if (!l.schema) return { status, entities: [], migrations: [] }
   const canned = testData('database')
@@ -113,13 +168,23 @@ export async function inspect(projectPath: string): Promise<NextInspect> {
   const st = await runCapture('npx prisma migrate status', { cwd: dir, timeout: 90_000 })
   const parsed = parseMigrateStatus(`${st.stdout}\n${st.stderr}`)
   status.database = { reachable: parsed.reachable, error: parsed.error }
-  const migrations: SfMigration[] = names.map(name => {
-    const sql = read(join(migDir, name, 'migration.sql')).split(/;\s*\n/).map(s => s.replace(/^--.*$/gm, '').trim()).filter(Boolean)
-    return {
-      version: name, description: name.slice(15).replace(/_/g, ' '), executed: parsed.reachable && !parsed.pending.includes(name),
-      executedAt: null, file: `prisma/migrations/${name}/migration.sql`, sql, dangerous: isDangerous(sql)
-    }
-  }).sort((a, b) => b.version.localeCompare(a.version))
+  const migrations: SfMigration[] = names
+    .map(name => {
+      const sql = read(join(migDir, name, 'migration.sql'))
+        .split(/;\s*\n/)
+        .map(s => s.replace(/^--.*$/gm, '').trim())
+        .filter(Boolean)
+      return {
+        version: name,
+        description: name.slice(15).replace(/_/g, ' '),
+        executed: parsed.reachable && !parsed.pending.includes(name),
+        executedAt: null,
+        file: `prisma/migrations/${name}/migration.sql`,
+        sql,
+        dangerous: isDangerous(sql)
+      }
+    })
+    .sort((a, b) => b.version.localeCompare(a.version))
   return { status, entities: toEntities(l.schema), migrations }
 }
 
@@ -130,18 +195,40 @@ export async function routes(projectPath: string): Promise<NextRoute[]> {
   const out: NextRoute[] = []
   const walk = (folder: string) => {
     let entries: string[]
-    try { entries = readdirSync(folder) } catch { return }
+    try {
+      entries = readdirSync(folder)
+    } catch {
+      return
+    }
     for (const name of entries) {
       const full = join(folder, name)
-      if (statSync(full).isDirectory()) { if (name !== 'node_modules' && name !== 'generated' && !name.startsWith('_')) walk(full); continue }
+      if (statSync(full).isDirectory()) {
+        if (name !== 'node_modules' && name !== 'generated' && !name.startsWith('_')) walk(full)
+        continue
+      }
       const m = name.match(/^(page|route)\.(tsx?|jsx?)$/)
       if (!m) continue
-      const path = '/' + relative(appDir, folder).replace(/\\/g, '/').split('/').filter(seg => seg && !/^\(.*\)$/.test(seg)).join('/')
+      const path =
+        '/' +
+        relative(appDir, folder)
+          .replace(/\\/g, '/')
+          .split('/')
+          .filter(seg => seg && !/^\(.*\)$/.test(seg))
+          .join('/')
       const src = read(full)
-      const methods = m[1] === 'route'
-        ? [...new Set([...src.matchAll(/export\s+(?:async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\b/g), ...src.matchAll(/export\s+const\s+\{([^}]*)\}/g)]
-          .flatMap(x => x[1].split(',').map(s => s.trim().split(/\s/)[0])).filter(x => /^(GET|POST|PUT|PATCH|DELETE)$/.test(x)))]
-        : []
+      const methods =
+        m[1] === 'route'
+          ? [
+              ...new Set(
+                [
+                  ...src.matchAll(/export\s+(?:async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\b/g),
+                  ...src.matchAll(/export\s+const\s+\{([^}]*)\}/g)
+                ]
+                  .flatMap(x => x[1].split(',').map(s => s.trim().split(/\s/)[0]))
+                  .filter(x => /^(GET|POST|PUT|PATCH|DELETE)$/.test(x))
+              )
+            ]
+          : []
       out.push({ path: path === '/' ? '/' : path, methods, kind: m[1] === 'route' ? 'api' : 'page', file: relative(dir, full).replace(/\\/g, '/') })
     }
   }
@@ -153,7 +240,7 @@ export async function routes(projectPath: string): Promise<NextRoute[]> {
 
 export function run(projectPath: string, command: NextCommand, arg: string | undefined, onLog: LogCb, onResult: ResultCb): string {
   const dir = projectDir(projectPath)
-  const c = nextCommand(command, pmOf(dir), command === 'install:client' ? layout(dir).schema?.provider ?? '' : arg)
+  const c = nextCommand(command, pmOf(dir), command === 'install:client' ? (layout(dir).schema?.provider ?? '') : arg)
   return commandRunner.run({ executable: c.exe, args: c.args, cwd: dir, onLog, onResult })
 }
 
@@ -165,7 +252,10 @@ export function writeModel(projectPath: string, draft: SfEntityDraft): SfWriteRe
   const dir = projectDir(projectPath)
   const l = layout(dir)
   if (!l.schema) throw new Error('NEEDS:install:prisma')
-  const error = checkDraft(draft, l.schema.models.map(m => m.name))
+  const error = checkDraft(
+    draft,
+    l.schema.models.map(m => m.name)
+  )
   if (error) throw new Error(error)
   write(l.schemaFile, writePrismaModel(read(l.schemaFile), draft))
   return { created: [], changed: ['prisma/schema.prisma'], removed: [] }
@@ -185,7 +275,11 @@ export function writePrismaClient(projectPath: string): SfWriteResult {
 const apiConfigFile = (dir: string) => join(dir, '.devforge', 'api.json')
 
 export function apiConfig(projectPath: string): SfApiConfig | null {
-  try { return JSON.parse(read(apiConfigFile(projectDir(projectPath)))) as SfApiConfig } catch { return null }
+  try {
+    return JSON.parse(read(apiConfigFile(projectDir(projectPath)))) as SfApiConfig
+  } catch {
+    return null
+  }
 }
 
 export function applyApi(projectPath: string, config: SfApiConfig): SfWriteResult {
@@ -196,8 +290,17 @@ export function applyApi(projectPath: string, config: SfApiConfig): SfWriteResul
   const result: SfWriteResult = { created: [], changed: [], removed: [] }
   const put = (file: string, content: string | null) => {
     const old = read(file)
-    if (old && !old.includes(GENERATED_MARK)) { if (content !== null) throw new Error(`HAND_EDITED:${rel(dir, file)}`); return }
-    if (content === null) { if (old) { rmSync(file); result.removed.push(rel(dir, file)) } return }
+    if (old && !old.includes(GENERATED_MARK)) {
+      if (content !== null) throw new Error(`HAND_EDITED:${rel(dir, file)}`)
+      return
+    }
+    if (content === null) {
+      if (old) {
+        rmSync(file)
+        result.removed.push(rel(dir, file))
+      }
+      return
+    }
     if (old === content) return
     write(file, content)
     ;(old ? result.changed : result.created).push(rel(dir, file))
@@ -264,7 +367,11 @@ export function authStatus(projectPath: string): NextAuthStatus {
   const dir = projectDir(projectPath)
   const l = layout(dir)
   let providers: AuthProvider[] = []
-  try { providers = (JSON.parse(read(authConfigFile(dir))).providers as AuthProvider[]).filter(p => PROVIDERS.includes(p)) } catch { /* none chosen yet */ }
+  try {
+    providers = (JSON.parse(read(authConfigFile(dir))).providers as AuthProvider[]).filter(p => PROVIDERS.includes(p))
+  } catch {
+    /* none chosen yet */
+  }
   return {
     installed: installed(dir, 'next-auth') && installed(dir, '@auth/prisma-adapter') && installed(dir, 'bcryptjs'),
     models: authModels(read(l.schemaFile)),
@@ -296,7 +403,10 @@ export function applyAuth(projectPath: string, providers: AuthProvider[]): SfWri
     write(file, content)
     ;(old ? result.changed : result.created).push(rel(dir, file))
   }
-  if (models === 'missing') { write(l.schemaFile, withAuthModels(read(l.schemaFile))); result.changed.push('prisma/schema.prisma') }
+  if (models === 'missing') {
+    write(l.schemaFile, withAuthModels(read(l.schemaFile)))
+    result.changed.push('prisma/schema.prisma')
+  }
   const authImport = (from: string) => importPath(from, p.auth.replace(/\.(ts|js)$/, ''))
   put(p.auth, authFile(chosen, libImport(p.auth, l)))
   put(p.handler, handlerFile(authImport(p.handler)), true)
@@ -338,8 +448,7 @@ export function setAuthKeys(projectPath: string, values: Record<string, string>)
 // ─── Going back ───────────────────────────────────────────────────────────────
 
 /** .env value, without quotes */
-const envValue = (dir: string, key: string) =>
-  read(join(dir, '.env')).match(new RegExp(`^\\s*${key}\\s*=\\s*"?([^"\\r\\n]*)"?`, 'm'))?.[1] ?? null
+const envValue = (dir: string, key: string) => read(join(dir, '.env')).match(new RegExp(`^\\s*${key}\\s*=\\s*"?([^"\\r\\n]*)"?`, 'm'))?.[1] ?? null
 
 /**
  * The last applied migration undone as a new migration, not run: its SQL is
@@ -354,7 +463,11 @@ export async function prepareRevert(projectPath: string): Promise<NextRevertResu
   if (!l.schema) throw new Error('NEEDS:install:prisma')
   const provider = l.schema.provider
   const migDir = join(dir, 'prisma', 'migrations')
-  const names = existsSync(migDir) ? readdirSync(migDir).filter(n => /^\d{14}_/.test(n) && statSync(join(migDir, n)).isDirectory()).sort() : []
+  const names = existsSync(migDir)
+    ? readdirSync(migDir)
+        .filter(n => /^\d{14}_/.test(n) && statSync(join(migDir, n)).isDirectory())
+        .sort()
+    : []
   const last = names[names.length - 1]
   if (!last) throw new Error('NO_MIGRATION')
   const st = await runCapture('npx prisma migrate status', { cwd: dir, timeout: 90_000 })
@@ -374,9 +487,10 @@ export async function prepareRevert(projectPath: string): Promise<NextRevertResu
   const v7 = (l.version ?? 0) >= 7
   const env = { DEVFORGE_SHADOW_URL: shadow }
   // Prisma 7 takes the shadow database from its config; older ones from flags
-  const prisma = (args: string) => v7
-    ? `npx prisma ${args} --config ${quote(tempConfig)}`
-    : `npx prisma ${args.replace('--from-config-datasource', `--from-url ${quote(url)}`)} --shadow-database-url ${quote(shadow)}`
+  const prisma = (args: string) =>
+    v7
+      ? `npx prisma ${args} --config ${quote(tempConfig)}`
+      : `npx prisma ${args.replace('--from-config-datasource', `--from-url ${quote(url)}`)} --shadow-database-url ${quote(shadow)}`
   const execSql = (name: string, sql: string) => {
     const f = join(work, name)
     writeFileSync(f, sql)
@@ -392,7 +506,11 @@ export async function prepareRevert(projectPath: string): Promise<NextRevertResu
     }
     if (shadowName) await execSql('create.sql', createDatabaseSql(shadowName, provider))
 
-    const diff = await runCapture(prisma(`migrate diff --from-config-datasource --to-migrations ${quote(before)} --script`), { cwd: dir, timeout: 180_000, env })
+    const diff = await runCapture(prisma(`migrate diff --from-config-datasource --to-migrations ${quote(before)} --script`), {
+      cwd: dir,
+      timeout: 180_000,
+      env
+    })
     if (!diff.ok) throw new Error(`PRISMA:${(diff.stderr || diff.stdout).trim().split(/\r?\n/).pop()}`)
     const sql = cleanDiff(diff.stdout)
     if (!sql) throw new Error('NOTHING_TO_REVERT')
@@ -404,14 +522,21 @@ export async function prepareRevert(projectPath: string): Promise<NextRevertResu
     if (shown.ok && shown.stdout.includes('datasource')) {
       const candidate = join(work, 'schema.prisma')
       writeFileSync(candidate, shown.stdout)
-      const check = await runCapture(prisma(`migrate diff --from-migrations ${quote(before)} --to-schema ${quote(candidate)} --exit-code`), { cwd: dir, timeout: 180_000, env })
+      const check = await runCapture(prisma(`migrate diff --from-migrations ${quote(before)} --to-schema ${quote(candidate)} --exit-code`), {
+        cwd: dir,
+        timeout: 180_000,
+        env
+      })
       if (check.ok) schemaBack = shown.stdout
     }
 
     const folder = revertFolder(last, prismaStamp(new Date()))
     write(join(migDir, folder, 'migration.sql'), revertMigration(last, sql))
     const result: SfWriteResult = { created: [`prisma/migrations/${folder}/migration.sql`], changed: [], removed: [] }
-    if (schemaBack !== null && schemaBack !== read(l.schemaFile)) { write(l.schemaFile, schemaBack); result.changed.push('prisma/schema.prisma') }
+    if (schemaBack !== null && schemaBack !== read(l.schemaFile)) {
+      write(l.schemaFile, schemaBack)
+      result.changed.push('prisma/schema.prisma')
+    }
     return { ...result, migration: last, schemaRestored: schemaBack !== null }
   } finally {
     if (shadowName) await execSql('drop.sql', dropDatabaseSql(shadowName, provider))

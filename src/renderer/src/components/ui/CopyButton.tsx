@@ -16,7 +16,10 @@ export default function CopyButton({ text, title = 'Copy', className }: Props) {
     <IconButton
       size="sm"
       title={title}
-      onClick={e => { e.stopPropagation(); copy(text) }}
+      onClick={e => {
+        e.stopPropagation()
+        copy(text)
+      }}
       className={cn(done && 'text-success hover:text-success', className)}
     >
       {done ? <Check size={13} /> : <Copy size={13} />}

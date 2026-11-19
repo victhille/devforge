@@ -19,7 +19,11 @@ export const DEFAULT_WIDGETS: HomeWidget[] = [
 ]
 
 /** Where a widget sits in the home page's grid: its column (or both), its first row and how many rows */
-export interface MasonryPlace { column: 1 | 2 | 'both'; row: number; span: number }
+export interface MasonryPlace {
+  column: 1 | 2 | 'both'
+  row: number
+  span: number
+}
 
 /**
  * Masonry on a grid of `unit`-pixel rows: each half widget goes, in order, to

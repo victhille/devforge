@@ -33,13 +33,15 @@ describe('scriptsOf', () => {
   })
   it('leaves out a name pnpm reads as a pattern or an option, and an empty command', () => {
     // { "/x/": "" } made « pnpm run /x/ » run every script matching x, commands the card never showed
-    expect(scriptsOf({ scripts: { '/x/': '', '/./': 'echo', '-x': 'echo', blank: '  ', empty: '', 'x-run': 'echo', 'lib/build': 'tsc' } }))
-      .toEqual({ 'x-run': 'echo', 'lib/build': 'tsc' })
+    expect(scriptsOf({ scripts: { '/x/': '', '/./': 'echo', '-x': 'echo', blank: '  ', empty: '', 'x-run': 'echo', 'lib/build': 'tsc' } })).toEqual({
+      'x-run': 'echo',
+      'lib/build': 'tsc'
+    })
   })
 })
 
 describe('the default package manager in the settings', () => {
-  it('is a known one, even from an imported file: it goes into the new projects\' commands', () => {
+  it("is a known one, even from an imported file: it goes into the new projects' commands", () => {
     writeFileSync(join(userData(), 'settings.json'), JSON.stringify({ defaultPackageManager: 'npm & calc &' }))
     expect(loadSettings().defaultPackageManager).toBe('npm')
     writeFileSync(join(userData(), 'settings.json'), JSON.stringify({ defaultPackageManager: 'yarn' }))
@@ -51,13 +53,16 @@ describe('the saved projects', () => {
   it('keep a known package manager only: it goes into commands', () => {
     const dir = tempDir()
     const base = { type: 'node', framework: 'vite', favorite: false, createdAt: '', lastOpened: null }
-    writeFileSync(join(userData(), 'projects.json'), JSON.stringify([
-      { ...base, id: 'a', name: 'a', path: dir, packageManager: 'pnpm' },
-      { ...base, id: 'b', name: 'b', path: dir, packageManager: 'calc &' },
-      { ...base, id: 'c', name: 'c', path: dir },
-      // A broken entry is left out, not the whole list
-      null
-    ]))
+    writeFileSync(
+      join(userData(), 'projects.json'),
+      JSON.stringify([
+        { ...base, id: 'a', name: 'a', path: dir, packageManager: 'pnpm' },
+        { ...base, id: 'b', name: 'b', path: dir, packageManager: 'calc &' },
+        { ...base, id: 'c', name: 'c', path: dir },
+        // A broken entry is left out, not the whole list
+        null
+      ])
+    )
     expect(loadProjects().map(p => p.packageManager)).toEqual(['pnpm', 'npm', 'npm'])
   })
 })

@@ -6,25 +6,34 @@ import { settledAxeIssues } from './axe'
 
 /** A saved server plus canned outputs: the pages run without a real VPS */
 const vps = (dir: string) => {
-  writeFileSync(join(dir, 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'Prod', host: '127.0.0.1', port: 1, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }]))
-  writeFileSync(join(dir, 'vps.json'), JSON.stringify({
-    services: [
-      'portainer|portainer/portainer-ce:2.45.1|8000/tcp, 9443/tcp, 127.0.0.1:9000->9000/tcp|running|Up 2 weeks',
-      'dbadmin|phpmyadmin:5.2.3|127.0.0.1:8080->80/tcp|running|Up 2 weeks',
-      'blog|nginx:1.27|0.0.0.0:8081->80/tcp, [::]:8081->80/tcp|running|Up 2 days'
-    ].join('\n'),
-    health: [
-      'yes', '20\n0', 'yes',
-      '/dev/sda1 19221248 8661552 10543312 46% /\n/dev/sda1 2490368 344497 2145871 14% /',
-      'Mem: 2063572992 1333579776 116891648 44699648 859394048 729993216',
-      'tcp 0.0.0.0:22\ntcp 127.0.0.1:9000\nudp 0.0.0.0:51820',
-      'port 22\npermitrootlogin without-password\npasswordauthentication no',
-      'active', '353',
-      'portainer|running|Up 2 weeks\n--\n/portainer|0',
-      'Images|66.34MB (2%)\nBuild Cache|0B',
-      'Ubuntu 24.04.5 LTS\nup 2 weeks'
-    ].join('\n@@DF@@\n')
-  }))
+  writeFileSync(
+    join(dir, 'ssh-connections.json'),
+    JSON.stringify([{ id: 'v1', name: 'Prod', host: '127.0.0.1', port: 1, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }])
+  )
+  writeFileSync(
+    join(dir, 'vps.json'),
+    JSON.stringify({
+      services: [
+        'portainer|portainer/portainer-ce:2.45.1|8000/tcp, 9443/tcp, 127.0.0.1:9000->9000/tcp|running|Up 2 weeks',
+        'dbadmin|phpmyadmin:5.2.3|127.0.0.1:8080->80/tcp|running|Up 2 weeks',
+        'blog|nginx:1.27|0.0.0.0:8081->80/tcp, [::]:8081->80/tcp|running|Up 2 days'
+      ].join('\n'),
+      health: [
+        'yes',
+        '20\n0',
+        'yes',
+        '/dev/sda1 19221248 8661552 10543312 46% /\n/dev/sda1 2490368 344497 2145871 14% /',
+        'Mem: 2063572992 1333579776 116891648 44699648 859394048 729993216',
+        'tcp 0.0.0.0:22\ntcp 127.0.0.1:9000\nudp 0.0.0.0:51820',
+        'port 22\npermitrootlogin without-password\npasswordauthentication no',
+        'active',
+        '353',
+        'portainer|running|Up 2 weeks\n--\n/portainer|0',
+        'Images|66.34MB (2%)\nBuild Cache|0B',
+        'Ubuntu 24.04.5 LTS\nup 2 weeks'
+      ].join('\n@@DF@@\n')
+    })
+  )
 }
 
 /** The update button next to Forgy */

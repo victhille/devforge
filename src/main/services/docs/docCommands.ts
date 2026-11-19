@@ -21,7 +21,9 @@ export function listCommands(): CustomCommand[] {
   try {
     const list = JSON.parse(readFileSync(file(), 'utf-8')) as CustomCommand[]
     return Array.isArray(list) ? list.filter(c => c && typeof c.cmd === 'string') : []
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 const clean = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
@@ -33,19 +35,33 @@ export function saveCommand(input: Partial<CustomCommand>): CustomCommand[] {
   if (!cmd || !category) throw new Error('A command and a category are needed')
   const list = listCommands()
   const prev = list.find(c => c.id === input.id)
-  const next: CustomCommand = { id: prev?.id ?? randomUUID(), cmd, desc: clean(input.desc, 300), category, createdAt: prev?.createdAt ?? new Date().toISOString() }
+  const next: CustomCommand = {
+    id: prev?.id ?? randomUUID(),
+    cmd,
+    desc: clean(input.desc, 300),
+    category,
+    createdAt: prev?.createdAt ?? new Date().toISOString()
+  }
   writeJsonFile(file(), prev ? list.map(c => (c.id === prev.id ? next : c)) : [...list, next])
   return listCommands()
 }
 
 export function removeCommand(id: string): CustomCommand[] {
-  writeJsonFile(file(), listCommands().filter(c => c.id !== id))
+  writeJsonFile(
+    file(),
+    listCommands().filter(c => c.id !== id)
+  )
   return listCommands()
 }
 
 /** The program a command starts: its first word (php for `php artisan migrate`) */
 export function programOf(cmd: string): string {
-  return cmd.trim().split(/\s+/)[0]?.replace(/^["']|["']$/g, '') ?? ''
+  return (
+    cmd
+      .trim()
+      .split(/\s+/)[0]
+      ?.replace(/^["']|["']$/g, '') ?? ''
+  )
 }
 
 export async function checkCommand(cmd: string): Promise<CommandCheck> {

@@ -41,9 +41,7 @@ function readStored(): StoredSSHConnection[] {
 
   // Migrate legacy plain-text passwords
   if (conns.some(c => c.password) && safeStorage.isEncryptionAvailable()) {
-    conns = conns.map(({ password, ...rest }) =>
-      password ? { ...rest, passwordEnc: encrypt(password) } : rest
-    )
+    conns = conns.map(({ password, ...rest }) => (password ? { ...rest, passwordEnc: encrypt(password) } : rest))
     persist(conns)
   }
   return conns

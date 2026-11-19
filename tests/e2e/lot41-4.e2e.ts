@@ -19,7 +19,12 @@ test('a project without a database gets its MPD table by table', async () => {
       mkdirSync(project, { recursive: true })
       writeFileSync(join(project, 'package.json'), '{"name":"blog"}')
       writeFileSync(join(project, '.env'), 'DATABASE_URL=postgresql://app:pw@127.0.0.1:5432/blog\n')
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'Blog', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          { id: 'p1', name: 'Blog', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page } = run
@@ -44,7 +49,9 @@ test('a project without a database gets its MPD table by table', async () => {
   await bar.getByRole('button', { name: 'Table', exact: true }).click()
   // A spot inside the canvas whatever the window's size (the CI's is smaller)
   const area = (await canvas.boundingBox())!
-  await bar.getByRole('button', { name: 'Table', exact: true }).dragTo(canvas, { targetPosition: { x: Math.round(area.width * 0.65), y: Math.round(area.height * 0.2) } })
+  await bar
+    .getByRole('button', { name: 'Table', exact: true })
+    .dragTo(canvas, { targetPosition: { x: Math.round(area.width * 0.65), y: Math.round(area.height * 0.2) } })
   await expect(canvas.locator('[data-table]')).toHaveCount(2)
 
   // The table picked: renamed, a column added, made part of the key, another one removed
@@ -64,7 +71,12 @@ test('a project without a database gets its MPD table by table', async () => {
 
   // Saved in the project: two tables, on the engine of its .env
   const file = join(project, 'conception', 'blog.mpd.json')
-  await expect.poll(() => { const m = JSON.parse(readFileSync(file, 'utf-8')).mpd; return [m.engine, m.tables.map((t: { name: string }) => t.name).sort()] }).toEqual(['postgres', ['article', 'auteur']])
+  await expect
+    .poll(() => {
+      const m = JSON.parse(readFileSync(file, 'utf-8')).mpd
+      return [m.engine, m.tables.map((t: { name: string }) => t.name).sort()]
+    })
+    .toEqual(['postgres', ['article', 'auteur']])
 
   // auteur removed: its key in article goes with it
   await canvas.locator('[data-table="auteur"]').locator('div').first().click()

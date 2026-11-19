@@ -20,12 +20,7 @@ export default function Card({ interactive, className, ...rest }: Props) {
 }
 
 export function CardHeader({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      {...rest}
-      className={cn('flex items-center justify-between gap-3 border-b border-line-subtle px-4 py-3', className)}
-    />
-  )
+  return <div {...rest} className={cn('flex items-center justify-between gap-3 border-b border-line-subtle px-4 py-3', className)} />
 }
 
 export function CardTitle({ className, ...rest }: HTMLAttributes<HTMLHeadingElement>) {

@@ -4,10 +4,10 @@ import { parseVersion, satisfies } from './semver'
 /** npm names: "react", "@scope/name" (lower case, no spaces nor shell characters) */
 const NPM_NAME = /^(@[a-z0-9][a-z0-9._~-]*\/)?[a-z0-9][a-z0-9._~-]*$/
 /** Composer names: "vendor/package" */
-const COMPOSER_NAME = /^[a-z0-9]([_.-]?[a-z0-9]+)*\/[a-z0-9](([_.]|-{1,2})?[a-z0-9]+)*$/
+// Each part: letters and digits, a separator only between them (written so that it cannot backtrack for ages)
+const COMPOSER_NAME = /^[a-z0-9]+(?:[_.-][a-z0-9]+)*\/[a-z0-9]+(?:(?:[_.]|-{1,2})[a-z0-9]+)*$/
 
-export const isPackageName = (name: string, composer = false): boolean =>
-  name.length <= 214 && (composer ? COMPOSER_NAME : NPM_NAME).test(name)
+export const isPackageName = (name: string, composer = false): boolean => name.length <= 214 && (composer ? COMPOSER_NAME : NPM_NAME).test(name)
 
 /**
  * An npm package to install, as a new project's libraries name it: "zod", "@prisma/client@7".

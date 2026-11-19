@@ -7,17 +7,32 @@ function fakePage(): VisiblePage & { set: (v: 'visible' | 'hidden') => void; lis
   let listeners = 0
   const page = {
     visibilityState: 'visible',
-    addEventListener: (t: 'visibilitychange', l: () => void) => { listeners++; target.addEventListener(t, l) },
-    removeEventListener: (t: 'visibilitychange', l: () => void) => { listeners--; target.removeEventListener(t, l) },
-    set: (v: 'visible' | 'hidden') => { page.visibilityState = v; target.dispatchEvent(new Event('visibilitychange')) },
-    get listeners() { return listeners }
+    addEventListener: (t: 'visibilitychange', l: () => void) => {
+      listeners++
+      target.addEventListener(t, l)
+    },
+    removeEventListener: (t: 'visibilitychange', l: () => void) => {
+      listeners--
+      target.removeEventListener(t, l)
+    },
+    set: (v: 'visible' | 'hidden') => {
+      page.visibilityState = v
+      target.dispatchEvent(new Event('visibilitychange'))
+    },
+    get listeners() {
+      return listeners
+    }
   }
   return page
 }
 
 describe('visibleInterval', () => {
-  beforeEach(() => { vi.useFakeTimers() })
-  afterEach(() => { vi.useRealTimers() })
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
   it('calls every period while the window is shown', () => {
     const fn = vi.fn()

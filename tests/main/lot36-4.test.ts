@@ -27,7 +27,12 @@ describe('v3.6 lot 4: CSV import', () => {
   })
 
   it('matches columns by name, case and separators aside, each table column once', () => {
-    expect(matchColumns(['ID', 'First Name', 'e-mail', 'unknown', 'id'], ['id', 'first_name', 'email', 'created_at']))
-      .toEqual(['id', 'first_name', 'email', null, null])
+    expect(matchColumns(['ID', 'First Name', 'e-mail', 'unknown', 'id'], ['id', 'first_name', 'email', 'created_at'])).toEqual([
+      'id',
+      'first_name',
+      'email',
+      null,
+      null
+    ])
   })
 })

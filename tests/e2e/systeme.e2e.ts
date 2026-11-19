@@ -22,10 +22,31 @@ test('environment in cards, ports in a table, .env files a tab each with secrets
       writeFileSync(join(shop, 'node_modules', 'left-pad', 'index.js'), 'module.exports = s => s\n'.repeat(50))
       writeFileSync(join(shop, '.env'), 'NODE_ENV=development\nDATABASE_URL=postgres://app:hunter2@localhost/shop\nSESSION_SECRET=abc123\n')
       writeFileSync(join(shop, '.env.example'), 'NODE_ENV=\nDATABASE_URL=\nSESSION_SECRET=\nSTRIPE_KEY=\n')
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([
-        { id: 'p1', name: 'Shop', path: shop, framework: 'nextjs', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null },
-        { id: 'p2', name: 'Notes', path: join(dir, 'notes'), framework: 'unknown', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }
-      ]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'p1',
+            name: 'Shop',
+            path: shop,
+            framework: 'nextjs',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          },
+          {
+            id: 'p2',
+            name: 'Notes',
+            path: join(dir, 'notes'),
+            framework: 'unknown',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
       writeFileSync(join(dir, 'domains.json'), JSON.stringify([{ id: 'd1', domain: 'shop.test', port: 3999, enabled: false }]))
     }
   })
@@ -93,6 +114,9 @@ test('environment in cards, ports in a table, .env files a tab each with secrets
   expect(await settledAxe(page)).toEqual([])
   await page.getByRole('row').filter({ hasText: 'node_modules' }).click()
   await page.getByRole('button', { name: /^Supprimer la sélection \(/ }).click()
-  await page.getByRole('dialog').getByRole('button', { name: /^Supprimer / }).click()
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: /^Supprimer / })
+    .click()
   await expect.poll(() => existsSync(join(shop, 'node_modules'))).toBe(false)
 })

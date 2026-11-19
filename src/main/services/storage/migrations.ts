@@ -25,11 +25,33 @@ export const MIGRATIONS: Migration[] = []
 
 /** Files and folders that make up the user's data (Chromium's own folders are left out) */
 export const DATA_ENTRIES = [
-  'settings.json', 'projects.json', 'ssh-connections.json', 'known_hosts.json', 'databases.json',
-  'deploy.json', 'stacks.json', 'domains.json', 'monitors.json', 'assistant', 'env-backups',
-  'project-links.json', 'active-project.json', 'watch.json', 'history', 'n8n.json', 'vercel.json',
-  'github.json', 'backups.json', 'status.json', 'vpn.json', 'terminal-history.json', 'hosts', 'doc-commands.json', 'project-notes.json',
-  'templates.json', 'templates'
+  'settings.json',
+  'projects.json',
+  'ssh-connections.json',
+  'known_hosts.json',
+  'databases.json',
+  'deploy.json',
+  'stacks.json',
+  'domains.json',
+  'monitors.json',
+  'assistant',
+  'env-backups',
+  'project-links.json',
+  'active-project.json',
+  'watch.json',
+  'history',
+  'n8n.json',
+  'vercel.json',
+  'github.json',
+  'backups.json',
+  'status.json',
+  'vpn.json',
+  'terminal-history.json',
+  'hosts',
+  'doc-commands.json',
+  'project-notes.json',
+  'templates.json',
+  'templates'
 ]
 
 const MANIFEST = 'storage.json'
@@ -72,7 +94,8 @@ export function backupData(dataDir: string, from: number, now = new Date(), reas
     if (existsSync(src)) cpSync(src, join(dest, entry), { recursive: true })
   }
   // Oldest first by date, whatever the reason
-  const all = readdirSync(join(dataDir, BACKUPS)).filter(n => parseBackupName(n))
+  const all = readdirSync(join(dataDir, BACKUPS))
+    .filter(n => parseBackupName(n))
     .sort((a, b) => parseBackupName(a)!.stamp.localeCompare(parseBackupName(b)!.stamp))
   for (const old of all.slice(0, Math.max(0, all.length - KEEP_BACKUPS))) rmSync(join(dataDir, BACKUPS, old), { recursive: true, force: true })
   return dest

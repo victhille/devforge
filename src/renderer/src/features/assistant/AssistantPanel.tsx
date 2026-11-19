@@ -1,8 +1,33 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  ArrowUp, BookOpen, Bug, Check, ChevronDown, ListChecks, ChevronLeft, Container, Database, ExternalLink, FileText, GitCommitHorizontal, Globe, History,
-  Loader2, MessageSquare, Paperclip, Plus, Search, ShieldCheck, Square, Sunrise, Trash2, Wrench, X, XCircle, type LucideIcon
+  ArrowUp,
+  BookOpen,
+  Bug,
+  Check,
+  ChevronDown,
+  ListChecks,
+  ChevronLeft,
+  Container,
+  Database,
+  ExternalLink,
+  FileText,
+  GitCommitHorizontal,
+  Globe,
+  History,
+  Loader2,
+  MessageSquare,
+  Paperclip,
+  Plus,
+  Search,
+  ShieldCheck,
+  Square,
+  Sunrise,
+  Trash2,
+  Wrench,
+  X,
+  XCircle,
+  type LucideIcon
 } from 'lucide-react'
 import DictateButton from '@renderer/components/DictateButton'
 import type { AssistantAction, AssistantConfig, AssistantConversation, AssistantConversationSummary, AssistantItem, AssistantUsage } from '@shared/types'
@@ -23,7 +48,10 @@ import Notice from '@renderer/components/ui/Notice'
 
 const SKILL_ICON: Record<string, LucideIcon> = { MessageSquare, Search, Bug, GitCommitHorizontal, ShieldCheck, BookOpen, Database, Container, Globe, Sunrise }
 const MODEL_LABEL: Record<string, string> = {
-  'claude-opus-5-5': 'Opus 5.5', 'claude-sonnet-5-5': 'Sonnet 5.5', 'claude-haiku-5-5': 'Haiku 5.5', auto: 'Auto'
+  'claude-opus-5-5': 'Opus 5.5',
+  'claude-sonnet-5-5': 'Sonnet 5.5',
+  'claude-haiku-5-5': 'Haiku 5.5',
+  auto: 'Auto'
 }
 /** Past this many input tokens per request, a new conversation is much cheaper */
 const LONG_CONVERSATION = 30_000
@@ -35,8 +63,13 @@ function ToolRow({ item }: { item: AssistantItem & { kind: 'tool' } }) {
   const label = (t.assistant.tools as Record<string, string>)[item.name] ?? item.name
   return (
     <div className="flex items-center gap-2 font-mono text-xs text-fg-muted">
-      {item.status === 'running' ? <Loader2 size={12} className="animate-spin text-accent" />
-        : item.status === 'done' ? <Check size={12} className="text-success" /> : <XCircle size={12} className="text-danger" />}
+      {item.status === 'running' ? (
+        <Loader2 size={12} className="animate-spin text-accent" />
+      ) : item.status === 'done' ? (
+        <Check size={12} className="text-success" />
+      ) : (
+        <XCircle size={12} className="text-danger" />
+      )}
       <Wrench size={11} />
       <span className="shrink-0">{label}</span>
       {item.summary && <span className="truncate font-mono text-fg-secondary">{item.summary}</span>}
@@ -49,7 +82,19 @@ export default function AssistantPanel() {
   const a = t.assistant
   const l = lang === 'fr' ? 'fr' : 'en'
   const navigate = useNavigate()
-  const { setOpen, pageContext, projectPath, setProjectPath, mood, markSending, setTyping, pendingConversation, clearPendingConversation, pendingQuestion, clearPendingQuestion } = useAssistant()
+  const {
+    setOpen,
+    pageContext,
+    projectPath,
+    setProjectPath,
+    mood,
+    markSending,
+    setTyping,
+    pendingConversation,
+    clearPendingConversation,
+    pendingQuestion,
+    clearPendingQuestion
+  } = useAssistant()
   const typingTimer = useRef<ReturnType<typeof setTimeout>>()
   const [config, setConfig] = useState<AssistantConfig | null>(null)
   const [usage, setUsage] = useState<AssistantUsage | null>(null)
@@ -77,18 +122,23 @@ export default function AssistantPanel() {
   }, [refreshUsage])
 
   // A new page context is attached by default
-  useEffect(() => { setAttachPage(true) }, [pageContext?.label])
+  useEffect(() => {
+    setAttachPage(true)
+  }, [pageContext?.label])
 
-  const load = useCallback(async (id: string) => {
-    const c = await window.devforge.assistant.get(id)
-    if (!c) return
-    idRef.current = c.id
-    setConversation(c)
-    setItems(c.items)
-    setSkillId(c.skill)
-    if (c.projectPath) setProjectPath(c.projectPath)
-    setHistory(null)
-  }, [setProjectPath])
+  const load = useCallback(
+    async (id: string) => {
+      const c = await window.devforge.assistant.get(id)
+      if (!c) return
+      idRef.current = c.id
+      setConversation(c)
+      setItems(c.items)
+      setSkillId(c.skill)
+      if (c.projectPath) setProjectPath(c.projectPath)
+      setHistory(null)
+    },
+    [setProjectPath]
+  )
 
   // A conversation started in the desktop widget, continued here
   useEffect(() => {
@@ -107,34 +157,44 @@ export default function AssistantPanel() {
   }, [pendingQuestion, clearPendingQuestion])
 
   // Streamed events of the shown conversation
-  useEffect(() => window.devforge.assistant.onEvent(e => {
-    if (e.conversationId !== idRef.current) return
-    if (e.type === 'text') {
-      setItems(list => {
-        const last = list[list.length - 1]
-        return last?.kind === 'assistant'
-          ? [...list.slice(0, -1), { ...last, text: last.text + e.delta }]
-          : [...list, { kind: 'assistant', text: e.delta }]
-      })
-    } else if (e.type === 'tool') {
-      setItems(list => [...list, { kind: 'tool', id: e.id, name: e.name, summary: e.summary, status: 'running' }])
-    } else if (e.type === 'tool-done') {
-      setItems(list => list.map(i => (i.kind === 'tool' && i.id === e.id ? { ...i, status: e.ok ? 'done' : 'error' } : i)))
-    } else if (e.type === 'action') {
-      setItems(list => [...list, { kind: 'action', id: e.id, title: e.title, preview: e.preview, reversible: e.reversible, status: e.auto ? 'running' : 'pending' }])
-    } else if (e.type === 'action-done') {
-      setItems(list => list.map(i => (i.kind === 'action' && i.id === e.id ? { ...i, status: e.status, output: e.output } : i)))
-    } else if (e.type === 'done') {
-      setRunning(false)
-      // The saved version is the reference (notices, cost)
-      window.devforge.assistant.get(e.conversationId).then(c => {
-        if (c && idRef.current === c.id) { setConversation(c); setItems(c.items) }
-      })
-      refreshUsage()
-    }
-  }), [refreshUsage])
+  useEffect(
+    () =>
+      window.devforge.assistant.onEvent(e => {
+        if (e.conversationId !== idRef.current) return
+        if (e.type === 'text') {
+          setItems(list => {
+            const last = list[list.length - 1]
+            return last?.kind === 'assistant' ? [...list.slice(0, -1), { ...last, text: last.text + e.delta }] : [...list, { kind: 'assistant', text: e.delta }]
+          })
+        } else if (e.type === 'tool') {
+          setItems(list => [...list, { kind: 'tool', id: e.id, name: e.name, summary: e.summary, status: 'running' }])
+        } else if (e.type === 'tool-done') {
+          setItems(list => list.map(i => (i.kind === 'tool' && i.id === e.id ? { ...i, status: e.ok ? 'done' : 'error' } : i)))
+        } else if (e.type === 'action') {
+          setItems(list => [
+            ...list,
+            { kind: 'action', id: e.id, title: e.title, preview: e.preview, reversible: e.reversible, status: e.auto ? 'running' : 'pending' }
+          ])
+        } else if (e.type === 'action-done') {
+          setItems(list => list.map(i => (i.kind === 'action' && i.id === e.id ? { ...i, status: e.status, output: e.output } : i)))
+        } else if (e.type === 'done') {
+          setRunning(false)
+          // The saved version is the reference (notices, cost)
+          window.devforge.assistant.get(e.conversationId).then(c => {
+            if (c && idRef.current === c.id) {
+              setConversation(c)
+              setItems(c.items)
+            }
+          })
+          refreshUsage()
+        }
+      }),
+    [refreshUsage]
+  )
 
-  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }) }, [items])
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight })
+  }, [items])
 
   async function send(text = input, skill: AssistantSkillId = skillId) {
     const q = text.trim()
@@ -155,7 +215,9 @@ export default function AssistantPanel() {
     }
   }
 
-  sendRef.current = (text: string) => { send(text, 'chat') }
+  sendRef.current = (text: string) => {
+    send(text, 'chat')
+  }
 
   function pickSkill(s: AssistantSkill) {
     setSkillId(s.id)
@@ -191,13 +253,15 @@ export default function AssistantPanel() {
   const longConversation = (conversation?.lastInput ?? 0) > LONG_CONVERSATION
 
   // The effort is Claude's only
-  const effortLabel = !config || otherProvider !== 'anthropic' ? null : config.effort === 'auto' ? a.effortAuto
-    : { low: a.effortLow, medium: a.effortMedium, high: a.effortHigh }[config.effort]
+  const effortLabel =
+    !config || otherProvider !== 'anthropic'
+      ? null
+      : config.effort === 'auto'
+        ? a.effortAuto
+        : { low: a.effortLow, medium: a.effortMedium, high: a.effortHigh }[config.effort]
   const spentPct = usage && usage.budget > 0 ? Math.min(100, (usage.spent / usage.budget) * 100) : 0
   // Chips under the conversation: tasks this page or project makes possible first
-  const chips = [...ASSISTANT_SKILLS]
-    .filter(available)
-    .sort((x, y) => (y.needs ? 1 : 0) - (x.needs ? 1 : 0))
+  const chips = [...ASSISTANT_SKILLS].filter(available).sort((x, y) => (y.needs ? 1 : 0) - (x.needs ? 1 : 0))
   const shownChips = showAllSkills ? chips : chips.slice(0, 3)
 
   return (
@@ -212,18 +276,32 @@ export default function AssistantPanel() {
           </div>
         </div>
         <span className="flex gap-0.5">
-          <IconButton size="sm" title={a.openWith} active={launchers} onClick={() => setLaunchers(v => !v)}><ExternalLink size={14} /></IconButton>
-          <IconButton size="sm" title={a.newConversation} onClick={newConversation}><Plus size={14} /></IconButton>
-          <IconButton size="sm" title={a.history} active={!!history} onClick={openHistory}><History size={14} /></IconButton>
-          <IconButton size="sm" title={a.actionJournal} active={!!journal} onClick={openJournal}><ListChecks size={14} /></IconButton>
-          <IconButton size="sm" title={a.close} onClick={() => setOpen(false)}><X size={14} /></IconButton>
+          <IconButton size="sm" title={a.openWith} active={launchers} onClick={() => setLaunchers(v => !v)}>
+            <ExternalLink size={14} />
+          </IconButton>
+          <IconButton size="sm" title={a.newConversation} onClick={newConversation}>
+            <Plus size={14} />
+          </IconButton>
+          <IconButton size="sm" title={a.history} active={!!history} onClick={openHistory}>
+            <History size={14} />
+          </IconButton>
+          <IconButton size="sm" title={a.actionJournal} active={!!journal} onClick={openJournal}>
+            <ListChecks size={14} />
+          </IconButton>
+          <IconButton size="sm" title={a.close} onClick={() => setOpen(false)}>
+            <X size={14} />
+          </IconButton>
         </span>
       </div>
 
       {/* Monthly spending */}
       {usage && (
         <div className="flex shrink-0 items-center gap-2.5 border-b border-line-subtle px-4 py-2.5 font-mono text-xs text-fg-secondary" title={a.costHint}>
-          <span>{conversation ? `${money(conversation.cost)} · ` : ''}{money(usage.spent)}{usage.budget > 0 ? ` / ${usage.budget} $` : ''}</span>
+          <span>
+            {conversation ? `${money(conversation.cost)} · ` : ''}
+            {money(usage.spent)}
+            {usage.budget > 0 ? ` / ${usage.budget} $` : ''}
+          </span>
           <div className="h-1 flex-1 overflow-hidden rounded-full bg-active">
             <div className="df-grow h-full rounded-full bg-forgy" style={{ width: `${spentPct}%` }} />
           </div>
@@ -240,29 +318,51 @@ export default function AssistantPanel() {
 
       {journal ? (
         <div className="flex-1 overflow-y-auto p-3">
-          <button onClick={() => setJournal(null)} className="mb-2 flex items-center gap-1 px-1 text-xs text-fg-muted hover:text-fg"><ChevronLeft size={12} /> {a.back}</button>
+          <button onClick={() => setJournal(null)} className="mb-2 flex items-center gap-1 px-1 text-xs text-fg-muted hover:text-fg">
+            <ChevronLeft size={12} /> {a.back}
+          </button>
           {journal.length === 0 && <p className="p-4 text-center text-sm text-fg-muted">{a.actionJournalEmpty}</p>}
           <div className="flex flex-col gap-2">
             {journal.map(j => (
               <div key={j.id} className="flex flex-col gap-1">
-                <span className="px-1 font-mono text-2xs text-fg-muted">{formatRelative(j.at, lang)}{j.auto ? ` · ${a.actionAuto}` : ''}</span>
-                <ActionCard action={j} onChange={patch => setJournal(list => list && list.map(x => (x.id === j.id ? { ...x, ...patch, canUndo: false } : x)))} />
+                <span className="px-1 font-mono text-2xs text-fg-muted">
+                  {formatRelative(j.at, lang)}
+                  {j.auto ? ` · ${a.actionAuto}` : ''}
+                </span>
+                <ActionCard
+                  action={j}
+                  onChange={patch => setJournal(list => list && list.map(x => (x.id === j.id ? { ...x, ...patch, canUndo: false } : x)))}
+                />
               </div>
             ))}
           </div>
         </div>
       ) : history ? (
         <div className="flex-1 overflow-y-auto p-2">
-          <button onClick={() => setHistory(null)} className="mb-2 flex items-center gap-1 px-2 text-xs text-fg-muted hover:text-fg"><ChevronLeft size={12} /> {a.back}</button>
+          <button onClick={() => setHistory(null)} className="mb-2 flex items-center gap-1 px-2 text-xs text-fg-muted hover:text-fg">
+            <ChevronLeft size={12} /> {a.back}
+          </button>
           {history.length === 0 && <p className="p-4 text-center text-sm text-fg-muted">{a.noHistory}</p>}
           {history.map(h => (
             <div key={h.id} className={cn('group flex items-center gap-2 rounded-lg px-2.5 py-2 hover:bg-elevated', h.id === conversation?.id && 'bg-active')}>
               <button onClick={() => load(h.id)} className="flex min-w-0 flex-1 flex-col text-left">
                 <span className="truncate text-sm text-fg">{h.title}</span>
-                <span className="text-2xs text-fg-muted">{h.projectName ? `${h.projectName} · ` : ''}{formatRelative(h.updatedAt, lang)}</span>
+                <span className="text-2xs text-fg-muted">
+                  {h.projectName ? `${h.projectName} · ` : ''}
+                  {formatRelative(h.updatedAt, lang)}
+                </span>
               </button>
-              <IconButton size="sm" tone="danger" title={t.common.delete} className="invisible group-hover:visible"
-                onClick={async () => { await window.devforge.assistant.remove(h.id); if (h.id === conversation?.id) newConversation(); setHistory(await window.devforge.assistant.list()) }}>
+              <IconButton
+                size="sm"
+                tone="danger"
+                title={t.common.delete}
+                className="invisible group-hover:visible"
+                onClick={async () => {
+                  await window.devforge.assistant.remove(h.id)
+                  if (h.id === conversation?.id) newConversation()
+                  setHistory(await window.devforge.assistant.list())
+                }}
+              >
                 <Trash2 size={12} />
               </IconButton>
             </div>
@@ -273,7 +373,17 @@ export default function AssistantPanel() {
           {/* Conversation */}
           <div ref={scrollRef} className="flex flex-1 flex-col gap-3 overflow-y-auto p-4 text-base leading-relaxed">
             {config && !config.hasKey && (
-              <Notice tone="warning" className="text-sm" action={<Button size="sm" variant="secondary" onClick={() => navigate('/settings?section=forgy')}>{a.openSettings}</Button>}>{a.noKey}</Notice>
+              <Notice
+                tone="warning"
+                className="text-sm"
+                action={
+                  <Button size="sm" variant="secondary" onClick={() => navigate('/settings?section=forgy')}>
+                    {a.openSettings}
+                  </Button>
+                }
+              >
+                {a.noKey}
+              </Notice>
             )}
             {!started && (
               <div className="df-rise flex flex-1 flex-col items-center justify-center gap-3 py-6 text-center">
@@ -282,25 +392,33 @@ export default function AssistantPanel() {
               </div>
             )}
             {items.map((item, i) => {
-              if (item.kind === 'user') return (
-                <div key={i} className="df-rise flex flex-col items-end gap-1">
-                  {item.context.length > 0 && (
-                    <span className="flex items-center gap-1 text-2xs text-fg-muted"><FileText size={10} /> {item.context.join(' · ')}</span>
-                  )}
-                  {/* A pinched corner on the speaker's side, as in the mock-up: no theme radius for it */}
-                  <div className="max-w-[85%] rounded-[14px_14px_4px_14px] bg-elevated px-3 py-2.5 whitespace-pre-wrap text-fg">{item.text}</div>
-                </div>
-              )
-              if (item.kind === 'assistant') return (
-                <div key={i} className="df-rise max-w-[92%] rounded-[4px_14px_14px_14px] border border-line-subtle bg-surface px-3 py-2.5">
-                  <Markdown text={item.text} />
-                </div>
-              )
+              if (item.kind === 'user')
+                return (
+                  <div key={i} className="df-rise flex flex-col items-end gap-1">
+                    {item.context.length > 0 && (
+                      <span className="flex items-center gap-1 text-2xs text-fg-muted">
+                        <FileText size={10} /> {item.context.join(' · ')}
+                      </span>
+                    )}
+                    {/* A pinched corner on the speaker's side, as in the mock-up: no theme radius for it */}
+                    <div className="max-w-[85%] rounded-[14px_14px_4px_14px] bg-elevated px-3 py-2.5 whitespace-pre-wrap text-fg">{item.text}</div>
+                  </div>
+                )
+              if (item.kind === 'assistant')
+                return (
+                  <div key={i} className="df-rise max-w-[92%] rounded-[4px_14px_14px_14px] border border-line-subtle bg-surface px-3 py-2.5">
+                    <Markdown text={item.text} />
+                  </div>
+                )
               if (item.kind === 'tool') return <ToolRow key={i} item={item} />
-              if (item.kind === 'action') return (
-                <ActionCard key={item.id} action={item}
-                  onChange={patch => setItems(list => list.map(x => (x.kind === 'action' && x.id === item.id ? { ...x, ...patch } : x)))} />
-              )
+              if (item.kind === 'action')
+                return (
+                  <ActionCard
+                    key={item.id}
+                    action={item}
+                    onChange={patch => setItems(list => list.map(x => (x.kind === 'action' && x.id === item.id ? { ...x, ...patch } : x)))}
+                  />
+                )
               return (
                 <Notice key={i} tone={item.tone === 'error' ? 'danger' : 'neutral'} className="text-sm">
                   {item.text === 'No API key' ? a.noKey : item.text}
@@ -309,13 +427,17 @@ export default function AssistantPanel() {
             })}
             {running && items[items.length - 1]?.kind !== 'assistant' && (
               <div className="df-typing flex gap-1 text-xl leading-none text-forgy" aria-label={a.thinking}>
-                <span>•</span><span>•</span><span>•</span>
+                <span>•</span>
+                <span>•</span>
+                <span>•</span>
               </div>
             )}
             {longConversation && !running && (
               <div className="flex items-center gap-2 rounded-xl border border-line-subtle bg-canvas p-2.5 text-xs text-fg-muted">
                 <span className="flex-1">{a.longConversation}</span>
-                <Button size="sm" variant="secondary" onClick={newConversation}>{a.newConversation}</Button>
+                <Button size="sm" variant="secondary" onClick={newConversation}>
+                  {a.newConversation}
+                </Button>
               </div>
             )}
           </div>
@@ -326,9 +448,17 @@ export default function AssistantPanel() {
               {shownChips.map(s => {
                 const Icon = SKILL_ICON[s.icon] ?? MessageSquare
                 return (
-                  <button key={s.id} onClick={() => pickSkill(s)} title={s.description[l]}
-                    className={cn('flex h-7.5 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors',
-                      skillId === s.id ? 'border-forgy/50 bg-forgy-soft font-semibold text-forgy' : 'border-line bg-surface text-fg-secondary hover:border-fg-muted hover:text-fg')}>
+                  <button
+                    key={s.id}
+                    onClick={() => pickSkill(s)}
+                    title={s.description[l]}
+                    className={cn(
+                      'flex h-7.5 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors',
+                      skillId === s.id
+                        ? 'border-forgy/50 bg-forgy-soft font-semibold text-forgy'
+                        : 'border-line bg-surface text-fg-secondary hover:border-fg-muted hover:text-fg'
+                    )}
+                  >
                     <Icon size={12} /> {s.label[l]}
                   </button>
                 )
@@ -343,23 +473,38 @@ export default function AssistantPanel() {
             <div className="flex flex-wrap items-center gap-1.5">
               <label className="relative flex h-7 items-center rounded-md border border-line-strong bg-surface pr-1 pl-2.5 text-xs text-fg-secondary focus-within:border-accent">
                 <span className="sr-only">{a.noProject}</span>
-                <select value={projectPath ?? ''} onChange={e => setProjectPath(e.target.value || null)}
-                  className="max-w-[170px] cursor-pointer appearance-none truncate bg-transparent pr-4 outline-none">
+                <select
+                  value={projectPath ?? ''}
+                  onChange={e => setProjectPath(e.target.value || null)}
+                  className="max-w-[170px] cursor-pointer appearance-none truncate bg-transparent pr-4 outline-none"
+                >
                   <option value="">{a.noProject}</option>
-                  {projects.map(p => <option key={p.id} value={p.path}>{p.name}</option>)}
+                  {projects.map(p => (
+                    <option key={p.id} value={p.path}>
+                      {p.name}
+                    </option>
+                  ))}
                 </select>
                 <ChevronDown size={11} className="pointer-events-none absolute right-1.5" />
               </label>
               {pageContext && (
-                <button onClick={() => setAttachPage(v => !v)} title={attachPage ? a.detachPage : a.attachPage}
-                  className={cn('flex h-7 max-w-[180px] items-center gap-1 rounded-md border px-2.5 text-xs transition-colors',
-                    attachPage ? 'border-accent/40 bg-accent-soft text-accent' : 'border-line text-fg-muted line-through')}>
+                <button
+                  onClick={() => setAttachPage(v => !v)}
+                  title={attachPage ? a.detachPage : a.attachPage}
+                  className={cn(
+                    'flex h-7 max-w-[180px] items-center gap-1 rounded-md border px-2.5 text-xs transition-colors',
+                    attachPage ? 'border-accent/40 bg-accent-soft text-accent' : 'border-line text-fg-muted line-through'
+                  )}
+                >
                   <Paperclip size={11} className="shrink-0" /> <span className="truncate">{pageContext.label}</span>
                 </button>
               )}
             </div>
 
-            <div className="flex items-end gap-2 rounded-xl border border-line-strong bg-surface py-1.5 pr-1.5 pl-3 transition-[border-color,box-shadow] focus-within:border-accent focus-within:ring-3 focus-within:ring-accent-soft" title={a.footer}>
+            <div
+              className="flex items-end gap-2 rounded-xl border border-line-strong bg-surface py-1.5 pr-1.5 pl-3 transition-[border-color,box-shadow] focus-within:border-accent focus-within:ring-3 focus-within:ring-accent-soft"
+              title={a.footer}
+            >
               <textarea
                 ref={inputRef}
                 value={input}
@@ -371,22 +516,52 @@ export default function AssistantPanel() {
                   typingTimer.current = setTimeout(() => setTyping(false), 1500)
                 }}
                 onBlur={() => setTyping(false)}
-                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    send()
+                  }
+                }}
                 placeholder={skillId === 'chat' ? a.askForgy : `${skill.label[l]}…`}
                 rows={Math.min(6, Math.max(1, input.split('\n').length))}
                 className="max-h-40 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-base text-fg outline-none placeholder:text-fg-muted"
               />
               {running ? (
-                <button title={a.stop} aria-label={a.stop} onClick={() => idRef.current && window.devforge.assistant.stop(idRef.current)}
-                  className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-fg hover:bg-elevated"><Square size={13} /></button>
+                <button
+                  title={a.stop}
+                  aria-label={a.stop}
+                  onClick={() => idRef.current && window.devforge.assistant.stop(idRef.current)}
+                  className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-fg hover:bg-elevated"
+                >
+                  <Square size={13} />
+                </button>
               ) : (
-                <button title={a.send} aria-label={a.send} disabled={!input.trim()} onClick={() => send()}
-                  className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-forgy text-forgy-fg transition-[transform,opacity] active:scale-95 disabled:opacity-40"><ArrowUp size={16} strokeWidth={2.4} /></button>
+                <button
+                  title={a.send}
+                  aria-label={a.send}
+                  disabled={!input.trim()}
+                  onClick={() => send()}
+                  className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-forgy text-forgy-fg transition-[transform,opacity] active:scale-95 disabled:opacity-40"
+                >
+                  <ArrowUp size={16} strokeWidth={2.4} />
+                </button>
               )}
-              {!running && <DictateButton className="size-8 rounded-lg" onStatus={setDictateLine}
-                onText={text => { setInput(prev => (prev.trim() ? `${prev.trimEnd()} ${text}` : text)); inputRef.current?.focus() }} />}
+              {!running && (
+                <DictateButton
+                  className="size-8 rounded-lg"
+                  onStatus={setDictateLine}
+                  onText={text => {
+                    setInput(prev => (prev.trim() ? `${prev.trimEnd()} ${text}` : text))
+                    inputRef.current?.focus()
+                  }}
+                />
+              )}
             </div>
-            {dictateLine && <p role="status" className="px-1 text-xs text-fg-muted">{dictateLine}</p>}
+            {dictateLine && (
+              <p role="status" className="px-1 text-xs text-fg-muted">
+                {dictateLine}
+              </p>
+            )}
           </div>
         </>
       )}

@@ -19,9 +19,24 @@ export function wipeData(dataDir: string): string[] {
 
 /** What an export carries: the setup, not the history, nor any secret */
 export const EXPORTED = [
-  'settings.json', 'projects.json', 'ssh-connections.json', 'databases.json', 'deploy.json', 'stacks.json',
-  'domains.json', 'monitors.json', 'watch.json', 'n8n.json', 'backups.json', 'status.json', 'vpn.json',
-  'active-project.json', 'project-links.json', 'assistant/config.json', 'doc-commands.json', 'project-notes.json'
+  'settings.json',
+  'projects.json',
+  'ssh-connections.json',
+  'databases.json',
+  'deploy.json',
+  'stacks.json',
+  'domains.json',
+  'monitors.json',
+  'watch.json',
+  'n8n.json',
+  'backups.json',
+  'status.json',
+  'vpn.json',
+  'active-project.json',
+  'project-links.json',
+  'assistant/config.json',
+  'doc-commands.json',
+  'project-notes.json'
 ]
 
 /** Encrypted values, passwords, tokens and keys: never in an export */
@@ -30,7 +45,11 @@ const SECRET = /(Enc|password|passphrase|token|secret|apiKey)$/i
 export function stripSecrets(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stripSecrets)
   if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.entries(value).filter(([k]) => !SECRET.test(k)).map(([k, v]) => [k, stripSecrets(v)]))
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([k]) => !SECRET.test(k))
+        .map(([k, v]) => [k, stripSecrets(v)])
+    )
   }
   return value
 }
@@ -48,7 +67,11 @@ export function exportConfig(dataDir: string, version: string, now = new Date())
   for (const name of EXPORTED) {
     const file = join(dataDir, name)
     if (!existsSync(file)) continue
-    try { files[name] = stripSecrets(JSON.parse(readFileSync(file, 'utf-8'))) } catch { /* not JSON: left out */ }
+    try {
+      files[name] = stripSecrets(JSON.parse(readFileSync(file, 'utf-8')))
+    } catch {
+      /* not JSON: left out */
+    }
   }
   return { app: 'DevForge', format: 1, version, exportedAt: now.toISOString(), files }
 }
@@ -56,7 +79,11 @@ export function exportConfig(dataDir: string, version: string, now = new Date())
 /** Checks an export, then writes its files over the current ones (after a backup); returns their names */
 export function importConfig(dataDir: string, raw: string): string[] {
   let bundle: Partial<ConfigExport>
-  try { bundle = JSON.parse(raw) } catch { throw new Error('NOT_AN_EXPORT') }
+  try {
+    bundle = JSON.parse(raw)
+  } catch {
+    throw new Error('NOT_AN_EXPORT')
+  }
   if (bundle?.app !== 'DevForge' || bundle.format !== 1 || !bundle.files || typeof bundle.files !== 'object') throw new Error('NOT_AN_EXPORT')
   const names = Object.keys(bundle.files).filter(n => EXPORTED.includes(n))
   if (!names.length) throw new Error('NOT_AN_EXPORT')
@@ -91,7 +118,11 @@ function stripServerSecrets(dataDir: string): void {
   const edit = (name: string, change: (data: unknown) => unknown) => {
     const file = join(dataDir, name)
     if (!existsSync(file)) return
-    try { writeFileSync(file, JSON.stringify(change(JSON.parse(readFileSync(file, 'utf-8'))), null, 2)) } catch { /* not JSON: left as is */ }
+    try {
+      writeFileSync(file, JSON.stringify(change(JSON.parse(readFileSync(file, 'utf-8'))), null, 2))
+    } catch {
+      /* not JSON: left as is */
+    }
   }
   const without = (o: unknown, key: string) => {
     if (!o || typeof o !== 'object') return o
@@ -100,5 +131,5 @@ function stripServerSecrets(dataDir: string): void {
   }
   edit('n8n.json', d => ({ ...(d as Json), instances: ((d as Json)?.instances as unknown[] | undefined)?.map(i => without(i, 'keyEnc')) ?? [] }))
   edit('vpn.json', d => ({ ...(d as Json), servers: [] }))
-  edit('databases.json', list => Array.isArray(list) ? list.map(c => ((c as Json)?.sshConnectionId ? without(c, 'passwordEnc') : c)) : list)
+  edit('databases.json', list => (Array.isArray(list) ? list.map(c => ((c as Json)?.sshConnectionId ? without(c, 'passwordEnc') : c)) : list))
 }

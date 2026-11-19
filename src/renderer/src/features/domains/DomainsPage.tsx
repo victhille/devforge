@@ -16,7 +16,11 @@ import Suggestions from '@renderer/components/ui/Suggestions'
 import { Table, Td, Th } from '@renderer/components/ui/Table'
 import { errorText } from '@renderer/lib/errors'
 
-const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+const slug = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
 
 /** One of the three state cards at the top, as in the mock-up */
 function StateCard({ icon, title, detail, action, i }: { icon: ReactNode; title: string; detail: ReactNode; action?: ReactNode; i: number }) {
@@ -52,16 +56,35 @@ export default function DomainsPage() {
     if (!alive.current) return
     setDomains(list)
     setStatus(st)
-    window.devforge.getListeningPorts().then(p => { if (alive.current) setListening(p) }).catch(() => { if (alive.current) setListening([]) })
+    window.devforge
+      .getListeningPorts()
+      .then(p => {
+        if (alive.current) setListening(p)
+      })
+      .catch(() => {
+        if (alive.current) setListening([])
+      })
   }, [])
 
   useEffect(() => {
     alive.current = true
     reload()
-    window.devforge.suggest.domains().then(s => { if (alive.current) setSuggested(s) }).catch(() => {})
+    window.devforge.suggest
+      .domains()
+      .then(s => {
+        if (alive.current) setSuggested(s)
+      })
+      .catch(() => {})
     // The project of each port reads every process's command line: once, when the page opens
-    window.devforge.suggest.portProjects().then(o => { if (alive.current) setOwners(o) }).catch(() => {})
-    return () => { alive.current = false }
+    window.devforge.suggest
+      .portProjects()
+      .then(o => {
+        if (alive.current) setOwners(o)
+      })
+      .catch(() => {})
+    return () => {
+      alive.current = false
+    }
   }, [reload])
 
   async function save(domain: LocalDomain) {
@@ -95,38 +118,79 @@ export default function DomainsPage() {
   const suffix = status?.proxyPort && status.proxyPort !== 80 ? `:${status.proxyPort}` : ''
   const active = domains.filter(x => x.enabled).length
   const proxyOn = !!status?.proxyPort
-  const stateOf = (dom: LocalDomain) => !dom.enabled
-    ? <span className="text-sm text-fg-muted">{d.stateOff}</span>
-    : listening === null
-      ? <span className="text-fg-muted">—</span>
-      : listening.some(l => l.port === dom.port)
-        ? <Badge color="success" dot>{d.stateUp}</Badge>
-        : <Badge>{d.stateDown}</Badge>
+  const stateOf = (dom: LocalDomain) =>
+    !dom.enabled ? (
+      <span className="text-sm text-fg-muted">{d.stateOff}</span>
+    ) : listening === null ? (
+      <span className="text-fg-muted">—</span>
+    ) : listening.some(l => l.port === dom.port) ? (
+      <Badge color="success" dot>
+        {d.stateUp}
+      </Badge>
+    ) : (
+      <Badge>{d.stateDown}</Badge>
+    )
 
   return (
     <Page className="df-mockup">
-      <PageHeader crumb={t.nav.groupSystem} title={d.title}
-        subtitle={<><span className="font-mono">shop.test</span> {d.subtitleInstead} <span className="font-mono">localhost:3000</span>.</>}
-        actions={<Button onClick={() => setAdding(v => !v)} aria-expanded={adding}><Plus size={14} aria-hidden /> {d.newDomain}</Button>}
+      <PageHeader
+        crumb={t.nav.groupSystem}
+        title={d.title}
+        subtitle={
+          <>
+            <span className="font-mono">shop.test</span> {d.subtitleInstead} <span className="font-mono">localhost:3000</span>.
+          </>
+        }
+        actions={
+          <Button onClick={() => setAdding(v => !v)} aria-expanded={adding}>
+            <Plus size={14} aria-hidden /> {d.newDomain}
+          </Button>
+        }
       />
 
       {/* The proxy, the hosts file, the domains on */}
       <div className="grid gap-4 md:grid-cols-3">
-        <StateCard i={0}
+        <StateCard
+          i={0}
           icon={<span aria-hidden className={cn('size-2.5 shrink-0 rounded-full', proxyOn ? 'bg-success df-ping' : active ? 'bg-danger' : 'bg-fg-muted')} />}
           title={proxyOn ? d.proxyRunning : d.proxyOff}
-          detail={status?.proxyError ?? (proxyOn ? (status!.proxyPort !== 80 ? d.portFallback : d.proxyPorts.replace('{port}', String(status!.proxyPort))) : d.proxyHint)} />
-        <StateCard i={1}
-          icon={status?.hostsInSync ? <FileCheck2 size={16} aria-hidden className="shrink-0 text-success" /> : <FileWarning size={16} aria-hidden className="shrink-0 text-warning" />}
+          detail={
+            status?.proxyError ??
+            (proxyOn ? (status!.proxyPort !== 80 ? d.portFallback : d.proxyPorts.replace('{port}', String(status!.proxyPort))) : d.proxyHint)
+          }
+        />
+        <StateCard
+          i={1}
+          icon={
+            status?.hostsInSync ? (
+              <FileCheck2 size={16} aria-hidden className="shrink-0 text-success" />
+            ) : (
+              <FileWarning size={16} aria-hidden className="shrink-0 text-warning" />
+            )
+          }
           title={status?.hostsInSync ? d.hostsOk : d.hostsOutdated}
-          detail={<span className="font-mono" title={status?.hostsPath}>{status?.hostsPath}</span>}
-          action={!status?.hostsInSync && status && (
-            <Button size="sm" onClick={applyHosts} loading={applying}>{!applying && <ShieldCheck size={13} aria-hidden />} {d.applyHosts}</Button>
-          )} />
-        {domains.length > 0 && <StateCard i={2}
-          icon={<ToggleRight size={16} aria-hidden className="shrink-0 text-fg-secondary" />}
-          title={d.activeCount.replace('{n}', String(active)).replace('{total}', String(domains.length))}
-          detail={d.activeHint} />}
+          detail={
+            <span className="font-mono" title={status?.hostsPath}>
+              {status?.hostsPath}
+            </span>
+          }
+          action={
+            !status?.hostsInSync &&
+            status && (
+              <Button size="sm" onClick={applyHosts} loading={applying}>
+                {!applying && <ShieldCheck size={13} aria-hidden />} {d.applyHosts}
+              </Button>
+            )
+          }
+        />
+        {domains.length > 0 && (
+          <StateCard
+            i={2}
+            icon={<ToggleRight size={16} aria-hidden className="shrink-0 text-fg-secondary" />}
+            title={d.activeCount.replace('{n}', String(active)).replace('{total}', String(domains.length))}
+            detail={d.activeHint}
+          />
+        )}
       </div>
 
       {/* A new domain: its name, the port it leads to, or one found in the projects */}
@@ -136,10 +200,21 @@ export default function DomainsPage() {
             <label className="flex min-w-[220px] flex-1 flex-col gap-1.5">
               <span className="text-xs font-medium text-fg-secondary">{d.domain}</span>
               <div className="flex items-center">
-                <Input autoFocus value={draft.name} onChange={e => setDraft(x => ({ ...x, name: e.target.value }))} placeholder="shop" className="rounded-r-none font-mono"
-                  onKeyDown={e => { if (e.key === 'Enter' && draft.name) add(); if (e.key === 'Escape') setAdding(false) }} />
+                <Input
+                  autoFocus
+                  value={draft.name}
+                  onChange={e => setDraft(x => ({ ...x, name: e.target.value }))}
+                  placeholder="shop"
+                  className="rounded-r-none font-mono"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && draft.name) add()
+                    if (e.key === 'Escape') setAdding(false)
+                  }}
+                />
                 {!/\.(test|localhost)$/.test(draft.name) && (
-                  <span className="flex h-9 items-center rounded-r-lg border border-l-0 border-line bg-active px-3 font-mono text-sm text-fg-secondary">.test</span>
+                  <span className="flex h-9 items-center rounded-r-lg border border-l-0 border-line bg-active px-3 font-mono text-sm text-fg-secondary">
+                    .test
+                  </span>
                 )}
               </div>
             </label>
@@ -148,14 +223,22 @@ export default function DomainsPage() {
               <span className="text-xs font-medium text-fg-secondary">localhost:</span>
               <Input type="number" value={draft.port} onChange={e => setDraft(x => ({ ...x, port: e.target.value }))} className="font-mono" />
             </label>
-            <Button variant="ghost" onClick={() => setAdding(false)}>{t.common.cancel}</Button>
-            <Button onClick={add} disabled={!draft.name.trim()}><Plus size={14} aria-hidden /> {d.add}</Button>
+            <Button variant="ghost" onClick={() => setAdding(false)}>
+              {t.common.cancel}
+            </Button>
+            <Button onClick={add} disabled={!draft.name.trim()}>
+              <Plus size={14} aria-hidden /> {d.add}
+            </Button>
           </div>
           <Suggestions
             title={d.suggestions}
             items={suggested.map(s => ({
               key: s.domain,
-              label: <span className="font-mono">{s.domain} → :{s.port}</span>,
+              label: (
+                <span className="font-mono">
+                  {s.domain} → :{s.port}
+                </span>
+              ),
               hint: s.running ? `● ${d.running}` : s.source,
               onPick: async () => {
                 if (await save({ id: crypto.randomUUID(), domain: s.domain, port: s.port, enabled: true })) {
@@ -190,20 +273,35 @@ export default function DomainsPage() {
                     <Td className={cn('font-mono font-bold', dom.enabled ? 'text-fg' : 'font-normal text-fg-muted')}>{dom.domain}</Td>
                     <Td className="font-mono text-fg-secondary">localhost:{dom.port}</Td>
                     <Td>
-                      {owner
-                        ? <Link to={`/project/${owner.projectId}`} className={cn('hover:text-accent', dom.enabled ? 'text-fg' : 'text-fg-muted')}>{owner.projectName}</Link>
-                        : <span className="text-fg-muted">—</span>}
+                      {owner ? (
+                        <Link to={`/project/${owner.projectId}`} className={cn('hover:text-accent', dom.enabled ? 'text-fg' : 'text-fg-muted')}>
+                          {owner.projectName}
+                        </Link>
+                      ) : (
+                        <span className="text-fg-muted">—</span>
+                      )}
                     </Td>
                     <Td>{stateOf(dom)}</Td>
                     <Td align="right">
                       <span className="inline-flex items-center gap-1.5">
-                        <IconButton size="sm" tone="danger" title={d.removeDomain.replace('{domain}', dom.domain)}
+                        <IconButton
+                          size="sm"
+                          tone="danger"
+                          title={d.removeDomain.replace('{domain}', dom.domain)}
                           className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
-                          onClick={async () => { await window.devforge.domains.remove(dom.id); reload() }}>
+                          onClick={async () => {
+                            await window.devforge.domains.remove(dom.id)
+                            reload()
+                          }}
+                        >
                           <Trash2 size={13} />
                         </IconButton>
                         {dom.enabled && proxyOn && (
-                          <IconButton size="sm" title={d.openDomain.replace('{url}', `http://${dom.domain}${suffix}`)} onClick={() => window.devforge.openExternal(`http://${dom.domain}${suffix}`)}>
+                          <IconButton
+                            size="sm"
+                            title={d.openDomain.replace('{url}', `http://${dom.domain}${suffix}`)}
+                            onClick={() => window.devforge.openExternal(`http://${dom.domain}${suffix}`)}
+                          >
                             <ExternalLink size={13} />
                           </IconButton>
                         )}

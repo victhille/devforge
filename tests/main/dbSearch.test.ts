@@ -20,7 +20,8 @@ describe('database search on SQLite', () => {
       'CREATE TABLE client (id INTEGER PRIMARY KEY, name TEXT, email TEXT, city TEXT, score REAL)',
       "INSERT INTO client (name, email, city, score) VALUES ('Élodie Martin', 'elodie@example.com', 'Paris', 4.5), ('Ada', 'ada@example.org', 'Lyon', NULL), ('Linus', NULL, 'Paris 11e', 12)",
       'CREATE INDEX client_lower_email ON client (lower(email))'
-    ]) expect((await dbQuery('search', sql)).error).toBeUndefined()
+    ])
+      expect((await dbQuery('search', sql)).error).toBeUndefined()
   })
   afterAll(() => closeAllDbs())
 

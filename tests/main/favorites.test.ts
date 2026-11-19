@@ -35,8 +35,17 @@ describe('menu favorites', () => {
 
   it('Home widgets: known ones only, once each, and kept from an older copy of the settings', () => {
     expect(cleanWidgets(undefined)).toEqual(DEFAULT_WIDGETS)
-    expect(cleanWidgets([{ id: 'health', size: 'full' }, { id: 'health', size: 'half' }, { id: 'nope', size: 'half' }, { id: 'vpn', size: 'huge' }]))
-      .toEqual([{ id: 'health', size: 'full' }, { id: 'vpn', size: 'half' }])
+    expect(
+      cleanWidgets([
+        { id: 'health', size: 'full' },
+        { id: 'health', size: 'half' },
+        { id: 'nope', size: 'half' },
+        { id: 'vpn', size: 'huge' }
+      ])
+    ).toEqual([
+      { id: 'health', size: 'full' },
+      { id: 'vpn', size: 'half' }
+    ])
     writeFileSync(join(userData(), 'settings.json'), JSON.stringify({ language: 'fr' }))
     const stale = loadSettings()
     expect(stale.homeWidgets).toEqual(DEFAULT_WIDGETS)

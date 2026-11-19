@@ -1,6 +1,9 @@
 // ─── GitHub on the project page ──────────────────────────────────────────────
 
-export interface GithubRepo { owner: string; repo: string }
+export interface GithubRepo {
+  owner: string
+  repo: string
+}
 
 export interface GithubRun {
   id: number
@@ -18,8 +21,23 @@ export interface GithubRun {
   url: string
 }
 
-export interface GithubPull { number: number; title: string; author: string; branch: string; draft: boolean; createdAt: string; url: string }
-export interface GithubRelease { tag: string; name: string; publishedAt: string | null; prerelease: boolean; draft: boolean; url: string }
+export interface GithubPull {
+  number: number
+  title: string
+  author: string
+  branch: string
+  draft: boolean
+  createdAt: string
+  url: string
+}
+export interface GithubRelease {
+  tag: string
+  name: string
+  publishedAt: string | null
+  prerelease: boolean
+  draft: boolean
+  url: string
+}
 
 export interface GithubStatus {
   repo: GithubRepo

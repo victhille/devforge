@@ -25,7 +25,7 @@ export function recordUse(usage: LauncherUsage, id: string, now = Date.now()): L
 }
 
 /** Uses, halved every week without one */
-const frecency = (u: LauncherUsage[string] | undefined, now: number) => u ? u.n * 0.5 ** ((now - u.last) / (7 * DAY)) : 0
+const frecency = (u: LauncherUsage[string] | undefined, now: number) => (u ? u.n * 0.5 ** ((now - u.last) / (7 * DAY)) : 0)
 
 /** Every word must match; title starts and frequent use rank higher */
 function textScore(e: Rankable, words: string[]): number {

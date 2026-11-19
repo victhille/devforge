@@ -87,6 +87,8 @@ jobs:
       - run: npm audit --audit-level=high
       - run: npm run typecheck
       - run: npm run lint
+      # The code's layout is Prettier's (.prettierrc.json): npm run format rewrites it
+      - run: npm run format:check
       - run: npm test
       - run: npm run build
       # The JavaScript of the first screen stays under its budget (scripts/size-budget.mjs)

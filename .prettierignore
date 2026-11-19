@@ -1,0 +1,8 @@
+# Prettier formats the code only (src, tests, scripts): the rest is generated, vendored or prose
+out/
+dist/
+site/
+graphify-out/
+coverage/
+*.md
+package-lock.json

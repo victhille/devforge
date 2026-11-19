@@ -31,8 +31,14 @@ test('a table of 2,500 rows exports in three formats; a CSV imports, or is refus
   })
   const { app, page } = run
   /** The next save dialog answers this path */
-  const saveTo = (path: string) => app.evaluate(({ dialog }, p) => { dialog.showSaveDialog = (async () => ({ canceled: false, filePath: p })) as never }, path)
-  const openFrom = (path: string) => app.evaluate(({ dialog }, p) => { dialog.showOpenDialog = (async () => ({ canceled: false, filePaths: [p] })) as never }, path)
+  const saveTo = (path: string) =>
+    app.evaluate(({ dialog }, p) => {
+      dialog.showSaveDialog = (async () => ({ canceled: false, filePath: p })) as never
+    }, path)
+  const openFrom = (path: string) =>
+    app.evaluate(({ dialog }, p) => {
+      dialog.showOpenDialog = (async () => ({ canceled: false, filePaths: [p] })) as never
+    }, path)
 
   await goTo(page, '/database')
   await page.getByRole('button', { name: /E2E SQLite/ }).click()
@@ -77,9 +83,12 @@ test('a table of 2,500 rows exports in three formats; a CSV imports, or is refus
   expect(await settledAxe(page)).toEqual([])
   await dialog.getByRole('button', { name: 'Importer 2 ligne(s)' }).click()
   await expect(dialog).toHaveCount(0)
-  const count = () => new SQL.Database(readFileSync(file)).exec("SELECT COUNT(*) FROM client")[0].values[0][0]
+  const count = () => new SQL.Database(readFileSync(file)).exec('SELECT COUNT(*) FROM client')[0].values[0][0]
   const last = new SQL.Database(readFileSync(file)).exec('SELECT name, city FROM client WHERE id > 2500 ORDER BY id')[0].values
-  expect(last).toEqual([['Élodie', 'Nîmes'], ['Zoé', null]])
+  expect(last).toEqual([
+    ['Élodie', 'Nîmes'],
+    ['Zoé', null]
+  ])
 
   // A refused row (name is required): none kept, its line named
   writeFileSync(join(dir, 'bad.csv'), 'name,city\nOk,Paris\n,Lyon\n')

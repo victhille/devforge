@@ -27,7 +27,14 @@ export interface BackupPlan {
   savedAt: string
 }
 
-export interface BackupItem { kind: 'db' | 'vol'; name: string; file: string; size: number; ok: boolean; error: string }
+export interface BackupItem {
+  kind: 'db' | 'vol'
+  name: string
+  file: string
+  size: number
+  ok: boolean
+  error: string
+}
 
 /** status.json written by the server's script after each run */
 export interface BackupRun {

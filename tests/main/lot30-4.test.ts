@@ -9,7 +9,12 @@ function profile(): string {
   const dir = tempDir('profile')
   writeFileSync(join(dir, 'settings.json'), JSON.stringify({ language: 'fr', onboarded: true, defaultProjectsDir: 'C:/code' }))
   writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'shop', path: 'C:/code/shop' }]))
-  writeFileSync(join(dir, 'ssh-connections.json'), JSON.stringify([{ id: 's1', name: 'vps', host: '203.0.113.10', username: 'deploy', authMethod: 'privateKey', privateKeyPath: 'C:/keys/id', passwordEnc: 'abc' }]))
+  writeFileSync(
+    join(dir, 'ssh-connections.json'),
+    JSON.stringify([
+      { id: 's1', name: 'vps', host: '203.0.113.10', username: 'deploy', authMethod: 'privateKey', privateKeyPath: 'C:/keys/id', passwordEnc: 'abc' }
+    ])
+  )
   writeFileSync(join(dir, 'github.json'), JSON.stringify({ tokenEnc: 'xyz' }))
   mkdirSync(join(dir, 'assistant'))
   writeFileSync(join(dir, 'assistant', 'config.json'), JSON.stringify({ model: 'claude-sonnet-5-5', keyEnc: 'secret' }))
@@ -62,7 +67,13 @@ describe('v3.0 lot 4: profile', () => {
     const seed = () => {
       writeFileSync(join(other, 'n8n.json'), JSON.stringify({ instances: [{ connectionId: 's1', domain: '', keyEnc: 'k' }] }))
       writeFileSync(join(other, 'vpn.json'), JSON.stringify({ servers: [{ connectionId: 's1', port: 51821, username: 'admin', passwordEnc: 'w' }] }))
-      writeFileSync(join(other, 'databases.json'), JSON.stringify([{ id: 'via', sshConnectionId: 's1', passwordEnc: 'd' }, { id: 'direct', passwordEnc: 'l' }]))
+      writeFileSync(
+        join(other, 'databases.json'),
+        JSON.stringify([
+          { id: 'via', sshConnectionId: 's1', passwordEnc: 'd' },
+          { id: 'direct', passwordEnc: 'l' }
+        ])
+      )
     }
     // Without servers in the file, nothing to forget
     seed()
@@ -73,6 +84,9 @@ describe('v3.0 lot 4: profile', () => {
     importConfig(other, exported)
     expect(read('n8n.json')).toEqual({ instances: [{ connectionId: 's1', domain: '' }] })
     expect(read('vpn.json')).toEqual({ servers: [] })
-    expect(read('databases.json')).toEqual([{ id: 'via', sshConnectionId: 's1' }, { id: 'direct', passwordEnc: 'l' }])
+    expect(read('databases.json')).toEqual([
+      { id: 'via', sshConnectionId: 's1' },
+      { id: 'direct', passwordEnc: 'l' }
+    ])
   })
 })

@@ -34,7 +34,8 @@ function regexp(pattern: unknown, value: unknown): number {
   let re = compiled.get(key)
   if (!re) {
     const { source, ignoreCase } = regexFlags(key)
-    if (riskyRegex(source)) throw new Error(fr() ? 'Expression régulière refusée : elle pourrait bloquer DevForge.' : 'Regular expression refused: it could freeze DevForge.')
+    if (riskyRegex(source))
+      throw new Error(fr() ? 'Expression régulière refusée : elle pourrait bloquer DevForge.' : 'Regular expression refused: it could freeze DevForge.')
     re = new RegExp(source, ignoreCase ? 'i' : '')
     if (compiled.size > 100) compiled.clear()
     compiled.set(key, re)
@@ -45,5 +46,9 @@ function regexp(pattern: unknown, value: unknown): number {
 /** Runs a search's statement with REGEXP on: the statement runs at once (sql.js is synchronous), then it is off again */
 export function withRegexp<T>(db: SqlJsDb, run: () => T): T {
   db.create_function('regexp', regexp)
-  try { return run() } finally { regexpOff(db) }
+  try {
+    return run()
+  } finally {
+    regexpOff(db)
+  }
 }

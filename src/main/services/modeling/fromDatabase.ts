@@ -15,9 +15,18 @@ import { createModel, modelsChanged, projectDir, readModel, saveModel } from './
 
 export const IMPORT_STEPS = ['connect', 'read', 'mcd', 'mpd', 'write'] as const
 
-export interface ImportResult { mcd: string; mpd: string; tables: number }
+export interface ImportResult {
+  mcd: string
+  mpd: string
+  tables: number
+}
 
-export async function modelFromDatabase(projectPath: string, connectionId: string, name: string, onProgress: (p: ModelProgress) => void = () => {}): Promise<ImportResult> {
+export async function modelFromDatabase(
+  projectPath: string,
+  connectionId: string,
+  name: string,
+  onProgress: (p: ModelProgress) => void = () => {}
+): Promise<ImportResult> {
   projectDir(projectPath)
   const conn = listDbConnections().find(c => c.id === connectionId)
   if (!conn) throw new Error('Unknown connection')
@@ -35,7 +44,10 @@ export async function modelFromDatabase(projectPath: string, connectionId: strin
   const mcdFile = createModel(projectPath, 'mcd', clean)
   const mpdFile = mcdFile.replace(/\.mcd\.json$/, '.mpd.json')
   // An MPD of that name left alone by an MCD removed earlier: never written over
-  if (existsSync(join(projectDir(projectPath), 'conception', mpdFile))) { removeModels(projectPath, [mcdFile]); throw new Error(`conception/${mpdFile} already exists: choose another name`) }
+  if (existsSync(join(projectDir(projectPath), 'conception', mpdFile))) {
+    removeModels(projectPath, [mcdFile])
+    throw new Error(`conception/${mpdFile} already exists: choose another name`)
+  }
   try {
     const { mcd, naming, mpd } = importDb(diagram, conn.type, mcdFile)
     saveModel(projectPath, mcdFile, { v: 1, kind: 'mcd', name: clean, updatedAt: '', mcd, naming })
@@ -72,5 +84,11 @@ export function mcdFromMpdFile(projectPath: string, mpdFile: string): { mcd: str
 /** Files of conception/ removed (Forgy's undo, a failed import) */
 export function removeModels(projectPath: string, files: string[]): string[] {
   const dir = join(projectDir(projectPath), 'conception')
-  return files.filter(f => MODEL_FILE_RE.test(f) && existsSync(join(dir, f))).map(f => { rmSync(join(dir, f), { force: true }); modelsChanged(join(dir, f)); return f })
+  return files
+    .filter(f => MODEL_FILE_RE.test(f) && existsSync(join(dir, f)))
+    .map(f => {
+      rmSync(join(dir, f), { force: true })
+      modelsChanged(join(dir, f))
+      return f
+    })
 }

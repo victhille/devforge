@@ -17,22 +17,56 @@ export const SYMFONY_AUTH_PACKAGES: [string, string][] = [
 
 const TEXT = {
   fr: {
-    name: 'Nom', email: 'E-mail', password: 'Mot de passe', home: 'Accueil',
-    loginTitle: 'Se connecter', loginLead: 'Content de vous revoir.', noAccount: 'Pas encore de compte ?', toRegister: 'Créer un compte',
-    registerTitle: 'Créer un compte', registerLead: 'Quelques secondes, et vous y êtes.', registerSubmit: 'Créer mon compte', hasAccount: 'Déjà un compte ?',
-    hello: 'Bonjour', signedIn: 'Vous êtes connecté.', logout: 'Se déconnecter', apiTitle: 'Votre API',
-    apiLead: 'Ces routes suivent le contrat DevForge : un front React ou Vue créé par DevForge s\'y branche tel quel.',
-    errName: 'Indiquez un nom.', errEmail: 'Indiquez une adresse e-mail valide.', errPassword: `Au moins ${AUTH_RULES.passwordMin} caractères.`,
-    errTaken: 'Cette adresse a déjà un compte.', errInvalid: 'E-mail ou mot de passe incorrect.', errAuth: 'Connectez-vous d\'abord.', errForm: 'Le formulaire a expiré, réessayez.'
+    name: 'Nom',
+    email: 'E-mail',
+    password: 'Mot de passe',
+    home: 'Accueil',
+    loginTitle: 'Se connecter',
+    loginLead: 'Content de vous revoir.',
+    noAccount: 'Pas encore de compte ?',
+    toRegister: 'Créer un compte',
+    registerTitle: 'Créer un compte',
+    registerLead: 'Quelques secondes, et vous y êtes.',
+    registerSubmit: 'Créer mon compte',
+    hasAccount: 'Déjà un compte ?',
+    hello: 'Bonjour',
+    signedIn: 'Vous êtes connecté.',
+    logout: 'Se déconnecter',
+    apiTitle: 'Votre API',
+    apiLead: "Ces routes suivent le contrat DevForge : un front React ou Vue créé par DevForge s'y branche tel quel.",
+    errName: 'Indiquez un nom.',
+    errEmail: 'Indiquez une adresse e-mail valide.',
+    errPassword: `Au moins ${AUTH_RULES.passwordMin} caractères.`,
+    errTaken: 'Cette adresse a déjà un compte.',
+    errInvalid: 'E-mail ou mot de passe incorrect.',
+    errAuth: "Connectez-vous d'abord.",
+    errForm: 'Le formulaire a expiré, réessayez.'
   },
   en: {
-    name: 'Name', email: 'Email', password: 'Password', home: 'Home',
-    loginTitle: 'Sign in', loginLead: 'Good to see you again.', noAccount: 'No account yet?', toRegister: 'Create an account',
-    registerTitle: 'Create an account', registerLead: 'A few seconds, and you are in.', registerSubmit: 'Create my account', hasAccount: 'Already have an account?',
-    hello: 'Hello', signedIn: 'You are signed in.', logout: 'Sign out', apiTitle: 'Your API',
+    name: 'Name',
+    email: 'Email',
+    password: 'Password',
+    home: 'Home',
+    loginTitle: 'Sign in',
+    loginLead: 'Good to see you again.',
+    noAccount: 'No account yet?',
+    toRegister: 'Create an account',
+    registerTitle: 'Create an account',
+    registerLead: 'A few seconds, and you are in.',
+    registerSubmit: 'Create my account',
+    hasAccount: 'Already have an account?',
+    hello: 'Hello',
+    signedIn: 'You are signed in.',
+    logout: 'Sign out',
+    apiTitle: 'Your API',
     apiLead: 'These routes follow the DevForge contract: a React or Vue front made by DevForge plugs in as is.',
-    errName: 'Enter a name.', errEmail: 'Enter a valid email address.', errPassword: `At least ${AUTH_RULES.passwordMin} characters.`,
-    errTaken: 'This address already has an account.', errInvalid: 'Wrong email or password.', errAuth: 'Sign in first.', errForm: 'The form expired, try again.'
+    errName: 'Enter a name.',
+    errEmail: 'Enter a valid email address.',
+    errPassword: `At least ${AUTH_RULES.passwordMin} characters.`,
+    errTaken: 'This address already has an account.',
+    errInvalid: 'Wrong email or password.',
+    errAuth: 'Sign in first.',
+    errForm: 'The form expired, try again.'
   }
 }
 type T = typeof TEXT.fr
@@ -87,7 +121,8 @@ when@test:
                 memory_cost: 10
 `
 
-const USER_ENTITY = String.raw`<?php
+const USER_ENTITY =
+  String.raw`<?php
 
 namespace App\Entity;
 
@@ -97,7 +132,9 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: '` + '`user`' + String.raw`')]
+#[ORM\Table(name: '` +
+  '`user`' +
+  String.raw`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -235,7 +272,8 @@ final class AccessTokenHandler implements AccessTokenHandlerInterface
 }
 `
 
-const authRules = (t: T) => String.raw`<?php
+const authRules = (t: T) =>
+  String.raw`<?php
 
 namespace App\Security;
 
@@ -243,13 +281,27 @@ namespace App\Security;
 final class AuthRules
 {
     public const MESSAGES = [
-        'name' => ` + php(t.errName) + String.raw`,
-        'email' => ` + php(t.errEmail) + String.raw`,
-        'password' => ` + php(t.errPassword) + String.raw`,
-        'taken' => ` + php(t.errTaken) + String.raw`,
-        'invalid' => ` + php(t.errInvalid) + String.raw`,
-        'unauthenticated' => ` + php(t.errAuth) + String.raw`,
-        'form' => ` + php(t.errForm) + String.raw`,
+        'name' => ` +
+  php(t.errName) +
+  String.raw`,
+        'email' => ` +
+  php(t.errEmail) +
+  String.raw`,
+        'password' => ` +
+  php(t.errPassword) +
+  String.raw`,
+        'taken' => ` +
+  php(t.errTaken) +
+  String.raw`,
+        'invalid' => ` +
+  php(t.errInvalid) +
+  String.raw`,
+        'unauthenticated' => ` +
+  php(t.errAuth) +
+  String.raw`,
+        'form' => ` +
+  php(t.errForm) +
+  String.raw`,
     ];
 
     /** Trimmed values: name, email in lower case, password as typed */
@@ -266,13 +318,19 @@ final class AuthRules
     public static function check(array $data, bool $withName): array
     {
         $errors = [];
-        if ($withName && ('' === $data['name'] || mb_strlen($data['name']) > ` + AUTH_RULES.nameMax + String.raw`)) {
+        if ($withName && ('' === $data['name'] || mb_strlen($data['name']) > ` +
+  AUTH_RULES.nameMax +
+  String.raw`)) {
             $errors['name'] = [self::MESSAGES['name']];
         }
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL) || mb_strlen($data['email']) > ` + AUTH_RULES.emailMax + String.raw`) {
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL) || mb_strlen($data['email']) > ` +
+  AUTH_RULES.emailMax +
+  String.raw`) {
             $errors['email'] = [self::MESSAGES['email']];
         }
-        if (mb_strlen($data['password']) < ` + AUTH_RULES.passwordMin + String.raw`) {
+        if (mb_strlen($data['password']) < ` +
+  AUTH_RULES.passwordMin +
+  String.raw`) {
             $errors['password'] = [self::MESSAGES['password']];
         }
 

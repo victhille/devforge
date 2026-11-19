@@ -18,7 +18,12 @@ test('an MCD drawn, checked and saved in the project, then found again in the li
     seed: dir => {
       project = join(dir, 'shop')
       mkdirSync(project, { recursive: true })
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 's', name: 'shop', path: project, framework: 'other', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          { id: 's', name: 'shop', path: project, framework: 'other', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page, app } = run
@@ -30,7 +35,10 @@ test('an MCD drawn, checked and saved in the project, then found again in the li
 
   // Created from its tile: an empty MCD, in conception/
   await page.getByRole('button', { name: 'Nouveau modèle', exact: true }).click()
-  await page.getByRole('dialog', { name: 'Quel modèle ?' }).getByRole('button', { name: /Modèle conceptuel/ }).click()
+  await page
+    .getByRole('dialog', { name: 'Quel modèle ?' })
+    .getByRole('button', { name: /Modèle conceptuel/ })
+    .click()
   const dialog = page.getByRole('dialog', { name: 'Nouveau : Modèle conceptuel' })
   await dialog.getByLabel('Nom').fill('Boutique')
   await dialog.getByRole('button', { name: 'Créer' }).click()
@@ -62,17 +70,25 @@ test('an MCD drawn, checked and saved in the project, then found again in the li
   await expect(page.getByRole('button', { name: 'Cardinalité de Commande dans Passer : 1,1' })).toBeVisible()
 
   // Saved in the project's file
-  await expect.poll(() => {
-    const m = JSON.parse(readFileSync(file, 'utf-8')).mcd
-    return [m.entities.map((e: { name: string }) => e.name).join(','), m.associations[0]?.name, m.links.map((l: { card: string }) => l.card).join(',')]
-  }, { timeout: 10_000 }).toEqual(['Client,Commande', 'Passer', '0,n,1,1'])
+  await expect
+    .poll(
+      () => {
+        const m = JSON.parse(readFileSync(file, 'utf-8')).mcd
+        return [m.entities.map((e: { name: string }) => e.name).join(','), m.associations[0]?.name, m.links.map((l: { card: string }) => l.card).join(',')]
+      },
+      { timeout: 10_000 }
+    )
+    .toEqual(['Client,Commande', 'Passer', '0,n,1,1'])
   await expect(page.getByRole('status').filter({ hasText: 'Enregistré · conception/boutique.mcd.json' })).toBeVisible()
 
   // The check: nothing wrong; then an identifier taken away is reported
   await page.getByRole('button', { name: /^Vérifier/ }).click()
   await expect(panel).toContainText('Rien à signaler')
   await page.locator('[data-entity="Client"]').click()
-  await panel.getByRole('checkbox', { name: /fait partie de l’identifiant/ }).first().uncheck()
+  await panel
+    .getByRole('checkbox', { name: /fait partie de l’identifiant/ })
+    .first()
+    .uncheck()
   await page.getByRole('button', { name: /^Vérifier/ }).click()
   await expect(panel).toContainText('Client n’a pas d’identifiant')
   // Undone: sound again

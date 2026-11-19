@@ -14,10 +14,12 @@ import { tempDir } from '../helpers'
  */
 const nowhere = () => join(tempDir(), 'missing')
 const SETUP = { database: 'postgres', dbName: 'shop', dbPort: 5432, features: ['api'], git: true, github: null, openVSCode: false }
-const create = (options: Record<string, unknown>) => () => createProject(
-  { name: 'shop', framework: 'react', packageManager: 'npm', destination: nowhere(), ...options } as never,
-  () => {}, () => {}
-)
+const create = (options: Record<string, unknown>) => () =>
+  createProject(
+    { name: 'shop', framework: 'react', packageManager: 'npm', destination: nowhere(), ...options } as never,
+    () => {},
+    () => {}
+  )
 const withSetup = (setup: Record<string, unknown>) => create({ setup: { ...SETUP, ...setup } })
 
 describe('the packages a new project installs', () => {
@@ -30,7 +32,8 @@ describe('the packages a new project installs', () => {
   })
 
   it('refuses what npm would read as a folder or a file instead of a package', () => {
-    for (const spec of ['zod@..', 'zod@.', 'zod@-1', 'evil.tgz', 'evil.tar', 'evil.tar.gz', 'evil.tar-gz', 'zod@evil.tgz', 'zod@x.tar']) expect(isPackageSpec(spec)).toBe(false)
+    for (const spec of ['zod@..', 'zod@.', 'zod@-1', 'evil.tgz', 'evil.tar', 'evil.tar.gz', 'evil.tar-gz', 'zod@evil.tgz', 'zod@x.tar'])
+      expect(isPackageSpec(spec)).toBe(false)
   })
 
   it('lets every library of the catalog through', () => {

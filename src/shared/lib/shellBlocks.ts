@@ -41,7 +41,10 @@ export class MarkerParser {
       const bel = rest.indexOf('\x07')
       const st = rest.indexOf('\x1b\\')
       const end = bel < 0 ? st : st < 0 ? bel : Math.min(bel, st)
-      if (end < 0) { this.pending = s.slice(at); return events }
+      if (end < 0) {
+        this.pending = s.slice(at)
+        return events
+      }
       const body = rest.slice(0, end)
       s = rest.slice(end + (end === bel ? 1 : 2))
       const ev = toEvent(body)
@@ -101,7 +104,7 @@ export const POWERSHELL_INIT = [
 
 /** Bash (Git Bash on this PC, or the server's shell over SSH) */
 export const BASH_INIT = [
-  "__df_prompt() { local c=$?; printf '\\033]633;A\\007\\033]633;D;%s\\007\\033]633;P;Cwd=%s\\007' \"$c\" \"$PWD\"; }",
+  '__df_prompt() { local c=$?; printf \'\\033]633;A\\007\\033]633;D;%s\\007\\033]633;P;Cwd=%s\\007\' "$c" "$PWD"; }',
   'PROMPT_COMMAND=__df_prompt',
   "PS1='$ \\[\\033]633;B\\007\\]'"
 ].join('\n')

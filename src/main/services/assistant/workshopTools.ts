@@ -21,7 +21,11 @@ const FIELD_TYPES: SfFieldType[] = ['string', 'text', 'integer', 'float', 'decim
 const KINDS: SfRelationKind[] = ['ManyToOne', 'OneToMany', 'ManyToMany', 'OneToOne']
 
 const readJson = (file: string): Record<string, Record<string, string> | undefined> => {
-  try { return JSON.parse(readFileSync(file, 'utf-8')) } catch { return {} }
+  try {
+    return JSON.parse(readFileSync(file, 'utf-8'))
+  } catch {
+    return {}
+  }
 }
 
 /** Which workshop a project has */
@@ -36,14 +40,29 @@ export function workshopOf(p: Project): Workshop {
 async function read(p: Project, w: Workshop): Promise<{ head: string; entities: SfEntity[]; migrations: SfMigration[]; down: string | null }> {
   if (w === 'symfony') {
     const { status, entities, migrations } = await symfonyInspect(p.path)
-    return { head: `Symfony ${status.version} · database ${status.database?.reachable ? 'reachable' : 'NOT reachable'}`, entities, migrations, down: status.booted ? null : `Symfony does not start: ${status.error ?? 'unknown error'}` }
+    return {
+      head: `Symfony ${status.version} · database ${status.database?.reachable ? 'reachable' : 'NOT reachable'}`,
+      entities,
+      migrations,
+      down: status.booted ? null : `Symfony does not start: ${status.error ?? 'unknown error'}`
+    }
   }
   if (w === 'laravel') {
     const { status, entities, migrations } = await laravelInspect(p.path)
-    return { head: `Laravel ${status.version ?? '?'}${status.sail ? ' (Sail)' : ''} · database ${status.database.reachable ? 'reachable' : 'NOT reachable'}`, entities, migrations, down: status.booted || status.error === 'SAIL_DOWN' ? null : `Laravel does not start: ${status.error ?? 'unknown error'}` }
+    return {
+      head: `Laravel ${status.version ?? '?'}${status.sail ? ' (Sail)' : ''} · database ${status.database.reachable ? 'reachable' : 'NOT reachable'}`,
+      entities,
+      migrations,
+      down: status.booted || status.error === 'SAIL_DOWN' ? null : `Laravel does not start: ${status.error ?? 'unknown error'}`
+    }
   }
   const { status, entities, migrations } = await nextInspect(p.path)
-  return { head: `Next.js · Prisma ${status.prismaVersion ?? '?'} (${status.provider ?? '?'}) · database ${status.database.reachable ? 'reachable' : 'NOT reachable'}`, entities, migrations, down: null }
+  return {
+    head: `Next.js · Prisma ${status.prismaVersion ?? '?'} (${status.provider ?? '?'}) · database ${status.database.reachable ? 'reachable' : 'NOT reachable'}`,
+    entities,
+    migrations,
+    down: null
+  }
 }
 
 export async function workshopModelsText(p: Project): Promise<string> {
@@ -51,31 +70,44 @@ export async function workshopModelsText(p: Project): Promise<string> {
   const { head, entities, migrations, down } = await read(p, w)
   if (down) return down
   const pending = migrations.filter(m => !m.executed)
-  return [
-    `${LABEL[w]} · ${head} · ${pending.length} pending migration(s)`,
-    ...entities.map(e => [
-      `${e.name} (${e.file}${e.apiResource ? ', API Platform' : ''})`,
-      ...e.fields.map(f => `  ${f.name}: ${f.type}${f.nullable ? '' : ', required'}${f.unique ? ', unique' : ''}`),
-      ...e.relations.map(r => `  ${r.name}: ${r.kind} → ${r.target}${r.inverse ? ` (other side: ${r.inverse})` : ''}`)
-    ].join('\n')),
-    // What applying would run, so it can be explained first
-    ...pending.map(m => `Pending migration ${m.version}${m.dangerous ? ' (DROPS DATA)' : ''}:\n${m.sql.join(';\n').slice(0, 3000) || '(no SQL known)'}`)
-  ].join('\n') || 'No model.'
+  return (
+    [
+      `${LABEL[w]} · ${head} · ${pending.length} pending migration(s)`,
+      ...entities.map(e =>
+        [
+          `${e.name} (${e.file}${e.apiResource ? ', API Platform' : ''})`,
+          ...e.fields.map(f => `  ${f.name}: ${f.type}${f.nullable ? '' : ', required'}${f.unique ? ', unique' : ''}`),
+          ...e.relations.map(r => `  ${r.name}: ${r.kind} → ${r.target}${r.inverse ? ` (other side: ${r.inverse})` : ''}`)
+        ].join('\n')
+      ),
+      // What applying would run, so it can be explained first
+      ...pending.map(m => `Pending migration ${m.version}${m.dangerous ? ' (DROPS DATA)' : ''}:\n${m.sql.join(';\n').slice(0, 3000) || '(no SQL known)'}`)
+    ].join('\n') || 'No model.'
+  )
 }
 
 function field(v: unknown): SfField {
   const f = (v ?? {}) as Record<string, unknown>
-  const type = FIELD_TYPES.includes(f.type as SfFieldType) ? f.type as SfFieldType : 'string'
+  const type = FIELD_TYPES.includes(f.type as SfFieldType) ? (f.type as SfFieldType) : 'string'
   return {
-    name: String(f.name ?? ''), type, nullable: f.required === false, unique: f.unique === true,
+    name: String(f.name ?? ''),
+    type,
+    nullable: f.required === false,
+    unique: f.unique === true,
     ...(type === 'string' && Number(f.length) > 0 ? { length: Number(f.length) } : {})
   }
 }
 
 function relation(v: unknown): SfRelation {
   const r = (v ?? {}) as Record<string, unknown>
-  const kind = KINDS.includes(r.kind as SfRelationKind) ? r.kind as SfRelationKind : 'ManyToOne'
-  return { name: String(r.name ?? ''), kind, target: String(r.target ?? ''), inverse: typeof r.inverse === 'string' && r.inverse ? r.inverse : null, nullable: r.required === false }
+  const kind = KINDS.includes(r.kind as SfRelationKind) ? (r.kind as SfRelationKind) : 'ManyToOne'
+  return {
+    name: String(r.name ?? ''),
+    kind,
+    target: String(r.target ?? ''),
+    inverse: typeof r.inverse === 'string' && r.inverse ? r.inverse : null,
+    nullable: r.required === false
+  }
 }
 
 /** Checks the draft like the workshop would, then opens the form filled in */
@@ -85,12 +117,15 @@ export async function workshopDraft(p: Project, input: Record<string, unknown>):
   const names = entities.map(e => e.name)
   const name = String(input.entity ?? '')
   const draft: SfEntityDraft = {
-    name, existing: names.includes(name),
+    name,
+    existing: names.includes(name),
     fields: Array.isArray(input.fields) ? input.fields.map(field) : [],
     relations: Array.isArray(input.relations) ? input.relations.map(relation) : []
   }
   const error = checkDraft(draft, names)
-  if (error) throw new ToolError(`The draft is not valid (${error}). Models: ${names.join(', ') || 'none'}. Names: model PascalCase, fields camelCase, not "id".`)
-  for (const win of BrowserWindow.getAllWindows()) if (!win.isDestroyed()) win.webContents.send('symfony:draft', { projectId: p.id, projectPath: p.path, tab: w, draft })
+  if (error)
+    throw new ToolError(`The draft is not valid (${error}). Models: ${names.join(', ') || 'none'}. Names: model PascalCase, fields camelCase, not "id".`)
+  for (const win of BrowserWindow.getAllWindows())
+    if (!win.isDestroyed()) win.webContents.send('symfony:draft', { projectId: p.id, projectPath: p.path, tab: w, draft })
   return `The ${draft.existing ? `additions to ${name}` : `new model ${name}`} are filled in the ${LABEL[w].split(' ')[0]} workshop of ${p.name}. Nothing is written yet: the user checks the form and clicks to create it, then prepares the migration.`
 }

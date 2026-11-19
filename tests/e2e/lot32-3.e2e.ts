@@ -19,9 +19,20 @@ test('n8n key and ntfy alerts are set from Connections', async () => {
   run = await launch({
     env: { DEVFORGE_TEST_VPS: '{userData}/vps.json' },
     seed: dir => {
-      writeFileSync(join(dir, 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'mon-serveur', host: '203.0.113.10', port: 1, username: 'deploy', authMethod: 'privateKey', color: '', createdAt: '' }]))
-      writeFileSync(join(dir, 'n8n.json'), JSON.stringify({ instances: [{ connectionId: 'v1', domain: 'n8n.example.com', exposure: 'caddy', installedAt: '2026-10-27T10:00:00Z' }] }))
-      writeFileSync(join(dir, 'status.json'), JSON.stringify({ pages: [{ connectionId: 'v1', exposure: 'caddy', domain: 'status.example.com', installedAt: '2026-10-27T10:00:00Z' }] }))
+      writeFileSync(
+        join(dir, 'ssh-connections.json'),
+        JSON.stringify([
+          { id: 'v1', name: 'mon-serveur', host: '203.0.113.10', port: 1, username: 'deploy', authMethod: 'privateKey', color: '', createdAt: '' }
+        ])
+      )
+      writeFileSync(
+        join(dir, 'n8n.json'),
+        JSON.stringify({ instances: [{ connectionId: 'v1', domain: 'n8n.example.com', exposure: 'caddy', installedAt: '2026-10-27T10:00:00Z' }] })
+      )
+      writeFileSync(
+        join(dir, 'status.json'),
+        JSON.stringify({ pages: [{ connectionId: 'v1', exposure: 'caddy', domain: 'status.example.com', installedAt: '2026-10-27T10:00:00Z' }] })
+      )
       writeFileSync(join(dir, 'vps.json'), JSON.stringify({ statusOverview: ['yes', 'status|running', JSON.stringify(config), '', '', '', ''].join(SEP) }))
     }
   })

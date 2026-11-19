@@ -6,12 +6,21 @@ import { API_URL_RE, spaAuthFiles } from '../../src/shared/lib/spaAuthTemplate'
 
 /** A React or Vue front, client of the shared contract (checked by a real `npm run build` of both Vite templates while writing it) */
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
-  database: 'none', dbName: '', dbPort: 0, features: ['auth'], git: false, github: null, openVSCode: false, apiUrl: 'http://localhost:3000/', ...s
+  database: 'none',
+  dbName: '',
+  dbPort: 0,
+  features: ['auth'],
+  git: false,
+  github: null,
+  openVSCode: false,
+  apiUrl: 'http://localhost:3000/',
+  ...s
 })
 const ctx = { password: 'pw', secret: 's', lang: 'fr' as const, composeName: '' }
 const plan = (framework: 'react' | 'vue', s: Partial<ProjectSetup> = {}, typescript = true) =>
   planSetup({ name: 'shop', framework, packageManager: 'npm', typescript, eslint: true, setup: setup(s) }, ctx)
-const line = (step: SetupStep) => step.kind === 'run' ? stepCommand(step) : `${step.kind}:${step.kind === 'write' ? step.files.map(f => f.path).join(',') : step.label}`
+const line = (step: SetupStep) =>
+  step.kind === 'run' ? stepCommand(step) : `${step.kind}:${step.kind === 'write' ? step.files.map(f => f.path).join(',') : step.label}`
 
 describe('React and Vue authentication', () => {
   it('calls every route of the contract with the token as Bearer', () => {
@@ -30,8 +39,12 @@ describe('React and Vue authentication', () => {
     expect(react[0].text).toBe("import App from './Router'")
     // The address the wizard gave, without its trailing slash
     expect(react[1].text).toContain("'/api': { target: 'http://localhost:3000', changeOrigin: true }")
-    const vue = plan('vue').filter(s => s.kind === 'write').flatMap(s => s.kind === 'write' ? s.files.map(f => f.path) : [])
-    expect(vue).toEqual(expect.arrayContaining(['src/Router.vue', 'src/components/AuthForm.vue', 'src/components/AccountNav.vue', 'src/pages/Dashboard.vue', 'src/api/auth.ts']))
+    const vue = plan('vue')
+      .filter(s => s.kind === 'write')
+      .flatMap(s => (s.kind === 'write' ? s.files.map(f => f.path) : []))
+    expect(vue).toEqual(
+      expect.arrayContaining(['src/Router.vue', 'src/components/AuthForm.vue', 'src/components/AccountNav.vue', 'src/pages/Dashboard.vue', 'src/api/auth.ts'])
+    )
   })
 
   it('keeps the look in devforge.css: no style in the views', () => {

@@ -8,10 +8,7 @@ import { cn } from '@renderer/lib/cn'
 export function Table({ className, ...rest }: HTMLAttributes<HTMLTableElement>) {
   return (
     <div className="overflow-x-auto">
-      <table
-        {...rest}
-        className={cn('w-full border-collapse text-sm [&_tbody_tr:hover_td]:bg-elevated [&_tbody_tr:last-child_td]:border-b-0', className)}
-      />
+      <table {...rest} className={cn('w-full border-collapse text-sm [&_tbody_tr:hover_td]:bg-elevated [&_tbody_tr:last-child_td]:border-b-0', className)} />
     </div>
   )
 }
@@ -21,7 +18,11 @@ export function Th({ className, align, ...rest }: Omit<ThHTMLAttributes<HTMLTabl
   return (
     <th
       {...rest}
-      className={cn('h-8.5 border-b border-line-subtle px-3.5 text-left text-xs font-semibold whitespace-nowrap text-fg-muted', align === 'right' && 'text-right', className)}
+      className={cn(
+        'h-8.5 border-b border-line-subtle px-3.5 text-left text-xs font-semibold whitespace-nowrap text-fg-muted',
+        align === 'right' && 'text-right',
+        className
+      )}
     />
   )
 }

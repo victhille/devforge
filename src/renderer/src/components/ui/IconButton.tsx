@@ -8,10 +8,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 /** Square icon-only button. Always pass a `title` for accessibility. */
-const IconButton = forwardRef<HTMLButtonElement, Props>(function IconButton(
-  { active, tone = 'default', size = 'md', className, ...rest },
-  ref
-) {
+const IconButton = forwardRef<HTMLButtonElement, Props>(function IconButton({ active, tone = 'default', size = 'md', className, ...rest }, ref) {
   return (
     <button
       ref={ref}

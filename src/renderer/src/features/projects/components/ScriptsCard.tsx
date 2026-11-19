@@ -33,7 +33,13 @@ export function useNow(active: boolean): number {
  * project listens on), and stops from here. `title` and `extra` let the overview
  * reuse the list in its own card.
  */
-export function ScriptList({ scripts, runs, port, onRun, onStop }: {
+export function ScriptList({
+  scripts,
+  runs,
+  port,
+  onRun,
+  onStop
+}: {
   scripts: [string, string][]
   runs: Record<string, number | null>
   /** The port the project listens on, shown beside a script that runs */
@@ -56,9 +62,15 @@ export function ScriptList({ scripts, runs, port, onRun, onStop }: {
             <span className={cn('min-w-0 flex-1 truncate font-mono text-xs', since != null ? 'text-success' : 'text-fg-muted')} title={cmd}>
               {since != null ? [port ? `:${port}` : null, h.scriptRunning, runFor(since, now)].filter(Boolean).join(' · ') : cmd}
             </span>
-            {since != null
-              ? <IconButton size="sm" title={h.scriptStop.replace('{name}', name)} onClick={() => onStop(name)}><Square size={12} /></IconButton>
-              : <IconButton size="sm" title={h.scriptRun.replace('{name}', name)} onClick={() => onRun(name)}><Play size={13} /></IconButton>}
+            {since != null ? (
+              <IconButton size="sm" title={h.scriptStop.replace('{name}', name)} onClick={() => onStop(name)}>
+                <Square size={12} />
+              </IconButton>
+            ) : (
+              <IconButton size="sm" title={h.scriptRun.replace('{name}', name)} onClick={() => onRun(name)}>
+                <Play size={13} />
+              </IconButton>
+            )}
           </li>
         )
       })}
@@ -71,7 +83,12 @@ function Shortcuts() {
   const { t } = useI18n()
   const h = t.hub
   const keys: [ReactNode, string][] = [
-    [<><Kbd>→</Kbd> <Kbd>{h.keyEnd}</Kbd></>, h.shortcutAccept],
+    [
+      <>
+        <Kbd>→</Kbd> <Kbd>{h.keyEnd}</Kbd>
+      </>,
+      h.shortcutAccept
+    ],
     [<Kbd>↑</Kbd>, h.shortcutPrev],
     [<Kbd>Ctrl R</Kbd>, h.shortcutSearch],
     [<Kbd>Ctrl L</Kbd>, h.shortcutClear],

@@ -17,16 +17,28 @@ describe('translations', () => {
     expect(paths(fr).length).toBeGreaterThan(300)
     const fp = new Set(paths(fr))
     const ep = new Set(paths(en))
-    expect([...fp].filter(p => !ep.has(p)), 'missing in en').toEqual([])
-    expect([...ep].filter(p => !fp.has(p)), 'missing in fr').toEqual([])
+    expect(
+      [...fp].filter(p => !ep.has(p)),
+      'missing in en'
+    ).toEqual([])
+    expect(
+      [...ep].filter(p => !fp.has(p)),
+      'missing in fr'
+    ).toEqual([])
   })
 
   it('placeholders match between languages', () => {
     const mismatched = paths(fr).filter(p => {
-      const a = get(fr, p), b = get(en, p)
+      const a = get(fr, p),
+        b = get(en, p)
       if (typeof a !== 'string' || typeof b !== 'string') return false
       // {s} is a plural mark: French needs it where English may not
-      const ph = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map(m => m[1]).filter(n => n !== 's').sort().join()
+      const ph = (s: string) =>
+        [...s.matchAll(/\{(\w+)\}/g)]
+          .map(m => m[1])
+          .filter(n => n !== 's')
+          .sort()
+          .join()
       return ph(a) !== ph(b)
     })
     expect(mismatched.join(', ')).toBe('')

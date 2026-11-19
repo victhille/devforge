@@ -72,6 +72,10 @@ export interface WatchAPI {
   onAlert: (cb: (a: WatchAlert) => void) => () => void
   /** Docker on a VPS, through the watch's SSH session */
   docker: (connectionId: string) => Promise<{ containers: RemoteContainer[]; compose: RemoteCompose[] }>
-  dockerAction: (connectionId: string, target: { container?: string; compose?: RemoteCompose }, action: 'start' | 'stop' | 'restart' | 'up') => Promise<{ ok: boolean; output: string }>
+  dockerAction: (
+    connectionId: string,
+    target: { container?: string; compose?: RemoteCompose },
+    action: 'start' | 'stop' | 'restart' | 'up'
+  ) => Promise<{ ok: boolean; output: string }>
   dockerLogs: (connectionId: string, container: string, lines: number) => Promise<string>
 }

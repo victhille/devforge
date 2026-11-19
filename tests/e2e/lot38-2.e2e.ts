@@ -19,22 +19,50 @@ test('a workflow that turns red rings and puts a dot on the card; back to green 
   // What GitHub answers, changed by the test
   let conclusion = 'success'
   server = createServer((req, res) => {
-    if (!req.url?.startsWith('/repos/acme/shop/actions/runs')) { res.statusCode = 404; res.end('{}'); return }
+    if (!req.url?.startsWith('/repos/acme/shop/actions/runs')) {
+      res.statusCode = 404
+      res.end('{}')
+      return
+    }
     res.setHeader('content-type', 'application/json')
-    res.end(JSON.stringify({ workflow_runs: [{ id: 1, name: 'CI', display_title: 'feat: cart', head_branch: 'main', event: 'push', status: 'completed', conclusion, run_number: 7, created_at: '2026-10-29T08:00:00Z', html_url: 'https://github.com/acme/shop/actions/runs/1' }] }))
+    res.end(
+      JSON.stringify({
+        workflow_runs: [
+          {
+            id: 1,
+            name: 'CI',
+            display_title: 'feat: cart',
+            head_branch: 'main',
+            event: 'push',
+            status: 'completed',
+            conclusion,
+            run_number: 7,
+            created_at: '2026-10-29T08:00:00Z',
+            html_url: 'https://github.com/acme/shop/actions/runs/1'
+          }
+        ]
+      })
+    )
   })
   await new Promise<void>(r => server.listen(0, '127.0.0.1', () => r()))
   const port = (server.address() as AddressInfo).port
 
   run = await launch({
-    env: { DEVFORGE_TEST_GITHUB_API: `http://127.0.0.1:${port}`, DEVFORGE_TEST_GITHUB_TOKEN: 'test-token-for-the-local-stand-in', DEVFORGE_TEST_CI_EVERY: '3600000' },
+    env: {
+      DEVFORGE_TEST_GITHUB_API: `http://127.0.0.1:${port}`,
+      DEVFORGE_TEST_GITHUB_TOKEN: 'test-token-for-the-local-stand-in',
+      DEVFORGE_TEST_CI_EVERY: '3600000'
+    },
     seed: dir => {
       const shop = join(dir, 'shop')
       mkdirSync(shop, { recursive: true })
       writeFileSync(join(shop, 'package.json'), '{}')
       execFileSync('git', ['init', '-q'], { cwd: shop })
       execFileSync('git', ['remote', 'add', 'origin', 'https://github.com/acme/shop.git'], { cwd: shop })
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p', name: 'shop', path: shop, framework: 'react', packageManager: 'npm', favorite: true, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([{ id: 'p', name: 'shop', path: shop, framework: 'react', packageManager: 'npm', favorite: true, createdAt: '', lastOpenedAt: null }])
+      )
     }
   })
   const { app, page } = run
@@ -42,7 +70,9 @@ test('a workflow that turns red rings and puts a dot on the card; back to green 
   await app.evaluate(({ Notification }) => {
     const g = globalThis as unknown as { shown: string[] }
     g.shown = []
-    Notification.prototype.show = function (this: Electron.Notification) { g.shown.push(`${this.title} — ${this.body}`) }
+    Notification.prototype.show = function (this: Electron.Notification) {
+      g.shown.push(`${this.title} — ${this.body}`)
+    }
   })
   const shown = () => app.evaluate(() => (globalThis as unknown as { shown: string[] }).shown)
   const check = () => page.evaluate(() => window.devforge.github.checkCi())

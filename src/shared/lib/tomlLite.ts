@@ -22,8 +22,9 @@ class Reader {
     for (;;) {
       const c = this.s[this.i]
       if (c === ' ' || c === '\t' || (lines && (c === '\n' || c === '\r'))) this.i++
-      else if (lines && c === '#') { while (this.i < this.s.length && this.s[this.i] !== '\n') this.i++ }
-      else return
+      else if (lines && c === '#') {
+        while (this.i < this.s.length && this.s[this.i] !== '\n') this.i++
+      } else return
     }
   }
   string(): string {
@@ -74,7 +75,10 @@ class Reader {
       const list: TomlValue[] = []
       for (;;) {
         this.skipSpace(true)
-        if (this.s[this.i] === ']' || this.i >= this.s.length) { this.i++; return list }
+        if (this.s[this.i] === ']' || this.i >= this.s.length) {
+          this.i++
+          return list
+        }
         list.push(this.value())
         this.skipSpace(true)
         if (this.s[this.i] === ',') this.i++
@@ -85,7 +89,10 @@ class Reader {
       const table: TomlTable = {}
       for (;;) {
         this.skipSpace(true)
-        if (this.s[this.i] === '}' || this.i >= this.s.length) { this.i++; return table }
+        if (this.s[this.i] === '}' || this.i >= this.s.length) {
+          this.i++
+          return table
+        }
         const path = this.dottedKey()
         this.skipSpace(false)
         if (this.s[this.i] === '=') this.i++
@@ -132,7 +139,10 @@ export function parseToml(text: string): TomlDoc {
     } else {
       const path = r.dottedKey()
       r.skipSpace(false)
-      if (r.s[r.i] !== '=') { while (r.i < r.s.length && r.s[r.i] !== '\n') r.i++; continue }
+      if (r.s[r.i] !== '=') {
+        while (r.i < r.s.length && r.s[r.i] !== '\n') r.i++
+        continue
+      }
       r.i++
       setPath(current, path, r.value())
     }

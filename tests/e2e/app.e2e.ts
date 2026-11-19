@@ -20,9 +20,22 @@ test('starts on the home page and records the data format', async () => {
 
 test('keeps the data of a 1.x install', async () => {
   run = await launch({
-    seed: dir => writeFileSync(join(dir, 'projects.json'), JSON.stringify([
-      { id: 'p1', name: 'Legacy project', path: dir, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }
-    ]))
+    seed: dir =>
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'p1',
+            name: 'Legacy project',
+            path: dir,
+            framework: 'nodejs',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
   })
   await goTo(run.page, '/projects')
   await expect(run.page.getByRole('heading', { name: 'Legacy project' })).toBeVisible()

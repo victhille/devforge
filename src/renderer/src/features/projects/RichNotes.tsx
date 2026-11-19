@@ -10,7 +10,7 @@ export function sanitize(html: string): string {
   const walk = (node: Element) => {
     for (const child of [...node.childNodes]) {
       // The file keeps one block per line: those line breaks between blocks are not text
-      const text = child.nodeType === Node.TEXT_NODE ? child.textContent ?? '' : null
+      const text = child.nodeType === Node.TEXT_NODE ? (child.textContent ?? '') : null
       if (text !== null && text.includes('\n') && !text.trim() && ['BODY', 'UL', 'OL'].includes(node.tagName)) child.remove()
     }
     for (const child of [...node.children]) {
@@ -19,7 +19,10 @@ export function sanitize(html: string): string {
       if (!allowed) {
         // Unknown wrapper (a pasted <a>, <table>…): its text stays, script and style go
         if (['script', 'style', 'iframe', 'object', 'embed', 'img', 'svg', 'link', 'meta'].includes(tag)) child.remove()
-        else { walk(child); child.replaceWith(...child.childNodes) }
+        else {
+          walk(child)
+          child.replaceWith(...child.childNodes)
+        }
         continue
       }
       for (const attr of [...child.attributes]) {
@@ -68,7 +71,7 @@ function settleLines(root: HTMLElement): void {
 
 const anchorEl = () => {
   const n = caretNode()
-  return n instanceof Element ? n : n?.parentElement ?? null
+  return n instanceof Element ? n : (n?.parentElement ?? null)
 }
 
 /**
@@ -76,7 +79,12 @@ const anchorEl = () => {
  * mock-up's toolbar. Saved as clean HTML; the checkboxes are drawn by CSS
  * (.df-note in index.css) on `li[data-checked]`.
  */
-export default function RichNotes({ value, onChange, header, aside }: {
+export default function RichNotes({
+  value,
+  onChange,
+  header,
+  aside
+}: {
   value: string
   onChange: (html: string) => void
   /** Above the text, inside the editor's frame (the note's title) */
@@ -97,13 +105,27 @@ export default function RichNotes({ value, onChange, header, aside }: {
 
   // The buttons show the format under the caret
   useEffect(() => {
-    const onSel = () => { if (ref.current?.contains(document.getSelection()?.anchorNode ?? null)) setTick(n => n + 1) }
+    const onSel = () => {
+      if (ref.current?.contains(document.getSelection()?.anchorNode ?? null)) setTick(n => n + 1)
+    }
     document.addEventListener('selectionchange', onSel)
     return () => document.removeEventListener('selectionchange', onSel)
   }, [])
 
-  const on = (cmd: string) => { try { return document.queryCommandState(cmd) } catch { return false } }
-  const block = (() => { try { return String(document.queryCommandValue('formatBlock') || 'p').toLowerCase() } catch { return 'p' } })()
+  const on = (cmd: string) => {
+    try {
+      return document.queryCommandState(cmd)
+    } catch {
+      return false
+    }
+  }
+  const block = (() => {
+    try {
+      return String(document.queryCommandValue('formatBlock') || 'p').toLowerCase()
+    } catch {
+      return 'p'
+    }
+  })()
   const inside = ref.current?.contains(document.getSelection()?.anchorNode ?? null) ?? false
   const inChecklist = inside && !!ref.current && !!lineOf(caretNode(), ref.current)
   const inCode = inside && (block === 'pre' || !!anchorEl()?.closest('code'))
@@ -115,7 +137,10 @@ export default function RichNotes({ value, onChange, header, aside }: {
     settleLines(root)
     onChange(root.textContent?.trim() || root.querySelector('li') ? root.innerHTML : '')
   }
-  const done = () => { emit(); setTick(n => n + 1) }
+  const done = () => {
+    emit()
+    setTick(n => n + 1)
+  }
   const run = (cmd: string, arg?: string) => {
     ref.current?.focus()
     document.execCommand(cmd, false, arg)
@@ -132,7 +157,10 @@ export default function RichNotes({ value, onChange, header, aside }: {
     const root = ref.current
     if (!root) return
     root.focus()
-    if (lineOf(caretNode(), root)) { run('insertUnorderedList'); return }
+    if (lineOf(caretNode(), root)) {
+      run('insertUnorderedList')
+      return
+    }
     const plain = anchorEl()?.closest('ul')
     if (plain && root.contains(plain)) plain.setAttribute('data-checklist', '')
     else {
@@ -181,10 +209,34 @@ export default function RichNotes({ value, onChange, header, aside }: {
   }
 
   // The mock-up's toolbar: 30 × 28 buttons, 7 px corners, in a 10 px frame
-  const Btn = ({ label, hint, active, onClick, children, className }: { label: string; hint: string; active: boolean; onClick: () => void; children: ReactNode; className?: string }) => (
-    <button type="button" title={hint} aria-label={label} aria-pressed={active} onMouseDown={e => e.preventDefault()} onClick={onClick}
-      className={cn('flex h-7 w-7.5 items-center justify-center rounded-[7px] text-md font-bold transition-colors',
-        active ? 'bg-accent-soft text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg', className)}>
+  const Btn = ({
+    label,
+    hint,
+    active,
+    onClick,
+    children,
+    className
+  }: {
+    label: string
+    hint: string
+    active: boolean
+    onClick: () => void
+    children: ReactNode
+    className?: string
+  }) => (
+    <button
+      type="button"
+      title={hint}
+      aria-label={label}
+      aria-pressed={active}
+      onMouseDown={e => e.preventDefault()}
+      onClick={onClick}
+      className={cn(
+        'flex h-7 w-7.5 items-center justify-center rounded-[7px] text-md font-bold transition-colors',
+        active ? 'bg-accent-soft text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg',
+        className
+      )}
+    >
       {children}
     </button>
   )
@@ -193,11 +245,21 @@ export default function RichNotes({ value, onChange, header, aside }: {
     <div className="flex flex-col gap-3.5">
       <div className="flex flex-wrap items-center gap-2.5">
         <div role="toolbar" aria-label={k.toolbar} className="flex w-fit gap-0.5 rounded-control border border-line-subtle p-1">
-          <Btn label={k.bold} hint={k.boldHint} active={inside && on('bold')} onClick={() => run('bold')}>B</Btn>
-          <Btn label={k.italic} hint={k.italicHint} active={inside && on('italic')} onClick={() => run('italic')} className="italic">I</Btn>
-          <Btn label={k.heading} hint={k.heading} active={inside && block === 'h3'} onClick={() => run('formatBlock', block === 'h3' ? 'p' : 'h3')}>H</Btn>
-          <Btn label={k.checklist} hint={k.checklistHint} active={inChecklist} onClick={checklist}><ListChecks size={14} aria-hidden /></Btn>
-          <Btn label={k.code} hint={k.codeHint} active={inCode} onClick={code} className="font-mono text-sm">{'{}'}</Btn>
+          <Btn label={k.bold} hint={k.boldHint} active={inside && on('bold')} onClick={() => run('bold')}>
+            B
+          </Btn>
+          <Btn label={k.italic} hint={k.italicHint} active={inside && on('italic')} onClick={() => run('italic')} className="italic">
+            I
+          </Btn>
+          <Btn label={k.heading} hint={k.heading} active={inside && block === 'h3'} onClick={() => run('formatBlock', block === 'h3' ? 'p' : 'h3')}>
+            H
+          </Btn>
+          <Btn label={k.checklist} hint={k.checklistHint} active={inChecklist} onClick={checklist}>
+            <ListChecks size={14} aria-hidden />
+          </Btn>
+          <Btn label={k.code} hint={k.codeHint} active={inCode} onClick={code} className="font-mono text-sm">
+            {'{}'}
+          </Btn>
         </div>
         <span className="min-w-0 flex-1" />
         {aside}
@@ -206,8 +268,17 @@ export default function RichNotes({ value, onChange, header, aside }: {
         {header}
         {/* What a screen reader says for a box (the words come from the translations) */}
         <style>{`.df-note ul[data-checklist] > li::before { content: '' / ${JSON.stringify(`${k.todo} `)}; } .df-note ul[data-checklist] > li[data-checked='true']::before { content: '' / ${JSON.stringify(`${k.done} `)}; }`}</style>
-        <div ref={ref} role="textbox" aria-multiline="true" aria-label={t.notes.body} aria-keyshortcuts="Control+Enter" contentEditable suppressContentEditableWarning spellCheck
-          data-placeholder={k.placeholder} data-testid="notes-editor"
+        <div
+          ref={ref}
+          role="textbox"
+          aria-multiline="true"
+          aria-label={t.notes.body}
+          aria-keyshortcuts="Control+Enter"
+          contentEditable
+          suppressContentEditableWarning
+          spellCheck
+          data-placeholder={k.placeholder}
+          data-testid="notes-editor"
           onInput={e => {
             // Enter at the end of a checked line: the new one starts unchecked
             if ((e.nativeEvent as InputEvent).inputType === 'insertParagraph' && ref.current) {
@@ -224,16 +295,28 @@ export default function RichNotes({ value, onChange, header, aside }: {
             if (!li) return
             const r = li.getBoundingClientRect()
             const line = parseFloat(getComputedStyle(li).lineHeight) || 24
-            if (e.clientX - r.left < 20 && e.clientY - r.top < line) { e.preventDefault(); toggleLine(li) }
+            if (e.clientX - r.left < 20 && e.clientY - r.top < line) {
+              e.preventDefault()
+              toggleLine(li)
+            }
           }}
           onKeyDown={e => {
             // Ctrl+B is also the menu's shortcut: here it means bold
             const cmd = e.ctrlKey && !e.shiftKey && !e.altKey ? { b: 'bold', i: 'italic', u: 'underline' }[e.key.toLowerCase()] : undefined
-            if (cmd) { e.preventDefault(); e.stopPropagation(); run(cmd); return }
+            if (cmd) {
+              e.preventDefault()
+              e.stopPropagation()
+              run(cmd)
+              return
+            }
             // Ctrl+Enter checks the line the caret is on
             if (e.ctrlKey && e.key === 'Enter' && ref.current) {
               const li = lineOf(caretNode(), ref.current)
-              if (li) { e.preventDefault(); e.stopPropagation(); toggleLine(li) }
+              if (li) {
+                e.preventDefault()
+                e.stopPropagation()
+                toggleLine(li)
+              }
             }
           }}
           onPaste={e => {
@@ -252,7 +335,8 @@ export default function RichNotes({ value, onChange, header, aside }: {
             '[&_ul:not([data-checklist])]:my-1.5 [&_ul:not([data-checklist])]:list-disc [&_ul:not([data-checklist])]:pl-6 [&_ol]:my-1.5 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-1.5',
             '[&_blockquote]:my-2 [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:pl-3 [&_blockquote]:text-fg-secondary',
             '[&_pre]:my-2 [&_pre]:rounded-lg [&_pre]:bg-canvas [&_pre]:p-3 [&_pre]:font-mono [&_pre]:text-sm [&_code]:font-mono [&_code]:text-[0.9em] [&_code]:text-fg'
-          )} />
+          )}
+        />
       </div>
     </div>
   )

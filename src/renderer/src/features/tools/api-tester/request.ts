@@ -4,9 +4,18 @@
  * actually sent (the ones ticked, plus the Auth tab's).
  */
 
-export interface Row { key: string; value: string; on: boolean }
+export interface Row {
+  key: string
+  value: string
+  on: boolean
+}
 export type AuthKind = 'none' | 'bearer' | 'basic'
-export interface Auth { kind: AuthKind; token: string; user: string; password: string }
+export interface Auth {
+  kind: AuthKind
+  token: string
+  user: string
+  password: string
+}
 
 /** The URL's query as rows: « ?limite=2&tri=prix » → limite = 2, tri = prix */
 export function queryRows(url: string): Row[] {
@@ -16,7 +25,13 @@ export function queryRows(url: string): Row[] {
   if (!query) return []
   return query.split('&').map(part => {
     const eq = part.indexOf('=')
-    const decode = (s: string) => { try { return decodeURIComponent(s.replace(/\+/g, ' ')) } catch { return s } }
+    const decode = (s: string) => {
+      try {
+        return decodeURIComponent(s.replace(/\+/g, ' '))
+      } catch {
+        return s
+      }
+    }
     return eq < 0 ? { key: decode(part), value: '', on: true } : { key: decode(part.slice(0, eq)), value: decode(part.slice(eq + 1)), on: true }
   })
 }
@@ -26,7 +41,10 @@ export function withQuery(url: string, rows: Row[]): string {
   const hashAt = url.indexOf('#')
   const hash = hashAt >= 0 ? url.slice(hashAt) : ''
   const base = url.slice(0, hashAt >= 0 ? hashAt : undefined).split('?')[0]
-  const query = rows.filter(r => r.key).map(r => `${encodeURIComponent(r.key)}${r.value ? `=${encodeURIComponent(r.value)}` : ''}`).join('&')
+  const query = rows
+    .filter(r => r.key)
+    .map(r => `${encodeURIComponent(r.key)}${r.value ? `=${encodeURIComponent(r.value)}` : ''}`)
+    .join('&')
   return `${base}${query ? `?${query}` : ''}${hash}`
 }
 

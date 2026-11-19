@@ -45,8 +45,13 @@ export default function PdfView({ bytes }: { bytes: Uint8Array }) {
         host.appendChild(canvas)
         await page.render({ canvas, viewport }).promise
       }
-    })().catch(() => { if (alive) setError(true) })
-    return () => { alive = false; void task?.destroy() }
+    })().catch(() => {
+      if (alive) setError(true)
+    })
+    return () => {
+      alive = false
+      void task?.destroy()
+    }
   }, [bytes, shown, t])
 
   if (error) return <p className="p-4 text-sm text-fg-muted">{t.files.unreadable}</p>

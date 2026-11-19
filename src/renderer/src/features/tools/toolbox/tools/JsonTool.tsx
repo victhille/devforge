@@ -12,9 +12,9 @@ import { sortKeys } from '../lib/json'
 import { IoGrid, IoPanel, IO_TEXTAREA, ToolActions, type ToolboxT } from '../IoPanel'
 
 export default function JsonTool({ t }: { t: ToolboxT }) {
-  const [input, setInput]   = useState('')
+  const [input, setInput] = useState('')
   const [output, setOutput] = useState('')
-  const [error, setError]   = useState('')
+  const [error, setError] = useState('')
   const { t: all } = useI18n()
   const h = all.toolHelp
 
@@ -23,36 +23,69 @@ export default function JsonTool({ t }: { t: ToolboxT }) {
       const value = JSON.parse(input)
       setOutput(JSON.stringify(sorted ? sortKeys(value) : value, null, indent))
       setError('')
-    } catch { setError(t.invalid); setOutput('') }
+    } catch {
+      setError(t.invalid)
+      setOutput('')
+    }
   }
 
   return (
     <>
-      <ToolHelp id="json" what={h.json.what} how={h.json.how}
-        examples={[{ label: h.json.sample, onPick: () => { setInput(JSON_EXAMPLE); setOutput(''); setError('') } }]} />
+      <ToolHelp
+        id="json"
+        what={h.json.what}
+        how={h.json.how}
+        examples={[
+          {
+            label: h.json.sample,
+            onPick: () => {
+              setInput(JSON_EXAMPLE)
+              setOutput('')
+              setError('')
+            }
+          }
+        ]}
+      />
       <IoGrid>
         <IoPanel
           label={t.input}
           actions={
-            <IconButton size="sm" title={all.common.clear} onClick={() => { setInput(''); setOutput(''); setError('') }}>
+            <IconButton
+              size="sm"
+              title={all.common.clear}
+              onClick={() => {
+                setInput('')
+                setOutput('')
+                setError('')
+              }}
+            >
               <Trash2 size={13} />
             </IconButton>
           }
         >
           <textarea className={IO_TEXTAREA} value={input} onChange={e => setInput(e.target.value)} placeholder='{"key": "value"}' spellCheck={false} />
         </IoPanel>
-        <IoPanel label={t.output} actions={<>
-          {output && <Badge color="success">{t.validJson}</Badge>}
-          {error && <Badge color="danger">{t.invalid}</Badge>}
-          {output && <CopyButton text={output} />}
-        </>}>
+        <IoPanel
+          label={t.output}
+          actions={
+            <>
+              {output && <Badge color="success">{t.validJson}</Badge>}
+              {error && <Badge color="danger">{t.invalid}</Badge>}
+              {output && <CopyButton text={output} />}
+            </>
+          }
+        >
           <textarea className={cn(IO_TEXTAREA, error && 'text-danger')} value={error || output} readOnly aria-label={t.output} spellCheck={false} />
         </IoPanel>
       </IoGrid>
       <ToolActions>
         <Button onClick={() => run(2)}>{t.format}</Button>
-        <Button variant="secondary" onClick={() => run()}>{t.minify}</Button>
-        <Button variant="secondary" onClick={() => run(2, true)}>{t.sortKeys}</Button>
+        <Button variant="secondary" onClick={() => run()}>
+          {t.minify}
+        </Button>
+        <Button variant="secondary" onClick={() => run(2, true)}>
+          {t.sortKeys}
+        </Button>
       </ToolActions>
     </>
   )

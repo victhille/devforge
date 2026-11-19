@@ -4,7 +4,10 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { tempDir } from '../helpers'
 
 /** Forgy and the packages of the other languages */
-const file = (path: string, content: string) => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
+const file = (path: string, content: string) => {
+  mkdirSync(join(path, '..'), { recursive: true })
+  writeFileSync(path, content)
+}
 const REQUIREMENTS = 'Django>=4.2\nrequests==2.31.0\n'
 
 function pythonProject(): string {
@@ -18,16 +21,21 @@ function pythonProject(): string {
   return root
 }
 
-afterEach(() => { delete process.env.DEVFORGE_TEST_PACKAGES })
+afterEach(() => {
+  delete process.env.DEVFORGE_TEST_PACKAGES
+})
 
 describe('v3.6 lot 2: Forgy and the other languages', () => {
   it('reports Python packages with their own ranges, the audit, and .NET as read only', async () => {
     const root = pythonProject()
     const data = join(tempDir('t'), 'packages.json')
-    writeFileSync(data, JSON.stringify({
-      latest: { Django: '5.1.2', requests: '2.32.3', Serilog: '4.0.0' },
-      audit: { total: 1, bySeverity: { unknown: 1, info: 0, low: 0, moderate: 0, high: 0, critical: 0 }, packages: { Django: 'unknown' } }
-    }))
+    writeFileSync(
+      data,
+      JSON.stringify({
+        latest: { Django: '5.1.2', requests: '2.32.3', Serilog: '4.0.0' },
+        audit: { total: 1, bySeverity: { unknown: 1, info: 0, low: 0, moderate: 0, high: 0, critical: 0 }, packages: { Django: 'unknown' } }
+      })
+    )
     process.env.DEVFORGE_TEST_PACKAGES = data
     const { packagesReport } = await import('../../src/main/services/assistant/packageTools')
     const report = await packagesReport({ id: 'p', name: 'Api', path: root } as never, true)
@@ -42,11 +50,14 @@ describe('v3.6 lot 2: Forgy and the other languages', () => {
   it('updates a Python package through an approved card, and its undo puts the file back', async () => {
     const root = pythonProject()
     const data = join(tempDir('t'), 'packages.json')
-    writeFileSync(data, JSON.stringify({
-      latest: { requests: '2.32.3' },
-      update: `node -e "require('fs').writeFileSync('requirements.txt','updated')"`,
-      install: 'node -e "process.exit(0)"'
-    }))
+    writeFileSync(
+      data,
+      JSON.stringify({
+        latest: { requests: '2.32.3' },
+        update: `node -e "require('fs').writeFileSync('requirements.txt','updated')"`,
+        install: 'node -e "process.exit(0)"'
+      })
+    )
     process.env.DEVFORGE_TEST_PACKAGES = data
     const { updatePackagesPlan } = await import('../../src/main/services/assistant/packageTools')
     const { restoreAndInstall } = await import('../../src/main/services/packages/projectPackages')
@@ -69,10 +80,14 @@ describe('v3.6 lot 2: Forgy and the other languages', () => {
     writeFileSync(data, JSON.stringify({ latest: {} }))
     process.env.DEVFORGE_TEST_PACKAGES = data
     const { updatePackagesPlan } = await import('../../src/main/services/assistant/packageTools')
-    await expect(updatePackagesPlan({ id: 'p', name: 'Api', path: root } as never, ['Serilog'], 'latest', undefined)).rejects.toThrow(/DevForge does not update nuget packages/)
+    await expect(updatePackagesPlan({ id: 'p', name: 'Api', path: root } as never, ['Serilog'], 'latest', undefined)).rejects.toThrow(
+      /DevForge does not update nuget packages/
+    )
 
     writeFileSync(data, JSON.stringify({ latest: {}, missingTool: 'cargo' }))
     file(join(root, 'cli', 'Cargo.toml'), '[package]\nname = "cli"\n[dependencies]\nclap = "4.5"\n')
-    await expect(updatePackagesPlan({ id: 'p', name: 'Api', path: root } as never, ['clap'], 'compatible', 'cli/Cargo.toml')).rejects.toThrow(/cargo is missing on this PC/)
+    await expect(updatePackagesPlan({ id: 'p', name: 'Api', path: root } as never, ['clap'], 'compatible', 'cli/Cargo.toml')).rejects.toThrow(
+      /cargo is missing on this PC/
+    )
   })
 })

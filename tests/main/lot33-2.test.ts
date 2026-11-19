@@ -3,7 +3,15 @@ import { join } from 'path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { tempDir } from '../helpers'
 import {
-  findManifestDirs, latestVersions, listManifests, detectManager, manifestDir, parseAudit, parseYarnAudit, update, updateCommands
+  findManifestDirs,
+  latestVersions,
+  listManifests,
+  detectManager,
+  manifestDir,
+  parseAudit,
+  parseYarnAudit,
+  update,
+  updateCommands
 } from '../../src/main/services/packages/npmPackages'
 
 /** A project's npm packages, main side */
@@ -23,7 +31,9 @@ function monorepo(): string {
   return root
 }
 
-afterEach(() => { delete process.env.DEVFORGE_TEST_PACKAGES })
+afterEach(() => {
+  delete process.env.DEVFORGE_TEST_PACKAGES
+})
 
 describe('v3.3 lot 2: npm packages', () => {
   it('finds every package.json but node_modules, with what is installed (hoisted too)', () => {
@@ -37,7 +47,10 @@ describe('v3.3 lot 2: npm packages', () => {
     ])
     // The workspace's react is the root's (hoisted); a bad name is left out; the manager comes from the root's lockfile
     expect(web).toMatchObject({ dir: 'apps/web', name: 'web', manager: 'pnpm' })
-    expect(web.packages.map(p => [p.name, p.installed])).toEqual([['@types/node', null], ['react', '18.2.0']])
+    expect(web.packages.map(p => [p.name, p.installed])).toEqual([
+      ['@types/node', null],
+      ['react', '18.2.0']
+    ])
   })
 
   it('picks the manager from the lockfile', () => {
@@ -56,27 +69,37 @@ describe('v3.3 lot 2: npm packages', () => {
   })
 
   it('reads the audit reports of npm, pnpm and yarn 1', () => {
-    const npm = parseAudit(JSON.stringify({
-      vulnerabilities: { lodash: { severity: 'high' }, minimist: { severity: 'low' } },
-      metadata: { vulnerabilities: { info: 0, low: 1, moderate: 0, high: 1, critical: 0, total: 2 } }
-    }))
-    expect(npm).toEqual({ total: 2, bySeverity: { unknown: 0, info: 0, low: 1, moderate: 0, high: 1, critical: 0 }, packages: { lodash: 'high', minimist: 'low' } })
-    const pnpm = parseAudit(JSON.stringify({
-      advisories: { 1: { module_name: 'axios', severity: 'moderate' }, 2: { module_name: 'axios', severity: 'critical' } },
-      metadata: { vulnerabilities: { info: 0, low: 0, moderate: 1, high: 0, critical: 1 } }
-    }))
+    const npm = parseAudit(
+      JSON.stringify({
+        vulnerabilities: { lodash: { severity: 'high' }, minimist: { severity: 'low' } },
+        metadata: { vulnerabilities: { info: 0, low: 1, moderate: 0, high: 1, critical: 0, total: 2 } }
+      })
+    )
+    expect(npm).toEqual({
+      total: 2,
+      bySeverity: { unknown: 0, info: 0, low: 1, moderate: 0, high: 1, critical: 0 },
+      packages: { lodash: 'high', minimist: 'low' }
+    })
+    const pnpm = parseAudit(
+      JSON.stringify({
+        advisories: { 1: { module_name: 'axios', severity: 'moderate' }, 2: { module_name: 'axios', severity: 'critical' } },
+        metadata: { vulnerabilities: { info: 0, low: 0, moderate: 1, high: 0, critical: 1 } }
+      })
+    )
     expect(pnpm?.packages).toEqual({ axios: 'critical' })
     expect(pnpm?.total).toBe(2)
-    const yarn = parseYarnAudit([
-      JSON.stringify({ type: 'auditAdvisory', data: { advisory: { module_name: 'ws', severity: 'high' } } }),
-      JSON.stringify({ type: 'auditSummary', data: { vulnerabilities: { info: 0, low: 0, moderate: 0, high: 1, critical: 0 } } })
-    ].join('\n'))
+    const yarn = parseYarnAudit(
+      [
+        JSON.stringify({ type: 'auditAdvisory', data: { advisory: { module_name: 'ws', severity: 'high' } } }),
+        JSON.stringify({ type: 'auditSummary', data: { vulnerabilities: { info: 0, low: 0, moderate: 0, high: 1, critical: 0 } } })
+      ].join('\n')
+    )
     expect(yarn).toMatchObject({ total: 1, packages: { ws: 'high' } })
     expect(parseAudit('not json')).toBeNull()
     expect(parseYarnAudit('')).toBeNull()
   })
 
-  it('builds each manager\'s commands, dependencies and dev ones apart, names checked', () => {
+  it("builds each manager's commands, dependencies and dev ones apart, names checked", () => {
     const u = [
       { name: 'react', dev: false, target: 'compatible' as const },
       { name: 'vite', dev: true, target: 'latest' as const },
@@ -93,7 +116,10 @@ describe('v3.3 lot 2: npm packages', () => {
   it('tells Forgy what is behind, and how (v3.3 lot 4)', async () => {
     const root = monorepo()
     const data = join(tempDir('t'), 'packages.json')
-    json(data, { latest: { react: '18.3.1', vitest: '2.0.0', '@types/node': '22.0.0' }, audit: { total: 1, bySeverity: { info: 0, low: 0, moderate: 0, high: 1, critical: 0 }, packages: { react: 'high' } } })
+    json(data, {
+      latest: { react: '18.3.1', vitest: '2.0.0', '@types/node': '22.0.0' },
+      audit: { total: 1, bySeverity: { info: 0, low: 0, moderate: 0, high: 1, critical: 0 }, packages: { react: 'high' } }
+    })
     process.env.DEVFORGE_TEST_PACKAGES = data
     const { packagesReport } = await import('../../src/main/services/assistant/packageTools')
     const report = await packagesReport({ id: 'p', name: 'Shop', path: root } as never, true)
@@ -123,6 +149,10 @@ describe('v3.3 lot 2: npm packages', () => {
 
     write({ update: 'node -e "process.exit(0)"' })
     // Success says where the files were saved: Forgy's undo uses it
-    expect(await update(root, root, 'pnpm', [{ name: 'react', dev: false, target: 'latest' }], () => {})).toMatchObject({ ok: true, restored: false, backup: { files: ['package.json', 'pnpm-lock.yaml'] } })
+    expect(await update(root, root, 'pnpm', [{ name: 'react', dev: false, target: 'latest' }], () => {})).toMatchObject({
+      ok: true,
+      restored: false,
+      backup: { files: ['package.json', 'pnpm-lock.yaml'] }
+    })
   })
 })

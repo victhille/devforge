@@ -1,17 +1,17 @@
 export interface DocEntry {
-  cmd:      string
-  desc:     string
+  cmd: string
+  desc: string
   example?: string
 }
 
 export interface DocSection {
-  title:   string
+  title: string
   entries: DocEntry[]
 }
 
 export interface DocTech {
-  id:       string
-  name:     string
-  color:    string
+  id: string
+  name: string
+  color: string
   sections: DocSection[]
 }
