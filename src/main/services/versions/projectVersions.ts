@@ -1,6 +1,7 @@
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 import type { ProjectRequirements, VersionRequirement } from '@shared/types'
+import type { ParsedJson } from '@shared/lib/json'
 
 async function text(dir: string, name: string): Promise<string | null> {
   try {
@@ -9,9 +10,7 @@ async function text(dir: string, name: string): Promise<string | null> {
     return null
   }
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function json(dir: string, name: string): Promise<Record<string, any> | null> {
+async function json(dir: string, name: string): Promise<Record<string, ParsedJson> | null> {
   const t = await text(dir, name)
   if (!t) return null
   try {

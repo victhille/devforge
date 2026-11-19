@@ -6,7 +6,7 @@ import type { TestCase, TestFile, TestStatus, TestTotals } from '../types/tests'
  * Pure functions: the main process runs the tool and reads the report.
  */
 
-// eslint-disable-next-line no-control-regex
+// eslint-disable-next-line no-control-regex -- an ANSI colour code starts with the ESC character
 export const stripAnsi = (s: string) => s.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '')
 
 /** "C:\\p\\src\\a.test.ts" → "src/a.test.ts", relative to the project */

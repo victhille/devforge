@@ -131,7 +131,7 @@ export default function DbExplorer({
     return () => {
       alive = false
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- read again when the table, the tab or a reload changes, not for each new callback
   }, [conn.id, table, tab, rev])
 
   function changeTab(next: Tab) {

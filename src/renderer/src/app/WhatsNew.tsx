@@ -61,7 +61,7 @@ export default function WhatsNew() {
       })
       .catch(() => {})
     // Once per launch
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per launch
   }, [])
 
   if (!version) return null

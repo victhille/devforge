@@ -5,6 +5,7 @@ import { isPackageName } from '@shared/lib/packages'
 import { SAIL_SERVICE, isSailCompose } from '@shared/lib/laravelCommands'
 import { runCapture } from '../../lib/exec'
 import { backup, findManifestDirs, readJson, restoreBackup, runLogged, testData, type PackagesBackup } from './npmPackages'
+import type { ParsedJson } from '@shared/lib/json'
 
 /**
  * A project's Composer packages: the same tab as npm, read from
@@ -133,8 +134,7 @@ const severityOf = (raw: unknown): AuditSeverity => {
 
 /** `composer audit --format=json`: advisories per package */
 export function parseComposerAudit(json: string): AuditSummary | null {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let r: any
+  let r: ParsedJson
   try {
     r = JSON.parse(json)
   } catch {

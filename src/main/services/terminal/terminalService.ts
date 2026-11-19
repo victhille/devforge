@@ -69,7 +69,7 @@ export function create(
   const dir = assertSafeDir(cwd)
   const c = command(kind)
   // Loaded on first use: a native module, the rest of the app starts without it
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- node-pty is a native module: loaded on first use, not at startup
   const pty = require('node-pty') as typeof import('node-pty')
   const p = pty.spawn(c.file, c.args, {
     name: 'xterm-256color',

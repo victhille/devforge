@@ -6,6 +6,7 @@ import { isPackageName } from '@shared/lib/packages'
 import { runCapture } from '../../lib/exec'
 import { assertSafeDir } from '../../lib/safe'
 import { commandRunner } from '../system/commandRunner'
+import type { ParsedJson } from '@shared/lib/json'
 
 /**
  * A project's npm packages: what each package.json declares,
@@ -35,9 +36,7 @@ export function findManifestDirs(root: string, file = 'package.json', depth = 3)
   walk(root, 0)
   return found
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function readJson(path: string): Record<string, any> | null {
+export function readJson(path: string): Record<string, ParsedJson> | null {
   try {
     return JSON.parse(readFileSync(path, 'utf-8'))
   } catch {
@@ -107,8 +106,7 @@ export function manifestDir(root: string, dir: string, file: string = 'package.j
 // ─── Latest versions ──────────────────────────────────────────────────────────
 
 /** End-to-end tests: DEVFORGE_TEST_PACKAGES names a JSON file of { latest, audit, update } */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function testData(): Record<string, any> | null {
+export function testData(): Record<string, ParsedJson> | null {
   const file = process.env.DEVFORGE_TEST_PACKAGES
   if (!file || app.isPackaged) return null
   return readJson(file)
@@ -180,8 +178,7 @@ const isSeverity = (s: unknown): s is AuditSeverity => SEVERITIES.includes(s as 
 
 /** npm 7+ (`vulnerabilities`) and pnpm (`advisories`) JSON reports */
 export function parseAudit(json: string): AuditSummary | null {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let r: any
+  let r: ParsedJson
   try {
     r = JSON.parse(json)
   } catch {
@@ -206,8 +203,7 @@ export function parseYarnAudit(ndjson: string): AuditSummary | null {
   const s = emptySummary()
   let seen = false
   for (const line of ndjson.split('\n')) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let o: any
+    let o: ParsedJson
     try {
       o = JSON.parse(line)
     } catch {

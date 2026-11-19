@@ -10,6 +10,7 @@ import { killTree } from '../../lib/killTree'
 import { findExecutable, isInsideProject } from '../../lib/safe'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { venvPython } from '../packages/otherUpdates'
+import type { ParsedJson } from '@shared/lib/json'
 
 /**
  * A project's tests: the tools it has, run with a report the app can
@@ -25,8 +26,7 @@ const read = (p: string) => {
     return null
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const readJson = (p: string): Record<string, any> | null => {
+const readJson = (p: string): Record<string, ParsedJson> | null => {
   try {
     return JSON.parse(readFileSync(p, 'utf-8'))
   } catch {

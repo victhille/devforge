@@ -2,6 +2,7 @@ import type { AuditSeverity, AuditSummary, PackageManagerKind, PackageUpdate } f
 import { fitsRange } from './packages'
 import { satisfies } from './semver'
 import { pyName } from './manifests'
+import type { ParsedJson } from './json'
 
 /**
  * updating and auditing the packages of Python, Rust, Go, Ruby
@@ -293,8 +294,7 @@ const severity = (raw: unknown): AuditSeverity => {
 
 /** pip-audit -f json: { dependencies: [{ name, vulns: [...] }] } (older versions: the list alone) */
 export function parsePipAudit(json: string): AuditSummary | null {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let r: any
+  let r: ParsedJson
   try {
     r = JSON.parse(json)
   } catch {
@@ -309,8 +309,7 @@ export function parsePipAudit(json: string): AuditSummary | null {
 
 /** cargo audit --json: vulnerabilities.list[].package.name, the CVSS score when given */
 export function parseCargoAudit(json: string): AuditSummary | null {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let r: any
+  let r: ParsedJson
   try {
     r = JSON.parse(json)
   } catch {
@@ -369,8 +368,7 @@ export function parseGovulncheck(stream: string): AuditSummary | null {
 
 /** bundle-audit check --format json: results[].gem.name, advisory.criticality */
 export function parseBundleAudit(json: string): AuditSummary | null {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let r: any
+  let r: ParsedJson
   try {
     r = JSON.parse(json)
   } catch {

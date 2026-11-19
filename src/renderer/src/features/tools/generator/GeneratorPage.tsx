@@ -177,7 +177,7 @@ function SecretTool({ t }: { t: T }) {
   // Laravel's APP_KEY is always 32 bytes in padded base64
   const asLaravel = format === 'base64' && laravel
   const draw = () => setValue(asLaravel ? laravelAppKey() : generateSecret(bytes, format, { urlSafe: format === 'base64' && urlSafe }))
-  useEffect(draw, [format, bytes, laravel, urlSafe]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(draw, [format, bytes, laravel, urlSafe]) // eslint-disable-line react-hooks/exhaustive-deps -- a new secret when an option changes, not at each render
   return (
     <Layout
       t={t}

@@ -76,7 +76,7 @@ export default function SSHPage() {
     if (!conn) return
     setParams({}, { replace: true })
     void connect(conn)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one connection per ?connect= request
   }, [wanted, connections])
 
   useEffect(

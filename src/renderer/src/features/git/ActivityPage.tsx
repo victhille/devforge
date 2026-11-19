@@ -46,8 +46,8 @@ export default function ActivityPage() {
   const now = Math.floor(Date.now() / 1000)
   const projects = useMemo(() => (data?.projects ?? []).filter(p => place === 'all' || folderOf(p.path, folders) === place), [data, place, folders])
   const keep = (c: { email: string }) => !mine || !data?.me || c.email === data.me
-  const weeks = useMemo(() => commitsByWeek(projects, now, keep), [projects, mine, data]) // eslint-disable-line react-hooks/exhaustive-deps
-  const active = useMemo(() => mostActive(projects, now, 30, keep), [projects, mine, data]) // eslint-disable-line react-hooks/exhaustive-deps
+  const weeks = useMemo(() => commitsByWeek(projects, now, keep), [projects, mine, data]) // eslint-disable-line react-hooks/exhaustive-deps -- keep comes from mine and data, both listed
+  const active = useMemo(() => mostActive(projects, now, 30, keep), [projects, mine, data]) // eslint-disable-line react-hooks/exhaustive-deps -- keep comes from mine and data, both listed
   const total = weeks.reduce((n, w) => n + w.total, 0)
   // The colours go to the most active over the 12 weeks
   const top = useMemo(() => {

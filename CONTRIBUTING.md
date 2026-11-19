@@ -43,7 +43,8 @@ L'architecture du code est décrite dans [docs/dev/architecture.md](docs/dev/arc
 ## Conventions
 
 - **Commits conventionnels** : `feat(zone): …`, `fix(zone): …`, `docs: …`, `test: …`, `ci: …`, avec le titre seul sur la première ligne (72 caractères au plus), puis une ligne vide avant le détail. Le CHANGELOG en est tiré, voir [docs/dev/versions.md](docs/dev/versions.md).
-- **Vérifications avant un commit** : `npm install` installe des hooks git ([lefthook](lefthook.yml)). Ils lancent le lint des fichiers modifiés et la recherche de mots personnels, et contrôlent le format du message. `git commit --no-verify` les saute une fois ; la CI refait tout de toute façon.
+- **Mise en forme et lint** : Prettier met le code en forme (`npm run format`). Une exception au lint dit pourquoi après `--` (`// eslint-disable-next-line règle -- raison`), sinon le lint échoue. Le JSON venu d'un autre outil se type `ParsedJson` (`src/shared/lib/json.ts`), jamais `any`.
+- **Vérifications avant un commit** : `npm install` installe des hooks git ([lefthook](lefthook.yml)). Ils mettent en forme et lintent les fichiers modifiés, cherchent les mots personnels, et contrôlent le format du message. `git commit --no-verify` les saute une fois ; la CI refait tout de toute façon.
 - **Dépendances** : Dependabot propose chaque lundi, vers `develop`, les mises à jour mineures groupées des paquets et des actions de la CI. Les versions majeures se font à la main.
 - **Textes de l'interface** : toujours dans `src/renderer/src/i18n/locales/fr.ts` et `en.ts`, jamais en dur.
 - **Secrets** : jamais envoyés au renderer, jamais affichés, jamais écrits en clair (chiffrés avec `safeStorage`).
