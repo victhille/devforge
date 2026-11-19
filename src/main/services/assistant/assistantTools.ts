@@ -35,8 +35,13 @@ const IGNORED_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'out', '.
 export function isSecretFile(path: string): boolean {
   const name = basename(path).toLowerCase()
   if (/^\.env(\..+)?$/.test(name)) return !/(example|sample|template|dist)/.test(name)
-  return /\.(pem|key|p12|pfx|keystore|jks)$/.test(name) || /^id_(rsa|ed25519|ecdsa|dsa)/.test(name) ||
-    ['.npmrc', '.pypirc', '.netrc', 'credentials', 'credentials.json', 'known_hosts', 'auth.json'].includes(name)
+  if (/\.(dev\.)?vars$/.test(name) && name.startsWith('.')) return true
+  return /\.(pem|key|p12|pfx|keystore|jks|kdbx|ppk)$/.test(name) || /^id_(rsa|ed25519|ecdsa|dsa)/.test(name) ||
+    /\.tfvars(\.json)?$/.test(name) || /\.tfstate(\.backup)?$/.test(name) ||
+    /^secrets?\./.test(name) || /^service[-_]?account.*\.json$/.test(name) || /-firebase-adminsdk-.*\.json$/.test(name) ||
+    /^appsettings(\..+)?\.json$/.test(name) ||
+    ['.npmrc', '.yarnrc.yml', '.pypirc', '.netrc', '_netrc', '.envrc', 'credentials', 'credentials.json', 'credentials.yml.enc', 'master.key',
+      'known_hosts', 'auth.json', '.git-credentials', '.pgpass', '.my.cnf', '.htpasswd', 'wp-config.php', '.dockercfg', 'docker-config.json'].includes(name)
 }
 
 const cap = (s: string, max = MAX_OUTPUT) => (s.length > max ? `${s.slice(0, max)}\n… [truncated, ${s.length - max} more characters]` : s)
@@ -118,6 +123,8 @@ async function searchCode(project: Project, query: unknown): Promise<string> {
     if (hits.length >= MAX_SEARCH_HITS || scanned > 4000) return
     for (const e of await readdir(abs, { withFileTypes: true }).catch(() => [])) {
       if (hits.length >= MAX_SEARCH_HITS) return
+      // A link may point anywhere (~/.ssh/id_ed25519, a .env), under any name: never followed
+      if (e.isSymbolicLink()) continue
       const p = join(abs, e.name)
       if (e.isDirectory()) { if (!IGNORED_DIRS.has(e.name) && !e.name.startsWith('.')) await walk(p); continue }
       if (isSecretFile(p) || /\.(png|jpe?g|gif|webp|ico|pdf|zip|gz|exe|dll|woff2?|ttf|mp[34]|lock)$/i.test(e.name)) continue
@@ -151,19 +158,31 @@ async function gitStatus(project: Project): Promise<string> {
 }
 
 async function gitDiff(project: Project, file: unknown, staged: unknown): Promise<string> {
-  const args = ['diff', '--no-color', '--no-ext-diff']
+  // Paths are names, never patterns: "*" or ":(glob)**/.env*" from the model would match the secret
+  // files the filter below leaves out
+  const args = ['--literal-pathspecs', 'diff', '--no-color', '--no-ext-diff']
+  let left = 0
   if (staged === true) args.push('--staged')
   if (typeof file === 'string' && file) {
     const abs = await insideProject(project, file)
     if (isSecretFile(abs)) throw new ToolError('This file may contain secrets: its diff is not shared.')
     args.push('--', relative(await realpath(project.path), abs))
   } else {
-    // Whole diff without secret files
-    args.push('--', '.', ':(exclude).env', ':(exclude).env.*', ':(exclude)*.pem', ':(exclude)*.key')
+    // Whole diff without secret files, at any depth: the changed files of the project's folder,
+    // filtered by the same rule as a read (isSecretFile), then given one by one
+    const names = await runFile('git', ['diff', '--name-only', '--relative', '-z', ...(staged === true ? ['--staged'] : [])], { cwd: project.path, timeout: 15_000 })
+    if (!names.ok) throw new ToolError(names.stderr || 'git diff failed')
+    const changed = names.stdout.split('\0').filter(Boolean)
+    const kept = changed.filter(f => !isSecretFile(f))
+    left = changed.length - kept.length
+    if (!kept.length) return left ? 'Only files that may contain secrets changed: their diff is not shared.' : 'No difference.'
+    // Windows caps a command line at 32 767 characters: 200 paths stay well under it
+    args.push('--', ...kept.slice(0, 200))
   }
   const r = await runFile('git', args, { cwd: project.path, timeout: 15_000 })
   if (!r.ok) throw new ToolError(r.stderr || 'git diff failed')
-  return r.stdout.trim() ? cap(r.stdout) : 'No difference.'
+  const note = left ? `\n(${left} file(s) that may contain secrets left out)` : ''
+  return r.stdout.trim() ? cap(r.stdout) + note : 'No difference.' + note
 }
 
 async function dockerStatus(): Promise<string> {

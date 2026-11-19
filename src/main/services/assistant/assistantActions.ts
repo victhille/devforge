@@ -235,8 +235,11 @@ async function freePortPlan(port: unknown): Promise<ActionPlan> {
   }
 }
 
-/** A script body that runs more than one program: chained, redirected, or calling other scripts */
-const RUNS_MORE = /[&;|<>\r\n]|\b(?:npm|pnpm|yarn|bun|npx|pnpx|bunx|run-s|run-p|npm-run-all|concurrently|turbo|nx|lerna)\b/
+/**
+ * A script body that runs more than one program: chained, redirected, a command substitution
+ * ($(…) or backquotes, run by sh on macOS and Linux), or calling other scripts (node --run too)
+ */
+const RUNS_MORE = /[&;|<>`\r\n]|\$\(|\bnode\s+--run\b|\b(?:npm|pnpm|yarn|bun|npx|pnpx|bunx|run-s|run-p|npm-run-all|concurrently|turbo|nx|lerna)\b/
 
 function scriptPlan(p: Project, script: string): ActionPlan {
   // The command goes through a shell: only a real script of this package.json, with a plain name

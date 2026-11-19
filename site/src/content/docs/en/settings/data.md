@@ -34,7 +34,7 @@ On the **To another PC** row:
 
 ## Erase everything
 
-In the **Danger zone** card, **Erase everything…** resets DevForge: connections, keys, projects, history, log, backups and settings. DevForge restarts on the [welcome screen](/devforge/en/getting-started/first-launch/).
+In the **Danger zone** card, **Erase everything…** resets DevForge: connections, keys, projects, history, log, backups, CI alerts, test reports and settings. DevForge restarts on the [welcome screen](/devforge/en/getting-started/first-launch/).
 
 - Your **project folders are not touched**.
 - There is **no way back**: the button opens a field where you type the word `erase`, then **Erase everything** confirms (**Cancel** closes the field).

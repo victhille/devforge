@@ -2724,6 +2724,8 @@ const fr = {
     seeAllVersions: "Voir toutes les versions →",
     channel: "Canal",
     channelHint: "Les bêtas arrivent plus tôt et peuvent contenir des bugs.",
+    autoUpdate: "Chercher les mises à jour tout seul",
+    autoUpdateHint: "15 s après le démarrage, puis toutes les 6 h, sur GitHub. Désactivé, seul le bouton Vérifier cherche une nouvelle version.",
     showWhatsNew: "Montrer « Quoi de neuf » après une mise à jour",
     showWhatsNewHint: "Une fenêtre résume la version au premier lancement.",
     commit: "Commit",

@@ -34,7 +34,7 @@ Sur la ligne **Vers un autre PC** :
 
 ## Tout effacer
 
-Dans la carte **Zone sensible**, **Tout effacer…** remet DevForge à zéro : connexions, clés, projets, historique, journal, sauvegardes et réglages. DevForge redémarre sur l'[écran de bienvenue](/devforge/getting-started/first-launch/).
+Dans la carte **Zone sensible**, **Tout effacer…** remet DevForge à zéro : connexions, clés, projets, historique, journal, sauvegardes, alertes du CI, rapports de tests et réglages. DevForge redémarre sur l'[écran de bienvenue](/devforge/getting-started/first-launch/).
 
 - Tes **dossiers de projets ne sont pas touchés**.
 - C'est **sans retour possible** : le bouton ouvre un champ où taper le mot `effacer`, puis **Tout effacer** confirme (**Annuler** referme le champ).

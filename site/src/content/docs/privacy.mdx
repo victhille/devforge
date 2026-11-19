@@ -43,21 +43,26 @@ Voir [Données, export et remise à zéro](/devforge/settings/data/).
 
 | Vers | Quand | Quoi |
 |---|---|---|
-| GitHub | au démarrage, puis toutes les 6 heures | la recherche d'une mise à jour, et son téléchargement |
-| Anthropic | quand tu écris à Forgy | ta question et son contexte (voir plus bas) |
+| GitHub | 15 secondes après le démarrage, puis toutes les 6 heures ; à couper dans **Paramètres › Mises à jour** | la recherche d'une mise à jour, et son téléchargement ; aucun jeton n'est envoyé |
+| GitHub | toutes les 5 minutes, si GitHub est connecté ; à couper dans **Paramètres › Général › Alertes du CI GitHub** (« Aucune ») | l'état des workflows de tes projets favoris (ou de tous), avec ton jeton GitHub |
+| Le fournisseur d'IA que tu choisis | quand tu écris à Forgy | ta question et son contexte (voir plus bas) |
 | Hugging Face | à la première dictée | le téléchargement du modèle de reconnaissance vocale ; ta voix, elle, ne quitte jamais le PC |
-| Tes serveurs, GitHub, Vercel, n8n, ntfy… | quand tu te sers de la fonction | ce que la fonction demande, avec les identifiants que tu as donnés |
+| Tes serveurs, GitHub, Vercel, n8n, ntfy… | quand tu te sers de la fonction, ou en fond une fois réglée (surveillance d'un serveur, sondes d'URL, sauvegardes) | ce que la fonction demande, avec les identifiants que tu as donnés |
 
 Le récepteur de [webhooks](/devforge/data/webhooks/) n'écoute que sur ce PC (`127.0.0.1`) : il n'est pas joignable depuis le réseau.
 
 ## Ce que Forgy envoie
 
-Forgy fonctionne avec l'API d'Anthropic, avec ta clé. Chaque question envoie :
+Forgy fonctionne avec le fournisseur d'IA que tu choisis, avec ta clé : Anthropic (Claude), OpenAI, Google Gemini, Mistral AI, xAI (Grok), OpenRouter, Groq, DeepSeek ou un serveur compatible OpenAI ; ou Ollama, qui tourne sur ton PC. Voir [les fournisseurs](/devforge/forgy/assistant/#fournisseurs). Chaque question envoie, au fournisseur choisi seulement :
 
 - ta question et la conversation en cours ;
 - au premier message sur un projet : son nom, son chemin, son framework, l'état Git, les fichiers à la racine, les scripts, les dépendances et le début du README ;
 - le contexte de la page ouverte, si la pastille 📎 est active : la **structure** d'une base, jamais ses données ; une requête de l'API Tester, en-têtes sensibles masqués ; les dernières lignes de logs affichées ;
-- ce que Forgy a lu pour répondre : fichiers du projet, diff Git, état Docker…
+- ce que Forgy a lu pour répondre : fichiers du projet, diff Git, état Docker… Les fichiers de secrets (`.env`, clés, `credentials.json`, `secrets.json`, `wp-config.php`…) ne sont jamais lus.
+
+Avec Claude, Forgy peut aussi **chercher sur le web** : la recherche est faite par Anthropic, à partir de ta question.
+
+Ce que tu envoies relève alors des conditions du fournisseur, et de son pays : les États-Unis pour Anthropic, OpenAI, Google, xAI, OpenRouter et Groq, la France (Union européenne) pour Mistral AI, la Chine pour DeepSeek ; avec Ollama, rien ne quitte ton PC. DevForge, lui, ne reçoit rien : il n'a pas de serveur.
 
 Pour **agir** (commit, `.env`, conteneur, SQL…), Forgy propose une carte : rien ne s'exécute avant ton clic. Le réglage **Auto pour les actions sûres** laisse partir seules les actions annulables ou en lecture ; push, pull, écriture SQL et ports demandent toujours ton accord. Un budget mensuel arrête Forgy une fois atteint.
 
@@ -76,7 +81,7 @@ Règles de signature, valables dès qu'un certificat sera en place :
 - Seuls les installeurs construits par GitHub Actions, à partir d'un tag de version du [dépôt public](https://github.com/victhille/devforge), sont signés. Rien n'est signé depuis un PC.
 - Le code source, les scripts de build et la configuration de la CI sont tous dans ce dépôt, sous licence GPL-3.0 ; DevForge ne contient aucun composant propriétaire.
 - Auteur, relecteur et approbateur de chaque signature : [victhille](https://github.com/victhille), mainteneur du projet.
-- DevForge n'envoie aucune information à un autre système en réseau, sauf à ta demande (voir [Ce qui sort de ton PC](#ce-qui-sort-de-ton-pc-et-quand)).
+- DevForge n'envoie aucune information à un autre système en réseau en dehors de ce que liste [Ce qui sort de ton PC](#ce-qui-sort-de-ton-pc-et-quand), où chaque envoi automatique peut être coupé.
 
 ## Signaler une faille
 
@@ -84,4 +89,4 @@ Pas dans une issue publique : utilise le signalement privé de GitHub (onglet **
 
 ## Ce site
 
-Ni cookie ni mesure d'audience. Seul le bouton de téléchargement interroge l'API publique de GitHub pour connaître la dernière version.
+Ni cookie ni mesure d'audience. La page d'accueil et la page de téléchargement interrogent l'API publique de GitHub pour connaître la dernière version : comme pour toute page web, GitHub reçoit alors ton adresse IP. Le site est hébergé par GitHub Pages, voir les [mentions légales](/devforge/legal/).

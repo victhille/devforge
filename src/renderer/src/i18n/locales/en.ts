@@ -2733,6 +2733,8 @@ const en = {
     seeAllVersions: "See all versions →",
     channel: "Channel",
     channelHint: "Betas come earlier and may have bugs.",
+    autoUpdate: "Look for updates by itself",
+    autoUpdateHint: "15 s after startup, then every 6 h, on GitHub. Off, only the Check button looks for a new version.",
     showWhatsNew: "Show “What's new” after an update",
     showWhatsNewHint: "A window sums up the version on first launch.",
     commit: "Commit",
