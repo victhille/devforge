@@ -40,7 +40,9 @@ function sizeOf(path: string): number {
     const st = statSync(path)
     if (!st.isDirectory()) return st.size
     return readdirSync(path).reduce((n, name) => n + sizeOf(join(path, name)), 0)
-  } catch { return 0 }
+  } catch {
+    return 0
+  }
 }
 
 function dataInfo(): DataInfo {
@@ -109,15 +111,17 @@ export function registerSettingsHandlers(): void {
   ipcMain.handle('data:export', async () => {
     const bundle = exportConfig(app.getPath('userData'), app.getVersion())
     const name = `devforge-config-${new Date().toISOString().slice(0, 10)}.json`
-    const target = testPath('DEVFORGE_TEST_EXPORT_PATH')
-      ?? (await dialog.showSaveDialog({ defaultPath: join(app.getPath('documents'), name), filters: [{ name: 'DevForge', extensions: ['json'] }] })).filePath
+    const target =
+      testPath('DEVFORGE_TEST_EXPORT_PATH') ??
+      (await dialog.showSaveDialog({ defaultPath: join(app.getPath('documents'), name), filters: [{ name: 'DevForge', extensions: ['json'] }] })).filePath
     if (!target) return null
     writeFileSync(target, JSON.stringify(bundle, null, 2))
     return target
   })
   ipcMain.handle('data:import', async () => {
-    const source = testPath('DEVFORGE_TEST_IMPORT_PATH')
-      ?? (await dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'DevForge', extensions: ['json'] }] })).filePaths[0]
+    const source =
+      testPath('DEVFORGE_TEST_IMPORT_PATH') ??
+      (await dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'DevForge', extensions: ['json'] }] })).filePaths[0]
     if (!source) return null
     const names = importConfig(app.getPath('userData'), readFileSync(source, 'utf-8'))
     log('info', 'data', `Imported ${names.length} files`)

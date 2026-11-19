@@ -20,12 +20,23 @@ const script = "console.log('pid',process.pid);setTimeout(Boolean,600000)"
 const waiter = `${node} -e "${script}"`
 const pidIn = (text?: string) => Number(text?.match(/^pid (\d+)$/)?.[1] ?? 0)
 
-const alive = (pid: number) => { try { process.kill(pid, 0); return true } catch { return false } }
-const until = async (ok: () => boolean) => { for (let i = 0; i < 100 && !ok(); i++) await new Promise(r => setTimeout(r, 50)) }
+const alive = (pid: number) => {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch {
+    return false
+  }
+}
+const until = async (ok: () => boolean) => {
+  for (let i = 0; i < 100 && !ok(); i++) await new Promise(r => setTimeout(r, 50))
+}
 
 // Still alive after a test that failed: killed then
 const grandchildren: number[] = []
-afterEach(() => { for (const pid of grandchildren.splice(0)) if (alive(pid)) process.kill(pid) })
+afterEach(() => {
+  for (const pid of grandchildren.splice(0)) if (alive(pid)) process.kill(pid)
+})
 
 /**
  * Windows: gone as soon as the call returns (an async taskkill would not even have started yet);
@@ -98,7 +109,10 @@ describe('quitting DevForge', () => {
     // A `go` first on the PATH: `go test -json ./...` runs the waiter
     const bin = tempDir('bin')
     if (process.platform === 'win32') writeFileSync(join(bin, 'go.cmd'), `@${waiter}\r\n`)
-    else { writeFileSync(join(bin, 'go'), `#!/bin/sh\nexec ${waiter}\n`); chmodSync(join(bin, 'go'), 0o755) }
+    else {
+      writeFileSync(join(bin, 'go'), `#!/bin/sh\nexec ${waiter}\n`)
+      chmodSync(join(bin, 'go'), 0o755)
+    }
     const path = process.env.PATH
     process.env.PATH = `${bin}${delimiter}${path}`
     try {

@@ -14,8 +14,10 @@ export function align(boxes: Map<string, Box>, how: AlignHow): Map<string, Point
   const out = new Map<string, Point>()
   if (boxes.size < 2) return out
   const list = [...boxes.values()]
-  const left = Math.min(...list.map(b => b.x)), right = Math.max(...list.map(b => b.x + b.w))
-  const top = Math.min(...list.map(b => b.y)), bottom = Math.max(...list.map(b => b.y + b.h))
+  const left = Math.min(...list.map(b => b.x)),
+    right = Math.max(...list.map(b => b.x + b.w))
+  const top = Math.min(...list.map(b => b.y)),
+    bottom = Math.max(...list.map(b => b.y + b.h))
   for (const [id, b] of boxes) {
     const x = how === 'left' ? left : how === 'right' ? right - b.w : how === 'center' ? (left + right - b.w) / 2 : b.x
     const y = how === 'top' ? top : how === 'bottom' ? bottom - b.h : how === 'middle' ? (top + bottom - b.h) / 2 : b.y
@@ -34,7 +36,8 @@ export function distribute(boxes: Map<string, Box>, axis: Axis): Map<string, Poi
   const start = (b: Box) => (axis === 'x' ? b.x : b.y)
   const size = (b: Box) => (axis === 'x' ? b.w : b.h)
   const list = [...boxes].sort(([, a], [, b]) => start(a) + size(a) / 2 - (start(b) + size(b) / 2))
-  const first = list[0][1], last = list[list.length - 1][1]
+  const first = list[0][1],
+    last = list[list.length - 1][1]
   const room = start(last) + size(last) - start(first) - list.reduce((sum, [, b]) => sum + size(b), 0)
   const gap = room / (list.length - 1)
   let at = start(first)

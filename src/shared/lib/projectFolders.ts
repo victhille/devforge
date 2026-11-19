@@ -6,11 +6,16 @@ import type { AppSettings } from '../types'
  * others follow in extraProjectsDirs. Settings from before need nothing.
  */
 
-const key = (dir: string) => dir.replace(/[/\\]+$/, '').replace(/\//g, '\\').toLowerCase()
+const key = (dir: string) =>
+  dir
+    .replace(/[/\\]+$/, '')
+    .replace(/\//g, '\\')
+    .toLowerCase()
 
 /** Every projects folder, in order, without blanks nor duplicates */
 export function projectFolders(s: Pick<AppSettings, 'defaultProjectsDir' | 'extraProjectsDirs'>): string[] {
-  const seen = new Set<string>(), out: string[] = []
+  const seen = new Set<string>(),
+    out: string[] = []
   for (const dir of [s.defaultProjectsDir, ...(s.extraProjectsDirs ?? [])]) {
     const trimmed = (dir ?? '').trim()
     if (!trimmed || seen.has(key(trimmed))) continue
@@ -29,12 +34,15 @@ export function withProjectFolders(folders: string[]): Pick<AppSettings, 'defaul
 /** The folder a project lives in (the deepest one holding it), or null */
 export function folderOf(path: string, folders: string[]): string | null {
   const p = key(path)
-  return folders
-    .filter(dir => p.startsWith(key(dir) + '\\'))
-    .sort((a, b) => key(b).length - key(a).length)[0] ?? null
+  return folders.filter(dir => p.startsWith(key(dir) + '\\')).sort((a, b) => key(b).length - key(a).length)[0] ?? null
 }
 
 /** A folder's short name, for a card or a filter: its last segment */
 export function folderName(dir: string): string {
-  return dir.replace(/[/\\]+$/, '').split(/[/\\]/).pop() || dir
+  return (
+    dir
+      .replace(/[/\\]+$/, '')
+      .split(/[/\\]/)
+      .pop() || dir
+  )
 }

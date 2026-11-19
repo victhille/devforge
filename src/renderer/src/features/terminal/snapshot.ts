@@ -1,28 +1,54 @@
 import type { IBufferCell, Terminal } from '@xterm/xterm'
 
 /** One line of a finished block: runs of text with their color */
-export interface Seg { text: string; fg?: string; bold?: boolean }
+export interface Seg {
+  text: string
+  fg?: string
+  bold?: boolean
+}
 export type Line = Seg[]
 
 /** Warm graphite and Forgy's orange cursor, like --color-term in styles/index.css */
 export const XTERM_THEME = {
-  background:  '#0B0A09',
-  foreground:  '#E8E2DA',
-  cursor:      '#FF7A33',
+  background: '#0B0A09',
+  foreground: '#E8E2DA',
+  cursor: '#FF7A33',
   selectionBackground: 'rgba(255,122,51,0.3)',
-  black:       '#2A2622', brightBlack:   '#6B635B',
-  red:         '#F7615A', brightRed:     '#FF7875',
-  green:       '#3DD68C', brightGreen:   '#5EF9A8',
-  yellow:      '#F5A623', brightYellow:  '#FFD666',
-  blue:        '#4F8EF7', brightBlue:    '#74AAFF',
-  magenta:     '#A78BFA', brightMagenta: '#C4B5FD',
-  cyan:        '#38BDF8', brightCyan:    '#7DD3FC',
-  white:       '#D9D2C9', brightWhite:   '#F2EEE9'
+  black: '#2A2622',
+  brightBlack: '#6B635B',
+  red: '#F7615A',
+  brightRed: '#FF7875',
+  green: '#3DD68C',
+  brightGreen: '#5EF9A8',
+  yellow: '#F5A623',
+  brightYellow: '#FFD666',
+  blue: '#4F8EF7',
+  brightBlue: '#74AAFF',
+  magenta: '#A78BFA',
+  brightMagenta: '#C4B5FD',
+  cyan: '#38BDF8',
+  brightCyan: '#7DD3FC',
+  white: '#D9D2C9',
+  brightWhite: '#F2EEE9'
 }
 
 const BASE16 = [
-  XTERM_THEME.black, XTERM_THEME.red, XTERM_THEME.green, XTERM_THEME.yellow, XTERM_THEME.blue, XTERM_THEME.magenta, XTERM_THEME.cyan, XTERM_THEME.white,
-  XTERM_THEME.brightBlack, XTERM_THEME.brightRed, XTERM_THEME.brightGreen, XTERM_THEME.brightYellow, XTERM_THEME.brightBlue, XTERM_THEME.brightMagenta, XTERM_THEME.brightCyan, XTERM_THEME.brightWhite
+  XTERM_THEME.black,
+  XTERM_THEME.red,
+  XTERM_THEME.green,
+  XTERM_THEME.yellow,
+  XTERM_THEME.blue,
+  XTERM_THEME.magenta,
+  XTERM_THEME.cyan,
+  XTERM_THEME.white,
+  XTERM_THEME.brightBlack,
+  XTERM_THEME.brightRed,
+  XTERM_THEME.brightGreen,
+  XTERM_THEME.brightYellow,
+  XTERM_THEME.brightBlue,
+  XTERM_THEME.brightMagenta,
+  XTERM_THEME.brightCyan,
+  XTERM_THEME.brightWhite
 ]
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`
 
@@ -30,7 +56,8 @@ const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`
 function palette(i: number): string {
   if (i < 16) return BASE16[i]
   if (i < 232) {
-    const v = i - 16, step = (c: number) => (c ? c * 40 + 55 : 0)
+    const v = i - 16,
+      step = (c: number) => (c ? c * 40 + 55 : 0)
     return hex((step(Math.floor(v / 36)) << 16) | (step(Math.floor(v / 6) % 6) << 8) | step(v % 6))
   }
   const g = (i - 232) * 10 + 8

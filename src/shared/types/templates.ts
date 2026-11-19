@@ -33,7 +33,14 @@ export interface TemplatesAPI {
   list: () => Promise<UserTemplate[]>
   preview: (projectPath: string, exclude: string[]) => Promise<TemplatePreview>
   /** A project saved as a template */
-  save: (input: { projectPath: string; name: string; description: string; framework: Framework; packageManager: PackageManager; exclude: string[] }) => Promise<UserTemplate>
+  save: (input: {
+    projectPath: string
+    name: string
+    description: string
+    framework: Framework
+    packageManager: PackageManager
+    exclude: string[]
+  }) => Promise<UserTemplate>
   /** Copied again from its project */
   refresh: (id: string) => Promise<UserTemplate>
   rename: (id: string, name: string, description: string) => Promise<void>

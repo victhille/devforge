@@ -9,10 +9,16 @@ import { app } from 'electron'
 function canned(): Record<string, unknown> | null {
   const file = process.env.DEVFORGE_TEST_VPS
   if (!file || app.isPackaged) return null
-  try { return JSON.parse(readFileSync(file, 'utf-8')) as Record<string, unknown> } catch { return null }
+  try {
+    return JSON.parse(readFileSync(file, 'utf-8')) as Record<string, unknown>
+  } catch {
+    return null
+  }
 }
 
-export function testOutput(name: 'services' | 'health' | 'backupCandidates' | 'backupState' | 'statusPrecheck' | 'statusOverview' | 'n8nStatus' | 'vpnDetect'): string | null {
+export function testOutput(
+  name: 'services' | 'health' | 'backupCandidates' | 'backupState' | 'statusPrecheck' | 'statusOverview' | 'n8nStatus' | 'vpnDetect'
+): string | null {
   const v = canned()?.[name]
   return typeof v === 'string' ? v : null
 }

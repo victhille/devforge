@@ -19,9 +19,21 @@ test('cmd blocks get their exit code, and the shell is still there after another
       const dir = join(data, 'outil')
       mkdirSync(dir, { recursive: true })
       writeFileSync(join(dir, 'package.json'), '{"name":"outil"}')
-      writeFileSync(join(data, 'projects.json'), JSON.stringify([
-        { id: 'o', name: 'outil', path: dir, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }
-      ]))
+      writeFileSync(
+        join(data, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'o',
+            name: 'outil',
+            path: dir,
+            framework: 'nodejs',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
     }
   })
   const { page } = run

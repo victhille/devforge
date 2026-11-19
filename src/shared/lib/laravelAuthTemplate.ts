@@ -12,18 +12,44 @@ import { ANVIL, DEVFORGE_CSS } from './devforgeStyle'
 
 const TEXT = {
   fr: {
-    name: 'Nom', email: 'E-mail', password: 'Mot de passe', confirm: 'Confirmer le mot de passe', home: 'Accueil',
-    loginTitle: 'Se connecter', loginLead: 'Content de vous revoir.', noAccount: 'Pas encore de compte ?', toRegister: 'Créer un compte',
-    registerTitle: 'Créer un compte', registerLead: 'Quelques secondes, et vous y êtes.', registerSubmit: 'Créer mon compte', hasAccount: 'Déjà un compte ?',
-    hello: 'Bonjour', signedIn: 'Vous êtes connecté.', logout: 'Se déconnecter', apiTitle: 'Votre API',
-    apiLead: 'Ces routes suivent le contrat DevForge (jetons Sanctum) : un front React ou Vue créé par DevForge s\'y branche tel quel.',
+    name: 'Nom',
+    email: 'E-mail',
+    password: 'Mot de passe',
+    confirm: 'Confirmer le mot de passe',
+    home: 'Accueil',
+    loginTitle: 'Se connecter',
+    loginLead: 'Content de vous revoir.',
+    noAccount: 'Pas encore de compte ?',
+    toRegister: 'Créer un compte',
+    registerTitle: 'Créer un compte',
+    registerLead: 'Quelques secondes, et vous y êtes.',
+    registerSubmit: 'Créer mon compte',
+    hasAccount: 'Déjà un compte ?',
+    hello: 'Bonjour',
+    signedIn: 'Vous êtes connecté.',
+    logout: 'Se déconnecter',
+    apiTitle: 'Votre API',
+    apiLead: "Ces routes suivent le contrat DevForge (jetons Sanctum) : un front React ou Vue créé par DevForge s'y branche tel quel.",
     invalid: 'E-mail ou mot de passe incorrect.'
   },
   en: {
-    name: 'Name', email: 'Email', password: 'Password', confirm: 'Confirm the password', home: 'Home',
-    loginTitle: 'Sign in', loginLead: 'Good to see you again.', noAccount: 'No account yet?', toRegister: 'Create an account',
-    registerTitle: 'Create an account', registerLead: 'A few seconds, and you are in.', registerSubmit: 'Create my account', hasAccount: 'Already have an account?',
-    hello: 'Hello', signedIn: 'You are signed in.', logout: 'Sign out', apiTitle: 'Your API',
+    name: 'Name',
+    email: 'Email',
+    password: 'Password',
+    confirm: 'Confirm the password',
+    home: 'Home',
+    loginTitle: 'Sign in',
+    loginLead: 'Good to see you again.',
+    noAccount: 'No account yet?',
+    toRegister: 'Create an account',
+    registerTitle: 'Create an account',
+    registerLead: 'A few seconds, and you are in.',
+    registerSubmit: 'Create my account',
+    hasAccount: 'Already have an account?',
+    hello: 'Hello',
+    signedIn: 'You are signed in.',
+    logout: 'Sign out',
+    apiTitle: 'Your API',
     apiLead: 'These routes follow the DevForge contract (Sanctum tokens): a React or Vue front made by DevForge plugs in as is.',
     invalid: 'Wrong email or password.'
   }
@@ -224,11 +250,23 @@ export function laravelAuthFiles(name: string, lang: 'fr' | 'en'): { path: strin
 export function laravelAuthPatches(label: { views: string; home: string; routes: string }): SetupStep[] {
   return [
     {
-      kind: 'patch', label: label.views, file: 'app/Providers/FortifyServiceProvider.php',
-      find: 'Fortify::createUsersUsing\\(CreateNewUser::class\\);', mode: 'after', unless: 'Fortify::loginView',
+      kind: 'patch',
+      label: label.views,
+      file: 'app/Providers/FortifyServiceProvider.php',
+      find: 'Fortify::createUsersUsing\\(CreateNewUser::class\\);',
+      mode: 'after',
+      unless: 'Fortify::loginView',
       text: "\n        Fortify::loginView(fn () => view('auth.login'));\n        Fortify::registerView(fn () => view('auth.register'));"
     },
-    { kind: 'patch', label: label.home, file: 'config/fortify.php', find: "'home'\\s*=>\\s*'[^']*'", mode: 'replace', unless: "'home' => '/dashboard'", text: "'home' => '/dashboard'" },
+    {
+      kind: 'patch',
+      label: label.home,
+      file: 'config/fortify.php',
+      find: "'home'\\s*=>\\s*'[^']*'",
+      mode: 'replace',
+      unless: "'home' => '/dashboard'",
+      text: "'home' => '/dashboard'"
+    },
     { kind: 'append', label: label.routes, file: 'routes/web.php', text: LARAVEL_WEB_ROUTES, unless: "'/dashboard'" },
     { kind: 'append', label: label.routes, file: 'routes/api.php', text: LARAVEL_API_ROUTES, unless: 'AuthController' }
   ]

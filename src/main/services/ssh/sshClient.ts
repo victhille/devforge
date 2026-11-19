@@ -13,7 +13,11 @@ import { makeHostVerifier } from './knownHosts'
  */
 export function buildSshConfig(conn: SSHConnection, onHostMismatch: (err: Error) => void = () => {}): ConnectConfig {
   const cfg: ConnectConfig = {
-    host: conn.host, port: conn.port, username: conn.username, readyTimeout: 10_000, keepaliveInterval: 15_000,
+    host: conn.host,
+    port: conn.port,
+    username: conn.username,
+    readyTimeout: 10_000,
+    keepaliveInterval: 15_000,
     hostVerifier: makeHostVerifier(conn.host, conn.port, onHostMismatch)
   }
   if (conn.authMethod === 'password') cfg.password = conn.password
@@ -36,7 +40,15 @@ export function connectSsh(connectionId: string): Promise<Client> {
     let hostError: Error | null = null
     client.once('ready', () => resolve(client))
     client.once('error', err => reject(hostError ?? err))
-    try { client.connect(buildSshConfig(conn, err => { hostError = err })) } catch (err) { reject(err) }
+    try {
+      client.connect(
+        buildSshConfig(conn, err => {
+          hostError = err
+        })
+      )
+    } catch (err) {
+      reject(err)
+    }
   })
 }
 
@@ -54,10 +66,20 @@ export function sshRun(client: Client, command: string, timeoutMs = 20_000): Pro
     client.exec(command, (err, stream) => {
       if (err) return reject(err)
       let output = ''
-      const timer = setTimeout(() => { stream.close(); reject(new Error('Command timed out')) }, timeoutMs)
-      stream.on('data', (d: Buffer) => { output += d.toString() })
-      stream.stderr.on('data', (d: Buffer) => { output += d.toString() })
-      stream.on('close', (code: number | null) => { clearTimeout(timer); resolve({ code, output }) })
+      const timer = setTimeout(() => {
+        stream.close()
+        reject(new Error('Command timed out'))
+      }, timeoutMs)
+      stream.on('data', (d: Buffer) => {
+        output += d.toString()
+      })
+      stream.stderr.on('data', (d: Buffer) => {
+        output += d.toString()
+      })
+      stream.on('close', (code: number | null) => {
+        clearTimeout(timer)
+        resolve({ code, output })
+      })
     })
   })
 }
@@ -79,7 +101,11 @@ export async function openTunnel(connectionId: string, remoteHost: string, remot
   let lastError: Error | null = null
   const server = net.createServer(socket => {
     client.forwardOut('127.0.0.1', 0, remoteHost, remotePort, (err, stream) => {
-      if (err) { lastError = err; socket.destroy(); return }
+      if (err) {
+        lastError = err
+        socket.destroy()
+        return
+      }
       socket.pipe(stream).pipe(socket)
       socket.on('error', () => stream.close())
       stream.on('error', () => socket.destroy())
@@ -93,7 +119,10 @@ export async function openTunnel(connectionId: string, remoteHost: string, remot
   client.on('close', () => server.close())
   return {
     localPort: (server.address() as net.AddressInfo).port,
-    close: () => { server.close(); client.end() },
+    close: () => {
+      server.close()
+      client.end()
+    },
     lastError: () => lastError
   }
 }

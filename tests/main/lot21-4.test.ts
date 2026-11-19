@@ -9,7 +9,10 @@ vi.mock('../../src/main/services/ssh/sshService', () => ({
   sshService: {
     connectForDashboard: async () => 'sid',
     disconnect: () => {},
-    exec: async (_sid: string, command: string) => { ssh.commands.push(command); return ssh.outputs.shift() ?? '' }
+    exec: async (_sid: string, command: string) => {
+      ssh.commands.push(command)
+      return ssh.outputs.shift() ?? ''
+    }
   }
 }))
 // Fake `gh auth token` and `git remote get-url origin`
@@ -33,17 +36,27 @@ const SEP = '@@DF@@'
 describe('.env sync with a deployed copy', () => {
   let dir: string
   beforeEach(() => {
-    ssh.outputs.length = 0; ssh.commands.length = 0
+    ssh.outputs.length = 0
+    ssh.commands.length = 0
     dir = tempDir('app')
     saveProjects([{ name: 'app', path: dir }])
     writeFileSync(join(dir, '.env'), 'A=1\nB=2\n# comment\nC=3\n')
-    writeFileSync(join(userData(), 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'Prod', host: '10.0.0.1', port: 22, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }]))
-    writeFileSync(join(userData(), 'deploy.json'), JSON.stringify({ targets: [{ id: 't1', name: 'Prod app', connectionId: 'v1', remotePath: '/srv/app/', script: '', projectPath: dir }] }))
+    writeFileSync(
+      join(userData(), 'ssh-connections.json'),
+      JSON.stringify([{ id: 'v1', name: 'Prod', host: '10.0.0.1', port: 22, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }])
+    )
+    writeFileSync(
+      join(userData(), 'deploy.json'),
+      JSON.stringify({ targets: [{ id: 't1', name: 'Prod app', connectionId: 'v1', remotePath: '/srv/app/', script: '', projectPath: dir }] })
+    )
   })
 
   it('compares keys without values', () => {
     expect(compareEnv({ A: '1', B: '2', C: '3' }, { A: '1', B: '9', D: '4' })).toEqual([
-      { key: 'A', status: 'same' }, { key: 'B', status: 'different' }, { key: 'C', status: 'local' }, { key: 'D', status: 'remote' }
+      { key: 'A', status: 'same' },
+      { key: 'B', status: 'different' },
+      { key: 'C', status: 'local' },
+      { key: 'D', status: 'remote' }
     ])
   })
 
@@ -76,7 +89,7 @@ describe('.env sync with a deployed copy', () => {
     await expect(diffEnv('t1', '.env', '../etc/passwd')).rejects.toThrow('Not an env file')
   })
 
-  it('a key named like an Object method is only the file\'s own', async () => {
+  it("a key named like an Object method is only the file's own", async () => {
     expect(compareEnv({ constructor: '1' }, {})).toEqual([{ key: 'constructor', status: 'local' }])
     expect(compareEnv({}, { toString: '1' })).toEqual([{ key: 'toString', status: 'remote' }])
     // Pulled while the server has no such key: removed here, never written as a function
@@ -90,8 +103,30 @@ describe('.env sync with a deployed copy', () => {
 describe('GitHub', () => {
   const calls: { url: string; method: string; auth: string }[] = []
   const runs = [
-    { id: 11, name: 'CI', display_title: 'fix: x', head_branch: 'main', event: 'push', status: 'completed', conclusion: 'failure', run_number: 7, created_at: '2026-10-23T08:00:00Z', html_url: 'https://github.com/r/11' },
-    { id: 12, name: 'CI', display_title: 'feat: y', head_branch: 'main', event: 'push', status: 'completed', conclusion: 'success', run_number: 8, created_at: '2026-10-23T09:00:00Z', html_url: 'https://github.com/r/12' }
+    {
+      id: 11,
+      name: 'CI',
+      display_title: 'fix: x',
+      head_branch: 'main',
+      event: 'push',
+      status: 'completed',
+      conclusion: 'failure',
+      run_number: 7,
+      created_at: '2026-10-23T08:00:00Z',
+      html_url: 'https://github.com/r/11'
+    },
+    {
+      id: 12,
+      name: 'CI',
+      display_title: 'feat: y',
+      head_branch: 'main',
+      event: 'push',
+      status: 'completed',
+      conclusion: 'success',
+      run_number: 8,
+      created_at: '2026-10-23T09:00:00Z',
+      html_url: 'https://github.com/r/12'
+    }
   ]
   let dir: string
   beforeEach(() => {
@@ -101,14 +136,19 @@ describe('GitHub', () => {
     saveProjects([{ name: 'devforge', path: dir }])
     vi.stubGlobal('fetch', async (url: string, init: { method?: string; headers: Record<string, string> }) => {
       calls.push({ url, method: init.method ?? 'GET', auth: init.headers.authorization })
-      const body = url.includes('/actions/runs?') ? { workflow_runs: runs }
-        : url.includes('/pulls') ? [{ number: 3, title: 'PR', user: { login: 'v' }, head: { ref: 'feat' }, draft: false, created_at: '2026-10-22T00:00:00Z', html_url: 'u' }]
-        : url.includes('/releases') ? [{ tag_name: 'v2.0.0', name: '', published_at: '2026-10-22T00:00:00Z', prerelease: false, draft: false, html_url: 'u' }]
-        : {}
+      const body = url.includes('/actions/runs?')
+        ? { workflow_runs: runs }
+        : url.includes('/pulls')
+          ? [{ number: 3, title: 'PR', user: { login: 'v' }, head: { ref: 'feat' }, draft: false, created_at: '2026-10-22T00:00:00Z', html_url: 'u' }]
+          : url.includes('/releases')
+            ? [{ tag_name: 'v2.0.0', name: '', published_at: '2026-10-22T00:00:00Z', prerelease: false, draft: false, html_url: 'u' }]
+            : {}
       return new Response(url.includes('rerun') ? null : JSON.stringify(body), { status: url.includes('rerun') ? 201 : 200 })
     })
   })
-  afterEach(() => { vi.unstubAllGlobals() })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
 
   it('reads the repository of origin', () => {
     expect(gh.parseGithubUrl('https://github.com/victhille/n8n-fr.git')).toEqual({ owner: 'victhille', repo: 'n8n-fr' })
@@ -116,10 +156,18 @@ describe('GitHub', () => {
     expect(gh.parseGithubUrl('https://gitlab.com/a/b.git')).toBeNull()
   })
 
-  it('lists runs, pull requests and releases with GitHub CLI\'s token', async () => {
+  it("lists runs, pull requests and releases with GitHub CLI's token", async () => {
     const st = await gh.status(dir)
-    expect(st).toMatchObject({ repo: { owner: 'victhille', repo: 'devforge' }, auth: 'gh', pulls: [{ number: 3, branch: 'feat' }], releases: [{ tag: 'v2.0.0', name: 'v2.0.0' }] })
-    expect(st.runs.map(r => [r.id, r.conclusion])).toEqual([[11, 'failure'], [12, 'success']])
+    expect(st).toMatchObject({
+      repo: { owner: 'victhille', repo: 'devforge' },
+      auth: 'gh',
+      pulls: [{ number: 3, branch: 'feat' }],
+      releases: [{ tag: 'v2.0.0', name: 'v2.0.0' }]
+    })
+    expect(st.runs.map(r => [r.id, r.conclusion])).toEqual([
+      [11, 'failure'],
+      [12, 'success']
+    ])
     expect(calls.every(c => c.auth === 'Bearer gho_0123456789abcdefghijklmnop')).toBe(true)
     cli.gh = false
     await expect(gh.status(dir)).rejects.toThrow('NO_TOKEN')
@@ -139,7 +187,10 @@ describe('GitHub', () => {
 describe('Forgy and the VPS', () => {
   beforeEach(() => {
     ssh.outputs.length = 0
-    writeFileSync(join(userData(), 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'Prod', host: '10.0.0.1', port: 22, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }]))
+    writeFileSync(
+      join(userData(), 'ssh-connections.json'),
+      JSON.stringify([{ id: 'v1', name: 'Prod', host: '10.0.0.1', port: 22, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }])
+    )
   })
 
   it('reads the services and refuses actions that are not set up', async () => {

@@ -15,13 +15,20 @@ const seedShop = (dir: string) => {
   const shop = join(dir, 'shop')
   mkdirSync(shop, { recursive: true })
   writeFileSync(join(shop, 'package.json'), '{}')
-  writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p', name: 'shop', path: shop, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+  writeFileSync(
+    join(dir, 'projects.json'),
+    JSON.stringify([{ id: 'p', name: 'shop', path: shop, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }])
+  )
   return shop
 }
 
 test('notes are made, named, written with checkboxes, pinned and deleted; kept in the project; the card counts the boxes left', async () => {
   let shop = ''
-  run = await launch({ seed: dir => { shop = seedShop(dir) } })
+  run = await launch({
+    seed: dir => {
+      shop = seedShop(dir)
+    }
+  })
   const { page, app } = run
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setSize(1440, 900))
   await goTo(page, '/project/p?tab=notes')
@@ -114,7 +121,8 @@ test('notes are made, named, written with checkboxes, pinned and deleted; kept i
 
   // In the project's folder, one file per note, readable
   const file = join(shop, '.devforge', 'notes', 'a-faire-avant-la-mise-en-ligne.md')
-  await expect.poll(() => existsSync(join(shop, '.devforge', 'notes', 'comptes-de-test-stripe.md')) && readFileSync(file, 'utf-8'), { timeout: 5000 })
+  await expect
+    .poll(() => existsSync(join(shop, '.devforge', 'notes', 'comptes-de-test-stripe.md')) && readFileSync(file, 'utf-8'), { timeout: 5000 })
     .toContain('<li data-checked="true">Garder le panier</li>')
   const text = readFileSync(file, 'utf-8')
   expect(text).toMatch(/^---\ntitle: À faire avant la mise en ligne\npinned: true\n---\n<ul data-checklist>\n/)
@@ -153,12 +161,19 @@ test('the notes of v3.8 move into the project: tasks become a pinned checklist, 
     seed: dir => {
       data = dir
       shop = seedShop(dir)
-      writeFileSync(join(dir, 'project-notes.json'), JSON.stringify({
-        p: {
-          tasks: [{ id: 'a', text: 'Brancher Stripe', done: false, createdAt: '' }, { id: 'b', text: 'Mettre à jour Symfony', done: true, createdAt: '', doneAt: '2026-10-26T08:00:00Z' }],
-          notes: '# Mise en ligne\n\n- vider le **cache**\n- <script>x</script>', updatedAt: ''
-        }
-      }))
+      writeFileSync(
+        join(dir, 'project-notes.json'),
+        JSON.stringify({
+          p: {
+            tasks: [
+              { id: 'a', text: 'Brancher Stripe', done: false, createdAt: '' },
+              { id: 'b', text: 'Mettre à jour Symfony', done: true, createdAt: '', doneAt: '2026-10-26T08:00:00Z' }
+            ],
+            notes: '# Mise en ligne\n\n- vider le **cache**\n- <script>x</script>',
+            updatedAt: ''
+          }
+        })
+      )
     }
   })
   const { page } = run

@@ -17,28 +17,42 @@ const inSail = (...args: string[]) => ({ exe: 'docker', args: ['compose', 'exec'
  * PHP and Composer run in the app's container.
  */
 export function laravelCommand(command: LaravelCommand, arg = '', sail = false): { exe: string; args: string[] } {
-  const artisan = (...args: string[]) => sail ? inSail('php', 'artisan', ...args) : { exe: 'php', args: ['artisan', ...args] }
+  const artisan = (...args: string[]) => (sail ? inSail('php', 'artisan', ...args) : { exe: 'php', args: ['artisan', ...args] })
   switch (command) {
-    case 'composer:install': return sail ? inSail('composer', 'install', '--no-interaction') : { exe: 'composer', args: ['install', '--no-interaction'] }
-    case 'db:start':         return { exe: 'docker', args: ['compose', 'up', '-d', '--wait', ...(sail ? [] : ['database'])] }
-    case 'sail:stop':        return { exe: 'docker', args: ['compose', 'stop'] }
+    case 'composer:install':
+      return sail ? inSail('composer', 'install', '--no-interaction') : { exe: 'composer', args: ['install', '--no-interaction'] }
+    case 'db:start':
+      return { exe: 'docker', args: ['compose', 'up', '-d', '--wait', ...(sail ? [] : ['database'])] }
+    case 'sail:stop':
+      return { exe: 'docker', args: ['compose', 'stop'] }
     case 'make:migration': {
       if (!LARAVEL_MIGRATION_RE.test(arg)) throw new Error('BAD_NAME')
       return artisan('make:migration', arg)
     }
-    case 'migrate':          return artisan('migrate', '--no-interaction')
-    case 'migrate:rollback': return artisan('migrate:rollback', '--step=1', '--no-interaction')
-    case 'install:api':      return artisan('install:api', '--without-migration-prompt', '--no-interaction')
-    case 'seed':             return artisan('db:seed', '--class=DevForgeSeeder', '--no-interaction')
+    case 'migrate':
+      return artisan('migrate', '--no-interaction')
+    case 'migrate:rollback':
+      return artisan('migrate:rollback', '--step=1', '--no-interaction')
+    case 'install:api':
+      return artisan('install:api', '--without-migration-prompt', '--no-interaction')
+    case 'seed':
+      return artisan('db:seed', '--class=DevForgeSeeder', '--no-interaction')
     // With Sail the app is served by its container
-    case 'serve':            return sail ? { exe: 'docker', args: ['compose', 'up', '-d', '--wait'] } : artisan('serve')
-    case 'optimize:clear':   return artisan('optimize:clear')
+    case 'serve':
+      return sail ? { exe: 'docker', args: ['compose', 'up', '-d', '--wait'] } : artisan('serve')
+    case 'optimize:clear':
+      return artisan('optimize:clear')
   }
   throw new Error('UNKNOWN_COMMAND')
 }
 
 export function laravelCommandLine(command: LaravelCommand, arg?: string, sail = false): string {
-  try { const c = laravelCommand(command, arg, sail); return `${c.exe} ${c.args.join(' ')}` } catch { return '' }
+  try {
+    const c = laravelCommand(command, arg, sail)
+    return `${c.exe} ${c.args.join(' ')}`
+  } catch {
+    return ''
+  }
 }
 
 /** A project that runs in Sail: its compose file has the laravel.test service */

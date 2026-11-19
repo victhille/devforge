@@ -20,7 +20,10 @@ test('a project saved as a template gives a renamed new project, without .env, n
       dir = d
       writeFileSync(join(d, 'gitconfig'), '[user]\n\tname = Test\n\temail = test@example.invalid\n')
       const starter = join(d, 'starter')
-      const put = (p: string, s: string) => { mkdirSync(join(starter, p, '..'), { recursive: true }); writeFileSync(join(starter, p), s) }
+      const put = (p: string, s: string) => {
+        mkdirSync(join(starter, p, '..'), { recursive: true })
+        writeFileSync(join(starter, p), s)
+      }
       put('package.json', '{\n  "name": "starter",\n  "version": "1.0.0"\n}\n')
       put('README.md', '# starter\n\nMy usual Node API.\n')
       put('index.js', 'console.log("hello")\n')
@@ -28,7 +31,12 @@ test('a project saved as a template gives a renamed new project, without .env, n
       put('.env.example', 'API_KEY=')
       put('node_modules/dep/index.js', 'module.exports = 1')
       execFileSync('git', ['init', '-q'], { cwd: starter })
-      writeFileSync(join(d, 'projects.json'), JSON.stringify([{ id: 's', name: 'starter', path: starter, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(d, 'projects.json'),
+        JSON.stringify([
+          { id: 's', name: 'starter', path: starter, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     },
     env: { GIT_CONFIG_GLOBAL: '{userData}/gitconfig' }
   })
@@ -69,7 +77,18 @@ test('a project saved as a template gives a renamed new project, without .env, n
   await page.getByRole('button', { name: 'Créer le projet' }).click()
 
   const made = join(dir, 'my-shop')
-  await expect.poll(() => { try { return JSON.parse(readFileSync(join(dir, 'projects.json'), 'utf-8')).some((p: { name: string }) => p.name === 'my-shop') } catch { return false } }, { timeout: 30_000 }).toBe(true)
+  await expect
+    .poll(
+      () => {
+        try {
+          return JSON.parse(readFileSync(join(dir, 'projects.json'), 'utf-8')).some((p: { name: string }) => p.name === 'my-shop')
+        } catch {
+          return false
+        }
+      },
+      { timeout: 30_000 }
+    )
+    .toBe(true)
   expect(JSON.parse(readFileSync(join(made, 'package.json'), 'utf-8')).name).toBe('my-shop')
   expect(readFileSync(join(made, 'README.md'), 'utf-8')).toContain('# my-shop')
   expect(existsSync(join(made, '.env'))).toBe(false)
@@ -90,5 +109,5 @@ test('a project saved as a template gives a renamed new project, without .env, n
   expect(await settledAxe(page)).toEqual([])
   await list.getByRole('button', { name: 'Supprimer le modèle' }).click()
   await confirmButton(page).click()
-  await expect(page.getByText('Aucun modèle : sur la fiche d\'un projet')).toBeVisible()
+  await expect(page.getByText("Aucun modèle : sur la fiche d'un projet")).toBeVisible()
 })

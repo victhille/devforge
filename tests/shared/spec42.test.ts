@@ -15,10 +15,24 @@ const overlaps = (a: Box, b: Box) => a.x < b.x + b.w && b.x < a.x + a.w && a.y <
 const named = (d: DiagramModel, name: string) => d.nodes.find(n => n.name === name)!
 
 describe('mpdFromSpec', () => {
-  const blog = () => mpdFromSpec({ tables: [
-    { name: 'auteur', columns: [{ name: 'nom', type: 'string', length: 80, nullable: false }] },
-    { name: 'article', columns: [{ name: 'id', type: 'bigint', pk: true }, { name: 'titre', type: 'varchar' }, { name: 'auteur_id', references: 'auteur', nullable: false }, { name: 'slug', type: 'varchar', unique: true }] }
-  ] }, 'postgres')
+  const blog = () =>
+    mpdFromSpec(
+      {
+        tables: [
+          { name: 'auteur', columns: [{ name: 'nom', type: 'string', length: 80, nullable: false }] },
+          {
+            name: 'article',
+            columns: [
+              { name: 'id', type: 'bigint', pk: true },
+              { name: 'titre', type: 'varchar' },
+              { name: 'auteur_id', references: 'auteur', nullable: false },
+              { name: 'slug', type: 'varchar', unique: true }
+            ]
+          }
+        ]
+      },
+      'postgres'
+    )
 
   it('gives each table a key, a foreign key the type of the key it points at, and lays them out apart', () => {
     const m = blog()
@@ -47,7 +61,11 @@ describe('diagramFromSpec', () => {
   it('a sequence: its participants in a row, its messages one below the other in the order given', () => {
     const d = diagramFromSpec('sequence', {
       nodes: [{ name: 'Client', type: 'actor' }, { name: 'API' }, { name: 'Base' }],
-      links: [{ from: 'Client', to: 'API', label: 'POST /commande' }, { from: 'API', to: 'Base', label: 'INSERT' }, { from: 'API', to: 'Client', type: 'return' }]
+      links: [
+        { from: 'Client', to: 'API', label: 'POST /commande' },
+        { from: 'API', to: 'Base', label: 'INSERT' },
+        { from: 'API', to: 'Client', type: 'return' }
+      ]
     })
     expect(d.nodes.map(n => n.type)).toEqual(['actor', 'participant', 'participant'])
     expect(new Set(d.nodes.map(n => n.y))).toEqual(new Set([0]))
@@ -62,7 +80,10 @@ describe('diagramFromSpec', () => {
   it('use cases: the actors on the left, the cases inside the system, drawn behind them', () => {
     const d = diagramFromSpec('usecase', {
       nodes: [{ name: 'Boutique', type: 'system' }, { name: 'Client', type: 'actor' }, { name: 'Commander', steps: ['Choisir', 'Payer'] }, { name: 'Payer' }],
-      links: [{ from: 'Client', to: 'Commander' }, { from: 'Commander', to: 'Payer', type: 'include' }]
+      links: [
+        { from: 'Client', to: 'Commander' },
+        { from: 'Commander', to: 'Payer', type: 'include' }
+      ]
     })
     expect(d.nodes[0].type).toBe('system')
     const system = nodeBox(named(d, 'Boutique'))
@@ -76,8 +97,20 @@ describe('diagramFromSpec', () => {
 
   it('a flowchart from the top down, a loop back not stretching it; nothing on anything', () => {
     const d = diagramFromSpec('flow', {
-      nodes: [{ name: 'Début', type: 'start' }, { name: 'Saisir' }, { name: 'Valide ?', type: 'decision' }, { name: 'Enregistrer' }, { name: 'Fin', type: 'end' }],
-      links: [{ from: 'Début', to: 'Saisir' }, { from: 'Saisir', to: 'Valide ?' }, { from: 'Valide ?', to: 'Enregistrer', label: 'oui' }, { from: 'Valide ?', to: 'Saisir', label: 'non' }, { from: 'Enregistrer', to: 'Fin' }]
+      nodes: [
+        { name: 'Début', type: 'start' },
+        { name: 'Saisir' },
+        { name: 'Valide ?', type: 'decision' },
+        { name: 'Enregistrer' },
+        { name: 'Fin', type: 'end' }
+      ],
+      links: [
+        { from: 'Début', to: 'Saisir' },
+        { from: 'Saisir', to: 'Valide ?' },
+        { from: 'Valide ?', to: 'Enregistrer', label: 'oui' },
+        { from: 'Valide ?', to: 'Saisir', label: 'non' },
+        { from: 'Enregistrer', to: 'Fin' }
+      ]
     })
     const ys = ['Début', 'Saisir', 'Valide ?', 'Enregistrer', 'Fin'].map(n => named(d, n).y)
     expect([...ys].sort((a, b) => a - b)).toEqual(ys)
@@ -89,14 +122,20 @@ describe('diagramFromSpec', () => {
   it('classes under the class they extend; an architecture from left to right', () => {
     const c = diagramFromSpec('class', {
       nodes: [{ name: 'Animal', attributes: ['- nom: string'], methods: ['+ crier(): void'] }, { name: 'Chien' }, { name: 'Chat' }],
-      links: [{ from: 'Chien', to: 'Animal', type: 'inheritance' }, { from: 'Chat', to: 'Animal', type: 'inheritance' }]
+      links: [
+        { from: 'Chien', to: 'Animal', type: 'inheritance' },
+        { from: 'Chat', to: 'Animal', type: 'inheritance' }
+      ]
     })
     expect(named(c, 'Chien').y).toBeGreaterThan(named(c, 'Animal').y)
     expect(named(c, 'Chien').y).toBe(named(c, 'Chat').y)
     expect(named(c, 'Animal').methods).toEqual(['+ crier(): void'])
     const a = diagramFromSpec('architecture', {
       nodes: [{ name: 'Navigateur', type: 'client' }, { name: 'API' }, { name: 'PostgreSQL', type: 'database' }],
-      links: [{ from: 'Navigateur', to: 'API' }, { from: 'API', to: 'PostgreSQL' }]
+      links: [
+        { from: 'Navigateur', to: 'API' },
+        { from: 'API', to: 'PostgreSQL' }
+      ]
     })
     expect(named(a, 'API').x).toBeGreaterThan(named(a, 'Navigateur').x)
     expect(named(a, 'PostgreSQL').x).toBeGreaterThan(named(a, 'API').x)
@@ -105,24 +144,67 @@ describe('diagramFromSpec', () => {
   it('sends back what to fix, naming what the kind allows', () => {
     expect(() => diagramFromSpec('flow', { nodes: [{ name: 'A', type: 'actor' }] })).toThrow(/use start, step, decision, io, end/)
     expect(() => diagramFromSpec('flow', { nodes: [{ name: 'A' }], links: [{ from: 'A', to: 'B' }] })).toThrow(/unknown part: "B"/)
-    expect(() => diagramFromSpec('class', { nodes: [{ name: 'A' }, { name: 'B' }], links: [{ from: 'A', to: 'B', type: 'message' }] })).toThrow(/not a link of a class diagram/)
-    expect(() => diagramFromSpec('usecase', { nodes: [{ name: 'S', type: 'system' }, { name: 'C' }], links: [{ from: 'S', to: 'C' }] })).toThrow(/link its cases/)
+    expect(() => diagramFromSpec('class', { nodes: [{ name: 'A' }, { name: 'B' }], links: [{ from: 'A', to: 'B', type: 'message' }] })).toThrow(
+      /not a link of a class diagram/
+    )
+    expect(() => diagramFromSpec('usecase', { nodes: [{ name: 'S', type: 'system' }, { name: 'C' }], links: [{ from: 'S', to: 'C' }] })).toThrow(
+      /link its cases/
+    )
   })
 })
 
 describe('mcdFromMpd', () => {
   /** An MPD drawn by hand: a link table, a foreign key that may be empty, a framework table, an index */
   const drawn = (): MpdModel => ({
-    engine: 'postgres', naming: DEFAULT_NAMING, connection: 'db1',
+    engine: 'postgres',
+    naming: DEFAULT_NAMING,
+    connection: 'db1',
     tables: [
-      { id: 'tC', name: 'client', x: 40, y: 40, indexes: [], columns: [{ id: 'c1', name: 'id', type: 'int', pk: true, auto: true }, { id: 'c2', name: 'email', type: 'varchar', length: 120, unique: true }] },
-      { id: 'tO', name: 'commande', x: 400, y: 40, columns: [{ id: 'o1', name: 'id', type: 'int', pk: true, auto: true }, { id: 'o2', name: 'client_id', type: 'int', nullable: true, ref: { table: 'tC', column: 'c1' } }],
-        indexes: [{ id: 'i1', name: 'idx_commande_client', columns: ['o2'] }] },
-      { id: 'tP', name: 'produit', x: 40, y: 400, indexes: [], columns: [{ id: 'p1', name: 'id', type: 'int', pk: true, auto: true }, { id: 'p2', name: 'libelle', type: 'text' }] },
-      { id: 'tL', name: 'commande_produit', x: 400, y: 400, indexes: [], columns: [
-        { id: 'l1', name: 'commande_id', type: 'int', pk: true, ref: { table: 'tO', column: 'o1' } },
-        { id: 'l2', name: 'produit_id', type: 'int', pk: true, ref: { table: 'tP', column: 'p1' } },
-        { id: 'l3', name: 'quantite', type: 'int' }] },
+      {
+        id: 'tC',
+        name: 'client',
+        x: 40,
+        y: 40,
+        indexes: [],
+        columns: [
+          { id: 'c1', name: 'id', type: 'int', pk: true, auto: true },
+          { id: 'c2', name: 'email', type: 'varchar', length: 120, unique: true }
+        ]
+      },
+      {
+        id: 'tO',
+        name: 'commande',
+        x: 400,
+        y: 40,
+        columns: [
+          { id: 'o1', name: 'id', type: 'int', pk: true, auto: true },
+          { id: 'o2', name: 'client_id', type: 'int', nullable: true, ref: { table: 'tC', column: 'c1' } }
+        ],
+        indexes: [{ id: 'i1', name: 'idx_commande_client', columns: ['o2'] }]
+      },
+      {
+        id: 'tP',
+        name: 'produit',
+        x: 40,
+        y: 400,
+        indexes: [],
+        columns: [
+          { id: 'p1', name: 'id', type: 'int', pk: true, auto: true },
+          { id: 'p2', name: 'libelle', type: 'text' }
+        ]
+      },
+      {
+        id: 'tL',
+        name: 'commande_produit',
+        x: 400,
+        y: 400,
+        indexes: [],
+        columns: [
+          { id: 'l1', name: 'commande_id', type: 'int', pk: true, ref: { table: 'tO', column: 'o1' } },
+          { id: 'l2', name: 'produit_id', type: 'int', pk: true, ref: { table: 'tP', column: 'p1' } },
+          { id: 'l3', name: 'quantite', type: 'int' }
+        ]
+      },
       { id: 'tM', name: 'migrations', x: 800, y: 40, indexes: [], columns: [{ id: 'm1', name: 'id', type: 'int', pk: true }] }
     ]
   })
@@ -149,6 +231,10 @@ describe('mcdFromMpd', () => {
     const fk = t('commande').columns.find(c => c.name === 'client_id')!
     expect(t('commande').indexes).toEqual([expect.objectContaining({ name: 'idx_commande_client', columns: [fk.id] })])
     expect(t('migrations').columns).toHaveLength(1)
-    expect(t('commande_produit').columns.map(c => c.name).sort()).toEqual(['commande_id', 'produit_id', 'quantite'])
+    expect(
+      t('commande_produit')
+        .columns.map(c => c.name)
+        .sort()
+    ).toEqual(['commande_id', 'produit_id', 'quantite'])
   })
 })

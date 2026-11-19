@@ -35,7 +35,12 @@ const sameTable = (a: DbTableRef | null, b: DbTableRef | null) => !!a && !!b && 
  * On the Database page its tables go under the connection, in the page's
  * panel (`tablesSlot`), as in the mock-up; elsewhere they have their own.
  */
-export default function DbExplorer({ conn, back, actions, tablesSlot }: {
+export default function DbExplorer({
+  conn,
+  back,
+  actions,
+  tablesSlot
+}: {
   conn: DbConnection
   /** "← Back to the project" when the page was opened from one */
   back?: { label: string; onClick: () => void }
@@ -67,19 +72,29 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
   const loadSchema = useCallback(async () => {
     setTables(null)
     setSchemaError('')
-    try { setTables(await window.devforge.db.schema(conn.id)) }
-    catch (err) { setSchemaError(errorText(err)); setTables([]) }
+    try {
+      setTables(await window.devforge.db.schema(conn.id))
+    } catch (err) {
+      setSchemaError(errorText(err))
+      setTables([])
+    }
   }, [conn.id])
 
   const loadOverview = useCallback(async () => {
     setOverview(null)
     setViewError('')
-    try { setOverview(await window.devforge.db.overview(conn.id)) }
-    catch (err) { setViewError(errorText(err)) }
+    try {
+      setOverview(await window.devforge.db.overview(conn.id))
+    } catch (err) {
+      setViewError(errorText(err))
+    }
   }, [conn.id])
 
   // Connects when shown, not before
-  useEffect(() => { loadSchema(); loadOverview() }, [loadSchema, loadOverview])
+  useEffect(() => {
+    loadSchema()
+    loadOverview()
+  }, [loadSchema, loadOverview])
 
   function openTable(ref: DbTableRef, nextTab: Tab = 'browse') {
     setTable({ name: ref.name, schema: ref.schema })
@@ -102,11 +117,21 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
     let alive = true
     setDetails(null)
     setViewError('')
-    window.devforge.db.details(conn.id, table)
-      .then(r => { if (alive) { setDetails(r); setDetailsFor(table) } })
-      .catch(err => { if (alive) setViewError(errorText(err)) })
-    return () => { alive = false }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    window.devforge.db
+      .details(conn.id, table)
+      .then(r => {
+        if (alive) {
+          setDetails(r)
+          setDetailsFor(table)
+        }
+      })
+      .catch(err => {
+        if (alive) setViewError(errorText(err))
+      })
+    return () => {
+      alive = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conn.id, table, tab, rev])
 
   function changeTab(next: Tab) {
@@ -127,7 +152,10 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
   function afterTableChange(next: DbTableRef | null) {
     refresh()
     if (next) openTable(next, 'structure')
-    else { setTable(null); setTab('overview') }
+    else {
+      setTable(null)
+      setTab('overview')
+    }
   }
 
   // Structure only (no row data): what the user is looking at
@@ -138,14 +166,27 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
       table && details && sameTable(table, detailsFor)
         ? [
             `Table ${table.schema ? `${table.schema}.` : ''}${table.name}`,
-            ...details.columns.map(c => `  ${c.name} ${c.type}${c.nullable ? '' : ' NOT NULL'}${c.key ? ` ${c.key}` : ''}${c.default !== null ? ` DEFAULT ${c.default}` : ''}${c.extra ? ` ${c.extra}` : ''}`),
-            'Indexes:', ...details.indexes.map(i => `  ${i.name} (${i.columns.join(', ')})${i.primary ? ' PRIMARY' : i.unique ? ' UNIQUE' : ''}`),
-            'Foreign keys:', ...details.foreignKeys.map(f => `  (${f.columns.join(', ')}) → ${f.table}(${f.refColumns.join(', ')}) ON DELETE ${f.onDelete}`),
-            'Referenced by:', ...details.referencedBy.map(f => `  ${f.table}(${f.columns.join(', ')})`)
+            ...details.columns.map(
+              c =>
+                `  ${c.name} ${c.type}${c.nullable ? '' : ' NOT NULL'}${c.key ? ` ${c.key}` : ''}${c.default !== null ? ` DEFAULT ${c.default}` : ''}${c.extra ? ` ${c.extra}` : ''}`
+            ),
+            'Indexes:',
+            ...details.indexes.map(i => `  ${i.name} (${i.columns.join(', ')})${i.primary ? ' PRIMARY' : i.unique ? ' UNIQUE' : ''}`),
+            'Foreign keys:',
+            ...details.foreignKeys.map(f => `  (${f.columns.join(', ')}) → ${f.table}(${f.refColumns.join(', ')}) ON DELETE ${f.onDelete}`),
+            'Referenced by:',
+            ...details.referencedBy.map(f => `  ${f.table}(${f.columns.join(', ')})`)
           ].join('\n')
-        : overview ? ['Tables:', ...overview.tables.map(t => `  ${t.schema && t.schema !== 'public' ? `${t.schema}.` : ''}${t.name} (${t.type}, ~${t.rows ?? '?'} rows)`)].join('\n') : '',
+        : overview
+          ? [
+              'Tables:',
+              ...overview.tables.map(t => `  ${t.schema && t.schema !== 'public' ? `${t.schema}.` : ''}${t.name} (${t.type}, ~${t.rows ?? '?'} rows)`)
+            ].join('\n')
+          : '',
       tab === 'sql' && sql.trim() ? `Current SQL:\n${sql.slice(0, 4000)}` : ''
-    ].filter(Boolean).join('\n')
+    ]
+      .filter(Boolean)
+      .join('\n')
   })
 
   const shownTables = useMemo(() => {
@@ -159,27 +200,27 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
 
   const tabItems = table
     ? [
-        { value: 'browse' as Tab,    label: d.tabBrowse },
+        { value: 'browse' as Tab, label: d.tabBrowse },
         { value: 'structure' as Tab, label: d.tabStructure },
         { value: 'relations' as Tab, label: d.tabRelations },
-        { value: 'info' as Tab,      label: d.tabInfo },
-        { value: 'sql' as Tab,       label: d.tabSql }
+        { value: 'info' as Tab, label: d.tabInfo },
+        { value: 'sql' as Tab, label: d.tabSql }
       ]
     : [
         { value: 'overview' as Tab, label: d.tabOverview },
-        { value: 'search' as Tab,   label: t.dbSearch.tab },
-        { value: 'sql' as Tab,      label: d.tabSql }
+        { value: 'search' as Tab, label: t.dbSearch.tab },
+        { value: 'sql' as Tab, label: d.tabSql }
       ]
 
   /** The tables: a line each, its icon, name and rows; the open one lit */
   const tablesList = (
     <div className="flex flex-col gap-0.5">
-      {tables && tables.length > 8 && (
-        <SearchInput value={filter} onChange={setFilter} placeholder={d.filterTables} className="mb-1 h-8" />
-      )}
+      {tables && tables.length > 8 && <SearchInput value={filter} onChange={setFilter} placeholder={d.filterTables} className="mb-1 h-8" />}
       {!tables && (
         <div role="status" aria-label={d.loading} className="flex flex-col gap-4 px-2.5 py-2.5">
-          {[70, 52, 84, 60].map(w => <Skeleton key={w} className="h-3.5" style={{ width: `${w}%` }} />)}
+          {[70, 52, 84, 60].map(w => (
+            <Skeleton key={w} className="h-3.5" style={{ width: `${w}%` }} />
+          ))}
         </div>
       )}
       {schemaError && <p className="py-1 pr-2 text-sm text-danger">{schemaError}</p>}
@@ -191,11 +232,22 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
           const rows = rowsOf.get(key)
           return (
             <li key={key}>
-              <button onClick={() => openTable(tb)} aria-current={selected ? 'true' : undefined}
-                className={cn('flex h-9 w-full items-center gap-2.5 rounded-control px-2.5 text-left transition-colors', selected ? 'bg-accent-soft text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg')}>
-                {tb.type === 'view' ? <Eye size={14} aria-hidden className="shrink-0 text-fg-muted" /> : <Table2 size={14} aria-hidden className={cn('shrink-0', selected ? 'text-fg' : 'text-fg-muted')} />}
+              <button
+                onClick={() => openTable(tb)}
+                aria-current={selected ? 'true' : undefined}
+                className={cn(
+                  'flex h-9 w-full items-center gap-2.5 rounded-control px-2.5 text-left transition-colors',
+                  selected ? 'bg-accent-soft text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg'
+                )}
+              >
+                {tb.type === 'view' ? (
+                  <Eye size={14} aria-hidden className="shrink-0 text-fg-muted" />
+                ) : (
+                  <Table2 size={14} aria-hidden className={cn('shrink-0', selected ? 'text-fg' : 'text-fg-muted')} />
+                )}
                 <span className={cn('min-w-0 flex-1 truncate text-base', selected && 'font-semibold')}>
-                  {tb.schema && tb.schema !== 'public' ? `${tb.schema}.` : ''}{tb.name}
+                  {tb.schema && tb.schema !== 'public' ? `${tb.schema}.` : ''}
+                  {tb.name}
                 </span>
                 {rows != null && <span className="shrink-0 font-mono text-xs text-fg-muted tabular-nums">{rows.toLocaleString(lang)}</span>}
               </button>
@@ -209,12 +261,23 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
   return (
     <div className="flex h-full min-h-0">
       {/* On the Database page, under the connection in its panel; elsewhere a panel of its own */}
-      {tablesSlot !== undefined ? (tablesSlot && createPortal(tablesList, tablesSlot)) : (
-        <aside aria-label={d.tablesLabel} className={cn('flex shrink-0 flex-col border-r border-line-subtle bg-surface transition-[width] duration-200', collapsed ? 'w-14' : 'w-[240px]')}>
+      {tablesSlot !== undefined ? (
+        tablesSlot && createPortal(tablesList, tablesSlot)
+      ) : (
+        <aside
+          aria-label={d.tablesLabel}
+          className={cn('flex shrink-0 flex-col border-r border-line-subtle bg-surface transition-[width] duration-200', collapsed ? 'w-14' : 'w-[240px]')}
+        >
           <div className={cn('flex h-14 shrink-0 items-center', collapsed ? 'justify-center' : 'justify-between pr-2.5 pl-3.5')}>
-            {!collapsed && <span className="text-xs font-semibold tracking-wider text-fg-muted uppercase">{tables ? `${tables.length} ${d.tables}` : d.loading}</span>}
+            {!collapsed && (
+              <span className="text-xs font-semibold tracking-wider text-fg-muted uppercase">{tables ? `${tables.length} ${d.tables}` : d.loading}</span>
+            )}
             <span className="flex items-center">
-              {!collapsed && <IconButton title={d.newTable} onClick={() => setCreating(true)}><Plus size={15} /></IconButton>}
+              {!collapsed && (
+                <IconButton title={d.newTable} onClick={() => setCreating(true)}>
+                  <Plus size={15} />
+                </IconButton>
+              )}
               <IconButton title={collapsed ? d.showTables : d.hideTables} onClick={() => setCollapsed(c => !c)}>
                 {collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
               </IconButton>
@@ -238,32 +301,68 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
               <nav aria-label={t.nav.breadcrumb} className="mb-1 flex min-w-0 items-center gap-1.5 text-sm text-fg-muted">
                 <span className="shrink-0">{t.nav.groupData}</span>
                 <span aria-hidden>/</span>
-                {table
-                  ? <button onClick={() => { setTable(null); setTab('overview') }} className="min-w-0 truncate hover:text-fg">{conn.name} ({ENGINE_NAME[conn.type]})</button>
-                  : <span className="min-w-0 truncate">{conn.name} ({ENGINE_NAME[conn.type]})</span>}
-                {table?.schema && table.schema !== 'public' && <><span aria-hidden>/</span><span className="shrink-0 font-mono text-xs">{table.schema}</span></>}
+                {table ? (
+                  <button
+                    onClick={() => {
+                      setTable(null)
+                      setTab('overview')
+                    }}
+                    className="min-w-0 truncate hover:text-fg"
+                  >
+                    {conn.name} ({ENGINE_NAME[conn.type]})
+                  </button>
+                ) : (
+                  <span className="min-w-0 truncate">
+                    {conn.name} ({ENGINE_NAME[conn.type]})
+                  </span>
+                )}
+                {table?.schema && table.schema !== 'public' && (
+                  <>
+                    <span aria-hidden>/</span>
+                    <span className="shrink-0 font-mono text-xs">{table.schema}</span>
+                  </>
+                )}
               </nav>
-              <h1 className="truncate font-display text-page font-bold tracking-[-.025em] text-fg" title={table ? table.name : dbName}>{table ? table.name : dbName}</h1>
+              <h1 className="truncate font-display text-page font-bold tracking-[-.025em] text-fg" title={table ? table.name : dbName}>
+                {table ? table.name : dbName}
+              </h1>
             </div>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               {actions}
               <Tabs<Tab> items={tabItems} value={tab} onChange={changeTab} label={d.views} />
-              <Button variant="secondary" onClick={() => setSchemaOpen(true)}><Network size={14} aria-hidden /> {t.schema.button}</Button>
-              <MoreMenu label={d.more} items={[
-                { label: t.common.refresh, icon: RefreshCw, onSelect: refresh },
-                { label: t.dbSearch.menu, icon: Search, onSelect: () => { setTable(null); setTab('search') } },
-                { label: d.newTable, icon: Plus, onSelect: () => setCreating(true) },
-                { label: d.newQuery, icon: Code2, onSelect: () => changeTab('sql') }
-              ]} />
+              <Button variant="secondary" onClick={() => setSchemaOpen(true)}>
+                <Network size={14} aria-hidden /> {t.schema.button}
+              </Button>
+              <MoreMenu
+                label={d.more}
+                items={[
+                  { label: t.common.refresh, icon: RefreshCw, onSelect: refresh },
+                  {
+                    label: t.dbSearch.menu,
+                    icon: Search,
+                    onSelect: () => {
+                      setTable(null)
+                      setTab('search')
+                    }
+                  },
+                  { label: d.newTable, icon: Plus, onSelect: () => setCreating(true) },
+                  { label: d.newQuery, icon: Code2, onSelect: () => changeTab('sql') }
+                ]}
+              />
             </div>
           </div>
         </div>
 
-        <div key={`${table?.schema}.${table?.name}:${rev}`} className={cn('flex min-h-0 flex-1 flex-col px-8 pb-8', tab !== 'browse' && tab !== 'sql' && 'overflow-y-auto')}>
+        <div
+          key={`${table?.schema}.${table?.name}:${rev}`}
+          className={cn('flex min-h-0 flex-1 flex-col px-8 pb-8', tab !== 'browse' && tab !== 'sql' && 'overflow-y-auto')}
+        >
           {viewError && tab !== 'browse' && tab !== 'sql' && tab !== 'search' ? (
             <ErrorState title={d.loadFailed} error={viewError} />
           ) : tab === 'overview' ? (
-            overview ? <OverviewView overview={overview} onOpenTable={tb => openTable(tb)} /> : (
+            overview ? (
+              <OverviewView overview={overview} onOpenTable={tb => openTable(tb)} />
+            ) : (
               <div role="status" aria-label={d.loading} className="flex flex-col gap-5">
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
                   {[0, 1, 2, 3, 4, 5].map(i => (
@@ -273,20 +372,49 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
                     </div>
                   ))}
                 </div>
-                <div className="flex flex-col overflow-hidden rounded-card border border-line-subtle bg-surface"><TableSkeleton label={false} rows={6} columns={8} /></div>
+                <div className="flex flex-col overflow-hidden rounded-card border border-line-subtle bg-surface">
+                  <TableSkeleton label={false} rows={6} columns={8} />
+                </div>
               </div>
             )
           ) : tab === 'search' ? (
-            <SearchPanel dbType={conn.type} tables={tables} search={search} onOpenTable={ref => openTable(ref)} onShowSql={q => { setSql(q); setTab('sql') }} />
+            <SearchPanel
+              dbType={conn.type}
+              tables={tables}
+              search={search}
+              onOpenTable={ref => openTable(ref)}
+              onShowSql={q => {
+                setSql(q)
+                setTab('sql')
+              }}
+            />
           ) : tab === 'sql' ? (
-            <SqlPanel connId={conn.id} sql={sql} onSql={setSql} onSchemaChange={() => { loadSchema(); loadOverview() }} />
+            <SqlPanel
+              connId={conn.id}
+              sql={sql}
+              onSql={setSql}
+              onSchemaChange={() => {
+                loadSchema()
+                loadOverview()
+              }}
+            />
           ) : table && tab === 'browse' ? (
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-card border border-line-subtle bg-surface"><BrowseTab conn={conn} table={table} /></div>
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-card border border-line-subtle bg-surface">
+              <BrowseTab conn={conn} table={table} />
+            </div>
           ) : !details || !sameTable(table, detailsFor) ? (
-            <div className="flex min-h-0 flex-col overflow-hidden rounded-card border border-line-subtle bg-surface"><TableSkeleton label={d.loading} rows={6} columns={6} /></div>
+            <div className="flex min-h-0 flex-col overflow-hidden rounded-card border border-line-subtle bg-surface">
+              <TableSkeleton label={d.loading} rows={6} columns={6} />
+            </div>
           ) : tab === 'structure' ? (
-            <StructureTab details={details} conn={conn} table={table ?? undefined} onChanged={refresh}
-              onRenamed={name => afterTableChange({ name, schema: table?.schema ?? '' })} onDropped={() => afterTableChange(null)} />
+            <StructureTab
+              details={details}
+              conn={conn}
+              table={table ?? undefined}
+              onChanged={refresh}
+              onRenamed={name => afterTableChange({ name, schema: table?.schema ?? '' })}
+              onDropped={() => afterTableChange(null)}
+            />
           ) : tab === 'relations' && table ? (
             <RelationsTab details={details} table={table} onOpenTable={openTableByName} />
           ) : (
@@ -294,8 +422,27 @@ export default function DbExplorer({ conn, back, actions, tablesSlot }: {
           )}
         </div>
       </section>
-      {schemaOpen && <SchemaView conn={conn} dbName={dbName} onClose={() => setSchemaOpen(false)} onOpenTable={ref => { setSchemaOpen(false); openTable(ref, 'structure') }} />}
-      {creating && <CreateTableDialog conn={conn} onClose={() => setCreating(false)} onDone={name => { setCreating(false); afterTableChange({ name, schema: table?.schema ?? '' }) }} />}
+      {schemaOpen && (
+        <SchemaView
+          conn={conn}
+          dbName={dbName}
+          onClose={() => setSchemaOpen(false)}
+          onOpenTable={ref => {
+            setSchemaOpen(false)
+            openTable(ref, 'structure')
+          }}
+        />
+      )}
+      {creating && (
+        <CreateTableDialog
+          conn={conn}
+          onClose={() => setCreating(false)}
+          onDone={name => {
+            setCreating(false)
+            afterTableChange({ name, schema: table?.schema ?? '' })
+          }}
+        />
+      )}
     </div>
   )
 }

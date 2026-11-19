@@ -36,29 +36,64 @@ export default function MpdDialog({ project, onClose, onDone }: { project: Proje
       return
     }
     setBusy(true)
-    try { onDone(await window.devforge.modeling.create(project.path, 'mpd', name.trim())) }
-    catch (err) { setError(errorText(err)); setBusy(false) }
+    try {
+      onDone(await window.devforge.modeling.create(project.path, 'mpd', name.trim()))
+    } catch (err) {
+      setError(errorText(err))
+      setBusy(false)
+    }
   }
 
   return (
-    <Modal title={m.newTitle.replace('{kind}', m.kindName.mpd)} onClose={onClose}
-      footer={<>
-        <Button variant="ghost" onClick={onClose}>{t.common.cancel}</Button>
-        <Button onClick={go} loading={busy || imp.busy} disabled={busy || imp.busy || !name.trim()}>{conn ? l.importButton : m.createButton}</Button>
-      </>}>
+    <Modal
+      title={m.newTitle.replace('{kind}', m.kindName.mpd)}
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t.common.cancel}
+          </Button>
+          <Button onClick={go} loading={busy || imp.busy} disabled={busy || imp.busy || !name.trim()}>
+            {conn ? l.importButton : m.createButton}
+          </Button>
+        </>
+      }
+    >
       <div className="flex flex-col gap-3">
-        {!connections ? <LinesSkeleton lines={2} /> : (
+        {!connections ? (
+          <LinesSkeleton lines={2} />
+        ) : (
           <Field label={l.importConnection}>
-            <select value={conn} onChange={e => { setConn(e.target.value); imp.reset() }}
-              className="h-9 rounded-lg border border-line-strong bg-surface px-2.5 text-sm text-fg outline-none focus:border-accent">
+            <select
+              value={conn}
+              onChange={e => {
+                setConn(e.target.value)
+                imp.reset()
+              }}
+              className="h-9 rounded-lg border border-line-strong bg-surface px-2.5 text-sm text-fg outline-none focus:border-accent"
+            >
               <option value="">{l.blankOption}</option>
-              {connections.map(c => <option key={c.id} value={c.id}>{c.name} · {m.mpd.engines[c.type]}</option>)}
+              {connections.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.name} · {m.mpd.engines[c.type]}
+                </option>
+              ))}
             </select>
           </Field>
         )}
         <p className="text-sm text-fg-secondary">{conn ? l.importHint : l.blankHint}</p>
         <Field label={m.name} error={error || undefined}>
-          <Input value={name} onChange={e => { setName(e.target.value); setError(''); imp.reset() }} onKeyDown={e => { if (e.key === 'Enter') go() }} />
+          <Input
+            value={name}
+            onChange={e => {
+              setName(e.target.value)
+              setError('')
+              imp.reset()
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter') go()
+            }}
+          />
         </Field>
         <ImportProgress progress={imp.progress} details={imp.details} error={imp.error} className="rounded-lg border border-line-subtle p-3" />
       </div>

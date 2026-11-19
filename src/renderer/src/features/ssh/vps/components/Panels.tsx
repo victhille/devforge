@@ -12,7 +12,9 @@ export function DisksPanel({ disks }: { disks: VPSStats['disks'] }) {
   const v = t.vpsDash
   return (
     <Card>
-      <CardHeader><CardTitle>{v.disks}</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle>{v.disks}</CardTitle>
+      </CardHeader>
       <div className="flex flex-col gap-4 p-4">
         {disks.map(d => (
           <div key={d.device + d.mount} className="flex flex-col gap-1.5">
@@ -21,7 +23,9 @@ export function DisksPanel({ disks }: { disks: VPSStats['disks'] }) {
               <span className={cn('font-mono font-semibold', usageTone(d.pct))}>{d.pct} %</span>
             </div>
             <UsageBar pct={d.pct} />
-            <span className="font-mono text-xs text-fg-muted">{formatSize(d.used, lang)} / {formatSize(d.total, lang)}</span>
+            <span className="font-mono text-xs text-fg-muted">
+              {formatSize(d.used, lang)} / {formatSize(d.total, lang)}
+            </span>
           </div>
         ))}
         {disks.length === 0 && <span className="text-sm text-fg-muted">{v.noDisks}</span>}
@@ -34,7 +38,9 @@ export function ProcessesPanel({ procs }: { procs: VPSStats['procs'] }) {
   const v = useI18n().t.vpsDash
   return (
     <Card className="overflow-hidden">
-      <CardHeader><CardTitle>{v.processes}</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle>{v.processes}</CardTitle>
+      </CardHeader>
       <Table>
         <thead>
           <tr>
@@ -50,9 +56,15 @@ export function ProcessesPanel({ procs }: { procs: VPSStats['procs'] }) {
             <tr key={p.pid}>
               <Td className="text-fg-secondary">{p.user}</Td>
               <Td className="font-mono text-xs text-fg-muted">{p.pid}</Td>
-              <Td align="right" className={cn('font-mono', usageTone(p.cpu * 5))}>{p.cpu.toFixed(1)}</Td>
-              <Td align="right" className="font-mono text-fg-secondary">{p.mem.toFixed(1)}</Td>
-              <Td className="w-full max-w-0 truncate font-mono text-xs text-fg" title={p.cmd}>{p.cmd}</Td>
+              <Td align="right" className={cn('font-mono', usageTone(p.cpu * 5))}>
+                {p.cpu.toFixed(1)}
+              </Td>
+              <Td align="right" className="font-mono text-fg-secondary">
+                {p.mem.toFixed(1)}
+              </Td>
+              <Td className="w-full max-w-0 truncate font-mono text-xs text-fg" title={p.cmd}>
+                {p.cmd}
+              </Td>
             </tr>
           ))}
         </tbody>
@@ -75,7 +87,11 @@ export function DockerPanel({ containers }: { containers: VPSStats['docker'] }) 
       </CardHeader>
       <Table>
         <thead>
-          <tr><Th>{t.ssh.labelName}</Th><Th>{v.image}</Th><Th>{v.since}</Th></tr>
+          <tr>
+            <Th>{t.ssh.labelName}</Th>
+            <Th>{v.image}</Th>
+            <Th>{v.since}</Th>
+          </tr>
         </thead>
         <tbody>
           {containers.map(c => (
@@ -86,8 +102,12 @@ export function DockerPanel({ containers }: { containers: VPSStats['docker'] }) 
                   <span className="truncate">{c.name}</span>
                 </span>
               </Td>
-              <Td className="max-w-72 truncate font-mono text-xs text-fg-muted" title={c.image}>{c.image}</Td>
-              <Td className="whitespace-nowrap text-fg-secondary" title={c.status}><DockerSince status={c.status} /></Td>
+              <Td className="max-w-72 truncate font-mono text-xs text-fg-muted" title={c.image}>
+                {c.image}
+              </Td>
+              <Td className="whitespace-nowrap text-fg-secondary" title={c.status}>
+                <DockerSince status={c.status} />
+              </Td>
             </tr>
           ))}
         </tbody>
@@ -101,5 +121,12 @@ function DockerSince({ status }: { status: string }) {
   const { t, lang } = useI18n()
   const state = status.toLowerCase().startsWith('up') ? t.docker.stateRunning : t.docker.stateStopped
   const since = dockerSince(status, lang)
-  return since ? <><span className="sr-only">{state}, </span>{since}</> : <>{state}</>
+  return since ? (
+    <>
+      <span className="sr-only">{state}, </span>
+      {since}
+    </>
+  ) : (
+    <>{state}</>
+  )
 }

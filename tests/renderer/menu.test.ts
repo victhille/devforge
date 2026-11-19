@@ -64,10 +64,14 @@ describe('sidebar menu', () => {
 })
 
 describe('Sidebar', () => {
-  (globalThis as Record<string, unknown>).__APP_VERSION__ = '9.9.9'
+  ;(globalThis as Record<string, unknown>).__APP_VERSION__ = '9.9.9'
   // React Router's links warn that their layout effects do nothing in a static render
-  beforeAll(() => { vi.spyOn(console, 'error').mockImplementation(() => {}) })
-  afterAll(() => { vi.restoreAllMocks() })
+  beforeAll(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+  afterAll(() => {
+    vi.restoreAllMocks()
+  })
   const at = (path: string) => renderToStaticMarkup(h(MemoryRouter, { initialEntries: [path] }, h(Sidebar)))
   const button = (out: string, name: string) => out.match(new RegExp(`<button[^>]*aria-label="${name}"[^>]*>`))?.[0] ?? ''
   // `<a\b`: an <a> tag, not the <aside> around the menu
@@ -106,7 +110,8 @@ describe('Sidebar', () => {
 
   it('on Settings, the panel lists its sections, the one on screen marked', () => {
     const out = at('/settings?section=appearance')
-    for (const name of ['General', 'Templates', 'Connections', 'Appearance', 'Forgy', 'Servers', 'Data', 'Updates', 'About']) expect(link(out, name)).not.toBe('')
+    for (const name of ['General', 'Templates', 'Connections', 'Appearance', 'Forgy', 'Servers', 'Data', 'Updates', 'About'])
+      expect(link(out, name)).not.toBe('')
     expect(link(out, 'Appearance')).toContain('aria-current="page"')
     expect(link(out, 'General')).not.toContain('aria-current')
     expect(link(at('/settings'), 'General')).toContain('aria-current="page"')

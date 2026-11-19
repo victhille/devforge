@@ -29,7 +29,9 @@ export function withCustom(docs: DocTech[], custom: CustomCommand[], mine: strin
   return [
     ...known,
     ...[...others.values()].map(name => ({
-      id: `custom:${key(name)}`, name, color: 'var(--color-accent)',
+      id: `custom:${key(name)}`,
+      name,
+      color: 'var(--color-accent)',
       sections: [{ title: mine, entries: custom.filter(c => key(c.category) === key(name)).map(toEntry) }]
     }))
   ]

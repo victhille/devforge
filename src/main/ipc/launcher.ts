@@ -6,7 +6,7 @@ import { hide, launcherState, toMain } from '../launcher'
 /** Only these, with plain strings: the launcher cannot make the main window do anything else */
 function clean(m: unknown): LauncherToMain | null {
   const x = (m ?? {}) as Record<string, unknown>
-  const s = (v: unknown) => typeof v === 'string' ? v : ''
+  const s = (v: unknown) => (typeof v === 'string' ? v : '')
   if (x.kind === 'navigate' && s(x.path).startsWith('/')) return { kind: 'navigate', path: s(x.path) }
   if (x.kind === 'ask' && s(x.text).trim()) return { kind: 'ask', text: s(x.text).slice(0, 4000) }
   if (x.kind === 'script' && s(x.projectPath) && s(x.script) && PACKAGE_MANAGERS.includes(s(x.pm) as PackageManager)) {
@@ -17,6 +17,9 @@ function clean(m: unknown): LauncherToMain | null {
 
 export function registerLauncherHandlers(): void {
   ipcMain.handle('launcher:hide', () => hide())
-  ipcMain.handle('launcher:to-main', (_e, m: unknown) => { const msg = clean(m); if (msg) toMain(msg) })
+  ipcMain.handle('launcher:to-main', (_e, m: unknown) => {
+    const msg = clean(m)
+    if (msg) toMain(msg)
+  })
   ipcMain.handle('launcher:state', () => launcherState())
 }

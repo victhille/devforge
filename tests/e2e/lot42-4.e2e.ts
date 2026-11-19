@@ -19,7 +19,12 @@ test('a connection and a project saved elsewhere show up in the open pages, with
       const project = join(d, 'atelier')
       mkdirSync(project, { recursive: true })
       writeFileSync(join(project, 'package.json'), '{"name":"atelier"}')
-      writeFileSync(join(d, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'Atelier', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(d, 'projects.json'),
+        JSON.stringify([
+          { id: 'p1', name: 'Atelier', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page } = run
@@ -38,7 +43,20 @@ test('a connection and a project saved elsewhere show up in the open pages, with
   await expect(page.getByRole('main').getByText('Atelier', { exact: true }).first()).toBeVisible()
   const other = join(dir, 'boutique')
   mkdirSync(other, { recursive: true })
-  await page.evaluate(p => window.devforge.saveProject({ id: 'p2', name: 'Boutique', path: p, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }), other)
+  await page.evaluate(
+    p =>
+      window.devforge.saveProject({
+        id: 'p2',
+        name: 'Boutique',
+        path: p,
+        framework: 'nodejs',
+        packageManager: 'npm',
+        favorite: false,
+        createdAt: '',
+        lastOpenedAt: null
+      }),
+    other
+  )
   await expect(page.getByRole('main').getByText('Boutique', { exact: true }).first()).toBeVisible()
 
   // Back on the Database page: the list is there at once (kept), the connection still in it

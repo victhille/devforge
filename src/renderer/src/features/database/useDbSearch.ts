@@ -13,7 +13,11 @@ export interface SearchForm {
   tables: string[] | null
 }
 
-export interface TableHit { key: string; ref: DbTableRef; result: DbSearchResult }
+export interface TableHit {
+  key: string
+  ref: DbTableRef
+  result: DbSearchResult
+}
 
 export interface SearchRun {
   /** The form as it was when the search started */
@@ -36,8 +40,14 @@ export const tableKey = (t: DbTableRef) => `${t.schema}.${t.name}`
 /** The tables a search goes through: the picked ones (or every table), those with the column asked for */
 export function searchTargets(tables: DbTable[], form: SearchForm): DbTable[] {
   const picked = form.tables ? new Set(form.tables) : null
-  return tables.filter(tb => (picked ? picked.has(tableKey(tb)) : tb.type === 'table')
-    && searchedColumns(tb.columns.map(c => c.name), form.column).length > 0)
+  return tables.filter(
+    tb =>
+      (picked ? picked.has(tableKey(tb)) : tb.type === 'table') &&
+      searchedColumns(
+        tb.columns.map(c => c.name),
+        form.column
+      ).length > 0
+  )
 }
 
 /**
@@ -50,13 +60,27 @@ export function useDbSearch(connId: string) {
   const [run, setRun] = useState<SearchRun | null>(null)
   const turn = useRef(0)
   // Leaving the connection stops the search
-  useEffect(() => () => { turn.current++ }, [])
+  useEffect(
+    () => () => {
+      turn.current++
+    },
+    []
+  )
 
   async function start(targets: DbTable[]) {
     const mine = ++turn.current
     const snapshot = { ...form }
     const startedAt = Date.now()
-    setRun({ form: snapshot, hits: [], count: targets.length, searched: 0, current: targets[0]?.name ?? null, startedAt, durationMs: targets.length ? null : 0, stopped: false })
+    setRun({
+      form: snapshot,
+      hits: [],
+      count: targets.length,
+      searched: 0,
+      current: targets[0]?.name ?? null,
+      startedAt,
+      durationMs: targets.length ? null : 0,
+      stopped: false
+    })
     for (const [i, tb] of targets.entries()) {
       if (turn.current !== mine) return
       const ref = { name: tb.name, schema: tb.schema }
@@ -64,7 +88,11 @@ export function useDbSearch(connId: string) {
       let result: DbSearchResult
       try {
         result = await window.devforge.db.search(connId, ref, {
-          term: snapshot.term, mode: snapshot.mode, caseSensitive: snapshot.caseSensitive, column: snapshot.column, limit: ROWS_PER_TABLE
+          term: snapshot.term,
+          mode: snapshot.mode,
+          caseSensitive: snapshot.caseSensitive,
+          column: snapshot.column,
+          limit: ROWS_PER_TABLE
         })
       } catch (err) {
         result = { columns: [], rows: [], total: 0, durationMs: 0, error: errorText(err) }

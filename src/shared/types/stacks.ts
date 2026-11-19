@@ -40,17 +40,17 @@ export interface ProcessLog {
 }
 
 export interface StacksAPI {
-  list:   () => Promise<Stack[]>
-  save:   (stack: Stack) => Promise<void>
+  list: () => Promise<Stack[]>
+  save: (stack: Stack) => Promise<void>
   remove: (id: string) => Promise<void>
   /** Run every step of a stack (long-running commands stay attached) */
-  start:  (id: string) => Promise<void>
-  stop:   (id: string) => Promise<void>
-  stopStep:  (stackId: string, stepId: string) => Promise<void>
+  start: (id: string) => Promise<void>
+  stop: (id: string) => Promise<void>
+  stopStep: (stackId: string, stepId: string) => Promise<void>
   startStep: (stackId: string, stepId: string) => Promise<void>
   processes: () => Promise<ProcessInfo[]>
   /** Last lines kept in memory for a process */
   logs: (key: string) => Promise<ProcessLog[]>
-  onLog:    (cb: (log: ProcessLog) => void) => () => void
+  onLog: (cb: (log: ProcessLog) => void) => () => void
   onStatus: (cb: (info: ProcessInfo) => void) => () => void
 }

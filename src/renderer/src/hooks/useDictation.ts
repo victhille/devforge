@@ -22,9 +22,15 @@ export function useDictation(onText: (text: string) => void, maxSeconds = 60): {
   textRef.current = onText
 
   // First use: the model downloads, with its progress
-  useEffect(() => window.devforge.dictation.onProgress(p => {
-    setState(s => (s.phase === 'transcribing' || s.phase === 'download' ? { phase: 'download', pct: p.total ? Math.round((p.loaded / p.total) * 100) : null } : s))
-  }), [])
+  useEffect(
+    () =>
+      window.devforge.dictation.onProgress(p => {
+        setState(s =>
+          s.phase === 'transcribing' || s.phase === 'download' ? { phase: 'download', pct: p.total ? Math.round((p.loaded / p.total) * 100) : null } : s
+        )
+      }),
+    []
+  )
 
   const finish = useCallback(async (blob: Blob) => {
     setState({ phase: 'transcribing' })
@@ -44,15 +50,24 @@ export function useDictation(onText: (text: string) => void, maxSeconds = 60): {
   const start = useCallback(async () => {
     cancelled.current = false
     let stream: MediaStream
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } }) }
-    catch { setState({ phase: 'error', reason: 'mic' }); return }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } })
+    } catch {
+      setState({ phase: 'error', reason: 'mic' })
+      return
+    }
     const rec = new MediaRecorder(stream)
     chunks.current = []
-    rec.ondataavailable = e => { if (e.data.size) chunks.current.push(e.data) }
+    rec.ondataavailable = e => {
+      if (e.data.size) chunks.current.push(e.data)
+    }
     rec.onstop = () => {
       stream.getTracks().forEach(t => t.stop())
       clearTimeout(stopTimer.current)
-      if (cancelled.current) { setState({ phase: 'idle' }); return }
+      if (cancelled.current) {
+        setState({ phase: 'idle' })
+        return
+      }
       void finish(new Blob(chunks.current, { type: rec.mimeType }))
     }
     rec.start()
@@ -64,7 +79,10 @@ export function useDictation(onText: (text: string) => void, maxSeconds = 60): {
   }, [finish, maxSeconds])
 
   const toggle = useCallback(() => {
-    if (recorder.current?.state === 'recording') { recorder.current.stop(); return }
+    if (recorder.current?.state === 'recording') {
+      recorder.current.stop()
+      return
+    }
     if (state.phase === 'idle' || state.phase === 'error') void start()
   }, [start, state.phase])
 
@@ -74,7 +92,13 @@ export function useDictation(onText: (text: string) => void, maxSeconds = 60): {
     setState({ phase: 'idle' })
   }, [])
 
-  useEffect(() => () => { cancelled.current = true; if (recorder.current?.state === 'recording') recorder.current.stop() }, [])
+  useEffect(
+    () => () => {
+      cancelled.current = true
+      if (recorder.current?.state === 'recording') recorder.current.stop()
+    },
+    []
+  )
 
   return { state, toggle, cancel }
 }

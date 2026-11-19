@@ -29,8 +29,7 @@ export interface LaravelInspect {
 }
 
 export type LaravelCommand =
-  | 'composer:install' | 'db:start' | 'make:migration' | 'migrate' | 'migrate:rollback'
-  | 'install:api' | 'seed' | 'serve' | 'optimize:clear' | 'sail:stop'
+  'composer:install' | 'db:start' | 'make:migration' | 'migrate' | 'migrate:rollback' | 'install:api' | 'seed' | 'serve' | 'optimize:clear' | 'sail:stop'
 
 export interface LaravelAPI {
   inspect: (projectPath: string) => Promise<LaravelInspect>

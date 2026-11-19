@@ -23,7 +23,11 @@ const { cleanTranscript, dictationStatus, removeModel, rms, SILENCE_RMS, transcr
 /** A tone loud enough to be speech, `seconds` long at 16 kHz */
 const voice = (seconds: number) => Float32Array.from({ length: Math.round(16_000 * seconds) }, (_, i) => 0.2 * Math.sin(i / 8))
 
-beforeEach(() => { whisper.calls = []; whisper.answer = ''; whisper.fail = false })
+beforeEach(() => {
+  whisper.calls = []
+  whisper.answer = ''
+  whisper.fail = false
+})
 
 describe('cleanTranscript', () => {
   it('keeps the first pass of a loop of words', () => {

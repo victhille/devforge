@@ -8,7 +8,7 @@ import { toSftpEntries } from './sftpEntries'
 const SFTP_LIST_TIMEOUT_MS = 15_000
 const SFTP_MAX_ENTRIES = 10_000
 
-type DataCb   = (sessionId: string, data: string) => void
+type DataCb = (sessionId: string, data: string) => void
 type StatusCb = (status: SSHSessionStatus) => void
 
 interface Session {
@@ -20,11 +20,11 @@ interface Session {
 
 export class SSHService {
   private sessions = new Map<string, Session>()
-  private onData:   DataCb   = () => {}
+  private onData: DataCb = () => {}
   private onStatus: StatusCb = () => {}
 
   setCallbacks(onData: DataCb, onStatus: StatusCb): void {
-    this.onData   = onData
+    this.onData = onData
     this.onStatus = onStatus
   }
 
@@ -34,7 +34,9 @@ export class SSHService {
     let hostError: Error | null = null
     let cfg: ConnectConfig
     try {
-      cfg = buildSshConfig(conn, err => { hostError = err })
+      cfg = buildSshConfig(conn, err => {
+        hostError = err
+      })
     } catch (err) {
       this.onStatus({ sessionId, connectionId: conn.id, status: 'error', error: (err as Error).message })
       return sessionId
@@ -75,7 +77,7 @@ export class SSHService {
       })
     })
 
-    client.on('error', (err) => {
+    client.on('error', err => {
       // A rejected host key surfaces as a generic error: show the real reason
       this.onStatus({ sessionId, connectionId: conn.id, status: 'error', error: (hostError ?? err).message })
       this.sessions.delete(sessionId)
@@ -118,7 +120,14 @@ export class SSHService {
 
       let hostError: Error | null = null
       let cfg: ConnectConfig
-      try { cfg = buildSshConfig(conn, err => { hostError = err }) } catch (err) { reject(err); return }
+      try {
+        cfg = buildSshConfig(conn, err => {
+          hostError = err
+        })
+      } catch (err) {
+        reject(err)
+        return
+      }
 
       const client = new Client()
       this.sessions.set(sessionId, { sessionId, connectionId: conn.id, client, stream: null })
@@ -127,7 +136,7 @@ export class SSHService {
         this.onStatus({ sessionId, connectionId: conn.id, status: 'connected' })
         resolve(sessionId)
       })
-      client.on('error', (err) => {
+      client.on('error', err => {
         this.sessions.delete(sessionId)
         reject(hostError ?? err)
       })
@@ -145,16 +154,30 @@ export class SSHService {
   exec(sessionId: string, command: string, timeoutMs = 12000): Promise<string> {
     return new Promise((resolve, reject) => {
       const session = this.sessions.get(sessionId)
-      if (!session) { reject(new Error('Session not found')); return }
+      if (!session) {
+        reject(new Error('Session not found'))
+        return
+      }
 
       const timer = setTimeout(() => reject(new Error('Command timed out')), timeoutMs)
 
       session.client.exec(command, (err, stream) => {
-        if (err) { clearTimeout(timer); reject(err); return }
+        if (err) {
+          clearTimeout(timer)
+          reject(err)
+          return
+        }
         let output = ''
-        stream.on('data', (d: Buffer) => { output += d.toString() })
-        stream.stderr.on('data', (d: Buffer) => { output += d.toString() })
-        stream.on('close', () => { clearTimeout(timer); resolve(output.trim()) })
+        stream.on('data', (d: Buffer) => {
+          output += d.toString()
+        })
+        stream.stderr.on('data', (d: Buffer) => {
+          output += d.toString()
+        })
+        stream.on('close', () => {
+          clearTimeout(timer)
+          resolve(output.trim())
+        })
       })
     })
   }
@@ -163,7 +186,10 @@ export class SSHService {
   forwardOut(sessionId: string, port: number): Promise<import('stream').Duplex> {
     return new Promise((resolve, reject) => {
       const session = this.sessions.get(sessionId)
-      if (!session) { reject(new Error('Session not found')); return }
+      if (!session) {
+        reject(new Error('Session not found'))
+        return
+      }
       session.client.forwardOut('127.0.0.1', 0, '127.0.0.1', port, (err, stream) => (err ? reject(err) : resolve(stream)))
     })
   }
@@ -172,9 +198,15 @@ export class SSHService {
   list(sessionId: string, dir: string): Promise<{ path: string; entries: SftpEntry[] }> {
     return new Promise((resolve, reject) => {
       const session = this.sessions.get(sessionId)
-      if (!session) { reject(new Error('Session not found')); return }
+      if (!session) {
+        reject(new Error('Session not found'))
+        return
+      }
       session.client.sftp((err, sftp) => {
-        if (err) { reject(err); return }
+        if (err) {
+          reject(err)
+          return
+        }
         // One answer only: the listing, a protocol error of the server, or the time limit
         let done = false
         const finish = (e: Error | null, value?: { path: string; entries: SftpEntry[] }) => {
@@ -188,7 +220,10 @@ export class SSHService {
         const timer = setTimeout(() => finish(new Error('The server did not answer in time')), SFTP_LIST_TIMEOUT_MS)
         sftp.once('error', (e: Error) => finish(e))
         sftp.realpath(dir || '.', (e1, path) => {
-          if (e1) { finish(e1); return }
+          if (e1) {
+            finish(e1)
+            return
+          }
           sftp.readdir(path, (e2, list) => {
             if (e2) finish(e2)
             else finish(null, { path, entries: toSftpEntries(list).slice(0, SFTP_MAX_ENTRIES) })
@@ -202,12 +237,24 @@ export class SSHService {
   download(sessionId: string, remotePath: string, localPath: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const session = this.sessions.get(sessionId)
-      if (!session) { reject(new Error('Session not found')); return }
+      if (!session) {
+        reject(new Error('Session not found'))
+        return
+      }
       session.client.sftp((err, sftp) => {
-        if (err) { reject(err); return }
+        if (err) {
+          reject(err)
+          return
+        }
         // A protocol error of the server ends the copy instead of escaping as an uncaught error
         let done = false
-        const finish = (e?: Error | null) => { if (done) return; done = true; sftp.end(); if (e) reject(e); else resolve() }
+        const finish = (e?: Error | null) => {
+          if (done) return
+          done = true
+          sftp.end()
+          if (e) reject(e)
+          else resolve()
+        }
         sftp.once('error', (e: Error) => finish(e))
         sftp.fastGet(remotePath, localPath, e => finish(e))
       })
@@ -218,15 +265,30 @@ export class SSHService {
   execStream(sessionId: string, command: string, onData: (text: string) => void, timeoutMs = 30 * 60_000): Promise<number | null> {
     return new Promise((resolve, reject) => {
       const session = this.sessions.get(sessionId)
-      if (!session) { reject(new Error('Session not found')); return }
+      if (!session) {
+        reject(new Error('Session not found'))
+        return
+      }
 
       session.client.exec(command, (err, stream) => {
-        if (err) { reject(err); return }
-        const timer = setTimeout(() => { stream.close(); reject(new Error('Command timed out')) }, timeoutMs)
+        if (err) {
+          reject(err)
+          return
+        }
+        const timer = setTimeout(() => {
+          stream.close()
+          reject(new Error('Command timed out'))
+        }, timeoutMs)
         stream.on('data', (d: Buffer) => onData(d.toString()))
         stream.stderr.on('data', (d: Buffer) => onData(d.toString()))
-        stream.on('exit', (code: number | null) => { clearTimeout(timer); resolve(code) })
-        stream.on('close', () => { clearTimeout(timer); resolve(null) })
+        stream.on('exit', (code: number | null) => {
+          clearTimeout(timer)
+          resolve(code)
+        })
+        stream.on('close', () => {
+          clearTimeout(timer)
+          resolve(null)
+        })
       })
     })
   }

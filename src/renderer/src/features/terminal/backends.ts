@@ -23,15 +23,32 @@ export function localBackend(kind: TerminalShell['kind'], cwd: string): ShellBac
     async start(onData, onExit, cols, rows) {
       // Subscribed first: the first prompt may come before create() resolves
       const early: string[] = []
-      unsubs.push(window.devforge.terminal.onData((tid, data) => { if (tid === id) onData(data); else if (id === null) early.push(data) }))
-      unsubs.push(window.devforge.terminal.onExit((tid, code) => { if (tid === id) onExit(code) }))
+      unsubs.push(
+        window.devforge.terminal.onData((tid, data) => {
+          if (tid === id) onData(data)
+          else if (id === null) early.push(data)
+        })
+      )
+      unsubs.push(
+        window.devforge.terminal.onExit((tid, code) => {
+          if (tid === id) onExit(code)
+        })
+      )
       id = await window.devforge.terminal.create(kind, cwd, cols, rows)
       // Only this terminal's: ids are unique, and nothing else was created meanwhile by this view
       for (const d of early.splice(0)) onData(d)
     },
-    write: data => { if (id) window.devforge.terminal.write(id, data) },
-    resize: (cols, rows) => { if (id) window.devforge.terminal.resize(id, cols, rows) },
-    stop: () => { for (const u of unsubs.splice(0)) u(); if (id) window.devforge.terminal.kill(id); id = null }
+    write: data => {
+      if (id) window.devforge.terminal.write(id, data)
+    },
+    resize: (cols, rows) => {
+      if (id) window.devforge.terminal.resize(id, cols, rows)
+    },
+    stop: () => {
+      for (const u of unsubs.splice(0)) u()
+      if (id) window.devforge.terminal.kill(id)
+      id = null
+    }
   }
 }
 
@@ -43,23 +60,35 @@ export function sshBackend(connectionId: string): ShellBackend {
     historyKey: `ssh:${connectionId}`,
     async start(onData, onExit, cols, rows) {
       let taught = false
-      unsubs.push(window.devforge.onSshData((s, data) => {
-        if (s !== sid) return
-        // The shell is up when it first writes (the "connected" status comes before it): teach it the markers then
-        if (!taught) {
-          taught = true
-          window.devforge.sshResize(s, cols, rows)
-          window.devforge.sshWrite(s, sshInitLine())
-        }
-        onData(data)
-      }))
-      unsubs.push(window.devforge.onSshStatus(st => {
-        if (st.sessionId === sid && (st.status === 'disconnected' || st.status === 'error')) onExit(null)
-      }))
+      unsubs.push(
+        window.devforge.onSshData((s, data) => {
+          if (s !== sid) return
+          // The shell is up when it first writes (the "connected" status comes before it): teach it the markers then
+          if (!taught) {
+            taught = true
+            window.devforge.sshResize(s, cols, rows)
+            window.devforge.sshWrite(s, sshInitLine())
+          }
+          onData(data)
+        })
+      )
+      unsubs.push(
+        window.devforge.onSshStatus(st => {
+          if (st.sessionId === sid && (st.status === 'disconnected' || st.status === 'error')) onExit(null)
+        })
+      )
       sid = await window.devforge.sshConnect(connectionId)
     },
-    write: data => { if (sid) window.devforge.sshWrite(sid, data) },
-    resize: (cols, rows) => { if (sid) window.devforge.sshResize(sid, cols, rows) },
-    stop: () => { for (const u of unsubs.splice(0)) u(); if (sid) window.devforge.sshDisconnect(sid); sid = null }
+    write: data => {
+      if (sid) window.devforge.sshWrite(sid, data)
+    },
+    resize: (cols, rows) => {
+      if (sid) window.devforge.sshResize(sid, cols, rows)
+    },
+    stop: () => {
+      for (const u of unsubs.splice(0)) u()
+      if (sid) window.devforge.sshDisconnect(sid)
+      sid = null
+    }
   }
 }

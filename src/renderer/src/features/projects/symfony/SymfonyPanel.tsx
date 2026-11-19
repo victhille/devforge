@@ -33,11 +33,18 @@ export default function SymfonyPanel({ projectPath }: { projectPath: string }) {
 
   const load = useCallback(() => {
     setLoading(true)
-    window.devforge.symfony.inspect(projectPath)
-      .then(d => { setData(d); setLoadError('') })
+    window.devforge.symfony
+      .inspect(projectPath)
+      .then(d => {
+        setData(d)
+        setLoadError('')
+      })
       .catch(err => setLoadError(errorText(err)))
       .finally(() => setLoading(false))
-    window.devforge.symfony.serverUrl(projectPath).then(setServerUrl).catch(() => setServerUrl(null))
+    window.devforge.symfony
+      .serverUrl(projectPath)
+      .then(setServerUrl)
+      .catch(() => setServerUrl(null))
   }, [projectPath])
   useEffect(load, [load])
 
@@ -45,26 +52,49 @@ export default function SymfonyPanel({ projectPath }: { projectPath: string }) {
   useEffect(() => {
     const onDraft = () => {
       const d = takePendingDraft(projectPath)
-      if (d) { setDraft(d); setPart('entities') }
+      if (d) {
+        setDraft(d)
+        setPart('entities')
+      }
     }
     window.addEventListener(SF_DRAFT_EVENT, onDraft)
     return () => window.removeEventListener(SF_DRAFT_EVENT, onDraft)
   }, [projectPath])
 
-  const { exec, track } = useSfTasks(projectPath, useCallback((line: string) => line, []), useCallback(() => load(), [load]))
+  const { exec, track } = useSfTasks(
+    projectPath,
+    useCallback((line: string) => line, []),
+    useCallback(() => load(), [load])
+  )
 
   function written(r: SfWriteResult) {
     const n = r.created.length + r.changed.length + r.removed.length
     toast.show({
-      tone: 'success', title: s.written.replace('{n}', String(n)),
+      tone: 'success',
+      title: s.written.replace('{n}', String(n)),
       description: [...r.created.map(f => `+ ${f}`), ...r.changed.map(f => `~ ${f}`), ...r.removed.map(f => `− ${f}`)].join('\n'),
-      action: part === 'entities' ? { label: s.prepare, onClick: () => { setPart('migrations'); exec('migrations:diff') } } : undefined
+      action:
+        part === 'entities'
+          ? {
+              label: s.prepare,
+              onClick: () => {
+                setPart('migrations')
+                exec('migrations:diff')
+              }
+            }
+          : undefined
     })
     load()
   }
 
   if (!data) {
-    return loadError ? <p role="alert" className="text-sm text-danger">{loadError}</p> : <LinesSkeleton lines={4} label={t.common.loading} className="p-2" />
+    return loadError ? (
+      <p role="alert" className="text-sm text-danger">
+        {loadError}
+      </p>
+    ) : (
+      <LinesSkeleton lines={4} label={t.common.loading} className="p-2" />
+    )
   }
   const st = data.status
   const pending = data.migrations.filter(m => !m.executed).length
@@ -91,47 +121,92 @@ export default function SymfonyPanel({ projectPath }: { projectPath: string }) {
       <div className="flex flex-wrap gap-4">
         <nav aria-label={s.navLabel} className="flex w-[200px] shrink-0 flex-col gap-0.5">
           {PARTS.map(p => (
-            <button key={p} onClick={() => setPart(p)} aria-current={part === p ? 'page' : undefined}
-              className={cn('flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors',
-                part === p ? 'bg-accent-soft font-semibold text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg')}>
+            <button
+              key={p}
+              onClick={() => setPart(p)}
+              aria-current={part === p ? 'page' : undefined}
+              className={cn(
+                'flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors',
+                part === p ? 'bg-accent-soft font-semibold text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg'
+              )}
+            >
               <span className="flex-1">{s.parts[p]}</span>
-              {badge[p] && <span className={cn('font-mono text-xs', p === 'migrations' ? 'text-warning' : badge[p] === '●' ? 'text-success' : 'text-fg-muted')}>{badge[p]}</span>}
+              {badge[p] && (
+                <span className={cn('font-mono text-xs', p === 'migrations' ? 'text-warning' : badge[p] === '●' ? 'text-success' : 'text-fg-muted')}>
+                  {badge[p]}
+                </span>
+              )}
             </button>
           ))}
           <div className="mt-3 flex items-center gap-2 px-3 text-xs text-fg-muted">
             <span className="flex-1 truncate">{st.version ? `Symfony ${st.version}` : 'Symfony'}</span>
-            <IconButton size="sm" title={s.refresh} onClick={load} disabled={loading}><RefreshCw size={12} className={cn(loading && 'animate-spin')} /></IconButton>
+            <IconButton size="sm" title={s.refresh} onClick={load} disabled={loading}>
+              <RefreshCw size={12} className={cn(loading && 'animate-spin')} />
+            </IconButton>
           </div>
         </nav>
 
         <div className="min-w-0 flex-[1_1_640px]">
           {part === 'database' && <DatabaseSection projectPath={projectPath} status={st} exec={exec} onChanged={load} />}
           {part === 'entities' && (
-            <EntitiesSection key={draft ? JSON.stringify(draft) : 'list'} kit={symfonyKit(projectPath, data.entities, s)} entities={data.entities}
-              draft={draft} onDraftUsed={() => setDraft(null)} onWritten={written} />
+            <EntitiesSection
+              key={draft ? JSON.stringify(draft) : 'list'}
+              kit={symfonyKit(projectPath, data.entities, s)}
+              entities={data.entities}
+              draft={draft}
+              onDraftUsed={() => setDraft(null)}
+              onWritten={written}
+            />
           )}
           {part === 'migrations' && (
-            <MigrationsSection migrations={data.migrations} databaseOk={!!st.database?.reachable}
+            <MigrationsSection
+              migrations={data.migrations}
+              databaseOk={!!st.database?.reachable}
               prepare={{ line: () => sfCommandLine('migrations:diff'), run: () => exec('migrations:diff') }}
               apply={{ line: () => sfCommandLine('migrations:migrate'), run: () => exec('migrations:migrate') }}
-              rollback={{ line: () => sfCommandLine('migrations:prev'), run: () => exec('migrations:prev') }} />
+              rollback={{ line: () => sfCommandLine('migrations:prev'), run: () => exec('migrations:prev') }}
+            />
           )}
           {part === 'api' && (
-            <ApiSection entities={data.entities} onWritten={written} serverUrl={serverUrl} defaultUrl="http://127.0.0.1:8000"
-              load={() => window.devforge.symfony.apiConfig(projectPath)} save={config => window.devforge.symfony.applyApi(projectPath, config)}
-              platform={{ installed: st.packages.apiPlatform }} filesNote={s.jsonFiles}
-              needs={mode => mode === 'platform'
-                ? (st.packages.apiPlatform ? null : { text: s.needsPlatform, button: <CommandButton command="install:api-platform" label={s.install} variant="primary" onRun={exec} /> })
-                : (st.packages.serializer && st.packages.validator ? null : { text: s.needsSerializer, button: <CommandButton command="install:serializer" label={s.install} variant="primary" onRun={exec} /> })} />
+            <ApiSection
+              entities={data.entities}
+              onWritten={written}
+              serverUrl={serverUrl}
+              defaultUrl="http://127.0.0.1:8000"
+              load={() => window.devforge.symfony.apiConfig(projectPath)}
+              save={config => window.devforge.symfony.applyApi(projectPath, config)}
+              platform={{ installed: st.packages.apiPlatform }}
+              filesNote={s.jsonFiles}
+              needs={mode =>
+                mode === 'platform'
+                  ? st.packages.apiPlatform
+                    ? null
+                    : { text: s.needsPlatform, button: <CommandButton command="install:api-platform" label={s.install} variant="primary" onRun={exec} /> }
+                  : st.packages.serializer && st.packages.validator
+                    ? null
+                    : { text: s.needsSerializer, button: <CommandButton command="install:serializer" label={s.install} variant="primary" onRun={exec} /> }
+              }
+            />
           )}
           {part === 'pages' && <PagesSection entities={data.entities} status={st} exec={exec} />}
           {part === 'fixtures' && (
-            <FixturesSection entities={data.entities} ready={st.packages.fixtures && st.packages.foundry}
+            <FixturesSection
+              entities={data.entities}
+              ready={st.packages.fixtures && st.packages.foundry}
               install={<CommandButton command="install:fixtures" label={s.install} variant="primary" onRun={exec} />}
-              line="php bin/console doctrine:fixtures:load --no-interaction" canRun={st.packages.maker && !!st.database?.reachable}
-              onRun={counts => track(s.fixturesTask, () => window.devforge.symfony.writeFixtures(projectPath, counts))} />
+              line="php bin/console doctrine:fixtures:load --no-interaction"
+              canRun={st.packages.maker && !!st.database?.reachable}
+              onRun={counts => track(s.fixturesTask, () => window.devforge.symfony.writeFixtures(projectPath, counts))}
+            />
           )}
-          {part === 'routes' && <RoutesSection load={() => window.devforge.symfony.routes(projectPath)} serverUrl={serverUrl} defaultUrl="http://127.0.0.1:8000" help={s.routesHelp} />}
+          {part === 'routes' && (
+            <RoutesSection
+              load={() => window.devforge.symfony.routes(projectPath)}
+              serverUrl={serverUrl}
+              defaultUrl="http://127.0.0.1:8000"
+              help={s.routesHelp}
+            />
+          )}
           {part === 'server' && <ServerSection status={st} serverUrl={serverUrl} exec={exec} />}
         </div>
       </div>

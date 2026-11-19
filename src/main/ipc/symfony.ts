@@ -1,10 +1,8 @@
 import { ipcMain, type BrowserWindow } from 'electron'
 import type { SfApiConfig, SfCommand, SfEntityDraft } from '@shared/types'
-import {
-  apiConfig, applyApi, inspect, routes, run, serverUrl, useConnection, writeEntity, writeFixtures
-} from '../services/symfony/symfonyService'
+import { apiConfig, applyApi, inspect, routes, run, serverUrl, useConnection, writeEntity, writeFixtures } from '../services/symfony/symfonyService'
 
-const str = (v: unknown) => typeof v === 'string' ? v : ''
+const str = (v: unknown) => (typeof v === 'string' ? v : '')
 
 export function registerSymfonyHandlers(mainWindow: BrowserWindow): void {
   const onLog = (log: unknown) => mainWindow.webContents.send('task-log', log)

@@ -1,6 +1,10 @@
 import { exec, execFile } from 'child_process'
 
-interface RunOptions { cwd?: string; timeout?: number; env?: Record<string, string> }
+interface RunOptions {
+  cwd?: string
+  timeout?: number
+  env?: Record<string, string>
+}
 
 const execOptions = (opts: RunOptions) => ({
   cwd: opts.cwd,
@@ -22,7 +26,11 @@ export function run(command: string, opts: RunOptions = {}): Promise<string> {
   })
 }
 
-export interface CaptureResult { ok: boolean; stdout: string; stderr: string }
+export interface CaptureResult {
+  ok: boolean
+  stdout: string
+  stderr: string
+}
 
 /** Like `run` but never rejects: returns exit status with both streams. */
 export function runCapture(command: string, opts: RunOptions = {}): Promise<CaptureResult> {

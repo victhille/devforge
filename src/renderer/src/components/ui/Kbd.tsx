@@ -7,11 +7,13 @@ import { cn } from '@renderer/lib/cn'
  */
 export default function Kbd({ children, size = 'sm', className }: { children: ReactNode; size?: 'sm' | 'md'; className?: string }) {
   return (
-    <kbd className={cn(
-      'rounded-md border border-line bg-elevated font-mono whitespace-nowrap text-fg-secondary',
-      size === 'md' ? 'inline-flex h-7.5 min-w-7.5 items-center justify-center px-2.5 text-xs' : 'px-1.5 text-2xs leading-4',
-      className
-    )}>
+    <kbd
+      className={cn(
+        'rounded-md border border-line bg-elevated font-mono whitespace-nowrap text-fg-secondary',
+        size === 'md' ? 'inline-flex h-7.5 min-w-7.5 items-center justify-center px-2.5 text-xs' : 'px-1.5 text-2xs leading-4',
+        className
+      )}
+    >
       {children}
     </kbd>
   )

@@ -86,7 +86,9 @@ export interface RawInspect {
   booted: boolean
   error: string | null
   version: string | null
-  entities: (Omit<SfEntity, 'fields'> & { fields: (Omit<SfField, 'type'> & { type: string; length: number | null; precision: number | null; scale: number | null })[] })[]
+  entities: (Omit<SfEntity, 'fields'> & {
+    fields: (Omit<SfField, 'type'> & { type: string; length: number | null; precision: number | null; scale: number | null })[]
+  })[]
   db: { configured: boolean; driver: string; target: string; reachable: boolean; error: string | null } | null
   executed: { version: string; at: string | null }[]
 }
@@ -94,28 +96,61 @@ export interface RawInspect {
 export function parseInspect(stdout: string): RawInspect | null {
   const m = stdout.match(/@@DEVFORGE@@([\s\S]*)@@DEVFORGE@@/)
   if (!m) return null
-  try { return JSON.parse(m[1]) as RawInspect } catch { return null }
+  try {
+    return JSON.parse(m[1]) as RawInspect
+  } catch {
+    return null
+  }
 }
 
 /** Doctrine type → the workshop's field types */
 const TYPE_OF: Record<string, SfFieldType> = {
-  string: 'string', ascii_string: 'string', guid: 'string', text: 'text', integer: 'integer', smallint: 'integer', bigint: 'integer',
-  float: 'float', decimal: 'decimal', boolean: 'boolean', date: 'date', date_immutable: 'date', datetime: 'datetime',
-  datetime_immutable: 'datetime', datetimetz: 'datetime', datetimetz_immutable: 'datetime', json: 'json', simple_array: 'json'
+  string: 'string',
+  ascii_string: 'string',
+  guid: 'string',
+  text: 'text',
+  integer: 'integer',
+  smallint: 'integer',
+  bigint: 'integer',
+  float: 'float',
+  decimal: 'decimal',
+  boolean: 'boolean',
+  date: 'date',
+  date_immutable: 'date',
+  datetime: 'datetime',
+  datetime_immutable: 'datetime',
+  datetimetz: 'datetime',
+  datetimetz_immutable: 'datetime',
+  json: 'json',
+  simple_array: 'json'
 }
 
 /** Entities as the workshop shows them; paths relative to the project */
 export function toEntities(raw: RawInspect, projectPath: string): SfEntity[] {
-  const root = projectPath.replace(/[\\/]+$/, '').toLowerCase().replace(/\\/g, '/')
-  return raw.entities.map(e => ({
-    name: e.name, table: e.table, apiResource: e.apiResource,
-    file: (() => { const f = e.file.replace(/\\/g, '/'); return f.toLowerCase().startsWith(root + '/') ? f.slice(root.length + 1) : f })(),
-    fields: e.fields.map(f => ({
-      name: f.name, type: TYPE_OF[f.type] ?? 'string', nullable: f.nullable, unique: f.unique,
-      ...(f.length ? { length: f.length } : {}), ...(f.precision ? { precision: f.precision, scale: f.scale ?? 0 } : {})
-    })),
-    relations: e.relations as SfRelation[]
-  })).sort((a, b) => a.name.localeCompare(b.name))
+  const root = projectPath
+    .replace(/[\\/]+$/, '')
+    .toLowerCase()
+    .replace(/\\/g, '/')
+  return raw.entities
+    .map(e => ({
+      name: e.name,
+      table: e.table,
+      apiResource: e.apiResource,
+      file: (() => {
+        const f = e.file.replace(/\\/g, '/')
+        return f.toLowerCase().startsWith(root + '/') ? f.slice(root.length + 1) : f
+      })(),
+      fields: e.fields.map(f => ({
+        name: f.name,
+        type: TYPE_OF[f.type] ?? 'string',
+        nullable: f.nullable,
+        unique: f.unique,
+        ...(f.length ? { length: f.length } : {}),
+        ...(f.precision ? { precision: f.precision, scale: f.scale ?? 0 } : {})
+      })),
+      relations: e.relations as SfRelation[]
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
 
 /** The SQL of up() in a Doctrine migration file */
@@ -125,20 +160,32 @@ export function migrationSql(php: string): string[] {
   return [...up[1].matchAll(/addSql\(\s*'((?:[^'\\]|\\.)*)'/g)].map(m => m[1].replace(/\\'/g, "'").replace(/\\\\/g, '\\'))
 }
 
-export const migrationDescription = (php: string) => php.match(/function getDescription\(\)[^{]*\{\s*return\s+'((?:[^'\\]|\\.)*)'/)?.[1].replace(/\\'/g, "'") ?? ''
+export const migrationDescription = (php: string) =>
+  php.match(/function getDescription\(\)[^{]*\{\s*return\s+'((?:[^'\\]|\\.)*)'/)?.[1].replace(/\\'/g, "'") ?? ''
 
 export const isDangerous = (sql: string[]) => sql.some(s => /\bDROP\b|\bTRUNCATE\b|\bDELETE\s+FROM\b/i.test(s))
 
 /** Files of migrations/ and what the database says ran, newest first */
 export function toMigrations(files: { name: string; php: string }[], executed: { version: string; at: string | null }[]): SfMigration[] {
   const ran = new Map(executed.map(e => [e.version, e.at]))
-  const list: SfMigration[] = files.filter(f => /^Version\w+\.php$/.test(f.name)).map(f => {
-    const version = `DoctrineMigrations\\${f.name.replace(/\.php$/, '')}`
-    const sql = migrationSql(f.php)
-    return { version, description: migrationDescription(f.php), executed: ran.has(version), executedAt: ran.get(version) ?? null, file: `migrations/${f.name}`, sql, dangerous: isDangerous(sql) }
-  })
+  const list: SfMigration[] = files
+    .filter(f => /^Version\w+\.php$/.test(f.name))
+    .map(f => {
+      const version = `DoctrineMigrations\\${f.name.replace(/\.php$/, '')}`
+      const sql = migrationSql(f.php)
+      return {
+        version,
+        description: migrationDescription(f.php),
+        executed: ran.has(version),
+        executedAt: ran.get(version) ?? null,
+        file: `migrations/${f.name}`,
+        sql,
+        dangerous: isDangerous(sql)
+      }
+    })
   for (const e of executed) {
-    if (!list.some(m => m.version === e.version)) list.push({ version: e.version, description: '', executed: true, executedAt: e.at, file: null, sql: [], dangerous: false })
+    if (!list.some(m => m.version === e.version))
+      list.push({ version: e.version, description: '', executed: true, executedAt: e.at, file: null, sql: [], dangerous: false })
   }
   return list.sort((a, b) => b.version.localeCompare(a.version))
 }
@@ -154,7 +201,8 @@ export function parseRoutes(json: string): SfRoute[] {
   return Object.entries(data)
     .filter(([name]) => !TOOL_ROUTE.test(name))
     .map(([name, r]) => ({
-      name, path: r.path.replace(/\.\{_format\}$/, ''),
+      name,
+      path: r.path.replace(/\.\{_format\}$/, ''),
       methods: r.method === 'ANY' || !r.method ? [] : r.method.split('|').filter(m => m !== 'HEAD'),
       controller: r.defaults?._controller ?? ''
     }))

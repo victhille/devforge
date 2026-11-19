@@ -9,9 +9,18 @@ import { defaultConfig } from '../../src/main/services/status/statusScripts'
 
 /** N8n and the status page's ntfy alerts in Settings › Connections (the server's answer simulated) */
 const seed = () => {
-  writeFileSync(join(userData(), 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'mon-serveur', host: '203.0.113.10', port: 22, username: 'deploy', authMethod: 'password' }]))
-  writeFileSync(join(userData(), 'n8n.json'), JSON.stringify({ instances: [{ connectionId: 'v1', domain: 'n8n.example.com', exposure: 'caddy', installedAt: '2026-10-27T10:00:00.000Z' }] }))
-  writeFileSync(join(userData(), 'status.json'), JSON.stringify({ pages: [{ connectionId: 'v1', exposure: 'port', domain: '', installedAt: '2026-10-27T10:00:00.000Z' }] }))
+  writeFileSync(
+    join(userData(), 'ssh-connections.json'),
+    JSON.stringify([{ id: 'v1', name: 'mon-serveur', host: '203.0.113.10', port: 22, username: 'deploy', authMethod: 'password' }])
+  )
+  writeFileSync(
+    join(userData(), 'n8n.json'),
+    JSON.stringify({ instances: [{ connectionId: 'v1', domain: 'n8n.example.com', exposure: 'caddy', installedAt: '2026-10-27T10:00:00.000Z' }] })
+  )
+  writeFileSync(
+    join(userData(), 'status.json'),
+    JSON.stringify({ pages: [{ connectionId: 'v1', exposure: 'port', domain: '', installedAt: '2026-10-27T10:00:00.000Z' }] })
+  )
 }
 const serverAnswers = (alerts: object) => {
   const file = join(tempDir('vps'), 'vps.json')
@@ -19,7 +28,9 @@ const serverAnswers = (alerts: object) => {
   writeFileSync(file, JSON.stringify({ statusOverview: ['yes', 'status|running', JSON.stringify(config), '', '', '', ''].join(SEP) }))
   process.env.DEVFORGE_TEST_VPS = file
 }
-afterEach(() => { delete process.env.DEVFORGE_TEST_VPS })
+afterEach(() => {
+  delete process.env.DEVFORGE_TEST_VPS
+})
 
 describe('v3.2 lot 3: n8n and alerts in Connections', () => {
   it('lists n8n and the status pages with their server, never a key', async () => {

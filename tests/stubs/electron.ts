@@ -23,7 +23,9 @@ export class Notification {
   static shown: { title: string; body: string }[] = []
   static isSupported = () => true
   constructor(private opts: { title: string; body: string }) {}
-  show(): void { Notification.shown.push(this.opts) }
+  show(): void {
+    Notification.shown.push(this.opts)
+  }
 }
 
 /** Save / open dialogs: `next` is the path the user "picks", empty for Cancel; `answer` the button clicked in a message box */

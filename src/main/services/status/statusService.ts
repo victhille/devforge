@@ -1,9 +1,7 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { app } from 'electron'
-import type {
-  StatusAlerts, StatusConfig, StatusExposure, StatusIncident, StatusInstallOptions, StatusOverview, StatusPrecheck
-} from '@shared/types'
+import type { StatusAlerts, StatusConfig, StatusExposure, StatusIncident, StatusInstallOptions, StatusOverview, StatusPrecheck } from '@shared/types'
 import { writeJsonFile } from '../../lib/jsonFile'
 import { log } from '../../lib/log'
 import { runOn, sessionFor } from '../monitor/vpsWatch'
@@ -13,8 +11,21 @@ import { loadSshConnections } from '../ssh/sshStorage'
 import { checkDomain } from '../n8n/n8nService'
 import { testOutput } from '../vps/testOutputs'
 import {
-  DOMAIN_RE, EMAIL_RE, OVERVIEW_SCRIPT, PRECHECK_SCRIPT, SEP, STATUS_PORT,
-  OPEN_FIREWALL_SCRIPT, cleanConfig, cleanIncidents, defaultConfig, firewallBlocks, installScript, sslipFor, uninstallScript, writeDataScript
+  DOMAIN_RE,
+  EMAIL_RE,
+  OVERVIEW_SCRIPT,
+  PRECHECK_SCRIPT,
+  SEP,
+  STATUS_PORT,
+  OPEN_FIREWALL_SCRIPT,
+  cleanConfig,
+  cleanIncidents,
+  defaultConfig,
+  firewallBlocks,
+  installScript,
+  sslipFor,
+  uninstallScript,
+  writeDataScript
 } from './statusScripts'
 
 /**
@@ -23,11 +34,20 @@ import {
  * through SSH and writes its settings the same way.
  */
 
-interface Stored { connectionId: string; exposure: StatusExposure; domain: string; installedAt: string }
+interface Stored {
+  connectionId: string
+  exposure: StatusExposure
+  domain: string
+  installedAt: string
+}
 
 const storePath = () => join(app.getPath('userData'), 'status.json')
 function readStore(): Stored[] {
-  try { return (JSON.parse(readFileSync(storePath(), 'utf-8')) as { pages?: Stored[] }).pages ?? [] } catch { return [] }
+  try {
+    return (JSON.parse(readFileSync(storePath(), 'utf-8')) as { pages?: Stored[] }).pages ?? []
+  } catch {
+    return []
+  }
 }
 const writeStore = (pages: Stored[]) => writeJsonFile(storePath(), { pages })
 
@@ -43,7 +63,7 @@ function server(connectionId: string) {
 
 export async function precheck(connectionId: string): Promise<StatusPrecheck> {
   const conn = server(connectionId)
-  const out = testOutput('statusPrecheck') ?? await runOn(connectionId, PRECHECK_SCRIPT, 30_000)
+  const out = testOutput('statusPrecheck') ?? (await runOn(connectionId, PRECHECK_SCRIPT, 30_000))
   const [docker = '', compose = '', ports = '', n8n = '', installed = '', ufw = ''] = out.split(SEP).map(s => s.trim())
   const busy = new Set<number>()
   for (const line of ports.split('\n')) {
@@ -52,7 +72,11 @@ export async function precheck(connectionId: string): Promise<StatusPrecheck> {
   }
   const n8nCaddy = n8n === 'yes'
   return {
-    docker: docker === 'yes', compose: compose === 'yes', busyPorts: [...busy].sort((a, b) => a - b), n8nCaddy, installed: installed === 'yes',
+    docker: docker === 'yes',
+    compose: compose === 'yes',
+    busyPorts: [...busy].sort((a, b) => a - b),
+    n8nCaddy,
+    installed: installed === 'yes',
     firewallBlocks: firewallBlocks(ufw),
     sslip: sslipFor(conn.host),
     suggested: n8nCaddy ? 'n8n' : busy.size ? 'port' : 'caddy'
@@ -65,11 +89,16 @@ export const domainCheck = (connectionId: string, domain: string) => checkDomain
 async function stream(connectionId: string, script: string, onLog: (text: string) => void): Promise<boolean> {
   const sid = await sessionFor(connectionId)
   let all = ''
-  const code = await sshService.execStream(sid, `bash -lc ${shQuote(script)} 2>&1; echo "${SEP}$?"`, text => {
-    all += text
-    const clean = text.replace(new RegExp(`${SEP}\\d*\\s*$`), '')
-    if (clean) onLog(clean)
-  }, 15 * 60_000)
+  const code = await sshService.execStream(
+    sid,
+    `bash -lc ${shQuote(script)} 2>&1; echo "${SEP}$?"`,
+    text => {
+      all += text
+      const clean = text.replace(new RegExp(`${SEP}\\d*\\s*$`), '')
+      if (clean) onLog(clean)
+    },
+    15 * 60_000
+  )
   const m = new RegExp(`${SEP}(\\d+)\\s*$`).exec(all)
   return (m ? Number(m[1]) : code) === 0
 }
@@ -92,20 +121,30 @@ export async function install(connectionId: string, opts: StatusInstallOptions, 
   return { ok }
 }
 
-const parse = <T>(text: string, fallback: T): T => { try { return text.trim() ? JSON.parse(text) as T : fallback } catch { return fallback } }
+const parse = <T>(text: string, fallback: T): T => {
+  try {
+    return text.trim() ? (JSON.parse(text) as T) : fallback
+  } catch {
+    return fallback
+  }
+}
 
 export async function overview(connectionId: string): Promise<StatusOverview> {
   const conn = server(connectionId)
-  const out = testOutput('statusOverview') ?? await runOn(connectionId, OVERVIEW_SCRIPT, 30_000)
+  const out = testOutput('statusOverview') ?? (await runOn(connectionId, OVERVIEW_SCRIPT, 30_000))
   const [installed = '', ps = '', config = '', state = '', history = '', incidents = '', manual = ''] = out.split(SEP)
   const stored = readStore().find(p => p.connectionId === connectionId)
   const running = ps.split('\n').some(l => l.trim() === 'status|running')
   const s = parse<{ updatedAt: string | null; monitors: StatusOverview['monitors'] }>(state, { updatedAt: null, monitors: {} })
   const url = !stored ? null : stored.exposure === 'port' ? `http://${conn.host}:${STATUS_PORT}` : `https://${stored.domain}`
   return {
-    installed: installed.trim() === 'yes', running, url, exposure: stored?.exposure ?? null,
+    installed: installed.trim() === 'yes',
+    running,
+    url,
+    exposure: stored?.exposure ?? null,
     config: parse<StatusConfig | null>(config, null),
-    updatedAt: s.updatedAt, monitors: s.monitors ?? {},
+    updatedAt: s.updatedAt,
+    monitors: s.monitors ?? {},
     history: parse(history, {}),
     incidents: [
       ...parse<StatusIncident[]>(incidents, []).map(i => ({ ...i, auto: true })),
@@ -131,14 +170,18 @@ export async function testAlert(alerts: StatusAlerts): Promise<void> {
   const message = 'Si tu lis ceci, les alertes de la page de statut arrivent bien.'
   if (clean.ntfy) {
     const res = await fetch(`${clean.ntfy.server}/`, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, signal: AbortSignal.timeout(15_000),
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      signal: AbortSignal.timeout(15_000),
       body: JSON.stringify({ topic: clean.ntfy.topic, title, message, tags: ['white_check_mark'] })
     })
     if (!res.ok) throw new Error(`ntfy ${res.status}`)
   }
   if (clean.webhook) {
     const res = await fetch(clean.webhook, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, signal: AbortSignal.timeout(15_000),
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      signal: AbortSignal.timeout(15_000),
       body: JSON.stringify({ source: 'devforge-status', title, message, down: false, test: true, at: new Date().toISOString() })
     })
     if (!res.ok) throw new Error(`webhook ${res.status}`)
@@ -153,7 +196,9 @@ export async function openFirewall(connectionId: string): Promise<{ ok: boolean;
   try {
     const output = await runOn(connectionId, OPEN_FIREWALL_SCRIPT, 30_000)
     return { ok: firewallBlocks(output).length === 0, output }
-  } catch (err) { return { ok: false, output: err instanceof Error ? err.message : String(err) } }
+  } catch (err) {
+    return { ok: false, output: err instanceof Error ? err.message : String(err) }
+  }
 }
 
 export async function uninstall(connectionId: string, onLog: (text: string) => void): Promise<{ ok: boolean }> {

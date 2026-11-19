@@ -17,7 +17,11 @@ export interface QuickAnswer {
 
 /** + − × ÷ % ^, parentheses, decimals with a dot or a comma */
 export function calculate(input: string): number | null {
-  const src = input.replace(/\s+/g, '').replace(/×/g, '*').replace(/÷/g, '/').replace(/(\d),(\d)/g, '$1.$2')
+  const src = input
+    .replace(/\s+/g, '')
+    .replace(/×/g, '*')
+    .replace(/÷/g, '/')
+    .replace(/(\d),(\d)/g, '$1.$2')
   if (!/^[\d.+\-*/%^()]+$/.test(src) || !/\d/.test(src)) return null
   let i = 0
   const peek = () => src[i]
@@ -28,8 +32,14 @@ export function calculate(input: string): number | null {
     return Number(m[0])
   }
   const factor = (): number => {
-    if (peek() === '-') { i++; return -factor() }
-    if (peek() === '+') { i++; return factor() }
+    if (peek() === '-') {
+      i++
+      return -factor()
+    }
+    if (peek() === '+') {
+      i++
+      return factor()
+    }
     if (peek() === '(') {
       i++
       const v = expr()
@@ -41,7 +51,10 @@ export function calculate(input: string): number | null {
   }
   const power = (): number => {
     const base = factor()
-    if (peek() === '^') { i++; return base ** power() }
+    if (peek() === '^') {
+      i++
+      return base ** power()
+    }
     return base
   }
   const term = (): number => {
@@ -65,7 +78,9 @@ export function calculate(input: string): number | null {
   try {
     const v = expr()
     return i === src.length && Number.isFinite(v) ? v : null
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
 
 /** 12 decimals at most, no float noise (0.1 + 0.2 → 0.3) */
@@ -101,7 +116,9 @@ function fromB64(s: string): string | null {
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes)
     // Only readable text counts as a decoding
     return /^[\P{C}\n\r\t]*$/u.test(text) ? text : null
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
 
 function base64Answers(q: string): QuickAnswer[] {
@@ -118,8 +135,11 @@ function base64Answers(q: string): QuickAnswer[] {
 
 function rgbToHsl(r: number, g: number, b: number): string {
   const [rr, gg, bb] = [r / 255, g / 255, b / 255]
-  const max = Math.max(rr, gg, bb), min = Math.min(rr, gg, bb), l = (max + min) / 2
-  let h = 0, s = 0
+  const max = Math.max(rr, gg, bb),
+    min = Math.min(rr, gg, bb),
+    l = (max + min) / 2
+  let h = 0,
+    s = 0
   if (max !== min) {
     const d = max - min
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
@@ -132,7 +152,13 @@ function rgbToHsl(r: number, g: number, b: number): string {
 function colorAnswers(q: string): QuickAnswer[] {
   const hex = q.match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i)
   if (hex && (q.startsWith('#') || /[a-f]/i.test(hex[1]))) {
-    const h = hex[1].length === 3 ? hex[1].split('').map(c => c + c).join('') : hex[1]
+    const h =
+      hex[1].length === 3
+        ? hex[1]
+            .split('')
+            .map(c => c + c)
+            .join('')
+        : hex[1]
     const [r, g, b] = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16))
     return [
       { kind: 'color', value: `rgb(${r}, ${g}, ${b})`, detail: `#${h.toUpperCase()}` },
@@ -143,7 +169,12 @@ function colorAnswers(q: string): QuickAnswer[] {
   if (rgb) {
     const [r, g, b] = rgb.slice(1, 4).map(Number)
     if ([r, g, b].some(v => v > 255)) return []
-    const value = '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase()
+    const value =
+      '#' +
+      [r, g, b]
+        .map(v => v.toString(16).padStart(2, '0'))
+        .join('')
+        .toUpperCase()
     return [{ kind: 'color', value, detail: rgbToHsl(r, g, b) }]
   }
   return []

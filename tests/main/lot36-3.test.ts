@@ -53,6 +53,10 @@ describe('v3.6 lot 3: row statements', () => {
     const db = new SQL.Database()
     db.run("CREATE TABLE client (id INTEGER PRIMARY KEY, name TEXT, note TEXT); INSERT INTO client (name, note) VALUES ('Ada', 'x'), ('Linus', 'y')")
     for (const s of rowStatements('sqlite', client, changes)) db.run(s.sql, s.params as (string | number | null)[])
-    expect(db.exec('SELECT id, name, note FROM client ORDER BY id')[0].values).toEqual([[2, "O'Brien", null], [3, 'Grace', null], [4, null, null]])
+    expect(db.exec('SELECT id, name, note FROM client ORDER BY id')[0].values).toEqual([
+      [2, "O'Brien", null],
+      [3, 'Grace', null],
+      [4, null, null]
+    ])
   })
 })

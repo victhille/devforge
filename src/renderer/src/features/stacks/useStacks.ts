@@ -16,15 +16,21 @@ export function useStacks() {
     return window.devforge.stacks.onStatus(info => setProcs(prev => ({ ...prev, [info.key]: info })))
   }, [reload])
 
-  const save = useCallback(async (stack: Stack) => {
-    await window.devforge.stacks.save(stack)
-    await reload()
-  }, [reload])
+  const save = useCallback(
+    async (stack: Stack) => {
+      await window.devforge.stacks.save(stack)
+      await reload()
+    },
+    [reload]
+  )
 
-  const remove = useCallback(async (id: string) => {
-    await window.devforge.stacks.remove(id)
-    await reload()
-  }, [reload])
+  const remove = useCallback(
+    async (id: string) => {
+      await window.devforge.stacks.remove(id)
+      await reload()
+    },
+    [reload]
+  )
 
   const running = (stack: Stack) => stack.steps.filter(s => procs[procKey(stack.id, s.id)]?.status === 'running').length
 

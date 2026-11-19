@@ -5,11 +5,11 @@ import { useToast } from '@renderer/app/ToastContext'
 
 /** The letter of a changed file and its colour (A, U, M, D, R) */
 export const STATUS_LETTER: Record<FileChangeStatus, { letter: string; className: string }> = {
-  added:     { letter: 'A', className: 'text-success' },
+  added: { letter: 'A', className: 'text-success' },
   untracked: { letter: 'U', className: 'text-success' },
-  modified:  { letter: 'M', className: 'text-warning' },
-  deleted:   { letter: 'D', className: 'text-danger' },
-  renamed:   { letter: 'R', className: 'text-accent' }
+  modified: { letter: 'M', className: 'text-warning' },
+  deleted: { letter: 'D', className: 'text-danger' },
+  renamed: { letter: 'R', className: 'text-accent' }
 }
 
 /**
@@ -27,35 +27,49 @@ export function useCommit(path: string, onDone: () => void, rev = 0) {
 
   useEffect(() => {
     let alive = true
-    window.devforge.git.changes(path).then(list => {
-      if (!alive) return
-      setChanges(list)
-      setSelected(new Set(list.map(c => c.path)))
-    }).catch(() => { if (alive) setChanges([]) })
-    return () => { alive = false }
+    window.devforge.git
+      .changes(path)
+      .then(list => {
+        if (!alive) return
+        setChanges(list)
+        setSelected(new Set(list.map(c => c.path)))
+      })
+      .catch(() => {
+        if (alive) setChanges([])
+      })
+    return () => {
+      alive = false
+    }
   }, [path, rev])
 
   const chosen = useMemo(() => (changes ?? []).filter(c => selected.has(c.path)), [changes, selected])
 
-  const toggle = useCallback((file: string, on: boolean) => setSelected(prev => {
-    const next = new Set(prev)
-    if (on) next.add(file); else next.delete(file)
-    return next
-  }), [])
+  const toggle = useCallback(
+    (file: string, on: boolean) =>
+      setSelected(prev => {
+        const next = new Set(prev)
+        if (on) next.add(file)
+        else next.delete(file)
+        return next
+      }),
+    []
+  )
 
   async function commit(message: string, push: boolean) {
     setBusy(push ? 'push' : 'commit')
     try {
-      const r = await window.devforge.git.commit(path, message, chosen.map(c => c.path))
+      const r = await window.devforge.git.commit(
+        path,
+        message,
+        chosen.map(c => c.path)
+      )
       if (!r.ok) {
         toast.show({ tone: 'error', title: g.commitFailed, description: r.output })
         return
       }
       if (push) {
         const p = await window.devforge.git.push(path)
-        toast.show(p.ok
-          ? { tone: 'success', title: g.committedPushed }
-          : { tone: 'error', title: g.committedPushFailed, description: p.output })
+        toast.show(p.ok ? { tone: 'success', title: g.committedPushed } : { tone: 'error', title: g.committedPushFailed, description: p.output })
       } else {
         toast.show({ tone: 'success', title: g.committed, description: message.split('\n')[0] })
       }

@@ -14,14 +14,29 @@ test('n8n offers an install on a saved server, and a Vercel-linked project gets 
   run = await launch({
     seed: dir => {
       // A server nobody can reach: the check fails, the form is still there
-      writeFileSync(join(dir, 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'Prod', host: '127.0.0.1', port: 1, username: 'root', authMethod: 'key', color: '', createdAt: '' }]))
+      writeFileSync(
+        join(dir, 'ssh-connections.json'),
+        JSON.stringify([{ id: 'v1', name: 'Prod', host: '127.0.0.1', port: 1, username: 'root', authMethod: 'key', color: '', createdAt: '' }])
+      )
       writeFileSync(join(dir, 'watch.json'), JSON.stringify({ watched: [], diskAlert: 85 }))
       const site = join(dir, 'site')
       mkdirSync(join(site, '.vercel'), { recursive: true })
       writeFileSync(join(site, '.vercel', 'project.json'), JSON.stringify({ projectId: 'prj_1', orgId: 'team_1' }))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([
-        { id: 'p1', name: 'Site', path: site, framework: 'nextjs', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }
-      ]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'p1',
+            name: 'Site',
+            path: site,
+            framework: 'nextjs',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
     }
   })
   const { page } = run

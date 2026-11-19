@@ -12,7 +12,9 @@ let response: WebhookResponse = { status: 200, contentType: 'application/json', 
 let requests: CapturedRequest[] = []
 let onRequest: (r: CapturedRequest) => void = () => {}
 
-export function setWebhookCallback(cb: typeof onRequest): void { onRequest = cb }
+export function setWebhookCallback(cb: typeof onRequest): void {
+  onRequest = cb
+}
 
 function handle(req: http.IncomingMessage, res: http.ServerResponse): void {
   const chunks: Buffer[] = []
@@ -20,7 +22,8 @@ function handle(req: http.IncomingMessage, res: http.ServerResponse): void {
   let truncated = false
   req.on('data', (c: Buffer) => {
     size += c.length
-    if (size <= MAX_BODY) chunks.push(c); else truncated = true
+    if (size <= MAX_BODY) chunks.push(c)
+    else truncated = true
   })
   req.on('end', () => {
     const captured: CapturedRequest = {
@@ -28,7 +31,7 @@ function handle(req: http.IncomingMessage, res: http.ServerResponse): void {
       at: new Date().toISOString(),
       method: req.method ?? 'GET',
       url: req.url ?? '/',
-      headers: Object.fromEntries(Object.entries(req.headers).map(([k, v]) => [k, Array.isArray(v) ? v.join(', ') : v ?? ''])),
+      headers: Object.fromEntries(Object.entries(req.headers).map(([k, v]) => [k, Array.isArray(v) ? v.join(', ') : (v ?? '')])),
       body: Buffer.concat(chunks).toString('utf-8'),
       truncated
     }
@@ -73,7 +76,9 @@ export function stopWebhooks(): WebhookStatus {
 }
 
 export const listRequests = () => requests
-export function clearRequests(): void { requests = [] }
+export function clearRequests(): void {
+  requests = []
+}
 
 export function setResponse(r: WebhookResponse): void {
   if (!Number.isInteger(r.status) || r.status < 100 || r.status > 599) throw new Error('Invalid status code')

@@ -11,7 +11,10 @@ vi.mock('../../src/main/services/ssh/sshService', () => ({
   sshService: {
     connectForDashboard: async () => 'sid',
     disconnect: () => {},
-    exec: async (_sid: string, command: string) => { ssh.commands.push(command); return ssh.outputs.shift() ?? '' },
+    exec: async (_sid: string, command: string) => {
+      ssh.commands.push(command)
+      return ssh.outputs.shift() ?? ''
+    },
     execStream: async (_sid: string, command: string, onData: (t: string) => void) => {
       ssh.commands.push(command)
       onData((ssh.outputs.shift() ?? '') + '@@DF@@0\n')
@@ -31,19 +34,47 @@ const { planAction } = await import('../../src/main/services/assistant/assistant
 
 describe('changelog', () => {
   const md = [
-    '# Notes', '',
-    '## [2.0.0](https://x/compare/v1.5.0...v2.0.0) — 2026-11-03', '', '> Forgy acts.', '',
-    '### Nouveautés', '', '- **assistant** : Forgy agit ([abc1234](https://x/commit/abc1234ffff))', '- Hub projet ([def5678](https://x/commit/def5678))', '',
-    '### Corrections', '', '- Un bug ([0123456](https://x/commit/0123456))', '',
-    '_1 changement(s) technique(s) non listé(s)._', '',
-    '## [1.5.0](https://x) — 2026-10-19', '', '### Performances', '', '- Plus fluide', '',
-    '## [1.4.1](https://x) — 2026-10-18', '', '### Fixes', '', '- A fix', '',
-    '## 1.4.0 — 2026-10-18', ''
+    '# Notes',
+    '',
+    '## [2.0.0](https://x/compare/v1.5.0...v2.0.0) — 2026-11-03',
+    '',
+    '> Forgy acts.',
+    '',
+    '### Nouveautés',
+    '',
+    '- **assistant** : Forgy agit ([abc1234](https://x/commit/abc1234ffff))',
+    '- Hub projet ([def5678](https://x/commit/def5678))',
+    '',
+    '### Corrections',
+    '',
+    '- Un bug ([0123456](https://x/commit/0123456))',
+    '',
+    '_1 changement(s) technique(s) non listé(s)._',
+    '',
+    '## [1.5.0](https://x) — 2026-10-19',
+    '',
+    '### Performances',
+    '',
+    '- Plus fluide',
+    '',
+    '## [1.4.1](https://x) — 2026-10-18',
+    '',
+    '### Fixes',
+    '',
+    '- A fix',
+    '',
+    '## 1.4.0 — 2026-10-18',
+    ''
   ].join('\n')
 
   it('reads versions, kinds, summaries and items', () => {
     const v = parseChangelog(md)
-    expect(v.map(x => [x.version, x.kind])).toEqual([['2.0.0', 'major'], ['1.5.0', 'minor'], ['1.4.1', 'patch'], ['1.4.0', 'major']])
+    expect(v.map(x => [x.version, x.kind])).toEqual([
+      ['2.0.0', 'major'],
+      ['1.5.0', 'minor'],
+      ['1.4.1', 'patch'],
+      ['1.4.0', 'major']
+    ])
     expect(v[0]).toMatchObject({ date: '2026-11-03', summary: 'Forgy acts.', note: '1 changement(s) technique(s) non listé(s).' })
     expect(v[0].items[0]).toEqual({ type: 'new', scope: 'assistant', text: 'Forgy agit', sha: 'abc1234', url: 'https://x/commit/abc1234ffff' })
     expect(v[0].items.map(i => i.type)).toEqual(['new', 'new', 'fix'])
@@ -90,20 +121,44 @@ describe('n8n', () => {
     server = createServer((req, res) => {
       calls.push({ method: req.method!, url: req.url!, key: String(req.headers['x-n8n-api-key']) })
       res.setHeader('content-type', 'application/json')
-      if (status !== 200) { res.statusCode = status; res.end('{"message":"unauthorized"}'); return }
-      if (req.url!.startsWith('/api/v1/workflows?')) res.end(JSON.stringify({ data: [{ id: 'w2', name: 'Zeta', active: false, updatedAt: '2026-10-01', tags: [] }, { id: 'w1', name: 'Alpha', active: true, updatedAt: '2026-10-02', tags: [{ name: 'prod' }] }] }))
+      if (status !== 200) {
+        res.statusCode = status
+        res.end('{"message":"unauthorized"}')
+        return
+      }
+      if (req.url!.startsWith('/api/v1/workflows?'))
+        res.end(
+          JSON.stringify({
+            data: [
+              { id: 'w2', name: 'Zeta', active: false, updatedAt: '2026-10-01', tags: [] },
+              { id: 'w1', name: 'Alpha', active: true, updatedAt: '2026-10-02', tags: [{ name: 'prod' }] }
+            ]
+          })
+        )
       else if (req.url === '/api/v1/workflows/w2/activate') res.end(JSON.stringify({ id: 'w2', name: 'Zeta', active: true, updatedAt: '2026-10-03' }))
       else if (req.url === '/api/v1/workflows/w1') res.end(JSON.stringify({ id: 'w1', name: 'Alpha é', active: true, updatedAt: '2026-10-02', nodes: [] }))
-      else if (req.url!.startsWith('/api/v1/executions?')) res.end(JSON.stringify({ data: [{ id: '9', workflowId: 'w1', status: 'error', startedAt: '2026-10-19T10:00:00Z', mode: 'trigger' }] }))
-      else { res.statusCode = 404; res.end('{}') }
+      else if (req.url!.startsWith('/api/v1/executions?'))
+        res.end(JSON.stringify({ data: [{ id: '9', workflowId: 'w1', status: 'error', startedAt: '2026-10-19T10:00:00Z', mode: 'trigger' }] }))
+      else {
+        res.statusCode = 404
+        res.end('{}')
+      }
     })
     await new Promise<void>(r => server.listen(0, '127.0.0.1', r))
     ssh.port = (server.address() as AddressInfo).port
   })
-  afterAll(() => { server.close() })
+  afterAll(() => {
+    server.close()
+  })
   beforeEach(() => {
-    ssh.outputs.length = 0; ssh.commands.length = 0; calls.length = 0; status = 200
-    writeFileSync(join(userData(), 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'Prod', host: '10.0.0.1', port: 22, username: 'root', authMethod: 'key', color: '', createdAt: '' }]))
+    ssh.outputs.length = 0
+    ssh.commands.length = 0
+    calls.length = 0
+    status = 200
+    writeFileSync(
+      join(userData(), 'ssh-connections.json'),
+      JSON.stringify([{ id: 'v1', name: 'Prod', host: '10.0.0.1', port: 22, username: 'root', authMethod: 'key', color: '', createdAt: '' }])
+    )
   })
 
   it('writes a compose file that keeps n8n off the internet and secrets on the server', () => {
@@ -142,7 +197,7 @@ describe('n8n', () => {
   })
 
   it('checks the server, installs, then reads workflows through the tunnel', async () => {
-    ssh.outputs.push(['Docker version 27.1', 'yes', '0.0.0.0:22\n0.0.0.0:80\n[::]:443', ''].join("\n@@DF@@\n"))
+    ssh.outputs.push(['Docker version 27.1', 'yes', '0.0.0.0:22\n0.0.0.0:80\n[::]:443', ''].join('\n@@DF@@\n'))
     expect(await n8n.precheck('v1')).toEqual({ docker: 'Docker version 27.1', compose: true, busyPorts: [80, 443], existing: false })
 
     const log: string[] = []
@@ -174,7 +229,10 @@ describe('n8n', () => {
   })
 
   it('refuses an HTTPS install when the sub-domain does not point to the server', async () => {
-    const dns = (answers: Record<string, string[]>) => async (name: string) => { if (!answers[name]) throw new Error('ENOTFOUND'); return answers[name] }
+    const dns = (answers: Record<string, string[]>) => async (name: string) => {
+      if (!answers[name]) throw new Error('ENOTFOUND')
+      return answers[name]
+    }
     const server = dns({ '10.0.0.1': ['10.0.0.1'] })
     expect(await n8n.checkDomain('v1', 'n8n.nowhere.fr', { domain: dns({}), server })).toEqual({ ok: false, domainIps: [], serverIps: ['10.0.0.1'] })
     expect((await n8n.checkDomain('v1', 'n8n.other.fr', { domain: dns({ 'n8n.other.fr': ['9.9.9.9'] }), server })).ok).toBe(false)
@@ -229,20 +287,47 @@ describe('Vercel', () => {
     saveProjects([{ name: 'site', path: dir }])
     vi.stubGlobal('fetch', async (input: URL, init: RequestInit) => {
       const url = String(input)
-      requests.push({ url, method: init.method ?? 'GET', body: init.body as string | undefined, auth: String((init.headers as Record<string, string>).authorization) })
+      requests.push({
+        url,
+        method: init.method ?? 'GET',
+        body: init.body as string | undefined,
+        auth: String((init.headers as Record<string, string>).authorization)
+      })
       const json = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s })
-      if (url.includes('/v2/user')) return (init.headers as Record<string, string>).authorization === 'Bearer good' ? json({ user: { username: 'vic' } }) : json({ error: { message: 'no' } }, 403)
-      if (url.includes('/v9/projects/prj_1?') || url.endsWith('/v9/projects/prj_1')) return json({ name: 'site', framework: 'nextjs', targets: { production: { id: 'dpl_a', alias: ['site.vercel.app'] } } })
-      if (url.includes('/v6/deployments')) return json({ deployments: [
-        { uid: 'dpl_b', url: 'site-b.vercel.app', state: 'READY', target: null, created: 2, meta: { githubCommitRef: 'feat', githubCommitMessage: 'New page\nbody' } },
-        { uid: 'dpl_a', url: 'site-a.vercel.app', state: 'READY', target: 'production', created: 1, meta: {} }
-      ] })
-      if (url.includes('/v10/projects/prj_1/env')) return json({ envs: [{ key: 'API_URL', target: ['production', 'preview'] }, { key: 'REMOTE_ONLY', target: ['production'] }] })
+      if (url.includes('/v2/user'))
+        return (init.headers as Record<string, string>).authorization === 'Bearer good'
+          ? json({ user: { username: 'vic' } })
+          : json({ error: { message: 'no' } }, 403)
+      if (url.includes('/v9/projects/prj_1?') || url.endsWith('/v9/projects/prj_1'))
+        return json({ name: 'site', framework: 'nextjs', targets: { production: { id: 'dpl_a', alias: ['site.vercel.app'] } } })
+      if (url.includes('/v6/deployments'))
+        return json({
+          deployments: [
+            {
+              uid: 'dpl_b',
+              url: 'site-b.vercel.app',
+              state: 'READY',
+              target: null,
+              created: 2,
+              meta: { githubCommitRef: 'feat', githubCommitMessage: 'New page\nbody' }
+            },
+            { uid: 'dpl_a', url: 'site-a.vercel.app', state: 'READY', target: 'production', created: 1, meta: {} }
+          ]
+        })
+      if (url.includes('/v10/projects/prj_1/env'))
+        return json({
+          envs: [
+            { key: 'API_URL', target: ['production', 'preview'] },
+            { key: 'REMOTE_ONLY', target: ['production'] }
+          ]
+        })
       if (url.includes('/promote/')) return json({})
       return json({ error: { message: 'unexpected ' + url } }, 500)
     })
   })
-  afterEach(() => { vi.unstubAllGlobals() })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
 
   it('keeps a checked token encrypted and reads the linked project', async () => {
     await expect(vercel.saveToken('bad')).rejects.toThrow('BAD_TOKEN')
@@ -250,7 +335,10 @@ describe('Vercel', () => {
     expect(readFileSync(join(userData(), 'vercel.json'), 'utf-8')).not.toContain('good')
 
     const deps = await vercel.deployments('p0')
-    expect(deps.map(d => [d.id, d.current, d.branch, d.commitMessage])).toEqual([['dpl_b', false, 'feat', 'New page'], ['dpl_a', true, null, null]])
+    expect(deps.map(d => [d.id, d.current, d.branch, d.commitMessage])).toEqual([
+      ['dpl_b', false, 'feat', 'New page'],
+      ['dpl_a', true, null, null]
+    ])
     expect(requests.find(r => r.url.includes('/v6/deployments'))!.url).toContain('teamId=team_9')
     expect(requests.at(-1)!.auth).toBe('Bearer good')
 

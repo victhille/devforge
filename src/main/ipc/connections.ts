@@ -7,7 +7,7 @@ const kindOf = (v: unknown): ConnectionKind => {
   if (!KINDS.includes(v as ConnectionKind)) throw new Error('UNKNOWN_KIND')
   return v as ConnectionKind
 }
-const str = (v: unknown) => typeof v === 'string' ? v : undefined
+const str = (v: unknown) => (typeof v === 'string' ? v : undefined)
 
 export function registerConnectionsHandlers(): void {
   ipcMain.handle('connections:overview', () => overview())
@@ -18,6 +18,8 @@ export function registerConnectionsHandlers(): void {
     return disconnect(k, str(id))
   })
   ipcMain.handle('connections:alerts', (_e, id: unknown) => alerts(String(id ?? '')))
-  ipcMain.handle('connections:set-ntfy', (_e, id: unknown, server: unknown, topic: unknown) => setNtfy(String(id ?? ''), String(server ?? ''), String(topic ?? '')))
+  ipcMain.handle('connections:set-ntfy', (_e, id: unknown, server: unknown, topic: unknown) =>
+    setNtfy(String(id ?? ''), String(server ?? ''), String(topic ?? ''))
+  )
   ipcMain.handle('connections:set-git-identity', (_e, name: unknown, email: unknown) => setGitIdentity(String(name ?? ''), String(email ?? '')))
 }

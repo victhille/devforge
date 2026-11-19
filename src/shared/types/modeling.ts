@@ -71,7 +71,8 @@ export interface MldNaming {
 export type SqlEngine = 'postgres' | 'mysql' | 'sqlite'
 
 /** A column's type in the MPD, written for each engine by the SQL */
-export type MpdType = 'int' | 'bigint' | 'smallint' | 'decimal' | 'float' | 'varchar' | 'char' | 'text' | 'bool' | 'date' | 'datetime' | 'time' | 'uuid' | 'json'
+export type MpdType =
+  'int' | 'bigint' | 'smallint' | 'decimal' | 'float' | 'varchar' | 'char' | 'text' | 'bool' | 'date' | 'datetime' | 'time' | 'uuid' | 'json'
 
 export interface MpdColumn {
   id: string
@@ -140,21 +141,47 @@ export interface MpdDiff {
 }
 
 /** One line of a catch-up script: a statement, or a note for what is done by hand */
-export interface ScriptLine { sql: string; comment?: boolean; danger?: boolean }
+export interface ScriptLine {
+  sql: string
+  comment?: boolean
+  danger?: boolean
+}
 
 /** The diagrams drawn on the same canvas (UML, flowcharts, architecture) */
 export type DiagramKind = 'usecase' | 'class' | 'sequence' | 'flow' | 'architecture'
 export type DiagramNodeType =
-  | 'actor' | 'case' | 'system'
-  | 'class' | 'interface' | 'enum'
+  | 'actor'
+  | 'case'
+  | 'system'
+  | 'class'
+  | 'interface'
+  | 'enum'
   | 'participant'
-  | 'start' | 'end' | 'step' | 'decision' | 'io'
-  | 'service' | 'database' | 'queue' | 'client' | 'gateway' | 'external'
+  | 'start'
+  | 'end'
+  | 'step'
+  | 'decision'
+  | 'io'
+  | 'service'
+  | 'database'
+  | 'queue'
+  | 'client'
+  | 'gateway'
+  | 'external'
 export type DiagramEdgeType =
-  | 'association' | 'include' | 'extend' | 'generalization'
-  | 'inheritance' | 'implementation' | 'composition' | 'aggregation' | 'dependency'
-  | 'message' | 'return'
-  | 'flow' | 'link'
+  | 'association'
+  | 'include'
+  | 'extend'
+  | 'generalization'
+  | 'inheritance'
+  | 'implementation'
+  | 'composition'
+  | 'aggregation'
+  | 'dependency'
+  | 'message'
+  | 'return'
+  | 'flow'
+  | 'link'
 
 export interface DiagramNode {
   id: string

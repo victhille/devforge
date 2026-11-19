@@ -34,8 +34,12 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
 
   const load = useCallback(() => {
     setLoading(true)
-    window.devforge.laravel.inspect(projectPath)
-      .then(d => { setData(d); setLoadError('') })
+    window.devforge.laravel
+      .inspect(projectPath)
+      .then(d => {
+        setData(d)
+        setLoadError('')
+      })
       .catch(err => setLoadError(errorText(err)))
       .finally(() => setLoading(false))
   }, [projectPath])
@@ -45,23 +49,32 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
   useEffect(() => {
     const onDraft = () => {
       const d = takePendingDraft(projectPath)
-      if (d) { setDraft(d); setPart('entities') }
+      if (d) {
+        setDraft(d)
+        setPart('entities')
+      }
     }
     window.addEventListener(SF_DRAFT_EVENT, onDraft)
     return () => window.removeEventListener(SF_DRAFT_EVENT, onDraft)
   }, [projectPath])
 
-  const { track } = useSfTasks(projectPath, useCallback((line: string) => line, []), useCallback(() => load(), [load]))
+  const { track } = useSfTasks(
+    projectPath,
+    useCallback((line: string) => line, []),
+    useCallback(() => load(), [load])
+  )
   // With Sail, PHP runs in the app's container: the lines say so
   const cl = (command: LaravelCommand, arg?: string) => laravelCommandLine(command, arg, !!data?.status.sail)
   const exec = (command: LaravelCommand, arg?: string) => track(cl(command, arg), () => window.devforge.laravel.run(projectPath, command, arg))
-  const run = (command: LaravelCommand, label: string, variant?: 'primary' | 'secondary') =>
+  const run = (command: LaravelCommand, label: string, variant?: 'primary' | 'secondary') => (
     <RunButton label={label} line={cl(command)} variant={variant} onRun={() => exec(command)} />
+  )
 
   function written(r: SfWriteResult) {
     const count = r.created.length + r.changed.length + r.removed.length
     toast.show({
-      tone: 'success', title: s.written.replace('{n}', String(count)),
+      tone: 'success',
+      title: s.written.replace('{n}', String(count)),
       description: [...r.created.map(f => `+ ${f}`), ...r.changed.map(f => `~ ${f}`), ...r.removed.map(f => `− ${f}`)].join('\n'),
       action: part === 'entities' ? { label: s.parts.migrations, onClick: () => setPart('migrations') } : undefined
     })
@@ -69,7 +82,13 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
   }
 
   if (!data) {
-    return loadError ? <p role="alert" className="text-sm text-danger">{loadError}</p> : <LinesSkeleton lines={4} label={t.common.loading} className="p-2" />
+    return loadError ? (
+      <p role="alert" className="text-sm text-danger">
+        {loadError}
+      </p>
+    ) : (
+      <LinesSkeleton lines={4} label={t.common.loading} className="p-2" />
+    )
   }
   const st = data.status
   const dbOk = st.database.reachable
@@ -84,25 +103,50 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
   return (
     <div className="flex flex-col gap-4">
       {!st.booted && (
-        <Notice tone="warning" live title={st.error === 'NO_VENDOR' ? s.noVendor : st.error === 'SAIL_DOWN' ? l.sailDown : l.notBooted}
-          action={st.error === 'NO_VENDOR' ? run('composer:install', s.composerInstall, 'primary') : st.error === 'SAIL_DOWN' ? run('db:start', l.sailStart, 'primary') : undefined}>
+        <Notice
+          tone="warning"
+          live
+          title={st.error === 'NO_VENDOR' ? s.noVendor : st.error === 'SAIL_DOWN' ? l.sailDown : l.notBooted}
+          action={
+            st.error === 'NO_VENDOR'
+              ? run('composer:install', s.composerInstall, 'primary')
+              : st.error === 'SAIL_DOWN'
+                ? run('db:start', l.sailStart, 'primary')
+                : undefined
+          }
+        >
           {st.error && st.error !== 'NO_VENDOR' && st.error !== 'SAIL_DOWN' && <span className="font-mono text-xs break-words">{st.error}</span>}
         </Notice>
       )}
 
       <div className="@container flex flex-wrap gap-4">
-        <nav aria-label={l.navLabel} className="flex w-full flex-wrap gap-1.5 @min-[700px]:w-[200px] @min-[700px]:shrink-0 @min-[700px]:flex-col @min-[700px]:flex-nowrap @min-[700px]:gap-0.5">
+        <nav
+          aria-label={l.navLabel}
+          className="flex w-full flex-wrap gap-1.5 @min-[700px]:w-[200px] @min-[700px]:shrink-0 @min-[700px]:flex-col @min-[700px]:flex-nowrap @min-[700px]:gap-0.5"
+        >
           {PARTS.map(p => (
-            <button key={p} onClick={() => setPart(p)} aria-current={part === p ? 'page' : undefined}
-              className={cn('flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors',
-                part === p ? 'bg-accent-soft font-semibold text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg')}>
+            <button
+              key={p}
+              onClick={() => setPart(p)}
+              aria-current={part === p ? 'page' : undefined}
+              className={cn(
+                'flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors',
+                part === p ? 'bg-accent-soft font-semibold text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg'
+              )}
+            >
               <span className="flex-1">{l.parts[p]}</span>
-              {badge[p] && <span className={cn('font-mono text-xs', p === 'migrations' ? 'text-warning' : badge[p] === '●' ? 'text-success' : 'text-fg-muted')}>{badge[p]}</span>}
+              {badge[p] && (
+                <span className={cn('font-mono text-xs', p === 'migrations' ? 'text-warning' : badge[p] === '●' ? 'text-success' : 'text-fg-muted')}>
+                  {badge[p]}
+                </span>
+              )}
             </button>
           ))}
           <div className="flex w-full items-center gap-2 px-3 text-xs text-fg-muted @min-[700px]:mt-3">
             <span className="flex-1 truncate">{st.version ? `Laravel ${st.version}` : 'Laravel'}</span>
-            <IconButton size="sm" title={s.refresh} onClick={load} disabled={loading}><RefreshCw size={12} className={cn(loading && 'animate-spin')} /></IconButton>
+            <IconButton size="sm" title={s.refresh} onClick={load} disabled={loading}>
+              <RefreshCw size={12} className={cn(loading && 'animate-spin')} />
+            </IconButton>
           </div>
         </nav>
 
@@ -124,7 +168,12 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
             </Section>
           )}
           {part === 'entities' && (
-            <EntitiesSection key={draft ? JSON.stringify(draft) : 'list'} entities={data.entities} draft={draft} onDraftUsed={() => setDraft(null)} onWritten={written}
+            <EntitiesSection
+              key={draft ? JSON.stringify(draft) : 'list'}
+              entities={data.entities}
+              draft={draft}
+              onDraftUsed={() => setDraft(null)}
+              onWritten={written}
               kit={{
                 write: draft => window.devforge.laravel.writeModel(projectPath, draft),
                 files: (owner, existing, linked) => [
@@ -132,25 +181,43 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
                   ...(owner ? ['+ database/migrations/…'] : []),
                   ...linked.map(tg => `~ ${modelFile(tg)}`)
                 ],
-                help: l.entityHelp, listHelp: l.entitiesHelp
-              }} />
+                help: l.entityHelp,
+                listHelp: l.entitiesHelp
+              }}
+            />
           )}
           {part === 'migrations' && (
-            <MigrationsSection migrations={data.migrations} databaseOk={dbOk && st.booted} note={l.migrationsNote} help={l.migrationsHelp}
+            <MigrationsSection
+              migrations={data.migrations}
+              databaseOk={dbOk && st.booted}
+              note={l.migrationsNote}
+              help={l.migrationsHelp}
               prepare={{ named: true, label: l.prepare, line: name => cl('make:migration', name), run: name => exec('make:migration', name) }}
               apply={{ line: () => cl('migrate'), run: () => exec('migrate') }}
-              rollback={{ line: () => cl('migrate:rollback'), run: () => exec('migrate:rollback') }} />
+              rollback={{ line: () => cl('migrate:rollback'), run: () => exec('migrate:rollback') }}
+            />
           )}
           {part === 'api' && (
-            <ApiSection entities={data.entities} onWritten={written} serverUrl={null} defaultUrl={st.appUrl}
-              load={() => window.devforge.laravel.apiConfig(projectPath)} save={config => window.devforge.laravel.applyApi(projectPath, config)}
+            <ApiSection
+              entities={data.entities}
+              onWritten={written}
+              serverUrl={null}
+              defaultUrl={st.appUrl}
+              load={() => window.devforge.laravel.apiConfig(projectPath)}
+              save={config => window.devforge.laravel.applyApi(projectPath, config)}
               filesNote={l.jsonFiles}
-              needs={() => st.api ? null : { text: l.needsApi, button: run('install:api', l.installApi, 'primary') }} />
+              needs={() => (st.api ? null : { text: l.needsApi, button: run('install:api', l.installApi, 'primary') })}
+            />
           )}
           {part === 'fixtures' && (
-            <FixturesSection entities={data.entities} ready={st.faker} install={<p className="text-sm text-fg-muted">{l.needsFaker}</p>}
-              line={cl('seed')} canRun={st.booted && dbOk}
-              onRun={counts => track(l.seedTask, () => window.devforge.laravel.writeSeed(projectPath, counts))} />
+            <FixturesSection
+              entities={data.entities}
+              ready={st.faker}
+              install={<p className="text-sm text-fg-muted">{l.needsFaker}</p>}
+              line={cl('seed')}
+              canRun={st.booted && dbOk}
+              onRun={counts => track(l.seedTask, () => window.devforge.laravel.writeSeed(projectPath, counts))}
+            />
           )}
           {part === 'routes' && (
             <RoutesSection serverUrl={null} defaultUrl={st.appUrl} help={l.routesHelp} load={() => window.devforge.laravel.routes(projectPath)} />
@@ -160,7 +227,9 @@ export default function LaravelPanel({ projectPath }: { projectPath: string }) {
               <div className="flex flex-wrap items-start gap-4">
                 {run('serve', st.sail ? l.sailStart : l.serve, 'primary')}
                 {st.sail && run('sail:stop', l.sailStop)}
-                <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(st.appUrl)}><ExternalLink size={13} /> {l.openSite.replace('{url}', st.appUrl)}</Button>
+                <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(st.appUrl)}>
+                  <ExternalLink size={13} /> {l.openSite.replace('{url}', st.appUrl)}
+                </Button>
               </div>
               <div className="flex flex-wrap gap-4 border-t border-line-subtle pt-4">
                 {run('optimize:clear', l.clear)}

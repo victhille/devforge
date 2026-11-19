@@ -12,21 +12,52 @@ test.afterEach(async () => {
 })
 
 const SEP = '\n@@DF@@\n'
-const candidates = [
-  '/n8n-postgres-1|postgres:16-alpine|volume:n8n_postgres_data;',
-  '/wg-easy|ghcr.io/wg-easy/wg-easy:15.2.2|volume:wg-easy_etc_wireguard;bind:/lib/modules;',
-  '/portainer|portainer/portainer-ce:2.45.1|bind:/opt/utils/docker/_data/portainer;'
-].join('\n') + SEP + '/lib/modules\n/opt/utils/docker/_data/portainer'
+const candidates =
+  [
+    '/n8n-postgres-1|postgres:16-alpine|volume:n8n_postgres_data;',
+    '/wg-easy|ghcr.io/wg-easy/wg-easy:15.2.2|volume:wg-easy_etc_wireguard;bind:/lib/modules;',
+    '/portainer|portainer/portainer-ce:2.45.1|bind:/opt/utils/docker/_data/portainer;'
+  ].join('\n') +
+  SEP +
+  '/lib/modules\n/opt/utils/docker/_data/portainer'
 
 const seed = (withPlan: boolean) => (dir: string) => {
-  writeFileSync(join(dir, 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'Prod', host: '127.0.0.1', port: 1, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }]))
+  writeFileSync(
+    join(dir, 'ssh-connections.json'),
+    JSON.stringify([{ id: 'v1', name: 'Prod', host: '127.0.0.1', port: 1, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }])
+  )
   const finished = new Date(Date.now() - 3 * 3_600_000).toISOString()
   const status = { version: 1, day: '2026-10-22', startedAt: finished, finishedAt: finished, ok: true, size: 1_234_567, items: [] }
-  writeFileSync(join(dir, 'vps.json'), JSON.stringify({
-    backupCandidates: candidates,
-    backupState: [withPlan ? JSON.stringify(status) : '', withPlan ? '1' : '0', 'daily/2026-10-22/db-n8n-postgres-1.sql.gz|600000\ndaily/2026-10-22/vol-wg-easy_etc_wireguard.tar.gz|4000'].join(SEP)
-  }))
-  if (withPlan) writeFileSync(join(dir, 'backups.json'), JSON.stringify({ plans: [{ connectionId: 'v1', databases: [{ engine: 'postgres', container: 'n8n-postgres-1' }], volumes: ['wg-easy_etc_wireguard'], time: '03:30', keepDaily: 7, keepWeekly: 4, localDir: '', savedAt: finished }], copies: [] }))
+  writeFileSync(
+    join(dir, 'vps.json'),
+    JSON.stringify({
+      backupCandidates: candidates,
+      backupState: [
+        withPlan ? JSON.stringify(status) : '',
+        withPlan ? '1' : '0',
+        'daily/2026-10-22/db-n8n-postgres-1.sql.gz|600000\ndaily/2026-10-22/vol-wg-easy_etc_wireguard.tar.gz|4000'
+      ].join(SEP)
+    })
+  )
+  if (withPlan)
+    writeFileSync(
+      join(dir, 'backups.json'),
+      JSON.stringify({
+        plans: [
+          {
+            connectionId: 'v1',
+            databases: [{ engine: 'postgres', container: 'n8n-postgres-1' }],
+            volumes: ['wg-easy_etc_wireguard'],
+            time: '03:30',
+            keepDaily: 7,
+            keepWeekly: 4,
+            localDir: '',
+            savedAt: finished
+          }
+        ],
+        copies: []
+      })
+    )
 }
 
 test('first setup: databases and data picked by default, a database volume left out', async () => {

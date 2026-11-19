@@ -45,7 +45,7 @@ export function warmProbes(): void {
 }
 
 const where = (d: { type: string; host?: string; port?: number; database?: string; file?: string }) =>
-  d.type === 'sqlite' ? d.file ?? '' : `${d.host ?? ''}${d.port ? `:${d.port}` : ''}${d.database ? `/${d.database}` : ''}`
+  d.type === 'sqlite' ? (d.file ?? '') : `${d.host ?? ''}${d.port ? `:${d.port}` : ''}${d.database ? `/${d.database}` : ''}`
 
 const serverName = (id: string) => loadSshConnections().find(s => s.id === id)?.name ?? id
 
@@ -54,12 +54,19 @@ export async function overview(): Promise<ConnectionsOverview> {
   return {
     github: { cli, token: hasToken() },
     git: { name, email },
-    forgy: (() => { const c = getAssistantConfig(); return { hasKey: c.hasKey, source: c.keySource, provider: c.provider, label: providerInfo(c.provider).label } })(),
+    forgy: (() => {
+      const c = getAssistantConfig()
+      return { hasKey: c.hasKey, source: c.keySource, provider: c.provider, label: providerInfo(c.provider).label }
+    })(),
     vercel: vercelAccount(),
     docker: { version: docker },
     servers: loadSshConnections().map(s => ({ id: s.id, name: s.name, host: s.host, username: s.username })),
     n8n: n8nInstances().map(i => ({ connectionId: i.connectionId, server: serverName(i.connectionId), where: i.domain || 'local', hasKey: i.hasKey })),
-    statusPages: statusPages().map(p => ({ connectionId: p.connectionId, server: serverName(p.connectionId), where: p.exposure === 'port' ? 'port 3901' : p.domain })),
+    statusPages: statusPages().map(p => ({
+      connectionId: p.connectionId,
+      server: serverName(p.connectionId),
+      where: p.exposure === 'port' ? 'port 3901' : p.domain
+    })),
     databases: listDbConnections().map(d => ({ id: d.id, name: d.name, type: d.type, target: where(d) }))
   }
 }
@@ -72,7 +79,10 @@ export async function test(kind: ConnectionKind, id?: string): Promise<Connectio
       case 'github': {
         const tok = await githubToken()
         if (!tok) return { ok: false, detail: 'NO_TOKEN' }
-        const res = await fetch('https://api.github.com/user', { headers: { authorization: `Bearer ${tok}`, 'user-agent': 'DevForge' }, signal: AbortSignal.timeout(15_000) })
+        const res = await fetch('https://api.github.com/user', {
+          headers: { authorization: `Bearer ${tok}`, 'user-agent': 'DevForge' },
+          signal: AbortSignal.timeout(15_000)
+        })
         if (!res.ok) return { ok: false, detail: `GitHub ${res.status}` }
         return { ok: true, detail: ((await res.json()) as { login: string }).login }
       }
@@ -83,7 +93,10 @@ export async function test(kind: ConnectionKind, id?: string): Promise<Connectio
           const key = getApiKey() ?? envApiKey()
           if (!key) return { ok: false, detail: 'NO_KEY' }
           // Lists the models: no message sent, nothing billed
-          const res = await fetch('https://api.anthropic.com/v1/models?limit=1', { headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' }, signal: AbortSignal.timeout(15_000) })
+          const res = await fetch('https://api.anthropic.com/v1/models?limit=1', {
+            headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+            signal: AbortSignal.timeout(15_000)
+          })
           return res.ok ? { ok: true, detail: 'Anthropic' } : { ok: false, detail: res.status === 401 ? 'BAD_KEY' : `Anthropic ${res.status}` }
         }
         // Another provider — its list of models, read with its key
@@ -92,10 +105,14 @@ export async function test(kind: ConnectionKind, id?: string): Promise<Connectio
           const models = await compatModels(endpointOf(c.provider), keyFor(c.provider))
           return { ok: true, detail: `${label} · ${models.length} model(s)` }
         } catch (err) {
-          return { ok: false, detail: err instanceof CompatError && err.code === 'auth' ? 'BAD_KEY' : `${label}: ${err instanceof Error ? err.message : String(err)}` }
+          return {
+            ok: false,
+            detail: err instanceof CompatError && err.code === 'auth' ? 'BAD_KEY' : `${label}: ${err instanceof Error ? err.message : String(err)}`
+          }
         }
       }
-      case 'vercel': return { ok: true, detail: await vercelCheck() }
+      case 'vercel':
+        return { ok: true, detail: await vercelCheck() }
       case 'n8n': {
         if (!n8nInstances().find(i => i.connectionId === id)?.hasKey) return { ok: false, detail: 'NO_KEY' }
         return { ok: true, detail: `${(await n8nWorkflows(String(id))).length} workflow(s)` }
@@ -116,7 +133,9 @@ export async function test(kind: ConnectionKind, id?: string): Promise<Connectio
         try {
           const r = await sshRun(client, 'uname -sr', 15_000)
           return { ok: r.code === 0, detail: r.output.trim().split('\n')[0] ?? '' }
-        } finally { client.end() }
+        } finally {
+          client.end()
+        }
       }
       case 'database': {
         const c = getDbConnection(String(id ?? ''))
@@ -124,22 +143,36 @@ export async function test(kind: ConnectionKind, id?: string): Promise<Connectio
         return { ok: true, detail: await testDb(c) }
       }
     }
-  } catch (err) { return failed(err) }
+  } catch (err) {
+    return failed(err)
+  }
 }
 
 export async function disconnect(kind: Exclude<ConnectionKind, 'docker'>, id?: string): Promise<void> {
   switch (kind) {
-    case 'github': await saveGithubToken(null); return
-    case 'forgy': saveAssistantConfig({ clearKey: true, keyFor: getAssistantConfig().provider }); return
-    case 'vercel': await saveVercelToken(null); return
-    case 'n8n': saveN8nKey(String(id ?? ''), null); return
+    case 'github':
+      await saveGithubToken(null)
+      return
+    case 'forgy':
+      saveAssistantConfig({ clearKey: true, keyFor: getAssistantConfig().provider })
+      return
+    case 'vercel':
+      await saveVercelToken(null)
+      return
+    case 'n8n':
+      saveN8nKey(String(id ?? ''), null)
+      return
     case 'alerts': {
       const { config } = await statusOverview(String(id ?? ''))
       if (config) await saveStatusConfig(String(id), { ...config, alerts: { ...config.alerts, ntfy: null } })
       return
     }
-    case 'server': await removeServer(String(id ?? '')); return
-    case 'database': removeDbConnection(String(id ?? '')); return
+    case 'server':
+      await removeServer(String(id ?? ''))
+      return
+    case 'database':
+      removeDbConnection(String(id ?? ''))
+      return
   }
 }
 
@@ -158,10 +191,14 @@ export async function setNtfy(connectionId: string, server: string, topic: strin
 
 /** Git's global name and e-mail (one line each, as git takes them) */
 export async function setGitIdentity(name: string, email: string): Promise<void> {
-  const n = String(name ?? '').trim(), e = String(email ?? '').trim()
+  const n = String(name ?? '').trim(),
+    e = String(email ?? '').trim()
   if (!n || n.length > 100 || /[\r\n]/.test(n)) throw new Error('BAD_NAME')
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) || e.length > 200) throw new Error('BAD_EMAIL')
-  for (const [k, v] of [['user.name', n], ['user.email', e]]) {
+  for (const [k, v] of [
+    ['user.name', n],
+    ['user.email', e]
+  ]) {
     const r = await runFile('git', ['config', '--global', k, v], { timeout: 10_000 })
     if (!r.ok) throw new Error(r.stderr.trim() || 'GIT_FAILED')
   }

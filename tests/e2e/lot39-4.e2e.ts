@@ -17,14 +17,26 @@ test.afterEach(async () => {
 test('the linked database: its differences, the script applied, then a database imported', async () => {
   const SQL = await initSqlJs()
   const mpd = generateMpd(shop(), DEFAULT_NAMING, 'sqlite', null, 'boutique.mcd.json')
-  let project = '', file = ''
+  let project = '',
+    file = ''
   run = await launch({
     seed: dir => {
       project = join(dir, 'shop')
       mkdirSync(join(project, 'conception'), { recursive: true })
-      writeFileSync(join(project, 'conception', 'boutique.mcd.json'), JSON.stringify({ v: 1, kind: 'mcd', name: 'Boutique', updatedAt: '2026-10-01T10:00:00.000Z', mcd: shop() }))
-      writeFileSync(join(project, 'conception', 'boutique.mpd.json'), JSON.stringify({ v: 1, kind: 'mpd', name: 'Boutique', updatedAt: '2026-10-01T10:00:00.000Z', mpd }))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 's', name: 'shop', path: project, framework: 'other', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(project, 'conception', 'boutique.mcd.json'),
+        JSON.stringify({ v: 1, kind: 'mcd', name: 'Boutique', updatedAt: '2026-10-01T10:00:00.000Z', mcd: shop() })
+      )
+      writeFileSync(
+        join(project, 'conception', 'boutique.mpd.json'),
+        JSON.stringify({ v: 1, kind: 'mpd', name: 'Boutique', updatedAt: '2026-10-01T10:00:00.000Z', mpd })
+      )
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          { id: 's', name: 'shop', path: project, framework: 'other', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
       // The development database: no "avis" yet, an old column and a table the MPD does not know
       const db = new SQL.Database()
       db.run(mpdSql({ ...mpd, tables: mpd.tables.filter(t => t.name !== 'avis') }))
@@ -67,15 +79,25 @@ test('the linked database: its differences, the script applied, then a database 
   await expect(dialog).toBeHidden()
   await expect(panel.getByRole('status')).toHaveText('● Identique à shop_dev')
   const after = new SQL.Database(readFileSync(file))
-  expect(after.exec("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")[0].values.flat())
-    .toEqual(['adresse', 'avis', 'categorie', 'client', 'commande', 'commande_produit', 'produit'])
+  expect(after.exec("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")[0].values.flat()).toEqual([
+    'adresse',
+    'avis',
+    'categorie',
+    'client',
+    'commande',
+    'commande_produit',
+    'produit'
+  ])
   after.close()
 
   // Back on the page: the linked database is up to date; then a database imported as a new model
   await page.getByRole('button', { name: 'Modélisation' }).click()
   await expect(chain.locator('[data-step="base"]')).toContainText('● À jour')
   await page.getByRole('button', { name: 'Nouveau modèle', exact: true }).click()
-  await page.getByRole('dialog', { name: 'Quel modèle ?' }).getByRole('button', { name: /Modèle physique/ }).click()
+  await page
+    .getByRole('dialog', { name: 'Quel modèle ?' })
+    .getByRole('button', { name: /Modèle physique/ })
+    .click()
   const importing = page.getByRole('dialog', { name: 'Nouveau : Modèle physique' })
   await expect(importing.getByRole('combobox', { name: 'Connexion' })).toHaveValue('')
   await expect(importing.getByRole('button', { name: 'Créer' })).toBeVisible()

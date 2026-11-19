@@ -5,11 +5,14 @@ import type { Project } from '../../src/shared/types'
 import { saveProjects, tempDir, userData } from '../helpers'
 import { workshopModelsText, workshopOf } from '../../src/main/services/assistant/workshopTools'
 
-const project = (path: string, name = 'site'): Project => ({ id: 'p', name, path, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null } as unknown as Project)
+const project = (path: string, name = 'site'): Project =>
+  ({ id: 'p', name, path, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }) as unknown as Project
 
 /** Forgy in the three workshops */
 describe('v2.3 lot 6: Forgy and the workshops', () => {
-  afterEach(() => { delete process.env.DEVFORGE_TEST_NEXTJS })
+  afterEach(() => {
+    delete process.env.DEVFORGE_TEST_NEXTJS
+  })
 
   it('finds the workshop of a project', () => {
     const lv = tempDir('lv')
@@ -30,13 +33,29 @@ describe('v2.3 lot 6: Forgy and the workshops', () => {
     const dir = tempDir('next')
     mkdirSync(join(dir, 'prisma'))
     writeFileSync(join(dir, 'package.json'), JSON.stringify({ dependencies: { next: '16.0.0' }, devDependencies: { prisma: '7.0.0' } }))
-    writeFileSync(join(dir, 'prisma', 'schema.prisma'), 'datasource db {\n  provider = "postgresql"\n}\n\nmodel Note {\n  id    Int    @id @default(autoincrement())\n  texte String\n}\n')
+    writeFileSync(
+      join(dir, 'prisma', 'schema.prisma'),
+      'datasource db {\n  provider = "postgresql"\n}\n\nmodel Note {\n  id    Int    @id @default(autoincrement())\n  texte String\n}\n'
+    )
     saveProjects([{ name: 'site', path: dir }])
     const canned = join(userData(), 'nextjs.json')
-    writeFileSync(canned, JSON.stringify({
-      database: { reachable: true, error: null },
-      migrations: [{ version: '20261026090000_revert_catalogue', description: '', executed: false, executedAt: null, file: '', sql: ['DROP TABLE "Produit"'], dangerous: true }]
-    }))
+    writeFileSync(
+      canned,
+      JSON.stringify({
+        database: { reachable: true, error: null },
+        migrations: [
+          {
+            version: '20261026090000_revert_catalogue',
+            description: '',
+            executed: false,
+            executedAt: null,
+            file: '',
+            sql: ['DROP TABLE "Produit"'],
+            dangerous: true
+          }
+        ]
+      })
+    )
     process.env.DEVFORGE_TEST_NEXTJS = canned
     const text = await workshopModelsText(project(dir))
     expect(text).toContain('Next.js (Prisma models)')

@@ -14,7 +14,7 @@ test.afterEach(async () => {
 async function start() {
   const SQL = await initSqlJs()
   const db = new SQL.Database()
-  db.run("CREATE TABLE orders (id INTEGER PRIMARY KEY, total REAL); INSERT INTO orders (total) VALUES (42.5);")
+  db.run('CREATE TABLE orders (id INTEGER PRIMARY KEY, total REAL); INSERT INTO orders (total) VALUES (42.5);')
   run = await launch({
     seed: dir => {
       const project = join(dir, 'shop')
@@ -22,10 +22,25 @@ async function start() {
       writeFileSync(join(project, '.env'), 'PORT=4321\nAPP_KEY=secret\n')
       writeFileSync(join(project, 'storage', 'logs', 'app.log'), '[2026-10-19] local.ERROR: boom\n')
       writeFileSync(join(project, 'shop.sqlite'), Buffer.from(db.export()))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([
-        { id: 'p1', name: 'Shop', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }
-      ]))
-      writeFileSync(join(dir, 'databases.json'), JSON.stringify([{ id: 'lite', name: 'Shop SQLite', type: 'sqlite', file: join(project, 'shop.sqlite'), color: '#5B9BFF' }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'p1',
+            name: 'Shop',
+            path: project,
+            framework: 'nodejs',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
+      writeFileSync(
+        join(dir, 'databases.json'),
+        JSON.stringify([{ id: 'lite', name: 'Shop SQLite', type: 'sqlite', file: join(project, 'shop.sqlite'), color: '#5B9BFF' }])
+      )
     }
   })
 }

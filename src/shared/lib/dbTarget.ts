@@ -11,9 +11,14 @@ type Target = Pick<DbConnection, 'type' | 'host' | 'port' | 'user' | 'sshConnect
  * form to say so.
  */
 export function sameDbTarget(a: Target, b: Target): boolean {
-  const key = (c: Target) => JSON.stringify([
-    c.type, (c.host ?? '').trim().toLowerCase(), c.port ?? DB_DEFAULT_PORT[c.type] ?? null,
-    (c.user ?? '').trim(), c.sshConnectionId || null, c.file ?? null
-  ])
+  const key = (c: Target) =>
+    JSON.stringify([
+      c.type,
+      (c.host ?? '').trim().toLowerCase(),
+      c.port ?? DB_DEFAULT_PORT[c.type] ?? null,
+      (c.user ?? '').trim(),
+      c.sshConnectionId || null,
+      c.file ?? null
+    ])
   return key(a) === key(b)
 }

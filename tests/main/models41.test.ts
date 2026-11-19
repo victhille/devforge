@@ -17,10 +17,14 @@ import { saveProjects, tempDir } from '../helpers'
 const project = tempDir('shop')
 const empty = tempDir('blank')
 const drawn = tempDir('drawn')
-const conception = (dir = project) => existsSync(join(dir, 'conception')) ? readdirSync(join(dir, 'conception')).sort() : []
+const conception = (dir = project) => (existsSync(join(dir, 'conception')) ? readdirSync(join(dir, 'conception')).sort() : [])
 
 beforeAll(async () => {
-  saveProjects([{ name: 'shop', path: project }, { name: 'blank', path: empty }, { name: 'drawn', path: drawn }])
+  saveProjects([
+    { name: 'shop', path: project },
+    { name: 'blank', path: empty },
+    { name: 'drawn', path: drawn }
+  ])
   const file = join(tempDir('db'), 'shop.sqlite')
   writeFileSync(file, Buffer.alloc(0))
   saveDbConnection({ id: 'lite', name: 'Shop SQLite', type: 'sqlite', file, color: '' })
@@ -29,7 +33,8 @@ beforeAll(async () => {
     'CREATE TABLE commande (id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL REFERENCES client(id), passee_le TEXT)',
     'CREATE TABLE produit (id INTEGER PRIMARY KEY, libelle TEXT)',
     'CREATE TABLE commande_produit (commande_id INTEGER REFERENCES commande(id), produit_id INTEGER REFERENCES produit(id), quantite INTEGER, PRIMARY KEY (commande_id, produit_id))'
-  ]) expect((await dbQuery('lite', sql)).error).toBeUndefined()
+  ])
+    expect((await dbQuery('lite', sql)).error).toBeUndefined()
   const blank = join(tempDir('db'), 'blank.sqlite')
   writeFileSync(blank, Buffer.alloc(0))
   saveDbConnection({ id: 'none', name: 'Empty', type: 'sqlite', file: blank, color: '' })
@@ -72,7 +77,7 @@ describe('from the database', () => {
 })
 
 describe('an MPD by hand', () => {
-  it('starts empty, on the engine the project\'s files name, without any database', () => {
+  it("starts empty, on the engine the project's files name, without any database", () => {
     writeFileSync(join(drawn, '.env'), 'DATABASE_URL=mysql://app:secret@127.0.0.1:3306/shop\n')
     const file = createModel(drawn, 'mpd', 'Schéma')
     expect(file).toBe('schema.mpd.json')
@@ -87,7 +92,7 @@ describe('Forgy', () => {
     expect(await runTool('project_models', { project: 'blank' })).toMatch(/No database linked/)
   })
 
-  it('creates the MCD from the project\'s linked database after the click, and undoes it', async () => {
+  it("creates the MCD from the project's linked database after the click, and undoes it", async () => {
     const plan = await planAction('create_model', { project: 'shop', source: 'database', name: 'Depuis Forgy' })
     expect(plan).toMatchObject({ reversible: true, safe: false })
     expect(plan.preview).toMatch(/Shop SQLite/)
@@ -107,9 +112,22 @@ describe('Forgy', () => {
 
   it('draws an MCD from a description, shown before it is written', async () => {
     const plan = await planAction('create_model', {
-      project: 'blank', source: 'description', name: 'Bibliothèque',
-      entities: [{ name: 'LIVRE', attributes: [{ name: 'titre', type: 'varchar' }] }, { name: 'AUTEUR', attributes: [{ name: 'nom', type: 'varchar' }] }],
-      associations: [{ name: 'ECRIRE', legs: [{ entity: 'AUTEUR', card: '1,n' }, { entity: 'LIVRE', card: '1,n' }] }]
+      project: 'blank',
+      source: 'description',
+      name: 'Bibliothèque',
+      entities: [
+        { name: 'LIVRE', attributes: [{ name: 'titre', type: 'varchar' }] },
+        { name: 'AUTEUR', attributes: [{ name: 'nom', type: 'varchar' }] }
+      ],
+      associations: [
+        {
+          name: 'ECRIRE',
+          legs: [
+            { entity: 'AUTEUR', card: '1,n' },
+            { entity: 'LIVRE', card: '1,n' }
+          ]
+        }
+      ]
     })
     expect(plan.preview).toContain('■ LIVRE (#id_livre: int, titre: varchar)')
     expect(plan.preview).toContain('◇ ECRIRE: AUTEUR 1,n — LIVRE 1,n')
@@ -120,8 +138,22 @@ describe('Forgy', () => {
   })
 
   it('sends a wrong description back to the model with what to fix', async () => {
-    await expect(planAction('create_model', { project: 'blank', source: 'description', entities: [{ name: 'A' }], associations: [{ name: 'X', legs: [{ entity: 'A', card: '1,1' }, { entity: 'Z', card: '0,n' }] }] }))
-      .rejects.toThrow(/unknown entity "Z"/)
+    await expect(
+      planAction('create_model', {
+        project: 'blank',
+        source: 'description',
+        entities: [{ name: 'A' }],
+        associations: [
+          {
+            name: 'X',
+            legs: [
+              { entity: 'A', card: '1,1' },
+              { entity: 'Z', card: '0,n' }
+            ]
+          }
+        ]
+      })
+    ).rejects.toThrow(/unknown entity "Z"/)
     await expect(planAction('create_model', { project: 'blank', source: 'magic' })).rejects.toThrow(/"source" must be/)
   })
 })

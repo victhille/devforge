@@ -11,7 +11,11 @@ async function readText(path: string, max: number): Promise<string | null> {
 
 async function readJson(path: string): Promise<Record<string, unknown> | null> {
   const t = await readFile(path, 'utf-8').catch(() => null)
-  try { return t ? JSON.parse(t) as Record<string, unknown> : null } catch { return null }
+  try {
+    return t ? (JSON.parse(t) as Record<string, unknown>) : null
+  } catch {
+    return null
+  }
 }
 
 const keys = (o: unknown) => (o && typeof o === 'object' ? Object.keys(o).join(', ') : '')
@@ -25,13 +29,15 @@ export async function projectContext(p: Project): Promise<string> {
     readJson(join(p.path, 'package.json')),
     readJson(join(p.path, 'composer.json'))
   ])
-  const lines = [
-    `Project: ${p.name}`,
-    `Path: ${p.path}`,
-    `Framework: ${p.framework}, package manager: ${p.packageManager}`
-  ]
-  if (git?.isRepo) lines.push(`Git: branch ${git.branch}, ${git.changes} changed file(s)${git.hasUpstream ? `, ahead ${git.ahead} / behind ${git.behind}` : ''}`)
-  lines.push(`Top-level entries: ${entries.map(e => (e.isDirectory() ? `${e.name}/` : e.name)).sort().join(', ')}`)
+  const lines = [`Project: ${p.name}`, `Path: ${p.path}`, `Framework: ${p.framework}, package manager: ${p.packageManager}`]
+  if (git?.isRepo)
+    lines.push(`Git: branch ${git.branch}, ${git.changes} changed file(s)${git.hasUpstream ? `, ahead ${git.ahead} / behind ${git.behind}` : ''}`)
+  lines.push(
+    `Top-level entries: ${entries
+      .map(e => (e.isDirectory() ? `${e.name}/` : e.name))
+      .sort()
+      .join(', ')}`
+  )
   if (pkg) {
     // The scripts Forgy can run (run_script), as the window shows them
     lines.push(`package.json scripts: ${JSON.stringify(scriptsOf(pkg))}`)

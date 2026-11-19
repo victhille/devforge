@@ -8,7 +8,9 @@ import { tempDir } from '../helpers'
 /** The scripts are read (scripts:get) and run (scripts:run) only once the folder is checked */
 type Handler = (event: unknown, ...args: unknown[]) => unknown
 const handlers = new Map<string, Handler>()
-vi.spyOn(ipcMain, 'handle').mockImplementation(((channel: string, fn: Handler) => { handlers.set(channel, fn) }) as never)
+vi.spyOn(ipcMain, 'handle').mockImplementation(((channel: string, fn: Handler) => {
+  handlers.set(channel, fn)
+}) as never)
 registerProjectHandlers({ webContents: { send: () => {} } } as unknown as BrowserWindow)
 
 const scripts = async (path: unknown) => handlers.get('scripts:get')!({}, path)

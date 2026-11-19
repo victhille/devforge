@@ -5,27 +5,114 @@
  */
 
 export type CodeLanguage =
-  | 'typescript' | 'javascript' | 'xml' | 'css' | 'scss' | 'json' | 'php' | 'twig' | 'python' | 'yaml'
-  | 'dockerfile' | 'ini' | 'bash' | 'powershell' | 'sql' | 'go' | 'rust' | 'ruby' | 'java' | 'kotlin'
-  | 'csharp' | 'dart' | 'c' | 'cpp' | 'swift' | 'nginx' | 'makefile' | 'properties' | 'graphql' | 'markdown'
+  | 'typescript'
+  | 'javascript'
+  | 'xml'
+  | 'css'
+  | 'scss'
+  | 'json'
+  | 'php'
+  | 'twig'
+  | 'python'
+  | 'yaml'
+  | 'dockerfile'
+  | 'ini'
+  | 'bash'
+  | 'powershell'
+  | 'sql'
+  | 'go'
+  | 'rust'
+  | 'ruby'
+  | 'java'
+  | 'kotlin'
+  | 'csharp'
+  | 'dart'
+  | 'c'
+  | 'cpp'
+  | 'swift'
+  | 'nginx'
+  | 'makefile'
+  | 'properties'
+  | 'graphql'
+  | 'markdown'
 
 const BY_EXT: Record<string, CodeLanguage> = {
-  ts: 'typescript', tsx: 'typescript', mts: 'typescript', cts: 'typescript',
-  js: 'javascript', jsx: 'javascript', mjs: 'javascript', cjs: 'javascript',
-  html: 'xml', htm: 'xml', xml: 'xml', svg: 'xml', vue: 'xml', svelte: 'xml', csproj: 'xml', xaml: 'xml', plist: 'xml',
-  css: 'css', scss: 'scss', sass: 'scss', less: 'scss',
-  json: 'json', jsonc: 'json', json5: 'json', webmanifest: 'json', lock: 'json',
-  php: 'php', twig: 'twig', py: 'python', pyi: 'python', yml: 'yaml', yaml: 'yaml',
-  toml: 'ini', ini: 'ini', cfg: 'ini', conf: 'ini', env: 'properties', properties: 'properties',
-  sh: 'bash', bash: 'bash', zsh: 'bash', ps1: 'powershell', psm1: 'powershell', sql: 'sql',
-  go: 'go', rs: 'rust', rb: 'ruby', java: 'java', kt: 'kotlin', kts: 'kotlin', gradle: 'kotlin',
-  cs: 'csharp', dart: 'dart', c: 'c', h: 'c', cpp: 'cpp', cc: 'cpp', hpp: 'cpp', swift: 'swift',
-  graphql: 'graphql', gql: 'graphql', md: 'markdown', mdx: 'markdown'
+  ts: 'typescript',
+  tsx: 'typescript',
+  mts: 'typescript',
+  cts: 'typescript',
+  js: 'javascript',
+  jsx: 'javascript',
+  mjs: 'javascript',
+  cjs: 'javascript',
+  html: 'xml',
+  htm: 'xml',
+  xml: 'xml',
+  svg: 'xml',
+  vue: 'xml',
+  svelte: 'xml',
+  csproj: 'xml',
+  xaml: 'xml',
+  plist: 'xml',
+  css: 'css',
+  scss: 'scss',
+  sass: 'scss',
+  less: 'scss',
+  json: 'json',
+  jsonc: 'json',
+  json5: 'json',
+  webmanifest: 'json',
+  lock: 'json',
+  php: 'php',
+  twig: 'twig',
+  py: 'python',
+  pyi: 'python',
+  yml: 'yaml',
+  yaml: 'yaml',
+  toml: 'ini',
+  ini: 'ini',
+  cfg: 'ini',
+  conf: 'ini',
+  env: 'properties',
+  properties: 'properties',
+  sh: 'bash',
+  bash: 'bash',
+  zsh: 'bash',
+  ps1: 'powershell',
+  psm1: 'powershell',
+  sql: 'sql',
+  go: 'go',
+  rs: 'rust',
+  rb: 'ruby',
+  java: 'java',
+  kt: 'kotlin',
+  kts: 'kotlin',
+  gradle: 'kotlin',
+  cs: 'csharp',
+  dart: 'dart',
+  c: 'c',
+  h: 'c',
+  cpp: 'cpp',
+  cc: 'cpp',
+  hpp: 'cpp',
+  swift: 'swift',
+  graphql: 'graphql',
+  gql: 'graphql',
+  md: 'markdown',
+  mdx: 'markdown'
 }
 
 const BY_NAME: Record<string, CodeLanguage> = {
-  dockerfile: 'dockerfile', containerfile: 'dockerfile', makefile: 'makefile', gnumakefile: 'makefile',
-  gemfile: 'ruby', rakefile: 'ruby', pipfile: 'ini', 'nginx.conf': 'nginx', '.gitignore': 'bash', '.dockerignore': 'bash'
+  dockerfile: 'dockerfile',
+  containerfile: 'dockerfile',
+  makefile: 'makefile',
+  gnumakefile: 'makefile',
+  gemfile: 'ruby',
+  rakefile: 'ruby',
+  pipfile: 'ini',
+  'nginx.conf': 'nginx',
+  '.gitignore': 'bash',
+  '.dockerignore': 'bash'
 }
 
 export function codeLanguage(name: string): CodeLanguage | null {
@@ -43,8 +130,21 @@ export function codeLanguage(name: string): CodeLanguage | null {
 
 /** A language as people name it (a snippet's « TypeScript », « Bash »…) → its grammar; keep it in step with the snippets' list */
 const BY_LANGUAGE: Record<string, CodeLanguage> = {
-  typescript: 'typescript', javascript: 'javascript', python: 'python', go: 'go', rust: 'rust', php: 'php', java: 'java',
-  css: 'css', html: 'xml', sql: 'sql', bash: 'bash', shell: 'bash', json: 'json', yaml: 'yaml', markdown: 'markdown'
+  typescript: 'typescript',
+  javascript: 'javascript',
+  python: 'python',
+  go: 'go',
+  rust: 'rust',
+  php: 'php',
+  java: 'java',
+  css: 'css',
+  html: 'xml',
+  sql: 'sql',
+  bash: 'bash',
+  shell: 'bash',
+  json: 'json',
+  yaml: 'yaml',
+  markdown: 'markdown'
 }
 
 export function codeLanguageByName(language: string): CodeLanguage | null {

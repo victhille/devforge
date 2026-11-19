@@ -38,19 +38,28 @@ export function setUpdateChannel(wantBeta: boolean): void {
 }
 
 export async function checkForUpdates(): Promise<UpdateStatus> {
-  if (!app.isPackaged) { set({ state: 'unavailable', reason: 'dev' }); return status }
+  if (!app.isPackaged) {
+    set({ state: 'unavailable', reason: 'dev' })
+    return status
+  }
   if (status.state === 'downloading' || status.state === 'ready') return status
   set({ state: 'checking' })
-  if (!OWNER || !REPO) { set({ state: 'unavailable', reason: 'feed' }); return status }
+  if (!OWNER || !REPO) {
+    set({ state: 'unavailable', reason: 'feed' })
+    return status
+  }
   // A private repository needs a token (GitHub CLI's, or the one saved in DevForge); a public one does not,
   // and then no token leaves the PC with the check
   const tok = PRIVATE ? await githubToken() : null
-  if (PRIVATE && !tok) { set({ state: 'unavailable', reason: 'auth' }); return status }
+  if (PRIVATE && !tok) {
+    set({ state: 'unavailable', reason: 'auth' })
+    return status
+  }
   autoUpdater.setFeedURL({ provider: 'github', owner: OWNER, repo: REPO, private: PRIVATE, ...(PRIVATE && tok ? { token: tok } : {}) })
   try {
     // electron-updater's beta channel takes the first pre-release of the list, even when a newer final
     // version exists: pre-releases are allowed only while the newest release is one
-    autoUpdater.allowPrerelease = beta && await newestIsPrerelease(OWNER, REPO, tok).catch(() => true)
+    autoUpdater.allowPrerelease = beta && (await newestIsPrerelease(OWNER, REPO, tok).catch(() => true))
     const r = await autoUpdater.checkForUpdates()
     if (!r?.isUpdateAvailable) set({ state: 'up-to-date', checkedAt: Date.now() })
   } catch (err) {
@@ -87,14 +96,20 @@ export function initUpdater(window: BrowserWindow, beta: boolean, autoCheck = tr
   }
   setUpdateChannel(beta)
   autoUpdater.on('update-available', info => set({ state: 'downloading', version: info.version, percent: 0 }))
-  autoUpdater.on('download-progress', p => { if (status.state === 'downloading') set({ ...status, percent: Math.round(p.percent) }) })
+  autoUpdater.on('download-progress', p => {
+    if (status.state === 'downloading') set({ ...status, percent: Math.round(p.percent) })
+  })
   autoUpdater.on('update-downloaded', info => set({ state: 'ready', version: info.version }))
   autoUpdater.on('error', err => {
     log('warn', 'updates', err)
     if (status.state !== 'ready') set({ state: 'unavailable', reason: 'feed' })
   })
   // A little after startup, so the first screen is not slowed down
-  if (autoCheck) firstCheck = setTimeout(() => { firstCheck = null; checkForUpdates() }, 15_000)
+  if (autoCheck)
+    firstCheck = setTimeout(() => {
+      firstCheck = null
+      checkForUpdates()
+    }, 15_000)
   setAutoUpdate(autoCheck)
 }
 
@@ -104,7 +119,10 @@ export function initUpdater(window: BrowserWindow, beta: boolean, autoCheck = tr
  */
 export function setAutoUpdate(on: boolean): void {
   if (!app.isPackaged) return
-  if (on && !timer) timer = setInterval(() => { checkForUpdates() }, EVERY)
+  if (on && !timer)
+    timer = setInterval(() => {
+      checkForUpdates()
+    }, EVERY)
   if (!on) stopUpdater()
 }
 

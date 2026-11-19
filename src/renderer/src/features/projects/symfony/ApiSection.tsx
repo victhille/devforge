@@ -53,18 +53,31 @@ export default function ApiSection({ entities, onWritten, serverUrl, defaultUrl,
 
   useEffect(() => {
     let alive = true
-    load().then(c => {
-      if (!alive) return
-      // Without a saved choice: what API Platform already exposes, the rest off
-      setConfig(c ? { ...c, mode: platform ? c.mode : 'json' } : {
-        mode: platform?.installed ? 'platform' : 'json',
-        entities: Object.fromEntries(entities.map(e => [e.name, {
-          operations: e.apiResource ? [...OPERATIONS] : [],
-          hidden: e.fields.map(f => f.name).filter(f => SECRET.includes(f))
-        }]))
+    load()
+      .then(c => {
+        if (!alive) return
+        // Without a saved choice: what API Platform already exposes, the rest off
+        setConfig(
+          c
+            ? { ...c, mode: platform ? c.mode : 'json' }
+            : {
+                mode: platform?.installed ? 'platform' : 'json',
+                entities: Object.fromEntries(
+                  entities.map(e => [
+                    e.name,
+                    {
+                      operations: e.apiResource ? [...OPERATIONS] : [],
+                      hidden: e.fields.map(f => f.name).filter(f => SECRET.includes(f))
+                    }
+                  ])
+                )
+              }
+        )
       })
-    }).catch(() => {})
-    return () => { alive = false }
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- read again when the entities change
   }, [entities, platform?.installed])
 
@@ -80,10 +93,14 @@ export default function ApiSection({ entities, onWritten, serverUrl, defaultUrl,
     if (!config) return
     setError('')
     setBusy(true)
-    try { onWritten(await save(config)) } catch (err) {
+    try {
+      onWritten(await save(config))
+    } catch (err) {
       const code = errorText(err)
       setError((s.errors as Record<string, string>)[code.split(':')[0]]?.replace('{name}', code.split(':').slice(1).join(':')) ?? code)
-    } finally { setBusy(false) }
+    } finally {
+      setBusy(false)
+    }
   }
 
   function test(e: SfEntity) {
@@ -99,27 +116,42 @@ export default function ApiSection({ entities, onWritten, serverUrl, defaultUrl,
 
   return (
     <Section title="API" help={s.apiHelp}>
-      {platform && <div role="radiogroup" aria-label={s.apiMode} className="grid gap-3 md:grid-cols-2">
-        {modes.map(m => (
-          <button key={m.id} role="radio" aria-checked={config.mode === m.id} onClick={() => setMode(m.id)}
-            className={cn('flex flex-col items-start gap-1.5 rounded-xl border-2 p-4 text-left transition-colors',
-              config.mode === m.id ? 'border-accent bg-accent-soft' : 'border-line-subtle bg-canvas hover:border-line')}>
-            <strong className="text-fg">{m.title}</strong>
-            <span className="text-sm text-fg-secondary">{m.help}</span>
-            <span className="text-xs text-fg-muted">{m.hint}</span>
-          </button>
-        ))}
-      </div>}
-
-      {needs && (
-        <Notice tone="warning" className="text-sm" action={needs.button}>{needs.text}</Notice>
+      {platform && (
+        <div role="radiogroup" aria-label={s.apiMode} className="grid gap-3 md:grid-cols-2">
+          {modes.map(m => (
+            <button
+              key={m.id}
+              role="radio"
+              aria-checked={config.mode === m.id}
+              onClick={() => setMode(m.id)}
+              className={cn(
+                'flex flex-col items-start gap-1.5 rounded-xl border-2 p-4 text-left transition-colors',
+                config.mode === m.id ? 'border-accent bg-accent-soft' : 'border-line-subtle bg-canvas hover:border-line'
+              )}
+            >
+              <strong className="text-fg">{m.title}</strong>
+              <span className="text-sm text-fg-secondary">{m.help}</span>
+              <span className="text-xs text-fg-muted">{m.hint}</span>
+            </button>
+          ))}
+        </div>
       )}
 
-      {entities.length === 0 ? <EmptyState title={s.noEntities} /> : (
+      {needs && (
+        <Notice tone="warning" className="text-sm" action={needs.button}>
+          {needs.text}
+        </Notice>
+      )}
+
+      {entities.length === 0 ? (
+        <EmptyState title={s.noEntities} />
+      ) : (
         <ul aria-label={s.apiTable} className="flex flex-col overflow-hidden rounded-xl border border-line-subtle">
           <li aria-hidden className="grid grid-cols-[1.6fr_repeat(5,minmax(0,.7fr))_auto] gap-2 bg-canvas px-4 py-2 text-xs text-fg-muted">
             <span>{s.entity}</span>
-            {OPERATIONS.map(o => <span key={o}>{s.ops[o]}</span>)}
+            {OPERATIONS.map(o => (
+              <span key={o}>{s.ops[o]}</span>
+            ))}
             <span />
           </li>
           {entities.map(e => {
@@ -132,12 +164,23 @@ export default function ApiSection({ entities, onWritten, serverUrl, defaultUrl,
                     <code className="font-mono text-xs text-fg-muted">{en.operations.length ? apiPath(e.name) : s.notExposed}</code>
                   </span>
                   {OPERATIONS.map(o => (
-                    <Checkbox key={o} checked={en.operations.includes(o)}
-                      onChange={v => setEntry(e.name, { operations: v ? [...en.operations, o] : en.operations.filter(x => x !== o) })}>
+                    <Checkbox
+                      key={o}
+                      checked={en.operations.includes(o)}
+                      onChange={v => setEntry(e.name, { operations: v ? [...en.operations, o] : en.operations.filter(x => x !== o) })}
+                    >
                       <span className="sr-only">{`${s.ops[o]} ${e.name}`}</span>
                     </Checkbox>
                   ))}
-                  <Button size="sm" variant="ghost" disabled={!en.operations.includes('list')} title={serverUrl ? undefined : s.testNeedsServer} onClick={() => test(e)}>{s.test}</Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={!en.operations.includes('list')}
+                    title={serverUrl ? undefined : s.testNeedsServer}
+                    onClick={() => test(e)}
+                  >
+                    {s.test}
+                  </Button>
                 </div>
                 {en.operations.includes('create') && hiddenRequired(e, en.hidden).length > 0 && (
                   <p className="text-xs text-warning">{s.hiddenRequired.replace('{list}', hiddenRequired(e, en.hidden).join(', '))}</p>
@@ -148,10 +191,15 @@ export default function ApiSection({ entities, onWritten, serverUrl, defaultUrl,
                     {e.fields.map(f => {
                       const hidden = en.hidden.includes(f.name)
                       return (
-                        <button key={f.name} aria-pressed={!hidden}
+                        <button
+                          key={f.name}
+                          aria-pressed={!hidden}
                           onClick={() => setEntry(e.name, { hidden: hidden ? en.hidden.filter(h => h !== f.name) : [...en.hidden, f.name] })}
-                          className={cn('rounded-full border px-2 py-0.5 font-mono',
-                            hidden ? 'border-line-subtle text-fg-muted line-through' : 'border-accent/40 bg-accent-soft text-accent')}>
+                          className={cn(
+                            'rounded-full border px-2 py-0.5 font-mono',
+                            hidden ? 'border-line-subtle text-fg-muted line-through' : 'border-accent/40 bg-accent-soft text-accent'
+                          )}
+                        >
                           {f.name}
                         </button>
                       )
@@ -164,10 +212,16 @@ export default function ApiSection({ entities, onWritten, serverUrl, defaultUrl,
         </ul>
       )}
 
-      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-danger">
+          {error}
+        </p>
+      )}
       <div className="flex flex-wrap items-center justify-end gap-3">
         <span className="mr-auto text-xs text-fg-muted">{config.mode === 'platform' ? `${s.platformDocs} · ${s.platformLinks}` : filesNote}</span>
-        <Button loading={busy} disabled={!!needs || !entities.length} onClick={apply}>{s.applyApi}</Button>
+        <Button loading={busy} disabled={!!needs || !entities.length} onClick={apply}>
+          {s.applyApi}
+        </Button>
       </div>
     </Section>
   )

@@ -8,7 +8,9 @@ import { killTree } from '../../lib/killTree'
 // OSC 8 links (]8;;file://…), ended by BEL or by ESC \
 // eslint-disable-next-line no-control-regex -- ESC and BEL are what we strip
 const ANSI_RE = /\x1b\[[0-9;?]*[A-Za-z]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[()][A-Z0-9]/g
-export function stripAnsi(str: string): string { return str.replace(ANSI_RE, '') }
+export function stripAnsi(str: string): string {
+  return str.replace(ANSI_RE, '')
+}
 
 /** Lines that come by the hundred and say the same thing: one is shown, then the count */
 const SAME_KIND: [RegExp, string][] = [
@@ -30,11 +32,15 @@ const PROGRESS_PREFIX = /^[\s\d/%]*(\[[=>\-\s]*\][\s\d/%]*)+(?=\S)/
  * the others, so a log of thousands of warnings stays readable
  */
 export function lineCollapser(emit: (text: string, type: 'stdout' | 'stderr') => void) {
-  let key: string | null = null, extra = 0, lastType: 'stdout' | 'stderr' = 'stdout'
-  let notices = 0, composer = false
+  let key: string | null = null,
+    extra = 0,
+    lastType: 'stdout' | 'stderr' = 'stdout'
+  let notices = 0,
+    composer = false
   const flush = () => {
     if (extra > 0) emit(`… (+${extra})`, lastType)
-    key = null; extra = 0
+    key = null
+    extra = 0
   }
   return {
     push(line: string, type: 'stdout' | 'stderr') {
@@ -46,9 +52,14 @@ export function lineCollapser(emit: (text: string, type: 'stdout' | 'stderr') =>
         if (notices++ > 0) return
       }
       const k = SAME_KIND.find(([re]) => re.test(text))?.[1] ?? text
-      if (k === key) { extra++; lastType = type; return }
+      if (k === key) {
+        extra++
+        lastType = type
+        return
+      }
       flush()
-      key = k; lastType = type
+      key = k
+      lastType = type
       emit(text, type)
     },
     flush,
@@ -67,7 +78,7 @@ const CP850 = 'ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒ�
 /** A line's bytes as text: UTF-8 when they are valid UTF-8 (most tools), code page 850 otherwise */
 export function decodeLine(bytes: Buffer): string {
   if (process.platform !== 'win32' || isUtf8(bytes)) return bytes.toString('utf8')
-  return Array.from(bytes, b => b < 0x80 ? String.fromCharCode(b) : CP850[b - 0x80]).join('')
+  return Array.from(bytes, b => (b < 0x80 ? String.fromCharCode(b) : CP850[b - 0x80])).join('')
 }
 
 /** Splits a stream into lines at the bytes, so a line is decoded whole (a character cut between two chunks survives) */
@@ -79,7 +90,8 @@ export function lineReader(onLine: (line: string) => void) {
   }
   return {
     write(data: Buffer) {
-      let buf = Buffer.concat([rest, data]), at: number
+      let buf = Buffer.concat([rest, data]),
+        at: number
       // \n ends a line, and so does a lone \r (a progress bar redrawn in place)
       while ((at = buf.findIndex((b, i) => b === 0x0a || (b === 0x0d && i + 1 < buf.length && buf[i + 1] !== 0x0a))) >= 0) {
         emit(buf.subarray(0, at))
@@ -87,7 +99,10 @@ export function lineReader(onLine: (line: string) => void) {
       }
       rest = buf
     },
-    end() { if (rest.length) emit(rest); rest = Buffer.alloc(0) }
+    end() {
+      if (rest.length) emit(rest)
+      rest = Buffer.alloc(0)
+    }
   }
 }
 
@@ -158,7 +173,8 @@ export class CommandRunner {
 
     child.on('close', (code: number | null) => {
       if (this.quitting) return
-      out.end(); err.end()
+      out.end()
+      err.end()
       lines.end()
       const stored = this.tasks.get(taskId)
       if (!stored) return

@@ -42,7 +42,19 @@ export async function suggestLogFiles(): Promise<LogFileSuggestion[]> {
   return all.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt)).slice(0, 40)
 }
 
-const URL_KEYS = ['APP_URL', 'SITE_URL', 'PUBLIC_URL', 'FRONTEND_URL', 'BASE_URL', 'NEXT_PUBLIC_SITE_URL', 'NEXT_PUBLIC_APP_URL', 'NEXTAUTH_URL', 'VITE_APP_URL', 'VITE_API_URL', 'API_URL']
+const URL_KEYS = [
+  'APP_URL',
+  'SITE_URL',
+  'PUBLIC_URL',
+  'FRONTEND_URL',
+  'BASE_URL',
+  'NEXT_PUBLIC_SITE_URL',
+  'NEXT_PUBLIC_APP_URL',
+  'NEXTAUTH_URL',
+  'VITE_APP_URL',
+  'VITE_API_URL',
+  'API_URL'
+]
 
 export async function suggestMonitorUrls(): Promise<UrlSuggestion[]> {
   const known = new Set(listMonitors().map(m => m.url.replace(/\/$/, '')))
@@ -55,20 +67,26 @@ export async function suggestMonitorUrls(): Promise<UrlSuggestion[]> {
   for (const d of listDomains().filter(x => x.enabled)) {
     add({ name: d.domain, url: `http://${d.domain}`, source: 'local domain' })
   }
-  await Promise.all(loadProjects().map(async p => {
-    const env = await readEnvs(p)
-    for (const k of URL_KEYS) {
-      const v = env[k]
-      // Public URLs only: localhost ones are covered by local domains
-      if (v && /^https?:\/\/[^/]+\.[a-z]{2,}/i.test(v) && !/localhost|127\.0\.0\.1|\.test\b|\.local\b/i.test(v)) {
-        add({ name: `${p.name} (${k})`, url: v, source: `${p.name}/.env ${k}` })
+  await Promise.all(
+    loadProjects().map(async p => {
+      const env = await readEnvs(p)
+      for (const k of URL_KEYS) {
+        const v = env[k]
+        // Public URLs only: localhost ones are covered by local domains
+        if (v && /^https?:\/\/[^/]+\.[a-z]{2,}/i.test(v) && !/localhost|127\.0\.0\.1|\.test\b|\.local\b/i.test(v)) {
+          add({ name: `${p.name} (${k})`, url: v, source: `${p.name}/.env ${k}` })
+        }
       }
-    }
-  }))
+    })
+  )
   return [...out.values()]
 }
 
-const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+const slug = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
 
 /** Port written in the project config: .env, package.json scripts, vite/next config */
 export async function explicitPort(p: Project, env: Record<string, string>): Promise<[number, string] | null> {
@@ -78,7 +96,11 @@ export async function explicitPort(p: Project, env: Record<string, string>): Pro
   const pkg = await readFile(join(p.path, 'package.json'), 'utf-8').catch(() => '')
   // A package.json that cannot be read gives no port, instead of stopping the suggestions
   let parsed: unknown = null
-  try { parsed = pkg ? JSON.parse(pkg) : null } catch { /* not JSON */ }
+  try {
+    parsed = pkg ? JSON.parse(pkg) : null
+  } catch {
+    /* not JSON */
+  }
   const scripts = scriptsOf(parsed)
   const server = serverScript(scripts)
   const dev = server ? scripts[server] : ''
@@ -97,7 +119,9 @@ let readingCommandLines: Promise<Map<number, string>> | null = null
 
 /** Command lines of the processes listening on dev ports (Windows: one CIM query) */
 function listeningCommandLines(): Promise<Map<number, string>> {
-  readingCommandLines ??= readCommandLines().finally(() => { readingCommandLines = null })
+  readingCommandLines ??= readCommandLines().finally(() => {
+    readingCommandLines = null
+  })
   return readingCommandLines
 }
 
@@ -111,15 +135,29 @@ async function readCommandLines(): Promise<Map<number, string>> {
     let rows: { pid: number; cmd: string }[] = []
     if (process.platform === 'win32') {
       const filter = [...byPid.keys()].map(pid => `ProcessId=${pid}`).join(' or ')
-      const out = await run(`powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter '${filter}' | Select-Object ProcessId,CommandLine | ConvertTo-Json -Compress"`, { timeout: 10_000 })
+      const out = await run(
+        `powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter '${filter}' | Select-Object ProcessId,CommandLine | ConvertTo-Json -Compress"`,
+        { timeout: 10_000 }
+      )
       const parsed = JSON.parse(out || '[]')
-      rows = (Array.isArray(parsed) ? parsed : [parsed]).map((r: { ProcessId: number; CommandLine: string | null }) => ({ pid: r.ProcessId, cmd: r.CommandLine ?? '' }))
+      rows = (Array.isArray(parsed) ? parsed : [parsed]).map((r: { ProcessId: number; CommandLine: string | null }) => ({
+        pid: r.ProcessId,
+        cmd: r.CommandLine ?? ''
+      }))
     } else {
       const out = await run(`ps -o pid=,args= -p ${[...byPid.keys()].join(',')}`)
-      rows = out.split('\n').filter(Boolean).map(l => { const m = l.trim().match(/^(\d+)\s+(.*)$/); return { pid: Number(m?.[1]), cmd: m?.[2] ?? '' } })
+      rows = out
+        .split('\n')
+        .filter(Boolean)
+        .map(l => {
+          const m = l.trim().match(/^(\d+)\s+(.*)$/)
+          return { pid: Number(m?.[1]), cmd: m?.[2] ?? '' }
+        })
     }
     for (const r of rows) for (const port of byPid.get(r.pid) ?? []) result.set(port, r.cmd.toLowerCase())
-  } catch { /* best effort */ }
+  } catch {
+    /* best effort */
+  }
   return result
 }
 
@@ -150,13 +188,15 @@ export async function suggestDomains(): Promise<DomainSuggestion[]> {
   }
 
   // 2. Ports written in the project config
-  await Promise.all(projects.map(async p => {
-    if (out.some(o => o.projectName === p.name)) return
-    const explicit = await explicitPort(p, await readEnvs(p))
-    if (!explicit || usedPorts.has(explicit[0])) return
-    usedPorts.add(explicit[0])
-    out.push({ projectName: p.name, domain: `${slug(p.name)}.test`, port: explicit[0], source: explicit[1], running: cmdlines.has(explicit[0]) })
-  }))
+  await Promise.all(
+    projects.map(async p => {
+      if (out.some(o => o.projectName === p.name)) return
+      const explicit = await explicitPort(p, await readEnvs(p))
+      if (!explicit || usedPorts.has(explicit[0])) return
+      usedPorts.add(explicit[0])
+      out.push({ projectName: p.name, domain: `${slug(p.name)}.test`, port: explicit[0], source: explicit[1], running: cmdlines.has(explicit[0]) })
+    })
+  )
 
   return out
     .filter(o => !existing.some(d => d.domain === o.domain))

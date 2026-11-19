@@ -26,30 +26,44 @@ export function useRowChanges(result: DbBrowseResult | null, columns: DbColumnIn
   const primaryKey = (columns ?? []).filter(c => c.key === 'PRI').map(c => c.name)
   const editable = !!result && !!columns && primaryKey.length > 0 && primaryKey.every(k => names.includes(k))
 
-  function reset() { setEdits(new Map()); setChecked(new Set()); setDeleted(new Set()); setNewRows([]) }
+  function reset() {
+    setEdits(new Map())
+    setChecked(new Set())
+    setDeleted(new Set())
+    setNewRows([])
+  }
 
   const original = (row: number, col: number) => result?.rows[row]?.[col]
   const same = (a: unknown, b: string | null) => (a === null ? b === null : b !== null && String(a) === b)
 
-  const editing: GridEditing | undefined = editable ? {
-    pending: (row, col) => edits.get(row)?.get(col),
-    canEdit: col => !BINARY.test(info(col)?.type ?? ''),
-    onEdit: (row, col, value) => setEdits(prev => {
-      const next = new Map(prev)
-      const cells = new Map(next.get(row) ?? [])
-      if (same(original(row, col), value)) cells.delete(col)
-      else cells.set(col, value)
-      if (cells.size) next.set(row, cells)
-      else next.delete(row)
-      return next
-    }),
-    isDeleted: row => deleted.has(row),
-    isChecked: row => checked.has(row),
-    onCheck: (row, on) => setChecked(prev => { const n = new Set(prev); if (on) n.add(row); else n.delete(row); return n }),
-    newRows,
-    onNewEdit: (index, col, value) => setNewRows(rows => rows.map((r, i) => (i === index ? r.map((v, j) => (j === col ? value : v)) : r))),
-    onNewRemove: index => setNewRows(rows => rows.filter((_, i) => i !== index))
-  } : undefined
+  const editing: GridEditing | undefined = editable
+    ? {
+        pending: (row, col) => edits.get(row)?.get(col),
+        canEdit: col => !BINARY.test(info(col)?.type ?? ''),
+        onEdit: (row, col, value) =>
+          setEdits(prev => {
+            const next = new Map(prev)
+            const cells = new Map(next.get(row) ?? [])
+            if (same(original(row, col), value)) cells.delete(col)
+            else cells.set(col, value)
+            if (cells.size) next.set(row, cells)
+            else next.delete(row)
+            return next
+          }),
+        isDeleted: row => deleted.has(row),
+        isChecked: row => checked.has(row),
+        onCheck: (row, on) =>
+          setChecked(prev => {
+            const n = new Set(prev)
+            if (on) n.add(row)
+            else n.delete(row)
+            return n
+          }),
+        newRows,
+        onNewEdit: (index, col, value) => setNewRows(rows => rows.map((r, i) => (i === index ? r.map((v, j) => (j === col ? value : v)) : r))),
+        onNewRemove: index => setNewRows(rows => rows.filter((_, i) => i !== index))
+      }
+    : undefined
 
   const changes = useMemo((): RowChange[] => {
     if (!result || !editable) return []
@@ -62,21 +76,41 @@ export function useRowChanges(result: DbBrowseResult | null, columns: DbColumnIn
     for (const r of newRows) out.push({ kind: 'insert', values: Object.fromEntries(r.flatMap((v, col) => (v === undefined ? [] : [[names[col], v]]))) })
     for (const row of deleted) out.push({ kind: 'delete', key: keyOf(row) })
     return out
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- primaryKey and names come from result and columns
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- primaryKey and names come from result and columns
   }, [result, columns, edits, newRows, deleted, editable])
 
   return {
-    editing, editable, changes, primaryKey, reset,
+    editing,
+    editable,
+    changes,
+    primaryKey,
+    reset,
     checkedCount: checked.size,
     addRow: () => setNewRows(rows => [names.map(() => undefined), ...rows]),
-    deleteChecked: () => { setDeleted(prev => new Set([...prev, ...checked])); setChecked(new Set()) },
-    restoreChecked: () => { setDeleted(prev => new Set([...prev].filter(r => !checked.has(r)))); setChecked(new Set()) }
+    deleteChecked: () => {
+      setDeleted(prev => new Set([...prev, ...checked]))
+      setChecked(new Set())
+    },
+    restoreChecked: () => {
+      setDeleted(prev => new Set([...prev].filter(r => !checked.has(r))))
+      setChecked(new Set())
+    }
   }
 }
 
 /** The statements about to run, then Apply: one transaction, all or none */
-export function ApplyRowsDialog({ conn, table, changes, onClose, onDone }: {
-  conn: DbConnection; table: DbTableRef; changes: RowChange[]; onClose: () => void; onDone: (affected: number) => void
+export function ApplyRowsDialog({
+  conn,
+  table,
+  changes,
+  onClose,
+  onDone
+}: {
+  conn: DbConnection
+  table: DbTableRef
+  changes: RowChange[]
+  onClose: () => void
+  onDone: (affected: number) => void
 }) {
   const { t } = useI18n()
   const d = t.database
@@ -92,14 +126,35 @@ export function ApplyRowsDialog({ conn, table, changes, onClose, onDone }: {
     else onDone(r.affected)
   }
   return (
-    <Modal title={d.applyRowsTitle.replace('{n}', String(changes.length))} onClose={onClose} className="max-w-[820px]"
-      footer={<>
-        <Button variant="secondary" onClick={onClose}>{t.common.cancel}</Button>
-        <Button loading={running} onClick={apply}>{d.apply}</Button>
-      </>}>
+    <Modal
+      title={d.applyRowsTitle.replace('{n}', String(changes.length))}
+      onClose={onClose}
+      className="max-w-[820px]"
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            {t.common.cancel}
+          </Button>
+          <Button loading={running} onClick={apply}>
+            {d.apply}
+          </Button>
+        </>
+      }
+    >
       <p className="text-sm text-fg-secondary">{d.applyRowsHint}</p>
-      <pre data-testid="rows-preview" className="max-h-72 overflow-auto rounded-lg border border-line-subtle bg-console p-3 font-mono text-xs leading-relaxed text-fg-secondary">{preview.join('\n')}</pre>
-      {error && <Notice tone="danger" live className="text-xs"><span className="font-mono whitespace-pre-wrap">{d.applyRowsFailed} {error}</span></Notice>}
+      <pre
+        data-testid="rows-preview"
+        className="max-h-72 overflow-auto rounded-lg border border-line-subtle bg-console p-3 font-mono text-xs leading-relaxed text-fg-secondary"
+      >
+        {preview.join('\n')}
+      </pre>
+      {error && (
+        <Notice tone="danger" live className="text-xs">
+          <span className="font-mono whitespace-pre-wrap">
+            {d.applyRowsFailed} {error}
+          </span>
+        </Notice>
+      )}
     </Modal>
   )
 }

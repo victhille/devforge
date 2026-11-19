@@ -8,7 +8,10 @@ export function publishConfig(root) {
   const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf-8'))
   const publish = (pkg.build?.publish ?? []).find(p => p.provider === 'github') ?? {}
   const repoUrl = String(pkg.repository?.url ?? pkg.repository ?? (publish.owner ? `https://github.com/${publish.owner}/${publish.repo}` : ''))
-    .replace(/^git\+/, '').replace(/\.git$/, '')
-  const docs = String(pkg.homepage ?? '').replace(/\/?$/, '/').replace(/^\/$/, '')
+    .replace(/^git\+/, '')
+    .replace(/\.git$/, '')
+  const docs = String(pkg.homepage ?? '')
+    .replace(/\/?$/, '/')
+    .replace(/^\/$/, '')
   return { owner: publish.owner ?? '', repo: publish.repo ?? '', private: publish.private === true, url: repoUrl, docs }
 }

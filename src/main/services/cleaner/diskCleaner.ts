@@ -8,30 +8,30 @@ import type { CleanCandidate, CleanKind, CleanResult } from '@shared/types'
 /** Folder name → kind. Only names that are always safe to regenerate. */
 const TARGETS: Record<string, CleanKind> = {
   node_modules: 'dependencies',
-  vendor:       'dependencies',   // only when composer.json is next to it
-  target:       'dependencies',   // only when Cargo.toml is next to it
-  '.venv':      'dependencies',
-  venv:         'dependencies',
-  dist:         'build',
-  build:        'build',          // only next to a package.json
-  '.next':      'build',
-  '.nuxt':      'build',
-  '.output':    'build',
-  '.svelte-kit':'build',
-  '.turbo':     'cache',
+  vendor: 'dependencies', // only when composer.json is next to it
+  target: 'dependencies', // only when Cargo.toml is next to it
+  '.venv': 'dependencies',
+  venv: 'dependencies',
+  dist: 'build',
+  build: 'build', // only next to a package.json
+  '.next': 'build',
+  '.nuxt': 'build',
+  '.output': 'build',
+  '.svelte-kit': 'build',
+  '.turbo': 'cache',
   '.parcel-cache': 'cache',
-  '.cache':     'cache',
-  coverage:     'cache',
-  __pycache__:  'cache'
+  '.cache': 'cache',
+  coverage: 'cache',
+  __pycache__: 'cache'
 }
 
 /** Some names are only generated output when a given manifest sits next to them. */
 const REQUIRES: Record<string, string[]> = {
   vendor: ['composer.json'],
   target: ['Cargo.toml'],
-  build:  ['package.json'],
-  dist:   ['package.json'],
-  venv:   ['requirements.txt', 'pyproject.toml', 'setup.py']
+  build: ['package.json'],
+  dist: ['package.json'],
+  venv: ['requirements.txt', 'pyproject.toml', 'setup.py']
 }
 
 const SKIP = new Set(['.git', '.idea', '.vscode', '$RECYCLE.BIN', 'System Volume Information'])
@@ -47,7 +47,11 @@ export async function scanForCleanable(root: string): Promise<CleanCandidate[]> 
 
   async function walk(dir: string, depth: number): Promise<void> {
     let entries
-    try { entries = await readdir(dir, { withFileTypes: true }) } catch { return }
+    try {
+      entries = await readdir(dir, { withFileTypes: true })
+    } catch {
+      return
+    }
     const names = new Set(entries.map(e => e.name))
     const subdirs: string[] = []
 
@@ -74,9 +78,15 @@ export async function scanForCleanable(root: string): Promise<CleanCandidate[]> 
   await walk(root, 0)
 
   // Project folder mtime, to spot old projects
-  await Promise.all(found.map(async c => {
-    try { c.projectModified = (await stat(c.projectPath)).mtime.toISOString() } catch { /* keep empty */ }
-  }))
+  await Promise.all(
+    found.map(async c => {
+      try {
+        c.projectModified = (await stat(c.projectPath)).mtime.toISOString()
+      } catch {
+        /* keep empty */
+      }
+    })
+  )
 
   allowed = new Set(found.map(c => c.path))
   sizeCache.clear()
@@ -92,7 +102,10 @@ export async function scanForCleanable(root: string): Promise<CleanCandidate[]> 
  * « label : total copied… » (with /BYTES, plain numbers).
  */
 export function robocopyBytes(output: string): number | null {
-  const lines = output.split(/\r?\n/).map(l => /^\s*[^\s\d:][^:]*:\s+(\d+)\s+(\d+)/.exec(l)).filter(m => m !== null)
+  const lines = output
+    .split(/\r?\n/)
+    .map(l => /^\s*[^\s\d:][^:]*:\s+(\d+)\s+(\d+)/.exec(l))
+    .filter(m => m !== null)
   return lines.length >= 3 ? Number(lines[2]![1]) : null
 }
 
@@ -109,7 +122,10 @@ const waiting: (() => void)[] = []
 async function slot(): Promise<() => void> {
   while (busy >= MAX_LISTINGS) await new Promise<void>(go => waiting.push(go))
   busy++
-  return () => { busy--; waiting.shift()?.() }
+  return () => {
+    busy--
+    waiting.shift()?.()
+  }
 }
 
 /** What robocopy said: the bytes, it could not tell (null: the walk takes over), or it ran out of time */
@@ -126,7 +142,9 @@ async function robocopySize(path: string): Promise<Listed> {
   const nowhere = join(tmpdir(), `devforge-size-${randomUUID()}`)
   try {
     return await new Promise<Listed>(resolve => {
-      const child = execFile(ROBOCOPY, [path, nowhere, '/L', '/S', '/NJH', '/NFL', '/NDL', '/NC', '/NS', '/NP', '/BYTES', '/XJ', '/R:0', '/W:0', '/MT:4'],
+      const child = execFile(
+        ROBOCOPY,
+        [path, nowhere, '/L', '/S', '/NJH', '/NFL', '/NDL', '/NC', '/NS', '/NP', '/BYTES', '/XJ', '/R:0', '/W:0', '/MT:4'],
         { windowsHide: true, timeout: 300_000, maxBuffer: 1024 * 1024 },
         (err, stdout) => {
           listing.delete(child)
@@ -135,10 +153,13 @@ async function robocopySize(path: string): Promise<Listed> {
           if (e?.killed) return resolve('timeout')
           if (e && (typeof e.code !== 'number' || e.code >= 8)) return resolve(null)
           resolve(robocopyBytes(stdout))
-        })
+        }
+      )
       listing.add(child)
     })
-  } finally { done() }
+  } finally {
+    done()
+  }
 }
 
 /**
@@ -150,7 +171,7 @@ export async function folderSize(path: string): Promise<number> {
   if (!allowed.has(path)) throw new Error('Path not found by the last scan')
   const listed = process.platform === 'win32' ? await robocopySize(path) : null
   if (listed === 'timeout') throw new Error('Too long to measure')
-  const total = listed ?? await walkSize(path)
+  const total = listed ?? (await walkSize(path))
   sizeCache.set(path, total)
   return total
 }
@@ -164,14 +185,25 @@ async function walkSize(path: string): Promise<number> {
   async function worker() {
     for (let dir = queue.pop(); dir !== undefined; dir = queue.pop()) {
       let entries
-      try { entries = await readdir(dir, { withFileTypes: true }) } catch { continue }
+      try {
+        entries = await readdir(dir, { withFileTypes: true })
+      } catch {
+        continue
+      }
       const files: string[] = []
       for (const e of entries) {
         const p = join(dir, e.name)
         if (e.isDirectory()) queue.push(p)
         else if (e.isFile()) files.push(p)
       }
-      const sizes = await Promise.all(files.map(f => lstat(f).then(s => s.size, () => 0)))
+      const sizes = await Promise.all(
+        files.map(f =>
+          lstat(f).then(
+            s => s.size,
+            () => 0
+          )
+        )
+      )
       for (const s of sizes) total += s
     }
   }

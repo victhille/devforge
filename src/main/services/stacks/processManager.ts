@@ -69,7 +69,8 @@ class ProcessManager {
       this.setStatus(managed, 'failed', null)
     })
     child.on('close', code => {
-      stdout.end(); stderr.end()
+      stdout.end()
+      stderr.end()
       if (managed.info.status === 'stopped') return
       this.push(managed, 'system', `Process exited with code ${code}`)
       this.setStatus(managed, code === 0 ? 'exited' : 'failed', code)

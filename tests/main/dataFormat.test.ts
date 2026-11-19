@@ -33,7 +33,14 @@ describe('data migrations', () => {
     const order: number[] = []
     const migrations: Migration[] = [
       { to: 3, name: 'three', run: () => order.push(3) },
-      { to: 2, name: 'two', run: d => { order.push(2); writeJsonFile(join(d, 'projects.json'), [{ name: 'a', v: 2 }]) } }
+      {
+        to: 2,
+        name: 'two',
+        run: d => {
+          order.push(2)
+          writeJsonFile(join(d, 'projects.json'), [{ name: 'a', v: 2 }])
+        }
+      }
     ]
     const r = migrateData(dir, migrations, 3)
     expect(r.status).toBe('migrated')
@@ -52,7 +59,21 @@ describe('data migrations', () => {
     const dir = tmp()
     writeFileSync(join(dir, 'storage.json'), JSON.stringify({ schemaVersion: 9 }))
     let ran = false
-    expect(migrateData(dir, [{ to: 2, name: 'x', run: () => { ran = true } }], 2)).toEqual({ status: 'newer', version: 9 })
+    expect(
+      migrateData(
+        dir,
+        [
+          {
+            to: 2,
+            name: 'x',
+            run: () => {
+              ran = true
+            }
+          }
+        ],
+        2
+      )
+    ).toEqual({ status: 'newer', version: 9 })
     expect(ran).toBe(false)
     expect(existsSync(join(dir, 'backups'))).toBe(false)
   })

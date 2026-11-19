@@ -23,9 +23,7 @@ export function IoPanel({ label, actions, className, children }: Props) {
         <h2 className="font-display text-md font-bold text-fg">{label}</h2>
         <div className="flex items-center gap-1.5 text-sm">{actions}</div>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col px-4.5 pb-4.5 [&_textarea[readonly]]:border-transparent [&_textarea[readonly]]:bg-console">
-        {children}
-      </div>
+      <div className="flex min-h-0 flex-1 flex-col px-4.5 pb-4.5 [&_textarea[readonly]]:border-transparent [&_textarea[readonly]]:bg-console">{children}</div>
     </section>
   )
 }

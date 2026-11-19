@@ -21,19 +21,28 @@ const check = (what, size, limit) => {
 }
 
 const html = 'out/renderer/index.html'
-if (!existsSync(html)) { console.error(`${html} is missing: run npm run build first`); process.exit(2) }
+if (!existsSync(html)) {
+  console.error(`${html} is missing: run npm run build first`)
+  process.exit(2)
+}
 const page = readFileSync(html, 'utf8')
 // The entry script and every <link rel="modulepreload">: what the window reads before it shows anything
 const files = new Set([...page.matchAll(/(?:src|href)="\.\/(assets\/[^"]+\.js)"/g)].map(m => m[1]))
 // None found means the page changed shape (another base path): a total of 0 would pass without measuring anything
-if (!files.size) { console.error(`No script found in ${html}: update the pattern in scripts/size-budget.mjs`); process.exit(2) }
+if (!files.size) {
+  console.error(`No script found in ${html}: update the pattern in scripts/size-budget.mjs`)
+  process.exit(2)
+}
 const total = [...files].reduce((n, f) => n + statSync(join('out/renderer', f)).size, 0)
 check(`first screen, ${files.size} JS files`, total, FIRST_SCREEN_JS)
 
 const at = process.argv.indexOf('--installer')
 if (at > 0) {
   const file = process.argv[at + 1]
-  if (!file || !existsSync(file)) { console.error(`Installer not found: ${file}`); process.exit(2) }
+  if (!file || !existsSync(file)) {
+    console.error(`Installer not found: ${file}`)
+    process.exit(2)
+  }
   check(`installer ${file}`, statSync(file).size, INSTALLER)
 }
 process.exit(failed ? 1 : 0)

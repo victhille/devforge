@@ -14,7 +14,9 @@ export default function ProjectFolders({ settings, update }: { settings: AppSett
   const { t } = useI18n()
   const s = t.settings
   const list = projectFolders(settings)
-  const save = (next: string[]) => { void update(withProjectFolders(next)) }
+  const save = (next: string[]) => {
+    void update(withProjectFolders(next))
+  }
 
   async function add() {
     const dir = await window.devforge.selectDirectory()
@@ -30,21 +32,32 @@ export default function ProjectFolders({ settings, update }: { settings: AppSett
               {i === 0 ? (
                 <Star size={14} className="shrink-0 text-accent" aria-hidden />
               ) : (
-                <IconButton size="sm" title={`${s.folderMakeDefault} · ${dir}`} className="group -ml-1.5 shrink-0" onClick={() => save([dir, ...list.filter(d => d !== dir)])}>
+                <IconButton
+                  size="sm"
+                  title={`${s.folderMakeDefault} · ${dir}`}
+                  className="group -ml-1.5 shrink-0"
+                  onClick={() => save([dir, ...list.filter(d => d !== dir)])}
+                >
                   <Folder size={14} className="group-hover:hidden group-focus-visible:hidden" />
                   <Star size={14} className="hidden text-accent group-hover:block group-focus-visible:block" />
                 </IconButton>
               )}
-              <span className="min-w-0 flex-1 truncate font-mono text-sm font-medium text-fg" title={dir}>{dir}</span>
+              <span className="min-w-0 flex-1 truncate font-mono text-sm font-medium text-fg" title={dir}>
+                {dir}
+              </span>
               {i === 0 && <Badge color="accent">{s.folderDefault}</Badge>}
               {list.length > 1 && (
-                <IconButton size="sm" title={`${s.folderRemove} · ${dir}`} onClick={() => save(list.filter(d => d !== dir))}><X size={13} /></IconButton>
+                <IconButton size="sm" title={`${s.folderRemove} · ${dir}`} onClick={() => save(list.filter(d => d !== dir))}>
+                  <X size={13} />
+                </IconButton>
               )}
             </li>
           ))}
         </ul>
       )}
-      <Button size="sm" variant="ghost" className="self-start" onClick={add}><Plus size={13} /> {s.folderAdd}</Button>
+      <Button size="sm" variant="ghost" className="self-start" onClick={add}>
+        <Plus size={13} /> {s.folderAdd}
+      </Button>
     </div>
   )
 }

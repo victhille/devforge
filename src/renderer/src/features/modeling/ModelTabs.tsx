@@ -7,7 +7,14 @@ import { modelUrl, siblings, type ModelTab } from './model'
  * the steps of one model, MCD → MLD → MPD → SQL, in the editor's bar.
  * The MLD needs the MCD; the MPD and the SQL need the MPD.
  */
-export default function ModelTabs({ projectPath, file, tab, hasMcd, hasMpd, before }: {
+export default function ModelTabs({
+  projectPath,
+  file,
+  tab,
+  hasMcd,
+  hasMpd,
+  before
+}: {
   projectPath: string
   file: string
   tab: ModelTab
@@ -25,10 +32,21 @@ export default function ModelTabs({ projectPath, file, tab, hasMcd, hasMpd, befo
       {(['mcd', 'mld', 'mpd', 'sql'] as const).map(x => {
         const ok = x === 'mcd' || x === 'mld' ? hasMcd : hasMpd
         return (
-          <button key={x} type="button" disabled={!ok} aria-current={tab === x ? 'page' : undefined}
-            onClick={() => { if (x === tab) return; before?.(); navigate(modelUrl(projectPath, x === 'mcd' || x === 'mld' ? s.mcd : s.mpd, x, from), { replace: true }) }}
-            className={cn('rounded-md px-2.5 py-1 font-mono text-xs font-semibold transition-colors',
-              tab === x ? 'bg-active text-fg' : ok ? 'text-fg-secondary hover:bg-hover hover:text-fg' : 'cursor-not-allowed text-fg-disabled')}>
+          <button
+            key={x}
+            type="button"
+            disabled={!ok}
+            aria-current={tab === x ? 'page' : undefined}
+            onClick={() => {
+              if (x === tab) return
+              before?.()
+              navigate(modelUrl(projectPath, x === 'mcd' || x === 'mld' ? s.mcd : s.mpd, x, from), { replace: true })
+            }}
+            className={cn(
+              'rounded-md px-2.5 py-1 font-mono text-xs font-semibold transition-colors',
+              tab === x ? 'bg-active text-fg' : ok ? 'text-fg-secondary hover:bg-hover hover:text-fg' : 'cursor-not-allowed text-fg-disabled'
+            )}
+          >
             {t.modeling.chainTag[x]}
           </button>
         )

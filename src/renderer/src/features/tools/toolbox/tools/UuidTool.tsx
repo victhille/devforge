@@ -14,19 +14,24 @@ export default function UuidTool({ t }: { t: ToolboxT }) {
 
   return (
     <>
-      <ToolHelp id="uuid" what={h.uuid.what} how={h.uuid.how}
-        examples={[{ label: h.uuid.sample, onPick: () => { setCount(3); setUuids(Array.from({ length: 3 }, () => crypto.randomUUID())) } }]} />
+      <ToolHelp
+        id="uuid"
+        what={h.uuid.what}
+        how={h.uuid.how}
+        examples={[
+          {
+            label: h.uuid.sample,
+            onPick: () => {
+              setCount(3)
+              setUuids(Array.from({ length: 3 }, () => crypto.randomUUID()))
+            }
+          }
+        ]}
+      />
       <ToolActions>
         <label className="flex items-center gap-2 text-sm text-fg-muted">
           Count
-          <Input
-            type="number"
-            value={count}
-            min={1}
-            max={20}
-            onChange={e => setCount(Math.min(20, Math.max(1, Number(e.target.value))))}
-            className="w-20"
-          />
+          <Input type="number" value={count} min={1} max={20} onChange={e => setCount(Math.min(20, Math.max(1, Number(e.target.value))))} className="w-20" />
         </label>
         <Button onClick={() => setUuids(Array.from({ length: count }, () => crypto.randomUUID()))}>{t.generate}</Button>
       </ToolActions>

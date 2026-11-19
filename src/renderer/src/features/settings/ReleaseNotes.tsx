@@ -28,9 +28,25 @@ export function Inline({ text }: { text: string }) {
   let last = 0
   for (const m of text.matchAll(re)) {
     if (m.index > last) parts.push(text.slice(last, m.index))
-    if (m[1]) parts.push(<strong key={m.index} className="font-semibold text-fg">{m[1]}</strong>)
-    else if (m[2]) { const url = m[3]; parts.push(<button key={m.index} onClick={() => window.devforge.openExternal(url)} className="text-accent hover:underline">{m[2]}</button>) }
-    else if (m[4]) parts.push(<em key={m.index} className="text-fg-muted">{m[4]}</em>)
+    if (m[1])
+      parts.push(
+        <strong key={m.index} className="font-semibold text-fg">
+          {m[1]}
+        </strong>
+      )
+    else if (m[2]) {
+      const url = m[3]
+      parts.push(
+        <button key={m.index} onClick={() => window.devforge.openExternal(url)} className="text-accent hover:underline">
+          {m[2]}
+        </button>
+      )
+    } else if (m[4])
+      parts.push(
+        <em key={m.index} className="text-fg-muted">
+          {m[4]}
+        </em>
+      )
     last = m.index + m[0].length
   }
   if (last < text.length) parts.push(text.slice(last))
@@ -47,7 +63,7 @@ export default function ReleaseNotes({ focus, onBack }: { focus?: string | null;
   const n = t.settings.notes
   const versions = useMemo(() => changelog(lang), [lang])
   const [filter, setFilter] = useState<Filter>('all')
-  const date = (d: string | null) => d ? new Intl.DateTimeFormat(lang, { dateStyle: 'medium' }).format(new Date(d)) : ''
+  const date = (d: string | null) => (d ? new Intl.DateTimeFormat(lang, { dateStyle: 'medium' }).format(new Date(d)) : '')
   const anchor = (v: string) => `v-${v.replace(/\W/g, '-')}`
 
   // ?notes=<version> scrolls to that version
@@ -67,15 +83,26 @@ export default function ReleaseNotes({ focus, onBack }: { focus?: string | null;
     <div className="flex flex-col gap-5.5">
       <div className="df-rise flex flex-wrap items-end gap-3">
         <div className="min-w-[220px] flex-1">
-          <button onClick={onBack} className="flex items-center gap-1 text-sm text-accent hover:underline"><ArrowLeft size={13} /> {n.back}</button>
+          <button onClick={onBack} className="flex items-center gap-1 text-sm text-accent hover:underline">
+            <ArrowLeft size={13} /> {n.back}
+          </button>
           <h1 className="mt-1.5 font-display text-page font-bold tracking-[-.025em] text-fg">{t.settings.releaseNotes}</h1>
         </div>
         <div role="radiogroup" aria-label={t.settings.releaseNotes} className="flex flex-wrap gap-1.5">
           {filters.map(f => (
-            <button key={f.id} role="radio" aria-checked={filter === f.id} onClick={() => setFilter(f.id)}
-              className={cn('flex h-[30px] items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition-colors',
-                filter === f.id ? 'border-accent/50 bg-accent-soft text-fg' : 'border-line bg-surface text-fg-secondary hover:text-fg')}>
-              <f.icon size={13} className={f.tone} aria-hidden />{f.label}<span className="font-mono text-xs text-fg-secondary">{count(f.id)}</span>
+            <button
+              key={f.id}
+              role="radio"
+              aria-checked={filter === f.id}
+              onClick={() => setFilter(f.id)}
+              className={cn(
+                'flex h-[30px] items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition-colors',
+                filter === f.id ? 'border-accent/50 bg-accent-soft text-fg' : 'border-line bg-surface text-fg-secondary hover:text-fg'
+              )}
+            >
+              <f.icon size={13} className={f.tone} aria-hidden />
+              {f.label}
+              <span className="font-mono text-xs text-fg-secondary">{count(f.id)}</span>
             </button>
           ))}
         </div>
@@ -87,9 +114,15 @@ export default function ReleaseNotes({ focus, onBack }: { focus?: string | null;
           {versions.map(v => {
             const current = v.version === __APP_VERSION__
             return (
-              <a key={v.version} href={`#${anchor(v.version)}`}
-                onClick={e => { e.preventDefault(); document.getElementById(anchor(v.version))?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}
-                className="relative flex items-center gap-3 rounded-lg px-2 py-1.5 text-fg-secondary transition-colors hover:bg-surface hover:text-fg">
+              <a
+                key={v.version}
+                href={`#${anchor(v.version)}`}
+                onClick={e => {
+                  e.preventDefault()
+                  document.getElementById(anchor(v.version))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+                className="relative flex items-center gap-3 rounded-lg px-2 py-1.5 text-fg-secondary transition-colors hover:bg-surface hover:text-fg"
+              >
                 <span className={cn('relative size-2.5 rounded-full border-2', current ? 'df-fill border-accent bg-accent' : 'border-fg-disabled bg-canvas')} />
                 <span>
                   <span className={cn('block font-mono text-base font-medium', current && 'text-fg')}>{v.version}</span>
@@ -105,11 +138,18 @@ export default function ReleaseNotes({ focus, onBack }: { focus?: string | null;
             const items = v.items.filter(it => filter === 'all' || it.type === filter)
             const current = v.version === __APP_VERSION__
             return (
-              <Card key={v.version} id={anchor(v.version)} className={cn('df-rise scroll-mt-4 overflow-hidden', current && 'border-accent/40')} style={{ '--i': Math.min(i, 6) } as CSSProperties}>
+              <Card
+                key={v.version}
+                id={anchor(v.version)}
+                className={cn('df-rise scroll-mt-4 overflow-hidden', current && 'border-accent/40')}
+                style={{ '--i': Math.min(i, 6) } as CSSProperties}
+              >
                 <div className="flex flex-wrap items-center gap-x-3.5 gap-y-2.5 px-5 pt-4.5 pb-3">
                   <h2 className="font-mono text-xl font-semibold tracking-tight text-fg">{v.version}</h2>
                   <span className={cn('rounded-full px-2 py-0.5 font-mono text-xs font-medium', KIND_STYLE[v.kind])}>{n[v.kind]}</span>
-                  {current && <span className="rounded-full bg-success-soft px-2 py-0.5 font-mono text-xs font-medium text-success">{t.settings.installed}</span>}
+                  {current && (
+                    <span className="rounded-full bg-success-soft px-2 py-0.5 font-mono text-xs font-medium text-success">{t.settings.installed}</span>
+                  )}
                   <span className="ml-auto text-sm text-fg-muted">{date(v.date)}</span>
                 </div>
                 {v.summary && <p className="px-5 pb-3.5 text-sm leading-relaxed text-fg-secondary">{v.summary}</p>}
@@ -119,13 +159,20 @@ export default function ReleaseNotes({ focus, onBack }: { focus?: string | null;
                     return (
                       <div key={j} className="flex items-start gap-3 rounded-control px-2 py-2.5 transition-colors hover:bg-hover">
                         <span className={cn('mt-0.5 flex w-[122px] shrink-0 items-center gap-1.5 font-mono text-xs font-medium', meta.tone)}>
-                          <meta.icon size={13} aria-hidden />{meta.label(n)}
+                          <meta.icon size={13} aria-hidden />
+                          {meta.label(n)}
                         </span>
                         <span className="min-w-0 flex-1 text-base leading-normal text-fg">
-                          {it.scope && <b className="font-semibold">{it.scope} · </b>}<Inline text={it.text} />
+                          {it.scope && <b className="font-semibold">{it.scope} · </b>}
+                          <Inline text={it.text} />
                         </span>
                         {it.sha && it.url && (
-                          <button onClick={() => window.devforge.openExternal(it.url!)} className="mt-0.5 shrink-0 font-mono text-xs text-fg-muted hover:text-accent">{it.sha}</button>
+                          <button
+                            onClick={() => window.devforge.openExternal(it.url!)}
+                            className="mt-0.5 shrink-0 font-mono text-xs text-fg-muted hover:text-accent"
+                          >
+                            {it.sha}
+                          </button>
                         )}
                       </div>
                     )

@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  CMD_CPU, CMD_DISK, CMD_DOCKER, CMD_MEM, CMD_PROCS, CMD_SYSINFO, CMD_UPTIME,
-  parseStats, parseSysInfo, type SysInfo, type VPSStats
-} from './stats'
+import { CMD_CPU, CMD_DISK, CMD_DOCKER, CMD_MEM, CMD_PROCS, CMD_SYSINFO, CMD_UPTIME, parseStats, parseSysInfo, type SysInfo, type VPSStats } from './stats'
 import { visibleInterval } from '@renderer/lib/visibleInterval'
 
 const REFRESH_MS = 10_000
@@ -10,24 +7,24 @@ const HISTORY_LEN = 30
 
 /** Poll system stats over an SSH session every 10s while `sessionId` is set and the window is shown. */
 export function useVpsStats(sessionId: string | null) {
-  const [sysInfo,     setSysInfo]     = useState<SysInfo | null>(null)
-  const [stats,       setStats]       = useState<VPSStats | null>(null)
-  const [cpuHistory,  setCpuHistory]  = useState<number[]>([])
+  const [sysInfo, setSysInfo] = useState<SysInfo | null>(null)
+  const [stats, setStats] = useState<VPSStats | null>(null)
+  const [cpuHistory, setCpuHistory] = useState<number[]>([])
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
-  const [refreshing,  setRefreshing]  = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
   const mounted = useRef(true)
 
   useEffect(() => {
     mounted.current = true
-    return () => { mounted.current = false }
+    return () => {
+      mounted.current = false
+    }
   }, [])
 
   const refresh = useCallback(async (sid: string) => {
     setRefreshing(true)
     try {
-      const outputs = await Promise.all(
-        [CMD_MEM, CMD_UPTIME, CMD_DISK, CMD_PROCS, CMD_DOCKER, CMD_CPU].map(cmd => window.devforge.sshExec(sid, cmd))
-      )
+      const outputs = await Promise.all([CMD_MEM, CMD_UPTIME, CMD_DISK, CMD_PROCS, CMD_DOCKER, CMD_CPU].map(cmd => window.devforge.sshExec(sid, cmd)))
       if (!mounted.current) return
       const parsed = parseStats(...(outputs as [string, string, string, string, string, string]))
       setStats(parsed)
@@ -43,8 +40,11 @@ export function useVpsStats(sessionId: string | null) {
   // System info once per session
   useEffect(() => {
     if (!sessionId) return
-    window.devforge.sshExec(sessionId, CMD_SYSINFO)
-      .then(raw => { if (mounted.current) setSysInfo(parseSysInfo(raw)) })
+    window.devforge
+      .sshExec(sessionId, CMD_SYSINFO)
+      .then(raw => {
+        if (mounted.current) setSysInfo(parseSysInfo(raw))
+      })
       .catch(() => {})
   }, [sessionId])
 
@@ -52,7 +52,9 @@ export function useVpsStats(sessionId: string | null) {
   useEffect(() => {
     if (!sessionId) return
     refresh(sessionId)
-    return visibleInterval(() => { refresh(sessionId) }, REFRESH_MS)
+    return visibleInterval(() => {
+      refresh(sessionId)
+    }, REFRESH_MS)
   }, [sessionId, refresh])
 
   const reset = useCallback(() => {
@@ -62,7 +64,14 @@ export function useVpsStats(sessionId: string | null) {
   }, [])
 
   return {
-    sysInfo, stats, cpuHistory, lastUpdated, refreshing, reset,
-    refreshNow: () => { if (sessionId && !refreshing) refresh(sessionId) }
+    sysInfo,
+    stats,
+    cpuHistory,
+    lastUpdated,
+    refreshing,
+    reset,
+    refreshNow: () => {
+      if (sessionId && !refreshing) refresh(sessionId)
+    }
   }
 }

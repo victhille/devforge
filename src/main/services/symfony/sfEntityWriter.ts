@@ -31,8 +31,15 @@ export function plural(word: string): string {
 }
 
 const PHP_TYPE: Record<SfFieldType, string> = {
-  string: 'string', text: 'string', integer: 'int', float: 'float', decimal: 'string',
-  boolean: 'bool', date: '\\DateTimeImmutable', datetime: '\\DateTimeImmutable', json: 'array'
+  string: 'string',
+  text: 'string',
+  integer: 'int',
+  float: 'float',
+  decimal: 'string',
+  boolean: 'bool',
+  date: '\\DateTimeImmutable',
+  datetime: '\\DateTimeImmutable',
+  json: 'array'
 }
 
 function columnAttribute(f: SfField): string {
@@ -48,23 +55,31 @@ function columnAttribute(f: SfField): string {
 
 /** Property, getter and setter of one field */
 export function fieldCode(f: SfField): { property: string; methods: string } {
-  const t = PHP_TYPE[f.type], up = ucfirst(f.name)
+  const t = PHP_TYPE[f.type],
+    up = ucfirst(f.name)
   if (f.type === 'json') {
     return {
       property: `${columnAttribute(f)}\n    private array $${f.name} = [];\n`,
-      methods: `    public function get${up}(): array\n    {\n        return $this->${f.name};\n    }\n\n` +
+      methods:
+        `    public function get${up}(): array\n    {\n        return $this->${f.name};\n    }\n\n` +
         `    public function set${up}(array $${f.name}): static\n    {\n        $this->${f.name} = $${f.name};\n\n        return $this;\n    }\n`
     }
   }
   const getter = f.type === 'boolean' ? `is${up}` : `get${up}`
   return {
     property: `${columnAttribute(f)}\n    private ?${t} $${f.name} = null;\n`,
-    methods: `    public function ${getter}(): ?${t}\n    {\n        return $this->${f.name};\n    }\n\n` +
+    methods:
+      `    public function ${getter}(): ?${t}\n    {\n        return $this->${f.name};\n    }\n\n` +
       `    public function set${up}(${f.nullable ? '?' : ''}${t} $${f.name}): static\n    {\n        $this->${f.name} = $${f.name};\n\n        return $this;\n    }\n`
   }
 }
 
-interface Members { property: string; methods: string; init: string | null; collection: boolean }
+interface Members {
+  property: string
+  methods: string
+  init: string | null
+  collection: boolean
+}
 
 const method = (signature: string, body: string) => `    public function ${signature}\n    {\n${body}    }\n`
 
@@ -74,20 +89,27 @@ const method = (signature: string, body: string) => `    public function ${signa
  * OneToOne the side the user declared).
  */
 export function relationCode(r: SfRelation, owning: boolean): Members {
-  const up = ucfirst(r.name), T = r.target, inv = r.inverse, invUp = inv ? ucfirst(inv) : ''
+  const up = ucfirst(r.name),
+    T = r.target,
+    inv = r.inverse,
+    invUp = inv ? ucfirst(inv) : ''
 
   if (r.kind === 'ManyToOne' || r.kind === 'OneToOne') {
     const args = owning ? (inv ? [`inversedBy: '${inv}'`] : []) : [`mappedBy: '${inv}'`]
     const join = owning && !r.nullable ? '    #[ORM\\JoinColumn(nullable: false)]\n' : ''
     // OneToOne, side that is not saved: keep the other side in step
-    const sync = r.kind === 'OneToOne' && !owning
-      ? `        // Unlink the previous one, link the new one\n        if ($${r.name} === null && $this->${r.name} !== null) {\n            $this->${r.name}->set${invUp}(null);\n        }\n        if ($${r.name} !== null && $${r.name}->get${invUp}() !== $this) {\n            $${r.name}->set${invUp}($this);\n        }\n\n`
-      : ''
+    const sync =
+      r.kind === 'OneToOne' && !owning
+        ? `        // Unlink the previous one, link the new one\n        if ($${r.name} === null && $this->${r.name} !== null) {\n            $this->${r.name}->set${invUp}(null);\n        }\n        if ($${r.name} !== null && $${r.name}->get${invUp}() !== $this) {\n            $${r.name}->set${invUp}($this);\n        }\n\n`
+        : ''
     return {
       property: `    #[ORM\\${r.kind}${args.length ? `(${args.join(', ')})` : ''}]\n${join}    private ?${T} $${r.name} = null;\n`,
-      methods: method(`get${up}(): ?${T}`, `        return $this->${r.name};\n`) + '\n' +
+      methods:
+        method(`get${up}(): ?${T}`, `        return $this->${r.name};\n`) +
+        '\n' +
         method(`set${up}(?${T} $${r.name}): static`, `${sync}        $this->${r.name} = $${r.name};\n\n        return $this;\n`),
-      init: null, collection: false
+      init: null,
+      collection: false
     }
   }
 
@@ -95,10 +117,12 @@ export function relationCode(r: SfRelation, owning: boolean): Members {
   const item = singular(r.name)
   const v = item === r.name ? `${item}Item` : item
   const vUp = ucfirst(item)
-  const attr = r.kind === 'OneToMany'
-    ? `#[ORM\\OneToMany(targetEntity: ${T}::class, mappedBy: '${inv}')]`
-    : `#[ORM\\ManyToMany(targetEntity: ${T}::class${owning ? (inv ? `, inversedBy: '${inv}'` : '') : `, mappedBy: '${inv}'`})]`
-  let onAdd = '', onRemove = ''
+  const attr =
+    r.kind === 'OneToMany'
+      ? `#[ORM\\OneToMany(targetEntity: ${T}::class, mappedBy: '${inv}')]`
+      : `#[ORM\\ManyToMany(targetEntity: ${T}::class${owning ? (inv ? `, inversedBy: '${inv}'` : '') : `, mappedBy: '${inv}'`})]`
+  let onAdd = '',
+    onRemove = ''
   if (r.kind === 'OneToMany') {
     onAdd = `            $${v}->set${invUp}($this);\n`
     onRemove = `            // It pointed here: unlink it\n            if ($${v}->get${invUp}() === $this) {\n                $${v}->set${invUp}(null);\n            }\n`
@@ -112,8 +136,14 @@ export function relationCode(r: SfRelation, owning: boolean): Members {
   return {
     property: `    /**\n     * @var Collection<int, ${T}>\n     */\n    ${attr}\n    private Collection $${r.name};\n`,
     methods:
-      `    /**\n     * @return Collection<int, ${T}>\n     */\n` + method(`get${up}(): Collection`, `        return $this->${r.name};\n`) + '\n' +
-      method(`add${vUp}(${T} $${v}): static`, `        if (!$this->${r.name}->contains($${v})) {\n            $this->${r.name}->add($${v});\n${onAdd}        }\n\n        return $this;\n`) + '\n' +
+      `    /**\n     * @return Collection<int, ${T}>\n     */\n` +
+      method(`get${up}(): Collection`, `        return $this->${r.name};\n`) +
+      '\n' +
+      method(
+        `add${vUp}(${T} $${v}): static`,
+        `        if (!$this->${r.name}->contains($${v})) {\n            $this->${r.name}->add($${v});\n${onAdd}        }\n\n        return $this;\n`
+      ) +
+      '\n' +
       method(`remove${vUp}(${T} $${v}): static`, `${remove}\n        return $this;\n`),
     init: `        $this->${r.name} = new ArrayCollection();`,
     collection: true
@@ -153,7 +183,11 @@ export function newEntityFile(d: SfEntityDraft, selfInverse: SfRelation[] = []):
 
 namespace App\\Entity;
 
-${uses(rels.some(r => r.collection), needsTypes(d.fields), `${d.name}Repository`)}
+${uses(
+  rels.some(r => r.collection),
+  needsTypes(d.fields),
+  `${d.name}Repository`
+)}
 
 #[ORM\\Entity(repositoryClass: ${d.name}Repository::class)]
 ${table}class ${d.name}

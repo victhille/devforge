@@ -17,15 +17,22 @@ import { parseEnv } from '../envfiles/envFiles'
 const API = 'https://api.vercel.com'
 const ID_RE = /^[\w-]{1,80}$/
 
-interface Stored { tokenEnc?: string; username?: string }
+interface Stored {
+  tokenEnc?: string
+  username?: string
+}
 const storePath = () => join(app.getPath('userData'), 'vercel.json')
 function readStore(): Stored {
-  try { return JSON.parse(readFileSync(storePath(), 'utf-8')) as Stored } catch { return {} }
+  try {
+    return JSON.parse(readFileSync(storePath(), 'utf-8')) as Stored
+  } catch {
+    return {}
+  }
 }
 
 export function account(): VercelAccount {
   const s = readStore()
-  return { connected: !!s.tokenEnc, username: s.tokenEnc ? s.username ?? null : null }
+  return { connected: !!s.tokenEnc, username: s.tokenEnc ? (s.username ?? null) : null }
 }
 
 function token(): string {
@@ -46,7 +53,11 @@ async function call<T>(path: string, init: { method?: string; body?: unknown; te
   const text = await res.text()
   if (!res.ok) {
     let msg = text
-    try { msg = (JSON.parse(text) as { error?: { message?: string } }).error?.message ?? text } catch { /* text */ }
+    try {
+      msg = (JSON.parse(text) as { error?: { message?: string } }).error?.message ?? text
+    } catch {
+      /* text */
+    }
     throw new Error(res.status === 401 || res.status === 403 ? 'BAD_TOKEN' : `Vercel ${res.status}: ${msg.slice(0, 200)}`)
   }
   return (text ? JSON.parse(text) : {}) as T
@@ -58,7 +69,10 @@ export async function checkAccount(): Promise<string> {
 }
 
 export async function saveToken(raw: string | null): Promise<VercelAccount> {
-  if (!raw?.trim()) { writeJsonFile(storePath(), {}); return account() }
+  if (!raw?.trim()) {
+    writeJsonFile(storePath(), {})
+    return account()
+  }
   if (!safeStorage.isEncryptionAvailable()) throw new Error('OS encryption is not available')
   const t = raw.trim()
   const me = await call<{ user: { username: string } }>('/v2/user', { bearer: t })
@@ -78,8 +92,12 @@ function projectPath(projectId: string): string {
 export function readLink(dir: string): VercelLink | null {
   try {
     const j = JSON.parse(readFileSync(join(dir, '.vercel', 'project.json'), 'utf-8')) as Partial<VercelLink>
-    return typeof j.projectId === 'string' && typeof j.orgId === 'string' && ID_RE.test(j.projectId) && ID_RE.test(j.orgId) ? { projectId: j.projectId, orgId: j.orgId } : null
-  } catch { return null }
+    return typeof j.projectId === 'string' && typeof j.orgId === 'string' && ID_RE.test(j.projectId) && ID_RE.test(j.orgId)
+      ? { projectId: j.projectId, orgId: j.orgId }
+      : null
+  } catch {
+    return null
+  }
 }
 
 /** Team-owned projects need ?teamId=; a personal account's orgId is the user id */
@@ -91,7 +109,12 @@ function linkOf(projectId: string): VercelLink {
   return l
 }
 
-interface RawProject { name: string; framework?: string | null; targets?: { production?: { id?: string; alias?: string[] } }; alias?: { domain: string }[] }
+interface RawProject {
+  name: string
+  framework?: string | null
+  targets?: { production?: { id?: string; alias?: string[] } }
+  alias?: { domain: string }[]
+}
 
 export async function projectInfo(projectId: string): Promise<VercelProjectInfo | null> {
   const link = readLink(projectPath(projectId))
@@ -104,8 +127,15 @@ export async function projectInfo(projectId: string): Promise<VercelProjectInfo 
 // ─── Deployments ──────────────────────────────────────────────────────────────
 
 interface RawDeployment {
-  uid: string; url: string; state?: string; readyState?: string; target?: string | null; created?: number; createdAt?: number
-  meta?: Record<string, string>; creator?: { username?: string }
+  uid: string
+  url: string
+  state?: string
+  readyState?: string
+  target?: string | null
+  created?: number
+  createdAt?: number
+  meta?: Record<string, string>
+  creator?: { username?: string }
 }
 
 export async function deployments(projectId: string): Promise<VercelDeployment[]> {
@@ -133,7 +163,9 @@ export async function buildLogs(projectId: string, deploymentId: string): Promis
   if (!ID_RE.test(deploymentId)) throw new Error('Invalid deployment')
   const link = linkOf(projectId)
   const events = await call<{ type?: string; created?: number; text?: string; payload?: { text?: string } }[]>(
-    `/v3/deployments/${deploymentId}/events?builds=1&limit=-1`, { teamId: teamOf(link) })
+    `/v3/deployments/${deploymentId}/events?builds=1&limit=-1`,
+    { teamId: teamOf(link) }
+  )
   return (Array.isArray(events) ? events : [])
     .map(e => e.payload?.text ?? e.text ?? '')
     .filter(Boolean)
@@ -149,11 +181,22 @@ export async function redeploy(projectId: string, deploymentId: string): Promise
   if (!source) throw new Error('Unknown deployment')
   const p = await call<RawProject>(`/v9/projects/${link.projectId}`, { teamId: team })
   const d = await call<RawDeployment & { id?: string }>('/v13/deployments?forceNew=1', {
-    method: 'POST', teamId: team,
+    method: 'POST',
+    teamId: team,
     body: { name: p.name, deploymentId, project: link.projectId, ...(source.target === 'production' ? { target: 'production' } : {}) }
   })
   log('info', 'vercel', `Redeploy of ${deploymentId} → ${d.id ?? d.uid}`)
-  return { id: d.id ?? d.uid, url: `https://${d.url}`, state: d.readyState ?? d.state ?? 'QUEUED', target: source.target, createdAt: Date.now(), branch: source.branch, commitMessage: source.commitMessage, creator: null, current: false }
+  return {
+    id: d.id ?? d.uid,
+    url: `https://${d.url}`,
+    state: d.readyState ?? d.state ?? 'QUEUED',
+    target: source.target,
+    createdAt: Date.now(),
+    branch: source.branch,
+    commitMessage: source.commitMessage,
+    creator: null,
+    current: false
+  }
 }
 
 export async function promote(projectId: string, deploymentId: string): Promise<void> {
@@ -192,8 +235,10 @@ export async function domains(projectId: string): Promise<VercelDomain[]> {
   const link = linkOf(projectId)
   const team = teamOf(link)
   const r = await call<{ domains: { name: string; verified: boolean; redirect?: string | null }[] }>(`/v9/projects/${link.projectId}/domains`, { teamId: team })
-  return Promise.all(r.domains.map(async d => {
-    const cfg = await call<{ misconfigured?: boolean }>(`/v6/domains/${encodeURIComponent(d.name)}/config`, { teamId: team }).catch(() => null)
-    return { name: d.name, verified: d.verified, redirect: d.redirect ?? null, misconfigured: cfg?.misconfigured ?? null }
-  }))
+  return Promise.all(
+    r.domains.map(async d => {
+      const cfg = await call<{ misconfigured?: boolean }>(`/v6/domains/${encodeURIComponent(d.name)}/config`, { teamId: team }).catch(() => null)
+      return { name: d.name, verified: d.verified, redirect: d.redirect ?? null, misconfigured: cfg?.misconfigured ?? null }
+    })
+  )
 }

@@ -14,7 +14,10 @@ test.afterEach(async () => {
 const attr = (id: string, name: string, identifier = false) => ({ id, name, type: 'int', ...(identifier ? { identifier: true } : {}) })
 /** As imports made them before two associations of the same name, all on top of USER, a key left unlinked */
 const MESSY = {
-  v: 1, kind: 'mcd', name: 'RH', updatedAt: '2026-11-01T00:00:00.000Z',
+  v: 1,
+  kind: 'mcd',
+  name: 'RH',
+  updatedAt: '2026-11-01T00:00:00.000Z',
   mcd: {
     entities: [
       { id: 'u', name: 'USER', x: 300, y: 300, attributes: [attr('u1', 'id_user', true), attr('u2', 'firstname')] },
@@ -27,8 +30,10 @@ const MESSY = {
       { id: 's2', name: 'ACCESS_REQUEST_USER', x: 310, y: 310, attributes: [] }
     ],
     links: [
-      { id: 'l1', entity: 'r', association: 's1', card: '1,1' }, { id: 'l2', entity: 'u', association: 's1', card: '0,n' },
-      { id: 'l3', entity: 'r', association: 's2', card: '0,1' }, { id: 'l4', entity: 'u', association: 's2', card: '0,n' }
+      { id: 'l1', entity: 'r', association: 's1', card: '1,1' },
+      { id: 'l2', entity: 'u', association: 's1', card: '0,n' },
+      { id: 'l3', entity: 'r', association: 's2', card: '0,1' },
+      { id: 'l4', entity: 'u', association: 's2', card: '0,n' }
     ],
     notes: []
   }
@@ -39,12 +44,30 @@ test('an association pulled between two entities close together lands where it h
     seed: dir => {
       const project = join(dir, 'duo')
       mkdirSync(join(project, 'conception'), { recursive: true })
-      writeFileSync(join(project, 'conception', 'duo.mcd.json'), JSON.stringify({ v: 1, kind: 'mcd', name: 'Duo', updatedAt: '2026-11-01T00:00:00.000Z', mcd: {
-        entities: [
-          { id: 'a', name: 'AUTEUR', x: 100, y: 100, attributes: [attr('a1', 'id_auteur', true), attr('a2', 'nom')] },
-          { id: 'b', name: 'LIVRE', x: 290, y: 100, attributes: [attr('b1', 'id_livre', true), attr('b2', 'titre')] }
-        ], associations: [], links: [], notes: [] } }))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'Duo', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(project, 'conception', 'duo.mcd.json'),
+        JSON.stringify({
+          v: 1,
+          kind: 'mcd',
+          name: 'Duo',
+          updatedAt: '2026-11-01T00:00:00.000Z',
+          mcd: {
+            entities: [
+              { id: 'a', name: 'AUTEUR', x: 100, y: 100, attributes: [attr('a1', 'id_auteur', true), attr('a2', 'nom')] },
+              { id: 'b', name: 'LIVRE', x: 290, y: 100, attributes: [attr('b1', 'id_livre', true), attr('b2', 'titre')] }
+            ],
+            associations: [],
+            links: [],
+            notes: []
+          }
+        })
+      )
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          { id: 'p1', name: 'Duo', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page } = run
@@ -66,9 +89,21 @@ test('the tidy suggestion: seen first, kept or taken, and undone', async () => {
       mkdirSync(join(project, 'conception'), { recursive: true })
       file = join(project, 'conception', 'rh.mcd.json')
       writeFileSync(file, JSON.stringify(MESSY))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([
-        { id: 'p1', name: 'RH', path: project, framework: 'symfony', packageManager: 'composer', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }
-      ]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'p1',
+            name: 'RH',
+            path: project,
+            framework: 'symfony',
+            packageManager: 'composer',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
     }
   })
   const { page } = run
@@ -112,11 +147,19 @@ test('the tidy suggestion: seen first, kept or taken, and undone', async () => {
   await expect(page.getByText('Nouvelle version prise · Ctrl+Z pour revenir')).toBeVisible()
   await expect(page.getByText('Rien à signaler')).toBeVisible()
   await expect(page.getByText(/Deux éléments s’appellent|se chevauchent/)).toHaveCount(0)
-  await expect.poll(() => JSON.parse(readFileSync(file, 'utf-8')).mcd.entities.map((e: { name: string }) => e.name).sort())
+  await expect
+    .poll(() =>
+      JSON.parse(readFileSync(file, 'utf-8'))
+        .mcd.entities.map((e: { name: string }) => e.name)
+        .sort()
+    )
     .toEqual(['ACCESS_REQUEST', 'USER', 'USER_CONTACT'])
 
   // One step back: the MCD as it was
-  await page.locator('main').click({ position: { x: 5, y: 5 } }).catch(() => {})
+  await page
+    .locator('main')
+    .click({ position: { x: 5, y: 5 } })
+    .catch(() => {})
   await page.keyboard.press('Control+z')
   await expect(check).toContainText('Deux éléments s’appellent ACCESS_REQUEST_USER')
   await expect.poll(() => JSON.parse(readFileSync(file, 'utf-8')).mcd.entities.length).toBe(4)

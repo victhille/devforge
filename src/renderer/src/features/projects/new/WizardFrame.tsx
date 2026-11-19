@@ -20,14 +20,24 @@ export function WizardSteps({ steps }: { steps: WizardStep[] }) {
   return (
     <ol aria-label={t.newProject.stepsLabel} className="flex flex-col gap-1">
       {steps.map((s, i) => {
-        const cls = cn('flex min-h-9 w-full min-w-0 items-center gap-2.5 rounded-control px-2.5 py-1.5 text-left text-base',
-          s.state === 'current' ? 'bg-accent-soft font-semibold text-fg' : s.state === 'done' ? 'text-fg-secondary' : 'text-fg-muted')
+        const cls = cn(
+          'flex min-h-9 w-full min-w-0 items-center gap-2.5 rounded-control px-2.5 py-1.5 text-left text-base',
+          s.state === 'current' ? 'bg-accent-soft font-semibold text-fg' : s.state === 'done' ? 'text-fg-secondary' : 'text-fg-muted'
+        )
         const body = (
           <>
             {/* 1.5 px around the number, as in the mock-up (.ws i) */}
-            <span aria-hidden className={cn('flex size-5.5 shrink-0 items-center justify-center rounded-full border-[1.5px] text-xs font-bold',
-              s.state === 'done' ? 'border-transparent bg-success-soft text-success'
-                : s.state === 'current' ? 'border-accent bg-accent text-accent-fg' : 'border-line')}>
+            <span
+              aria-hidden
+              className={cn(
+                'flex size-5.5 shrink-0 items-center justify-center rounded-full border-[1.5px] text-xs font-bold',
+                s.state === 'done'
+                  ? 'border-transparent bg-success-soft text-success'
+                  : s.state === 'current'
+                    ? 'border-accent bg-accent text-accent-fg'
+                    : 'border-line'
+              )}
+            >
               {s.state === 'done' ? <Check size={12} strokeWidth={2.6} /> : i + 1}
             </span>
             <span className="flex min-w-0 flex-col leading-tight">
@@ -39,9 +49,13 @@ export function WizardSteps({ steps }: { steps: WizardStep[] }) {
         )
         return (
           <li key={i} aria-current={s.state === 'current' ? 'step' : undefined}>
-            {s.state === 'done' && s.onClick
-              ? <button type="button" onClick={s.onClick} className={cn(cls, 'transition-colors hover:bg-elevated hover:text-fg')}>{body}</button>
-              : <span className={cls}>{body}</span>}
+            {s.state === 'done' && s.onClick ? (
+              <button type="button" onClick={s.onClick} className={cn(cls, 'transition-colors hover:bg-elevated hover:text-fg')}>
+                {body}
+              </button>
+            ) : (
+              <span className={cls}>{body}</span>
+            )}
           </li>
         )
       })}
@@ -56,7 +70,18 @@ export function WizardSteps({ steps }: { steps: WizardStep[] }) {
  * The columns follow the width of the page, not of the window: when the step would
  * be too narrow (a 1280 px window), the card goes under the steps, still at the top.
  */
-export default function WizardFrame({ steps, title, subtitle, headerRight, onBack, hint, footer, asideTitle, aside, children }: {
+export default function WizardFrame({
+  steps,
+  title,
+  subtitle,
+  headerRight,
+  onBack,
+  hint,
+  footer,
+  asideTitle,
+  aside,
+  children
+}: {
   steps: WizardStep[]
   title?: string
   subtitle?: ReactNode
@@ -76,7 +101,9 @@ export default function WizardFrame({ steps, title, subtitle, headerRight, onBac
     <Page className="df-mockup max-w-[1320px] gap-5">
       <header className="df-rise flex flex-wrap items-end justify-between gap-3.5">
         <div className="min-w-0">
-          <p className="mb-1 text-sm text-fg-muted">{t.nav.groupDev} / {t.newProject.title}</p>
+          <p className="mb-1 text-sm text-fg-muted">
+            {t.nav.groupDev} / {t.newProject.title}
+          </p>
           <h1 className="font-display text-page font-bold tracking-[-.025em] text-fg">{title ?? t.newProject.title}</h1>
           {subtitle && <p className="mt-1 text-base text-fg-secondary">{subtitle}</p>}
         </div>
@@ -84,24 +111,34 @@ export default function WizardFrame({ steps, title, subtitle, headerRight, onBac
       </header>
       <div className="@container">
         <div className="grid grid-cols-1 items-start gap-5 @min-[720px]:grid-cols-[200px_minmax(0,1fr)] @min-[720px]:grid-rows-[auto_1fr] @min-[1120px]:grid-cols-[200px_minmax(0,1fr)_280px]">
-        <div className="@min-[720px]:col-start-1 @min-[720px]:row-start-1"><WizardSteps steps={steps} /></div>
-        <div className="flex min-w-0 flex-col gap-4 @min-[720px]:col-start-2 @min-[720px]:row-span-2 @min-[720px]:row-start-1">{children}</div>
-        {(aside || footer || onBack) && (
-          <aside className="@container/aside flex min-w-0 flex-col gap-3.5 rounded-card border border-line-subtle bg-surface p-4.5 @min-[720px]:sticky @min-[720px]:top-4 @min-[720px]:col-start-1 @min-[720px]:row-start-2 @min-[1120px]:col-start-3 @min-[1120px]:row-span-2 @min-[1120px]:row-start-1">
-            {asideTitle && <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{asideTitle}</h2>}
-            {aside}
-            {hint && <p className="text-xs text-fg-muted">{hint}</p>}
-            {/* The next action first (footer: the main button first), then Back. Under the steps (200 px), one under
+          <div className="@min-[720px]:col-start-1 @min-[720px]:row-start-1">
+            <WizardSteps steps={steps} />
+          </div>
+          <div className="flex min-w-0 flex-col gap-4 @min-[720px]:col-start-2 @min-[720px]:row-span-2 @min-[720px]:row-start-1">{children}</div>
+          {(aside || footer || onBack) && (
+            <aside className="@container/aside flex min-w-0 flex-col gap-3.5 rounded-card border border-line-subtle bg-surface p-4.5 @min-[720px]:sticky @min-[720px]:top-4 @min-[720px]:col-start-1 @min-[720px]:row-start-2 @min-[1120px]:col-start-3 @min-[1120px]:row-span-2 @min-[1120px]:row-start-1">
+              {asideTitle && <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{asideTitle}</h2>}
+              {aside}
+              {hint && <p className="text-xs text-fg-muted">{hint}</p>}
+              {/* The next action first (footer: the main button first), then Back. Under the steps (200 px), one under
                 the other in that order; in the 280 px card, side by side with Back on the left, as in the mock-up.
                 250 px: between the two widths of the card (its padding included) */}
-            {(footer || onBack) && (
-              <div className="flex flex-col gap-2 @min-[250px]/aside:flex-row-reverse @min-[250px]/aside:items-center">
-                {footer && <div className="flex min-w-0 flex-col gap-2 @min-[250px]/aside:flex-1 @min-[250px]/aside:flex-row-reverse @min-[250px]/aside:[&>*]:flex-1">{footer}</div>}
-                {onBack && <Button variant="ghost" className="text-fg-muted" onClick={onBack}>{t.newProject.back}</Button>}
-              </div>
-            )}
-          </aside>
-        )}
+              {(footer || onBack) && (
+                <div className="flex flex-col gap-2 @min-[250px]/aside:flex-row-reverse @min-[250px]/aside:items-center">
+                  {footer && (
+                    <div className="flex min-w-0 flex-col gap-2 @min-[250px]/aside:flex-1 @min-[250px]/aside:flex-row-reverse @min-[250px]/aside:[&>*]:flex-1">
+                      {footer}
+                    </div>
+                  )}
+                  {onBack && (
+                    <Button variant="ghost" className="text-fg-muted" onClick={onBack}>
+                      {t.newProject.back}
+                    </Button>
+                  )}
+                </div>
+              )}
+            </aside>
+          )}
         </div>
       </div>
     </Page>
@@ -115,7 +152,9 @@ export function RecapList({ rows }: { rows: { label: string; value: ReactNode; m
       {rows.map(r => (
         <div key={r.label} className="flex min-w-0 flex-col gap-0.5 @min-[250px]/aside:contents">
           <dt className="text-xs text-fg-muted @min-[250px]/aside:text-sm">{r.label}</dt>
-          <dd className={cn('min-w-0 truncate text-fg', r.mono && 'font-mono')} title={typeof r.value === 'string' ? r.value : undefined}>{r.value}</dd>
+          <dd className={cn('min-w-0 truncate text-fg', r.mono && 'font-mono')} title={typeof r.value === 'string' ? r.value : undefined}>
+            {r.value}
+          </dd>
         </div>
       ))}
     </dl>

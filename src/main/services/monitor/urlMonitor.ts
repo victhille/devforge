@@ -12,7 +12,10 @@ const MAX_CHECKS = 60
 const MIN_INTERVAL = 30
 const TIMEOUT_MS = 10_000
 
-interface Persisted { monitors: Monitor[]; states: MonitorState[] }
+interface Persisted {
+  monitors: Monitor[]
+  states: MonitorState[]
+}
 
 const states = new Map<string, MonitorState>()
 const timers = new Map<string, NodeJS.Timeout>()
@@ -32,7 +35,10 @@ function persist(): void {
 
 function stateOf(id: string): MonitorState {
   let s = states.get(id)
-  if (!s) { s = { id, status: 'unknown', checks: [], since: null }; states.set(id, s) }
+  if (!s) {
+    s = { id, status: 'unknown', checks: [], since: null }
+    states.set(id, s)
+  }
   return s
 }
 
@@ -65,9 +71,12 @@ async function probe(m: Monitor): Promise<MonitorCheck> {
     let error: string | undefined
     if (ok && m.keyword) {
       const body = await res.text()
-      if (!body.includes(m.keyword)) { ok = false; error = `Keyword "${m.keyword}" not found` }
+      if (!body.includes(m.keyword)) {
+        ok = false
+        error = `Keyword "${m.keyword}" not found`
+      }
     }
-    return { at: new Date().toISOString(), ok, latency: Date.now() - start, statusCode: res.status, error: ok ? undefined : error ?? `HTTP ${res.status}` }
+    return { at: new Date().toISOString(), ok, latency: Date.now() - start, statusCode: res.status, error: ok ? undefined : (error ?? `HTTP ${res.status}`) }
   } catch (err) {
     const message = controller.signal.aborted ? `Timeout after ${TIMEOUT_MS / 1000}s` : describeError(err)
     return { at: new Date().toISOString(), ok: false, latency: null, statusCode: null, error: message }
@@ -109,7 +118,12 @@ function schedule(m: Monitor): void {
   timers.delete(m.id)
   if (!m.enabled) return
   const every = Math.max(MIN_INTERVAL, m.intervalSec) * 1000
-  timers.set(m.id, setInterval(() => { check(m.id).catch(() => {}) }, every))
+  timers.set(
+    m.id,
+    setInterval(() => {
+      check(m.id).catch(() => {})
+    }, every)
+  )
   check(m.id).catch(() => {})
 }
 
@@ -121,7 +135,9 @@ export function startMonitors(cb: (s: MonitorState) => void): void {
       const data = JSON.parse(readFileSync(p, 'utf-8')) as Persisted
       monitors = data.monitors ?? []
       for (const s of data.states ?? []) states.set(s.id, s)
-    } catch { /* start fresh */ }
+    } catch {
+      /* start fresh */
+    }
   }
   monitors.forEach(schedule)
 }

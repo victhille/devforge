@@ -15,7 +15,10 @@ export default function UpdateButton() {
   const [status, setStatus] = useState<UpdateStatus>({ state: 'idle' })
 
   useEffect(() => {
-    window.devforge.updates.status().then(setStatus).catch(() => {})
+    window.devforge.updates
+      .status()
+      .then(setStatus)
+      .catch(() => {})
     return window.devforge.updates.onStatus(setStatus)
   }, [])
 
@@ -25,7 +28,9 @@ export default function UpdateButton() {
 
   return (
     <button
-      onClick={() => { if (ready) window.devforge.updates.install() }}
+      onClick={() => {
+        if (ready) window.devforge.updates.install()
+      }}
       disabled={!ready}
       title={ready ? `${s.updateRestart} (v${status.version})` : label}
       aria-label={label}
@@ -35,7 +40,9 @@ export default function UpdateButton() {
       )}
     >
       {/* Download progress fills the pill */}
-      {!ready && <span aria-hidden className="absolute inset-y-0 left-0 bg-accent-soft transition-[width] duration-500" style={{ width: `${status.percent}%` }} />}
+      {!ready && (
+        <span aria-hidden className="absolute inset-y-0 left-0 bg-accent-soft transition-[width] duration-500" style={{ width: `${status.percent}%` }} />
+      )}
       <span className="relative flex items-center gap-1.5">
         {ready ? <RotateCw size={14} /> : <Download size={14} />}
         {ready ? t.nav.update.replace('{v}', status.version) : `v${status.version} · ${status.percent} %`}

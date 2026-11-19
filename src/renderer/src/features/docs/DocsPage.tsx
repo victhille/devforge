@@ -29,8 +29,16 @@ function EntryRow({ entry, onEdit, onRemove }: { entry: Entry; onEdit?: () => vo
       <span className="flex items-center gap-0.5">
         {(onEdit || onRemove) && (
           <span className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
-            {onEdit && <IconButton size="sm" title={t.docsCustom.editCmd.replace('{cmd}', entry.cmd)} onClick={onEdit}><Pencil size={13} /></IconButton>}
-            {onRemove && <IconButton size="sm" tone="danger" title={t.docsCustom.removeCmd.replace('{cmd}', entry.cmd)} onClick={onRemove}><Trash2 size={13} /></IconButton>}
+            {onEdit && (
+              <IconButton size="sm" title={t.docsCustom.editCmd.replace('{cmd}', entry.cmd)} onClick={onEdit}>
+                <Pencil size={13} />
+              </IconButton>
+            )}
+            {onRemove && (
+              <IconButton size="sm" tone="danger" title={t.docsCustom.removeCmd.replace('{cmd}', entry.cmd)} onClick={onRemove}>
+                <Trash2 size={13} />
+              </IconButton>
+            )}
           </span>
         )}
         <CopyButton text={entry.example ?? entry.cmd} title={t.docsCustom.copyCmd.replace('{cmd}', entry.example ?? entry.cmd)} />
@@ -49,11 +57,16 @@ export default function DocsPage() {
   const toast = useToast()
   const [custom, setCustom] = useState<CustomCommand[]>([])
   const [activeTech, setActiveTech] = useState(DOCS[0].id)
-  const [search,     setSearch]     = useState('')
+  const [search, setSearch] = useState('')
   /** The form: a new command (null) or one to change */
   const [editing, setEditing] = useState<CustomCommand | null | undefined>(undefined)
 
-  useEffect(() => { window.devforge.docs.list().then(setCustom).catch(() => {}) }, [])
+  useEffect(() => {
+    window.devforge.docs
+      .list()
+      .then(setCustom)
+      .catch(() => {})
+  }, [])
 
   const docs = useMemo(() => withCustom(DOCS, custom, d.mine), [custom, d.mine])
   const tech = docs.find(x => x.id === activeTech) ?? docs[0]
@@ -74,7 +87,9 @@ export default function DocsPage() {
       setActiveTech(techIdFor(DOCS, c.category ?? ''))
       setSearch('')
       setEditing(undefined)
-    } catch (err) { toast.show({ tone: 'error', title: errorText(err) }) }
+    } catch (err) {
+      toast.show({ tone: 'error', title: errorText(err) })
+    }
   }
 
   async function remove(c: CustomCommand) {
@@ -83,54 +98,81 @@ export default function DocsPage() {
   }
 
   return (
-    <SplitPane width="lg" label={d.reference} sideClassName="df-mockup" side={<>
-      <div className="flex h-14 shrink-0 items-center px-4">
-        <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{d.reference}</h2>
-      </div>
-      <ul className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3">
-        {docs.map(doc => {
-          const on = activeTech === doc.id
-          return (
-            <li key={doc.id}>
-              <button onClick={() => { setActiveTech(doc.id); setSearch('') }} aria-current={on ? 'page' : undefined}
-                className={cn('flex h-10 w-full items-center gap-2.5 rounded-control px-2.5 text-left transition-colors',
-                  on ? 'bg-accent-soft text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg')}>
-                <span className={cn('min-w-0 flex-1 truncate', on && 'font-semibold')} title={doc.name}>{doc.name}</span>
-                <span className="shrink-0 text-xs text-fg-muted tabular-nums">{countOf(doc)}</span>
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-    </>}>
+    <SplitPane
+      width="lg"
+      label={d.reference}
+      sideClassName="df-mockup"
+      side={
+        <>
+          <div className="flex h-14 shrink-0 items-center px-4">
+            <h2 className="font-display text-md font-bold tracking-[-.01em] text-fg">{d.reference}</h2>
+          </div>
+          <ul className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3">
+            {docs.map(doc => {
+              const on = activeTech === doc.id
+              return (
+                <li key={doc.id}>
+                  <button
+                    onClick={() => {
+                      setActiveTech(doc.id)
+                      setSearch('')
+                    }}
+                    aria-current={on ? 'page' : undefined}
+                    className={cn(
+                      'flex h-10 w-full items-center gap-2.5 rounded-control px-2.5 text-left transition-colors',
+                      on ? 'bg-accent-soft text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg'
+                    )}
+                  >
+                    <span className={cn('min-w-0 flex-1 truncate', on && 'font-semibold')} title={doc.name}>
+                      {doc.name}
+                    </span>
+                    <span className="shrink-0 text-xs text-fg-muted tabular-nums">{countOf(doc)}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </>
+      }
+    >
       <div className="df-mockup flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-8 pt-6.5 pb-8">
         <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
-            <p className="mb-1 text-sm text-fg-muted">{t.nav.groupTools} / {t.nav.docs}</p>
+            <p className="mb-1 text-sm text-fg-muted">
+              {t.nav.groupTools} / {t.nav.docs}
+            </p>
             <h1 className="truncate font-display text-page font-bold tracking-[-.025em] text-fg">{tech.name}</h1>
           </div>
           <div className="flex items-center gap-2">
             <SearchInput className="w-64" placeholder={d.searchIn.replace('{name}', tech.name)} value={search} onChange={setSearch} />
-            <Button variant="secondary" onClick={() => setEditing(null)}><Plus size={14} aria-hidden /> {d.add}</Button>
+            <Button variant="secondary" onClick={() => setEditing(null)}>
+              <Plus size={14} aria-hidden /> {d.add}
+            </Button>
           </div>
         </header>
 
         <div className="flex flex-col gap-4">
           {sections.map((section, i) => (
-            <section key={section.title} aria-label={section.title} className="df-rise rounded-card border border-line-subtle bg-surface px-5 pt-4 pb-1" style={{ '--i': i } as CSSProperties}>
+            <section
+              key={section.title}
+              aria-label={section.title}
+              className="df-rise rounded-card border border-line-subtle bg-surface px-5 pt-4 pb-1"
+              style={{ '--i': i } as CSSProperties}
+            >
               <h2 className="text-xs font-semibold tracking-wider text-fg-muted uppercase">{section.title}</h2>
               <ul>
                 {section.entries.map((entry: Entry, j) => (
-                  <EntryRow key={`${entry.cmd}-${j}`} entry={entry}
+                  <EntryRow
+                    key={`${entry.cmd}-${j}`}
+                    entry={entry}
                     onEdit={entry.custom ? () => setEditing(entry.custom!) : undefined}
-                    onRemove={entry.custom ? () => remove(entry.custom!) : undefined} />
+                    onRemove={entry.custom ? () => remove(entry.custom!) : undefined}
+                  />
                 ))}
               </ul>
             </section>
           ))}
-          {sections.length === 0 && (
-            <EmptyState icon={<Search size={28} />} title={d.noResult.replace('{q}', search)} />
-          )}
+          {sections.length === 0 && <EmptyState icon={<Search size={28} />} title={d.noResult.replace('{q}', search)} />}
         </div>
       </div>
 

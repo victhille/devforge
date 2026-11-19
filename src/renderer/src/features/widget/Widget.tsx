@@ -17,7 +17,11 @@ import IconButton from '@renderer/components/ui/IconButton'
 
 type Phase = 'idle' | 'thinking' | 'searching' | 'working' | 'happy' | 'sad'
 /** The last question and its answer, as shown on the card */
-interface Turn { question: string; text: string; notices: { tone: 'error' | 'info'; text: string }[] }
+interface Turn {
+  question: string
+  text: string
+  notices: { tone: 'error' | 'info'; text: string }[]
+}
 
 /** How long Forgy stays happy or sad after an answer */
 const REACTION_MS = 2600
@@ -27,16 +31,38 @@ const BLUR_COLLAPSE_MS = 200
 const money = (usd: number) => (usd === 0 ? '0 $' : usd < 0.01 ? `${(usd * 100).toFixed(2)} ¢` : `${usd.toFixed(2)} $`)
 
 /** A chip showing `label`, with a native select laid over it (its popup is not clipped by the small window) */
-function ChipSelect({ label, title, disabled, children, value, onChange }: {
-  label: string; title: string; disabled?: boolean; children: ReactNode; value: string; onChange: (v: string) => void
+function ChipSelect({
+  label,
+  title,
+  disabled,
+  children,
+  value,
+  onChange
+}: {
+  label: string
+  title: string
+  disabled?: boolean
+  children: ReactNode
+  value: string
+  onChange: (v: string) => void
 }) {
   return (
-    <label title={title} className={cn('relative flex h-7 min-w-0 items-center gap-1 rounded-md border border-line bg-surface px-2 text-xs font-medium text-fg-secondary',
-      disabled ? 'opacity-50' : 'hover:text-fg')}>
+    <label
+      title={title}
+      className={cn(
+        'relative flex h-7 min-w-0 items-center gap-1 rounded-md border border-line bg-surface px-2 text-xs font-medium text-fg-secondary',
+        disabled ? 'opacity-50' : 'hover:text-fg'
+      )}
+    >
       <span className="truncate">{label}</span>
       <ChevronDown size={11} className="shrink-0" />
-      <select value={value} disabled={disabled} onChange={e => onChange(e.target.value)} aria-label={title}
-        className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed">
+      <select
+        value={value}
+        disabled={disabled}
+        onChange={e => onChange(e.target.value)}
+        aria-label={title}
+        className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
+      >
         {children}
       </select>
     </label>
@@ -73,7 +99,9 @@ export default function Widget() {
   const [projectPath, setProjectPath] = usePersistentState<string | null>('devforge:widget-project', null)
   // Same project as the app
   const { active } = useActiveProject()
-  useEffect(() => { if (active) setProjectPath(active.path) }, [active, setProjectPath])
+  useEffect(() => {
+    if (active) setProjectPath(active.path)
+  }, [active, setProjectPath])
   const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   // Read from event callbacks
@@ -101,9 +129,15 @@ export default function Widget() {
   }, [])
 
   useEffect(() => {
-    window.devforge.assistant.getConfig().then(c => { setConfig(c); setEffort(c.effort) })
+    window.devforge.assistant.getConfig().then(c => {
+      setConfig(c)
+      setEffort(c.effort)
+    })
     window.devforge.widget.shortcut().then(setShortcut)
-    return () => { clearTimeout(reaction.current); clearTimeout(typingTimer.current) }
+    return () => {
+      clearTimeout(reaction.current)
+      clearTimeout(typingTimer.current)
+    }
   }, [])
 
   const reset = useCallback(() => {
@@ -145,61 +179,78 @@ export default function Widget() {
       }, BLUR_COLLAPSE_MS)
     }
     window.addEventListener('blur', onBlur)
-    return () => { window.removeEventListener('blur', onBlur); clearTimeout(timer) }
+    return () => {
+      window.removeEventListener('blur', onBlur)
+      clearTimeout(timer)
+    }
   }, [collapse])
 
   // Streamed events of the widget's conversation
   // A server, container or site alert: Forgy looks worried and shows the alert badge
-  useEffect(() => window.devforge.watch.onAlert(() => {
-    setPhase('sad')
-    clearTimeout(reaction.current)
-    reaction.current = setTimeout(() => setPhase('idle'), 8000)
-    if (!openRef.current) setAlert(true)
-  }), [])
+  useEffect(
+    () =>
+      window.devforge.watch.onAlert(() => {
+        setPhase('sad')
+        clearTimeout(reaction.current)
+        reaction.current = setTimeout(() => setPhase('idle'), 8000)
+        if (!openRef.current) setAlert(true)
+      }),
+    []
+  )
 
-  useEffect(() => window.devforge.assistant.onEvent(e => {
-    if (e.conversationId !== idRef.current) return
-    if (e.type === 'text') {
-      setPhase('working')
-      setStatus(null)
-      const sep = needBreak.current ? '\n\n' : ''
-      needBreak.current = false
-      setTurn(tu => tu && { ...tu, text: tu.text ? tu.text + sep + e.delta : e.delta })
-    } else if (e.type === 'tool') {
-      setPhase('searching')
-      needBreak.current = true
-      const label = (a.tools as Record<string, string>)[e.name] ?? e.name
-      setStatus(`${label}${e.summary ? ` · ${e.summary}` : ''}…`)
-    } else if (e.type === 'tool-done') {
-      setPhase('thinking')
-    } else if (e.type === 'action') {
-      needBreak.current = true
-      setStatus(`${e.title}${e.auto ? '' : ` · ${a.actionInApp}`}`)
-      // The approval card lives in the app: bring it up on this conversation
-      if (!e.auto) window.devforge.widget.openInApp(e.conversationId)
-    } else if (e.type === 'error') {
-      errored.current = true
-    } else if (e.type === 'done') {
-      setRunning(false)
-      setStatus(null)
-      setPhase(errored.current ? 'sad' : e.stopped ? 'idle' : 'happy')
-      clearTimeout(reaction.current)
-      reaction.current = setTimeout(() => setPhase('idle'), REACTION_MS)
-      if (!openRef.current) { if (errored.current) setAlert(true); else setUnread(n => n + 1) }
-      // The saved conversation is the reference: final text, notices, cost
-      window.devforge.assistant.get(e.conversationId).then(c => {
-        if (!c || c.id !== idRef.current) return
-        setCost(c.cost)
-        const lastUser = c.items.map(i => i.kind).lastIndexOf('user')
-        const after = c.items.slice(lastUser + 1)
-        setTurn(tu => tu && {
-          ...tu,
-          text: after.flatMap(i => (i.kind === 'assistant' ? [i.text] : [])).join('\n\n'),
-          notices: after.flatMap(i => (i.kind === 'notice' ? [{ tone: i.tone, text: i.text === 'No API key' ? a.noKey : i.text }] : []))
-        })
-      })
-    }
-  }), [a])
+  useEffect(
+    () =>
+      window.devforge.assistant.onEvent(e => {
+        if (e.conversationId !== idRef.current) return
+        if (e.type === 'text') {
+          setPhase('working')
+          setStatus(null)
+          const sep = needBreak.current ? '\n\n' : ''
+          needBreak.current = false
+          setTurn(tu => tu && { ...tu, text: tu.text ? tu.text + sep + e.delta : e.delta })
+        } else if (e.type === 'tool') {
+          setPhase('searching')
+          needBreak.current = true
+          const label = (a.tools as Record<string, string>)[e.name] ?? e.name
+          setStatus(`${label}${e.summary ? ` · ${e.summary}` : ''}…`)
+        } else if (e.type === 'tool-done') {
+          setPhase('thinking')
+        } else if (e.type === 'action') {
+          needBreak.current = true
+          setStatus(`${e.title}${e.auto ? '' : ` · ${a.actionInApp}`}`)
+          // The approval card lives in the app: bring it up on this conversation
+          if (!e.auto) window.devforge.widget.openInApp(e.conversationId)
+        } else if (e.type === 'error') {
+          errored.current = true
+        } else if (e.type === 'done') {
+          setRunning(false)
+          setStatus(null)
+          setPhase(errored.current ? 'sad' : e.stopped ? 'idle' : 'happy')
+          clearTimeout(reaction.current)
+          reaction.current = setTimeout(() => setPhase('idle'), REACTION_MS)
+          if (!openRef.current) {
+            if (errored.current) setAlert(true)
+            else setUnread(n => n + 1)
+          }
+          // The saved conversation is the reference: final text, notices, cost
+          window.devforge.assistant.get(e.conversationId).then(c => {
+            if (!c || c.id !== idRef.current) return
+            setCost(c.cost)
+            const lastUser = c.items.map(i => i.kind).lastIndexOf('user')
+            const after = c.items.slice(lastUser + 1)
+            setTurn(
+              tu =>
+                tu && {
+                  ...tu,
+                  text: after.flatMap(i => (i.kind === 'assistant' ? [i.text] : [])).join('\n\n'),
+                  notices: after.flatMap(i => (i.kind === 'notice' ? [{ tone: i.tone, text: i.text === 'No API key' ? a.noKey : i.text }] : []))
+                }
+            )
+          })
+        }
+      }),
+    [a]
+  )
 
   async function send() {
     const q = input.trim()
@@ -237,17 +288,35 @@ export default function Widget() {
   const effortLabel: Record<AssistantEffort | 'auto', string> = { auto: a.effortAuto, low: a.effortLow, medium: a.effortMedium, high: a.effortHigh }
 
   return (
-    <div ref={rootRef} className="wg-root" data-open={open}
-      onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); collapse() } }}>
+    <div
+      ref={rootRef}
+      className="wg-root"
+      data-open={open}
+      onKeyDown={e => {
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          collapse()
+        }
+      }}
+    >
       {!open ? (
-        <button className="wg-bubble wg-pop" onClick={expand} data-unread={unread > 0} data-alert={alert}
+        <button
+          className="wg-bubble wg-pop"
+          onClick={expand}
+          data-unread={unread > 0}
+          data-alert={alert}
           aria-label={alert ? `${w.open} — ${w.alert}` : unread ? `${w.open} — ${w.unread.replace('{n}', String(unread))}` : w.open}
-          title={alert ? w.alert : unread ? w.unread.replace('{n}', String(unread)) : shortcut ? `${w.open} (${shortcut})` : w.open}>
+          title={alert ? w.alert : unread ? w.unread.replace('{n}', String(unread)) : shortcut ? `${w.open} (${shortcut})` : w.open}
+        >
           {/* Under 60 px: no floating loop at rest (see Mascot.tsx) */}
           <Mascot mood={mood} size={58} />
           {(unread > 0 || alert) && (
-            <span className={cn('absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-xs font-bold',
-              alert ? 'bg-danger text-danger-fg' : 'bg-forgy text-forgy-fg')}>
+            <span
+              className={cn(
+                'absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-xs font-bold',
+                alert ? 'bg-danger text-danger-fg' : 'bg-forgy text-forgy-fg'
+              )}
+            >
               {alert ? '!' : unread}
             </span>
           )}
@@ -257,9 +326,15 @@ export default function Widget() {
           {turn && (
             <div className="wg-card wg-pop flex w-[380px] flex-col gap-2.5 rounded-window px-4 py-3.5 text-base">
               <div className="line-clamp-2 text-sm text-fg-secondary">{turn.question}</div>
-              {turn.text && <div className="max-h-[320px] overflow-y-auto pr-1"><Markdown text={turn.text} /></div>}
+              {turn.text && (
+                <div className="max-h-[320px] overflow-y-auto pr-1">
+                  <Markdown text={turn.text} />
+                </div>
+              )}
               {turn.notices.map((n, i) => (
-                <Notice key={i} tone={n.tone === 'error' ? 'danger' : 'neutral'} className="text-sm">{n.text}</Notice>
+                <Notice key={i} tone={n.tone === 'error' ? 'danger' : 'neutral'} className="text-sm">
+                  {n.text}
+                </Notice>
               ))}
               {!running && (
                 <div className="flex items-center gap-1.5">
@@ -268,10 +343,24 @@ export default function Widget() {
                       {isCopied() ? <Check size={12} className="text-success" /> : <Copy size={12} />} {isCopied() ? w.copied : w.copy}
                     </Button>
                   )}
-                  <Button size="sm" variant="secondary" onClick={() => { window.devforge.widget.openInApp(conversationId); collapse() }}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      window.devforge.widget.openInApp(conversationId)
+                      collapse()
+                    }}
+                  >
                     <ExternalLink size={12} /> {w.openInApp}
                   </Button>
-                  <IconButton size="sm" onClick={() => { reset(); inputRef.current?.focus() }} title={w.newQuestion}>
+                  <IconButton
+                    size="sm"
+                    onClick={() => {
+                      reset()
+                      inputRef.current?.focus()
+                    }}
+                    title={w.newQuestion}
+                  >
                     <Plus size={14} />
                   </IconButton>
                   {cost !== null && <span className="ml-auto font-mono text-xs text-fg-muted">{money(cost)}</span>}
@@ -287,7 +376,11 @@ export default function Widget() {
               </div>
               <label className="min-w-0 flex-1">
                 <span className="sr-only">{w.label}</span>
-                <input ref={inputRef} autoFocus value={input} placeholder={w.placeholder}
+                <input
+                  ref={inputRef}
+                  autoFocus
+                  value={input}
+                  placeholder={w.placeholder}
                   onChange={e => {
                     setInput(e.target.value)
                     setTyping(true)
@@ -295,17 +388,32 @@ export default function Widget() {
                     typingTimer.current = setTimeout(() => setTyping(false), 1500)
                   }}
                   onBlur={() => setTyping(false)}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); send() } }}
-                  className="h-10 w-full bg-transparent text-md text-fg outline-none placeholder:text-fg-muted" />
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      send()
+                    }
+                  }}
+                  className="h-10 w-full bg-transparent text-md text-fg outline-none placeholder:text-fg-muted"
+                />
               </label>
               {running ? (
-                <button onClick={() => idRef.current && window.devforge.assistant.stop(idRef.current)} title={a.stop} aria-label={a.stop}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-fg-secondary hover:bg-elevated hover:text-fg">
+                <button
+                  onClick={() => idRef.current && window.devforge.assistant.stop(idRef.current)}
+                  title={a.stop}
+                  aria-label={a.stop}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-fg-secondary hover:bg-elevated hover:text-fg"
+                >
                   <Square size={14} />
                 </button>
               ) : (
-                <button onClick={send} disabled={!input.trim()} title={a.send} aria-label={a.send}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-forgy text-forgy-fg transition-opacity disabled:opacity-50">
+                <button
+                  onClick={send}
+                  disabled={!input.trim()}
+                  title={a.send}
+                  aria-label={a.send}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-forgy text-forgy-fg transition-opacity disabled:opacity-50"
+                >
                   <ArrowUp size={16} />
                 </button>
               )}
@@ -313,10 +421,23 @@ export default function Widget() {
             </div>
 
             {config && !config.hasKey && (
-              <Notice tone="warning" className="mx-1 text-xs"
-                action={<button onClick={() => window.devforge.widget.openInApp(null)} className="underline">{a.openSettings}</button>}>{a.noKey}</Notice>
+              <Notice
+                tone="warning"
+                className="mx-1 text-xs"
+                action={
+                  <button onClick={() => window.devforge.widget.openInApp(null)} className="underline">
+                    {a.openSettings}
+                  </button>
+                }
+              >
+                {a.noKey}
+              </Notice>
             )}
-            {dictateLine && <p role="status" className="px-1.5 text-xs text-fg-muted">{dictateLine}</p>}
+            {dictateLine && (
+              <p role="status" className="px-1.5 text-xs text-fg-muted">
+                {dictateLine}
+              </p>
+            )}
             {running && !turn?.text && (
               <div className="flex flex-col gap-1.5 px-1.5 pb-1">
                 <div className="truncate font-mono text-xs text-forgy">{status ?? a.thinking}</div>
@@ -326,14 +447,31 @@ export default function Widget() {
             )}
 
             <div className="flex items-center gap-1.5 px-1 pb-0.5">
-              <ChipSelect value={effort} onChange={v => setEffort(v as AssistantEffort | 'auto')} label={effortLabel[effort]}
-                title={conversationId ? w.effortLocked : w.effortHint} disabled={!!conversationId}>
-                {(['auto', 'low', 'medium', 'high'] as const).map(e => <option key={e} value={e}>{effortLabel[e]}</option>)}
+              <ChipSelect
+                value={effort}
+                onChange={v => setEffort(v as AssistantEffort | 'auto')}
+                label={effortLabel[effort]}
+                title={conversationId ? w.effortLocked : w.effortHint}
+                disabled={!!conversationId}
+              >
+                {(['auto', 'low', 'medium', 'high'] as const).map(e => (
+                  <option key={e} value={e}>
+                    {effortLabel[e]}
+                  </option>
+                ))}
               </ChipSelect>
-              <ChipSelect value={projectPath ?? ''} onChange={v => setProjectPath(v || null)} title={a.noProject}
-                label={project ? w.context.replace('{name}', project.name) : w.noContext}>
+              <ChipSelect
+                value={projectPath ?? ''}
+                onChange={v => setProjectPath(v || null)}
+                title={a.noProject}
+                label={project ? w.context.replace('{name}', project.name) : w.noContext}
+              >
                 <option value="">{w.noContext}</option>
-                {projects.map(p => <option key={p.id} value={p.path}>{p.name}</option>)}
+                {projects.map(p => (
+                  <option key={p.id} value={p.path}>
+                    {p.name}
+                  </option>
+                ))}
               </ChipSelect>
               {running && <Loader2 size={14} className="shrink-0 animate-spin text-forgy" />}
               <IconButton size="sm" onClick={collapse} title={w.collapse} className="ml-auto">

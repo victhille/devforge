@@ -13,9 +13,19 @@ export interface VisiblePage {
 export function visibleInterval(fn: () => void, ms: number, page: VisiblePage = document): () => void {
   let id: ReturnType<typeof setInterval> | undefined
   let last = Date.now()
-  const tick = () => { last = Date.now(); fn() }
-  const start = () => { if (id === undefined) id = setInterval(tick, ms) }
-  const pause = () => { if (id !== undefined) { clearInterval(id); id = undefined } }
+  const tick = () => {
+    last = Date.now()
+    fn()
+  }
+  const start = () => {
+    if (id === undefined) id = setInterval(tick, ms)
+  }
+  const pause = () => {
+    if (id !== undefined) {
+      clearInterval(id)
+      id = undefined
+    }
+  }
   const onChange = () => {
     if (page.visibilityState !== 'visible') return pause()
     if (id !== undefined) return
@@ -24,5 +34,8 @@ export function visibleInterval(fn: () => void, ms: number, page: VisiblePage = 
   }
   if (page.visibilityState === 'visible') start()
   page.addEventListener('visibilitychange', onChange)
-  return () => { pause(); page.removeEventListener('visibilitychange', onChange) }
+  return () => {
+    pause()
+    page.removeEventListener('visibilitychange', onChange)
+  }
 }

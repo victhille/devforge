@@ -39,16 +39,26 @@ export function copyMcd(m: McdModel, ids: Iterable<string>): McdModel {
 /** The copy added, moved by `by`; `ids`: the new parts, to pick */
 export function pasteMcd(m: McdModel, copy: McdModel, by: Point): { mcd: McdModel; ids: string[] } {
   const ids = new Map<string, string>()
-  const fresh = (old: string, prefix: string) => { const id = uid(prefix); ids.set(old, id); return id }
+  const fresh = (old: string, prefix: string) => {
+    const id = uid(prefix)
+    ids.set(old, id)
+    return id
+  }
   const taken = new Set([...m.entities, ...m.associations].map(x => x.name.toUpperCase()))
   const attrs = <T extends { attributes: { id: string }[] }>(x: T): T => ({ ...x, attributes: x.attributes.map(a => ({ ...a, id: uid('a') })) })
   const entities = copy.entities.map(x => attrs(moved({ ...x, id: fresh(x.id, 'e'), name: uniqueName(x.name, taken) }, by)))
   const associations = copy.associations.map(x => attrs(moved({ ...x, id: fresh(x.id, 's'), name: uniqueName(x.name, taken) }, by)))
   const notes = copy.notes.map(x => moved({ ...x, id: fresh(x.id, 't') }, by))
-  const links = copy.links.filter(l => ids.has(l.entity) && ids.has(l.association))
+  const links = copy.links
+    .filter(l => ids.has(l.entity) && ids.has(l.association))
     .map(l => ({ ...l, id: uid('l'), entity: ids.get(l.entity)!, association: ids.get(l.association)! }))
   return {
-    mcd: { entities: [...m.entities, ...entities], associations: [...m.associations, ...associations], notes: [...m.notes, ...notes], links: [...m.links, ...links] },
+    mcd: {
+      entities: [...m.entities, ...entities],
+      associations: [...m.associations, ...associations],
+      notes: [...m.notes, ...notes],
+      links: [...m.links, ...links]
+    },
     ids: [...entities, ...associations, ...notes].map(x => x.id)
   }
 }
@@ -68,7 +78,11 @@ export function copyDiagram(d: DiagramModel, ids: Iterable<string>): DiagramMode
 /** The copy added, moved by `by` (`rowOnly`: a sequence's participants stay in their row); a system goes behind the rest */
 export function pasteDiagram(d: DiagramModel, copy: DiagramModel, by: Point, rowOnly = false): { diagram: DiagramModel; ids: string[] } {
   const ids = new Map<string, string>()
-  const fresh = (old: string, prefix: string) => { const id = uid(prefix); ids.set(old, id); return id }
+  const fresh = (old: string, prefix: string) => {
+    const id = uid(prefix)
+    ids.set(old, id)
+    return id
+  }
   const taken = new Set(d.nodes.map(n => n.name.toUpperCase()))
   const nodes = copy.nodes.map(n => moved({ ...n, id: fresh(n.id, 'n'), name: uniqueName(n.name, taken, ' ') }, by, rowOnly))
   const notes = copy.notes.map(n => moved({ ...n, id: fresh(n.id, 't') }, by))
@@ -111,12 +125,16 @@ export function pasteMpd(m: MpdModel, copy: MpdTable[], by: Point): { mpd: MpdMo
         const { from: _f, ...col } = c
         const inside = c.ref && tableIds.has(c.ref.table)
         return {
-          ...col, id: columnIds.get(`${t.id}:${c.id}`)!,
-          ...(c.ref ? { ref: inside ? { table: tableIds.get(c.ref.table)!, column: columnIds.get(`${c.ref.table}:${c.ref.column}`) ?? c.ref.column } : c.ref } : {})
+          ...col,
+          id: columnIds.get(`${t.id}:${c.id}`)!,
+          ...(c.ref
+            ? { ref: inside ? { table: tableIds.get(c.ref.table)!, column: columnIds.get(`${c.ref.table}:${c.ref.column}`) ?? c.ref.column } : c.ref }
+            : {})
         }
       }),
       indexes: t.indexes.map(ix => ({
-        ...ix, id: uid('i'),
+        ...ix,
+        id: uid('i'),
         name: name !== t.name && ix.name.includes(t.name) ? ix.name.replace(t.name, name) : ix.name,
         columns: ix.columns.map(c => columnIds.get(`${t.id}:${c}`) ?? c)
       }))

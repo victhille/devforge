@@ -10,7 +10,12 @@ import { layoutMcd } from './mcdTidy'
  * (each association at a free spot near its entities).
  */
 
-export interface McdSpecAttribute { name: string; type?: string; length?: number; identifier?: boolean }
+export interface McdSpecAttribute {
+  name: string
+  type?: string
+  length?: number
+  identifier?: boolean
+}
 export interface McdSpec {
   entities: { name: string; attributes?: McdSpecAttribute[] }[]
   associations?: { name: string; legs: { entity: string; card: string }[]; attributes?: McdSpecAttribute[] }[]
@@ -23,8 +28,19 @@ const MAX = { entities: 60, associations: 80, attributes: 40 }
 const TYPES = new Set<string>(MCD_TYPES)
 /** Words the model may use for a type */
 const ALIASES: Record<string, McdType> = {
-  integer: 'int', number: 'int', bigint: 'int', smallint: 'int', float: 'decimal', double: 'decimal', money: 'decimal', numeric: 'decimal',
-  string: 'varchar', char: 'varchar', boolean: 'bool', timestamp: 'datetime', 'date-time': 'datetime'
+  integer: 'int',
+  number: 'int',
+  bigint: 'int',
+  smallint: 'int',
+  float: 'decimal',
+  double: 'decimal',
+  money: 'decimal',
+  numeric: 'decimal',
+  string: 'varchar',
+  char: 'varchar',
+  boolean: 'bool',
+  timestamp: 'datetime',
+  'date-time': 'datetime'
 }
 
 function attributes(list: unknown, owner: string, next: (p: string) => string): McdAttribute[] {
@@ -38,7 +54,7 @@ function attributes(list: unknown, owner: string, next: (p: string) => string): 
     if (seen.has(name.toLowerCase())) throw new McdSpecError(`${owner} has two attributes named ${name}`)
     seen.add(name.toLowerCase())
     const raw = typeof a.type === 'string' ? a.type.trim().toLowerCase() : ''
-    const type = TYPES.has(raw) ? raw as McdType : ALIASES[raw] ?? (raw ? null : '')
+    const type = TYPES.has(raw) ? (raw as McdType) : (ALIASES[raw] ?? (raw ? null : ''))
     if (type === null) throw new McdSpecError(`Unknown type "${a.type}" for ${owner}.${name}: use ${MCD_TYPES.join(', ')}`)
     const length = type === 'varchar' ? Math.min(Math.max(Number.isInteger(a.length) ? a.length! : 255, 1), 65535) : undefined
     return { id: next('a'), name, type, ...(length ? { length } : {}), ...(a.identifier === true ? { identifier: true } : {}) }
@@ -83,9 +99,17 @@ export function mcdFromSpec(spec: unknown): McdModel {
     const id = next('s')
     mcd.associations.push({ id, name, x: 0, y: 0, attributes: attributes(a.attributes, name, next).map(({ identifier: _, ...x }) => x) })
     for (const leg of a.legs) {
-      const entity = byName.get(String(leg?.entity ?? '').trim().toLowerCase())
+      const entity = byName.get(
+        String(leg?.entity ?? '')
+          .trim()
+          .toLowerCase()
+      )
       if (!entity) throw new McdSpecError(`Association ${name}: unknown entity "${leg?.entity}" (declare it in "entities")`)
-      const card = String(leg.card ?? '').replace(/\s/g, '').replace(/^(\d)\.\.([\dn*])$/i, '$1,$2').replace('*', 'n').toLowerCase() as Cardinality
+      const card = String(leg.card ?? '')
+        .replace(/\s/g, '')
+        .replace(/^(\d)\.\.([\dn*])$/i, '$1,$2')
+        .replace('*', 'n')
+        .toLowerCase() as Cardinality
       if (!CARDINALITIES.includes(card)) throw new McdSpecError(`Association ${name}: cardinality "${leg.card}" must be one of ${CARDINALITIES.join(', ')}`)
       mcd.links.push({ id: next('l'), entity, association: id, card })
     }

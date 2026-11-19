@@ -43,7 +43,11 @@ export function watchConfig(): WatchConfig {
     const c = JSON.parse(readFileSync(configPath(), 'utf-8')) as Partial<WatchConfig>
     const alerts = allAlerts()
     for (const k of ALERT_KINDS) if (c.alerts && typeof c.alerts[k] === 'boolean') alerts[k] = c.alerts[k]
-    return { watched: Array.isArray(c.watched) ? c.watched.filter(x => typeof x === 'string') : [], diskAlert: Number(c.diskAlert) > 0 ? Number(c.diskAlert) : 85, alerts }
+    return {
+      watched: Array.isArray(c.watched) ? c.watched.filter(x => typeof x === 'string') : [],
+      diskAlert: Number(c.diskAlert) > 0 ? Number(c.diskAlert) : 85,
+      alerts
+    }
   } catch {
     // First run: every saved server is watched
     return { watched: loadSshConnections().map(c => c.id), diskAlert: 85, alerts: allAlerts() }
@@ -57,7 +61,11 @@ export function saveWatchConfig(u: Partial<WatchConfig>): WatchConfig {
   if (u.alerts) for (const k of ALERT_KINDS) if (typeof u.alerts[k] === 'boolean') c.alerts[k] = u.alerts[k]
   writeJsonFile(configPath(), c)
   // Servers no longer watched: forget them and close their session
-  for (const id of [...statuses.keys()]) if (!c.watched.includes(id)) { statuses.delete(id); closeSession(id) }
+  for (const id of [...statuses.keys()])
+    if (!c.watched.includes(id)) {
+      statuses.delete(id)
+      closeSession(id)
+    }
   void watchTick()
   return c
 }
@@ -125,7 +133,16 @@ async function sample(connectionId: string): Promise<void> {
   if (!conn) return
   const fr = loadSettings().language === 'fr'
   const prev = previous.get(connectionId)
-  const base: VpsStatus = statuses.get(connectionId) ?? { connectionId, name: conn.name, state: 'connecting', at: null, cpu: null, memory: null, disk: null, containers: [] }
+  const base: VpsStatus = statuses.get(connectionId) ?? {
+    connectionId,
+    name: conn.name,
+    state: 'connecting',
+    at: null,
+    cpu: null,
+    memory: null,
+    disk: null,
+    containers: []
+  }
 
   let raw: string
   try {
@@ -134,7 +151,12 @@ async function sample(connectionId: string): Promise<void> {
     closeSession(connectionId)
     statuses.set(connectionId, { ...base, name: conn.name, state: 'down', error: err instanceof Error ? err.message : String(err) })
     appendPoint(`vps:${connectionId}`, ['cpu', 'memory', 'disk', 'up'], [null, null, null, 0])
-    if (prev?.reachable) alert('server', fr ? `${conn.name} ne répond plus` : `${conn.name} stopped answering`, `${conn.host} — ${err instanceof Error ? err.message : String(err)}`)
+    if (prev?.reachable)
+      alert(
+        'server',
+        fr ? `${conn.name} ne répond plus` : `${conn.name} stopped answering`,
+        `${conn.host} — ${err instanceof Error ? err.message : String(err)}`
+      )
     previous.set(connectionId, { reachable: false, diskHigh: prev?.diskHigh ?? false, running: prev?.running ?? new Set() })
     return
   }
@@ -143,12 +165,24 @@ async function sample(connectionId: string): Promise<void> {
   const s = parseStats(mem, uptime, disk, '', '', cpu)
   const root = s.disks.find(d => d.mount === '/') ?? s.disks[0]
   const memory = s.memory.total ? Math.round((s.memory.used / s.memory.total) * 1000) / 10 : null
-  const list = containers.split('\n').filter(l => l.includes('|')).map(l => {
-    const [name = '', image = '', status = ''] = l.split('|')
-    return { name, image, status, running: /^up/i.test(status) }
-  })
+  const list = containers
+    .split('\n')
+    .filter(l => l.includes('|'))
+    .map(l => {
+      const [name = '', image = '', status = ''] = l.split('|')
+      return { name, image, status, running: /^up/i.test(status) }
+    })
   const now = Date.now()
-  statuses.set(connectionId, { connectionId, name: conn.name, state: 'ok', at: now, cpu: Math.round(s.cpu * 10) / 10, memory, disk: root?.pct ?? null, containers: list })
+  statuses.set(connectionId, {
+    connectionId,
+    name: conn.name,
+    state: 'ok',
+    at: now,
+    cpu: Math.round(s.cpu * 10) / 10,
+    memory,
+    disk: root?.pct ?? null,
+    containers: list
+  })
   appendPoint(`vps:${connectionId}`, ['cpu', 'memory', 'disk', 'up'], [Math.round(s.cpu * 10) / 10, memory, root?.pct ?? null, 1], now)
 
   // Alerts on changes since the previous sample (none on the first one)
@@ -156,7 +190,12 @@ async function sample(connectionId: string): Promise<void> {
   const diskHigh = (root?.pct ?? 0) >= threshold
   const running = new Set(list.filter(c => c.running).map(c => c.name))
   if (prev) {
-    if (diskHigh && !prev.diskHigh) alert('disk', fr ? `Disque de ${conn.name} à ${root!.pct} %` : `${conn.name} disk at ${root!.pct} %`, fr ? `Seuil : ${threshold} %. Nettoie les images Docker ou les logs.` : `Threshold: ${threshold} %. Clean Docker images or logs.`)
+    if (diskHigh && !prev.diskHigh)
+      alert(
+        'disk',
+        fr ? `Disque de ${conn.name} à ${root!.pct} %` : `${conn.name} disk at ${root!.pct} %`,
+        fr ? `Seuil : ${threshold} %. Nettoie les images Docker ou les logs.` : `Threshold: ${threshold} %. Clean Docker images or logs.`
+      )
     for (const name of prev.running) {
       if (!running.has(name)) {
         const c = list.find(x => x.name === name)
@@ -176,15 +215,21 @@ export async function watchTick(): Promise<void> {
     const known = new Set(loadSshConnections().map(c => c.id))
     await Promise.all(watched.filter(id => known.has(id)).map(id => sample(id).catch(err => log('warn', 'watch', err))))
     onStatus(vpsStatuses())
-  } finally { ticking = false }
+  } finally {
+    ticking = false
+  }
 }
 
 export function startWatch(statusCb: (s: VpsStatus[]) => void, alertCb: (a: WatchAlert) => void): void {
   onStatus = statusCb
   onAlert = alertCb
   // A little after startup, then every minute
-  setTimeout(() => { void watchTick() }, 5000)
-  timer ??= setInterval(() => { void watchTick() }, EVERY)
+  setTimeout(() => {
+    void watchTick()
+  }, 5000)
+  timer ??= setInterval(() => {
+    void watchTick()
+  }, EVERY)
 }
 
 export function stopWatch(): void {
@@ -201,18 +246,31 @@ export async function remoteDocker(connectionId: string): Promise<{ containers: 
   const raw = await runOn(connectionId, `docker ps -a --format '{{json .}}' 2>&1; echo '${SEP}'; docker compose ls -a --format json 2>/dev/null || echo '[]'`)
   const [ps = '', ls = '[]'] = raw.split(SEP).map(s => s.trim())
   if (/permission denied|command not found|Cannot connect to the Docker daemon/i.test(ps)) throw new Error(ps.split('\n')[0])
-  const containers = ps.split('\n').filter(l => l.startsWith('{')).map(l => {
-    const j = JSON.parse(l) as Record<string, string>
-    const project = (j.Labels ?? '').match(/com\.docker\.compose\.project=([^,]+)/)?.[1] ?? null
-    return { id: j.ID, name: j.Names, image: j.Image, state: j.State, status: j.Status, ports: j.Ports ?? '', composeProject: project }
-  })
+  const containers = ps
+    .split('\n')
+    .filter(l => l.startsWith('{'))
+    .map(l => {
+      const j = JSON.parse(l) as Record<string, string>
+      const project = (j.Labels ?? '').match(/com\.docker\.compose\.project=([^,]+)/)?.[1] ?? null
+      return { id: j.ID, name: j.Names, image: j.Image, state: j.State, status: j.Status, ports: j.Ports ?? '', composeProject: project }
+    })
   let compose: RemoteCompose[] = []
-  try { compose = (JSON.parse(ls) as { Name: string; Status: string; ConfigFiles: string }[]).map(c => ({ name: c.Name, status: c.Status, configFiles: c.ConfigFiles })) } catch { /* old compose */ }
+  try {
+    compose = (JSON.parse(ls) as { Name: string; Status: string; ConfigFiles: string }[]).map(c => ({
+      name: c.Name,
+      status: c.Status,
+      configFiles: c.ConfigFiles
+    }))
+  } catch {
+    /* old compose */
+  }
   return { containers, compose }
 }
 
 export async function remoteDockerAction(
-  connectionId: string, target: { container?: string; compose?: RemoteCompose }, action: 'start' | 'stop' | 'restart' | 'up'
+  connectionId: string,
+  target: { container?: string; compose?: RemoteCompose },
+  action: 'start' | 'stop' | 'restart' | 'up'
 ): Promise<{ ok: boolean; output: string }> {
   let cmd: string
   if (target.container) {
@@ -220,7 +278,10 @@ export async function remoteDockerAction(
     cmd = `docker ${action} ${target.container}`
   } else if (target.compose) {
     if (!NAME_RE.test(target.compose.name)) throw new Error('Invalid project name')
-    const files = target.compose.configFiles.split(',').map(f => f.trim()).filter(Boolean)
+    const files = target.compose.configFiles
+      .split(',')
+      .map(f => f.trim())
+      .filter(Boolean)
     const args = action === 'up' ? 'up -d' : action
     cmd = `docker compose -p ${target.compose.name} ${files.map(f => `-f ${shQuote(f)}`).join(' ')} ${args}`
   } else throw new Error('Nothing to act on')

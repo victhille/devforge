@@ -1,9 +1,14 @@
-const UPPER   = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-const LOWER   = 'abcdefghijklmnopqrstuvwxyz'
+const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+const LOWER = 'abcdefghijklmnopqrstuvwxyz'
 const NUMBERS = '0123456789'
 const SYMBOLS = '!@#$%^&*()_+-=[]{}|;:,.<>?'
 
-export interface PasswordOptions { upper: boolean; lower: boolean; numbers: boolean; symbols: boolean }
+export interface PasswordOptions {
+  upper: boolean
+  lower: boolean
+  numbers: boolean
+  symbols: boolean
+}
 
 /** Pick `length` chars from `alphabet` with crypto randomness, no modulo bias. */
 function pick(alphabet: string, length: number): string {
@@ -20,8 +25,8 @@ function pick(alphabet: string, length: number): string {
 
 export function generatePassword(length: number, opts: PasswordOptions): string {
   let chars = ''
-  if (opts.upper)   chars += UPPER
-  if (opts.lower)   chars += LOWER
+  if (opts.upper) chars += UPPER
+  if (opts.lower) chars += LOWER
   if (opts.numbers) chars += NUMBERS
   if (opts.symbols) chars += SYMBOLS
   return pick(chars || LOWER + NUMBERS, length)
@@ -39,7 +44,10 @@ export interface SecretOptions {
 export function generateSecret(bytes: number, format: SecretFormat, opts: SecretOptions = {}): string {
   if (format === 'alpha') return pick(LOWER + NUMBERS, bytes)
   const arr = crypto.getRandomValues(new Uint8Array(bytes))
-  if (format === 'hex') return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('')
+  if (format === 'hex')
+    return Array.from(arr)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
   const b64 = btoa(String.fromCharCode(...arr))
   if (opts.urlSafe) return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
   return opts.padded ? b64 : b64.replace(/=/g, '')

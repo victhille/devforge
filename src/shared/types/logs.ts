@@ -10,7 +10,7 @@ export interface LogTailOpen {
 
 export interface LogsAPI {
   /** Start following a file (tail -f) */
-  open:  (path: string) => Promise<LogTailOpen>
+  open: (path: string) => Promise<LogTailOpen>
   close: (id: string) => Promise<void>
   /** A file outside the projects, chosen in the file dialog (and allowed from then on) */
   pick: () => Promise<string | null>

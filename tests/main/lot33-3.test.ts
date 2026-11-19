@@ -4,7 +4,12 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { tempDir } from '../helpers'
 import { fitsRange } from '@shared/lib/packages'
 import {
-  composerCommands, composerUpdate, isSail, listComposerManifests, newestStable, parseComposerAudit
+  composerCommands,
+  composerUpdate,
+  isSail,
+  listComposerManifests,
+  newestStable,
+  parseComposerAudit
 } from '../../src/main/services/packages/composerPackages'
 
 /** A project's Composer packages, main side */
@@ -19,11 +24,18 @@ function laravel(): string {
   })
   writeFileSync(join(root, 'composer.lock'), '{}')
   mkdirSync(join(root, 'vendor', 'composer'), { recursive: true })
-  json(join(root, 'vendor', 'composer', 'installed.json'), { packages: [{ name: 'laravel/framework', version: 'v11.9.2' }, { name: 'phpunit/phpunit', version: '10.5.20' }] })
+  json(join(root, 'vendor', 'composer', 'installed.json'), {
+    packages: [
+      { name: 'laravel/framework', version: 'v11.9.2' },
+      { name: 'phpunit/phpunit', version: '10.5.20' }
+    ]
+  })
   return root
 }
 
-afterEach(() => { delete process.env.DEVFORGE_TEST_PACKAGES })
+afterEach(() => {
+  delete process.env.DEVFORGE_TEST_PACKAGES
+})
 
 describe('v3.3 lot 3: Composer packages', () => {
   it('reads composer.json and what is installed, without the platform (php, ext-*)', () => {
@@ -46,16 +58,28 @@ describe('v3.3 lot 3: Composer packages', () => {
   })
 
   it('reads composer audit, an empty one included', () => {
-    expect(parseComposerAudit(JSON.stringify({
-      advisories: { 'guzzlehttp/guzzle': [{ severity: 'high' }, { severity: 'medium' }], 'symfony/http-kernel': { 0: { severity: 'critical' } } }
-    }))).toEqual({ total: 3, bySeverity: { unknown: 0, info: 0, low: 0, moderate: 1, high: 1, critical: 1 }, packages: { 'guzzlehttp/guzzle': 'high', 'symfony/http-kernel': 'critical' } })
+    expect(
+      parseComposerAudit(
+        JSON.stringify({
+          advisories: { 'guzzlehttp/guzzle': [{ severity: 'high' }, { severity: 'medium' }], 'symfony/http-kernel': { 0: { severity: 'critical' } } }
+        })
+      )
+    ).toEqual({
+      total: 3,
+      bySeverity: { unknown: 0, info: 0, low: 0, moderate: 1, high: 1, critical: 1 },
+      packages: { 'guzzlehttp/guzzle': 'high', 'symfony/http-kernel': 'critical' }
+    })
     // Older Composer versions give no severity: said as such, never guessed
-    expect(parseComposerAudit(JSON.stringify({ advisories: { 'twig/twig': [{ title: 'x' }, { title: 'y' }] } }))).toMatchObject({ total: 2, bySeverity: { unknown: 2, moderate: 0 }, packages: { 'twig/twig': 'unknown' } })
+    expect(parseComposerAudit(JSON.stringify({ advisories: { 'twig/twig': [{ title: 'x' }, { title: 'y' }] } }))).toMatchObject({
+      total: 2,
+      bySeverity: { unknown: 2, moderate: 0 },
+      packages: { 'twig/twig': 'unknown' }
+    })
     expect(parseComposerAudit(JSON.stringify({ advisories: [], abandoned: [] }))).toMatchObject({ total: 0, packages: {} })
     expect(parseComposerAudit('nope')).toBeNull()
   })
 
-  it('builds the commands, on this PC or in Sail\'s container, names checked', () => {
+  it("builds the commands, on this PC or in Sail's container, names checked", () => {
     const u = [
       { name: 'guzzlehttp/guzzle', dev: false, target: 'compatible' as const },
       { name: 'laravel/framework', dev: false, target: 'latest' as const },
@@ -68,7 +92,9 @@ describe('v3.3 lot 3: Composer packages', () => {
       'composer require laravel/framework:^12.1.0 --no-interaction',
       'composer require phpunit/phpunit:^11.4.0 --dev --no-interaction'
     ])
-    expect(composerCommands(u.slice(0, 1), {}, true)).toEqual(['docker compose exec -T -u sail laravel.test composer update guzzlehttp/guzzle --with-dependencies --no-interaction'])
+    expect(composerCommands(u.slice(0, 1), {}, true)).toEqual([
+      'docker compose exec -T -u sail laravel.test composer update guzzlehttp/guzzle --with-dependencies --no-interaction'
+    ])
     // No known latest version: nothing to require
     expect(composerCommands([{ name: 'a/b', dev: false, target: 'latest' }], {})).toEqual([])
   })
@@ -84,7 +110,10 @@ describe('v3.3 lot 3: Composer packages', () => {
     json(data, { update: `node -e "require('fs').writeFileSync('composer.json','broken');process.exit(1)"` })
     const before = readFileSync(join(root, 'composer.json'), 'utf-8')
     const lines: string[] = []
-    expect(await composerUpdate(root, [{ name: 'guzzlehttp/guzzle', dev: false, target: 'compatible' }], l => lines.push(l))).toEqual({ ok: false, restored: true })
+    expect(await composerUpdate(root, [{ name: 'guzzlehttp/guzzle', dev: false, target: 'compatible' }], l => lines.push(l))).toEqual({
+      ok: false,
+      restored: true
+    })
     expect(readFileSync(join(root, 'composer.json'), 'utf-8')).toBe(before)
     expect(lines.join('\n')).toContain('composer.json and composer.lock put back')
   })

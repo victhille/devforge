@@ -11,22 +11,72 @@ test.afterEach(async () => {
   await run.close()
 })
 
-const USER_PHP = '<?php\n\nnamespace App\\Entity;\n\nuse Doctrine\\ORM\\Mapping as ORM;\n\n#[ORM\\Entity]\nclass User\n{\n    #[ORM\\Id]\n    #[ORM\\Column]\n    private ?int $id = null;\n\n    public function getId(): ?int\n    {\n        return $this->id;\n    }\n}\n'
+const USER_PHP =
+  '<?php\n\nnamespace App\\Entity;\n\nuse Doctrine\\ORM\\Mapping as ORM;\n\n#[ORM\\Entity]\nclass User\n{\n    #[ORM\\Id]\n    #[ORM\\Column]\n    private ?int $id = null;\n\n    public function getId(): ?int\n    {\n        return $this->id;\n    }\n}\n'
 
 const status = {
-  symfony: true, booted: true, error: null, version: '7.3.4',
+  symfony: true,
+  booted: true,
+  error: null,
+  version: '7.3.4',
   database: { configured: true, driver: 'pdo_pgsql', target: '127.0.0.1:5433/boutique', reachable: true, error: null },
-  composeDatabase: true, symfonyCli: true, hasUserEntity: true,
+  composeDatabase: true,
+  symfonyCli: true,
+  hasUserEntity: true,
   packages: { orm: true, maker: true, apiPlatform: false, serializer: true, validator: true, security: true, fixtures: false, foundry: false }
 }
 const entities = [
-  { name: 'Categorie', table: 'categorie', file: 'src/Entity/Categorie.php', apiResource: false, fields: [{ name: 'nom', type: 'string', nullable: false, unique: true, length: 80 }], relations: [{ name: 'produits', kind: 'OneToMany', target: 'Produit', inverse: 'categorie', nullable: false }] },
-  { name: 'Produit', table: 'produit', file: 'src/Entity/Produit.php', apiResource: false, fields: [{ name: 'nom', type: 'string', nullable: false, unique: false }, { name: 'prix', type: 'decimal', nullable: false, unique: false, precision: 10, scale: 2 }, { name: 'stock', type: 'integer', nullable: false, unique: false }], relations: [{ name: 'categorie', kind: 'ManyToOne', target: 'Categorie', inverse: 'produits', nullable: false }] },
-  { name: 'User', table: 'user', file: 'src/Entity/User.php', apiResource: false, fields: [{ name: 'email', type: 'string', nullable: false, unique: true, length: 180 }, { name: 'password', type: 'string', nullable: false, unique: false }], relations: [] }
+  {
+    name: 'Categorie',
+    table: 'categorie',
+    file: 'src/Entity/Categorie.php',
+    apiResource: false,
+    fields: [{ name: 'nom', type: 'string', nullable: false, unique: true, length: 80 }],
+    relations: [{ name: 'produits', kind: 'OneToMany', target: 'Produit', inverse: 'categorie', nullable: false }]
+  },
+  {
+    name: 'Produit',
+    table: 'produit',
+    file: 'src/Entity/Produit.php',
+    apiResource: false,
+    fields: [
+      { name: 'nom', type: 'string', nullable: false, unique: false },
+      { name: 'prix', type: 'decimal', nullable: false, unique: false, precision: 10, scale: 2 },
+      { name: 'stock', type: 'integer', nullable: false, unique: false }
+    ],
+    relations: [{ name: 'categorie', kind: 'ManyToOne', target: 'Categorie', inverse: 'produits', nullable: false }]
+  },
+  {
+    name: 'User',
+    table: 'user',
+    file: 'src/Entity/User.php',
+    apiResource: false,
+    fields: [
+      { name: 'email', type: 'string', nullable: false, unique: true, length: 180 },
+      { name: 'password', type: 'string', nullable: false, unique: false }
+    ],
+    relations: []
+  }
 ]
 const migrations = [
-  { version: 'DoctrineMigrations\\Version20261025160000', description: 'Ajout de Facture', executed: false, executedAt: null, file: 'migrations/Version20261025160000.php', sql: ['CREATE TABLE facture (id INT NOT NULL, numero VARCHAR(30) NOT NULL, PRIMARY KEY(id))'], dangerous: false },
-  { version: 'DoctrineMigrations\\Version20261024100000', description: '', executed: true, executedAt: '2026-10-24 10:00:00', file: 'migrations/Version20261024100000.php', sql: ['CREATE TABLE produit (id INT NOT NULL)'], dangerous: false }
+  {
+    version: 'DoctrineMigrations\\Version20261025160000',
+    description: 'Ajout de Facture',
+    executed: false,
+    executedAt: null,
+    file: 'migrations/Version20261025160000.php',
+    sql: ['CREATE TABLE facture (id INT NOT NULL, numero VARCHAR(30) NOT NULL, PRIMARY KEY(id))'],
+    dangerous: false
+  },
+  {
+    version: 'DoctrineMigrations\\Version20261024100000',
+    description: '',
+    executed: true,
+    executedAt: '2026-10-24 10:00:00',
+    file: 'migrations/Version20261024100000.php',
+    sql: ['CREATE TABLE produit (id INT NOT NULL)'],
+    dangerous: false
+  }
 ]
 
 async function openWorkshop(): Promise<{ project: string }> {
@@ -38,14 +88,32 @@ async function openWorkshop(): Promise<{ project: string }> {
       mkdirSync(join(project, 'src', 'Entity'), { recursive: true })
       writeFileSync(join(project, 'composer.json'), JSON.stringify({ require: { 'symfony/framework-bundle': '7.3.*' } }))
       writeFileSync(join(project, 'src', 'Entity', 'User.php'), USER_PHP)
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([
-        { id: 'sf', name: 'boutique', path: project, framework: 'symfony', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }
-      ]))
-      writeFileSync(join(dir, 'symfony.json'), JSON.stringify({
-        inspect: { status, entities, migrations },
-        serverUrl: 'http://127.0.0.1:8000',
-        routes: [{ name: 'api_health', path: '/api/health', methods: ['GET'], controller: 'App\\Controller\\HealthController' }, { name: 'app_produit_show', path: '/produits/{id}', methods: ['GET'], controller: 'App\\Controller\\ProduitController::show' }]
-      }))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'sf',
+            name: 'boutique',
+            path: project,
+            framework: 'symfony',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
+      writeFileSync(
+        join(dir, 'symfony.json'),
+        JSON.stringify({
+          inspect: { status, entities, migrations },
+          serverUrl: 'http://127.0.0.1:8000',
+          routes: [
+            { name: 'api_health', path: '/api/health', methods: ['GET'], controller: 'App\\Controller\\HealthController' },
+            { name: 'app_produit_show', path: '/produits/{id}', methods: ['GET'], controller: 'App\\Controller\\ProduitController::show' }
+          ]
+        })
+      )
     }
   })
   await goTo(run.page, '/project/sf?tab=symfony')

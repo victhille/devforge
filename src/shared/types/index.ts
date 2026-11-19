@@ -5,21 +5,40 @@ export type { HomeWidget, WidgetId } from '../lib/homeWidgets'
 
 export type Framework =
   // JavaScript / TypeScript
-  | 'react' | 'nextjs' | 'vue' | 'angular' | 'svelte' | 'nodejs' | 'express'
+  | 'react'
+  | 'nextjs'
+  | 'vue'
+  | 'angular'
+  | 'svelte'
+  | 'nodejs'
+  | 'express'
   // PHP
-  | 'symfony' | 'laravel' | 'php'
+  | 'symfony'
+  | 'laravel'
+  | 'php'
   // Other languages
-  | 'python' | 'go' | 'rust' | 'java' | 'kotlin' | 'ruby' | 'dotnet' | 'swift'
+  | 'python'
+  | 'go'
+  | 'rust'
+  | 'java'
+  | 'kotlin'
+  | 'ruby'
+  | 'dotnet'
+  | 'swift'
   // Mobile
   | 'flutter'
   // Systems / scripting
-  | 'cpp' | 'c' | 'shell'
+  | 'cpp'
+  | 'c'
+  | 'shell'
   // Web static
   | 'html'
   // Config / infra
   | 'docker'
   // Generic
-  | 'typescript' | 'empty' | 'unknown'
+  | 'typescript'
+  | 'empty'
+  | 'unknown'
   // A folder that is not a project but holds several (backend/ + frontend/)
   | 'group'
 
@@ -468,9 +487,9 @@ export interface DevForgeAPI {
   removeSshConnection: (id: string) => Promise<void>
   /** Forget the remembered server key (after a legitimate reinstall), once the user confirmed it in a dialog of the main process: false when cancelled */
   forgetSshHostKey: (id: string) => Promise<boolean>
-  sshConnect:          (connectionId: string) => Promise<string>
+  sshConnect: (connectionId: string) => Promise<string>
   sshConnectDashboard: (connectionId: string) => Promise<string>
-  sshExec:             (sessionId: string, command: string) => Promise<string>
+  sshExec: (sessionId: string, command: string) => Promise<string>
   sshWrite: (sessionId: string, data: string) => Promise<void>
   sshResize: (sessionId: string, cols: number, rows: number) => Promise<void>
   sshDisconnect: (sessionId: string) => Promise<void>

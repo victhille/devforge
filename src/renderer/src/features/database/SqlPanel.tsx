@@ -24,8 +24,11 @@ export default function SqlPanel({ connId, sql, onSql, onSchemaChange }: Props) 
   async function run() {
     if (!sql.trim()) return
     setRunning(true)
-    try { setResult(await window.devforge.db.query(connId, sql)) }
-    finally { setRunning(false) }
+    try {
+      setResult(await window.devforge.db.query(connId, sql))
+    } finally {
+      setRunning(false)
+    }
     if (/^\s*(create|drop|alter|rename)/i.test(sql)) onSchemaChange()
   }
 
@@ -35,7 +38,12 @@ export default function SqlPanel({ connId, sql, onSql, onSchemaChange }: Props) 
         <textarea
           value={sql}
           onChange={e => onSql(e.target.value)}
-          onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); run() } }}
+          onKeyDown={e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+              e.preventDefault()
+              run()
+            }
+          }}
           placeholder={d.sqlPlaceholder}
           aria-label={d.sqlLabel}
           spellCheck={false}
@@ -47,8 +55,12 @@ export default function SqlPanel({ connId, sql, onSql, onSchemaChange }: Props) 
             {!running && <Play size={13} aria-hidden />} {d.run}
             <kbd className="ml-1 rounded border border-current/30 px-1 font-mono text-2xs opacity-80">{d.shortcutKeys}</kbd>
           </Button>
-          <AskForgy label={d.writeWithForgy} icon={<Sparkles size={13} aria-hidden />} className="border-transparent"
-            question={() => d.forgyPrompt.replace('{sql}', sql.trim() || '—')} />
+          <AskForgy
+            label={d.writeWithForgy}
+            icon={<Sparkles size={13} aria-hidden />}
+            className="border-transparent"
+            question={() => d.forgyPrompt.replace('{sql}', sql.trim() || '—')}
+          />
           <span className="ml-auto text-xs text-fg-muted">{d.limitHint}</span>
         </div>
       </div>

@@ -17,15 +17,15 @@ import UrlTool from './tools/UrlTool'
 type Tab = 'json' | 'base64' | 'jwt' | 'regex' | 'uuid' | 'hash' | 'cron' | 'timestamp' | 'url'
 
 const TOOLS: { id: Tab; labelKey: keyof ToolboxT; Component: ComponentType<{ t: ToolboxT }> }[] = [
-  { id: 'json',   labelKey: 'tabJson',   Component: JsonTool },
+  { id: 'json', labelKey: 'tabJson', Component: JsonTool },
   { id: 'base64', labelKey: 'tabBase64', Component: Base64Tool },
-  { id: 'jwt',    labelKey: 'tabJwt',    Component: JwtTool },
-  { id: 'regex',  labelKey: 'tabRegex',  Component: RegexTool },
-  { id: 'uuid',   labelKey: 'tabUuid',   Component: UuidTool },
-  { id: 'hash',   labelKey: 'tabHash',   Component: HashTool },
-  { id: 'cron',      labelKey: 'tabCron',      Component: CronTool },
+  { id: 'jwt', labelKey: 'tabJwt', Component: JwtTool },
+  { id: 'regex', labelKey: 'tabRegex', Component: RegexTool },
+  { id: 'uuid', labelKey: 'tabUuid', Component: UuidTool },
+  { id: 'hash', labelKey: 'tabHash', Component: HashTool },
+  { id: 'cron', labelKey: 'tabCron', Component: CronTool },
   { id: 'timestamp', labelKey: 'tabTimestamp', Component: TimestampTool },
-  { id: 'url',       labelKey: 'tabUrl',       Component: UrlTool }
+  { id: 'url', labelKey: 'tabUrl', Component: UrlTool }
 ]
 
 /**
@@ -70,7 +70,12 @@ export default function ToolboxPage() {
         title={tb.title}
         subtitle={tb.subtitle}
         actions={
-          <div className="w-[280px]" onKeyDown={e => { if (e.key === 'Enter' && shown[0]) pick(shown[0].id) }}>
+          <div
+            className="w-[280px]"
+            onKeyDown={e => {
+              if (e.key === 'Enter' && shown[0]) pick(shown[0].id)
+            }}
+          >
             <SearchInput value={query} onChange={setQuery} placeholder={tb.search} />
           </div>
         }
@@ -79,9 +84,22 @@ export default function ToolboxPage() {
         {list.map(tool => {
           const on = tool.id === active
           return (
-            <button key={tool.id} type="button" role="tab" id={`tool-${tool.id}`} aria-controls="tool-panel" data-tool={tool.id} aria-selected={on} tabIndex={tool.id === reachable ? 0 : -1} onClick={() => pick(tool.id)} title={`${label(tool)} · ${tb.hints[tool.id]}`}
-              className={cn('flex min-w-0 flex-col items-start gap-1 rounded-card border px-3 py-3 text-left transition-colors',
-                on ? 'border-accent bg-accent-soft' : 'border-line-subtle bg-surface hover:border-line hover:bg-elevated')}>
+            <button
+              key={tool.id}
+              type="button"
+              role="tab"
+              id={`tool-${tool.id}`}
+              aria-controls="tool-panel"
+              data-tool={tool.id}
+              aria-selected={on}
+              tabIndex={tool.id === reachable ? 0 : -1}
+              onClick={() => pick(tool.id)}
+              title={`${label(tool)} · ${tb.hints[tool.id]}`}
+              className={cn(
+                'flex min-w-0 flex-col items-start gap-1 rounded-card border px-3 py-3 text-left transition-colors',
+                on ? 'border-accent bg-accent-soft' : 'border-line-subtle bg-surface hover:border-line hover:bg-elevated'
+              )}
+            >
               <span className="max-w-full truncate font-display text-sm font-bold text-fg">{label(tool)}</span>
               <span className="max-w-full truncate text-xs text-fg-muted">{tb.hints[tool.id]}</span>
             </button>

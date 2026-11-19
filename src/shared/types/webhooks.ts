@@ -25,11 +25,11 @@ export interface WebhookStatus {
 }
 
 export interface WebhooksAPI {
-  start:  (port: number) => Promise<WebhookStatus>
-  stop:   () => Promise<WebhookStatus>
+  start: (port: number) => Promise<WebhookStatus>
+  stop: () => Promise<WebhookStatus>
   status: () => Promise<WebhookStatus>
-  list:   () => Promise<CapturedRequest[]>
-  clear:  () => Promise<void>
+  list: () => Promise<CapturedRequest[]>
+  clear: () => Promise<void>
   setResponse: (r: WebhookResponse) => Promise<void>
   /** Send a captured request again to another URL */
   replay: (id: string, targetUrl: string) => Promise<{ status: number | null; body: string; error?: string }>

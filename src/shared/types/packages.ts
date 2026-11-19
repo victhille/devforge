@@ -1,8 +1,22 @@
 // ─── A project's packages: npm, pnpm, yarn, Composer (lot 3) ─────
 
-export type PackageManagerKind = 'npm' | 'pnpm' | 'yarn' | 'composer'
+export type PackageManagerKind =
+  | 'npm'
+  | 'pnpm'
+  | 'yarn'
+  | 'composer'
   // Read only (versions and latest ones; DevForge does not update them)
-  | 'pip' | 'poetry' | 'uv' | 'pipenv' | 'cargo' | 'go' | 'bundler' | 'pub' | 'nuget' | 'maven' | 'gradle'
+  | 'pip'
+  | 'poetry'
+  | 'uv'
+  | 'pipenv'
+  | 'cargo'
+  | 'go'
+  | 'bundler'
+  | 'pub'
+  | 'nuget'
+  | 'maven'
+  | 'gradle'
 
 /** How far the installed version is from the latest one */
 export type UpdateLevel = 'current' | 'patch' | 'minor' | 'major' | 'unknown'
@@ -48,7 +62,11 @@ export interface AuditSummary {
 }
 
 /** Within the manifest's range ("compatible"), or to the latest version (a major one asks first) */
-export interface PackageUpdate { name: string; dev: boolean; target: 'compatible' | 'latest' }
+export interface PackageUpdate {
+  name: string
+  dev: boolean
+  target: 'compatible' | 'latest'
+}
 
 export interface PackagesAPI {
   /** Every manifest of the project and what it declares (fast: no network) */

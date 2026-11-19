@@ -29,14 +29,21 @@ export default function DetectDeploysDialog({ existing, onClose, onCreated }: Pr
   const [scanning, setScanning] = useState(false)
   const [created, setCreated] = useState<Set<string>>(new Set())
 
-  const scan = useCallback(async (id: string) => {
-    if (!id) return
-    setScanning(true)
-    setFound(null)
-    try { setFound(await window.devforge.deploy.detect(id)) }
-    catch (err) { toast.show({ tone: 'error', title: d.scanFailed, description: errorText(err) }) }
-    finally { setScanning(false) }
-  }, [toast, d])
+  const scan = useCallback(
+    async (id: string) => {
+      if (!id) return
+      setScanning(true)
+      setFound(null)
+      try {
+        setFound(await window.devforge.deploy.detect(id))
+      } catch (err) {
+        toast.show({ tone: 'error', title: d.scanFailed, description: errorText(err) })
+      } finally {
+        setScanning(false)
+      }
+    },
+    [toast, d]
+  )
 
   // The first server is looked through as the window opens, once
   const first = servers[0]?.id
@@ -66,17 +73,39 @@ export default function DetectDeploysDialog({ existing, onClose, onCreated }: Pr
   const isKnown = (f: DetectedDeploy) => created.has(f.remotePath) || existing.some(e => e.connectionId === server && e.remotePath === f.remotePath)
 
   return (
-    <Modal title={<span className="flex items-center gap-2"><Server size={16} /> {d.detectTitle}</span>} onClose={onClose} className="max-w-3xl"
-      footer={<Button variant="ghost" onClick={onClose}>{t.common.close}</Button>}>
+    <Modal
+      title={
+        <span className="flex items-center gap-2">
+          <Server size={16} /> {d.detectTitle}
+        </span>
+      }
+      onClose={onClose}
+      className="max-w-3xl"
+      footer={
+        <Button variant="ghost" onClick={onClose}>
+          {t.common.close}
+        </Button>
+      }
+    >
       <div className="flex gap-2">
         <Select value={server} onChange={e => setServer(e.target.value)} className="flex-1">
-          {servers.map(s => <option key={s.id} value={s.id}>{s.name} — {s.username}@{s.host}</option>)}
+          {servers.map(s => (
+            <option key={s.id} value={s.id}>
+              {s.name} — {s.username}@{s.host}
+            </option>
+          ))}
         </Select>
-        <Button onClick={() => scan(server)} loading={scanning} disabled={!server}>{d.scan}</Button>
+        <Button onClick={() => scan(server)} loading={scanning} disabled={!server}>
+          {d.scan}
+        </Button>
       </div>
       <p className="text-xs text-fg-muted">{d.detectHint}</p>
 
-      {scanning && <div className="flex justify-center p-4"><Spinner /></div>}
+      {scanning && (
+        <div className="flex justify-center p-4">
+          <Spinner />
+        </div>
+      )}
       {found && found.length === 0 && <p className="rounded-lg border border-dashed border-line p-4 text-center text-sm text-fg-muted">{d.nothingFound}</p>}
       {found && found.length > 0 && (
         <div className="max-h-[50vh] divide-y divide-line-subtle overflow-y-auto rounded-lg border border-line-subtle">
@@ -86,20 +115,28 @@ export default function DetectDeploysDialog({ existing, onClose, onCreated }: Pr
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="flex flex-wrap items-center gap-2">
                   <span className="font-mono text-sm text-fg">{f.remotePath}</span>
-                  <Badge color="accent" mono className="py-0 text-2xs">{f.preset}</Badge>
+                  <Badge color="accent" mono className="py-0 text-2xs">
+                    {f.preset}
+                  </Badge>
                   {f.branch && <Badge className="py-0 font-mono text-2xs">{f.branch}</Badge>}
                 </span>
                 <span className="flex items-center gap-1 truncate text-2xs text-fg-muted">
-                  {f.projectName
-                    ? <><Link2 size={10} className="text-success" /> <span className="text-success">{f.projectName}</span> · </>
-                    : null}
+                  {f.projectName ? (
+                    <>
+                      <Link2 size={10} className="text-success" /> <span className="text-success">{f.projectName}</span> ·{' '}
+                    </>
+                  ) : null}
                   {f.origin ?? d.noOrigin}
                 </span>
               </div>
               {isKnown(f) ? (
-                <span className="flex items-center gap-1 text-xs text-success"><Check size={13} /> {d.created}</span>
+                <span className="flex items-center gap-1 text-xs text-success">
+                  <Check size={13} /> {d.created}
+                </span>
               ) : (
-                <Button size="sm" variant="secondary" onClick={() => create(f)}><Plus size={13} /> {d.createTarget}</Button>
+                <Button size="sm" variant="secondary" onClick={() => create(f)}>
+                  <Plus size={13} /> {d.createTarget}
+                </Button>
               )}
             </div>
           ))}

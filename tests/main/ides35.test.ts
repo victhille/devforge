@@ -10,7 +10,24 @@ describe('IDEs', () => {
   it('knows the usual IDEs, each once', () => {
     const ids = IDE_CATALOG.map(i => i.id)
     expect(new Set(ids).size).toBe(ids.length)
-    expect(ids).toEqual(expect.arrayContaining(['vscode', 'cursor', 'windsurf', 'antigravity', 'zed', 'sublime', 'phpstorm', 'webstorm', 'intellij', 'pycharm', 'rider', 'goland', 'visualstudio', 'notepadpp']))
+    expect(ids).toEqual(
+      expect.arrayContaining([
+        'vscode',
+        'cursor',
+        'windsurf',
+        'antigravity',
+        'zed',
+        'sublime',
+        'phpstorm',
+        'webstorm',
+        'intellij',
+        'pycharm',
+        'rider',
+        'goland',
+        'visualstudio',
+        'notepadpp'
+      ])
+    )
   })
 
   it('finds a program in its install folder, the newest version first', () => {

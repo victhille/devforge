@@ -19,7 +19,7 @@ export function databaseName(url: string): string | null {
   return name && /^[\w-]+$/.test(name) ? name : null
 }
 
-const quoteDb = (name: string, provider: string) => provider === 'mysql' ? `\`${name}\`` : `"${name}"`
+const quoteDb = (name: string, provider: string) => (provider === 'mysql' ? `\`${name}\`` : `"${name}"`)
 export const createDatabaseSql = (name: string, provider: string) => `CREATE DATABASE ${quoteDb(name, provider)};\n`
 export const dropDatabaseSql = (name: string, provider: string) => `DROP DATABASE IF EXISTS ${quoteDb(name, provider)};\n`
 

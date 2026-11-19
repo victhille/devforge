@@ -95,8 +95,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: { signIn: '/connexion' },
   providers: [
 ${[
-    ...oauth.map(p => `    // Keys in .env.local: AUTH_${p.toUpperCase()}_ID and AUTH_${p.toUpperCase()}_SECRET\n    ${PROVIDER[p].use}`),
-    ...(credentials ? [`    Credentials({
+  ...oauth.map(p => `    // Keys in .env.local: AUTH_${p.toUpperCase()}_ID and AUTH_${p.toUpperCase()}_SECRET\n    ${PROVIDER[p].use}`),
+  ...(credentials
+    ? [
+        `    Credentials({
       credentials: { email: { label: 'E-mail', type: 'email' }, password: { label: 'Mot de passe', type: 'password' } },
       async authorize(credentials) {
         const email = String(credentials?.email ?? '').trim().toLowerCase()
@@ -106,8 +108,10 @@ ${[
         if (!user?.password || !(await bcrypt.compare(password, user.password))) return null
         return { id: user.id, email: user.email, name: user.name }
       }
-    })`] : [])
-  ].join(',\n')}
+    })`
+      ]
+    : [])
+].join(',\n')}
   ],
   callbacks: {
     jwt({ token, user }) {
@@ -187,9 +191,15 @@ export default function Connexion({ searchParams }${params}) {
     <main style={${PAGE_STYLE}}>
       <h1>Connexion</h1>
       <Suspense fallback={null}><Message searchParams={searchParams} /></Suspense>
-${oauth.map(p => `      <form action={async () => { 'use server'; await signIn('${p}', { redirectTo: '/' }) }}>
+${oauth
+  .map(
+    p => `      <form action={async () => { 'use server'; await signIn('${p}', { redirectTo: '/' }) }}>
         <button type="submit">${label[p]}</button>
-      </form>`).join('\n')}${providers.includes('credentials') ? `
+      </form>`
+  )
+  .join('\n')}${
+    providers.includes('credentials')
+      ? `
       <form style={{ display: 'grid', gap: 8 }} action={async (data${ts ? ': FormData' : ''}) => {
         'use server'
         try {
@@ -204,7 +214,9 @@ ${oauth.map(p => `      <form action={async () => { 'use server'; await signIn('
         <label>Mot de passe <input name="password" type="password" required autoComplete="current-password" /></label>
         <button type="submit">Se connecter</button>
       </form>
-      <a href="/inscription">Créer un compte</a>` : ''}
+      <a href="/inscription">Créer un compte</a>`
+      : ''
+  }
     </main>
   )
 }

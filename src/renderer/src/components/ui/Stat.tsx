@@ -7,8 +7,8 @@ export type StatTone = 'success' | 'warning' | 'danger' | 'accent'
 const TONES: Record<StatTone, string> = {
   success: 'text-success',
   warning: 'text-warning',
-  danger:  'text-danger',
-  accent:  'text-accent'
+  danger: 'text-danger',
+  accent: 'text-accent'
 }
 
 interface Props {

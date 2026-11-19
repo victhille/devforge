@@ -6,7 +6,7 @@ const decimals = new Map<string, Intl.NumberFormat>()
 function decimal(n: number, digits: number, lang: Lang): string {
   const key = `${lang}:${digits}`
   let f = decimals.get(key)
-  if (!f) decimals.set(key, f = new Intl.NumberFormat(lang, { minimumFractionDigits: digits, maximumFractionDigits: digits, useGrouping: false }))
+  if (!f) decimals.set(key, (f = new Intl.NumberFormat(lang, { minimumFractionDigits: digits, maximumFractionDigits: digits, useGrouping: false })))
   return f.format(n)
 }
 
@@ -39,7 +39,12 @@ export function formatRelative(iso: string | null | undefined, lang: string): st
   const seconds = (new Date(iso).getTime() - Date.now()) / 1000
   const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto', style: 'short' })
   const units: [Intl.RelativeTimeFormatUnit, number][] = [
-    ['year', 31536000], ['month', 2592000], ['week', 604800], ['day', 86400], ['hour', 3600], ['minute', 60]
+    ['year', 31536000],
+    ['month', 2592000],
+    ['week', 604800],
+    ['day', 86400],
+    ['hour', 3600],
+    ['minute', 60]
   ]
   for (const [unit, secs] of units) {
     if (Math.abs(seconds) >= secs) return rtf.format(Math.round(seconds / secs), unit)

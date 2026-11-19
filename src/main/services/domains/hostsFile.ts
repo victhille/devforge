@@ -4,15 +4,17 @@ import { tmpdir } from 'os'
 import { execFile } from 'child_process'
 import { app } from 'electron'
 
-export const HOSTS_PATH = process.platform === 'win32'
-  ? join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'drivers', 'etc', 'hosts')
-  : '/etc/hosts'
+export const HOSTS_PATH = process.platform === 'win32' ? join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'drivers', 'etc', 'hosts') : '/etc/hosts'
 
 const BEGIN = '# >>> DevForge local domains (managed, do not edit) >>>'
 const END = '# <<< DevForge local domains <<<'
 
 export function readHosts(): string {
-  try { return readFileSync(HOSTS_PATH, 'utf-8') } catch { return '' }
+  try {
+    return readFileSync(HOSTS_PATH, 'utf-8')
+  } catch {
+    return ''
+  }
 }
 
 /** Domains currently written in the DevForge block */
@@ -20,8 +22,11 @@ export function managedDomains(content = readHosts()): string[] {
   const start = content.indexOf(BEGIN)
   const end = content.indexOf(END)
   if (start < 0 || end < start) return []
-  return content.slice(start + BEGIN.length, end)
-    .split(/\r?\n/).map(l => l.trim().split(/\s+/)[1]).filter(Boolean)
+  return content
+    .slice(start + BEGIN.length, end)
+    .split(/\r?\n/)
+    .map(l => l.trim().split(/\s+/)[1])
+    .filter(Boolean)
 }
 
 /** Hosts content with the DevForge block replaced (or removed when no domain) */
@@ -61,9 +66,17 @@ export function writeHostsElevated(content: string): Promise<{ ok: boolean; erro
     if (process.platform === 'win32') {
       const q = (s: string) => s.replace(/'/g, "''")
       const inner = `Copy-Item -LiteralPath '${q(temp)}' -Destination '${q(HOSTS_PATH)}' -Force`
-      execFile('powershell', ['-NoProfile', '-NonInteractive', '-Command',
-        `Start-Process -FilePath powershell -Verb RunAs -Wait -WindowStyle Hidden -ArgumentList @('-NoProfile','-Command',"${inner.replace(/"/g, '`"')}")`
-      ], { windowsHide: true }, done)
+      execFile(
+        'powershell',
+        [
+          '-NoProfile',
+          '-NonInteractive',
+          '-Command',
+          `Start-Process -FilePath powershell -Verb RunAs -Wait -WindowStyle Hidden -ArgumentList @('-NoProfile','-Command',"${inner.replace(/"/g, '`"')}")`
+        ],
+        { windowsHide: true },
+        done
+      )
     } else if (process.platform === 'darwin') {
       execFile('osascript', ['-e', `do shell script "cp '${temp}' '${HOSTS_PATH}'" with administrator privileges`], done)
     } else {

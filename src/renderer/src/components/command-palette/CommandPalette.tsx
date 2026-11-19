@@ -12,20 +12,36 @@ const MAX_RESULTS = 60
 
 /** The typed words found in a result, in the accent and bold, as in the mock-up (a look only: the title is read whole) */
 function Hit({ text, query }: { text: string; query: string }) {
-  const words = query.trim().split(/\s+/).filter(Boolean).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  const words = query
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
   if (!words.length) return <>{text}</>
   const parts = text.split(new RegExp(`(${words.join('|')})`, 'gi'))
-  return <>{parts.map((p, k) => (k % 2 ? <span key={k} className="font-bold text-accent">{p}</span> : p))}</>
+  return (
+    <>
+      {parts.map((p, k) =>
+        k % 2 ? (
+          <span key={k} className="font-bold text-accent">
+            {p}
+          </span>
+        ) : (
+          p
+        )
+      )}
+    </>
+  )
 }
 
 /** Ctrl+K / Cmd+K launcher: pages, projects, scripts and servers. */
 export default function CommandPalette() {
   const { t } = useI18n()
-  const [open,   setOpen]   = useState(false)
-  const [query,  setQuery]  = useState('')
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
   const [cursor, setCursor] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
-  const listRef  = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
   const commands = useCommands(open)
   const toast = useToast()
 
@@ -65,14 +81,18 @@ export default function CommandPalette() {
       .sort((a, b) => b.score - a.score)
     // Keep each group together, groups ordered by their best match
     const groupRank = new Map<string, number>()
-    scored.forEach((r, i) => { if (!groupRank.has(r.cmd.group)) groupRank.set(r.cmd.group, i) })
+    scored.forEach((r, i) => {
+      if (!groupRank.has(r.cmd.group)) groupRank.set(r.cmd.group, i)
+    })
     return scored
       .sort((a, b) => groupRank.get(a.cmd.group)! - groupRank.get(b.cmd.group)! || b.score - a.score)
       .slice(0, MAX_RESULTS)
       .map(r => r.cmd)
   }, [commands, query])
 
-  useEffect(() => { setCursor(0) }, [query])
+  useEffect(() => {
+    setCursor(0)
+  }, [query])
 
   // Keep the highlighted row visible
   useEffect(() => {
@@ -88,22 +108,34 @@ export default function CommandPalette() {
     const r = cmd.run()
     // An action says when it is done, or why it failed
     if (r instanceof Promise) {
-      r.then(() => toast.show({ tone: 'success', title: t.palette.done.replace('{title}', cmd.title) }))
-        .catch(err => toast.show({ tone: 'error', title: t.palette.failed.replace('{title}', cmd.title), description: errorText(err) }))
+      r.then(() => toast.show({ tone: 'success', title: t.palette.done.replace('{title}', cmd.title) })).catch(err =>
+        toast.show({ tone: 'error', title: t.palette.failed.replace('{title}', cmd.title), description: errorText(err) })
+      )
     }
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'ArrowDown') { e.preventDefault(); setCursor(c => Math.min(results.length - 1, c + 1)) }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); setCursor(c => Math.max(0, c - 1)) }
-    else if (e.key === 'Enter') { e.preventDefault(); execute(results[cursor]) }
-    else if (e.key === 'Escape') { e.preventDefault(); setOpen(false) }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setCursor(c => Math.min(results.length - 1, c + 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setCursor(c => Math.max(0, c - 1))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      execute(results[cursor])
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      setOpen(false)
+    }
   }
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/55 px-6 pt-[12vh] backdrop-blur-[3px]"
-      onMouseDown={e => { if (e.target === e.currentTarget) setOpen(false) }}
+      onMouseDown={e => {
+        if (e.target === e.currentTarget) setOpen(false)
+      }}
     >
       {/* Forge: a floating window, 680 px, the chosen row on the soft accent; rows of 44 px, keys easy to read */}
       <div className="flex max-h-[65vh] w-full max-w-[680px] flex-col overflow-hidden rounded-window border border-line bg-surface shadow-pop">
@@ -128,9 +160,7 @@ export default function CommandPalette() {
             const Icon = cmd.icon
             return (
               <div key={cmd.id}>
-                {showGroup && (
-                  <div className="px-3.5 pt-3.5 pb-2 text-sm font-semibold tracking-wide text-fg-muted">{cmd.group}</div>
-                )}
+                {showGroup && <div className="px-3.5 pt-3.5 pb-2 text-sm font-semibold tracking-wide text-fg-muted">{cmd.group}</div>}
                 <button
                   data-index={i}
                   onMouseMove={() => setCursor(i)}
@@ -140,9 +170,16 @@ export default function CommandPalette() {
                     i === cursor ? 'bg-accent-soft' : 'hover:bg-elevated'
                   )}
                 >
-                  <Icon size={18} aria-hidden className={cn('shrink-0', i === cursor ? 'text-accent' : 'text-fg-muted')} style={cmd.color ? { color: cmd.color } : undefined} />
+                  <Icon
+                    size={18}
+                    aria-hidden
+                    className={cn('shrink-0', i === cursor ? 'text-accent' : 'text-fg-muted')}
+                    style={cmd.color ? { color: cmd.color } : undefined}
+                  />
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-md text-fg"><Hit text={cmd.title} query={query} /></span>
+                    <span className="truncate text-md text-fg">
+                      <Hit text={cmd.title} query={query} />
+                    </span>
                     {cmd.subtitle && <span className="truncate font-mono text-xs text-fg-muted">{cmd.subtitle}</span>}
                   </span>
                   {i === cursor && <CornerDownLeft size={14} aria-hidden className="shrink-0 text-fg-muted" />}
@@ -153,9 +190,15 @@ export default function CommandPalette() {
         </div>
 
         <div className="flex min-h-15 shrink-0 flex-wrap items-center gap-x-6 gap-y-2 border-t border-line-subtle px-6 py-3 text-sm text-fg-muted">
-          <span className="flex items-center gap-2.5"><Kbd size="md">↑↓</Kbd> {t.palette.hintNavigate}</span>
-          <span className="flex items-center gap-2.5"><Kbd size="md">↵</Kbd> {t.palette.hintRun}</span>
-          <span className="ml-auto flex items-center gap-2.5"><Kbd size="md">Ctrl K</Kbd> {t.palette.hintToggle}</span>
+          <span className="flex items-center gap-2.5">
+            <Kbd size="md">↑↓</Kbd> {t.palette.hintNavigate}
+          </span>
+          <span className="flex items-center gap-2.5">
+            <Kbd size="md">↵</Kbd> {t.palette.hintRun}
+          </span>
+          <span className="ml-auto flex items-center gap-2.5">
+            <Kbd size="md">Ctrl K</Kbd> {t.palette.hintToggle}
+          </span>
         </div>
       </div>
     </div>
