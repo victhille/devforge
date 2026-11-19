@@ -41,7 +41,13 @@ const READ_BUDGET = 8_000_000
 
 // ─── The folder and the files ────────────────────────────────────────────────
 
-const lstatOrNull = (path: string): Stats | null => { try { return lstatSync(path) } catch { return null } }
+const lstatOrNull = (path: string): Stats | null => {
+  try {
+    return lstatSync(path)
+  } catch {
+    return null
+  }
+}
 
 /** A saved project by its id */
 export function savedProject(projectId: unknown): Project {
@@ -56,7 +62,11 @@ export function savedProject(projectId: unknown): Project {
  */
 function notesDir(p: Project, create: boolean): string | null {
   let root: Stats | null = null
-  try { root = statSync(p.path) } catch { /* moved or deleted */ }
+  try {
+    root = statSync(p.path)
+  } catch {
+    /* moved or deleted */
+  }
   if (!root?.isDirectory()) {
     if (!create) return null
     throw new Error(`Project folder not found: ${p.path}`)
@@ -81,14 +91,25 @@ function noteFile(dir: string, id: unknown): string {
 }
 
 /** The names already used in the folder (lower-cased: Windows does not tell Notes.md from notes.md) */
-const takenIds = (dir: string) => new Set(readdirSync(dir).filter(f => /\.md$/i.test(f)).map(f => f.slice(0, -3).toLowerCase()))
+const takenIds = (dir: string) =>
+  new Set(
+    readdirSync(dir)
+      .filter(f => /\.md$/i.test(f))
+      .map(f => f.slice(0, -3).toLowerCase())
+  )
 
 // ─── The file's format ───────────────────────────────────────────────────────
 
 const FRONT = /^\uFEFF?---[ \t]*\r?\n(?:([\s\S]*?)\r?\n)?---[ \t]*(?:\r?\n|$)/
 
 function unquote(v: string): string {
-  if (v.startsWith('"')) { try { return String(JSON.parse(v)) } catch { return v.slice(1, v.length > 1 && v.endsWith('"') ? -1 : undefined) } }
+  if (v.startsWith('"')) {
+    try {
+      return String(JSON.parse(v))
+    } catch {
+      return v.slice(1, v.length > 1 && v.endsWith('"') ? -1 : undefined)
+    }
+  }
   if (v.startsWith("'")) return v.slice(1, v.length > 1 && v.endsWith("'") ? -1 : undefined).replace(/''/g, "'")
   // A comment after a plain value (found by a search, not by a pattern that backtracks over the spaces)
   const at = v.search(/[ \t]#/)
@@ -112,7 +133,11 @@ function firstHeading(body: string): { title: string; rest: string } | null {
   return title ? { title, rest: nl < 0 ? '' : body.slice(nl + 1).replace(/^(?:[ \t]*\r?\n)+/, '') } : null
 }
 
-const cleanTitle = (t: string) => t.replace(/[\s\p{Cc}]+/gu, ' ').trim().slice(0, MAX_TITLE)
+const cleanTitle = (t: string) =>
+  t
+    .replace(/[\s\p{Cc}]+/gu, ' ')
+    .trim()
+    .slice(0, MAX_TITLE)
 
 /** A note file's text; `id` and `updatedAt` come from its name and its date */
 export function parseNote(id: string, text: string, updatedAt: string): ProjectNote {
@@ -137,14 +162,17 @@ export function parseNote(id: string, text: string, updatedAt: string): ProjectN
   if (title === null) {
     // Written by hand: its first heading names it, else its file's name
     const h = isHtmlNotes(body) ? null : firstHeading(body)
-    if (h) { title = h.title; body = h.rest }
-    else title = id.replace(/-/g, ' ')
+    if (h) {
+      title = h.title
+      body = h.rest
+    } else title = id.replace(/-/g, ' ')
   }
   return { id, title: cleanTitle(title), pinned, body, updatedAt, ...(local ? { local } : {}) }
 }
 
 /** A title YAML reads as it is; any other is quoted */
-const plainTitle = (t: string) => /^[^\s"'#:\-?[\]{}!&*|>%@`,]/.test(t) && !/:\s|:$|\s#/.test(t) && !/^(true|false|yes|no|on|off|null|~|[\d.+-].*)$/i.test(t) && t === t.trim()
+const plainTitle = (t: string) =>
+  /^[^\s"'#:\-?[\]{}!&*|>%@`,]/.test(t) && !/:\s|:$|\s#/.test(t) && !/^(true|false|yes|no|on|off|null|~|[\d.+-].*)$/i.test(t) && t === t.trim()
 
 /** The body as the file holds it: HTML one block per line, Markdown as it is */
 const fileBody = (body: string) => (isHtmlNotes(body) ? blocksOnLines(body) : body)
@@ -167,22 +195,30 @@ const byOrder = (a: { pinned: boolean; updatedAt: string; title: string }, b: { 
 
 /** The notes a folder holds: valid ids only, at most MAX_NOTES (a cloned repository may bring any number of files) */
 function noteIds(dir: string): string[] {
-  return readdirSync(dir).filter(f => f.endsWith('.md')).map(f => f.slice(0, -3)).filter(id => NOTE_ID.test(id)).slice(0, MAX_NOTES)
+  return readdirSync(dir)
+    .filter(f => f.endsWith('.md'))
+    .map(f => f.slice(0, -3))
+    .filter(id => NOTE_ID.test(id))
+    .slice(0, MAX_NOTES)
 }
 
 /** Every note of the folder, pinned ones first, then the last changed (a file that cannot be read, or past READ_BUDGET, is left out) */
 function readAll(dir: string): ProjectNote[] {
   const ids = noteIds(dir)
   let budget = READ_BUDGET
-  return ids.flatMap(id => {
-    try {
-      const size = lstatOrNull(noteFile(dir, id))?.size ?? 0
-      if (size > budget) return []
-      budget -= size
-      const n = readNoteFile(dir, id)
-      return n ? [n] : []
-    } catch { return [] }
-  }).sort(byOrder)
+  return ids
+    .flatMap(id => {
+      try {
+        const size = lstatOrNull(noteFile(dir, id))?.size ?? 0
+        if (size > budget) return []
+        budget -= size
+        const n = readNoteFile(dir, id)
+        return n ? [n] : []
+      } catch {
+        return []
+      }
+    })
+    .sort(byOrder)
 }
 
 function writeNote(file: string, n: { title: string; pinned: boolean; body: string; local?: boolean }): void {
@@ -191,8 +227,17 @@ function writeNote(file: string, n: { title: string; pinned: boolean; body: stri
 
 /** A safe file name made from a title: « Comptes de test Stripe » → comptes-de-test-stripe */
 export function slugify(title: string): string {
-  const s = title.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/œ/g, 'oe').replace(/æ/g, 'ae').replace(/ß/g, 'ss')
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-+/, '').slice(0, 60).replace(/-+$/, '')
+  const s = title
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/œ/g, 'oe')
+    .replace(/æ/g, 'ae')
+    .replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+/, '')
+    .slice(0, 60)
+    .replace(/-+$/, '')
   return s || 'note'
 }
 
@@ -202,11 +247,17 @@ function freeId(base: string, taken: Set<string>): string {
 }
 
 /** Its file still says its title (taches, taches-2…): no need to rename it */
-const fitsTitle = (id: string, title: string) => { const base = slugify(title); return id === base || new RegExp(`^${base}-\\d+$`).test(id) }
+const fitsTitle = (id: string, title: string) => {
+  const base = slugify(title)
+  return id === base || new RegExp(`^${base}-\\d+$`).test(id)
+}
 
 // ─── The notes of v3.8, moved into the project ───────────────────────────────
 
-interface LegacyNotes { tasks?: { text?: unknown; done?: unknown }[]; notes?: unknown }
+interface LegacyNotes {
+  tasks?: { text?: unknown; done?: unknown }[]
+  notes?: unknown
+}
 
 const legacyFile = () => join(app.getPath('userData'), 'project-notes.json')
 
@@ -214,11 +265,13 @@ function readLegacy(): Record<string, LegacyNotes> {
   try {
     const raw = JSON.parse(readFileSync(legacyFile(), 'utf-8'))
     return raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {}
-  } catch { return {} }
+  } catch {
+    return {}
+  }
 }
 
-const legacyTasks = (n: LegacyNotes | undefined) => (Array.isArray(n?.tasks) ? n.tasks : [])
-  .flatMap(t => (t && typeof t.text === 'string' && t.text.trim() ? [{ text: t.text.trim(), checked: !!t.done }] : []))
+const legacyTasks = (n: LegacyNotes | undefined) =>
+  (Array.isArray(n?.tasks) ? n.tasks : []).flatMap(t => (t && typeof t.text === 'string' && t.text.trim() ? [{ text: t.text.trim(), checked: !!t.done }] : []))
 
 /** What the entry of project-notes.json becomes: a « Tâches » checklist, a « Notes » note */
 function legacyNotes(entry: LegacyNotes): { title: string; pinned: boolean; body: string }[] {
@@ -250,8 +303,13 @@ export function migrateLegacy(p: Project): void {
     const dir = notesDir(p, true)!
     const have = readAll(dir)
     const taken = takenIds(dir)
-    const moved = fresh.filter(n => !have.some(h => h.title === n.title && h.body.trim() === fileBody(n.body).trim()))
-      .map(n => { const id = freeId(slugify(n.title), taken); taken.add(id); return { id, n } })
+    const moved = fresh
+      .filter(n => !have.some(h => h.title === n.title && h.body.trim() === fileBody(n.body).trim()))
+      .map(n => {
+        const id = freeId(slugify(n.title), taken)
+        taken.add(id)
+        return { id, n }
+      })
     // They were private, in DevForge's data: out of Git before they are written, or they stay where they are
     if (moved.length && !syncIgnore(dir, { add: moved.map(m => m.id) })) {
       throw new Error(`The old notes stay in DevForge's data: ${join(dir, IGNORE_FILE)} cannot keep them out of Git`)
@@ -283,7 +341,12 @@ export function projectNotes(p: Project): ProjectNote[] {
  */
 export function peekNotes(p: Project): ProjectNote[] {
   let files: ProjectNote[] = []
-  try { const dir = notesDir(p, false); if (dir) files = readAll(dir) } catch { /* out of reach: none */ }
+  try {
+    const dir = notesDir(p, false)
+    if (dir) files = readAll(dir)
+  } catch {
+    /* out of reach: none */
+  }
   const entry = readLegacy()[p.id]
   if (!entry) return files
   const old = legacyNotes(entry).filter(n => !files.some(f => f.title === n.title && f.body.trim() === fileBody(n.body).trim()))
@@ -388,8 +451,9 @@ const MAX_ADD = 200
 export function addTasks(p: Project, texts: unknown): { added: string[]; note: ProjectNote | null } {
   const notes = projectNotes(p)
   const have = new Set(notes.flatMap(n => checklistItems(toHtmlBody(n.body)).map(i => i.text)))
-  const wanted = [...new Set((Array.isArray(texts) ? texts.slice(0, MAX_ADD) : []).flatMap(t => (typeof t === 'string' ? [t.replace(/\s+/g, ' ').trim().slice(0, 500)] : [])))]
-    .filter(t => t && !have.has(t))
+  const wanted = [
+    ...new Set((Array.isArray(texts) ? texts.slice(0, MAX_ADD) : []).flatMap(t => (typeof t === 'string' ? [t.replace(/\s+/g, ' ').trim().slice(0, 500)] : [])))
+  ].filter(t => t && !have.has(t))
   const note = findTasksNote(notes)
   const base = note ? toHtmlBody(note.body) : ''
   // One insertion for all of them, as long as the note can hold them
@@ -445,8 +509,14 @@ function syncIgnore(dir: string, change: { add?: string[]; drop?: string[] }): b
       for (let i = begin + 1; i < lines.length; i++) {
         const l = lines[i]
         const id = BLOCK_LINE.exec(l)?.[1]
-        if (l === BLOCK_END) { mine.add(i); break }
-        if (id || l === `/${IGNORE_FILE}`) { mine.add(i); if (id) ids.add(id) } else if (!hasEnd) break
+        if (l === BLOCK_END) {
+          mine.add(i)
+          break
+        }
+        if (id || l === `/${IGNORE_FILE}`) {
+          mine.add(i)
+          if (id) ids.add(id)
+        } else if (!hasEnd) break
       }
     }
     const rest = lines.filter((_, i) => !mine.has(i))
@@ -457,10 +527,15 @@ function syncIgnore(dir: string, change: { add?: string[]; drop?: string[] }): b
     const head = rest.join('\n').trimEnd()
     const block = ids.size ? [BLOCK_BEGIN, `/${IGNORE_FILE}`, ...[...ids].sort().map(id => `/${id}.md`), BLOCK_END].join('\n') : ''
     const next = [head, block].filter(Boolean).join('\n')
-    if (!next) { rmSync(file, { force: true }); return true }
+    if (!next) {
+      rmSync(file, { force: true })
+      return true
+    }
     if (`${next}\n` !== text) writeTextFile(file, `${next}\n`)
     return true
-  } catch { return false }
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -477,7 +552,9 @@ export function openCounts(): Record<string, number> {
     try {
       const dir = notesDir(p, false)
       if (dir) n += folderCount(dir)
-    } catch { /* a folder out of reach counts nothing */ }
+    } catch {
+      /* a folder out of reach counts nothing */
+    }
     if (n > 0) out[p.id] = n
   }
   return out
@@ -490,8 +567,15 @@ export function openCounts(): Record<string, number> {
 const counted = new Map<string, { stamp: string; n: number }>()
 function folderCount(dir: string): number {
   // The same files readAll reads: the stamp never looks at more than MAX_NOTES of them
-  const files = noteIds(dir).map(id => `${id}.md`).sort()
-  const stamp = files.map(f => { const st = lstatOrNull(join(dir, f)); return `${f}:${st?.mtimeMs ?? 0}:${st?.size ?? 0}` }).join('|')
+  const files = noteIds(dir)
+    .map(id => `${id}.md`)
+    .sort()
+  const stamp = files
+    .map(f => {
+      const st = lstatOrNull(join(dir, f))
+      return `${f}:${st?.mtimeMs ?? 0}:${st?.size ?? 0}`
+    })
+    .join('|')
   const known = counted.get(dir)
   if (known?.stamp === stamp) return known.n
   const n = readAll(dir).reduce((sum, x) => sum + countOpen(x.body), 0)

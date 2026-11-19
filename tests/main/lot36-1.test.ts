@@ -1,12 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import {
-  backupFiles, cargoRange, fitsRangeOf, otherUpdateSteps, parseBundleAudit, parseCargoAudit, parseGovulncheck, parsePipAudit,
-  pythonRange, reinstallCommand, rewriteVersion, rubyRange
+  backupFiles,
+  cargoRange,
+  fitsRangeOf,
+  otherUpdateSteps,
+  parseBundleAudit,
+  parseCargoAudit,
+  parseGovulncheck,
+  parsePipAudit,
+  pythonRange,
+  reinstallCommand,
+  rewriteVersion,
+  rubyRange
 } from '../../src/shared/lib/manifestUpdates'
 
 /** Updating and auditing Python, Rust, Go, Ruby and Dart packages */
 
-describe('Each language\'s ranges', () => {
+describe("Each language's ranges", () => {
   it('reads PEP 440 specifiers', () => {
     expect(pythonRange('>=4.2,<5')).toBe('>=4.2 <5')
     expect(pythonRange('~=1.4')).toBe('>=1.4 <2.0.0')
@@ -40,11 +50,16 @@ describe('Each language\'s ranges', () => {
 })
 
 describe('The steps of an update', () => {
-  const both = [{ name: 'Django', dev: false, target: 'latest' as const }, { name: 'requests', dev: false, target: 'compatible' as const }]
+  const both = [
+    { name: 'Django', dev: false, target: 'latest' as const },
+    { name: 'requests', dev: false, target: 'compatible' as const }
+  ]
   const latest = { Django: '5.1.2', requests: '2.32.3', pytest: '8.3.3' }
 
   it('pip: through the virtual environment, the range kept, the file rewritten for the latest', () => {
-    expect(otherUpdateSteps('pip', 'requirements.txt', both, latest, { python: '.venv\\Scripts\\python.exe', wanted: { requests: '>=2.31,<3', Django: '>=4.2,<5' } })).toEqual([
+    expect(
+      otherUpdateSteps('pip', 'requirements.txt', both, latest, { python: '.venv\\Scripts\\python.exe', wanted: { requests: '>=2.31,<3', Django: '>=4.2,<5' } })
+    ).toEqual([
       { rewrite: { name: 'Django', version: '5.1.2' } },
       { run: ['.venv\\Scripts\\python.exe', '-m', 'pip', 'install', '-U', 'requests>=2.31,<3', 'Django==5.1.2'] }
     ])
@@ -71,7 +86,10 @@ describe('The steps of an update', () => {
   })
 
   it('Cargo, Go, Bundler, pub', () => {
-    const ups = [{ name: 'clap', dev: false, target: 'compatible' as const }, { name: 'tokio', dev: true, target: 'latest' as const }]
+    const ups = [
+      { name: 'clap', dev: false, target: 'compatible' as const },
+      { name: 'tokio', dev: true, target: 'latest' as const }
+    ]
     expect(otherUpdateSteps('cargo', 'Cargo.toml', ups, { tokio: '1.40.0' })).toEqual([
       { run: ['cargo', 'update', '-p', 'clap'] },
       { run: ['cargo', 'add', 'tokio@1.40.0', '--dev'] }
@@ -84,9 +102,18 @@ describe('The steps of an update', () => {
       { rewrite: { name: 'rails', version: '8.0.1' } },
       { run: ['bundle', 'update', 'rails'] }
     ])
-    expect(otherUpdateSteps('pub', 'pubspec.yaml', [{ name: 'http', dev: false, target: 'latest' }, { name: 'lints', dev: true, target: 'latest' }], { http: '1.2.2', lints: '5.0.0' }, { flutter: true })).toEqual([
-      { run: ['flutter', 'pub', 'add', 'http:^1.2.2', 'dev:lints:^5.0.0'] }
-    ])
+    expect(
+      otherUpdateSteps(
+        'pub',
+        'pubspec.yaml',
+        [
+          { name: 'http', dev: false, target: 'latest' },
+          { name: 'lints', dev: true, target: 'latest' }
+        ],
+        { http: '1.2.2', lints: '5.0.0' },
+        { flutter: true }
+      )
+    ).toEqual([{ run: ['flutter', 'pub', 'add', 'http:^1.2.2', 'dev:lints:^5.0.0'] }])
   })
 
   it('refuses names that could carry a command, and versions that are not plain', () => {
@@ -97,7 +124,14 @@ describe('The steps of an update', () => {
   it('saves the right files, and knows how to reinstall', () => {
     expect(backupFiles('pip', 'requirements-dev.txt')).toEqual(['requirements-dev.txt'])
     expect(backupFiles('go', 'go.mod')).toEqual(['go.mod', 'go.sum'])
-    expect(reinstallCommand('pip', 'requirements.txt', '.venv\\Scripts\\python.exe')).toEqual(['.venv\\Scripts\\python.exe', '-m', 'pip', 'install', '-r', 'requirements.txt'])
+    expect(reinstallCommand('pip', 'requirements.txt', '.venv\\Scripts\\python.exe')).toEqual([
+      '.venv\\Scripts\\python.exe',
+      '-m',
+      'pip',
+      'install',
+      '-r',
+      'requirements.txt'
+    ])
     expect(reinstallCommand('pip', 'requirements.txt')).toBeNull()
     expect(reinstallCommand('bundler', 'Gemfile')).toEqual(['bundle', 'install'])
   })
@@ -106,30 +140,49 @@ describe('The steps of an update', () => {
 describe('A version rewritten in its file', () => {
   it('requirements.txt and pyproject.toml: the name as written, its extras and markers kept', () => {
     const req = '# web\nDjango>=4.2,<5  # LTS\ndjango-cors-headers==4.3.1\nrequests[socks]==2.31.0 ; python_version > "3.8"\n'
-    expect(rewriteVersion('pip', req, 'django', '5.1.2')).toBe('# web\nDjango>=5.1.2  # LTS\ndjango-cors-headers==4.3.1\nrequests[socks]==2.31.0 ; python_version > "3.8"\n')
+    expect(rewriteVersion('pip', req, 'django', '5.1.2')).toBe(
+      '# web\nDjango>=5.1.2  # LTS\ndjango-cors-headers==4.3.1\nrequests[socks]==2.31.0 ; python_version > "3.8"\n'
+    )
     expect(rewriteVersion('pip', req, 'requests', '2.32.3')).toContain('requests[socks]>=2.32.3 ; python_version > "3.8"')
-    expect(rewriteVersion('pip', '[project]\ndependencies = [\n  "fastapi>=0.110",\n]\n', 'fastapi', '0.115.0')).toBe('[project]\ndependencies = [\n  "fastapi>=0.115.0",\n]\n')
+    expect(rewriteVersion('pip', '[project]\ndependencies = [\n  "fastapi>=0.110",\n]\n', 'fastapi', '0.115.0')).toBe(
+      '[project]\ndependencies = [\n  "fastapi>=0.115.0",\n]\n'
+    )
   })
 
-  it('Gemfile: the gem\'s versions become ~> major.minor', () => {
+  it("Gemfile: the gem's versions become ~> major.minor", () => {
     expect(rewriteVersion('bundler', 'gem "rails", "~> 7.1"\ngem "pg"\n', 'rails', '8.0.1')).toBe('gem "rails", "~> 8.0"\ngem "pg"\n')
-    expect(rewriteVersion('bundler', "gem 'pg'\n", 'pg', '1.5.9')).toBe("gem 'pg', \"~> 1.5\"\n")
+    expect(rewriteVersion('bundler', "gem 'pg'\n", 'pg', '1.5.9')).toBe('gem \'pg\', "~> 1.5"\n')
   })
 })
 
 describe('Audit reports', () => {
   it('pip-audit (both formats)', () => {
-    const r = parsePipAudit(JSON.stringify({ dependencies: [{ name: 'django', version: '4.2.0', vulns: [{ id: 'PYSEC-1' }, { id: 'GHSA-2' }] }, { name: 'idna', version: '3.7', vulns: [] }] }))
+    const r = parsePipAudit(
+      JSON.stringify({
+        dependencies: [
+          { name: 'django', version: '4.2.0', vulns: [{ id: 'PYSEC-1' }, { id: 'GHSA-2' }] },
+          { name: 'idna', version: '3.7', vulns: [] }
+        ]
+      })
+    )
     expect(r).toMatchObject({ total: 2, packages: { django: 'unknown' } })
     expect(parsePipAudit('[]')).toMatchObject({ total: 0 })
     expect(parsePipAudit('not json')).toBeNull()
   })
 
   it('cargo audit, its CVSS score as severity', () => {
-    const r = parseCargoAudit(JSON.stringify({ vulnerabilities: { found: true, count: 2, list: [
-      { advisory: { id: 'RUSTSEC-1', cvss_score: 9.8 }, package: { name: 'openssl' } },
-      { advisory: { id: 'RUSTSEC-2' }, package: { name: 'time' } }
-    ] } }))
+    const r = parseCargoAudit(
+      JSON.stringify({
+        vulnerabilities: {
+          found: true,
+          count: 2,
+          list: [
+            { advisory: { id: 'RUSTSEC-1', cvss_score: 9.8 }, package: { name: 'openssl' } },
+            { advisory: { id: 'RUSTSEC-2' }, package: { name: 'time' } }
+          ]
+        }
+      })
+    )
     expect(r).toMatchObject({ total: 2, packages: { openssl: 'critical', time: 'unknown' }, bySeverity: { critical: 1, unknown: 1 } })
   })
 
@@ -144,7 +197,15 @@ describe('Audit reports', () => {
   })
 
   it('bundle-audit, its criticality', () => {
-    expect(parseBundleAudit(JSON.stringify({ results: [{ type: 'unpatched_gem', gem: { name: 'rack' }, advisory: { criticality: 'high' } }, { gem: { name: 'nokogiri' }, advisory: { criticality: 'medium' } }] })))
-      .toMatchObject({ total: 2, packages: { rack: 'high', nokogiri: 'moderate' } })
+    expect(
+      parseBundleAudit(
+        JSON.stringify({
+          results: [
+            { type: 'unpatched_gem', gem: { name: 'rack' }, advisory: { criticality: 'high' } },
+            { gem: { name: 'nokogiri' }, advisory: { criticality: 'medium' } }
+          ]
+        })
+      )
+    ).toMatchObject({ total: 2, packages: { rack: 'high', nokogiri: 'moderate' } })
   })
 })

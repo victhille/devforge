@@ -8,10 +8,16 @@ import { readFileSync } from 'fs'
 
 const TYPES = ['feat', 'fix', 'security', 'perf', 'refactor', 'build', 'docs', 'test', 'ci', 'chore', 'style', 'revert']
 const file = process.argv[2]
-if (!file) { console.error('Usage: node scripts/check-commit-msg.mjs <message file>'); process.exit(2) }
+if (!file) {
+  console.error('Usage: node scripts/check-commit-msg.mjs <message file>')
+  process.exit(2)
+}
 
 // Git's own comments (# …) are not part of the message
-const lines = readFileSync(file, 'utf-8').replace(/\r/g, '').split('\n').filter(l => !l.startsWith('#'))
+const lines = readFileSync(file, 'utf-8')
+  .replace(/\r/g, '')
+  .split('\n')
+  .filter(l => !l.startsWith('#'))
 const [title = '', second = ''] = lines
 const fail = why => {
   console.error(`Commit message refused: ${why}\n  « ${title} »\nFormat: type(zone): title, then a blank line before the details. Types: ${TYPES.join(', ')}.`)

@@ -12,7 +12,7 @@ export function toSftpEntries(list: RawSftpEntry[]): SftpEntry[] {
     .filter(f => f.filename !== '.' && f.filename !== '..')
     .map(f => ({
       name: f.filename,
-      kind: f.attrs.isDirectory() ? 'dir' as const : f.attrs.isSymbolicLink() ? 'link' as const : 'file' as const,
+      kind: f.attrs.isDirectory() ? ('dir' as const) : f.attrs.isSymbolicLink() ? ('link' as const) : ('file' as const),
       size: f.attrs.size,
       mtime: f.attrs.mtime * 1000
     }))

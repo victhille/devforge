@@ -1,6 +1,14 @@
 import type { DbTableRef } from '@shared/types'
 import { quoteIdent } from '@shared/lib/sqlQuote'
-import { DB_SEARCH_MAX_ROWS, DB_SEARCH_MODES, searchProblem, searchStatements, searchedColumns, type DbSearchOptions, type DbSearchResult } from '@shared/lib/dbSearch'
+import {
+  DB_SEARCH_MAX_ROWS,
+  DB_SEARCH_MODES,
+  searchProblem,
+  searchStatements,
+  searchedColumns,
+  type DbSearchOptions,
+  type DbSearchResult
+} from '@shared/lib/dbSearch'
 import { closeDb, connOf, driverFor } from './dbClient'
 
 /**

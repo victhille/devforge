@@ -19,13 +19,18 @@ async function getWindowsProcessNames(): Promise<Map<number, string>> {
       const m = line.match(/^"([^"]+)","(\d+)"/)
       if (m) names.set(parseInt(m[2]), m[1].replace(/\.exe$/i, ''))
     }
-  } catch { /* names stay empty */ }
+  } catch {
+    /* names stay empty */
+  }
   return names
 }
 
 /** Address part of "0.0.0.0:3000", "[::1]:5173", "127.0.0.53%lo:53", "*:80" */
 export function hostOf(local: string): string {
-  const host = local.replace(/:\d+$/, '').replace(/^\[|\]$/g, '').replace(/%.*$/, '')
+  const host = local
+    .replace(/:\d+$/, '')
+    .replace(/^\[|\]$/g, '')
+    .replace(/%.*$/, '')
   return host === '*' ? '0.0.0.0' : host
 }
 
@@ -40,10 +45,10 @@ export function parseNetstat(output: string, names: Map<number, string>): Listen
     const portMatch = parts[1].match(/:(\d+)$/)
     if (!portMatch) continue
     const port = parseInt(portMatch[1])
-    const pid  = parseInt(parts[4]) || null
+    const pid = parseInt(parts[4]) || null
     const address = hostOf(parts[1])
     const known = seen.get(`${port}:${pid}`)
-    if (!known) seen.set(`${port}:${pid}`, { port, pid, processName: pid ? names.get(pid) ?? '' : '', address })
+    if (!known) seen.set(`${port}:${pid}`, { port, pid, processName: pid ? (names.get(pid) ?? '') : '', address })
     else if (reachableFromNetwork(address) && !reachableFromNetwork(known.address)) known.address = address
   }
   return Array.from(seen.values()).sort((a, b) => a.port - b.port || (a.pid ?? 0) - (b.pid ?? 0))
@@ -72,10 +77,7 @@ export function parseSs(output: string): ListeningPort[] {
 
 async function getWindowsPorts(): Promise<ListeningPort[]> {
   // Both commands run in parallel
-  const [output, names] = await Promise.all([
-    run('netstat -ano', { timeout: 8000 }),
-    getWindowsProcessNames()
-  ])
+  const [output, names] = await Promise.all([run('netstat -ano', { timeout: 8000 }), getWindowsProcessNames()])
   return parseNetstat(output, names)
 }
 

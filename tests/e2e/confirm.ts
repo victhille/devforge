@@ -9,5 +9,7 @@ export const cancelButton = (page: Page): Locator => confirmDialog(page).getByRo
 
 /** Every question of the test answered « yes », as `page.on('dialog', d => d.accept())` did */
 export async function acceptConfirms(page: Page): Promise<void> {
-  await page.addLocatorHandler(confirmDialog(page), async () => { await confirmButton(page).click() })
+  await page.addLocatorHandler(confirmDialog(page), async () => {
+    await confirmButton(page).click()
+  })
 }

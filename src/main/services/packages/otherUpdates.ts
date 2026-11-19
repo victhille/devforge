@@ -2,8 +2,16 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import type { AuditSummary, PackageManagerKind, PackageManifest, PackageUpdate } from '@shared/types'
 import {
-  backupFiles, otherUpdateSteps, parseBundleAudit, parseCargoAudit, parseGovulncheck, parsePipAudit, reinstallCommand, rewriteVersion,
-  UPDATABLE, type UpdateContext
+  backupFiles,
+  otherUpdateSteps,
+  parseBundleAudit,
+  parseCargoAudit,
+  parseGovulncheck,
+  parsePipAudit,
+  reinstallCommand,
+  rewriteVersion,
+  UPDATABLE,
+  type UpdateContext
 } from '@shared/lib/manifestUpdates'
 import { quote, runCapture } from '../../lib/exec'
 import { findExecutable } from '../../lib/safe'
@@ -35,10 +43,18 @@ function sitePackages(dir: string, python: string): string | null {
   try {
     const py = readdirSync(join(dir, venv, 'lib')).find(n => n.startsWith('python'))
     return py ? join(venv, 'lib', py, 'site-packages') : null
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
 
-const isFlutter =(dir: string) => { try { return /^\s+sdk:\s*flutter/m.test(readFileSync(join(dir, 'pubspec.yaml'), 'utf-8')) } catch { return false } }
+const isFlutter = (dir: string) => {
+  try {
+    return /^\s+sdk:\s*flutter/m.test(readFileSync(join(dir, 'pubspec.yaml'), 'utf-8'))
+  } catch {
+    return false
+  }
+}
 
 /** The program each manager needs, and how to get it */
 const TOOL: Partial<Record<PackageManagerKind, { exe: string; install: string }>> = {
@@ -74,8 +90,12 @@ export async function missingTool(manager: PackageManagerKind, dir: string): Pro
 /** A command for the shell of the command runner: every part quoted (">=" stays an argument) */
 const line = (args: string[]) => args.map(quote).join(' ')
 
-export async function otherUpdate(dir: string, m: Pick<PackageManifest, 'manager' | 'file' | 'packages'>, updates: PackageUpdate[], onLog: (line: string) => void):
-  Promise<{ ok: boolean; restored: boolean; backup?: PackagesBackup }> {
+export async function otherUpdate(
+  dir: string,
+  m: Pick<PackageManifest, 'manager' | 'file' | 'packages'>,
+  updates: PackageUpdate[],
+  onLog: (line: string) => void
+): Promise<{ ok: boolean; restored: boolean; backup?: PackagesBackup }> {
   if (!UPDATABLE.includes(m.manager)) throw new Error(`DevForge does not update the packages of ${m.file}`)
   const fake = testData()?.update as string | undefined
   if (!fake) {
@@ -83,9 +103,16 @@ export async function otherUpdate(dir: string, m: Pick<PackageManifest, 'manager
     if (missing) throw new Error(`TOOL_MISSING:${missing.name}`)
   }
   const registry = registryOf(m.file)
-  const latest = updates.some(u => u.target === 'latest') && registry ? await otherLatest(registry, updates.map(u => u.name)) : {}
+  const latest =
+    updates.some(u => u.target === 'latest') && registry
+      ? await otherLatest(
+          registry,
+          updates.map(u => u.name)
+        )
+      : {}
   const ctx: UpdateContext = {
-    python: venvPython(dir) ?? undefined, flutter: isFlutter(dir),
+    python: venvPython(dir) ?? undefined,
+    flutter: isFlutter(dir),
     wanted: Object.fromEntries(m.packages.map(p => [p.name, p.wanted]))
   }
   const steps = fake ? [{ run: fake.split(' ') }] : otherUpdateSteps(m.manager, m.file, updates, latest, ctx)
@@ -96,17 +123,26 @@ export async function otherUpdate(dir: string, m: Pick<PackageManifest, 'manager
     restoreBackup(dir, saved)
     onLog(`↺ ${saved.files.join(', ')} put back as they were`)
     // pip changed the environment already: the old versions back in it
-    if (m.manager === 'pip') onLog(`  (the virtual environment keeps the new versions: ${line([ctx.python ?? 'python', '-m', 'pip', 'install', '-r', m.file])} brings the old ones back)`)
+    if (m.manager === 'pip')
+      onLog(
+        `  (the virtual environment keeps the new versions: ${line([ctx.python ?? 'python', '-m', 'pip', 'install', '-r', m.file])} brings the old ones back)`
+      )
   }
   for (const step of steps) {
     if ('rewrite' in step) {
       const path = join(dir, m.file)
       const before = readFileSync(path, 'utf-8')
       const after = rewriteVersion(m.manager, before, step.rewrite.name, step.rewrite.version)
-      if (after !== before) { writeFileSync(path, after); onLog(`✎ ${m.file}: ${step.rewrite.name} → ${step.rewrite.version}`) }
+      if (after !== before) {
+        writeFileSync(path, after)
+        onLog(`✎ ${m.file}: ${step.rewrite.name} → ${step.rewrite.version}`)
+      }
       continue
     }
-    if (!(await runLogged(fake ?? line(step.run), dir, onLog))) { undo(); return { ok: false, restored: true } }
+    if (!(await runLogged(fake ?? line(step.run), dir, onLog))) {
+      undo()
+      return { ok: false, restored: true }
+    }
   }
   return { ok: true, restored: false, backup: saved }
 }
@@ -125,8 +161,12 @@ const AUDIT_TOOL = {
   bundler: { exe: 'bundle-audit', install: 'gem install bundler-audit' }
 } as const
 
-const withMissing = (name: string, install: string): AuditSummary =>
-  ({ total: 0, bySeverity: { unknown: 0, info: 0, low: 0, moderate: 0, high: 0, critical: 0 }, packages: {}, missingTool: { name, install } })
+const withMissing = (name: string, install: string): AuditSummary => ({
+  total: 0,
+  bySeverity: { unknown: 0, info: 0, low: 0, moderate: 0, high: 0, critical: 0 },
+  packages: {},
+  missingTool: { name, install }
+})
 
 /**
  * pip-audit (in the virtual environment, else on the PATH), cargo audit,

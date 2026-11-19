@@ -22,22 +22,44 @@ export default function ServerSettings({ onSaved }: { onSaved: () => void }) {
   const navigate = useNavigate()
   const { config, saveConfig } = useWatch()
   const connections: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
-  if (!config) return <div role="status" aria-label={t.common.loading} className="flex flex-col gap-5"><CardSkeleton label={false} rows={2} /><CardSkeleton label={false} rows={4} /></div>
+  if (!config)
+    return (
+      <div role="status" aria-label={t.common.loading} className="flex flex-col gap-5">
+        <CardSkeleton label={false} rows={2} />
+        <CardSkeleton label={false} rows={4} />
+      </div>
+    )
 
-  const save = async (u: Parameters<typeof saveConfig>[0]) => { await saveConfig(u); onSaved() }
+  const save = async (u: Parameters<typeof saveConfig>[0]) => {
+    await saveConfig(u)
+    onSaved()
+  }
   const alertLabel: Record<AlertKind, string> = { disk: s.alertDisk, container: s.alertContainer, server: s.alertServer, site: s.alertSite }
 
   return (
     <>
-      <SettingsCard title={s.groups.servers} action={<Button size="sm" variant="ghost" onClick={() => navigate('/monitor')}>{s.seeCurves}</Button>}>
+      <SettingsCard
+        title={s.groups.servers}
+        action={
+          <Button size="sm" variant="ghost" onClick={() => navigate('/monitor')}>
+            {s.seeCurves}
+          </Button>
+        }
+      >
         <SettingRow label={s.watchedServers} hint={s.watchedServersHint}>
-          {connections.length === 0 ? <p className="text-sm text-fg-muted">{w.noServers}</p> : (
+          {connections.length === 0 ? (
+            <p className="text-sm text-fg-muted">{w.noServers}</p>
+          ) : (
             <div role="group" aria-label={s.watchedServers} className="flex flex-wrap items-center gap-x-4 gap-y-2">
               {connections.map(c => {
                 const on = config.watched.includes(c.id)
                 return (
-                  <Checkbox key={c.id} checked={on} className="text-sm"
-                    onChange={v => save({ watched: v ? [...config.watched, c.id] : config.watched.filter(x => x !== c.id) })}>
+                  <Checkbox
+                    key={c.id}
+                    checked={on}
+                    className="text-sm"
+                    onChange={v => save({ watched: v ? [...config.watched, c.id] : config.watched.filter(x => x !== c.id) })}
+                  >
                     <span className={on ? 'font-mono font-medium text-fg' : 'font-mono'}>{c.name}</span>
                   </Checkbox>
                 )
@@ -59,7 +81,18 @@ export default function ServerSettings({ onSaved }: { onSaved: () => void }) {
             </div>
           ))}
         </div>
-        <Notice className="mx-5 mb-4.5"><Words text={s.alertsHint} parts={{ widget: <button type="button" onClick={() => navigate('/settings?section=forgy')} className="text-accent hover:underline">{s.widgetLink}</button> }} /></Notice>
+        <Notice className="mx-5 mb-4.5">
+          <Words
+            text={s.alertsHint}
+            parts={{
+              widget: (
+                <button type="button" onClick={() => navigate('/settings?section=forgy')} className="text-accent hover:underline">
+                  {s.widgetLink}
+                </button>
+              )
+            }}
+          />
+        </Notice>
       </SettingsCard>
     </>
   )

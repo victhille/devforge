@@ -41,7 +41,10 @@ export interface DbQueryResult {
   error?: string
 }
 
-export interface DbTableRef { name: string; schema: string }
+export interface DbTableRef {
+  name: string
+  schema: string
+}
 
 /** One table in the database overview (sizes and counts may be estimates) */
 export interface DbTableStat extends DbTableRef {
@@ -111,10 +114,18 @@ export interface DbDiagramTable extends DbTableRef {
 }
 
 /** One foreign key, from the table that points to the table pointed at */
-export interface DbDiagramLink { from: DbTableRef; columns: string[]; to: DbTableRef; refColumns: string[] }
+export interface DbDiagramLink {
+  from: DbTableRef
+  columns: string[]
+  to: DbTableRef
+  refColumns: string[]
+}
 
 /** Every table and foreign key of a database, read at once */
-export interface DbDiagram { tables: DbDiagramTable[]; links: DbDiagramLink[] }
+export interface DbDiagram {
+  tables: DbDiagramTable[]
+  links: DbDiagramLink[]
+}
 
 export interface DbBrowseOptions {
   offset: number
@@ -164,13 +175,13 @@ export interface DetectedDatabase {
 }
 
 export interface DatabaseAPI {
-  list:   () => Promise<DbConnection[]>
-  save:   (c: DbConnection) => Promise<void>
+  list: () => Promise<DbConnection[]>
+  save: (c: DbConnection) => Promise<void>
   remove: (id: string) => Promise<void>
   /** Connects and returns the server version, throws on failure */
-  test:   (c: DbConnection) => Promise<string>
+  test: (c: DbConnection) => Promise<string>
   schema: (id: string) => Promise<DbTable[]>
-  query:  (id: string, sql: string) => Promise<DbQueryResult>
+  query: (id: string, sql: string) => Promise<DbQueryResult>
   /** Database info and every table with its size and row estimate */
   overview: (id: string) => Promise<DbOverview>
   /** Columns, indexes, foreign keys and DDL of one table */
@@ -186,7 +197,13 @@ export interface DatabaseAPI {
   /** A CSV picked and read; error TOO_BIG (over 50 MB) or EMPTY */
   pickCsv: (id: string, table: DbTableRef) => Promise<CsvPreview | { error: string } | null>
   /** The picked CSV inserted, in one transaction; `line` is the CSV line that failed */
-  importCsv: (id: string, table: DbTableRef, token: string, mapping: (string | null)[], emptyIsNull: boolean) => Promise<{ inserted: number; error?: string; line?: number }>
+  importCsv: (
+    id: string,
+    table: DbTableRef,
+    token: string,
+    mapping: (string | null)[],
+    emptyIsNull: boolean
+  ) => Promise<{ inserted: number; error?: string; line?: number }>
   /** Rows changed, in one transaction (all or none) */
   applyRows: (id: string, table: DbTableRef, changes: RowChange[]) => Promise<{ affected: number; error?: string }>
   /** Every table, column and foreign key, for the schema */

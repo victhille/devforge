@@ -18,14 +18,19 @@ echo
 
 /** git@github.com:me/app.git, https://github.com/me/app → github.com/me/app */
 export function normalizeRemote(url: string): string {
-  return url.trim().toLowerCase()
+  return url
+    .trim()
+    .toLowerCase()
     .replace(/^git@([^:]+):/, '$1/')
     .replace(/^(https?|ssh|git):\/\/([^@/]+@)?/, '')
     .replace(/\/+$/, '')
     .replace(/\.git$/, '')
 }
 
-interface Pm2App { name: string; pm2_env?: { pm_cwd?: string } }
+interface Pm2App {
+  name: string
+  pm2_env?: { pm_cwd?: string }
+}
 
 function pickScript(files: string[], branch: string, pm2App?: string): { preset: string; script: string } {
   const has = (f: string) => files.includes(f)
@@ -34,10 +39,16 @@ function pickScript(files: string[], branch: string, pm2App?: string): { preset:
     return { preset: 'Docker Compose', script: `${pull}\ndocker compose pull\ndocker compose up -d --build\ndocker image prune -f` }
   }
   if (has('artisan')) {
-    return { preset: 'Laravel', script: `${pull}\ncomposer install --no-dev --optimize-autoloader\nphp artisan migrate --force\nphp artisan config:cache\nphp artisan route:cache` }
+    return {
+      preset: 'Laravel',
+      script: `${pull}\ncomposer install --no-dev --optimize-autoloader\nphp artisan migrate --force\nphp artisan config:cache\nphp artisan route:cache`
+    }
   }
   if (has('composer.json') && has('bin')) {
-    return { preset: 'Symfony', script: `${pull}\ncomposer install --no-dev --optimize-autoloader\nphp bin/console doctrine:migrations:migrate --no-interaction\nphp bin/console cache:clear --env=prod` }
+    return {
+      preset: 'Symfony',
+      script: `${pull}\ncomposer install --no-dev --optimize-autoloader\nphp bin/console doctrine:migrations:migrate --no-interaction\nphp bin/console cache:clear --env=prod`
+    }
   }
   if (has('package.json')) {
     const install = has('pnpm-lock.yaml') ? 'pnpm install --frozen-lockfile' : has('yarn.lock') ? 'yarn install --frozen-lockfile' : 'npm ci'
@@ -59,13 +70,21 @@ export async function detectDeploys(sshConnectionId: string): Promise<DetectedDe
 
   let pm2: Pm2App[] = []
   const pm2Line = output.split('\n').find(l => l.startsWith('P|'))
-  if (pm2Line) { try { pm2 = JSON.parse(pm2Line.slice(2)) } catch { /* not JSON */ } }
+  if (pm2Line) {
+    try {
+      pm2 = JSON.parse(pm2Line.slice(2))
+    } catch {
+      /* not JSON */
+    }
+  }
 
   // Local projects by normalized origin, to link remote checkouts to them
-  const locals = await Promise.all(loadProjects().map(async p => {
-    const r = await git(p.path, ['remote', 'get-url', 'origin'], 4000)
-    return { project: p, remote: r.ok ? normalizeRemote(r.stdout) : '' }
-  }))
+  const locals = await Promise.all(
+    loadProjects().map(async p => {
+      const r = await git(p.path, ['remote', 'get-url', 'origin'], 4000)
+      return { project: p, remote: r.ok ? normalizeRemote(r.stdout) : '' }
+    })
+  )
 
   const found: DetectedDeploy[] = []
   for (const line of output.split('\n')) {

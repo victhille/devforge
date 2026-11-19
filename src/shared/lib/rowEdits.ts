@@ -10,11 +10,12 @@ export type RowValues = Record<string, string | number | boolean | null>
 
 export type RowChange =
   /** `key`: the primary key's columns and values of the row as it was read */
-  | { kind: 'update'; key: RowValues; set: RowValues }
-  | { kind: 'insert'; values: RowValues }
-  | { kind: 'delete'; key: RowValues }
+  { kind: 'update'; key: RowValues; set: RowValues } | { kind: 'insert'; values: RowValues } | { kind: 'delete'; key: RowValues }
 
-export interface RowStatement { sql: string; params: (string | number | boolean | null)[] }
+export interface RowStatement {
+  sql: string
+  params: (string | number | boolean | null)[]
+}
 
 /** At most this many changes in one Apply */
 export const MAX_ROW_CHANGES = 500
@@ -22,11 +23,13 @@ export const MAX_ROW_CHANGES = 500
 const placeholder = (db: DbType, n: number) => (db === 'postgres' ? `$${n}` : '?')
 
 function where(db: DbType, key: RowValues, params: RowStatement['params']): string {
-  return Object.entries(key).map(([col, v]) => {
-    if (v === null) return `${quoteColumn(db, col)} IS NULL`
-    params.push(v)
-    return `${quoteColumn(db, col)} = ${placeholder(db, params.length)}`
-  }).join(' AND ')
+  return Object.entries(key)
+    .map(([col, v]) => {
+      if (v === null) return `${quoteColumn(db, col)} IS NULL`
+      params.push(v)
+      return `${quoteColumn(db, col)} = ${placeholder(db, params.length)}`
+    })
+    .join(' AND ')
 }
 
 export function rowStatements(db: DbType, table: DbTableRef, changes: RowChange[]): RowStatement[] {
@@ -36,14 +39,24 @@ export function rowStatements(db: DbType, table: DbTableRef, changes: RowChange[
     if (c.kind === 'update') {
       const cols = Object.entries(c.set)
       if (!cols.length) return []
-      const set = cols.map(([col, v]) => { params.push(v); return `${quoteColumn(db, col)} = ${placeholder(db, params.length)}` }).join(', ')
+      const set = cols
+        .map(([col, v]) => {
+          params.push(v)
+          return `${quoteColumn(db, col)} = ${placeholder(db, params.length)}`
+        })
+        .join(', ')
       return [{ sql: `UPDATE ${t} SET ${set} WHERE ${where(db, c.key, params)}`, params }]
     }
     if (c.kind === 'delete') return [{ sql: `DELETE FROM ${t} WHERE ${where(db, c.key, params)}`, params }]
     const cols = Object.entries(c.values)
     if (!cols.length) return [{ sql: db === 'mysql' ? `INSERT INTO ${t} () VALUES ()` : `INSERT INTO ${t} DEFAULT VALUES`, params }]
     const names = cols.map(([col]) => quoteColumn(db, col)).join(', ')
-    const values = cols.map(([, v]) => { params.push(v); return placeholder(db, params.length) }).join(', ')
+    const values = cols
+      .map(([, v]) => {
+        params.push(v)
+        return placeholder(db, params.length)
+      })
+      .join(', ')
     return [{ sql: `INSERT INTO ${t} (${names}) VALUES (${values})`, params }]
   })
 }

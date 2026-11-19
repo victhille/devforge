@@ -22,14 +22,24 @@ const SECRETS = [
 const SUSPECT_FILES = /(^|\/)(\.env(\.[a-z]+)?|id_rsa|id_ed25519|.*\.pem|.*\.p12|.*\.pfx|credentials\.json)$/i
 
 const raw = process.env.PERSONAL_PATTERNS ?? (existsSync('.personal-patterns') ? readFileSync('.personal-patterns', 'utf-8') : '')
-const words = raw.split(/\r?\n|,/).map(w => w.trim()).filter(w => w && !w.startsWith('#')).map(w => w.toLowerCase())
+const words = raw
+  .split(/\r?\n|,/)
+  .map(w => w.trim())
+  .filter(w => w && !w.startsWith('#'))
+  .map(w => w.toLowerCase())
 
 const found = new Map()
-const note = (what, where) => { const s = found.get(what) ?? new Set(); s.add(where); found.set(what, s) }
+const note = (what, where) => {
+  const s = found.get(what) ?? new Set()
+  s.add(where)
+  found.set(what, s)
+}
 const scan = (text, where) => {
   for (const [name, re] of SECRETS) if (re.test(text)) note(`secret: ${name}`, where)
   const l = text.toLowerCase()
-  words.forEach((w, k) => { if (l.includes(w)) note(`personal word #${k + 1}`, where) })
+  words.forEach((w, k) => {
+    if (l.includes(w)) note(`personal word #${k + 1}`, where)
+  })
 }
 
 // Every path that ever existed, with its blob
@@ -61,5 +71,6 @@ for (const entry of log.split('\x1e')) {
 }
 
 console.log(`${blobs.size} objects, ${words.length} personal words.`)
-for (const [what, where] of [...found].sort()) console.log(`\n${what} — ${where.size} place(s)\n  ${[...where].slice(0, 25).join('\n  ')}${where.size > 25 ? '\n  …' : ''}`)
+for (const [what, where] of [...found].sort())
+  console.log(`\n${what} — ${where.size} place(s)\n  ${[...where].slice(0, 25).join('\n  ')}${where.size > 25 ? '\n  …' : ''}`)
 if (!found.size) console.log('✔ Nothing found.')

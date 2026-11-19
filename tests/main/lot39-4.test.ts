@@ -21,10 +21,11 @@ async function sqlite(sql = ''): Promise<Database> {
   if (sql) db.run(sql)
   return db
 }
-const diagram = (db: Database) => diagramFor('sqlite', async sql => {
-  const r = db.exec(sql)[0]
-  return r ? r.values.map(v => Object.fromEntries(r.columns.map((c, i) => [c, v[i]]))) : []
-})
+const diagram = (db: Database) =>
+  diagramFor('sqlite', async sql => {
+    const r = db.exec(sql)[0]
+    return r ? r.values.map(v => Object.fromEntries(r.columns.map((c, i) => [c, v[i]]))) : []
+  })
 const run = (db: Database, mpd: MpdModel, diffs: ReturnType<typeof diffMpd>) => {
   for (const l of diffScript(mpd, diffs, NOTES)) if (!l.comment) db.run(l.sql)
 }
@@ -60,7 +61,10 @@ describe('the MPD and its database', () => {
     client.columns.push({ id: 'c-x', name: 'telephone', type: 'varchar', length: 20, nullable: true })
     const diffs = diffMpd(mpd, await diagram(db))
     expect(diffs.map(d => `${d.kind}:${d.table}${d.column ? `.${d.column}` : ''}${d.danger ? '!' : ''}`).sort()).toEqual([
-      'columnExtra:produit.vieux!', 'columnMissing:client.telephone', 'tableExtra:trace!', 'tableMissing:avis'
+      'columnExtra:produit.vieux!',
+      'columnMissing:client.telephone',
+      'tableExtra:trace!',
+      'tableMissing:avis'
     ])
     const script = diffScript(mpd, diffs, NOTES)
     expect(script.filter(l => l.danger).map(l => l.sql)).toEqual(['ALTER TABLE produit DROP COLUMN vieux;', 'DROP TABLE trace;'])
@@ -79,11 +83,13 @@ describe('the MPD and its database', () => {
     expect(diffScript(mpd, diffs, NOTES)).toEqual([{ sql: '-- type produit.prix', comment: true }])
     // The same change, on PostgreSQL and MySQL
     const pg = { ...mpd, engine: 'postgres' as const }
-    expect(diffScript(pg, [{ kind: 'type', table: 'produit', column: 'prix', mpd: 'INTEGER', db: 'NUMERIC(10,2)' }], NOTES).map(l => l.sql))
-      .toEqual(['ALTER TABLE produit ALTER COLUMN prix TYPE INTEGER USING prix::INTEGER;'])
+    expect(diffScript(pg, [{ kind: 'type', table: 'produit', column: 'prix', mpd: 'INTEGER', db: 'NUMERIC(10,2)' }], NOTES).map(l => l.sql)).toEqual([
+      'ALTER TABLE produit ALTER COLUMN prix TYPE INTEGER USING prix::INTEGER;'
+    ])
     const my = { ...mpd, engine: 'mysql' as const }
-    expect(diffScript(my, [{ kind: 'nullable', table: 'produit', column: 'prix', mpd: 'NULL', db: 'NOT NULL' }], NOTES).map(l => l.sql))
-      .toEqual(['ALTER TABLE produit MODIFY COLUMN prix INT;'])
+    expect(diffScript(my, [{ kind: 'nullable', table: 'produit', column: 'prix', mpd: 'NULL', db: 'NOT NULL' }], NOTES).map(l => l.sql)).toEqual([
+      'ALTER TABLE produit MODIFY COLUMN prix INT;'
+    ])
   })
 
   it('the database taken into the MPD keeps ties to the MCD, and an update keeps it', async () => {
@@ -97,7 +103,12 @@ describe('the MPD and its database', () => {
     expect(produit.columns.find(c => c.name === 'poids')).toMatchObject({ type: 'float', nullable: true, edited: true })
     expect(produit.columns.find(c => c.name === 'categorie_id')).toMatchObject({ from: expect.any(String), ref: { table: 't-ca' } })
     expect(taken.tables.find(t => t.name === 'avis')?.from).toBe('av')
-    expect(taken.tables.find(t => t.name === 'trace')).toMatchObject({ columns: [{ name: 'id', pk: true }, { name: 'quoi', type: 'text' }] })
+    expect(taken.tables.find(t => t.name === 'trace')).toMatchObject({
+      columns: [
+        { name: 'id', pk: true },
+        { name: 'quoi', type: 'text' }
+      ]
+    })
     expect(taken.tables.find(t => t.name === 'trace')!.from).toBeUndefined()
     // Made again from the MCD: what came from the database stays
     const again = generateMpd(shop(), DEFAULT_NAMING, 'sqlite', taken, 'boutique.mcd.json')
@@ -130,8 +141,16 @@ describe('a Symfony project: a Doctrine migration rather than a direct change', 
   it('writes the statements in migrations/, and only for Symfony', () => {
     const project = tempDir('shop')
     const other = tempDir('front')
-    saveProjects([{ name: 'shop', path: project, framework: 'symfony' }, { name: 'front', path: other }])
-    const path = doctrineMigration(project, ['-- a note', "ALTER TABLE produit ADD COLUMN nom VARCHAR(80) DEFAULT 'l''été';", 'DROP TABLE trace;'], 'DevForge : boutique', new Date(2026, 9, 30, 8, 5, 9))
+    saveProjects([
+      { name: 'shop', path: project, framework: 'symfony' },
+      { name: 'front', path: other }
+    ])
+    const path = doctrineMigration(
+      project,
+      ['-- a note', "ALTER TABLE produit ADD COLUMN nom VARCHAR(80) DEFAULT 'l''été';", 'DROP TABLE trace;'],
+      'DevForge : boutique',
+      new Date(2026, 9, 30, 8, 5, 9)
+    )
     expect(path).toBe(join(project, 'migrations', 'Version20261030080509.php'))
     const php = readFileSync(path, 'utf-8')
     expect(php).toContain('final class Version20261030080509 extends AbstractMigration')

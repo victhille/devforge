@@ -15,7 +15,12 @@ test('a search in DevForge itself answers within a second, and a result opens at
   const repo = resolve(__dirname, '..', '..')
   run = await launch({
     seed: dir => {
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'df', name: 'devforge', path: repo, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          { id: 'df', name: 'devforge', path: repo, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page } = run
@@ -28,7 +33,11 @@ test('a search in DevForge itself answers within a second, and a result opens at
   const results = page.getByTestId('search-results')
   await expect(results.getByRole('status')).toHaveText('1 résultat(s) dans 1 fichier(s)', { timeout: 10_000 })
   // The best of two (the first one warms the disk cache)
-  const once = () => page.evaluate(async root => (await window.devforge.searchProject(root, 'useState', { regex: false, caseSensitive: true, wholeWord: false, include: '' })).durationMs, repo)
+  const once = () =>
+    page.evaluate(
+      async root => (await window.devforge.searchProject(root, 'useState', { regex: false, caseSensitive: true, wholeWord: false, include: '' })).durationMs,
+      repo
+    )
   const timing = Math.min(await once(), await once())
   expect(timing).toBeLessThan(1000)
 
@@ -61,8 +70,14 @@ test('long lines never widen the pane, the results scroll inside it, a line foun
       mkdirSync(join(web, 'config'), { recursive: true })
       writeFileSync(join(web, 'package.json'), '{}')
       // A minified-like line, and many lines found
-      writeFileSync(join(web, 'config', 'cache.yaml'), [`app: ${'x'.repeat(3000)} te`, ...Array.from({ length: 200 }, (_, i) => `key${i}: system test`)].join('\n'))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'w', name: 'web', path: web, framework: 'unknown', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(web, 'config', 'cache.yaml'),
+        [`app: ${'x'.repeat(3000)} te`, ...Array.from({ length: 200 }, (_, i) => `key${i}: system test`)].join('\n')
+      )
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([{ id: 'w', name: 'web', path: web, framework: 'unknown', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }])
+      )
     }
   })
   const { page } = run
@@ -77,7 +92,11 @@ test('long lines never widen the pane, the results scroll inside it, a line foun
   const field = await box.boundingBox()
   expect(field!.x + field!.width).toBeLessThanOrEqual(card!.x + card!.width)
   const list = results.locator('xpath=..')
-  const size = await list.evaluate(e => ({ right: e.getBoundingClientRect().right, scroll: e.scrollHeight > e.clientHeight, wide: e.scrollWidth > e.clientWidth }))
+  const size = await list.evaluate(e => ({
+    right: e.getBoundingClientRect().right,
+    scroll: e.scrollHeight > e.clientHeight,
+    wide: e.scrollWidth > e.clientWidth
+  }))
   expect(size.right).toBeLessThanOrEqual(card!.x + card!.width + 1)
   expect(size.scroll).toBe(true)
   expect(size.wide).toBe(false)

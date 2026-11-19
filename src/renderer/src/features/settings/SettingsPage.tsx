@@ -27,7 +27,6 @@ import Kbd from '@renderer/components/ui/Kbd'
 import SearchInput from '@renderer/components/ui/SearchInput'
 import { SETTINGS_SECTIONS as SECTIONS, type SettingsSection as Section } from './sections'
 
-
 /** At the mock-up's measures (one spacing unit is 4 px), its width (1040 px with the margins), against the menu */
 const PAGE = 'df-mockup mx-0 max-w-[1040px] gap-5'
 
@@ -89,17 +88,27 @@ export default function SettingsPage() {
   }, [])
 
   // The first time: the header and two cards as they will be (afterwards, the settings kept show at once)
-  if (!settings) return (
-    <Page className={PAGE}>
-      <div role="status" aria-label={t.common.loading} className="flex flex-col gap-5">
-        <div className="flex flex-col gap-2.5"><Skeleton className="h-3 w-20" /><Skeleton className="h-7 w-48" /><Skeleton className="h-3.5 w-72" /></div>
-        <CardSkeleton label={false} rows={3} />
-        <CardSkeleton label={false} rows={2} />
-      </div>
-    </Page>
-  )
+  if (!settings)
+    return (
+      <Page className={PAGE}>
+        <div role="status" aria-label={t.common.loading} className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2.5">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-3.5 w-72" />
+          </div>
+          <CardSkeleton label={false} rows={3} />
+          <CardSkeleton label={false} rows={2} />
+        </div>
+      </Page>
+    )
 
-  if (notes) return <Page><ReleaseNotes focus={notes === 'all' ? null : notes} onBack={() => setParams({ section: 'updates' }, { replace: true })} /></Page>
+  if (notes)
+    return (
+      <Page>
+        <ReleaseNotes focus={notes === 'all' ? null : notes} onBack={() => setParams({ section: 'updates' }, { replace: true })} />
+      </Page>
+    )
 
   return (
     <Page className={PAGE}>
@@ -109,12 +118,22 @@ export default function SettingsPage() {
           <h1 className="font-display text-page font-bold tracking-[-.025em] text-fg">{section ? s.nav[section] : s.title}</h1>
           <p className="mt-1 max-w-[560px] text-base text-fg-secondary">{section ? s.intro[section] : s.subtitle}</p>
         </div>
-        <span aria-live="polite" className={cn('flex h-[30px] items-center gap-1.5 rounded-full bg-success-soft px-3 text-xs font-medium text-success transition-opacity duration-300', savedVisible ? 'opacity-100' : 'opacity-0')}>
+        <span
+          aria-live="polite"
+          className={cn(
+            'flex h-[30px] items-center gap-1.5 rounded-full bg-success-soft px-3 text-xs font-medium text-success transition-opacity duration-300',
+            savedVisible ? 'opacity-100' : 'opacity-0'
+          )}
+        >
           <Check size={13} strokeWidth={2.6} /> {s.autoSaved}
         </span>
         <div ref={search} className="relative w-full sm:w-65">
           <SearchInput value={query} onChange={setQuery} placeholder={s.searchPlaceholder} />
-          {!query && <span aria-hidden className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"><Kbd>/</Kbd></span>}
+          {!query && (
+            <span aria-hidden className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2">
+              <Kbd>/</Kbd>
+            </span>
+          )}
         </div>
       </div>
 
@@ -124,9 +143,15 @@ export default function SettingsPage() {
         <div className="flex flex-col gap-4">
           <nav aria-label={s.title} className={cn('df-rise flex flex-wrap gap-1.5', !q && '@min-[760px]:hidden')}>
             {shown.map(x => (
-              <button key={x.id} onClick={() => go(x.id)} aria-current={section === x.id ? 'page' : undefined}
-                className={cn('flex h-8 items-center gap-2 rounded-control border px-2.5 text-left text-base font-medium transition-colors',
-                  section === x.id ? 'border-accent bg-accent-soft text-fg' : 'border-line text-fg-secondary hover:bg-surface hover:text-fg')}>
+              <button
+                key={x.id}
+                onClick={() => go(x.id)}
+                aria-current={section === x.id ? 'page' : undefined}
+                className={cn(
+                  'flex h-8 items-center gap-2 rounded-control border px-2.5 text-left text-base font-medium transition-colors',
+                  section === x.id ? 'border-accent bg-accent-soft text-fg' : 'border-line text-fg-secondary hover:bg-surface hover:text-fg'
+                )}
+              >
                 <x.icon size={16} aria-hidden />
                 <span className="flex-1">{s.nav[x.id]}</span>
               </button>
@@ -141,8 +166,13 @@ export default function SettingsPage() {
                   <ProjectFolders key={projectFolders(settings).join('\n')} settings={settings} update={update} />
                 </SettingRow>
                 <SettingRow label={s.defaultPM} hint={s.defaultPMHint}>
-                  <Segmented<PackageManager> label={s.defaultPM} mono value={settings.defaultPackageManager} onChange={v => set('defaultPackageManager', v)}
-                    items={(['npm', 'pnpm', 'yarn'] as const).map(pm => ({ value: pm, label: pm }))} />
+                  <Segmented<PackageManager>
+                    label={s.defaultPM}
+                    mono
+                    value={settings.defaultPackageManager}
+                    onChange={v => set('defaultPackageManager', v)}
+                    items={(['npm', 'pnpm', 'yarn'] as const).map(pm => ({ value: pm, label: pm }))}
+                  />
                 </SettingRow>
                 <IdeSettings settings={settings} update={update} />
               </SettingsCard>
@@ -163,9 +193,31 @@ export default function SettingsPage() {
                 <SettingRow label={s.terminalSuggest} hint={<Words text={s.terminalSuggestHint} parts={{ key: <Kbd>→</Kbd> }} />}>
                   <Switch checked={settings.terminalSuggest !== false} onChange={v => set('terminalSuggest', v)} label={s.terminalSuggest} />
                 </SettingRow>
-                <SettingRow label={s.ciAlerts} hint={<Words text={s.ciAlertsHint} parts={{ link: <button type="button" onClick={() => go('connections')} className="text-accent hover:underline">{s.nav.connections}</button> }} />}>
-                  <Segmented<'favorites' | 'all' | 'off'> label={s.ciAlerts} value={settings.ciAlerts ?? 'favorites'} onChange={v => set('ciAlerts', v)}
-                    items={[{ value: 'favorites', label: s.ciAlertsFavorites }, { value: 'all', label: s.ciAlertsAll }, { value: 'off', label: s.ciAlertsOff }]} />
+                <SettingRow
+                  label={s.ciAlerts}
+                  hint={
+                    <Words
+                      text={s.ciAlertsHint}
+                      parts={{
+                        link: (
+                          <button type="button" onClick={() => go('connections')} className="text-accent hover:underline">
+                            {s.nav.connections}
+                          </button>
+                        )
+                      }}
+                    />
+                  }
+                >
+                  <Segmented<'favorites' | 'all' | 'off'>
+                    label={s.ciAlerts}
+                    value={settings.ciAlerts ?? 'favorites'}
+                    onChange={v => set('ciAlerts', v)}
+                    items={[
+                      { value: 'favorites', label: s.ciAlertsFavorites },
+                      { value: 'all', label: s.ciAlertsAll },
+                      { value: 'off', label: s.ciAlertsOff }
+                    ]}
+                  />
                 </SettingRow>
               </SettingsCard>
             )}
@@ -182,8 +234,12 @@ export default function SettingsPage() {
             {section === 'about' && (
               <SettingsCard title={s.groups.about}>
                 <dl className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] border-t border-line-subtle">
-                  {[[s.version, `${__APP_VERSION__} · ${settings.updateChannel === 'beta' ? s.channelBeta : s.channelStable}`], [s.commit, __APP_COMMIT__],
-                    [s.builtOnLabel, new Date(__BUILD_DATE__).toLocaleDateString()], ['Electron', navigator.userAgent.match(/Electron\/([\d.]+)/)?.[1] ?? '—']].map(([k, v]) => (
+                  {[
+                    [s.version, `${__APP_VERSION__} · ${settings.updateChannel === 'beta' ? s.channelBeta : s.channelStable}`],
+                    [s.commit, __APP_COMMIT__],
+                    [s.builtOnLabel, new Date(__BUILD_DATE__).toLocaleDateString()],
+                    ['Electron', navigator.userAgent.match(/Electron\/([\d.]+)/)?.[1] ?? '—']
+                  ].map(([k, v]) => (
                     <div key={k} className="px-5 py-3.5">
                       <dt className="font-mono text-2xs font-medium tracking-[.08em] text-fg-muted uppercase">{k}</dt>
                       <dd className="mt-1 font-mono text-base font-medium text-fg">{v}</dd>
@@ -195,22 +251,46 @@ export default function SettingsPage() {
             {section === 'about' && (
               <SettingsCard title={s.groups.help}>
                 <SettingRow label={s.diagnostic} hint={s.diagnosticHint}>
-                  <Button size="sm" variant="secondary" onClick={copyReport}><ClipboardCopy size={13} /> {s.copyReport}</Button>
+                  <Button size="sm" variant="secondary" onClick={copyReport}>
+                    <ClipboardCopy size={13} /> {s.copyReport}
+                  </Button>
                 </SettingRow>
                 <SettingRow label={s.onGithub} hint={s.onGithubHint}>
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal(__REPO_URL__)}>{s.githubPage}</Button>
-                    <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal(`${__REPO_URL__}/issues/new`)}>{s.reportIssue}</Button>
+                    <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal(__REPO_URL__)}>
+                      {s.githubPage}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal(`${__REPO_URL__}/issues/new`)}>
+                      {s.reportIssue}
+                    </Button>
                   </div>
                 </SettingRow>
                 <SettingRow label={s.releaseNotes} hint={s.releaseNotesHint}>
-                  <Button size="sm" variant="ghost" onClick={() => setParams({ notes: 'all' }, { replace: true })}>{s.seeAllVersions}</Button>
+                  <Button size="sm" variant="ghost" onClick={() => setParams({ notes: 'all' }, { replace: true })}>
+                    {s.seeAllVersions}
+                  </Button>
                 </SettingRow>
                 {/* GPL-3.0 section 5d: an interactive program shows its legal notices */}
                 <SettingRow label={s.licence} hint={s.legalNotice}>
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="ghost" onClick={async () => { if (!(await window.devforge.openLegal('license'))) window.devforge.openExternal(`${__REPO_URL__}/blob/main/LICENSE`) }}>{s.viewLicense}</Button>
-                    <Button size="sm" variant="ghost" onClick={async () => { if (!(await window.devforge.openLegal('notices'))) window.devforge.openExternal(`${__REPO_URL__}/blob/main/THIRD_PARTY_LICENSES.md`) }}>{s.thirdPartyLicenses}</Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={async () => {
+                        if (!(await window.devforge.openLegal('license'))) window.devforge.openExternal(`${__REPO_URL__}/blob/main/LICENSE`)
+                      }}
+                    >
+                      {s.viewLicense}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={async () => {
+                        if (!(await window.devforge.openLegal('notices'))) window.devforge.openExternal(`${__REPO_URL__}/blob/main/THIRD_PARTY_LICENSES.md`)
+                      }}
+                    >
+                      {s.thirdPartyLicenses}
+                    </Button>
                   </div>
                 </SettingRow>
               </SettingsCard>

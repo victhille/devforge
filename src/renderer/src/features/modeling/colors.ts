@@ -7,9 +7,15 @@ export function mcdColors(): McdColors {
   const css = getComputedStyle(document.documentElement)
   const v = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback
   return {
-    canvas: v('--color-canvas', '#0D0F13'), card: v('--color-surface', '#161A21'), line: v('--color-fg-muted', '#8792A2'),
-    entity: v('--diagram-violet', '#C792EA'), text: v('--color-fg', '#E8ECF2'), muted: v('--color-fg-secondary', '#9AA4B2'),
-    card11: v('--diagram-violet', '#C792EA'), note: 'rgba(255,203,107,.16)', noteText: v('--color-fg', '#E8ECF2')
+    canvas: v('--color-canvas', '#0D0F13'),
+    card: v('--color-surface', '#161A21'),
+    line: v('--color-fg-muted', '#8792A2'),
+    entity: v('--diagram-violet', '#C792EA'),
+    text: v('--color-fg', '#E8ECF2'),
+    muted: v('--color-fg-secondary', '#9AA4B2'),
+    card11: v('--diagram-violet', '#C792EA'),
+    note: 'rgba(255,203,107,.16)',
+    noteText: v('--color-fg', '#E8ECF2')
   }
 }
 
@@ -18,15 +24,29 @@ export function schemaColors(): SvgColors {
   const css = getComputedStyle(document.documentElement)
   const v = (name: string) => css.getPropertyValue(name).trim() || '#888'
   return {
-    canvas: v('--color-canvas'), card: v('--color-surface'), header: v('--color-elevated'), line: v('--color-line'),
-    text: v('--color-fg'), muted: v('--color-fg-muted'), key: v('--color-warning'), link: v('--color-accent')
+    canvas: v('--color-canvas'),
+    card: v('--color-surface'),
+    header: v('--color-elevated'),
+    line: v('--color-line'),
+    text: v('--color-fg'),
+    muted: v('--color-fg-muted'),
+    key: v('--color-warning'),
+    link: v('--color-accent')
   }
 }
 
 /** A diagram's colours: the theme's CSS variables on the canvas, their values in a picture */
 export const LIVE_DIAGRAM: DiagramColors = {
-  canvas: 'var(--color-canvas)', card: 'var(--color-surface)', line: 'var(--color-fg-muted)', text: 'var(--color-fg)', muted: 'var(--color-fg-muted)',
-  accent: 'var(--diagram-violet)', actor: 'var(--diagram-yellow)', system: 'var(--color-accent)', note: 'rgba(255,203,107,.16)', noteText: 'var(--color-fg)'
+  canvas: 'var(--color-canvas)',
+  card: 'var(--color-surface)',
+  line: 'var(--color-fg-muted)',
+  text: 'var(--color-fg)',
+  muted: 'var(--color-fg-muted)',
+  accent: 'var(--diagram-violet)',
+  actor: 'var(--diagram-yellow)',
+  system: 'var(--color-accent)',
+  note: 'rgba(255,203,107,.16)',
+  noteText: 'var(--color-fg)'
 }
 export function diagramColors(): DiagramColors {
   const css = getComputedStyle(document.documentElement)
@@ -34,7 +54,7 @@ export function diagramColors(): DiagramColors {
   return Object.fromEntries(Object.entries(LIVE_DIAGRAM).map(([k, v]) => [k, resolve(v)])) as unknown as DiagramColors
 }
 
-export const svgUrl =(svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+export const svgUrl = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 
 /** An SVG saved where the user picks, as itself or as a PNG twice its size; null when cancelled */
 export async function saveDrawing(svg: string, name: string, ext: 'png' | 'svg'): Promise<string | null> {

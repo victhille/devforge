@@ -20,7 +20,8 @@ export interface Block {
 export type ShellState = 'starting' | 'ready' | 'running' | 'exited'
 
 const MAX_BLOCKS = 200
-const COLS = 120, ROWS = 24
+const COLS = 120,
+  ROWS = 24
 
 /**
  * One shell seen as blocks. While a command runs its output goes to a live
@@ -44,7 +45,10 @@ export function useBlockShell(backend: ShellBackend) {
   const nextId = useRef(1)
   const size = useRef({ cols: COLS, rows: ROWS })
 
-  const setPhase = (p: ShellState) => { phase.current = p; setState(p) }
+  const setPhase = (p: ShellState) => {
+    phase.current = p
+    setState(p)
+  }
 
   /** Prompt back: the block's screen is settled once xterm has parsed everything */
   const finish = useCallback(() => {
@@ -56,7 +60,7 @@ export function useBlockShell(backend: ShellBackend) {
       const done: Block = { ...r.block, endedAt: Date.now(), code: exit, lines: snapshot(r.term, r.block.cmd) }
       r.term.dispose()
       setLive(null)
-      setBlocks(list => list.map(b => b.id === done.id ? done : b))
+      setBlocks(list => list.map(b => (b.id === done.id ? done : b)))
       window.devforge.terminal.addHistory(backend.historyKey, { cmd: done.cmd, at: new Date().toISOString(), code: exit }).catch(() => {})
     })
   }, [backend])
@@ -68,9 +72,12 @@ export function useBlockShell(backend: ShellBackend) {
         // A: the output ends here; the exit code (D) and folder (P) follow, the block closes at B
         if (e.type === 'prompt-start') inPrompt.current = true
         // A tagged code belongs to one block only (cmd): an older one says nothing about this block
-        else if (e.type === 'exit-code') { if (!e.tag || e.tag === String(running.current?.block.id)) code.current = e.code }
-        else if (e.type === 'cwd') { cwdRef.current = e.path; setCwd(e.path) }
-        else if (e.type === 'prompt-end') {
+        else if (e.type === 'exit-code') {
+          if (!e.tag || e.tag === String(running.current?.block.id)) code.current = e.code
+        } else if (e.type === 'cwd') {
+          cwdRef.current = e.path
+          setCwd(e.path)
+        } else if (e.type === 'prompt-end') {
           inPrompt.current = false
           if (phase.current === 'running') finish()
           if (phase.current !== 'exited') setPhase('ready')
@@ -91,34 +98,47 @@ export function useBlockShell(backend: ShellBackend) {
     }
   }, [backend, finish])
 
-  const run = useCallback((cmd: string) => {
-    if (phase.current !== 'ready' || !cmd.trim()) return
-    // The page's text size (the body's: 13 px times the size chosen in Settings); the block that shows it keeps it in step (LiveBlock)
-    const term = new Terminal({
-      theme: XTERM_THEME, cols: size.current.cols, rows: size.current.rows, scrollback: 5000,
-      fontFamily: "'JetBrains Mono Variable', 'Cascadia Code', Consolas, monospace", fontSize: textPx(document.body), lineHeight: 1.3,
-      cursorBlink: true, convertEol: false, allowProposedApi: true
-    })
-    const block: Block = { id: nextId.current++, cmd, cwd: cwdRef.current, startedAt: Date.now(), endedAt: null, code: null, lines: null }
-    code.current = null
-    running.current = { block, term }
-    setLive(term)
-    setBlocks(list => [...list.slice(-(MAX_BLOCKS - 1)), block])
-    setPhase('running')
-    backend.write(`${backend.line ? backend.line(cmd, String(block.id)) : cmd}\r`)
-  }, [backend])
+  const run = useCallback(
+    (cmd: string) => {
+      if (phase.current !== 'ready' || !cmd.trim()) return
+      // The page's text size (the body's: 13 px times the size chosen in Settings); the block that shows it keeps it in step (LiveBlock)
+      const term = new Terminal({
+        theme: XTERM_THEME,
+        cols: size.current.cols,
+        rows: size.current.rows,
+        scrollback: 5000,
+        fontFamily: "'JetBrains Mono Variable', 'Cascadia Code', Consolas, monospace",
+        fontSize: textPx(document.body),
+        lineHeight: 1.3,
+        cursorBlink: true,
+        convertEol: false,
+        allowProposedApi: true
+      })
+      const block: Block = { id: nextId.current++, cmd, cwd: cwdRef.current, startedAt: Date.now(), endedAt: null, code: null, lines: null }
+      code.current = null
+      running.current = { block, term }
+      setLive(term)
+      setBlocks(list => [...list.slice(-(MAX_BLOCKS - 1)), block])
+      setPhase('running')
+      backend.write(`${backend.line ? backend.line(cmd, String(block.id)) : cmd}\r`)
+    },
+    [backend]
+  )
 
   /** Ctrl+C to the running program */
   const interrupt = useCallback(() => backend.write('\x03'), [backend])
   /** Keys typed in the live block go to the program */
   const send = useCallback((data: string) => backend.write(data), [backend])
 
-  const resize = useCallback((cols: number, rows: number) => {
-    if (cols === size.current.cols && rows === size.current.rows) return
-    size.current = { cols, rows }
-    running.current?.term.resize(cols, rows)
-    backend.resize(cols, rows)
-  }, [backend])
+  const resize = useCallback(
+    (cols: number, rows: number) => {
+      if (cols === size.current.cols && rows === size.current.rows) return
+      size.current = { cols, rows }
+      running.current?.term.resize(cols, rows)
+      backend.resize(cols, rows)
+    },
+    [backend]
+  )
 
   const clear = useCallback(() => setBlocks(list => list.filter(b => b.endedAt === null)), [])
 

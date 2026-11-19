@@ -9,8 +9,10 @@ describe('Projects folders', () => {
   })
 
   it('lists them in order, without blanks nor the same folder twice', () => {
-    expect(projectFolders({ defaultProjectsDir: 'C:\\Dev\\Projet Perso', extraProjectsDirs: ['', 'C:\\Dev\\Projet Client', 'c:/dev/projet perso/'] }))
-      .toEqual(['C:\\Dev\\Projet Perso', 'C:\\Dev\\Projet Client'])
+    expect(projectFolders({ defaultProjectsDir: 'C:\\Dev\\Projet Perso', extraProjectsDirs: ['', 'C:\\Dev\\Projet Client', 'c:/dev/projet perso/'] })).toEqual([
+      'C:\\Dev\\Projet Perso',
+      'C:\\Dev\\Projet Client'
+    ])
   })
 
   it('saves the first one as the default', () => {

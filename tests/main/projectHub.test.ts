@@ -25,7 +25,10 @@ describe('project hub', () => {
       { id: 'd1', domain: 'shop.test', port: 4321, enabled: true },
       { id: 'd2', domain: 'other.test', port: 9000, enabled: true }
     ])
-    write(join(userData(), 'deploy.json'), { targets: [{ id: 't1', name: 'Prod', connectionId: 's', remotePath: '/srv', script: 'ls', projectPath: dir }], runs: [] })
+    write(join(userData(), 'deploy.json'), {
+      targets: [{ id: 't1', name: 'Prod', connectionId: 's', remotePath: '/srv', script: 'ls', projectPath: dir }],
+      runs: []
+    })
     write(join(userData(), 'project-links.json'), {})
   })
 

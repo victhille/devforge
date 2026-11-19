@@ -27,11 +27,7 @@ describe('trackIncidents', () => {
 
 describe('incidentSummary', () => {
   it('counts the incidents of the last 30 days and their downtime, an open one until now', () => {
-    const lists = [
-      [{ start: at(T0 - 2 * DAY), end: at(T0 - 2 * DAY + 12 * 60_000) }],
-      [{ start: at(T0 - 5 * 60_000), end: null }],
-      undefined
-    ]
+    const lists = [[{ start: at(T0 - 2 * DAY), end: at(T0 - 2 * DAY + 12 * 60_000) }], [{ start: at(T0 - 5 * 60_000), end: null }], undefined]
     expect(incidentSummary(lists, T0)).toEqual({ count: 2, downMs: 17 * 60_000 })
   })
 

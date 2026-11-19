@@ -12,13 +12,15 @@ export function fakerFor(f: SfField): string | null {
       const max = /prix|price|montant|amount|total|cout|cost|tarif/.test(n) ? Math.min(room, 500) : room
       return `(string) ${fk}randomFloat(${scale}, 1, ${max})`
     }
-    case 'float': return `${fk}randomFloat(2, 0, 1000)`
+    case 'float':
+      return `${fk}randomFloat(2, 0, 1000)`
     case 'integer':
       if (/stock|quantit|qty|qte|nombre|count/.test(n)) return `${fk}numberBetween(0, 100)`
       if (/age/.test(n)) return `${fk}numberBetween(18, 90)`
       if (/ordre|order|position|rang/.test(n)) return `${fk}numberBetween(1, 50)`
       return `${fk}numberBetween(1, 1000)`
-    case 'text': return `${fk}paragraph()`
+    case 'text':
+      return `${fk}paragraph()`
     case 'string':
       if (/password|motdepasse/.test(n)) return null
       if (/mail/.test(n)) return `${fk}safeEmail()`
@@ -30,7 +32,8 @@ export function fakerFor(f: SfField): string | null {
       if (/adresse|address/.test(n)) return `${fk}streetAddress()`
       if (/^(nom|name|titre|title|libelle|label|intitule)$/.test(n) || /nom$|name$/.test(n)) return `ucfirst(${fk}words(${f.unique ? 3 : 2}, true))`
       return `${fk}text(${Math.max(10, Math.min(f.length ?? 255, 60))})`
-    default: return null
+    default:
+      return null
   }
 }
 

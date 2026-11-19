@@ -4,7 +4,9 @@ import { checkCi, ciStates, startCiWatch } from '../services/github/ciWatch'
 import { hasToken, repoOf, rerunFailed, saveToken, status } from '../services/github/githubService'
 
 export function registerGithubHandlers(mainWindow: BrowserWindow): void {
-  const send = (s: CiStates) => { if (!mainWindow.isDestroyed()) mainWindow.webContents.send('github:ci-states', s) }
+  const send = (s: CiStates) => {
+    if (!mainWindow.isDestroyed()) mainWindow.webContents.send('github:ci-states', s)
+  }
   startCiWatch(mainWindow, send)
   ipcMain.handle('github:ci-states', () => ciStates())
   ipcMain.handle('github:check-ci', () => checkCi(mainWindow, send))

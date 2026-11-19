@@ -11,8 +11,16 @@ test.afterEach(async () => {
   await run.close()
 })
 
-const project = (id: string, name: string, path: string, framework: string) =>
-  ({ id, name, path, framework, packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null })
+const project = (id: string, name: string, path: string, framework: string) => ({
+  id,
+  name,
+  path,
+  framework,
+  packageManager: 'npm',
+  favorite: false,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  lastOpenedAt: null
+})
 
 // ─── Next.js ──────────────────────────────────────────────────────────────────
 
@@ -43,11 +51,32 @@ async function openNext(): Promise<string> {
       writeFileSync(join(dir, 'tsconfig.json'), '{}')
       writeFileSync(join(dir, 'prisma', 'schema.prisma'), SCHEMA)
       writeFileSync(join(data, 'projects.json'), JSON.stringify([project('nx', 'site', dir, 'nextjs')]))
-      writeFileSync(join(data, 'nextjs.json'), JSON.stringify({
-        database: { reachable: true, error: null },
-        migrations: [{ version: '20261025180000_catalogue', description: 'catalogue', executed: false, executedAt: null, file: 'prisma/migrations/20261025180000_catalogue/migration.sql', sql: ['CREATE TABLE "Produit" ("id" SERIAL NOT NULL)'], dangerous: false },
-          { version: '20261025150000_init', description: 'init', executed: true, executedAt: null, file: 'prisma/migrations/20261025150000_init/migration.sql', sql: ['CREATE TABLE "User" ("id" SERIAL NOT NULL)'], dangerous: false }]
-      }))
+      writeFileSync(
+        join(data, 'nextjs.json'),
+        JSON.stringify({
+          database: { reachable: true, error: null },
+          migrations: [
+            {
+              version: '20261025180000_catalogue',
+              description: 'catalogue',
+              executed: false,
+              executedAt: null,
+              file: 'prisma/migrations/20261025180000_catalogue/migration.sql',
+              sql: ['CREATE TABLE "Produit" ("id" SERIAL NOT NULL)'],
+              dangerous: false
+            },
+            {
+              version: '20261025150000_init',
+              description: 'init',
+              executed: true,
+              executedAt: null,
+              file: 'prisma/migrations/20261025150000_init/migration.sql',
+              sql: ['CREATE TABLE "User" ("id" SERIAL NOT NULL)'],
+              dangerous: false
+            }
+          ]
+        })
+      )
     }
   })
   await goTo(run.page, '/project/nx?tab=nextjs')
@@ -150,16 +179,46 @@ async function openLaravel(): Promise<string> {
       writeFileSync(join(dir, 'composer.json'), JSON.stringify({ require: { 'laravel/framework': '^12.0' } }))
       writeFileSync(join(dir, 'app', 'Models', 'User.php'), USER_PHP)
       writeFileSync(join(dir, 'database', 'migrations', '0001_01_01_000000_create_users_table.php'), USERS_MIGRATION)
-      writeFileSync(join(dir, 'routes', 'api.php'), "<?php\n\nuse Illuminate\\Support\\Facades\\Route;\n")
+      writeFileSync(join(dir, 'routes', 'api.php'), '<?php\n\nuse Illuminate\\Support\\Facades\\Route;\n')
       writeFileSync(join(data, 'projects.json'), JSON.stringify([project('lv', 'atelier', dir, 'laravel')]))
-      writeFileSync(join(data, 'laravel.json'), JSON.stringify({
-        status: { booted: true, error: null, version: '12.30.1', connection: 'pgsql', database: { reachable: true, error: null }, composeDatabase: true, api: true, faker: true, sail: false, appUrl: 'http://127.0.0.1:8000' },
-        migrations: [
-          { version: '2026_10_25_120000_create_factures_table', description: 'create factures table', executed: false, executedAt: null, file: 'database/migrations/2026_10_25_120000_create_factures_table.php', sql: ['create table "factures" ("id" bigserial not null primary key)'], dangerous: false },
-          { version: '0001_01_01_000000_create_users_table', description: 'create users table', executed: true, executedAt: null, file: 'database/migrations/0001_01_01_000000_create_users_table.php', sql: [], dangerous: false }
-        ],
-        routes: [{ name: 'factures.index', path: '/api/factures', methods: ['GET'], controller: 'App\\Http\\Controllers\\Api\\FactureController@index' }]
-      }))
+      writeFileSync(
+        join(data, 'laravel.json'),
+        JSON.stringify({
+          status: {
+            booted: true,
+            error: null,
+            version: '12.30.1',
+            connection: 'pgsql',
+            database: { reachable: true, error: null },
+            composeDatabase: true,
+            api: true,
+            faker: true,
+            sail: false,
+            appUrl: 'http://127.0.0.1:8000'
+          },
+          migrations: [
+            {
+              version: '2026_10_25_120000_create_factures_table',
+              description: 'create factures table',
+              executed: false,
+              executedAt: null,
+              file: 'database/migrations/2026_10_25_120000_create_factures_table.php',
+              sql: ['create table "factures" ("id" bigserial not null primary key)'],
+              dangerous: false
+            },
+            {
+              version: '0001_01_01_000000_create_users_table',
+              description: 'create users table',
+              executed: true,
+              executedAt: null,
+              file: 'database/migrations/0001_01_01_000000_create_users_table.php',
+              sql: [],
+              dangerous: false
+            }
+          ],
+          routes: [{ name: 'factures.index', path: '/api/factures', methods: ['GET'], controller: 'App\\Http\\Controllers\\Api\\FactureController@index' }]
+        })
+      )
     }
   })
   await goTo(run.page, '/project/lv?tab=laravel')
@@ -185,7 +244,9 @@ test('Laravel: a model and its migration, the other side of the link, then the A
   expect(readFileSync(join(dir, 'app', 'Models', 'Facture.php'), 'utf-8')).toContain("return $this->belongsTo(User::class, 'user_id');")
   expect(readFileSync(join(dir, 'app', 'Models', 'User.php'), 'utf-8')).toContain("return $this->hasMany(Facture::class, 'user_id');")
   const migration = readdirSync(join(dir, 'database', 'migrations')).find(n => n.endsWith('_create_factures_table.php'))!
-  expect(readFileSync(join(dir, 'database', 'migrations', migration), 'utf-8')).toContain("$table->foreignId('user_id')->constrained('users')->cascadeOnDelete();")
+  expect(readFileSync(join(dir, 'database', 'migrations', migration), 'utf-8')).toContain(
+    "$table->foreignId('user_id')->constrained('users')->cascadeOnDelete();"
+  )
   await expect(page.getByRole('article', { name: 'Facture' })).toContainText('numero')
 
   const nav = page.getByRole('navigation', { name: 'Atelier Laravel' })
@@ -202,7 +263,9 @@ test('Laravel: a model and its migration, the other side of the link, then the A
   await page.getByRole('button', { name: "Appliquer à l'API" }).click()
   await expect(page.getByText('2 fichier(s) écrit(s)')).toBeVisible()
   expect(existsSync(join(dir, 'app', 'Http', 'Controllers', 'Api', 'FactureController.php'))).toBe(true)
-  expect(readFileSync(join(dir, 'routes', 'api.php'), 'utf-8')).toContain("Route::apiResource('factures', \\App\\Http\\Controllers\\Api\\FactureController::class)->only(['index']);")
+  expect(readFileSync(join(dir, 'routes', 'api.php'), 'utf-8')).toContain(
+    "Route::apiResource('factures', \\App\\Http\\Controllers\\Api\\FactureController::class)->only(['index']);"
+  )
   expect(await settledAxe(page)).toEqual([])
 
   await nav.getByRole('button', { name: 'Routes' }).click()

@@ -12,7 +12,10 @@ test.afterEach(async () => {
   await run.close()
 })
 
-const file = (path: string, content: string) => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
+const file = (path: string, content: string) => {
+  mkdirSync(join(path, '..'), { recursive: true })
+  writeFileSync(path, content)
+}
 const git = (cwd: string, ...args: string[]) => execFileSync('git', ['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', ...args], { cwd })
 
 test('changed files are marked in the tree, the tree reduces to them, a change shows as a diff', async () => {
@@ -26,10 +29,16 @@ test('changed files are marked in the tree, the tree reduces to them, a change s
       git(shop, 'init', '-q', '-b', 'main')
       git(shop, 'add', '-A')
       git(shop, 'commit', '-q', '-m', 'first')
-      file(join(shop, 'src', 'cart', 'total.ts'), 'export function total(items) {\n  let sum = 0\n  for (const i of items) sum += i.price * i.qty\n  return sum\n}\n')
+      file(
+        join(shop, 'src', 'cart', 'total.ts'),
+        'export function total(items) {\n  let sum = 0\n  for (const i of items) sum += i.price * i.qty\n  return sum\n}\n'
+      )
       file(join(shop, 'src', 'cart', 'coupon.ts'), 'export const coupon = 10\n')
       rmSync(join(shop, 'src', 'api', 'legacy.ts'))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p', name: 'shop', path: shop, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([{ id: 'p', name: 'shop', path: shop, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }])
+      )
     }
   })
   const { page } = run

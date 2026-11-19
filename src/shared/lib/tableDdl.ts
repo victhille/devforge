@@ -22,8 +22,46 @@ export const EMPTY_COLUMN: ColumnDef = { name: '', type: '', nullable: true, def
 
 /** The usual types, offered in the type field (any other valid one can be typed) */
 export const COLUMN_TYPES: Record<DbType, string[]> = {
-  postgres: ['integer', 'bigint', 'smallint', 'serial', 'numeric(10, 2)', 'real', 'double precision', 'boolean', 'varchar(255)', 'text', 'uuid', 'date', 'timestamp', 'timestamptz', 'time', 'json', 'jsonb', 'bytea'],
-  mysql: ['INT', 'BIGINT', 'SMALLINT', 'TINYINT(1)', 'DECIMAL(10, 2)', 'FLOAT', 'DOUBLE', 'BOOLEAN', 'VARCHAR(255)', 'CHAR(36)', 'TEXT', 'LONGTEXT', 'DATE', 'DATETIME', 'TIMESTAMP', 'TIME', 'JSON', 'BLOB'],
+  postgres: [
+    'integer',
+    'bigint',
+    'smallint',
+    'serial',
+    'numeric(10, 2)',
+    'real',
+    'double precision',
+    'boolean',
+    'varchar(255)',
+    'text',
+    'uuid',
+    'date',
+    'timestamp',
+    'timestamptz',
+    'time',
+    'json',
+    'jsonb',
+    'bytea'
+  ],
+  mysql: [
+    'INT',
+    'BIGINT',
+    'SMALLINT',
+    'TINYINT(1)',
+    'DECIMAL(10, 2)',
+    'FLOAT',
+    'DOUBLE',
+    'BOOLEAN',
+    'VARCHAR(255)',
+    'CHAR(36)',
+    'TEXT',
+    'LONGTEXT',
+    'DATE',
+    'DATETIME',
+    'TIMESTAMP',
+    'TIME',
+    'JSON',
+    'BLOB'
+  ],
   sqlite: ['INTEGER', 'REAL', 'NUMERIC', 'TEXT', 'BLOB', 'BOOLEAN', 'DATE', 'DATETIME']
 }
 
@@ -84,14 +122,19 @@ export function addColumnSql(db: DbType, table: DbTableRef, c: ColumnDef): strin
   return [`ALTER TABLE ${quoteIdent(db, table)} ADD COLUMN ${columnSql(db, { ...c, primary: false, autoIncrement: false }, false)}`]
 }
 
-export const dropColumnSql = (db: DbType, table: DbTableRef, name: string): string[] =>
-  [`ALTER TABLE ${quoteIdent(db, table)} DROP COLUMN ${quoteColumn(db, name)}`]
+export const dropColumnSql = (db: DbType, table: DbTableRef, name: string): string[] => [
+  `ALTER TABLE ${quoteIdent(db, table)} DROP COLUMN ${quoteColumn(db, name)}`
+]
 
 /** A column as the Structure tab shows it, for its edit form */
 export function columnDefOf(c: DbColumnInfo): ColumnDef {
   const auto = /auto_increment|identity|autoincrement/i.test(c.extra) || /^nextval\(/i.test(c.default ?? '')
   return {
-    name: c.name, type: c.type, nullable: c.nullable, primary: c.key === 'PRI', autoIncrement: auto,
+    name: c.name,
+    type: c.type,
+    nullable: c.nullable,
+    primary: c.key === 'PRI',
+    autoIncrement: auto,
     default: auto || c.default === null || /^null$/i.test(c.default) ? '' : c.default
   }
 }
@@ -129,6 +172,11 @@ export function alterColumnSql(db: DbType, table: DbTableRef, before: DbColumnIn
   if (renamed) out.push(`ALTER TABLE ${t} RENAME COLUMN ${quoteColumn(db, before.name)} TO ${col}`)
   if (retyped) out.push(`ALTER TABLE ${t} ALTER COLUMN ${col} TYPE ${after.type.trim()} USING ${col}::${after.type.trim()}`)
   if (nulls) out.push(`ALTER TABLE ${t} ALTER COLUMN ${col} ${after.nullable ? 'DROP' : 'SET'} NOT NULL`)
-  if (defaulted) out.push(after.default.trim() ? `ALTER TABLE ${t} ALTER COLUMN ${col} SET DEFAULT ${defaultSql(after.default)}` : `ALTER TABLE ${t} ALTER COLUMN ${col} DROP DEFAULT`)
+  if (defaulted)
+    out.push(
+      after.default.trim()
+        ? `ALTER TABLE ${t} ALTER COLUMN ${col} SET DEFAULT ${defaultSql(after.default)}`
+        : `ALTER TABLE ${t} ALTER COLUMN ${col} DROP DEFAULT`
+    )
   return out
 }

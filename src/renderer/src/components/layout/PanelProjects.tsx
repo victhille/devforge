@@ -9,11 +9,12 @@ export const onProject = (pathname: string, id: string) => pathname === `/projec
 
 /** A row of the panel (a page, a Settings section, a project): 34 px, 14 px text; the one on screen on the active background
  *  (the app's rem is 13 px: one spacing unit is 3.25 px) */
-export const panelRow = (on: boolean, className?: string) => cn(
-  'group/link flex h-10.5 items-center gap-3 rounded-control px-3 text-md transition-colors',
-  on ? 'bg-active font-semibold text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg',
-  className
-)
+export const panelRow = (on: boolean, className?: string) =>
+  cn(
+    'group/link flex h-10.5 items-center gap-3 rounded-control px-3 text-md transition-colors',
+    on ? 'bg-active font-semibold text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg',
+    className
+  )
 
 /** The icons of the panel's rows */
 export const PANEL_ICON = 17
@@ -45,16 +46,22 @@ function useRepoStates(projects: Project[]) {
   useEffect(() => {
     let alive = true
     const pairs = JSON.parse(listed) as [string, string][]
-    Promise.all(pairs.map(async ([id, path]) => {
-      try {
-        const d = await window.devforge.git.details(path)
-        return [id, d.isRepo ? { changes: d.changes } : null] as const
-      } catch { return null }
-    })).then(read => {
+    Promise.all(
+      pairs.map(async ([id, path]) => {
+        try {
+          const d = await window.devforge.git.details(path)
+          return [id, d.isRepo ? { changes: d.changes } : null] as const
+        } catch {
+          return null
+        }
+      })
+    ).then(read => {
       // A project whose state could not be read keeps the last one known
       if (alive) setStates(s => ({ ...s, ...Object.fromEntries(read.filter(x => x !== null)) }))
     })
-    return () => { alive = false }
+    return () => {
+      alive = false
+    }
   }, [listed, pathname, focus])
   return states
 }
@@ -65,18 +72,25 @@ function ProjectLink({ project, state }: { project: Project; state: RepoState | 
   const { pathname } = useLocation()
   const on = onProject(pathname, project.id)
   const changes = state?.changes ?? 0
-  const status = state === undefined ? null
-    : state === null ? t.nav.projectNoRepo
-    : changes ? t.nav.projectChanges.replace('{n}', String(changes))
-    : t.nav.projectClean
+  const status =
+    state === undefined ? null : state === null ? t.nav.projectNoRepo : changes ? t.nav.projectChanges.replace('{n}', String(changes)) : t.nav.projectClean
   return (
-    <Link to={`/project/${project.id}`} aria-current={on ? 'page' : undefined}
-      className={panelRow(on)}>
+    <Link to={`/project/${project.id}`} aria-current={on ? 'page' : undefined} className={panelRow(on)}>
       {/* Faint while the state is read, grey outside a Git repository */}
-      <span aria-hidden title={status ?? undefined}
-        className={cn('mx-1 size-2.5 shrink-0 rounded-full', state === undefined ? 'bg-line' : state === null ? 'bg-fg-disabled' : changes ? 'bg-warning' : 'bg-success')} />
+      <span
+        aria-hidden
+        title={status ?? undefined}
+        className={cn(
+          'mx-1 size-2.5 shrink-0 rounded-full',
+          state === undefined ? 'bg-line' : state === null ? 'bg-fg-disabled' : changes ? 'bg-warning' : 'bg-success'
+        )}
+      />
       <span className="flex-1 truncate">{project.name}</span>
-      {changes > 0 && <span aria-hidden title={status ?? undefined} className="font-mono text-xs text-fg-muted">{changes}</span>}
+      {changes > 0 && (
+        <span aria-hidden title={status ?? undefined} className="font-mono text-xs text-fg-muted">
+          {changes}
+        </span>
+      )}
       {status && <span className="sr-only">, {status}</span>}
     </Link>
   )
@@ -88,8 +102,12 @@ export function ProjectList({ label, projects }: { label: string; projects: Proj
   if (!projects.length) return null
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex h-8 items-center px-3 pb-1"><PanelLabel>{label}</PanelLabel></div>
-      {projects.map(p => <ProjectLink key={p.id} project={p} state={states[p.id]} />)}
+      <div className="flex h-8 items-center px-3 pb-1">
+        <PanelLabel>{label}</PanelLabel>
+      </div>
+      {projects.map(p => (
+        <ProjectLink key={p.id} project={p} state={states[p.id]} />
+      ))}
     </div>
   )
 }

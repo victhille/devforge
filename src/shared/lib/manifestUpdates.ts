@@ -26,43 +26,73 @@ const pessimistic = (v: string) => {
 /** PEP 440 specifiers as npm comparators ("!=" cannot be said: left out) */
 export function pythonRange(spec: string): string {
   if (!spec || spec === '*') return '*'
-  return spec.split(',').map(s => s.trim()).filter(Boolean).map(s => {
-    const m = s.match(/^(===|==|~=|!=|>=|<=|>|<)\s*(.+)$/)
-    if (!m) return s
-    const [, op, v] = m
-    if (op === '!=') return ''
-    if (op === '~=') return pessimistic(v)
-    if ((op === '==' || op === '===') && v.endsWith('.*')) { const base = v.slice(0, -2); return `>=${base} <${bump(base, base.split('.').length === 1 ? 0 : 1)}` }
-    if (op === '==' || op === '===') return `=${v}`
-    return `${op}${v}`
-  }).filter(Boolean).join(' ') || '*'
+  return (
+    spec
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(s => {
+        const m = s.match(/^(===|==|~=|!=|>=|<=|>|<)\s*(.+)$/)
+        if (!m) return s
+        const [, op, v] = m
+        if (op === '!=') return ''
+        if (op === '~=') return pessimistic(v)
+        if ((op === '==' || op === '===') && v.endsWith('.*')) {
+          const base = v.slice(0, -2)
+          return `>=${base} <${bump(base, base.split('.').length === 1 ? 0 : 1)}`
+        }
+        if (op === '==' || op === '===') return `=${v}`
+        return `${op}${v}`
+      })
+      .filter(Boolean)
+      .join(' ') || '*'
+  )
 }
 
 /** Cargo: a bare "1.2" means "^1.2" */
 export const cargoRange = (req: string) =>
-  req.split(',').map(s => s.trim()).filter(Boolean).map(s => (/^\d/.test(s) ? `^${s}` : s)).join(' ') || '*'
+  req
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => (/^\d/.test(s) ? `^${s}` : s))
+    .join(' ') || '*'
 
 /** Bundler: "~> 7.1", ">= 6, < 8" */
 export const rubyRange = (req: string) =>
-  req.split(',').map(s => s.trim()).filter(Boolean).map(s => {
-    const m = s.match(/^(~>|>=|<=|>|<|=|!=)?\s*(\S+)$/)
-    if (!m) return s
-    return m[1] === '~>' ? pessimistic(m[2]) : m[1] === '!=' ? '' : `${m[1] ?? '='}${m[2]}`
-  }).filter(Boolean).join(' ') || '*'
+  req
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => {
+      const m = s.match(/^(~>|>=|<=|>|<|=|!=)?\s*(\S+)$/)
+      if (!m) return s
+      return m[1] === '~>' ? pessimistic(m[2]) : m[1] === '!=' ? '' : `${m[1] ?? '='}${m[2]}`
+    })
+    .filter(Boolean)
+    .join(' ') || '*'
 
 /** Whether `version` stays within what the file asks for, for each manager */
 export function fitsRangeOf(manager: PackageManagerKind, version: string | null, range: string): boolean {
   if (!version) return false
   switch (manager) {
-    case 'pip': case 'poetry': case 'uv': case 'pipenv':
+    case 'pip':
+    case 'poetry':
+    case 'uv':
+    case 'pipenv':
       // Poetry writes npm-like ranges (^1.2); the others PEP 440
       return /^[\^~]\d/.test(range.trim()) ? fitsRange(version, range) : satisfies(version, pythonRange(range)) === true
-    case 'cargo': return satisfies(version, cargoRange(range)) === true
-    case 'bundler': return satisfies(version, rubyRange(range)) === true
-    case 'pub': return range === 'any' || fitsRange(version, range)
+    case 'cargo':
+      return satisfies(version, cargoRange(range)) === true
+    case 'bundler':
+      return satisfies(version, rubyRange(range)) === true
+    case 'pub':
+      return range === 'any' || fitsRange(version, range)
     // A module's major version is another module path: @latest stays within it
-    case 'go': return true
-    default: return fitsRange(version, range)
+    case 'go':
+      return true
+    default:
+      return fitsRange(version, range)
   }
 }
 
@@ -78,15 +108,24 @@ const SAFE_VERSION = /^\d+(\.\d+)*$/
 /** The files an update may change, saved before it runs */
 export function backupFiles(manager: PackageManagerKind, file: string): string[] {
   switch (manager) {
-    case 'pip': return [file]
-    case 'poetry': return ['pyproject.toml', 'poetry.lock']
-    case 'uv': return ['pyproject.toml', 'uv.lock']
-    case 'pipenv': return ['Pipfile', 'Pipfile.lock']
-    case 'cargo': return ['Cargo.toml', 'Cargo.lock']
-    case 'go': return ['go.mod', 'go.sum']
-    case 'bundler': return ['Gemfile', 'Gemfile.lock']
-    case 'pub': return ['pubspec.yaml', 'pubspec.lock']
-    default: return []
+    case 'pip':
+      return [file]
+    case 'poetry':
+      return ['pyproject.toml', 'poetry.lock']
+    case 'uv':
+      return ['pyproject.toml', 'uv.lock']
+    case 'pipenv':
+      return ['Pipfile', 'Pipfile.lock']
+    case 'cargo':
+      return ['Cargo.toml', 'Cargo.lock']
+    case 'go':
+      return ['go.mod', 'go.sum']
+    case 'bundler':
+      return ['Gemfile', 'Gemfile.lock']
+    case 'pub':
+      return ['pubspec.yaml', 'pubspec.lock']
+    default:
+      return []
   }
 }
 
@@ -100,15 +139,19 @@ export interface UpdateContext {
 }
 
 /** A step: a command (program and its arguments), or a file to rewrite before the next one */
-export type UpdateStep =
-  | { run: string[] }
-  | { rewrite: { name: string; version: string } }
+export type UpdateStep = { run: string[] } | { rewrite: { name: string; version: string } }
 
 /**
  * The steps of an update. "compatible": the newest version within the file's
  * range; "latest": the latest published one, the file's range rewritten.
  */
-export function otherUpdateSteps(manager: PackageManagerKind, file: string, updates: PackageUpdate[], latest: Record<string, string | null>, ctx: UpdateContext = {}): UpdateStep[] {
+export function otherUpdateSteps(
+  manager: PackageManagerKind,
+  file: string,
+  updates: PackageUpdate[],
+  latest: Record<string, string | null>,
+  ctx: UpdateContext = {}
+): UpdateStep[] {
   const ok = updates.filter(u => SAFE.test(u.name))
   const compatible = ok.filter(u => u.target === 'compatible')
   const toLatest = ok.filter(u => u.target === 'latest' && SAFE_VERSION.test(latest[u.name] ?? ''))
@@ -161,7 +204,10 @@ export function otherUpdateSteps(manager: PackageManagerKind, file: string, upda
       return steps
     case 'go': {
       const all = [...compatible, ...toLatest]
-      if (all.length) { run('go', 'get', ...all.map(u => `${u.name}@latest`)); run('go', 'mod', 'tidy') }
+      if (all.length) {
+        run('go', 'get', ...all.map(u => `${u.name}@latest`))
+        run('go', 'mod', 'tidy')
+      }
       return steps
     }
     case 'bundler': {
@@ -178,22 +224,32 @@ export function otherUpdateSteps(manager: PackageManagerKind, file: string, upda
       if (list.length) run(tool, 'pub', 'add', ...list)
       return steps
     }
-    default: return []
+    default:
+      return []
   }
 }
 
 /** What reinstalls from the files put back (the undo of an update) */
 export function reinstallCommand(manager: PackageManagerKind, file: string, python?: string): string[] | null {
   switch (manager) {
-    case 'pip': return python ? [python, '-m', 'pip', 'install', '-r', file] : null
-    case 'poetry': return ['poetry', 'install']
-    case 'uv': return ['uv', 'sync']
-    case 'pipenv': return ['pipenv', 'sync', '--dev']
-    case 'cargo': return ['cargo', 'fetch']
-    case 'go': return ['go', 'mod', 'download']
-    case 'bundler': return ['bundle', 'install']
-    case 'pub': return null
-    default: return null
+    case 'pip':
+      return python ? [python, '-m', 'pip', 'install', '-r', file] : null
+    case 'poetry':
+      return ['poetry', 'install']
+    case 'uv':
+      return ['uv', 'sync']
+    case 'pipenv':
+      return ['pipenv', 'sync', '--dev']
+    case 'cargo':
+      return ['cargo', 'fetch']
+    case 'go':
+      return ['go', 'mod', 'download']
+    case 'bundler':
+      return ['bundle', 'install']
+    case 'pub':
+      return null
+    default:
+      return null
   }
 }
 
@@ -206,14 +262,18 @@ export function rewriteVersion(manager: PackageManagerKind, text: string, name: 
   const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   if (manager === 'bundler') {
     const [major, minor = '0'] = version.split('.')
-    return text.replace(new RegExp(`^(\\s*gem\\s+["']${esc(name)}["'])((?:\\s*,\\s*["'][^"']*["'])*)`, 'm'), (_all, head: string) => `${head}, "~> ${major}.${minor}"`)
+    return text.replace(
+      new RegExp(`^(\\s*gem\\s+["']${esc(name)}["'])((?:\\s*,\\s*["'][^"']*["'])*)`, 'm'),
+      (_all, head: string) => `${head}, "~> ${major}.${minor}"`
+    )
   }
   // Python: the name as written (any case, - _ .), its extras kept, its specifiers replaced
   const want = pyName(name)
   const line = /^(\s*["']?)([A-Za-z0-9][A-Za-z0-9._-]*)(\s*\[[^\]]*\])?\s*((?:===|==|~=|!=|>=|<=|>|<)[^;#"'\r\n]*)?/gm
   // The spaces before a comment or a marker stay
   return text.replace(line, (all, lead: string, n: string, extras: string | undefined, spec: string | undefined) =>
-    pyName(n) === want ? `${lead}${n}${extras ?? ''}>=${version}${(spec ?? '').match(/\s*$/)![0]}` : all)
+    pyName(n) === want ? `${lead}${n}${extras ?? ''}>=${version}${(spec ?? '').match(/\s*$/)![0]}` : all
+  )
 }
 
 // ─── Audits ───────────────────────────────────────────────────────────────────
@@ -228,14 +288,18 @@ function add(s: AuditSummary, name: string, sev: AuditSeverity) {
 }
 const severity = (raw: unknown): AuditSeverity => {
   const s = String(raw ?? '').toLowerCase()
-  return s === 'medium' ? 'moderate' : (ORDER as string[]).includes(s) ? s as AuditSeverity : 'unknown'
+  return s === 'medium' ? 'moderate' : (ORDER as string[]).includes(s) ? (s as AuditSeverity) : 'unknown'
 }
 
 /** pip-audit -f json: { dependencies: [{ name, vulns: [...] }] } (older versions: the list alone) */
 export function parsePipAudit(json: string): AuditSummary | null {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let r: any
-  try { r = JSON.parse(json) } catch { return null }
+  try {
+    r = JSON.parse(json)
+  } catch {
+    return null
+  }
   const deps = Array.isArray(r) ? r : r?.dependencies
   if (!Array.isArray(deps)) return null
   const s = empty()
@@ -247,7 +311,11 @@ export function parsePipAudit(json: string): AuditSummary | null {
 export function parseCargoAudit(json: string): AuditSummary | null {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let r: any
-  try { r = JSON.parse(json) } catch { return null }
+  try {
+    r = JSON.parse(json)
+  } catch {
+    return null
+  }
   const list = r?.vulnerabilities?.list
   if (!Array.isArray(list)) return null
   const s = empty()
@@ -262,13 +330,26 @@ export function parseCargoAudit(json: string): AuditSummary | null {
 /** govulncheck -json: a stream of objects; each finding names its OSV entry and module */
 export function parseGovulncheck(stream: string): AuditSummary | null {
   const objects: unknown[] = []
-  let depth = 0, start = -1, inString = false
+  let depth = 0,
+    start = -1,
+    inString = false
   for (let i = 0; i < stream.length; i++) {
     const c = stream[i]
-    if (inString) { if (c === '\\') i++; else if (c === '"') inString = false; continue }
+    if (inString) {
+      if (c === '\\') i++
+      else if (c === '"') inString = false
+      continue
+    }
     if (c === '"') inString = true
-    else if (c === '{') { if (depth++ === 0) start = i }
-    else if (c === '}' && --depth === 0 && start >= 0) { try { objects.push(JSON.parse(stream.slice(start, i + 1))) } catch { /* skip */ } }
+    else if (c === '{') {
+      if (depth++ === 0) start = i
+    } else if (c === '}' && --depth === 0 && start >= 0) {
+      try {
+        objects.push(JSON.parse(stream.slice(start, i + 1)))
+      } catch {
+        /* skip */
+      }
+    }
   }
   if (!objects.length) return null
   const s = empty()
@@ -290,7 +371,11 @@ export function parseGovulncheck(stream: string): AuditSummary | null {
 export function parseBundleAudit(json: string): AuditSummary | null {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let r: any
-  try { r = JSON.parse(json) } catch { return null }
+  try {
+    r = JSON.parse(json)
+  } catch {
+    return null
+  }
   if (!Array.isArray(r?.results)) return null
   const s = empty()
   for (const x of r.results) if (x?.gem?.name) add(s, String(x.gem.name), severity(x?.advisory?.criticality))

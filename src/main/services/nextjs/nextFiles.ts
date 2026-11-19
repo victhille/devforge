@@ -25,7 +25,7 @@ export function prismaClientFile(provider: string, prismaVersion: number, client
   const make = adapter
     ? provider === 'postgresql'
       ? `new PrismaClient({ adapter: new ${adapter.cls}({ connectionString: process.env.DATABASE_URL }) })`
-      : `new PrismaClient({ adapter: new ${adapter.cls}(${provider === 'sqlite' ? '{ url: process.env.DATABASE_URL ?? \'file:./dev.db\' }' : 'process.env.DATABASE_URL ?? \'\''}) })`
+      : `new PrismaClient({ adapter: new ${adapter.cls}(${provider === 'sqlite' ? "{ url: process.env.DATABASE_URL ?? 'file:./dev.db' }" : "process.env.DATABASE_URL ?? ''"}) })`
     : 'new PrismaClient()'
   return `${GENERATED_MARK}: one Prisma client for the whole app.
 import { PrismaClient } from '${clientImport}'
@@ -52,12 +52,18 @@ export function apiFields(e: SfEntity, hidden: string[]) {
 const list = (xs: string[]) => `[${xs.map(x => `'${x}'`).join(', ')}]`
 
 /** {app}/api/<models>/route.ts and [id]/route.ts, only the chosen operations */
-export function routeFiles(e: SfEntity, ops: SfOperation[], hidden: string[], ts: boolean, imp: { collection: Imports; item: Imports }): { collection: string | null; item: string | null } {
+export function routeFiles(
+  e: SfEntity,
+  ops: SfOperation[],
+  hidden: string[],
+  ts: boolean,
+  imp: { collection: Imports; item: Imports }
+): { collection: string | null; item: string | null } {
   const model = lc(e.name)
   const { input, required } = apiFields(e, hidden)
   const omit = hidden.length ? `{ ${hidden.map(h => `${h}: true`).join(', ')} }` : '{}'
   const has = (o: SfOperation) => ops.includes(o)
-  const typeImport = (i: Imports) => ts && (has('create') || has('update')) ? `import type { Prisma } from '${i.client}'\n` : ''
+  const typeImport = (i: Imports) => (ts && (has('create') || has('update')) ? `import type { Prisma } from '${i.client}'\n` : '')
   const head = (i: Imports, rest: string) => `${GENERATED_MARK}: rewritten when the API settings change in the Next.js workshop.
 import { NextResponse } from 'next/server'
 ${typeImport(i)}import { prisma } from '${i.lib}'
@@ -77,12 +83,20 @@ const INPUT = ${list(input)}${withRequired ? `\n/** Needed to create one */\ncon
 const OMIT = ${omit}${ts ? ' as const' : ''}
 `
 
-  const collection = has('list') || has('create') ? head(imp.collection, consts(has('create')) + [
-    has('list') ? `
+  const collection =
+    has('list') || has('create')
+      ? head(
+          imp.collection,
+          consts(has('create')) +
+            [
+              has('list')
+                ? `
 export async function GET() {
   return NextResponse.json(await prisma.${model}.findMany({ omit: OMIT }))
-}` : '',
-    has('create') ? `
+}`
+                : '',
+              has('create')
+                ? `
 export async function POST(request${ts ? ': Request' : ''}) {
 ${readBody}
   const missing = REQUIRED.filter(k => !(k in body))
@@ -93,8 +107,12 @@ ${readBody}
   } catch (err) {
 ${failCreate}
   }
-}` : ''
-  ].join('\n') + '\n') : null
+}`
+                : ''
+            ].join('\n') +
+            '\n'
+        )
+      : null
 
   const params = ts ? '{ params }: { params: Promise<{ id: string }> }' : '{ params }'
   const idHelpers = `
@@ -106,14 +124,23 @@ async function idOf(params${ts ? ': Promise<{ id: string }>' : ''}) {
   return Number.isInteger(id) && id > 0 ? id : null
 }
 `
-  const item = has('show') || has('update') || has('delete') ? head(imp.item, consts(false) + idHelpers + [
-    has('show') ? `
+  const item =
+    has('show') || has('update') || has('delete')
+      ? head(
+          imp.item,
+          consts(false) +
+            idHelpers +
+            [
+              has('show')
+                ? `
 export async function GET(_request${ts ? ': Request' : ''}, ${params}) {
   const id = await idOf(params)
   const item = id === null ? null : await prisma.${model}.findUnique({ where: { id }, omit: OMIT })
   return item ? NextResponse.json(item) : NOT_FOUND()
-}` : '',
-    has('update') ? `
+}`
+                : '',
+              has('update')
+                ? `
 export async function PATCH(request${ts ? ': Request' : ''}, ${params}) {
   const id = await idOf(params)
   if (id === null) return NOT_FOUND()
@@ -124,8 +151,10 @@ ${readBody}
   } catch (err) {
 ${fail}
   }
-}` : '',
-    has('delete') ? `
+}`
+                : '',
+              has('delete')
+                ? `
 export async function DELETE(_request${ts ? ': Request' : ''}, ${params}) {
   const id = await idOf(params)
   if (id === null) return NOT_FOUND()
@@ -135,8 +164,12 @@ export async function DELETE(_request${ts ? ': Request' : ''}, ${params}) {
   } catch {
     return NOT_FOUND()
   }
-}` : ''
-  ].join('\n') + '\n') : null
+}`
+                : ''
+            ].join('\n') +
+            '\n'
+        )
+      : null
 
   return { collection, item }
 }
@@ -150,17 +183,33 @@ export const routeFolder = (entity: string) => apiPath(entity).replace(/^\//, ''
 function fakerFor(e: SfEntity, name: string): string {
   const f = e.fields.find(x => x.name === name)!
   const n = name.toLowerCase()
-  const uniq = (expr: string) => f.unique ? `\`\${${expr}}-\${i}\`` : expr
+  const uniq = (expr: string) => (f.unique ? `\`\${${expr}}-\${i}\`` : expr)
   switch (f.type) {
-    case 'decimal': return /prix|price|montant|amount|total|cout|cost|tarif/.test(n) ? `faker.commerce.price({ min: 1, max: 500 })` : `faker.number.float({ min: 0, max: 1000, fractionDigits: ${f.scale ?? 2} }).toFixed(${f.scale ?? 2})`
-    case 'float': return 'faker.number.float({ min: 0, max: 1000, fractionDigits: 2 })'
-    case 'integer': return /stock|quantit|qty|qte|nombre|count/.test(n) ? 'faker.number.int({ min: 0, max: 100 })' : /age/.test(n) ? 'faker.number.int({ min: 18, max: 90 })' : f.unique ? 'i + 1' : 'faker.number.int({ min: 1, max: 1000 })'
-    case 'boolean': return 'faker.datatype.boolean()'
-    case 'date': case 'datetime': return 'faker.date.past()'
-    case 'json': return '{}'
-    case 'text': return 'faker.lorem.paragraph()'
+    case 'decimal':
+      return /prix|price|montant|amount|total|cout|cost|tarif/.test(n)
+        ? `faker.commerce.price({ min: 1, max: 500 })`
+        : `faker.number.float({ min: 0, max: 1000, fractionDigits: ${f.scale ?? 2} }).toFixed(${f.scale ?? 2})`
+    case 'float':
+      return 'faker.number.float({ min: 0, max: 1000, fractionDigits: 2 })'
+    case 'integer':
+      return /stock|quantit|qty|qte|nombre|count/.test(n)
+        ? 'faker.number.int({ min: 0, max: 100 })'
+        : /age/.test(n)
+          ? 'faker.number.int({ min: 18, max: 90 })'
+          : f.unique
+            ? 'i + 1'
+            : 'faker.number.int({ min: 1, max: 1000 })'
+    case 'boolean':
+      return 'faker.datatype.boolean()'
+    case 'date':
+    case 'datetime':
+      return 'faker.date.past()'
+    case 'json':
+      return '{}'
+    case 'text':
+      return 'faker.lorem.paragraph()'
     case 'string':
-      if (/mail/.test(n)) return f.unique ? 'faker.internet.email().replace(\'@\', `.${i}@`)' : 'faker.internet.email()'
+      if (/mail/.test(n)) return f.unique ? "faker.internet.email().replace('@', `.${i}@`)" : 'faker.internet.email()'
       if (/password|motdepasse/.test(n)) return "'password'"
       if (/prenom|firstname/.test(n)) return uniq('faker.person.firstName()')
       if (/^(nom|name)$|nom$|name$/.test(n) && /user|client|personne|person|membre/i.test(e.name)) return uniq('faker.person.lastName()')
@@ -177,10 +226,18 @@ function fakerFor(e: SfEntity, name: string): string {
 export function seedFile(entities: SfEntity[], counts: Record<string, number>, libImport: string): string {
   // The side holding the foreign key (fk) depends on the other one
   const parentsOf = (e: SfEntity) => e.relations.filter(r => r.fk && r.target !== e.name)
-  const missing = entities.filter(e => (counts[e.name] ?? 0) > 0)
-    .flatMap(e => parentsOf(e).filter(r => !r.nullable && !((counts[r.target] ?? 0) > 0)).map(r => r.target))
+  const missing = entities
+    .filter(e => (counts[e.name] ?? 0) > 0)
+    .flatMap(e =>
+      parentsOf(e)
+        .filter(r => !r.nullable && !((counts[r.target] ?? 0) > 0))
+        .map(r => r.target)
+    )
   if (missing.length) throw new Error(`NEEDS_PARENT:${[...new Set(missing)].join(', ')}`)
-  const order = creationOrder(entities.map(e => ({ ...e, relations: parentsOf(e).map(r => ({ ...r, kind: 'ManyToOne' as const })) })), counts)
+  const order = creationOrder(
+    entities.map(e => ({ ...e, relations: parentsOf(e).map(r => ({ ...r, kind: 'ManyToOne' as const })) })),
+    counts
+  )
 
   const blocks = order.map(o => {
     const e = entities.find(x => x.name === o.name)!
@@ -191,7 +248,7 @@ export function seedFile(entities: SfEntity[], counts: Record<string, number>, l
     const n = one.length ? `Math.min(${counts[e.name]}, ${one.map(r => `${lc(r.target)}s.length`).join(', ')})` : String(counts[e.name])
     const data = [
       ...e.fields.filter(f => f.name !== 'createdAt').map(f => `${f.name}: ${fakerFor(e, f.name)}`),
-      ...parents.map(r => r.kind === 'OneToOne' ? `${r.fk}: ${lc(r.target)}s[i].id` : `${r.fk}: faker.helpers.arrayElement(${lc(r.target)}s).id`)
+      ...parents.map(r => (r.kind === 'OneToOne' ? `${r.fk}: ${lc(r.target)}s[i].id` : `${r.fk}: faker.helpers.arrayElement(${lc(r.target)}s).id`))
     ]
     return `  const ${v} = []
   for (let i = 0; i < ${n}; i++) {
@@ -206,7 +263,10 @@ import { prisma } from '${libImport}'
 
 async function main() {
   // Children first: their links would stop the parents from going
-${[...order].reverse().map(e => `  await prisma.${lc(e.name)}.deleteMany()`).join('\n')}
+${[...order]
+  .reverse()
+  .map(e => `  await prisma.${lc(e.name)}.deleteMany()`)
+  .join('\n')}
 
 ${blocks.join('\n\n')}
 }

@@ -24,7 +24,12 @@ import DetectDeploysDialog from './DetectDeploysDialog'
 import { deployMethod, deploySteps, shortDuration, stepStates, type StepState } from './deploySteps'
 
 /** The run under way, followed from its first line */
-interface Live { id: string; targetId: string; startedAt: string; log: string }
+interface Live {
+  id: string
+  targetId: string
+  startedAt: string
+  log: string
+}
 
 const runMs = (r: DeployRun) => (r.finishedAt ? new Date(r.finishedAt).getTime() - new Date(r.startedAt).getTime() : 0)
 
@@ -69,13 +74,19 @@ export default function DeployPage() {
       }
       setLive(l => (l?.id === run.id ? null : l))
       setFocus({ targetId: run.targetId, runId: run.id })
-      window.devforge.deploy.history(run.targetId).then(list => setRuns(r => ({ ...r, [run.targetId]: list }))).catch(() => {})
+      window.devforge.deploy
+        .history(run.targetId)
+        .then(list => setRuns(r => ({ ...r, [run.targetId]: list })))
+        .catch(() => {})
       const name = targets?.find(x => x.id === run.targetId)?.name ?? ''
-      toast.show(run.status === 'success'
-        ? { tone: 'success', title: d.success.replace('{name}', name) }
-        : { tone: 'error', title: d.failure.replace('{name}', name) })
+      toast.show(
+        run.status === 'success' ? { tone: 'success', title: d.success.replace('{name}', name) } : { tone: 'error', title: d.failure.replace('{name}', name) }
+      )
     })
-    return () => { offLog(); offStatus() }
+    return () => {
+      offLog()
+      offStatus()
+    }
   }, [targets, toast, d])
 
   async function deploy(target: DeployTarget) {
@@ -96,7 +107,9 @@ export default function DeployPage() {
     if (!targets) return null
     if (live) return { targetId: live.targetId, runId: live.id }
     if (focus) return focus
-    const latest = Object.values(runs).flat().sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0]
+    const latest = Object.values(runs)
+      .flat()
+      .sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0]
     return latest ? { targetId: latest.targetId, runId: latest.id } : null
   }, [targets, live, focus, runs])
   const shownTarget = targets?.find(x => x.id === shown?.targetId)
@@ -108,23 +121,47 @@ export default function DeployPage() {
         crumb={t.nav.groupOnline}
         title={d.title}
         subtitle={d.subtitle}
-        actions={<>
-          <Button variant="secondary" onClick={() => setDetecting(true)} disabled={connections.length === 0}>{d.detectTitle}</Button>
-          <Button onClick={() => setEditing({})} disabled={connections.length === 0}><Plus size={14} aria-hidden /> {d.newTarget}</Button>
-        </>}
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => setDetecting(true)} disabled={connections.length === 0}>
+              {d.detectTitle}
+            </Button>
+            <Button onClick={() => setEditing({})} disabled={connections.length === 0}>
+              <Plus size={14} aria-hidden /> {d.newTarget}
+            </Button>
+          </>
+        }
       />
 
-      {!targets ? <CardGridSkeleton cards={3} /> : connections.length === 0 && targets.length === 0 ? (
-        <EmptyState icon={<Server size={32} />} title={d.needServer} description={d.needServerHint}
-          action={<Button onClick={() => navigate('/ssh')}><Plus size={14} aria-hidden /> {t.ssh.addServer}</Button>} />
+      {!targets ? (
+        <CardGridSkeleton cards={3} />
+      ) : connections.length === 0 && targets.length === 0 ? (
+        <EmptyState
+          icon={<Server size={32} />}
+          title={d.needServer}
+          description={d.needServerHint}
+          action={
+            <Button onClick={() => navigate('/ssh')}>
+              <Plus size={14} aria-hidden /> {t.ssh.addServer}
+            </Button>
+          }
+        />
       ) : targets.length === 0 ? (
-        <EmptyState icon={<UploadCloud size={32} />} title={d.emptyTitle} description={d.emptyHint}
+        <EmptyState
+          icon={<UploadCloud size={32} />}
+          title={d.emptyTitle}
+          description={d.emptyHint}
           action={
             <div className="flex gap-2">
-              <Button onClick={() => setDetecting(true)}><Search size={14} aria-hidden /> {d.detectTitle}</Button>
-              <Button variant="secondary" onClick={() => setEditing({})}><Plus size={14} aria-hidden /> {d.newTarget}</Button>
+              <Button onClick={() => setDetecting(true)}>
+                <Search size={14} aria-hidden /> {d.detectTitle}
+              </Button>
+              <Button variant="secondary" onClick={() => setEditing({})}>
+                <Plus size={14} aria-hidden /> {d.newTarget}
+              </Button>
             </div>
-          } />
+          }
+        />
       ) : (
         <>
           {shownTarget && (
@@ -159,29 +196,54 @@ export default function DeployPage() {
                     <tr key={tg.id} aria-current={shown?.targetId === tg.id ? 'true' : undefined}>
                       <Td className="min-w-[180px]">
                         <span className="block font-semibold text-fg">{tg.name}</span>
-                        <span className="block truncate font-mono text-xs text-fg-muted" title={tg.remotePath}>{tg.remotePath}</span>
+                        <span className="block truncate font-mono text-xs text-fg-muted" title={tg.remotePath}>
+                          {tg.remotePath}
+                        </span>
                       </Td>
                       <Td className="font-mono whitespace-nowrap text-fg-secondary">{conn?.name ?? <span className="text-danger">{d.missingServer}</span>}</Td>
                       <Td className="whitespace-nowrap text-fg-secondary">{d.method[deployMethod(tg.script)]}</Td>
                       <Td className="whitespace-nowrap">
-                        {running ? <Badge color="warning"><Spinner className="size-3" /> {d.running}</Badge>
-                          : last ? <LastRun run={last} />
-                          : <span className="text-fg-muted">{d.never}</span>}
+                        {running ? (
+                          <Badge color="warning">
+                            <Spinner className="size-3" /> {d.running}
+                          </Badge>
+                        ) : last ? (
+                          <LastRun run={last} />
+                        ) : (
+                          <span className="text-fg-muted">{d.never}</span>
+                        )}
                       </Td>
                       <Td align="right" className="whitespace-nowrap">
                         <span className="inline-flex items-center gap-1.5">
                           {last && !running && (
-                            <Button size="sm" variant="ghost" aria-label={d.showLogOf.replace('{name}', tg.name)} onClick={() => setFocus({ targetId: tg.id, runId: last.id })}><ScrollText size={13} aria-hidden /> {d.showLog}</Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              aria-label={d.showLogOf.replace('{name}', tg.name)}
+                              onClick={() => setFocus({ targetId: tg.id, runId: last.id })}
+                            >
+                              <ScrollText size={13} aria-hidden /> {d.showLog}
+                            </Button>
                           )}
                           {/* One orange button, as in the mock-up: the target on show; the others stay quiet */}
-                          <Button size="sm" variant={shown?.targetId === tg.id ? 'primary' : 'secondary'} aria-label={d.deployOf.replace('{name}', tg.name)}
-                            loading={running} disabled={!conn || running} onClick={() => deploy(tg)}>
+                          <Button
+                            size="sm"
+                            variant={shown?.targetId === tg.id ? 'primary' : 'secondary'}
+                            aria-label={d.deployOf.replace('{name}', tg.name)}
+                            loading={running}
+                            disabled={!conn || running}
+                            onClick={() => deploy(tg)}
+                          >
                             {!running && <UploadCloud size={13} aria-hidden />} {running ? d.deploying : d.deploy}
                           </Button>
-                          <MoreMenu size="sm" label={d.moreOf.replace('{name}', tg.name)} items={[
-                            { label: d.edit, icon: Pencil, onSelect: () => setEditing({ target: tg }) },
-                            { label: t.common.delete, icon: Trash2, danger: true, onSelect: () => remove(tg) }
-                          ]} />
+                          <MoreMenu
+                            size="sm"
+                            label={d.moreOf.replace('{name}', tg.name)}
+                            items={[
+                              { label: d.edit, icon: Pencil, onSelect: () => setEditing({ target: tg }) },
+                              { label: t.common.delete, icon: Trash2, danger: true, onSelect: () => remove(tg) }
+                            ]}
+                          />
                         </span>
                       </Td>
                     </tr>
@@ -199,7 +261,11 @@ export default function DeployPage() {
         <DeployEditor
           initial={editing.target}
           onClose={() => setEditing(null)}
-          onSave={async target => { await window.devforge.deploy.save(target); await reload(); setEditing(null) }}
+          onSave={async target => {
+            await window.devforge.deploy.save(target)
+            await reload()
+            setEditing(null)
+          }}
         />
       )}
     </Page>
@@ -214,7 +280,10 @@ function LastRun({ run }: { run: DeployRun }) {
   return (
     <span className="inline-flex items-center gap-2">
       <Badge color={ok ? 'success' : 'danger'}>{ok ? d.ok : d.failed}</Badge>
-      <span className="text-fg-secondary">{formatRelative(run.startedAt, lang)}{run.finishedAt ? ` · ${shortDuration(runMs(run), d.units)}` : ''}</span>
+      <span className="text-fg-secondary">
+        {formatRelative(run.startedAt, lang)}
+        {run.finishedAt ? ` · ${shortDuration(runMs(run), d.units)}` : ''}
+      </span>
     </span>
   )
 }
@@ -227,7 +296,14 @@ const STEP_STYLE: Record<StepState, string> = {
 }
 
 /** The run of a target: its steps from its script, its log; the earlier runs a click away */
-function RunCard({ target, connection, runs, live, runId, onPick }: {
+function RunCard({
+  target,
+  connection,
+  runs,
+  live,
+  runId,
+  onPick
+}: {
   target: DeployTarget
   connection?: SSHConnection
   runs: DeployRun[]
@@ -237,9 +313,9 @@ function RunCard({ target, connection, runs, live, runId, onPick }: {
 }) {
   const { t, lang } = useI18n()
   const d = t.deploy
-  const run = live ? null : runs.find(r => r.id === runId) ?? runs[0]
-  const status = live ? 'running' : run?.status ?? 'running'
-  const log = live ? live.log : run?.log ?? ''
+  const run = live ? null : (runs.find(r => r.id === runId) ?? runs[0])
+  const status = live ? 'running' : (run?.status ?? 'running')
+  const log = live ? live.log : (run?.log ?? '')
   const steps = useMemo(() => deploySteps(target), [target])
   const states = stepStates(log, steps, status)
 
@@ -263,12 +339,26 @@ function RunCard({ target, connection, runs, live, runId, onPick }: {
         </h2>
         {!live && runs.length > 1 && (
           <Select aria-label={d.pickRun} value={run?.id ?? ''} onChange={e => onPick(e.target.value)} className="h-7.5 w-auto text-xs">
-            {runs.map(r => <option key={r.id} value={r.id}>{new Date(r.startedAt).toLocaleString(lang)} · {r.status === 'success' ? d.ok : d.failed}</option>)}
+            {runs.map(r => (
+              <option key={r.id} value={r.id}>
+                {new Date(r.startedAt).toLocaleString(lang)} · {r.status === 'success' ? d.ok : d.failed}
+              </option>
+            ))}
           </Select>
         )}
         {/* The state is announced once; the clock that ticks every second stays out of the announcement */}
-        {live ? <Badge color="warning"><Spinner className="size-3" /> <span role="status">{d.running}</span><span aria-hidden> · {clock}</span></Badge>
-          : run && <Badge color={status === 'success' ? 'success' : 'danger'}>{status === 'success' ? d.ok : d.failed} · {formatRelative(run.startedAt, lang)}</Badge>}
+        {live ? (
+          <Badge color="warning">
+            <Spinner className="size-3" /> <span role="status">{d.running}</span>
+            <span aria-hidden> · {clock}</span>
+          </Badge>
+        ) : (
+          run && (
+            <Badge color={status === 'success' ? 'success' : 'danger'}>
+              {status === 'success' ? d.ok : d.failed} · {formatRelative(run.startedAt, lang)}
+            </Badge>
+          )
+        )}
       </div>
 
       {steps.length > 0 && (
@@ -284,7 +374,9 @@ function RunCard({ target, connection, runs, live, runId, onPick }: {
                   <span className="truncate">{d.step[s.kind]}</span>
                   <span className="sr-only"> · {d.stepState[st]}</span>
                 </span>
-                <span className="truncate font-mono text-xs text-fg-muted" title={s.cmd}>{s.cmd}</span>
+                <span className="truncate font-mono text-xs text-fg-muted" title={s.cmd}>
+                  {s.cmd}
+                </span>
               </li>
             )
           })}

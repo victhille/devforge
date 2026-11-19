@@ -10,9 +10,28 @@ import { checkDraft } from '../symfony/sfEntityWriter'
 import { isDangerous } from '../symfony/sfInspect'
 import { OPERATIONS } from '../symfony/sfApi'
 import {
-  GENERATED_MARK, addLines, controllerFile, createLines, extendModel, factoryFile, migrationFile, migrationLabel, migrationStamp,
-  newModelFile, parseMigrateStatus, parsePretend, planLinks, readMigrations, readModel, routesBlock, seederFile, snake, tableOf,
-  toEntities, upBody, withRoutesBlock
+  GENERATED_MARK,
+  addLines,
+  controllerFile,
+  createLines,
+  extendModel,
+  factoryFile,
+  migrationFile,
+  migrationLabel,
+  migrationStamp,
+  newModelFile,
+  parseMigrateStatus,
+  parsePretend,
+  planLinks,
+  readMigrations,
+  readModel,
+  routesBlock,
+  seederFile,
+  snake,
+  tableOf,
+  toEntities,
+  upBody,
+  withRoutesBlock
 } from './laravelFiles'
 
 type LogCb = (log: LogLine) => void
@@ -25,13 +44,21 @@ function projectDir(path: unknown): string {
   return dir
 }
 
-const read = (file: string) => existsSync(file) ? readFileSync(file, 'utf-8') : ''
+const read = (file: string) => (existsSync(file) ? readFileSync(file, 'utf-8') : '')
 function write(file: string, content: string): void {
   mkdirSync(dirname(file), { recursive: true })
   writeFileSync(file, content)
 }
 const rel = (dir: string, file: string) => relative(dir, file).replace(/\\/g, '/')
-const list = (folder: string, re: RegExp) => { try { return readdirSync(folder).filter(n => re.test(n)).sort() } catch { return [] } }
+const list = (folder: string, re: RegExp) => {
+  try {
+    return readdirSync(folder)
+      .filter(n => re.test(n))
+      .sort()
+  } catch {
+    return []
+  }
+}
 
 /** .env value, without quotes */
 const envValue = (dir: string, key: string) => read(join(dir, '.env')).match(new RegExp(`^\\s*${key}\\s*=\\s*"?([^"\\r\\n]*)"?`, 'm'))?.[1] ?? null
@@ -41,10 +68,16 @@ const envValue = (dir: string, key: string) => read(join(dir, '.env')).match(new
  * { status, migrations, routes } used instead of PHP; models are still read
  * from the disk. Ignored in the installed app.
  */
-function testData<K extends 'status' | 'migrations' | 'routes'>(key: K): { status: LaravelInspect['status']; migrations: SfMigration[]; routes: SfRoute[] }[K] | undefined {
+function testData<K extends 'status' | 'migrations' | 'routes'>(
+  key: K
+): { status: LaravelInspect['status']; migrations: SfMigration[]; routes: SfRoute[] }[K] | undefined {
   const file = process.env.DEVFORGE_TEST_LARAVEL
   if (!file || app.isPackaged) return undefined
-  try { return JSON.parse(readFileSync(file, 'utf-8'))[key] } catch { return undefined }
+  try {
+    return JSON.parse(readFileSync(file, 'utf-8'))[key]
+  } catch {
+    return undefined
+  }
 }
 
 // ─── Reading ──────────────────────────────────────────────────────────────────
@@ -69,9 +102,16 @@ function project(dir: string) {
 // eslint-disable-next-line no-control-regex -- colors a PHP script may still print
 const plain = (out: string) => out.replace(/\x1b\[[0-9;]*m/g, '')
 function firstError(out: string): string {
-  const lines = plain(out).split(/\r?\n/).map(l => l.trim()).filter(l => l && !/^Deprecation Notice|^Deprecated:/.test(l))
-  return lines.find(l => /SQLSTATE|could not find driver|Connection refused|does not exist|Access denied|Unknown database/i.test(l))
-    ?? lines.find(l => /error|exception/i.test(l)) ?? lines.pop() ?? ''
+  const lines = plain(out)
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(l => l && !/^Deprecation Notice|^Deprecated:/.test(l))
+  return (
+    lines.find(l => /SQLSTATE|could not find driver|Connection refused|does not exist|Access denied|Unknown database/i.test(l)) ??
+    lines.find(l => /error|exception/i.test(l)) ??
+    lines.pop() ??
+    ''
+  )
 }
 
 export async function inspect(projectPath: string): Promise<LaravelInspect> {
@@ -81,7 +121,10 @@ export async function inspect(projectPath: string): Promise<LaravelInspect> {
   if (canned) return { status: canned, entities: p.entities, migrations: testData('migrations') ?? [] }
   const sail = isSail(dir)
   const status: LaravelInspect['status'] = {
-    booted: false, error: null, version: null, connection: envValue(dir, 'DB_CONNECTION'),
+    booted: false,
+    error: null,
+    version: null,
+    connection: envValue(dir, 'DB_CONNECTION'),
     database: { reachable: false, error: null },
     composeDatabase: sail || /^\s{2}database:\s*$/m.test(compose(dir)),
     api: existsSync(join(dir, 'routes', 'api.php')),
@@ -91,8 +134,19 @@ export async function inspect(projectPath: string): Promise<LaravelInspect> {
   }
   const artisan = artisanLine(dir)
   const fromFiles = (name: string): SfMigration => {
-    const sql = upBody(p.migrationPhp.get(name) ?? '').split(/;\s*\n/).map(s => s.trim()).filter(Boolean)
-    return { version: name, description: migrationLabel(name), executed: false, executedAt: null, file: `database/migrations/${name}.php`, sql: sql.slice(1), dangerous: /->drop|Schema::drop/.test(upBody(p.migrationPhp.get(name) ?? '')) }
+    const sql = upBody(p.migrationPhp.get(name) ?? '')
+      .split(/;\s*\n/)
+      .map(s => s.trim())
+      .filter(Boolean)
+    return {
+      version: name,
+      description: migrationLabel(name),
+      executed: false,
+      executedAt: null,
+      file: `database/migrations/${name}.php`,
+      sql: sql.slice(1),
+      dangerous: /->drop|Schema::drop/.test(upBody(p.migrationPhp.get(name) ?? ''))
+    }
   }
   if (!existsSync(join(dir, 'vendor', 'autoload.php'))) {
     status.error = 'NO_VENDOR'
@@ -120,11 +174,13 @@ export async function inspect(projectPath: string): Promise<LaravelInspect> {
     const pr = await runCapture(artisan('migrate --pretend --no-interaction --no-ansi'), { cwd: dir, timeout: 90_000 })
     pretend = parsePretend(`${pr.stdout}\n${pr.stderr}`)
   }
-  const migrations = p.migrationNames.map(name => {
-    const m = fromFiles(name)
-    const sql = pretend.get(name)
-    return { ...m, executed: !!parsed.ran.get(name), ...(sql ? { sql, dangerous: isDangerous(sql) } : {}) }
-  }).reverse()
+  const migrations = p.migrationNames
+    .map(name => {
+      const m = fromFiles(name)
+      const sql = pretend.get(name)
+      return { ...m, executed: !!parsed.ran.get(name), ...(sql ? { sql, dangerous: isDangerous(sql) } : {}) }
+    })
+    .reverse()
   return { status, entities: p.entities, migrations }
 }
 
@@ -137,11 +193,20 @@ export async function routes(projectPath: string): Promise<SfRoute[]> {
   if (canned) return canned
   const r = await runCapture(artisanLine(dir)('route:list --json --no-ansi'), { cwd: dir, timeout: 60_000 })
   let raw: { method: string; uri: string; name: string | null; action: string }[]
-  try { raw = JSON.parse(r.stdout.slice(r.stdout.indexOf('['))) } catch { throw new Error(firstError(`${r.stdout}\n${r.stderr}`) || 'NOT_BOOTED') }
-  return raw.filter(x => !TOOL_ROUTE.test(x.uri)).map(x => ({
-    name: x.name ?? x.uri, path: '/' + x.uri.replace(/^\//, ''),
-    methods: x.method.split('|').filter(m => m !== 'HEAD'), controller: x.action
-  })).sort((a, b) => a.path.localeCompare(b.path))
+  try {
+    raw = JSON.parse(r.stdout.slice(r.stdout.indexOf('[')))
+  } catch {
+    throw new Error(firstError(`${r.stdout}\n${r.stderr}`) || 'NOT_BOOTED')
+  }
+  return raw
+    .filter(x => !TOOL_ROUTE.test(x.uri))
+    .map(x => ({
+      name: x.name ?? x.uri,
+      path: '/' + x.uri.replace(/^\//, ''),
+      methods: x.method.split('|').filter(m => m !== 'HEAD'),
+      controller: x.action
+    }))
+    .sort((a, b) => a.path.localeCompare(b.path))
 }
 
 // ─── Commands ─────────────────────────────────────────────────────────────────
@@ -158,7 +223,10 @@ export function run(projectPath: string, command: LaravelCommand, arg: string | 
 export function writeModel(projectPath: string, draft: SfEntityDraft): SfWriteResult {
   const dir = projectDir(projectPath)
   const p = project(dir)
-  const error = checkDraft(draft, p.models.map(m => m.name))
+  const error = checkDraft(
+    draft,
+    p.models.map(m => m.name)
+  )
   if (error) throw new Error(error)
   const current = p.entities.find(e => e.name === draft.name)
   for (const f of draft.fields) {
@@ -173,12 +241,33 @@ export function writeModel(projectPath: string, draft: SfEntityDraft): SfWriteRe
   const fields = draft.fields.map(f => ({ ...f, name: snake(f.name) }))
 
   const creates = [
-    ...(draft.existing ? [] : [{ table: own, lines: createLines(fields, ownKeys.map(k => k.line)) }]),
+    ...(draft.existing
+      ? []
+      : [
+          {
+            table: own,
+            lines: createLines(
+              fields,
+              ownKeys.map(k => k.line)
+            )
+          }
+        ]),
     ...plan.pivots
   ]
   const otherTables = [...new Set(plan.keys.filter(k => k.table !== own).map(k => k.table))]
   const alters = [
-    ...(draft.existing && (fields.length || ownKeys.length) ? [{ table: own, lines: addLines(fields, ownKeys.map(k => k.line)), columns: [...fields.map(f => f.name), ...ownKeys.map(k => k.column)] }] : []),
+    ...(draft.existing && (fields.length || ownKeys.length)
+      ? [
+          {
+            table: own,
+            lines: addLines(
+              fields,
+              ownKeys.map(k => k.line)
+            ),
+            columns: [...fields.map(f => f.name), ...ownKeys.map(k => k.column)]
+          }
+        ]
+      : []),
     ...otherTables.map(table => {
       const keys = plan.keys.filter(k => k.table === table)
       return { table, lines: keys.map(k => k.line), columns: keys.map(k => k.column) }
@@ -203,14 +292,30 @@ export function writeModel(projectPath: string, draft: SfEntityDraft): SfWriteRe
   ]
   const modelFile = (model: string) => join(dir, 'app', 'Models', `${model}.php`)
   if (draft.existing) {
-    write(modelFile(draft.name), extendModel(read(modelFile(draft.name)), fillable(draft.name), fields, plan.methods.filter(m => m.model === draft.name)))
+    write(
+      modelFile(draft.name),
+      extendModel(
+        read(modelFile(draft.name)),
+        fillable(draft.name),
+        fields,
+        plan.methods.filter(m => m.model === draft.name)
+      )
+    )
     result.changed.push(rel(dir, modelFile(draft.name)))
   } else {
     write(modelFile(draft.name), newModelFile({ ...draft, fields }, fillable(draft.name), plan.methods))
     result.created.push(rel(dir, modelFile(draft.name)))
   }
   for (const target of [...new Set(plan.methods.map(m => m.model).filter(m => m !== draft.name))]) {
-    write(modelFile(target), extendModel(read(modelFile(target)), fillable(target), [], plan.methods.filter(m => m.model === target)))
+    write(
+      modelFile(target),
+      extendModel(
+        read(modelFile(target)),
+        fillable(target),
+        [],
+        plan.methods.filter(m => m.model === target)
+      )
+    )
     result.changed.push(rel(dir, modelFile(target)))
   }
   return result
@@ -219,7 +324,11 @@ export function writeModel(projectPath: string, draft: SfEntityDraft): SfWriteRe
 const apiConfigFile = (dir: string) => join(dir, '.devforge', 'api.json')
 
 export function apiConfig(projectPath: string): SfApiConfig | null {
-  try { return JSON.parse(read(apiConfigFile(projectDir(projectPath)))) as SfApiConfig } catch { return null }
+  try {
+    return JSON.parse(read(apiConfigFile(projectDir(projectPath)))) as SfApiConfig
+  } catch {
+    return null
+  }
 }
 
 export function applyApi(projectPath: string, config: SfApiConfig): SfWriteResult {
@@ -241,7 +350,13 @@ export function applyApi(projectPath: string, config: SfApiConfig): SfWriteResul
       if (content) throw new Error(`HAND_EDITED:${rel(dir, file)}`)
       continue
     }
-    if (content === null) { if (old) { rmSync(file); result.removed.push(rel(dir, file)) } continue }
+    if (content === null) {
+      if (old) {
+        rmSync(file)
+        result.removed.push(rel(dir, file))
+      }
+      continue
+    }
     exposed.push({ entity: e.name, ops })
     if (old === content) continue
     write(file, content)
@@ -249,7 +364,10 @@ export function applyApi(projectPath: string, config: SfApiConfig): SfWriteResul
   }
   const before = read(routesFile)
   const after = withRoutesBlock(before, routesBlock(exposed))
-  if (after !== before) { write(routesFile, after); result.changed.push('routes/api.php') }
+  if (after !== before) {
+    write(routesFile, after)
+    result.changed.push('routes/api.php')
+  }
   write(apiConfigFile(dir), JSON.stringify({ ...config, mode: 'json' }, null, 2) + '\n')
   return result
 }

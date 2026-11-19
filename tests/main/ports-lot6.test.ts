@@ -32,7 +32,12 @@ describe('listening ports', () => {
       '  TCP    192.168.1.20:52000     203.0.113.10:443       ESTABLISHED     990',
       '  UDP    0.0.0.0:5353           *:*                                    1200'
     ].join('\n')
-    const names = new Map([[4120, 'node'], [880, 'node'], [700, 'php'], [701, 'caddy']])
+    const names = new Map([
+      [4120, 'node'],
+      [880, 'node'],
+      [700, 'php'],
+      [701, 'caddy']
+    ])
     expect(parseNetstat(out, names)).toEqual([
       { port: 3000, pid: 4120, processName: 'node', address: '0.0.0.0' },
       { port: 5173, pid: 880, processName: 'node', address: '::1' },
@@ -68,7 +73,7 @@ describe('project of a dev server', () => {
     expect(projectOfCommand('php c:\\dev\\shopping\\artisan serve', projects)?.id).toBe('c')
   })
 
-  it('a project at the root of a drive is nobody\'s', () => {
+  it("a project at the root of a drive is nobody's", () => {
     const roots = [{ id: 'r', path: 'D:\\' }, { id: 's', path: '/' }, ...projects]
     expect(projectOfCommand('node d:\\tools\\server.js', roots)).toBeUndefined()
     expect(projectOfCommand('node /usr/lib/node_modules/x.js', roots)).toBeUndefined()
@@ -84,6 +89,7 @@ describe('project of a dev server', () => {
 describe('private addresses', () => {
   it('a Docker network, loopback or a unique local IPv6, never a machine of the internet nor a name', () => {
     for (const ok of ['172.18.0.3', '10.0.0.5', '192.168.1.20', '127.0.0.1', '172.31.255.1', '::1', 'fd12:3456::1']) expect(isPrivateAddress(ok), ok).toBe(true)
-    for (const bad of ['203.0.113.7', '172.32.0.1', '8.8.8.8', '999.1.1.1', '010.0.0.1', '172.016.0.1', 'fc::1', '2001:db8::1', 'db.example.org', '']) expect(isPrivateAddress(bad), bad).toBe(false)
+    for (const bad of ['203.0.113.7', '172.32.0.1', '8.8.8.8', '999.1.1.1', '010.0.0.1', '172.016.0.1', 'fc::1', '2001:db8::1', 'db.example.org', ''])
+      expect(isPrivateAddress(bad), bad).toBe(false)
   })
 })

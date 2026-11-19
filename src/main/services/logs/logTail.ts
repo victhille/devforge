@@ -14,7 +14,11 @@ import { isInsideProject } from '../../lib/safe'
  */
 const pickedPath = () => join(app.getPath('userData'), 'log-files.json')
 function picked(): string[] {
-  try { return (JSON.parse(readFileSync(pickedPath(), 'utf-8')) as unknown[]).filter((p): p is string => typeof p === 'string') } catch { return [] }
+  try {
+    return (JSON.parse(readFileSync(pickedPath(), 'utf-8')) as unknown[]).filter((p): p is string => typeof p === 'string')
+  } catch {
+    return []
+  }
 }
 export function rememberLogFile(path: string): void {
   const p = resolve(path)
@@ -31,12 +35,19 @@ const INITIAL_BYTES = 512 * 1024
 const INITIAL_LINES = 2000
 const POLL_MS = 500 // polling works on OneDrive / network drives where fs.watch is unreliable
 
-interface Tail { path: string; offset: number; partial: string; reading: boolean }
+interface Tail {
+  path: string
+  offset: number
+  partial: string
+  reading: boolean
+}
 
 const tails = new Map<string, Tail>()
 let emit: (e: { id: string; lines: string[]; reset?: boolean }) => void = () => {}
 
-export function setLogCallback(cb: typeof emit): void { emit = cb }
+export function setLogCallback(cb: typeof emit): void {
+  emit = cb
+}
 
 async function readRange(path: string, start: number, end: number): Promise<string> {
   const fh = await openFile(path, 'r')
@@ -62,13 +73,15 @@ async function poll(id: string): Promise<void> {
       emit({ id, lines: [], reset: true })
     }
     if (size > t.offset) {
-      const chunk = t.partial + await readRange(t.path, t.offset, size)
+      const chunk = t.partial + (await readRange(t.path, t.offset, size))
       t.offset = size
       const parts = chunk.split(/\r?\n/)
       t.partial = parts.pop() ?? '' // keep an unfinished last line for next time
       if (parts.length) emit({ id, lines: parts })
     }
-  } catch { /* file temporarily missing during rotation */ } finally {
+  } catch {
+    /* file temporarily missing during rotation */
+  } finally {
     t.reading = false
   }
 }
@@ -88,7 +101,9 @@ export async function openTail(input: string): Promise<LogTailOpen> {
 
   const id = randomUUID()
   tails.set(id, { path, offset: size, partial, reading: false })
-  watchFile(path, { interval: POLL_MS }, () => { poll(id) })
+  watchFile(path, { interval: POLL_MS }, () => {
+    poll(id)
+  })
   return { id, path, lines, size }
 }
 

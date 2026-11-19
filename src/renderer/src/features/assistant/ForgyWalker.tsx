@@ -52,13 +52,18 @@ function Stroll({ dog, sleeping }: { dog: boolean; sleeping: boolean }) {
   useEffect(() => {
     const el = stageRef.current
     if (!el) return
-    const ro = new ResizeObserver(() => { width.current = el.clientWidth })
+    const ro = new ResizeObserver(() => {
+      width.current = el.clientWidth
+    })
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
 
   useEffect(() => {
-    const show = (next: Scene) => { scene.current = next; setView(next) }
+    const show = (next: Scene) => {
+      scene.current = next
+      setView(next)
+    }
     const reduced = reducedMotion()
 
     if (sleeping || reduced) {
@@ -67,7 +72,9 @@ function Stroll({ dog, sleeping }: { dog: boolean; sleeping: boolean }) {
     }
 
     let timer: ReturnType<typeof setTimeout>
-    const after = (ms: number) => { timer = setTimeout(step, ms) }
+    const after = (ms: number) => {
+      timer = setTimeout(step, ms)
+    }
 
     function step() {
       const cur = scene.current
@@ -81,7 +88,11 @@ function Stroll({ dog, sleeping }: { dog: boolean; sleeping: boolean }) {
 
       if (cur.pose === 'walk' || cur.pose === 'run') {
         // Arrived: take a break
-        const pose = pick<Pose>([['stand', 4], ['wave', 2], ['sit', 3]])
+        const pose = pick<Pose>([
+          ['stand', 4],
+          ['wave', 2],
+          ['sit', 3]
+        ])
         const hold = pose === 'stand' ? 1400 : pose === 'wave' ? 2800 : 5500
         show({ ...cur, pose, dur: 0, hello: false })
         after(hold)
@@ -115,13 +126,17 @@ function Stroll({ dog, sleeping }: { dog: boolean; sleeping: boolean }) {
         <div className="fw-mover" style={{ ...slide, transform: `translateX(${dogX}px)` }}>
           <div className="fw-face" data-dir={dir}>
             <div className="fw-dog" data-pose={pose}>
-              <div className="fw-dog-leg a1" /><div className="fw-dog-leg b1" />
-              <div className="fw-dog-leg a2" /><div className="fw-dog-leg b2" />
+              <div className="fw-dog-leg a1" />
+              <div className="fw-dog-leg b1" />
+              <div className="fw-dog-leg a2" />
+              <div className="fw-dog-leg b2" />
               <div className="fw-dog-up">
                 <div className="fw-dog-tail" />
                 <div className="fw-dog-body" />
                 <div className="fw-dog-collar" />
-                <div className="fw-dog-head"><div className="fw-dog-visor" /></div>
+                <div className="fw-dog-head">
+                  <div className="fw-dog-visor" />
+                </div>
               </div>
             </div>
           </div>
@@ -132,10 +147,14 @@ function Stroll({ dog, sleeping }: { dog: boolean; sleeping: boolean }) {
         {pose === 'wave' && hello && <span className="fw-bubble">{t.assistant.walkerHello}</span>}
         <div className="fw-face" data-dir={dir}>
           <div className="fw-forgy" data-pose={pose}>
-            <div className="fw-leg l" /><div className="fw-leg r" />
+            <div className="fw-leg l" />
+            <div className="fw-leg r" />
             <div className="fw-up">
-              <div className="fw-arm l" /><div className="fw-arm r" />
-              <div className="fw-torso"><span className="fw-core" /></div>
+              <div className="fw-arm l" />
+              <div className="fw-arm r" />
+              <div className="fw-torso">
+                <span className="fw-core" />
+              </div>
               <div className="fw-head">
                 <Mascot mood={pose === 'sleep' ? 'sleeping' : pose === 'wave' ? 'happy' : 'idle'} size={44} followCursor={false} />
               </div>

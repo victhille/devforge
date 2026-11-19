@@ -32,9 +32,9 @@ export interface PortProject {
 }
 
 export interface SuggestAPI {
-  logFiles:   () => Promise<LogFileSuggestion[]>
+  logFiles: () => Promise<LogFileSuggestion[]>
   monitorUrls: () => Promise<UrlSuggestion[]>
-  domains:    () => Promise<DomainSuggestion[]>
+  domains: () => Promise<DomainSuggestion[]>
   /** Which project each listening dev port comes from (by the command line of its process) */
   portProjects: () => Promise<PortProject[]>
 }

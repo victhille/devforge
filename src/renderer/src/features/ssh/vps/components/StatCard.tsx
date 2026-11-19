@@ -36,11 +36,11 @@ export function CardLabel({ icon, children, right }: { icon?: ReactNode; childre
 }
 
 interface Props {
-  label:    string
-  pct:      number
+  label: string
+  pct: number
   /** The value on the right (the percentage when none) */
-  value?:   string
-  detail:   string
+  value?: string
+  detail: string
   history?: number[]
 }
 
@@ -48,11 +48,11 @@ interface Props {
 export default function StatCard({ label, pct, value, detail, history }: Props) {
   return (
     <Card className="flex flex-col gap-2.5 p-3.5">
-      <CardLabel right={<span className="font-mono text-sm font-semibold text-fg">{value ?? `${Math.round(pct)} %`}</span>}>
-        {label}
-      </CardLabel>
+      <CardLabel right={<span className="font-mono text-sm font-semibold text-fg">{value ?? `${Math.round(pct)} %`}</span>}>{label}</CardLabel>
       {history && history.length > 1 ? <HistoryBars data={history} /> : <UsageBar pct={pct} />}
-      <span className={cn('text-xs', history ? 'font-mono text-fg-secondary' : usageTone(pct) === 'text-danger' ? 'text-danger' : 'text-fg-muted')}>{detail}</span>
+      <span className={cn('text-xs', history ? 'font-mono text-fg-secondary' : usageTone(pct) === 'text-danger' ? 'text-danger' : 'text-fg-muted')}>
+        {detail}
+      </span>
     </Card>
   )
 }

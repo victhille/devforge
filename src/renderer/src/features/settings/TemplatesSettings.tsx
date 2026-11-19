@@ -27,7 +27,9 @@ export default function TemplatesSettings() {
   const [editing, setEditing] = useState<{ id: string; name: string; description: string } | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
 
-  const load = () => { void templates.reload() }
+  const load = () => {
+    void templates.reload()
+  }
 
   async function refresh(tpl: UserTemplate) {
     setBusy(tpl.id)
@@ -38,7 +40,9 @@ export default function TemplatesSettings() {
     } catch (err) {
       const e = errorText(err)
       toast.show({ tone: 'error', title: m.saveFailed, description: e === 'SOURCE_GONE' ? m.sourceGone : e === 'TOO_BIG' ? m.tooBig : e })
-    } finally { setBusy(null) }
+    } finally {
+      setBusy(null)
+    }
   }
 
   async function rename() {
@@ -59,22 +63,56 @@ export default function TemplatesSettings() {
   return (
     <>
       <Notice role="note">{m.rule}</Notice>
-      <SettingsCard title={m.mine} action={<>
-        {!!list?.length && <span className="text-sm text-fg-muted">{m.count.replace('{n}', String(list.length))}</span>}
-        <Button size="sm" variant="secondary" onClick={() => navigate('/new-project')}>{m.newFrom}</Button>
-      </>}>
-        {!list && <div role="status" aria-label={t.common.loading}><RowsSkeleton rows={2} /></div>}
+      <SettingsCard
+        title={m.mine}
+        action={
+          <>
+            {!!list?.length && <span className="text-sm text-fg-muted">{m.count.replace('{n}', String(list.length))}</span>}
+            <Button size="sm" variant="secondary" onClick={() => navigate('/new-project')}>
+              {m.newFrom}
+            </Button>
+          </>
+        }
+      >
+        {!list && (
+          <div role="status" aria-label={t.common.loading}>
+            <RowsSkeleton rows={2} />
+          </div>
+        )}
         {list && list.length === 0 && <p className="border-t border-line-subtle px-5 py-4 text-sm text-fg-muted">{m.none}</p>}
         <ul aria-label={m.mine}>
           {list?.map(tpl => (
             <li key={tpl.id} className="flex flex-wrap items-center gap-3 border-t border-line-subtle px-5 py-3.5">
               <ProjectIcon framework={tpl.framework} />
               {editing?.id === tpl.id ? (
-                <form className="flex min-w-0 flex-1 flex-wrap items-center gap-2" onSubmit={e => { e.preventDefault(); rename() }}>
-                  <Input aria-label={m.name} value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} maxLength={80} className="max-w-[220px]" autoFocus />
-                  <Input aria-label={m.description} value={editing.description} onChange={e => setEditing({ ...editing, description: e.target.value })} maxLength={300} className="min-w-[200px] flex-1" />
-                  <Button size="sm" type="submit" disabled={!editing.name.trim()}>{m.saveEdit}</Button>
-                  <Button size="sm" variant="ghost" type="button" onClick={() => setEditing(null)}>{t.common.cancel}</Button>
+                <form
+                  className="flex min-w-0 flex-1 flex-wrap items-center gap-2"
+                  onSubmit={e => {
+                    e.preventDefault()
+                    rename()
+                  }}
+                >
+                  <Input
+                    aria-label={m.name}
+                    value={editing.name}
+                    onChange={e => setEditing({ ...editing, name: e.target.value })}
+                    maxLength={80}
+                    className="max-w-[220px]"
+                    autoFocus
+                  />
+                  <Input
+                    aria-label={m.description}
+                    value={editing.description}
+                    onChange={e => setEditing({ ...editing, description: e.target.value })}
+                    maxLength={300}
+                    className="min-w-[200px] flex-1"
+                  />
+                  <Button size="sm" type="submit" disabled={!editing.name.trim()}>
+                    {m.saveEdit}
+                  </Button>
+                  <Button size="sm" variant="ghost" type="button" onClick={() => setEditing(null)}>
+                    {t.common.cancel}
+                  </Button>
                 </form>
               ) : (
                 <>
@@ -82,14 +120,23 @@ export default function TemplatesSettings() {
                     <div className="truncate text-base font-semibold text-fg">{tpl.name}</div>
                     {tpl.description && <div className="truncate text-sm text-fg-secondary">{tpl.description}</div>}
                     <div className="truncate font-mono text-xs text-fg-muted" title={tpl.sourcePath}>
-                      {m.from.replace('{path}', tpl.sourcePath)} · {m.files.replace('{n}', String(tpl.files))} · {m.updated.replace('{date}', date(tpl.updatedAt))}
+                      {m.from.replace('{path}', tpl.sourcePath)} · {m.files.replace('{n}', String(tpl.files))} ·{' '}
+                      {m.updated.replace('{date}', date(tpl.updatedAt))}
                     </div>
                   </div>
-                  {tpl.sourceGone
-                    ? <Badge color="warning">{m.sourceGone}</Badge>
-                    : <IconButton title={`${m.refresh} · ${tpl.name}`} disabled={busy === tpl.id} onClick={() => refresh(tpl)}><RefreshCw size={14} className={busy === tpl.id ? 'animate-spin' : undefined} /></IconButton>}
-                  <IconButton title={`${m.rename} · ${tpl.name}`} onClick={() => setEditing({ id: tpl.id, name: tpl.name, description: tpl.description })}><Pencil size={14} /></IconButton>
-                  <IconButton title={`${m.remove} · ${tpl.name}`} tone="danger" onClick={() => remove(tpl)}><Trash2 size={14} /></IconButton>
+                  {tpl.sourceGone ? (
+                    <Badge color="warning">{m.sourceGone}</Badge>
+                  ) : (
+                    <IconButton title={`${m.refresh} · ${tpl.name}`} disabled={busy === tpl.id} onClick={() => refresh(tpl)}>
+                      <RefreshCw size={14} className={busy === tpl.id ? 'animate-spin' : undefined} />
+                    </IconButton>
+                  )}
+                  <IconButton title={`${m.rename} · ${tpl.name}`} onClick={() => setEditing({ id: tpl.id, name: tpl.name, description: tpl.description })}>
+                    <Pencil size={14} />
+                  </IconButton>
+                  <IconButton title={`${m.remove} · ${tpl.name}`} tone="danger" onClick={() => remove(tpl)}>
+                    <Trash2 size={14} />
+                  </IconButton>
                 </>
               )}
             </li>

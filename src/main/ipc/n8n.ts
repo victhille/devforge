@@ -1,18 +1,47 @@
 import { BrowserWindow, ipcMain } from 'electron'
 import type { N8nExposure, N8nLocale } from '@shared/types'
 import {
-  checkDomain, control, executions, openTunnel, exportWorkflow, forgetInstance, install, listInstances, logs, precheck, saveApiKey, setActive, setLocale, status, update, workflows
+  checkDomain,
+  control,
+  executions,
+  openTunnel,
+  exportWorkflow,
+  forgetInstance,
+  install,
+  listInstances,
+  logs,
+  precheck,
+  saveApiKey,
+  setActive,
+  setLocale,
+  status,
+  update,
+  workflows
 } from '../services/n8n/n8nService'
 
 export function registerN8nHandlers(mainWindow: BrowserWindow): void {
-  const send = (connectionId: string) => (text: string) => { if (!mainWindow.isDestroyed()) mainWindow.webContents.send('n8n:log', { connectionId, text }) }
-  const id = (v: unknown) => { if (typeof v !== 'string' || !v) throw new Error('Unknown server'); return v }
+  const send = (connectionId: string) => (text: string) => {
+    if (!mainWindow.isDestroyed()) mainWindow.webContents.send('n8n:log', { connectionId, text })
+  }
+  const id = (v: unknown) => {
+    if (typeof v !== 'string' || !v) throw new Error('Unknown server')
+    return v
+  }
 
   ipcMain.handle('n8n:instances', () => listInstances())
   ipcMain.handle('n8n:precheck', (_e, c: unknown) => precheck(id(c)))
-  ipcMain.handle('n8n:install', (_e, c: unknown, opts: { domain: string; exposure: N8nExposure; email: string; locale?: N8nLocale }) => install(id(c), opts ?? { domain: '', exposure: 'local', email: '' }, send(id(c))))
+  ipcMain.handle('n8n:install', (_e, c: unknown, opts: { domain: string; exposure: N8nExposure; email: string; locale?: N8nLocale }) =>
+    install(id(c), opts ?? { domain: '', exposure: 'local', email: '' }, send(id(c)))
+  )
   ipcMain.handle('n8n:status', (_e, c: unknown) => status(id(c)))
-  ipcMain.handle('n8n:check-domain', (_e, c: unknown, domain: unknown) => checkDomain(id(c), String(domain ?? '').trim().toLowerCase()))
+  ipcMain.handle('n8n:check-domain', (_e, c: unknown, domain: unknown) =>
+    checkDomain(
+      id(c),
+      String(domain ?? '')
+        .trim()
+        .toLowerCase()
+    )
+  )
   ipcMain.handle('n8n:open-tunnel', (_e, c: unknown) => openTunnel(id(c)))
   ipcMain.handle('n8n:logs', (_e, c: unknown, lines: number) => logs(id(c), Number(lines)))
   ipcMain.handle('n8n:set-locale', (_e, c: unknown, locale: unknown) => setLocale(id(c), locale === 'fr' ? 'fr' : 'en', send(id(c))))

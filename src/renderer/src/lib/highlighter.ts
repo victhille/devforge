@@ -33,8 +33,36 @@ import type { CodeLanguage } from '@shared/lib/codeLanguage'
 
 /** Highlight.js with the grammars DevForge's projects use (loaded with the first code preview) */
 const GRAMMARS = {
-  bash, c, cpp, csharp, css, dart, dockerfile, go, graphql, ini, java, javascript, json, kotlin, makefile, markdown,
-  nginx, php, powershell, properties, python, ruby, rust, scss, sql, swift, twig, typescript, xml, yaml
+  bash,
+  c,
+  cpp,
+  csharp,
+  css,
+  dart,
+  dockerfile,
+  go,
+  graphql,
+  ini,
+  java,
+  javascript,
+  json,
+  kotlin,
+  makefile,
+  markdown,
+  nginx,
+  php,
+  powershell,
+  properties,
+  python,
+  ruby,
+  rust,
+  scss,
+  sql,
+  swift,
+  twig,
+  typescript,
+  xml,
+  yaml
 }
 for (const [name, grammar] of Object.entries(GRAMMARS)) hljs.registerLanguage(name, grammar)
 

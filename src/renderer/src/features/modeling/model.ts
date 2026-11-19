@@ -34,14 +34,19 @@ export function siblings(file: string) {
  * import, an editor.
  */
 export function useModels(projectPath: string | undefined) {
-  return useLive<ModelSummary[]>(projectPath ? `models:${projectPath.toLowerCase()}` : null, () => window.devforge.modeling.list(projectPath!),
-    projectPath ? { topic: 'models', scope: projectPath } : undefined)
+  return useLive<ModelSummary[]>(
+    projectPath ? `models:${projectPath.toLowerCase()}` : null,
+    () => window.devforge.modeling.list(projectPath!),
+    projectPath ? { topic: 'models', scope: projectPath } : undefined
+  )
 }
 
 /** The model's MCD and MPD as the project lists them (either may be missing); `tick`: read again now */
 export function useSiblings(projectPath: string, file: string, tick = 0) {
   const { data: list, loaded, reload } = useModels(projectPath)
-  useEffect(() => { if (tick) void reload() }, [tick, reload])
+  useEffect(() => {
+    if (tick) void reload()
+  }, [tick, reload])
   return useMemo(() => {
     if (!list) return loaded ? {} : null
     const s = siblings(file)
@@ -57,13 +62,23 @@ export function useLinkedDb(connection?: string) {
   const [state, setState] = useState<{ diagram?: DbDiagram; error?: string; loading: boolean }>({ loading: false })
   const [tick, setTick] = useState(0)
   useEffect(() => {
-    if (!connection) { setState({ loading: false }); return }
+    if (!connection) {
+      setState({ loading: false })
+      return
+    }
     let live = true
     setState(s => ({ ...s, loading: true, error: undefined }))
-    window.devforge.db.diagram(connection)
-      .then(diagram => { if (live) setState({ diagram, loading: false }) })
-      .catch(err => { if (live) setState({ loading: false, error: errorText(err) }) })
-    return () => { live = false }
+    window.devforge.db
+      .diagram(connection)
+      .then(diagram => {
+        if (live) setState({ diagram, loading: false })
+      })
+      .catch(err => {
+        if (live) setState({ loading: false, error: errorText(err) })
+      })
+    return () => {
+      live = false
+    }
   }, [connection, tick])
   return { ...state, refresh: () => setTick(x => x + 1) }
 }

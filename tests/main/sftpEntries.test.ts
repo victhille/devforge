@@ -8,7 +8,15 @@ const raw = (filename: string, kind: 'dir' | 'file' | 'link', size = 0, mtime = 
 
 describe('toSftpEntries', () => {
   it('folders first, then by name (numbers in order), without . and ..', () => {
-    const out = toSftpEntries([raw('.', 'dir'), raw('..', 'dir'), raw('notes10.txt', 'file', 5), raw('www', 'dir'), raw('notes2.txt', 'file', 3), raw('.ssh', 'dir'), raw('current', 'link')])
+    const out = toSftpEntries([
+      raw('.', 'dir'),
+      raw('..', 'dir'),
+      raw('notes10.txt', 'file', 5),
+      raw('www', 'dir'),
+      raw('notes2.txt', 'file', 3),
+      raw('.ssh', 'dir'),
+      raw('current', 'link')
+    ])
     expect(out.map(e => e.name)).toEqual(['.ssh', 'www', 'current', 'notes2.txt', 'notes10.txt'])
     expect(out.find(e => e.name === 'current')?.kind).toBe('link')
   })

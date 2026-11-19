@@ -63,8 +63,17 @@ export interface NextRevertResult extends SfWriteResult {
 }
 
 export type NextCommand =
-  | 'db:start' | 'prisma:migrate' | 'prisma:deploy' | 'prisma:generate' | 'prisma:studio'
-  | 'install:prisma' | 'install:client' | 'install:seed' | 'install:auth' | 'seed' | 'dev'
+  | 'db:start'
+  | 'prisma:migrate'
+  | 'prisma:deploy'
+  | 'prisma:generate'
+  | 'prisma:studio'
+  | 'install:prisma'
+  | 'install:client'
+  | 'install:seed'
+  | 'install:auth'
+  | 'seed'
+  | 'dev'
 
 export interface NextjsAPI {
   inspect: (projectPath: string) => Promise<NextInspect>

@@ -23,10 +23,18 @@ const toMain = (m: LauncherToMain) => window.devforge.launcher.toMain(m)
 const hide = () => window.devforge.launcher.hide()
 
 function readUsage(): LauncherUsage {
-  try { return JSON.parse(localStorage.getItem(USAGE_KEY) ?? '{}') as LauncherUsage } catch { return {} }
+  try {
+    return JSON.parse(localStorage.getItem(USAGE_KEY) ?? '{}') as LauncherUsage
+  } catch {
+    return {}
+  }
 }
 function saveUsage(u: LauncherUsage): void {
-  try { localStorage.setItem(USAGE_KEY, JSON.stringify(u)) } catch { /* not kept */ }
+  try {
+    localStorage.setItem(USAGE_KEY, JSON.stringify(u))
+  } catch {
+    /* not kept */
+  }
 }
 
 /** Pages opened by a command show in the main window */
@@ -43,13 +51,32 @@ function Forwarder() {
 
 /** The palette's commands run scripts through the console: here it is the main window's */
 function ConsoleBridge({ children }: { children: ReactNode }) {
-  const value = useMemo<ConsoleContextValue>(() => ({
-    visible: false, minimized: false, label: '', taskId: null, logs: [], result: null, projectPath: null, isCreation: false, projectId: null, openOnDone: false, creation: null,
-    startCreation: async () => {},
-    runScript: async (projectPath, script, pm, name) => { await toMain({ kind: 'script', projectPath, script, pm, name }) },
-    runTask: async () => '',
-    cancelTask: () => {}, hide: () => {}, setMinimized: () => {}, openFolder: () => {}, openVSCode: () => {}
-  }), [])
+  const value = useMemo<ConsoleContextValue>(
+    () => ({
+      visible: false,
+      minimized: false,
+      label: '',
+      taskId: null,
+      logs: [],
+      result: null,
+      projectPath: null,
+      isCreation: false,
+      projectId: null,
+      openOnDone: false,
+      creation: null,
+      startCreation: async () => {},
+      runScript: async (projectPath, script, pm, name) => {
+        await toMain({ kind: 'script', projectPath, script, pm, name })
+      },
+      runTask: async () => '',
+      cancelTask: () => {},
+      hide: () => {},
+      setMinimized: () => {},
+      openFolder: () => {},
+      openVSCode: () => {}
+    }),
+    []
+  )
   return <ConsoleContext.Provider value={value}>{children}</ConsoleContext.Provider>
 }
 
@@ -57,7 +84,12 @@ export default function Launcher() {
   // Each opening starts afresh: empty query, data read again
   const [round, setRound] = useState(0)
   useEffect(() => window.devforge.launcher.onShown(() => setRound(r => r + 1)), [])
-  useEffect(() => { window.devforge.getSettings().then(applyAppearance).catch(() => {}) }, [round])
+  useEffect(() => {
+    window.devforge
+      .getSettings()
+      .then(applyAppearance)
+      .catch(() => {})
+  }, [round])
   return (
     <MemoryRouter initialEntries={[HERE]}>
       <Forwarder />
@@ -68,10 +100,7 @@ export default function Launcher() {
   )
 }
 
-type Item =
-  | { type: 'answer'; id: string; answer: QuickAnswer }
-  | { type: 'command'; id: string; command: Command }
-  | { type: 'forgy'; id: string }
+type Item = { type: 'answer'; id: string; answer: QuickAnswer } | { type: 'command'; id: string; command: Command } | { type: 'forgy'; id: string }
 
 const ANSWER_ICON: Record<AnswerKind, typeof Calculator> = { calc: Calculator, timestamp: Clock, date: Clock, base64: Hash, color: Palette }
 
@@ -87,21 +116,35 @@ function LauncherBody() {
   const listRef = useRef<HTMLDivElement>(null)
   const commands = useCommands(true)
 
-  useEffect(() => { window.devforge.launcher.state().then(s => setShortcut(s.shortcut)).catch(() => {}) }, [])
+  useEffect(() => {
+    window.devforge.launcher
+      .state()
+      .then(s => setShortcut(s.shortcut))
+      .catch(() => {})
+  }, [])
 
   const items = useMemo<Item[]>(() => {
     const usable = commands.filter(c => !MAIN_ONLY.has(c.id))
     const answers: Item[] = quickAnswers(q).map((a, i) => ({ type: 'answer', id: `answer:${i}`, answer: a }))
-    const found: Item[] = rankEntries(usable, q, usage).slice(0, MAX_RESULTS).map(c => ({ type: 'command', id: c.id, command: c }))
+    const found: Item[] = rankEntries(usable, q, usage)
+      .slice(0, MAX_RESULTS)
+      .map(c => ({ type: 'command', id: c.id, command: c }))
     return [...answers, ...found, ...(q.trim() ? [{ type: 'forgy' as const, id: 'forgy' }] : [])]
   }, [commands, q, usage])
 
-  useEffect(() => { setSel(0); setPending(null) }, [q])
-  useEffect(() => { listRef.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' }) }, [sel])
+  useEffect(() => {
+    setSel(0)
+    setPending(null)
+  }, [q])
+  useEffect(() => {
+    listRef.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' })
+  }, [sel])
 
   const finish = useCallback((text: string) => {
     setStatus({ tone: 'ok', text })
-    setTimeout(() => { hide() }, 600)
+    setTimeout(() => {
+      hide()
+    }, 600)
   }, [])
 
   async function choose(item: Item) {
@@ -110,9 +153,15 @@ function LauncherBody() {
       finish(l.copied.replace('{value}', item.answer.value))
       return
     }
-    if (item.type === 'forgy') { await toMain({ kind: 'ask', text: q.trim() }); return }
+    if (item.type === 'forgy') {
+      await toMain({ kind: 'ask', text: q.trim() })
+      return
+    }
     const c = item.command
-    if (c.confirm && pending !== c.id) { setPending(c.id); return }
+    if (c.confirm && pending !== c.id) {
+      setPending(c.id)
+      return
+    }
     const next = recordUse(usage, c.id)
     setUsage(next)
     saveUsage(next)
@@ -133,18 +182,32 @@ function LauncherBody() {
   }
 
   function onKey(e: React.KeyboardEvent) {
-    if (e.key === 'Escape') { e.preventDefault(); if (pending) setPending(null); else hide() }
-    else if (e.key === 'ArrowDown') { e.preventDefault(); setSel(s => Math.min(s + 1, items.length - 1)) }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); setSel(s => Math.max(s - 1, 0)) }
-    else if (e.key === 'Tab' && q.trim()) { e.preventDefault(); setSel(items.length - 1) }
-    else if (e.key === 'Enter' && items[sel]) { e.preventDefault(); choose(items[sel]) }
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      if (pending) setPending(null)
+      else hide()
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSel(s => Math.min(s + 1, items.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSel(s => Math.max(s - 1, 0))
+    } else if (e.key === 'Tab' && q.trim()) {
+      e.preventDefault()
+      setSel(items.length - 1)
+    } else if (e.key === 'Enter' && items[sel]) {
+      e.preventDefault()
+      choose(items[sel])
+    }
   }
 
   return (
     <div className="flex h-full items-start justify-center p-3">
       <div className="ln-card flex max-h-full w-full flex-col overflow-hidden rounded-2xl">
         <div className="flex items-center gap-3 border-b border-line-subtle px-4.5 py-3.5">
-          <span aria-hidden className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent font-bold text-accent-fg">D</span>
+          <span aria-hidden className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent font-bold text-accent-fg">
+            D
+          </span>
           <input
             autoFocus
             role="combobox"
@@ -154,7 +217,10 @@ function LauncherBody() {
             aria-label={l.placeholder}
             placeholder={l.placeholder}
             value={q}
-            onChange={e => { setQ(e.target.value); setStatus(null) }}
+            onChange={e => {
+              setQ(e.target.value)
+              setStatus(null)
+            }}
             onKeyDown={onKey}
             spellCheck={false}
             className="min-w-0 flex-1 bg-transparent text-lg text-fg outline-none placeholder:text-fg-muted"
@@ -168,26 +234,54 @@ function LauncherBody() {
           {items.map((item, i) => {
             const active = i === sel
             const base = cn('flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left', active ? 'bg-accent-soft' : 'hover:bg-elevated')
-            const props = { id: `ln-${i}`, role: 'option', 'aria-selected': active, onMouseEnter: () => setSel(i), onClick: () => choose(item), className: base }
+            const props = {
+              id: `ln-${i}`,
+              role: 'option',
+              'aria-selected': active,
+              onMouseEnter: () => setSel(i),
+              onClick: () => choose(item),
+              className: base
+            }
             if (item.type === 'answer') {
               const Icon = ANSWER_ICON[item.answer.kind]
               return (
                 <div key={item.id} {...props}>
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
-                    {item.answer.kind === 'color' ? <span className="size-4 rounded-full border border-line" style={{ background: item.answer.value.startsWith('#') ? item.answer.value : item.answer.detail.startsWith('#') ? item.answer.detail : undefined }} /> : <Icon size={15} />}
+                    {item.answer.kind === 'color' ? (
+                      <span
+                        className="size-4 rounded-full border border-line"
+                        style={{
+                          background: item.answer.value.startsWith('#')
+                            ? item.answer.value
+                            : item.answer.detail.startsWith('#')
+                              ? item.answer.detail
+                              : undefined
+                        }}
+                      />
+                    ) : (
+                      <Icon size={15} />
+                    )}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-mono text-base text-fg">{item.answer.value}</span>
-                    <span className="block truncate text-xs text-fg-secondary">{l.kinds[item.answer.kind]} · {item.answer.detail}</span>
+                    <span className="block truncate text-xs text-fg-secondary">
+                      {l.kinds[item.answer.kind]} · {item.answer.detail}
+                    </span>
                   </span>
-                  {active && <span className="flex items-center gap-1 text-xs text-fg-secondary"><Copy size={12} /> {l.copy}</span>}
+                  {active && (
+                    <span className="flex items-center gap-1 text-xs text-fg-secondary">
+                      <Copy size={12} /> {l.copy}
+                    </span>
+                  )}
                 </div>
               )
             }
             if (item.type === 'forgy') {
               return (
                 <div key={item.id} {...props}>
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-forgy-soft text-forgy"><Bot size={15} /></span>
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-forgy-soft text-forgy">
+                    <Bot size={15} />
+                  </span>
                   <span className="min-w-0 flex-1 truncate text-fg">{l.askForgy.replace('{q}', q.trim())}</span>
                   <Kbd>Tab</Kbd>
                 </div>
@@ -197,12 +291,16 @@ function LauncherBody() {
             const Icon = c.icon
             return (
               <div key={item.id} {...props}>
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-elevated" style={{ color: c.color }}><Icon size={15} /></span>
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-elevated" style={{ color: c.color }}>
+                  <Icon size={15} />
+                </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-fg">{c.title}</span>
-                  {pending === c.id
-                    ? <span className="block text-xs text-warning">{l.confirmAgain.replace('{text}', c.confirm ?? '')}</span>
-                    : c.subtitle && <span className="block truncate font-mono text-xs text-fg-secondary">{c.subtitle}</span>}
+                  {pending === c.id ? (
+                    <span className="block text-xs text-warning">{l.confirmAgain.replace('{text}', c.confirm ?? '')}</span>
+                  ) : (
+                    c.subtitle && <span className="block truncate font-mono text-xs text-fg-secondary">{c.subtitle}</span>
+                  )}
                 </span>
                 <span className="shrink-0 text-xs text-fg-secondary">{c.group}</span>
               </div>
@@ -212,14 +310,27 @@ function LauncherBody() {
 
         <div className="flex h-10 items-center gap-4 border-t border-line-subtle px-4.5 text-xs text-fg-secondary">
           {status ? (
-            <span role="status" className={cn('flex min-w-0 flex-1 items-center gap-1.5 truncate', status.tone === 'error' ? 'text-danger' : status.tone === 'ok' ? 'text-success' : '')}>
-              {status.tone === 'busy' ? <Loader2 size={12} className="animate-spin" /> : status.tone === 'ok' ? <Check size={12} /> : <X size={12} />}{status.text}
+            <span
+              role="status"
+              className={cn(
+                'flex min-w-0 flex-1 items-center gap-1.5 truncate',
+                status.tone === 'error' ? 'text-danger' : status.tone === 'ok' ? 'text-success' : ''
+              )}
+            >
+              {status.tone === 'busy' ? <Loader2 size={12} className="animate-spin" /> : status.tone === 'ok' ? <Check size={12} /> : <X size={12} />}
+              {status.text}
             </span>
           ) : (
             <>
-              <span className="flex items-center gap-1.5"><Kbd>↑↓</Kbd> {l.hintChoose}</span>
-              <span className="flex items-center gap-1.5"><Kbd>{l.enter}</Kbd> {l.hintRun}</span>
-              <span className="ml-auto flex items-center gap-1.5"><Kbd>{l.escape}</Kbd> {l.hintClose}</span>
+              <span className="flex items-center gap-1.5">
+                <Kbd>↑↓</Kbd> {l.hintChoose}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Kbd>{l.enter}</Kbd> {l.hintRun}
+              </span>
+              <span className="ml-auto flex items-center gap-1.5">
+                <Kbd>{l.escape}</Kbd> {l.hintClose}
+              </span>
             </>
           )}
         </div>

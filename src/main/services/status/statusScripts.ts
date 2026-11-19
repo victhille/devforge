@@ -24,7 +24,7 @@ const b64 = (s: string) => Buffer.from(s, 'utf-8').toString('base64')
 const write = (content: string, path: string) => `echo ${b64(content)} | base64 -d > ${path}`
 
 /** status.203-0-113-10.sslip.io: a working address without any DNS setup */
-export const sslipFor = (host: string) => /^\d{1,3}(\.\d{1,3}){3}$/.test(host) ? `status.${host.replace(/\./g, '-')}.sslip.io` : null
+export const sslipFor = (host: string) => (/^\d{1,3}(\.\d{1,3}){3}$/.test(host) ? `status.${host.replace(/\./g, '-')}.sslip.io` : null)
 
 export function composeFile(exposure: StatusExposure): string {
   const status = [
@@ -46,27 +46,38 @@ export function composeFile(exposure: StatusExposure): string {
     // Host network: checks reach 127.0.0.1 services too; with n8n, its network so its Caddy reaches the page
     ...(exposure === 'n8n' ? ['    networks:', '      - n8n'] : ['    network_mode: host'])
   ]
-  const caddy = exposure !== 'caddy' ? [] : [
-    '  caddy:',
-    '    image: caddy:2-alpine',
-    '    restart: unless-stopped',
-    '    network_mode: host',
-    '    volumes:',
-    '      - ./Caddyfile:/etc/caddy/Caddyfile:ro',
-    '      - caddy_data:/data',
-    '      - caddy_config:/config'
-  ]
-  const tail = exposure === 'caddy' ? ['', 'volumes:', '  caddy_data:', '  caddy_config:']
-    : exposure === 'n8n' ? ['', 'networks:', '  n8n:', '    external: true', '    name: n8n_default'] : []
+  const caddy =
+    exposure !== 'caddy'
+      ? []
+      : [
+          '  caddy:',
+          '    image: caddy:2-alpine',
+          '    restart: unless-stopped',
+          '    network_mode: host',
+          '    volumes:',
+          '      - ./Caddyfile:/etc/caddy/Caddyfile:ro',
+          '      - caddy_data:/data',
+          '      - caddy_config:/config'
+        ]
+  const tail =
+    exposure === 'caddy'
+      ? ['', 'volumes:', '  caddy_data:', '  caddy_config:']
+      : exposure === 'n8n'
+        ? ['', 'networks:', '  n8n:', '    external: true', '    name: n8n_default']
+        : []
   return ['services:', ...status, ...caddy, ...tail].join('\n') + '\n'
 }
 
 /** The email is optional: Let's Encrypt only uses it to warn before a certificate expires */
-export const caddyFile = (domain: string, email: string) => `${email ? `{
+export const caddyFile = (domain: string, email: string) => `${
+  email
+    ? `{
 	email ${email}
 }
 
-` : ''}${domain} {
+`
+    : ''
+}${domain} {
 	encode gzip
 	reverse_proxy 127.0.0.1:${STATUS_PORT}
 }
@@ -88,7 +99,11 @@ const dropN8nSite = [
 const reloadN8nCaddy = `(cd ${N8N_DIR} && docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile)`
 
 export const defaultConfig = (title: string): StatusConfig => ({
-  title, intervalSec: 60, failuresBeforeDown: 3, monitors: [], alerts: { ntfy: null, webhook: null }
+  title,
+  intervalSec: 60,
+  failuresBeforeDown: 3,
+  monitors: [],
+  alerts: { ntfy: null, webhook: null }
 })
 
 export const waitHealth = (tries = 30) =>
@@ -106,9 +121,7 @@ export function installScript(exposure: StatusExposure, domain: string, email: s
     // The settings already made stay
     `[ -f data/config.json ] || ${write(JSON.stringify(config, null, 2), 'data/config.json')}`,
     ...dropN8nSite,
-    ...(exposure === 'n8n'
-      ? [write(n8nSite(domain), 'site.caddy'), `cat site.caddy >> ${N8N_DIR}/Caddyfile`]
-      : ['rm -f site.caddy']),
+    ...(exposure === 'n8n' ? [write(n8nSite(domain), 'site.caddy'), `cat site.caddy >> ${N8N_DIR}/Caddyfile`] : ['rm -f site.caddy']),
     'docker compose pull -q',
     'docker compose up -d --remove-orphans',
     // The program is a mounted file: a restart loads a new version of it
@@ -120,12 +133,13 @@ export function installScript(exposure: StatusExposure, domain: string, email: s
   ].join('\n')
 }
 
-export const uninstallScript = () => [
-  `cd ${STATUS_DIR} 2>/dev/null && docker compose down --remove-orphans || true`,
-  ...dropN8nSite,
-  `[ -f ${N8N_DIR}/Caddyfile ] && ${reloadN8nCaddy} || true`,
-  `rm -rf ${STATUS_DIR}`
-].join('\n')
+export const uninstallScript = () =>
+  [
+    `cd ${STATUS_DIR} 2>/dev/null && docker compose down --remove-orphans || true`,
+    ...dropN8nSite,
+    `[ -f ${N8N_DIR}/Caddyfile ] && ${reloadN8nCaddy} || true`,
+    `rm -rf ${STATUS_DIR}`
+  ].join('\n')
 
 export const OVERVIEW_SCRIPT = [
   `[ -f ${STATUS_DIR}/compose.yaml ] && echo yes || true`,
@@ -146,18 +160,27 @@ export const PRECHECK_SCRIPT = [
 /** Ports among 80 and 443 that an active ufw keeps closed */
 export function firewallBlocks(ufw: string): number[] {
   if (!/^Status:\s*active/m.test(ufw)) return []
-  const allowed = (port: number) => ufw.split('\n').some(l => {
-    const m = /^(\S+)\s+ALLOW/.exec(l.trim())
-    if (!m) return false
-    const rule = m[1]
-    return rule === String(port) || rule === `${port}/tcp` || /^(Nginx|Apache|Caddy|WWW)\b/i.test(rule) ||
-      rule.replace(/\/tcp$/, '').split(',').some(p => p === String(port) || (p.includes(':') && Number(p.split(':')[0]) <= port && port <= Number(p.split(':')[1])))
-  })
+  const allowed = (port: number) =>
+    ufw.split('\n').some(l => {
+      const m = /^(\S+)\s+ALLOW/.exec(l.trim())
+      if (!m) return false
+      const rule = m[1]
+      return (
+        rule === String(port) ||
+        rule === `${port}/tcp` ||
+        /^(Nginx|Apache|Caddy|WWW)\b/i.test(rule) ||
+        rule
+          .replace(/\/tcp$/, '')
+          .split(',')
+          .some(p => p === String(port) || (p.includes(':') && Number(p.split(':')[0]) <= port && port <= Number(p.split(':')[1])))
+      )
+    })
   return [80, 443].filter(p => !allowed(p))
 }
 
 /** Opens 80 and 443 in ufw: only from a click of the user */
-export const OPEN_FIREWALL_SCRIPT = "sudo -n ufw allow 80/tcp comment 'DevForge status page' && sudo -n ufw allow 443/tcp comment 'DevForge status page' && sudo -n ufw status"
+export const OPEN_FIREWALL_SCRIPT =
+  "sudo -n ufw allow 80/tcp comment 'DevForge status page' && sudo -n ufw allow 443/tcp comment 'DevForge status page' && sudo -n ufw status"
 
 /** A file written whole on the server, renamed at the end (the service never reads half of it) */
 export const writeDataScript = (name: 'config.json' | 'manual-incidents.json', content: unknown) =>
@@ -173,7 +196,11 @@ function cleanMonitor(m: StatusMonitor): StatusMonitor {
   if (!name || name.length > 60) throw new Error('BAD_NAME')
   if (m.type === 'http') {
     let url: URL
-    try { url = new URL(target) } catch { throw new Error('BAD_URL') }
+    try {
+      url = new URL(target)
+    } catch {
+      throw new Error('BAD_URL')
+    }
     if (!/^https?:$/.test(url.protocol)) throw new Error('BAD_URL')
   } else if (m.type === 'tcp') {
     if (!/^[\w.-]+:\d{1,5}$/.test(target) || Number(target.split(':').pop()) > 65535) throw new Error('BAD_TCP')
@@ -189,7 +216,10 @@ export function cleanConfig(c: StatusConfig): StatusConfig {
   const webhook = c.alerts?.webhook?.trim() || null
   if (webhook && !/^https?:\/\/\S+$/.test(webhook)) throw new Error('BAD_WEBHOOK')
   return {
-    title: String(c.title ?? '').trim().slice(0, 80) || 'Status',
+    title:
+      String(c.title ?? '')
+        .trim()
+        .slice(0, 80) || 'Status',
     intervalSec: Math.min(3600, Math.max(30, Math.round(Number(c.intervalSec) || 60))),
     failuresBeforeDown: Math.min(10, Math.max(1, Math.round(Number(c.failuresBeforeDown) || 3))),
     monitors,
@@ -198,12 +228,17 @@ export function cleanConfig(c: StatusConfig): StatusConfig {
 }
 
 export function cleanIncidents(list: StatusIncident[]): StatusIncident[] {
-  return (list ?? []).filter(i => !i.auto).slice(0, 100).map(i => {
-    const title = String(i.title ?? '').trim().slice(0, 120)
-    if (!title || !/^[\w-]{1,64}$/.test(String(i.id))) throw new Error('BAD_INCIDENT')
-    const date = (d: unknown) => typeof d === 'string' && !Number.isNaN(Date.parse(d)) ? new Date(d).toISOString() : null
-    const startedAt = date(i.startedAt)
-    if (!startedAt) throw new Error('BAD_INCIDENT')
-    return { id: String(i.id), title, body: String(i.body ?? '').slice(0, 2000), startedAt, resolvedAt: date(i.resolvedAt), auto: false }
-  })
+  return (list ?? [])
+    .filter(i => !i.auto)
+    .slice(0, 100)
+    .map(i => {
+      const title = String(i.title ?? '')
+        .trim()
+        .slice(0, 120)
+      if (!title || !/^[\w-]{1,64}$/.test(String(i.id))) throw new Error('BAD_INCIDENT')
+      const date = (d: unknown) => (typeof d === 'string' && !Number.isNaN(Date.parse(d)) ? new Date(d).toISOString() : null)
+      const startedAt = date(i.startedAt)
+      if (!startedAt) throw new Error('BAD_INCIDENT')
+      return { id: String(i.id), title, body: String(i.body ?? '').slice(0, 2000), startedAt, resolvedAt: date(i.resolvedAt), auto: false }
+    })
 }

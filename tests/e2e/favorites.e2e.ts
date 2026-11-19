@@ -58,7 +58,13 @@ test('pin, reorder and reset the menu favorites', async () => {
 })
 
 test('a favorite that needs a server waits for one, and is kept when the others move', async () => {
-  run = await launch({ seed: dir => writeFileSync(join(dir, 'settings.json'), JSON.stringify({ language: 'fr', onboarded: true, motion: 'reduced', favorites: ['/projects', '/vpn', '/docker'] })) })
+  run = await launch({
+    seed: dir =>
+      writeFileSync(
+        join(dir, 'settings.json'),
+        JSON.stringify({ language: 'fr', onboarded: true, motion: 'reduced', favorites: ['/projects', '/vpn', '/docker'] })
+      )
+  })
   const { page } = run
   await goTo(page, '/')
   await expect(favs(run)).toHaveText(['Projets', 'Docker'])

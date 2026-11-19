@@ -2,9 +2,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync
 import { tmpdir } from 'os'
 import { app } from 'electron'
 import { dirname, join } from 'path'
-import type {
-  CommandResult, LogLine, SfApiConfig, SfCommand, SfEntity, SfEntityDraft, SfInspect, SfRoute, SfStatus, SfWriteResult
-} from '@shared/types'
+import type { CommandResult, LogLine, SfApiConfig, SfCommand, SfEntity, SfEntityDraft, SfInspect, SfRoute, SfStatus, SfWriteResult } from '@shared/types'
 import { assertSafeDir, isInsideProject } from '../../lib/safe'
 import { runFile } from '../../lib/exec'
 import { commandRunner } from '../system/commandRunner'
@@ -26,7 +24,7 @@ function projectDir(path: unknown): string {
   return dir
 }
 
-const read = (file: string) => existsSync(file) ? readFileSync(file, 'utf-8') : ''
+const read = (file: string) => (existsSync(file) ? readFileSync(file, 'utf-8') : '')
 
 function write(file: string, content: string): void {
   mkdirSync(dirname(file), { recursive: true })
@@ -40,13 +38,21 @@ function write(file: string, content: string): void {
 function testData<K extends 'inspect' | 'routes' | 'serverUrl'>(key: K): { inspect: SfInspect; routes: SfRoute[]; serverUrl: string | null }[K] | undefined {
   const file = process.env.DEVFORGE_TEST_SYMFONY
   if (!file || app.isPackaged) return undefined
-  try { return JSON.parse(readFileSync(file, 'utf-8'))[key] } catch { return undefined }
+  try {
+    return JSON.parse(readFileSync(file, 'utf-8'))[key]
+  } catch {
+    return undefined
+  }
 }
 
 // ─── Reading ──────────────────────────────────────────────────────────────────
 
 function composer(projectPath: string): { require?: Record<string, string>; 'require-dev'?: Record<string, string> } {
-  try { return JSON.parse(read(join(projectPath, 'composer.json')) || '{}') } catch { return {} }
+  try {
+    return JSON.parse(read(join(projectPath, 'composer.json')) || '{}')
+  } catch {
+    return {}
+  }
 }
 
 export function isSymfony(projectPath: string): boolean {
@@ -74,14 +80,25 @@ export async function inspect(projectPath: string): Promise<SfInspect> {
   const canned = testData('inspect')
   if (canned) return canned
   const packages = {
-    orm: vendor(dir, 'doctrine/orm'), maker: vendor(dir, 'symfony/maker-bundle'), apiPlatform: vendor(dir, 'api-platform/core') || vendor(dir, 'api-platform/symfony'),
-    serializer: vendor(dir, 'symfony/serializer'), validator: vendor(dir, 'symfony/validator'), security: vendor(dir, 'symfony/security-bundle'),
-    fixtures: vendor(dir, 'doctrine/doctrine-fixtures-bundle'), foundry: vendor(dir, 'zenstruck/foundry')
+    orm: vendor(dir, 'doctrine/orm'),
+    maker: vendor(dir, 'symfony/maker-bundle'),
+    apiPlatform: vendor(dir, 'api-platform/core') || vendor(dir, 'api-platform/symfony'),
+    serializer: vendor(dir, 'symfony/serializer'),
+    validator: vendor(dir, 'symfony/validator'),
+    security: vendor(dir, 'symfony/security-bundle'),
+    fixtures: vendor(dir, 'doctrine/doctrine-fixtures-bundle'),
+    foundry: vendor(dir, 'zenstruck/foundry')
   }
   const status: SfStatus = {
-    symfony: isSymfony(dir), booted: false, error: null, version: null, database: null,
+    symfony: isSymfony(dir),
+    booted: false,
+    error: null,
+    version: null,
+    database: null,
     composeDatabase: /^\s{2}database:\s*$/m.test(read(join(dir, 'compose.yaml')) || read(join(dir, 'docker-compose.yml'))),
-    packages, symfonyCli: await hasSymfonyCli(), hasUserEntity: existsSync(join(dir, 'src', 'Entity', 'User.php'))
+    packages,
+    symfonyCli: await hasSymfonyCli(),
+    hasUserEntity: existsSync(join(dir, 'src', 'Entity', 'User.php'))
   }
   if (!status.symfony) return { status, entities: [], migrations: [] }
   if (!existsSync(join(dir, 'vendor', 'autoload.php'))) {
@@ -101,7 +118,11 @@ export async function inspect(projectPath: string): Promise<SfInspect> {
   status.database = raw.db
 
   const migDir = join(dir, 'migrations')
-  const files = existsSync(migDir) ? readdirSync(migDir).filter(f => f.endsWith('.php')).map(name => ({ name, php: read(join(migDir, name)) })) : []
+  const files = existsSync(migDir)
+    ? readdirSync(migDir)
+        .filter(f => f.endsWith('.php'))
+        .map(name => ({ name, php: read(join(migDir, name)) }))
+    : []
   return { status, entities: toEntities(raw, dir), migrations: toMigrations(files, raw.executed) }
 }
 
@@ -141,16 +162,27 @@ function runChain(cwd: string, steps: Step[], onLog: LogCb, onResult: ResultCb):
     onResult({ taskId, exitCode: 1, status: 'failed' })
   }
   const next = (i: number): void => {
-    if (i >= steps.length) { onResult({ taskId, exitCode: 0, status: 'success' }); return }
+    if (i >= steps.length) {
+      onResult({ taskId, exitCode: 0, status: 'success' })
+      return
+    }
     const step = steps[i]
     if (typeof step === 'function') {
-      try { step() } catch (err) { fail(err); return }
+      try {
+        step()
+      } catch (err) {
+        fail(err)
+        return
+      }
       next(i + 1)
       return
     }
     commandRunner.run({
-      executable: step.exe, args: step.args, cwd, onLog,
-      onResult: r => r.status === 'success' ? next(i + 1) : onResult({ ...r, taskId })
+      executable: step.exe,
+      args: step.args,
+      cwd,
+      onLog,
+      onResult: r => (r.status === 'success' ? next(i + 1) : onResult({ ...r, taskId }))
     })
   }
   // The caller gets the id before any result
@@ -164,7 +196,11 @@ const entityFile = (dir: string, name: string) => join(dir, 'src', 'Entity', `${
 
 function entityNames(dir: string): string[] {
   const d = join(dir, 'src', 'Entity')
-  return existsSync(d) ? readdirSync(d).filter(f => /^[A-Z]\w*\.php$/.test(f)).map(f => f.slice(0, -4)) : []
+  return existsSync(d)
+    ? readdirSync(d)
+        .filter(f => /^[A-Z]\w*\.php$/.test(f))
+        .map(f => f.slice(0, -4))
+    : []
 }
 
 /** Writes a new entity (and its repository), or adds to an existing one; the other side of each relation too */
@@ -182,7 +218,10 @@ export function writeEntity(projectPath: string, draft: SfEntityDraft): SfWriteR
   for (const r of draft.relations) {
     const inv = inverseOf(draft.name, r)
     if (!inv) continue
-    if (r.target === draft.name) { selfInverse.push(inv); continue }
+    if (r.target === draft.name) {
+      selfInverse.push(inv)
+      continue
+    }
     const g = others.get(r.target) ?? { relations: [], owning: [] }
     g.relations.push(inv)
     g.owning.push(!declaredOwning(r))
@@ -193,7 +232,12 @@ export function writeEntity(projectPath: string, draft: SfEntityDraft): SfWriteR
   const writes: { file: string; content: string; isNew: boolean }[] = []
   const file = entityFile(dir, draft.name)
   if (draft.existing) {
-    const own = extendEntity(read(file), draft.fields, [...draft.relations, ...selfInverse], [...draft.relations.map(declaredOwning), ...selfInverse.map(r => r.kind === 'ManyToOne')])
+    const own = extendEntity(
+      read(file),
+      draft.fields,
+      [...draft.relations, ...selfInverse],
+      [...draft.relations.map(declaredOwning), ...selfInverse.map(r => r.kind === 'ManyToOne')]
+    )
     writes.push({ file, content: own, isNew: false })
   } else {
     writes.push({ file, content: newEntityFile(draft, selfInverse), isNew: true })
@@ -216,7 +260,11 @@ export function writeEntity(projectPath: string, draft: SfEntityDraft): SfWriteR
 const apiConfigFile = (dir: string) => join(dir, '.devforge', 'api.json')
 
 export function apiConfig(projectPath: string): SfApiConfig | null {
-  try { return JSON.parse(read(apiConfigFile(projectDir(projectPath)))) as SfApiConfig } catch { return null }
+  try {
+    return JSON.parse(read(apiConfigFile(projectDir(projectPath)))) as SfApiConfig
+  } catch {
+    return null
+  }
 }
 
 export async function applyApi(projectPath: string, config: SfApiConfig): Promise<SfWriteResult> {
@@ -242,7 +290,10 @@ export async function applyApi(projectPath: string, config: SfApiConfig): Promis
     const exposed = (name: string) => (config.entities[name]?.operations ?? []).length > 0
     const linksOut = e.relations.filter(r => !exposed(r.target)).map(r => r.name)
     const next = config.mode === 'platform' ? applyPlatform(src, operations, [...hidden, ...linksOut]) : stripPlatform(src)
-    if (next !== src) { write(file, next); result.changed.push(e.file) }
+    if (next !== src) {
+      write(file, next)
+      result.changed.push(e.file)
+    }
 
     const ctrl = join(dir, controllerFile(e.name))
     const generated = read(ctrl).includes(GENERATED_MARK)
@@ -262,7 +313,10 @@ export async function applyApi(projectPath: string, config: SfApiConfig): Promis
     const yaml = join(dir, 'config', 'packages', 'api_platform.yaml')
     const src = read(yaml)
     const next = src && withJsonFormat(src)
-    if (src && next !== src) { write(yaml, next); result.changed.push('config/packages/api_platform.yaml') }
+    if (src && next !== src) {
+      write(yaml, next)
+      result.changed.push('config/packages/api_platform.yaml')
+    }
   }
   write(apiConfigFile(dir), JSON.stringify(config, null, 2) + '\n')
   return result
@@ -307,9 +361,10 @@ export function useConnection(projectPath: string, connectionId: string): void {
   if (!c) throw new Error('NO_CONNECTION')
   if (c.sshConnectionId) throw new Error('SSH_CONNECTION')
   const enc = encodeURIComponent
-  const url = c.type === 'sqlite'
-    ? `sqlite:///${(c.file ?? '').replace(/\\/g, '/')}`
-    : `${c.type === 'postgres' ? 'postgresql' : 'mysql'}://${enc(c.user ?? '')}:${enc(c.password ?? '')}@${c.host ?? '127.0.0.1'}:${c.port ?? (c.type === 'postgres' ? 5432 : 3306)}/${enc(c.database ?? '')}`
+  const url =
+    c.type === 'sqlite'
+      ? `sqlite:///${(c.file ?? '').replace(/\\/g, '/')}`
+      : `${c.type === 'postgres' ? 'postgresql' : 'mysql'}://${enc(c.user ?? '')}:${enc(c.password ?? '')}@${c.host ?? '127.0.0.1'}:${c.port ?? (c.type === 'postgres' ? 5432 : 3306)}/${enc(c.database ?? '')}`
   const file = join(dir, '.env.local')
   write(file, mergeEnv(read(file), { DATABASE_URL: url }))
 }

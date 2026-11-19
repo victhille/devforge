@@ -17,28 +17,58 @@ const fake = vi.hoisted(() => {
     tokenReads: 0,
     releasesToken: undefined as string | null | undefined,
     autoUpdater: {
-      allowPrerelease: false, allowDowngrade: true, autoDownload: false, autoInstallOnAppQuit: false, logger: null as unknown,
-      setFeedURL(o: Record<string, unknown>) { fake.feed = o },
-      async checkForUpdates() { fake.checks++; if (fake.fail) throw new Error('404'); return { isUpdateAvailable: fake.available } },
-      quitAndInstall(...a: boolean[]) { fake.installs.push(a) },
-      on(event: string, cb: (arg: never) => void) { handlers.set(event, cb) }
+      allowPrerelease: false,
+      allowDowngrade: true,
+      autoDownload: false,
+      autoInstallOnAppQuit: false,
+      logger: null as unknown,
+      setFeedURL(o: Record<string, unknown>) {
+        fake.feed = o
+      },
+      async checkForUpdates() {
+        fake.checks++
+        if (fake.fail) throw new Error('404')
+        return { isUpdateAvailable: fake.available }
+      },
+      quitAndInstall(...a: boolean[]) {
+        fake.installs.push(a)
+      },
+      on(event: string, cb: (arg: never) => void) {
+        handlers.set(event, cb)
+      }
     }
   }
 })
 vi.mock('electron-updater', () => ({ autoUpdater: fake.autoUpdater }))
 vi.mock('../../src/main/services/github/githubService', () => ({
-  githubToken: async () => { fake.tokenReads++; return fake.token },
-  newestIsPrerelease: async (_owner: string, _repo: string, tok: string | null) => { fake.releasesToken = tok; return fake.newest.prerelease }
+  githubToken: async () => {
+    fake.tokenReads++
+    return fake.token
+  },
+  newestIsPrerelease: async (_owner: string, _repo: string, tok: string | null) => {
+    fake.releasesToken = tok
+    return fake.newest.prerelease
+  }
 }))
 
-const { checkForUpdates, getUpdateStatus, initUpdater, installUpdate, setAutoUpdate, setUpdateChannel, stopUpdater } = await import('../../src/main/services/updates/updater')
+const { checkForUpdates, getUpdateStatus, initUpdater, installUpdate, setAutoUpdate, setUpdateChannel, stopUpdater } =
+  await import('../../src/main/services/updates/updater')
 
 const sent: unknown[] = []
 const win = { isDestroyed: () => false, webContents: { send: (_c: string, s: unknown) => sent.push(s) } } as never
-const packaged = (v: boolean) => { (app as { isPackaged: boolean }).isPackaged = v }
+const packaged = (v: boolean) => {
+  ;(app as { isPackaged: boolean }).isPackaged = v
+}
 
-beforeEach(() => { fake.available = false; fake.fail = false; fake.newest.prerelease = false })
-afterAll(() => { packaged(false); stopUpdater() })
+beforeEach(() => {
+  fake.available = false
+  fake.fail = false
+  fake.newest.prerelease = false
+})
+afterAll(() => {
+  packaged(false)
+  stopUpdater()
+})
 
 describe('in development', () => {
   it('never looks for updates; the tests may set a status by hand', async () => {
@@ -84,7 +114,7 @@ describe('in the installed app', () => {
     expect(await checkForUpdates()).toEqual({ state: 'unavailable', reason: 'feed' })
   })
 
-  it('a public repository never reads nor sends the user\'s GitHub token, beta channel included', async () => {
+  it("a public repository never reads nor sends the user's GitHub token, beta channel included", async () => {
     fake.token = 'ghp_test0000000000000000000000'
     fake.tokenReads = 0
     setUpdateChannel(true)

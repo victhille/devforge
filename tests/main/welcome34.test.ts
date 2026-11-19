@@ -10,23 +10,49 @@ import { tempDir } from '../helpers'
 
 /** DevForge's welcome page in each created project */
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
-  database: 'postgres', dbName: 'shop', dbPort: 5433, features: ['api', 'auth'], git: true, github: null, openVSCode: false, welcome: true, ...s
+  database: 'postgres',
+  dbName: 'shop',
+  dbPort: 5433,
+  features: ['api', 'auth'],
+  git: true,
+  github: null,
+  openVSCode: false,
+  welcome: true,
+  ...s
 })
 const info = (framework: Framework, s: Partial<ProjectSetup> = {}): WelcomeInfo => ({ name: 'shop', framework, setup: setup(s), tailwind: false, lang: 'fr' })
 const ctx = { password: 'pw', secret: 'sec', lang: 'fr' as const, composeName: '' }
-const opts = (framework: Framework, s: Partial<ProjectSetup> = {}) => ({ name: 'shop', framework, packageManager: 'npm' as const, typescript: true, eslint: true, setup: setup(s) })
+const opts = (framework: Framework, s: Partial<ProjectSetup> = {}) => ({
+  name: 'shop',
+  framework,
+  packageManager: 'npm' as const,
+  typescript: true,
+  eslint: true,
+  setup: setup(s)
+})
 
 /** TSX the way Next.js and Vite read it: no syntax error */
 function tsxErrors(source: string): string[] {
-  const out = ts.transpileModule(source, { reportDiagnostics: true, compilerOptions: { jsx: ts.JsxEmit.Preserve, target: ts.ScriptTarget.ES2022 }, fileName: 'page.tsx' })
+  const out = ts.transpileModule(source, {
+    reportDiagnostics: true,
+    compilerOptions: { jsx: ts.JsxEmit.Preserve, target: ts.ScriptTarget.ES2022 },
+    fileName: 'page.tsx'
+  })
   return (out.diagnostics ?? []).map(d => ts.flattenDiagnosticMessageText(d.messageText, '\n'))
 }
 
-const hasPhp = (() => { try { execFileSync('php', ['-v'], { stdio: 'ignore' }); return true } catch { return false } })()
+const hasPhp = (() => {
+  try {
+    execFileSync('php', ['-v'], { stdio: 'ignore' })
+    return true
+  } catch {
+    return false
+  }
+})()
 
 describe('Welcome page', () => {
   it('lists what the creation set up', () => {
-    expect(welcomeItems(info('nextjs'))).toEqual(['Base PostgreSQL (Docker)', 'Première route d\'API', 'Connexion et inscription', 'Dépôt Git (branche main)'])
+    expect(welcomeItems(info('nextjs'))).toEqual(['Base PostgreSQL (Docker)', "Première route d'API", 'Connexion et inscription', 'Dépôt Git (branche main)'])
     expect(welcomeItems(info('react', { database: 'none', features: [], git: false }))).toEqual(['Le projet de base, prêt à recevoir votre code'])
   })
 
@@ -75,7 +101,7 @@ describe('Welcome page', () => {
   it('Node: a plain index.js and an npm test checking it answers', () => {
     const steps = planSetup(opts('nodejs', { welcome: true, database: 'none', features: [] }), ctx)
     const dir = tempDir('welcome')
-    for (const file of steps.flatMap(s => s.kind === 'write' ? s.files : [])) {
+    for (const file of steps.flatMap(s => (s.kind === 'write' ? s.files : []))) {
       mkdirSync(dirname(join(dir, file.path)), { recursive: true })
       writeFileSync(join(dir, file.path), file.content)
     }
@@ -83,7 +109,7 @@ describe('Welcome page', () => {
   })
 
   it('is a step of the plan only when chosen', () => {
-    expect(planSetup(opts('react', { welcome: true }), ctx).find(s => s.kind === 'write' && s.label === 'Page d\'accueil DevForge')).toBeTruthy()
-    expect(planSetup(opts('nextjs', { welcome: false }), ctx).some(s => s.kind === 'write' && s.label === 'Page d\'accueil DevForge')).toBe(false)
+    expect(planSetup(opts('react', { welcome: true }), ctx).find(s => s.kind === 'write' && s.label === "Page d'accueil DevForge")).toBeTruthy()
+    expect(planSetup(opts('nextjs', { welcome: false }), ctx).some(s => s.kind === 'write' && s.label === "Page d'accueil DevForge")).toBe(false)
   })
 })

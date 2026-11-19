@@ -10,21 +10,17 @@ const run = (sh: string, script: string) => execFileSync(sh, ['-s'], { input: sc
 /** A POSIX sh to check quoting for real (Git Bash on Windows, sh elsewhere) */
 function findSh(): string | null {
   for (const sh of process.platform === 'win32' ? ['C:/Program Files/Git/bin/sh.exe', 'sh'] : ['sh']) {
-    try { if (run(sh, 'echo ok').trim() === 'ok') return sh } catch { /* next */ }
+    try {
+      if (run(sh, 'echo ok').trim() === 'ok') return sh
+    } catch {
+      /* next */
+    }
   }
   return null
 }
 const sh = findSh()
 
-const NASTY = [
-  "it's",
-  'say "hi"',
-  '$HOME $(id) `whoami` ${PATH}',
-  'a\\b\\\\c',
-  'line1\nline2',
-  '; rm -rf / #',
-  ''
-]
+const NASTY = ["it's", 'say "hi"', '$HOME $(id) `whoami` ${PATH}', 'a\\b\\\\c', 'line1\nline2', '; rm -rf / #', '']
 
 describe('shQuote', () => {
   it('wraps in single quotes', () => {
@@ -57,13 +53,6 @@ describe('buildRemoteCommand', () => {
   it.skipIf(!sh)('produces a script a shell parses as intended', () => {
     // Replace the outer `bash -lc` by `printf %s` to see what bash would run
     const body = run(sh!, buildRemoteCommand(target).replace(/^bash -lc /, 'printf %s '))
-    expect(body.split('\n')).toEqual([
-      'set -e',
-      "cd '/srv/my app'\\''s'",
-      "echo '$ git pull'",
-      'git pull',
-      "echo '$ npm ci'",
-      'npm ci'
-    ])
+    expect(body.split('\n')).toEqual(['set -e', "cd '/srv/my app'\\''s'", "echo '$ git pull'", 'git pull', "echo '$ npm ci'", 'npm ci'])
   })
 })

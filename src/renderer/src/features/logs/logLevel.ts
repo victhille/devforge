@@ -11,7 +11,9 @@ export function levelOf(line: string): LogLevel {
       const lvl = obj.level ?? obj.severity
       if (typeof lvl === 'number') return PINO_LEVELS[lvl] ?? 'other'
       if (typeof lvl === 'string') return levelOf(lvl)
-    } catch { /* not JSON, fall through */ }
+    } catch {
+      /* not JSON, fall through */
+    }
   }
   if (/\b(fatal|crit(ical)?|emerg(ency)?|error|err|exception|panic)\b|\bE\/|Traceback|Uncaught/i.test(line)) return 'error'
   if (/\b(warn(ing)?|deprecated)\b/i.test(line)) return 'warn'
@@ -22,8 +24,8 @@ export function levelOf(line: string): LogLevel {
 
 export const LEVEL_COLOR: Record<LogLevel, string> = {
   error: 'text-danger',
-  warn:  'text-warning',
-  info:  'text-fg',
+  warn: 'text-warning',
+  info: 'text-fg',
   debug: 'text-fg-muted',
   other: 'text-fg-secondary'
 }

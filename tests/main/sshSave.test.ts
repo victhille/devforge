@@ -23,12 +23,20 @@ vi.mock('../../src/main/services/ssh/sshService', () => ({ sshService: { setCall
 // A file that cannot be written (an antivirus holding it, say), on demand
 vi.mock('../../src/main/services/n8n/n8nService', async orig => {
   const real = await orig<typeof import('../../src/main/services/n8n/n8nService')>()
-  return { ...real, forgetApiKey: (id: string) => { if (n8nFails.on) throw new Error('EBUSY'); real.forgetApiKey(id) } }
+  return {
+    ...real,
+    forgetApiKey: (id: string) => {
+      if (n8nFails.on) throw new Error('EBUSY')
+      real.forgetApiKey(id)
+    }
+  }
 })
 
 type Handler = (event: unknown, ...args: unknown[]) => unknown
 const handlers = new Map<string, Handler>()
-vi.spyOn(ipcMain, 'handle').mockImplementation(((channel: string, fn: Handler) => { handlers.set(channel, fn) }) as never)
+vi.spyOn(ipcMain, 'handle').mockImplementation(((channel: string, fn: Handler) => {
+  handlers.set(channel, fn)
+}) as never)
 registerSshHandlers({ webContents: { send: () => {} } } as unknown as BrowserWindow)
 
 const call = async (channel: string, ...args: unknown[]) => handlers.get(channel)!({}, ...args)
@@ -39,8 +47,15 @@ const json = (name: string) => JSON.parse(readFileSync(join(userData(), name), '
 
 /** What the form sends for a server */
 const server = (over: Partial<SSHConnection> = {}): SSHConnection => ({
-  id: 's1', name: 'vps', host: '203.0.113.10', port: 22, username: 'deploy', authMethod: 'password',
-  color: '#4F8EF7', createdAt: '2026-11-09T10:00:00.000Z', ...over
+  id: 's1',
+  name: 'vps',
+  host: '203.0.113.10',
+  port: 22,
+  username: 'deploy',
+  authMethod: 'password',
+  color: '#4F8EF7',
+  createdAt: '2026-11-09T10:00:00.000Z',
+  ...over
 })
 
 beforeEach(() => {
@@ -81,7 +96,19 @@ describe('the saved password stays with its address', () => {
   })
 
   it('an old server saved without a port is on port 22', async () => {
-    writeFileSync(file(), JSON.stringify([{ id: 's1', name: 'vps', host: '203.0.113.10', username: 'deploy', authMethod: 'password', passwordEnc: safeStorage.encryptString('pw!').toString('base64') }]))
+    writeFileSync(
+      file(),
+      JSON.stringify([
+        {
+          id: 's1',
+          name: 'vps',
+          host: '203.0.113.10',
+          username: 'deploy',
+          authMethod: 'password',
+          passwordEnc: safeStorage.encryptString('pw!').toString('base64')
+        }
+      ])
+    )
     await save(server({ name: 'renamed' }))
     expect(getSshConnectionWithSecret('s1')).toMatchObject({ name: 'renamed', port: 22, password: 'pw!' })
   })
@@ -90,12 +117,28 @@ describe('the saved password stays with its address', () => {
 describe('what is kept for a server stays with its address', () => {
   /** n8n's API key, the wg-easy login, a database reached through the server and one that is not */
   const seedKept = () => {
-    writeFileSync(join(userData(), 'n8n.json'), JSON.stringify({ instances: [{ connectionId: 's1', domain: '', exposure: 'port', installedAt: '', keyEnc: enc('n8n-key') }] }))
+    writeFileSync(
+      join(userData(), 'n8n.json'),
+      JSON.stringify({ instances: [{ connectionId: 's1', domain: '', exposure: 'port', installedAt: '', keyEnc: enc('n8n-key') }] })
+    )
     writeFileSync(join(userData(), 'vpn.json'), JSON.stringify({ servers: [{ connectionId: 's1', port: 51821, username: 'admin', passwordEnc: enc('wg') }] }))
-    writeFileSync(join(userData(), 'databases.json'), JSON.stringify([
-      { id: 'via', name: 'shop', type: 'postgres', host: '127.0.0.1', port: 5432, user: 'shop', sshConnectionId: 's1', color: '', passwordEnc: enc('db-via') },
-      { id: 'direct', name: 'local', type: 'mysql', host: '127.0.0.1', port: 3306, user: 'root', color: '', passwordEnc: enc('db-local') }
-    ]))
+    writeFileSync(
+      join(userData(), 'databases.json'),
+      JSON.stringify([
+        {
+          id: 'via',
+          name: 'shop',
+          type: 'postgres',
+          host: '127.0.0.1',
+          port: 5432,
+          user: 'shop',
+          sshConnectionId: 's1',
+          color: '',
+          passwordEnc: enc('db-via')
+        },
+        { id: 'direct', name: 'local', type: 'mysql', host: '127.0.0.1', port: 3306, user: 'root', color: '', passwordEnc: enc('db-local') }
+      ])
+    )
   }
   const kept = () => ({
     n8n: !!json('n8n.json').instances[0].keyEnc,
@@ -104,7 +147,7 @@ describe('what is kept for a server stays with its address', () => {
     direct: !!json('databases.json')[1].passwordEnc
   })
 
-  it('a new address forgets n8n\'s key, the VPN login and the passwords of the databases through the server', async () => {
+  it("a new address forgets n8n's key, the VPN login and the passwords of the databases through the server", async () => {
     await save(server({ password: 'pw!' }))
     seedKept()
     await save(server({ name: 'prod' }))
@@ -144,7 +187,12 @@ describe('what is kept for a server stays with its address', () => {
   it('a watch session still opening to the old address is closed, not kept', async () => {
     await save(server())
     let opened!: (sid: string) => void
-    connectForDashboard.mockImplementationOnce(() => new Promise<string>(resolve => { opened = resolve }))
+    connectForDashboard.mockImplementationOnce(
+      () =>
+        new Promise<string>(resolve => {
+          opened = resolve
+        })
+    )
     const pending = sessionFor('s1')
     forgetSession('s1')
     opened('old-address')
@@ -154,7 +202,9 @@ describe('what is kept for a server stays with its address', () => {
   })
 
   it('the server key is forgotten only once the user confirms it in a dialog of the main process', async () => {
-    const answer = (n: number) => { (dialog as unknown as { answer: number }).answer = n }
+    const answer = (n: number) => {
+      ;(dialog as unknown as { answer: number }).answer = n
+    }
     await save(server())
     makeHostVerifier('203.0.113.10', 22, () => {})(Buffer.from('host-key'))
     answer(1)
@@ -195,15 +245,31 @@ describe('what the bridge takes', () => {
 
   it('refuses anything else, and stores nothing', async () => {
     const bad: unknown[] = [
-      null, 'vps', [server()],
-      { ...server(), id: '' }, { ...server(), id: '../s1' }, { ...server(), id: 42 },
-      { ...server(), name: '   ' }, { ...server(), name: 'x'.repeat(201) },
-      { ...server(), host: '' }, { ...server(), host: 'root@203.0.113.10' }, { ...server(), host: 'my server' },
-      { ...server(), host: '-oProxyCommand=calc' }, { ...server(), host: 'vps\n' }, { ...server(), host: 'x'.repeat(256) },
-      { ...server(), port: 0 }, { ...server(), port: 65536 }, { ...server(), port: 22.5 }, { ...server(), port: '22' }, { ...server(), port: undefined },
-      { ...server(), username: '' }, { ...server(), username: 'deploy\u0000' },
-      { ...server(), authMethod: 'agent' }, { ...server(), authMethod: undefined },
-      { ...server(), password: 42 }, { ...server(), password: 'x'.repeat(1025) },
+      null,
+      'vps',
+      [server()],
+      { ...server(), id: '' },
+      { ...server(), id: '../s1' },
+      { ...server(), id: 42 },
+      { ...server(), name: '   ' },
+      { ...server(), name: 'x'.repeat(201) },
+      { ...server(), host: '' },
+      { ...server(), host: 'root@203.0.113.10' },
+      { ...server(), host: 'my server' },
+      { ...server(), host: '-oProxyCommand=calc' },
+      { ...server(), host: 'vps\n' },
+      { ...server(), host: 'x'.repeat(256) },
+      { ...server(), port: 0 },
+      { ...server(), port: 65536 },
+      { ...server(), port: 22.5 },
+      { ...server(), port: '22' },
+      { ...server(), port: undefined },
+      { ...server(), username: '' },
+      { ...server(), username: 'deploy\u0000' },
+      { ...server(), authMethod: 'agent' },
+      { ...server(), authMethod: undefined },
+      { ...server(), password: 42 },
+      { ...server(), password: 'x'.repeat(1025) },
       { ...server(), authMethod: 'privateKey', privateKeyPath: '\\\\attacker.example\\share\\id_ed25519' },
       { ...server(), authMethod: 'privateKey', privateKeyPath: '//attacker.example/share/id_ed25519' },
       { ...server(), color: 'url(https://attacker.example/x)' }

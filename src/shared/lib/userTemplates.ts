@@ -5,8 +5,27 @@
 
 /** Proposed when saving: dependencies, builds, Git, virtual environments */
 export const DEFAULT_EXCLUDE = [
-  'node_modules', 'vendor', '.git', 'dist', 'build', '.next', '.nuxt', '.svelte-kit', '.turbo', '.cache', 'out', 'coverage',
-  'target', '__pycache__', '.venv', 'venv', '.pytest_cache', 'var/cache', 'var/log', '.DS_Store', 'Thumbs.db'
+  'node_modules',
+  'vendor',
+  '.git',
+  'dist',
+  'build',
+  '.next',
+  '.nuxt',
+  '.svelte-kit',
+  '.turbo',
+  '.cache',
+  'out',
+  'coverage',
+  'target',
+  '__pycache__',
+  '.venv',
+  'venv',
+  '.pytest_cache',
+  'var/cache',
+  'var/log',
+  '.DS_Store',
+  'Thumbs.db'
 ]
 
 /** Kept: env files meant to be committed */
@@ -18,7 +37,19 @@ export const isSecretFile = (name: string) => (name === '.env' || name.startsWit
 const globRe = (pattern: string) => new RegExp(`^${pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*')}$`, 'i')
 
 /** A list typed by the user: one pattern per line or comma, cleaned */
-export const parseExclude = (text: string) => [...new Set(text.split(/[\n,]/).map(s => s.trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')).filter(Boolean))]
+export const parseExclude = (text: string) => [
+  ...new Set(
+    text
+      .split(/[\n,]/)
+      .map(s =>
+        s
+          .trim()
+          .replace(/\\/g, '/')
+          .replace(/^\/+|\/+$/g, '')
+      )
+      .filter(Boolean)
+  )
+]
 
 /**
  * Left out: a secret file, or a path one of whose names matches a pattern
@@ -50,12 +81,22 @@ export function renameIn(relPath: string, content: string, from: string, to: str
     try {
       const json = JSON.parse(content) as { name?: string; packages?: Record<string, { name?: string }> }
       let changed = false
-      if (same(json.name) || base === 'package.json') { if (json.name !== undefined) { json.name = npmName(to); changed = true } }
-      if (json.packages?.['']?.name !== undefined) { json.packages[''].name = npmName(to); changed = true }
+      if (same(json.name) || base === 'package.json') {
+        if (json.name !== undefined) {
+          json.name = npmName(to)
+          changed = true
+        }
+      }
+      if (json.packages?.['']?.name !== undefined) {
+        json.packages[''].name = npmName(to)
+        changed = true
+      }
       if (!changed) return null
       const indent = /^\{\r?\n(\s+)/.exec(content)?.[1] ?? '  '
       return JSON.stringify(json, null, indent) + (content.endsWith('\n') ? '\n' : '')
-    } catch { return null }
+    } catch {
+      return null
+    }
   }
   if (base === 'composer.json') {
     try {
@@ -66,7 +107,9 @@ export function renameIn(relPath: string, content: string, from: string, to: str
       json.name = `${vendor ? `${vendor}/` : ''}${npmName(to)}`
       const indent = /^\{\r?\n(\s+)/.exec(content)?.[1] ?? '    '
       return JSON.stringify(json, null, indent) + (content.endsWith('\n') ? '\n' : '')
-    } catch { return null }
+    } catch {
+      return null
+    }
   }
   if (base === 'pyproject.toml' || base === 'cargo.toml') {
     const re = /^(name\s*=\s*["'])([^"']+)(["'])/m
@@ -94,7 +137,10 @@ export function packFiles(files: { path: string; data: Uint8Array }[]): Uint8Arr
   new DataView(out.buffer).setUint32(0, header.length)
   out.set(header, 4)
   let at = 4 + header.length
-  for (const f of files) { out.set(f.data, at); at += f.data.length }
+  for (const f of files) {
+    out.set(f.data, at)
+    at += f.data.length
+  }
   return out
 }
 
@@ -105,7 +151,8 @@ export function unpackFiles(buf: Uint8Array): { path: string; data: Uint8Array }
   if (header.magic !== MAGIC || !Array.isArray(header.files)) throw new Error('Not a DevForge template')
   let at = 4 + len
   return header.files.map(f => {
-    if (typeof f.path !== 'string' || !f.path || f.path.startsWith('/') || /(^|\/)\.\.(\/|$)/.test(f.path) || /^[a-z]:/i.test(f.path) || f.path.includes('\\')) throw new Error(`Unsafe path: ${f.path}`)
+    if (typeof f.path !== 'string' || !f.path || f.path.startsWith('/') || /(^|\/)\.\.(\/|$)/.test(f.path) || /^[a-z]:/i.test(f.path) || f.path.includes('\\'))
+      throw new Error(`Unsafe path: ${f.path}`)
     const data = buf.subarray(at, at + f.size)
     at += f.size
     return { path: f.path, data }

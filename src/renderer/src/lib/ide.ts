@@ -30,11 +30,14 @@ export interface PreferredIde {
 export function usePreferredIde(): PreferredIde {
   const ide: DefaultIDE = useSettings().data?.defaultIDE ?? 'vscode'
   const list = useIdes().data ?? NO_IDES
-  const nameOf = useCallback((id: DefaultIDE) => id === 'none' ? null : list.find(i => i.id === id)?.name ?? IDE_LABEL[id] ?? null, [list])
-  const pick = useCallback((own?: DefaultIDE) => own && (own === 'none' || IDE_LABEL[own] || list.some(i => i.id === own)) ? own : ide, [ide, list])
+  const nameOf = useCallback((id: DefaultIDE) => (id === 'none' ? null : (list.find(i => i.id === id)?.name ?? IDE_LABEL[id] ?? null)), [list])
+  const pick = useCallback((own?: DefaultIDE) => (own && (own === 'none' || IDE_LABEL[own] || list.some(i => i.id === own)) ? own : ide), [ide, list])
   const labelFor = useCallback((own?: DefaultIDE) => nameOf(pick(own)), [nameOf, pick])
   const open = useCallback((path: string, own?: DefaultIDE) => window.devforge.openInIDE(path, pick(own)), [pick])
-  const openFile = useCallback((path: string, own?: DefaultIDE, root?: string, line?: number) => window.devforge.openFileInIDE(path, pick(own), root, line), [pick])
+  const openFile = useCallback(
+    (path: string, own?: DefaultIDE, root?: string, line?: number) => window.devforge.openFileInIDE(path, pick(own), root, line),
+    [pick]
+  )
   return { ide, label: nameOf(ide), list, pick, labelFor, open, openFile }
 }
 

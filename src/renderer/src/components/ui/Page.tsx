@@ -35,10 +35,5 @@ export function PageHeader({ title, subtitle, crumb, actions, className }: Heade
 
 /** A group's name above a list of cards (Forge: small capitals in the text font, not the code font) */
 export function SectionTitle({ className, ...rest }: HTMLAttributes<HTMLHeadingElement>) {
-  return (
-    <h2
-      {...rest}
-      className={cn('text-xs font-semibold uppercase tracking-[.04em] text-fg-muted', className)}
-    />
-  )
+  return <h2 {...rest} className={cn('text-xs font-semibold uppercase tracking-[.04em] text-fg-muted', className)} />
 }

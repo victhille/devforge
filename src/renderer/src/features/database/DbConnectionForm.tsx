@@ -22,23 +22,42 @@ interface Props {
 export default function DbConnectionForm({ initial, onSave, onClose }: Props) {
   const { t } = useI18n()
   const d = t.database
-  const [c, setC] = useState<DbConnection>(initial ?? {
-    id: crypto.randomUUID(), name: '', type: 'postgres', host: '127.0.0.1', port: 5432, user: '', database: '', color: CONNECTION_COLORS[1]
-  })
+  const [c, setC] = useState<DbConnection>(
+    initial ?? {
+      id: crypto.randomUUID(),
+      name: '',
+      type: 'postgres',
+      host: '127.0.0.1',
+      port: 5432,
+      user: '',
+      database: '',
+      color: CONNECTION_COLORS[1]
+    }
+  )
   const [password, setPassword] = useState('')
   const [test, setTest] = useState<{ ok: boolean; text: string } | null>(null)
   const [testing, setTesting] = useState(false)
   const servers: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
 
-
-  const set = <K extends keyof DbConnection>(k: K, v: DbConnection[K]) => { setC(x => ({ ...x, [k]: v })); setTest(null) }
-  const full = (): DbConnection => ({ ...c, name: c.name.trim() || (c.type === 'sqlite' ? c.file?.split(/[\\/]/).pop() ?? 'SQLite' : `${c.database}@${c.host}`), password: password || undefined })
+  const set = <K extends keyof DbConnection>(k: K, v: DbConnection[K]) => {
+    setC(x => ({ ...x, [k]: v }))
+    setTest(null)
+  }
+  const full = (): DbConnection => ({
+    ...c,
+    name: c.name.trim() || (c.type === 'sqlite' ? (c.file?.split(/[\\/]/).pop() ?? 'SQLite') : `${c.database}@${c.host}`),
+    password: password || undefined
+  })
 
   async function runTest() {
     setTesting(true)
-    try { setTest({ ok: true, text: await window.devforge.db.test(full()) }) }
-    catch (err) { setTest({ ok: false, text: errorText(err) }) }
-    finally { setTesting(false) }
+    try {
+      setTest({ ok: true, text: await window.devforge.db.test(full()) })
+    } catch (err) {
+      setTest({ ok: false, text: errorText(err) })
+    } finally {
+      setTesting(false)
+    }
   }
 
   async function browse() {
@@ -56,16 +75,29 @@ export default function DbConnectionForm({ initial, onSave, onClose }: Props) {
       onClose={onClose}
       footer={
         <>
-          <Button variant="ghost" onClick={runTest} loading={testing} disabled={!valid} className="mr-auto">{d.test}</Button>
-          <Button variant="ghost" onClick={onClose}>{t.common.cancel}</Button>
-          <Button disabled={!valid} onClick={() => onSave(full())}>{t.common.save}</Button>
+          <Button variant="ghost" onClick={runTest} loading={testing} disabled={!valid} className="mr-auto">
+            {d.test}
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            {t.common.cancel}
+          </Button>
+          <Button disabled={!valid} onClick={() => onSave(full())}>
+            {t.common.save}
+          </Button>
         </>
       }
     >
       <Tabs<DbType>
         value={c.type}
-        onChange={type => { set('type', type); set('port', DB_DEFAULT_PORT[type]) }}
-        items={[{ value: 'postgres', label: 'PostgreSQL' }, { value: 'mysql', label: 'MySQL / MariaDB' }, { value: 'sqlite', label: 'SQLite' }]}
+        onChange={type => {
+          set('type', type)
+          set('port', DB_DEFAULT_PORT[type])
+        }}
+        items={[
+          { value: 'postgres', label: 'PostgreSQL' },
+          { value: 'mysql', label: 'MySQL / MariaDB' },
+          { value: 'sqlite', label: 'SQLite' }
+        ]}
       />
 
       <Field label={d.name}>
@@ -76,35 +108,63 @@ export default function DbConnectionForm({ initial, onSave, onClose }: Props) {
         <Field label={d.file}>
           <div className="flex gap-2">
             <Input value={c.file ?? ''} onChange={e => set('file', e.target.value)} className="font-mono text-sm" placeholder="C:\…\database.sqlite" />
-            <IconButton title={t.common.browse} onClick={browse}><FolderOpen size={15} /></IconButton>
+            <IconButton title={t.common.browse} onClick={browse}>
+              <FolderOpen size={15} />
+            </IconButton>
           </div>
         </Field>
       ) : (
         <>
           <div className="flex gap-3">
-            <Field label={d.host} className="flex-1"><Input value={c.host ?? ''} onChange={e => set('host', e.target.value)} /></Field>
-            <Field label={d.port} className="w-28"><Input type="number" value={c.port ?? ''} onChange={e => set('port', Number(e.target.value))} /></Field>
+            <Field label={d.host} className="flex-1">
+              <Input value={c.host ?? ''} onChange={e => set('host', e.target.value)} />
+            </Field>
+            <Field label={d.port} className="w-28">
+              <Input type="number" value={c.port ?? ''} onChange={e => set('port', Number(e.target.value))} />
+            </Field>
           </div>
           <div className="flex gap-3">
-            <Field label={d.user} className="flex-1"><Input value={c.user ?? ''} onChange={e => set('user', e.target.value)} /></Field>
+            <Field label={d.user} className="flex-1">
+              <Input value={c.user ?? ''} onChange={e => set('user', e.target.value)} />
+            </Field>
             <Field label={d.password} className="flex-1">
-              <Input type="password" value={password} onChange={e => { setPassword(e.target.value); setTest(null) }} placeholder={keepsPassword ? t.ssh.passwordUnchanged : ''} />
+              <Input
+                type="password"
+                value={password}
+                onChange={e => {
+                  setPassword(e.target.value)
+                  setTest(null)
+                }}
+                placeholder={keepsPassword ? t.ssh.passwordUnchanged : ''}
+              />
             </Field>
           </div>
           {/* Said once when it appears, not on each key typed: its text stays the same */}
-          {initial?.hasPassword && !keepsPassword && !password && <Notice tone="warning" role="status">{d.passwordForgotten}</Notice>}
-          <Field label={d.databaseName}><Input value={c.database ?? ''} onChange={e => set('database', e.target.value)} /></Field>
+          {initial?.hasPassword && !keepsPassword && !password && (
+            <Notice tone="warning" role="status">
+              {d.passwordForgotten}
+            </Notice>
+          )}
+          <Field label={d.databaseName}>
+            <Input value={c.database ?? ''} onChange={e => set('database', e.target.value)} />
+          </Field>
           <Field label={d.viaSsh} hint={c.sshConnectionId ? d.viaSshHint : undefined}>
             <Select value={c.sshConnectionId ?? ''} onChange={e => set('sshConnectionId', e.target.value || undefined)}>
               <option value="">{d.direct}</option>
-              {servers.map(s => <option key={s.id} value={s.id}>{s.name} — {s.username}@{s.host}</option>)}
+              {servers.map(s => (
+                <option key={s.id} value={s.id}>
+                  {s.name} — {s.username}@{s.host}
+                </option>
+              ))}
             </Select>
           </Field>
         </>
       )}
 
       {test && (
-        <Notice tone={test.ok ? 'success' : 'danger'} live><span className="font-mono text-xs break-all">{test.text}</span></Notice>
+        <Notice tone={test.ok ? 'success' : 'danger'} live>
+          <span className="font-mono text-xs break-all">{test.text}</span>
+        </Notice>
       )}
     </Modal>
   )

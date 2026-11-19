@@ -50,10 +50,16 @@ export function applyPlatform(src: string, operations: SfOperation[], hidden: st
   const ops = OPERATIONS.filter(o => operations.includes(o)).map(o => `new ${PLATFORM_CLASS[o]}()`)
   out = out.replace(/^(#\[ORM\\Entity)/m, `#[ApiResource(operations: [${ops.join(', ')}])]\n$1`)
   for (const field of hidden) {
-    out = out.replace(new RegExp(`^([ \\t]*)((?:private|protected|public)\\s+[^;=(]*\\$${field}\\b)`, 'm'), '$1#[ApiProperty(readable: false, writable: false)]\n$1$2')
+    out = out.replace(
+      new RegExp(`^([ \\t]*)((?:private|protected|public)\\s+[^;=(]*\\$${field}\\b)`, 'm'),
+      '$1#[ApiProperty(readable: false, writable: false)]\n$1$2'
+    )
   }
   const used = ['ApiResource', ...(hidden.length ? ['ApiProperty'] : []), ...OPERATIONS.filter(o => operations.includes(o)).map(o => PLATFORM_CLASS[o])]
-  return addUses(out, used.map(c => `use ApiPlatform\\Metadata\\${c};`))
+  return addUses(
+    out,
+    used.map(c => `use ApiPlatform\\Metadata\\${c};`)
+  )
 }
 
 /**
@@ -79,10 +85,7 @@ export function jsonController(e: SfEntity, operations: SfOperation[], hidden: s
   const v = name.charAt(0).toLowerCase() + name.slice(1)
   const fields = e.fields.filter(f => !hidden.includes(f.name))
   const links = e.relations.filter(r => r.kind === 'ManyToOne' && !hidden.includes(r.name))
-  const required = [
-    ...fields.filter(f => !f.nullable && f.type !== 'json').map(f => f.name),
-    ...links.filter(r => !r.nullable).map(r => r.name)
-  ]
+  const required = [...fields.filter(f => !f.nullable && f.type !== 'json').map(f => f.name), ...links.filter(r => !r.nullable).map(r => r.name)]
   const route = apiPath(name)
   const prefix = `api_${name.replace(/[A-Z]/g, (c, i) => (i ? '_' : '') + c.toLowerCase())}_`
   const ctx = 'context: [AbstractNormalizer::ATTRIBUTES => self::OUTPUT]'
@@ -95,30 +98,37 @@ export function jsonController(e: SfEntity, operations: SfOperation[], hidden: s
         if (!is_array($data)) {
             return $this->json(['error' => 'The body must be a JSON object'], Response::HTTP_BAD_REQUEST);
         }`
-  const setLinks = links.map(r => `        if (array_key_exists('${r.name}', $data)) {
+  const setLinks = links
+    .map(
+      r => `        if (array_key_exists('${r.name}', $data)) {
             $${r.name} = $data['${r.name}'] === null ? null : $em->getRepository(${r.target}::class)->find($data['${r.name}']);
             if ($data['${r.name}'] !== null && $${r.name} === null) {
                 return $this->json(['error' => 'Unknown ${r.name}', 'id' => $data['${r.name}']], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
             $${v}->set${r.name.charAt(0).toUpperCase() + r.name.slice(1)}($${r.name});
-        }`).join('\n')
+        }`
+    )
+    .join('\n')
   const validate = `        $errors = $validator->validate($${v});
         if (count($errors) > 0) {
             return $this->json($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
         }`
 
   const actions: string[] = []
-  if (has('list')) actions.push(`    #[Route('', name: 'list', methods: ['GET'])]
+  if (has('list'))
+    actions.push(`    #[Route('', name: 'list', methods: ['GET'])]
     public function list(${name}Repository $repository): JsonResponse
     {
         return $this->json($repository->findAll(), ${ctx});
     }`)
-  if (has('show')) actions.push(`    #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\\d+'])]
+  if (has('show'))
+    actions.push(`    #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\\d+'])]
     public function show(${name} $${v}): JsonResponse
     {
         return $this->json($${v}, ${ctx});
     }`)
-  if (has('create')) actions.push(`    #[Route('', name: 'create', methods: ['POST'])]
+  if (has('create'))
+    actions.push(`    #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request, DenormalizerInterface $serializer, ValidatorInterface $validator, EntityManagerInterface $em): JsonResponse
     {
 ${readBody}
@@ -133,7 +143,8 @@ ${setLinks ? setLinks + '\n' : ''}${validate}
 
         return $this->json($${v}, Response::HTTP_CREATED, ${ctx});
     }`)
-  if (has('update')) actions.push(`    #[Route('/{id}', name: 'update', methods: ['PATCH', 'PUT'], requirements: ['id' => '\\d+'])]
+  if (has('update'))
+    actions.push(`    #[Route('/{id}', name: 'update', methods: ['PATCH', 'PUT'], requirements: ['id' => '\\d+'])]
     public function update(${name} $${v}, Request $request, DenormalizerInterface $serializer, ValidatorInterface $validator, EntityManagerInterface $em): JsonResponse
     {
 ${readBody}
@@ -146,7 +157,8 @@ ${setLinks ? setLinks + '\n' : ''}${validate}
 
         return $this->json($${v}, ${ctx});
     }`)
-  if (has('delete')) actions.push(`    #[Route('/{id}', name: 'delete', methods: ['DELETE'], requirements: ['id' => '\\d+'])]
+  if (has('delete'))
+    actions.push(`    #[Route('/{id}', name: 'delete', methods: ['DELETE'], requirements: ['id' => '\\d+'])]
     public function delete(${name} $${v}, EntityManagerInterface $em): JsonResponse
     {
         $em->remove($${v});
@@ -167,7 +179,9 @@ ${setLinks ? setLinks + '\n' : ''}${validate}
     ...(writes || has('delete') ? ['use Symfony\\Component\\HttpFoundation\\Response;'] : []),
     'use Symfony\\Component\\Routing\\Attribute\\Route;',
     'use Symfony\\Component\\Serializer\\Normalizer\\AbstractNormalizer;',
-    ...(writes ? ['use Symfony\\Component\\Serializer\\Normalizer\\DenormalizerInterface;', 'use Symfony\\Component\\Validator\\Validator\\ValidatorInterface;'] : [])
+    ...(writes
+      ? ['use Symfony\\Component\\Serializer\\Normalizer\\DenormalizerInterface;', 'use Symfony\\Component\\Validator\\Validator\\ValidatorInterface;']
+      : [])
   ].sort((a, b) => a.localeCompare(b))
   const output = [`'id'`, ...fields.map(f => `'${f.name}'`), ...links.map(r => `'${r.name}' => ['id']`)].join(', ')
   return `<?php

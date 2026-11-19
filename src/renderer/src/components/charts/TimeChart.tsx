@@ -23,7 +23,15 @@ function useWidth<T extends HTMLElement>(): [React.RefObject<T>, number] {
  * One series over time as a thin line on a light area (one hue, one axis),
  * an optional threshold line, and a crosshair + tooltip on hover.
  */
-export function TimeChart({ points, field = 0, max, label, format, threshold, height = 72 }: {
+export function TimeChart({
+  points,
+  field = 0,
+  max,
+  label,
+  format,
+  threshold,
+  height = 72
+}: {
   points: HistoryPoint[]
   /** Index of the value to draw in each point */
   field?: number
@@ -50,7 +58,11 @@ export function TimeChart({ points, field = 0, max, label, format, threshold, he
   let current = ''
   points.forEach((p, i) => {
     const v = values[i]
-    if (v === null) { if (current) segments.push(current); current = ''; return }
+    if (v === null) {
+      if (current) segments.push(current)
+      current = ''
+      return
+    }
     current += `${current ? 'L' : 'M'}${x(p.t).toFixed(1)},${y(v).toFixed(1)}`
   })
   if (current) segments.push(current)
@@ -63,7 +75,9 @@ export function TimeChart({ points, field = 0, max, label, format, threshold, he
     if (!points.length) return
     const px = e.clientX - e.currentTarget.getBoundingClientRect().left
     let best = 0
-    points.forEach((p, i) => { if (Math.abs(x(p.t) - px) < Math.abs(x(points[best].t) - px)) best = i })
+    points.forEach((p, i) => {
+      if (Math.abs(x(p.t) - px) < Math.abs(x(points[best].t) - px)) best = i
+    })
     setHover(best)
   }
 
@@ -74,16 +88,27 @@ export function TimeChart({ points, field = 0, max, label, format, threshold, he
         <span className="text-fg-secondary">{label}</span>
         <span className="font-mono font-medium text-fg">{last !== undefined ? format(last) : '—'}</span>
       </figcaption>
-      <div ref={ref} className="relative" style={{ height }} onMouseMove={onMove} onMouseLeave={() => setHover(null)}
-        role="img" aria-label={`${label}: ${known.length ? `${format(Math.min(...known))} – ${format(Math.max(...known))}` : '—'}`}>
+      <div
+        ref={ref}
+        className="relative"
+        style={{ height }}
+        onMouseMove={onMove}
+        onMouseLeave={() => setHover(null)}
+        role="img"
+        aria-label={`${label}: ${known.length ? `${format(Math.min(...known))} – ${format(Math.max(...known))}` : '—'}`}
+      >
         {width > 0 && (
           <svg width={width} height={height} className="block overflow-visible" aria-hidden="true">
             <line x1={0} x2={width} y1={height - 0.5} y2={height - 0.5} className="stroke-line" />
             {threshold !== undefined && threshold <= top && (
               <line x1={0} x2={width} y1={y(threshold)} y2={y(threshold)} className="stroke-warning" strokeDasharray="3 3" strokeWidth={1} />
             )}
-            {areas.map((d, i) => <path key={`a${i}`} d={d} className="fill-accent/15" />)}
-            {segments.map((d, i) => <path key={`l${i}`} d={d} className="fill-none stroke-accent" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />)}
+            {areas.map((d, i) => (
+              <path key={`a${i}`} d={d} className="fill-accent/15" />
+            ))}
+            {segments.map((d, i) => (
+              <path key={`l${i}`} d={d} className="fill-none stroke-accent" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+            ))}
             {hover !== null && (
               <>
                 <line x1={x(points[hover].t)} x2={x(points[hover].t)} y1={0} y2={height} className="stroke-fg-muted" strokeWidth={1} />
@@ -93,9 +118,13 @@ export function TimeChart({ points, field = 0, max, label, format, threshold, he
           </svg>
         )}
         {hover !== null && (
-          <div className={cn('pointer-events-none absolute -top-8 z-10 rounded-md border border-line bg-elevated px-2 py-1 font-mono text-xs whitespace-nowrap text-fg shadow-pop',
-            x(points[hover].t) > width / 2 ? '-translate-x-full' : '')}
-            style={{ left: x(points[hover].t) }}>
+          <div
+            className={cn(
+              'pointer-events-none absolute -top-8 z-10 rounded-md border border-line bg-elevated px-2 py-1 font-mono text-xs whitespace-nowrap text-fg shadow-pop',
+              x(points[hover].t) > width / 2 ? '-translate-x-full' : ''
+            )}
+            style={{ left: x(points[hover].t) }}
+          >
             {time(points[hover].t)} · {hv !== null ? format(hv) : '—'}
           </div>
         )}
@@ -105,7 +134,11 @@ export function TimeChart({ points, field = 0, max, label, format, threshold, he
 }
 
 /** Share of time up per bucket: one cell each, with the state in words on hover */
-export function UptimeStrip({ points, field = 0, labels }: {
+export function UptimeStrip({
+  points,
+  field = 0,
+  labels
+}: {
   points: HistoryPoint[]
   field?: number
   labels: { up: string; partial: string; down: string; none: string }
@@ -117,8 +150,14 @@ export function UptimeStrip({ points, field = 0, labels }: {
         const v = p.v[field]
         const state = v === null ? 'none' : v >= 0.999 ? 'up' : v <= 0.001 ? 'down' : 'partial'
         return (
-          <div key={p.t} title={`${time(p.t)} · ${labels[state]}${state === 'partial' ? ` (${Math.round((v ?? 0) * 100)} %)` : ''}`}
-            className={cn('min-w-[2px] flex-1 rounded-sm', state === 'up' ? 'bg-success/70' : state === 'down' ? 'bg-danger' : state === 'partial' ? 'bg-warning' : 'bg-elevated')} />
+          <div
+            key={p.t}
+            title={`${time(p.t)} · ${labels[state]}${state === 'partial' ? ` (${Math.round((v ?? 0) * 100)} %)` : ''}`}
+            className={cn(
+              'min-w-[2px] flex-1 rounded-sm',
+              state === 'up' ? 'bg-success/70' : state === 'down' ? 'bg-danger' : state === 'partial' ? 'bg-warning' : 'bg-elevated'
+            )}
+          />
         )
       })}
     </div>

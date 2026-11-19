@@ -13,7 +13,19 @@ export function tempDir(name = 'dir'): string {
 
 /** Register folders as saved DevForge projects */
 export function saveProjects(projects: { name: string; path: string; framework?: string }[]): void {
-  writeFileSync(join(userData(), 'projects.json'), JSON.stringify(projects.map((p, i) => ({
-    id: `p${i}`, name: p.name, path: p.path, type: 'node', favorite: false, createdAt: '', lastOpened: null, ...(p.framework ? { framework: p.framework } : {})
-  }))))
+  writeFileSync(
+    join(userData(), 'projects.json'),
+    JSON.stringify(
+      projects.map((p, i) => ({
+        id: `p${i}`,
+        name: p.name,
+        path: p.path,
+        type: 'node',
+        favorite: false,
+        createdAt: '',
+        lastOpened: null,
+        ...(p.framework ? { framework: p.framework } : {})
+      }))
+    )
+  )
 }

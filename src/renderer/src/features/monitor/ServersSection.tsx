@@ -14,27 +14,53 @@ import StatusDot from '@renderer/components/ui/StatusDot'
 
 const pct = (v: number) => `${Math.round(v)} %`
 
-function ServerCard({ conn, status, watched, threshold, onToggle }: {
-  conn: SSHConnection; status?: VpsStatus; watched: boolean; threshold: number; onToggle: (on: boolean) => void
+function ServerCard({
+  conn,
+  status,
+  watched,
+  threshold,
+  onToggle
+}: {
+  conn: SSHConnection
+  status?: VpsStatus
+  watched: boolean
+  threshold: number
+  onToggle: (on: boolean) => void
 }) {
   const { t, lang } = useI18n()
   const w = t.watch
   const history = useHistory(watched ? `vps:${conn.id}` : null)
   const points = history?.points ?? []
   const running = status?.containers.filter(c => c.running).length ?? 0
-  const state = !watched ? w.off : !status || status.state === 'connecting' ? w.connecting : status.state === 'down' ? w.down : status.at ? w.lastSample.replace('{when}', formatRelative(new Date(status.at).toISOString(), lang)) : ''
+  const state = !watched
+    ? w.off
+    : !status || status.state === 'connecting'
+      ? w.connecting
+      : status.state === 'down'
+        ? w.down
+        : status.at
+          ? w.lastSample.replace('{when}', formatRelative(new Date(status.at).toISOString(), lang))
+          : ''
 
   return (
     <Card className="flex flex-col gap-4 p-4.5">
       <div className="flex flex-wrap items-center gap-3">
-        <StatusDot size="md" state={!watched ? 'off' : status?.state === 'ok' ? 'on' : status?.state === 'down' ? 'error' : 'warn'} live={watched && status?.state === 'ok'} />
+        <StatusDot
+          size="md"
+          state={!watched ? 'off' : status?.state === 'ok' ? 'on' : status?.state === 'down' ? 'error' : 'warn'}
+          live={watched && status?.state === 'ok'}
+        />
         <div className="min-w-0 flex-1">
           <div className="truncate font-semibold text-fg">{conn.name}</div>
           <div className={cn('font-mono text-xs', status?.state === 'down' && watched ? 'text-danger' : 'text-fg-muted')} title={status?.error}>
             {conn.username}@{conn.host} · {state}
           </div>
         </div>
-        {watched && status?.state === 'ok' && <span className="font-mono text-xs text-fg-secondary">{w.containers.replace('{r}', String(running)).replace('{t}', String(status.containers.length))}</span>}
+        {watched && status?.state === 'ok' && (
+          <span className="font-mono text-xs text-fg-secondary">
+            {w.containers.replace('{r}', String(running)).replace('{t}', String(status.containers.length))}
+          </span>
+        )}
         <label className="flex items-center gap-2 text-sm text-fg-secondary">
           <Switch checked={watched} onChange={onToggle} label={w.watched} /> {w.watched}
         </label>
@@ -64,18 +90,30 @@ export default function ServersSection() {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3">
-        <SectionTitle className="flex-1">{w.serversTitle} · {w.last24h}</SectionTitle>
+        <SectionTitle className="flex-1">
+          {w.serversTitle} · {w.last24h}
+        </SectionTitle>
         <label className="flex items-center gap-2 text-sm text-fg-secondary">
           {w.diskAlert}
           <Select value={config.diskAlert} onChange={e => saveConfig({ diskAlert: Number(e.target.value) })} className="w-28 font-mono">
-            {[70, 75, 80, 85, 90, 95].map(v => <option key={v} value={v}>{v} %</option>)}
+            {[70, 75, 80, 85, 90, 95].map(v => (
+              <option key={v} value={v}>
+                {v} %
+              </option>
+            ))}
           </Select>
         </label>
       </div>
       {connections.length === 0 && <NeedsSetup service="server" compact />}
       {connections.map(c => (
-        <ServerCard key={c.id} conn={c} status={statuses.find(s => s.connectionId === c.id)} watched={config.watched.includes(c.id)} threshold={config.diskAlert}
-          onToggle={on => saveConfig({ watched: on ? [...config.watched, c.id] : config.watched.filter(x => x !== c.id) })} />
+        <ServerCard
+          key={c.id}
+          conn={c}
+          status={statuses.find(s => s.connectionId === c.id)}
+          watched={config.watched.includes(c.id)}
+          threshold={config.diskAlert}
+          onToggle={on => saveConfig({ watched: on ? [...config.watched, c.id] : config.watched.filter(x => x !== c.id) })}
+        />
       ))}
       <p className="text-xs text-fg-muted">{w.serversHint}</p>
     </section>

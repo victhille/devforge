@@ -14,7 +14,11 @@ export function assertSafeDir(path: unknown): string {
   if (typeof path !== 'string' || !isAbsolute(path)) throw new Error('Invalid path')
   if (CMD_META.test(path)) throw new Error('This path contains characters that cannot be passed safely to a shell')
   let isDir = false
-  try { isDir = statSync(path).isDirectory() } catch { /* missing */ }
+  try {
+    isDir = statSync(path).isDirectory()
+  } catch {
+    /* missing */
+  }
   if (!isDir) throw new Error(`Not a folder: ${path}`)
   return path
 }
@@ -46,9 +50,12 @@ export function findExecutable(command: string): Promise<string | null> {
   return new Promise(res => {
     execFile(process.platform === 'win32' ? 'where' : 'which', [command], { windowsHide: true }, (err, stdout) => {
       if (err) return res(null)
-      const lines = stdout.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+      const lines = stdout
+        .split(/\r?\n/)
+        .map(l => l.trim())
+        .filter(Boolean)
       // Windows: `where code` also lists the extension-less bash script, which cmd cannot run
-      res(process.platform === 'win32' ? lines.find(l => /\.(exe|cmd|bat|com)$/i.test(l)) ?? null : lines[0] ?? null)
+      res(process.platform === 'win32' ? (lines.find(l => /\.(exe|cmd|bat|com)$/i.test(l)) ?? null) : (lines[0] ?? null))
     })
   })
 }
@@ -63,13 +70,17 @@ export async function launch(command: string, args: string[]): Promise<boolean> 
   const exe = await findExecutable(command)
   if (!exe) return false
   const script = process.platform === 'win32' && /\.(cmd|bat)$/i.test(exe)
-  if (script && [exe, ...args].some(a => CMD_META.test(a))) throw new Error('This program or its arguments contain characters that cannot be passed safely to a shell')
+  if (script && [exe, ...args].some(a => CMD_META.test(a)))
+    throw new Error('This program or its arguments contain characters that cannot be passed safely to a shell')
   const child = script
     ? spawn([exe, ...args].map(a => `"${a}"`).join(' '), { shell: true, detached: true, stdio: 'ignore', windowsHide: true })
     : spawn(exe, args, { detached: true, stdio: 'ignore', windowsHide: true })
   return new Promise(res => {
     child.once('error', () => res(false))
-    child.once('spawn', () => { child.unref(); res(true) })
+    child.once('spawn', () => {
+      child.unref()
+      res(true)
+    })
   })
 }
 

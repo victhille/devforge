@@ -27,38 +27,76 @@ export default function FilesModal({ sessionId, name, onClose }: { sessionId: st
   const [loading, setLoading] = useState(false)
 
   // An empty path opens the home folder of the server's user
-  const open = useCallback((dir: string) => {
-    setLoading(true); setError('')
-    window.devforge.sshSftpList(sessionId, dir)
-      .then(r => { setPath(r.path); setTyped(r.path); setEntries(r.entries) })
-      .catch(err => setError(errorText(err)))
-      .finally(() => setLoading(false))
-  }, [sessionId])
-  useEffect(() => { open('') }, [open])
+  const open = useCallback(
+    (dir: string) => {
+      setLoading(true)
+      setError('')
+      window.devforge
+        .sshSftpList(sessionId, dir)
+        .then(r => {
+          setPath(r.path)
+          setTyped(r.path)
+          setEntries(r.entries)
+        })
+        .catch(err => setError(errorText(err)))
+        .finally(() => setLoading(false))
+    },
+    [sessionId]
+  )
+  useEffect(() => {
+    open('')
+  }, [open])
 
   async function download(e: SftpEntry) {
     try {
       const file = await window.devforge.sshSftpDownload(sessionId, joinPath(path, e.name))
       if (file) toast.show({ tone: 'success', title: s.downloaded.replace('{file}', file) })
-    } catch (err) { toast.show({ tone: 'error', title: errorText(err) }) }
+    } catch (err) {
+      toast.show({ tone: 'error', title: errorText(err) })
+    }
   }
 
   return (
     <Modal title={s.filesTitle.replace('{name}', name)} onClose={onClose} className="max-w-3xl">
-      <form className="flex items-center gap-2" onSubmit={e => { e.preventDefault(); if (typed.trim()) open(typed.trim()) }}>
-        <IconButton type="button" title={s.parentDir} disabled={!path || path === '/' || loading} onClick={() => open(parentOf(path))}><ArrowUp size={14} /></IconButton>
+      <form
+        className="flex items-center gap-2"
+        onSubmit={e => {
+          e.preventDefault()
+          if (typed.trim()) open(typed.trim())
+        }}
+      >
+        <IconButton type="button" title={s.parentDir} disabled={!path || path === '/' || loading} onClick={() => open(parentOf(path))}>
+          <ArrowUp size={14} />
+        </IconButton>
         <Input aria-label={s.path} value={typed} onChange={e => setTyped(e.target.value)} className="flex-1 font-mono text-sm" />
         <IconButton type="button" title={t.common.refresh} disabled={!path || loading} onClick={() => open(path)}>
           <RefreshCw size={14} className={cn(loading && 'animate-spin')} />
         </IconButton>
       </form>
-      <p role="status" className="sr-only">{path}</p>
-      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
-      {!entries ? (!error && <LinesSkeleton lines={6} />) : entries.length === 0 ? <p className="text-sm text-fg-muted">{s.emptyDir}</p> : (
+      <p role="status" className="sr-only">
+        {path}
+      </p>
+      {error && (
+        <p role="alert" className="text-sm text-danger">
+          {error}
+        </p>
+      )}
+      {!entries ? (
+        !error && <LinesSkeleton lines={6} />
+      ) : entries.length === 0 ? (
+        <p className="text-sm text-fg-muted">{s.emptyDir}</p>
+      ) : (
         <div className="max-h-[50vh] overflow-y-auto rounded-control border border-line-subtle">
           <Table>
             <thead>
-              <tr><Th>{s.colName}</Th><Th align="right">{s.colSize}</Th><Th>{s.colModified}</Th><Th><span className="sr-only">{s.download}</span></Th></tr>
+              <tr>
+                <Th>{s.colName}</Th>
+                <Th align="right">{s.colSize}</Th>
+                <Th>{s.colModified}</Th>
+                <Th>
+                  <span className="sr-only">{s.download}</span>
+                </Th>
+              </tr>
             </thead>
             <tbody>
               {entries.map(e => {
@@ -69,19 +107,35 @@ export default function FilesModal({ sessionId, name, onClose }: { sessionId: st
                       {e.kind === 'file' ? (
                         <span className="flex min-w-0 items-center gap-2 font-mono text-xs text-fg">
                           <Icon size={14} aria-hidden className="shrink-0 text-fg-muted" />
-                          <span className="truncate" title={e.name}>{e.name}</span>
+                          <span className="truncate" title={e.name}>
+                            {e.name}
+                          </span>
                         </span>
                       ) : (
-                        <button type="button" onClick={() => open(joinPath(path, e.name))} className="flex max-w-full min-w-0 items-center gap-2 font-mono text-xs font-medium text-fg hover:text-accent">
+                        <button
+                          type="button"
+                          onClick={() => open(joinPath(path, e.name))}
+                          className="flex max-w-full min-w-0 items-center gap-2 font-mono text-xs font-medium text-fg hover:text-accent"
+                        >
                           <Icon size={14} aria-hidden className="shrink-0 text-accent" />
-                          <span className="truncate" title={e.name}>{e.name}</span>
+                          <span className="truncate" title={e.name}>
+                            {e.name}
+                          </span>
                         </button>
                       )}
                     </Td>
-                    <Td align="right" className="font-mono text-xs whitespace-nowrap text-fg-muted">{e.kind === 'file' ? formatSize(e.size, lang) : ''}</Td>
-                    <Td className="text-xs whitespace-nowrap text-fg-muted">{new Date(e.mtime).toLocaleString(lang, { dateStyle: 'short', timeStyle: 'short' })}</Td>
+                    <Td align="right" className="font-mono text-xs whitespace-nowrap text-fg-muted">
+                      {e.kind === 'file' ? formatSize(e.size, lang) : ''}
+                    </Td>
+                    <Td className="text-xs whitespace-nowrap text-fg-muted">
+                      {new Date(e.mtime).toLocaleString(lang, { dateStyle: 'short', timeStyle: 'short' })}
+                    </Td>
                     <Td align="right">
-                      {e.kind === 'file' && <IconButton title={s.downloadFile.replace('{name}', e.name)} onClick={() => download(e)}><Download size={14} /></IconButton>}
+                      {e.kind === 'file' && (
+                        <IconButton title={s.downloadFile.replace('{name}', e.name)} onClick={() => download(e)}>
+                          <Download size={14} />
+                        </IconButton>
+                      )}
                     </Td>
                   </tr>
                 )

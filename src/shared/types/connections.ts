@@ -27,12 +27,18 @@ export interface ConnectionsOverview {
 }
 
 /** A status page's alert channels: set or not, never the ntfy topic (it works like a password) */
-export interface StatusAlertsState { ntfy: boolean; webhook: boolean }
+export interface StatusAlertsState {
+  ntfy: boolean
+  webhook: boolean
+}
 
 export type ConnectionKind = 'github' | 'forgy' | 'vercel' | 'docker' | 'server' | 'database' | 'n8n' | 'alerts'
 
 /** A test's answer: what was reached ("octocat", "Ubuntu 24.04", "PostgreSQL 16.4") or why not */
-export interface ConnectionTest { ok: boolean; detail: string }
+export interface ConnectionTest {
+  ok: boolean
+  detail: string
+}
 
 export interface ConnectionsAPI {
   overview: () => Promise<ConnectionsOverview>

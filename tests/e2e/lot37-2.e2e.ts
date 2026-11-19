@@ -18,7 +18,10 @@ test('a failure shows expected and received, opens at its line, reruns alone onc
     seed: dir => {
       shop = join(dir, 'shop')
       seedVitestProject(shop)
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p', name: 'shop', path: shop, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([{ id: 'p', name: 'shop', path: shop, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }])
+      )
     }
   })
   const { page } = run

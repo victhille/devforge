@@ -17,7 +17,10 @@ const commit = (cwd: string, email: string, daysAgo: number, file: string) => {
   writeFileSync(join(cwd, file), `${file} ${daysAgo}\n`)
   const date = `${Math.floor(Date.now() / 1000) - daysAgo * DAY} +0000`
   execFileSync('git', ['add', '.'], { cwd })
-  execFileSync('git', ['-c', 'user.name=Test', '-c', `user.email=${email}`, 'commit', '-q', '-m', file], { cwd, env: { ...process.env, GIT_AUTHOR_DATE: date, GIT_COMMITTER_DATE: date } })
+  execFileSync('git', ['-c', 'user.name=Test', '-c', `user.email=${email}`, 'commit', '-q', '-m', file], {
+    cwd,
+    env: { ...process.env, GIT_AUTHOR_DATE: date, GIT_COMMITTER_DATE: date }
+  })
 }
 
 test('commits per week, the most active, those asleep and the branches to push; mine or everyone', async () => {
@@ -30,7 +33,9 @@ test('commits per week, the most active, those asleep and the branches to push; 
         execFileSync('git', ['init', '-q', '-b', 'main'], { cwd: p })
         return p
       }
-      const shop = repo('shop'), blog = repo('blog'), old = repo('old-site')
+      const shop = repo('shop'),
+        blog = repo('blog'),
+        old = repo('old-site')
       for (let i = 0; i < 4; i++) commit(shop, 'me@example.invalid', i * 3 + 1, `a${i}.txt`)
       commit(shop, 'friend@example.invalid', 2, 'f.txt')
       commit(blog, 'me@example.invalid', 20, 'b.txt')
@@ -42,7 +47,16 @@ test('commits per week, the most active, those asleep and the branches to push; 
       execFileSync('git', ['fetch', '-q', 'origin'], { cwd: shop })
       execFileSync('git', ['branch', '-q', '-u', 'origin/main'], { cwd: shop })
       commit(shop, 'me@example.invalid', 0, 'new.txt')
-      const p = (id: string, name: string, path: string) => ({ id, name, path, framework: 'other', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null })
+      const p = (id: string, name: string, path: string) => ({
+        id,
+        name,
+        path,
+        framework: 'other',
+        packageManager: 'npm',
+        favorite: false,
+        createdAt: '',
+        lastOpenedAt: null
+      })
       writeFileSync(join(dir, 'projects.json'), JSON.stringify([p('s', 'shop', shop), p('b', 'blog', blog), p('o', 'old-site', old)]))
     },
     settings: { homeWidgets: [{ id: 'commits', size: 'half' }] },

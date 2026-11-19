@@ -21,7 +21,20 @@ import Stat, { StatRow } from '@renderer/components/ui/Stat'
 
 const ORDER: Record<HealthLevel, number> = { bad: 0, warn: 1, unknown: 2, ok: 3 }
 /** `uptime -p` answers in English: "up 2 weeks, 2 days" → "en marche depuis 2 semaines, 2 jours" */
-const UNITS_FR: Record<string, string> = { year: 'an', years: 'ans', month: 'mois', months: 'mois', week: 'semaine', weeks: 'semaines', day: 'jour', days: 'jours', hour: 'heure', hours: 'heures', minute: 'minute', minutes: 'minutes' }
+const UNITS_FR: Record<string, string> = {
+  year: 'an',
+  years: 'ans',
+  month: 'mois',
+  months: 'mois',
+  week: 'semaine',
+  weeks: 'semaines',
+  day: 'jour',
+  days: 'jours',
+  hour: 'heure',
+  hours: 'heures',
+  minute: 'minute',
+  minutes: 'minutes'
+}
 export const uptimeText = (up: string, lang: string) =>
   lang === 'fr' ? up.replace(/^up /, 'en marche depuis ').replace(/\b(years?|months?|weeks?|days?|hours?|minutes?)\b/g, u => UNITS_FR[u] ?? u) : up
 
@@ -40,18 +53,35 @@ export function HealthCard({ health, onOpen }: { health: VpsHealth | null; onOpe
   const { t } = useI18n()
   const o = t.vpsOps
   const issues = (health?.checks ?? []).filter(c => c.level === 'bad' || c.level === 'warn').sort((a, b) => ORDER[a.level] - ORDER[b.level])
-  const level: HealthLevel = health ? issues[0]?.level ?? 'ok' : 'unknown'
+  const level: HealthLevel = health ? (issues[0]?.level ?? 'ok') : 'unknown'
   const L = LEVEL_STYLE[level]
   // Amber as in the mock-up, whatever the level: each check keeps its own color on the page
   const alert = level === 'bad' || level === 'warn'
   return (
-    <div className={cn('flex items-center gap-3 rounded-card border px-4 py-3.5', alert ? 'border-warning/30 bg-warning-soft' : 'border-line-subtle bg-surface')}>
+    <div
+      className={cn('flex items-center gap-3 rounded-card border px-4 py-3.5', alert ? 'border-warning/30 bg-warning-soft' : 'border-line-subtle bg-surface')}
+    >
       <span className={cn('shrink-0', alert ? 'text-warning' : L.text)}>{health ? <L.icon size={16} aria-hidden /> : <Spinner />}</span>
       <p className="min-w-0 flex-1 text-sm text-fg">
         <span className="font-semibold">{health ? o.summary[level] : o.checking}</span>
-        {issues.length > 0 && <span className="text-fg-secondary"> · {issues.slice(0, 3).map(c => (o.checks as Record<string, { title: string }>)[c.id]?.title ?? c.id).join(', ')}</span>}
+        {issues.length > 0 && (
+          <span className="text-fg-secondary">
+            {' '}
+            ·{' '}
+            {issues
+              .slice(0, 3)
+              .map(c => (o.checks as Record<string, { title: string }>)[c.id]?.title ?? c.id)
+              .join(', ')}
+          </span>
+        )}
       </p>
-      <Link to="/health" onClick={onOpen} className={cn('shrink-0 text-sm font-semibold hover:underline', level === 'ok' ? 'text-fg-secondary' : 'text-accent')}>{t.nav.health}</Link>
+      <Link
+        to="/health"
+        onClick={onOpen}
+        className={cn('shrink-0 text-sm font-semibold hover:underline', level === 'ok' ? 'text-fg-secondary' : 'text-accent')}
+      >
+        {t.nav.health}
+      </Link>
     </div>
   )
 }
@@ -61,7 +91,12 @@ export default function HealthPage() {
   const picker = useServerPicker()
   const { connections, conn } = picker
   // The page's header comes with the check (« vérifié il y a 3 min », Revérifier)
-  if (connections && conn) return <Page className="df-mockup"><Health key={conn.id} conn={conn} picker={picker} /></Page>
+  if (connections && conn)
+    return (
+      <Page className="df-mockup">
+        <Health key={conn.id} conn={conn} picker={picker} />
+      </Page>
+    )
   return (
     <Page className="df-mockup">
       <PageHeader crumb={t.nav.groupServers} title={t.nav.health} subtitle={t.vpsOps.healthSubtitle} />
@@ -82,11 +117,24 @@ function Health({ conn, picker }: { conn: SSHConnection; picker: ReturnType<type
   const [log, setLog] = useState('')
 
   const load = useCallback(() => {
-    setLoading(true); setError('')
-    window.devforge.vpsOps.health(conn.id).then(setHealth).catch(err => setError(errorText(err))).finally(() => setLoading(false))
+    setLoading(true)
+    setError('')
+    window.devforge.vpsOps
+      .health(conn.id)
+      .then(setHealth)
+      .catch(err => setError(errorText(err)))
+      .finally(() => setLoading(false))
   }, [conn.id])
-  useEffect(() => { load() }, [load])
-  useEffect(() => window.devforge.vpsOps.onFixLog(e => { if (e.connectionId === conn.id) setLog(l => (l + e.text).slice(-40_000)) }), [conn.id])
+  useEffect(() => {
+    load()
+  }, [load])
+  useEffect(
+    () =>
+      window.devforge.vpsOps.onFixLog(e => {
+        if (e.connectionId === conn.id) setLog(l => (l + e.text).slice(-40_000))
+      }),
+    [conn.id]
+  )
 
   const text = (c: HealthCheck) => {
     const entry = (o.checks as Record<string, Record<string, string>>)[c.id]
@@ -98,13 +146,19 @@ function Health({ conn, picker }: { conn: SSHConnection; picker: ReturnType<type
   }
 
   async function askFix(id: HealthFixId) {
-    try { setFix({ id, command: await window.devforge.vpsOps.fixCommand(conn.id, id) }) } catch (err) { toast.show({ tone: 'error', title: errorText(err) }) }
+    try {
+      setFix({ id, command: await window.devforge.vpsOps.fixCommand(conn.id, id) })
+    } catch (err) {
+      toast.show({ tone: 'error', title: errorText(err) })
+    }
   }
 
   async function runFix() {
     if (!fix) return
     const id = fix.id
-    setFix(null); setRunning(true); setLog('')
+    setFix(null)
+    setRunning(true)
+    setLog('')
     try {
       const r = await window.devforge.vpsOps.runFix(conn.id, id)
       toast.show({ tone: r.ok ? 'success' : 'error', title: r.ok ? o.fixOk : o.fixFailed })
@@ -121,19 +175,44 @@ function Health({ conn, picker }: { conn: SSHConnection; picker: ReturnType<type
 
   // As in the mock-up: where it is, when it was checked, Check again on the right
   const header = (
-    <PageHeader crumb={`${t.nav.groupServers} · ${conn.name}`} title={t.nav.health}
-      subtitle={<>
-        {o.healthSubtitle} {health && o.checkedAt.replace('{when}', formatRelative(health.checkedAt, lang))}
-        {health && (health.os || health.uptime) && <span className="mt-0.5 block text-sm text-fg-muted">{[health.os, health.uptime && uptimeText(health.uptime, lang)].filter(Boolean).join(' · ')}</span>}
-      </>}
-      actions={<>
-        <ServerSelect connections={picker.connections} value={picker.serverId} onChange={picker.setServerId} />
-        <Button variant="secondary" loading={loading} onClick={load}>{!loading && <RefreshCw size={14} />} {o.recheck}</Button>
-      </>} />
+    <PageHeader
+      crumb={`${t.nav.groupServers} · ${conn.name}`}
+      title={t.nav.health}
+      subtitle={
+        <>
+          {o.healthSubtitle} {health && o.checkedAt.replace('{when}', formatRelative(health.checkedAt, lang))}
+          {health && (health.os || health.uptime) && (
+            <span className="mt-0.5 block text-sm text-fg-muted">
+              {[health.os, health.uptime && uptimeText(health.uptime, lang)].filter(Boolean).join(' · ')}
+            </span>
+          )}
+        </>
+      }
+      actions={
+        <>
+          <ServerSelect connections={picker.connections} value={picker.serverId} onChange={picker.setServerId} />
+          <Button variant="secondary" loading={loading} onClick={load}>
+            {!loading && <RefreshCw size={14} />} {o.recheck}
+          </Button>
+        </>
+      }
+    />
   )
 
-  if (error) return <>{header}<Card className="p-4.5 text-sm text-danger">{error}</Card></>
-  if (!health) return <>{header}<CardSkeleton label={o.checking} rows={4} /></>
+  if (error)
+    return (
+      <>
+        {header}
+        <Card className="p-4.5 text-sm text-danger">{error}</Card>
+      </>
+    )
+  if (!health)
+    return (
+      <>
+        {header}
+        <CardSkeleton label={o.checking} rows={4} />
+      </>
+    )
 
   const sorted = [...health.checks].sort((a, b) => ORDER[a.level] - ORDER[b.level])
   const count = (...levels: HealthLevel[]) => health.checks.filter(c => levels.includes(c.level)).length
@@ -164,27 +243,56 @@ function Health({ conn, picker }: { conn: SSHConnection; picker: ReturnType<type
                 <div className="text-sm text-fg-secondary">{text(c)}</div>
               </div>
               {c.fix ? (
-                <Button size="sm" variant={c.level === 'ok' ? 'secondary' : c.level === 'bad' || c.fix === 'apt-upgrade' ? 'primary' : 'secondary'} disabled={running} onClick={() => askFix(c.fix!)}>
+                <Button
+                  size="sm"
+                  variant={c.level === 'ok' ? 'secondary' : c.level === 'bad' || c.fix === 'apt-upgrade' ? 'primary' : 'secondary'}
+                  disabled={running}
+                  onClick={() => askFix(c.fix!)}
+                >
                   <Wrench size={13} aria-hidden /> {o.fixes[c.fix]}
                 </Button>
-              ) : c.level === 'ok' && <Badge color="success">{o.okBadge}</Badge>}
+              ) : (
+                c.level === 'ok' && <Badge color="success">{o.okBadge}</Badge>
+              )}
             </div>
           )
         })}
       </Card>
 
-      {(running || log) && (
-        <LogBox title={o.journal} text={log} running={running} />
-      )}
+      {(running || log) && <LogBox title={o.journal} text={log} running={running} />}
 
       {fix && (
-        <Modal title={o.fixTitle.replace('{name}', conn.name)} onClose={() => setFix(null)} className="max-w-xl"
-          footer={<>
-            <Button variant="ghost" onClick={() => setFix(null)}>{o.fixCancel}</Button>
-            <Button variant="secondary" onClick={() => { navigator.clipboard.writeText(fix.command).then(() => toast.show({ tone: 'success', title: o.copied })).catch(() => {}) }}><Copy size={14} /> {o.fixCopy}</Button>
-            {health.sudo && <Button variant={fix.id === 'reboot' ? 'danger' : 'primary'} onClick={runFix}>{o.fixRun}</Button>}
-          </>}>
-          <pre className="overflow-x-auto rounded-lg border border-line-subtle bg-console px-3 py-2.5 font-mono text-xs whitespace-pre-wrap break-all text-fg">{fix.command}</pre>
+        <Modal
+          title={o.fixTitle.replace('{name}', conn.name)}
+          onClose={() => setFix(null)}
+          className="max-w-xl"
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setFix(null)}>
+                {o.fixCancel}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  navigator.clipboard
+                    .writeText(fix.command)
+                    .then(() => toast.show({ tone: 'success', title: o.copied }))
+                    .catch(() => {})
+                }}
+              >
+                <Copy size={14} /> {o.fixCopy}
+              </Button>
+              {health.sudo && (
+                <Button variant={fix.id === 'reboot' ? 'danger' : 'primary'} onClick={runFix}>
+                  {o.fixRun}
+                </Button>
+              )}
+            </>
+          }
+        >
+          <pre className="overflow-x-auto rounded-lg border border-line-subtle bg-console px-3 py-2.5 font-mono text-xs whitespace-pre-wrap break-all text-fg">
+            {fix.command}
+          </pre>
           {fix.id === 'reboot' && <p className="text-base text-fg-secondary">{o.fixRebootHint}</p>}
           {fix.id === 'ssh-harden' && <p className="text-base text-fg-secondary">{o.fixSshHint}</p>}
           {fix.id === 'apt-upgrade' && <p className="text-base text-fg-secondary">{o.fixAptHint}</p>}

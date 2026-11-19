@@ -14,10 +14,26 @@ test.afterEach(async () => {
 test('a new address forgets the saved password and what was kept for the server', async () => {
   run = await launch({
     seed: dir => {
-      writeFileSync(join(dir, 'ssh-connections.json'), JSON.stringify([
-        { id: 's1', name: 'vps', host: '203.0.113.10', port: 22, username: 'deploy', authMethod: 'password', passwordEnc: 'chiffre', color: '#4F8EF7', createdAt: '2026-01-01T00:00:00.000Z' }
-      ]))
-      writeFileSync(join(dir, 'n8n.json'), JSON.stringify({ instances: [{ connectionId: 's1', domain: '', exposure: 'port', installedAt: '2026-01-01T00:00:00.000Z', keyEnc: 'chiffre' }] }))
+      writeFileSync(
+        join(dir, 'ssh-connections.json'),
+        JSON.stringify([
+          {
+            id: 's1',
+            name: 'vps',
+            host: '203.0.113.10',
+            port: 22,
+            username: 'deploy',
+            authMethod: 'password',
+            passwordEnc: 'chiffre',
+            color: '#4F8EF7',
+            createdAt: '2026-01-01T00:00:00.000Z'
+          }
+        ])
+      )
+      writeFileSync(
+        join(dir, 'n8n.json'),
+        JSON.stringify({ instances: [{ connectionId: 's1', domain: '', exposure: 'port', installedAt: '2026-01-01T00:00:00.000Z', keyEnc: 'chiffre' }] })
+      )
       writeFileSync(join(dir, 'vpn.json'), JSON.stringify({ servers: [{ connectionId: 's1', port: 51821, username: 'admin', passwordEnc: 'chiffre' }] }))
     }
   })
@@ -31,7 +47,7 @@ test('a new address forgets the saved password and what was kept for the server'
   await page.getByRole('button', { name: 'Modifier la connexion' }).click()
   const dialog = page.getByRole('dialog')
   const password = dialog.locator('input[type="password"]')
-  const notice = dialog.getByRole('status').filter({ hasText: 'L\'hôte, le port ou l\'utilisateur a changé' })
+  const notice = dialog.getByRole('status').filter({ hasText: "L'hôte, le port ou l'utilisateur a changé" })
 
   // Same address: an empty field keeps the password
   await expect(password).toHaveAttribute('placeholder', 'Laisser vide pour garder le mot de passe actuel')

@@ -9,13 +9,19 @@ vi.mock('../../src/main/services/ssh/sshService', () => ({
   sshService: {
     connectForDashboard: async () => 'sid',
     disconnect: () => {},
-    exec: async (_sid: string, command: string) => { ssh.commands.push(command); return ssh.outputs.shift() ?? '' },
+    exec: async (_sid: string, command: string) => {
+      ssh.commands.push(command)
+      return ssh.outputs.shift() ?? ''
+    },
     execStream: async (_sid: string, command: string, onData: (t: string) => void) => {
       ssh.commands.push(command)
       onData((ssh.outputs.shift() ?? '') + '@@DF@@0\n')
       return 0
     },
-    download: async (_sid: string, remote: string, local: string) => { ssh.downloads.push(remote); writeFileSync(local, `content of ${remote}`) }
+    download: async (_sid: string, remote: string, local: string) => {
+      ssh.downloads.push(remote)
+      writeFileSync(local, `content of ${remote}`)
+    }
   }
 }))
 
@@ -34,7 +40,15 @@ const INSPECT = [
 ].join('\n')
 const DIRS = new Set(['/lib/modules', '/opt/utils/docker/_data/portainer', '/opt/utils/docker/_data/db/data'])
 
-const STATUS = { version: 1, day: '2026-10-22', startedAt: '2026-10-22T01:30:00Z', finishedAt: '2026-10-22T01:30:40Z', ok: true, size: 900, items: [{ kind: 'db', name: 'n8n-postgres-1', file: 'daily/2026-10-22/db-n8n-postgres-1.sql.gz', size: 600, ok: true, error: '' }] }
+const STATUS = {
+  version: 1,
+  day: '2026-10-22',
+  startedAt: '2026-10-22T01:30:00Z',
+  finishedAt: '2026-10-22T01:30:40Z',
+  ok: true,
+  size: 900,
+  items: [{ kind: 'db', name: 'n8n-postgres-1', file: 'daily/2026-10-22/db-n8n-postgres-1.sql.gz', size: 600, ok: true, error: '' }]
+}
 const FILES = [
   'daily/2026-10-21/db-n8n-postgres-1.sql.gz|500',
   'daily/2026-10-22/db-n8n-postgres-1.sql.gz|600',
@@ -46,13 +60,21 @@ const stateOut = (status: object | null = STATUS, cron = '1') => [status ? JSON.
 
 describe('backups', () => {
   beforeEach(() => {
-    ssh.outputs.length = 0; ssh.commands.length = 0; ssh.downloads.length = 0
-    writeFileSync(join(userData(), 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'Prod: VPS', host: '10.0.0.1', port: 22, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }]))
+    ssh.outputs.length = 0
+    ssh.commands.length = 0
+    ssh.downloads.length = 0
+    writeFileSync(
+      join(userData(), 'ssh-connections.json'),
+      JSON.stringify([{ id: 'v1', name: 'Prod: VPS', host: '10.0.0.1', port: 22, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }])
+    )
   })
 
   it('finds databases, volumes and data folders, leaving system paths and files out', () => {
     const c = bk.parseCandidates(INSPECT, DIRS)
-    expect(c.databases.map(d => [d.container, d.engine])).toEqual([['db', 'mariadb'], ['n8n-postgres-1', 'postgres']])
+    expect(c.databases.map(d => [d.container, d.engine])).toEqual([
+      ['db', 'mariadb'],
+      ['n8n-postgres-1', 'postgres']
+    ])
     expect(c.volumes.map(v => [v.name, v.kind, v.databaseData])).toEqual([
       ['/opt/utils/docker/_data/db/data', 'folder', true],
       ['/opt/utils/docker/_data/portainer', 'folder', false],
@@ -63,7 +85,15 @@ describe('backups', () => {
   })
 
   it('validates a plan', () => {
-    const base = { connectionId: 'v1', databases: [{ engine: 'postgres' as const, container: 'n8n-postgres-1' }], volumes: ['/opt/utils/docker/_data/portainer'], time: '03:30', keepDaily: 7, keepWeekly: 4, localDir: '' }
+    const base = {
+      connectionId: 'v1',
+      databases: [{ engine: 'postgres' as const, container: 'n8n-postgres-1' }],
+      volumes: ['/opt/utils/docker/_data/portainer'],
+      time: '03:30',
+      keepDaily: 7,
+      keepWeekly: 4,
+      localDir: ''
+    }
     expect(bk.validatePlan(base)).toEqual(base)
     expect(() => bk.validatePlan({ ...base, time: '25:00' })).toThrow('Invalid time')
     expect(() => bk.validatePlan({ ...base, keepDaily: 0 })).toThrow('Invalid retention')
@@ -72,7 +102,20 @@ describe('backups', () => {
 
   it('installs the script and one cron line, then reads the state', async () => {
     ssh.outputs.push('Nightly backup at 03:30\n')
-    expect(await bk.save({ connectionId: 'v1', databases: [{ engine: 'postgres', container: 'n8n-postgres-1' }], volumes: ['/opt/utils/docker/_data/portainer'], time: '3:30', keepDaily: 2, keepWeekly: 1, localDir: '' }, () => {})).toEqual({ ok: true })
+    expect(
+      await bk.save(
+        {
+          connectionId: 'v1',
+          databases: [{ engine: 'postgres', container: 'n8n-postgres-1' }],
+          volumes: ['/opt/utils/docker/_data/portainer'],
+          time: '3:30',
+          keepDaily: 2,
+          keepWeekly: 1,
+          localDir: ''
+        },
+        () => {}
+      )
+    ).toEqual({ ok: true })
     const cmd = ssh.commands.at(-1)!
     expect(cmd).toContain(scripts.CRON_TAG)
     expect(cmd).toContain('30 3 * * *')
@@ -111,11 +154,25 @@ describe('backups', () => {
     const root = join(dir, 'Prod- VPS')
     for (const old of ['2026-10-19', '2026-10-20', '2026-10-21']) mkdirSync(join(root, old), { recursive: true })
     ssh.outputs.push('ok\n')
-    await bk.save({ connectionId: 'v1', databases: [{ engine: 'postgres', container: 'n8n-postgres-1' }], volumes: ['/opt/utils/docker/_data/portainer'], time: '03:30', keepDaily: 2, keepWeekly: 1, localDir: dir }, () => {})
+    await bk.save(
+      {
+        connectionId: 'v1',
+        databases: [{ engine: 'postgres', container: 'n8n-postgres-1' }],
+        volumes: ['/opt/utils/docker/_data/portainer'],
+        time: '03:30',
+        keepDaily: 2,
+        keepWeekly: 1,
+        localDir: dir
+      },
+      () => {}
+    )
 
     ssh.outputs.push(stateOut())
     expect(await bk.copyLatest('v1')).toEqual({ day: '2026-10-22' })
-    expect(ssh.downloads).toEqual(['devforge/backups/daily/2026-10-22/db-n8n-postgres-1.sql.gz', 'devforge/backups/daily/2026-10-22/vol-opt_utils_docker__data_portainer.tar.gz'])
+    expect(ssh.downloads).toEqual([
+      'devforge/backups/daily/2026-10-22/db-n8n-postgres-1.sql.gz',
+      'devforge/backups/daily/2026-10-22/vol-opt_utils_docker__data_portainer.tar.gz'
+    ])
     expect(readdirSync(join(root, '2026-10-22')).sort()).toEqual(['db-n8n-postgres-1.sql.gz', 'vol-opt_utils_docker__data_portainer.tar.gz'])
     expect(readdirSync(root).sort()).toEqual(['2026-10-21', '2026-10-22'])
     expect(JSON.parse(readFileSync(join(userData(), 'backups.json'), 'utf-8')).copies[0]).toMatchObject({ day: '2026-10-22', error: null })

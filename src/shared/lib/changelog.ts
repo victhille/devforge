@@ -48,16 +48,25 @@ function parseItem(line: string, type: ChangeType): ChangeItem {
   let sha: string | null = null
   let url: string | null = null
   const link = /\s*\(\[([0-9a-f]{7,40})\]\((https?:\/\/[^)]+)\)\)\s*$/.exec(text)
-  if (link) { sha = link[1]; url = link[2]; text = text.slice(0, link.index).trim() }
+  if (link) {
+    sha = link[1]
+    url = link[2]
+    text = text.slice(0, link.index).trim()
+  }
   let scope: string | null = null
   const sc = /^\*\*([^*]+)\*\*\s*:\s*/.exec(text)
-  if (sc) { scope = sc[1]; text = text.slice(sc[0].length) }
+  if (sc) {
+    scope = sc[1]
+    text = text.slice(sc[0].length)
+  }
   return { type, scope, text, sha, url }
 }
 
 export function parseChangelog(markdown: string): ChangelogVersion[] {
   // The "Unreleased" heading (Keep a Changelog) is not a version
-  const blocks = markdown.replace(/\r/g, '').split(/\n(?=## )/)
+  const blocks = markdown
+    .replace(/\r/g, '')
+    .split(/\n(?=## )/)
     .filter(b => b.startsWith('## ') && !/^## \[?(Non publié|Unreleased)\]?(\s|$)/i.test(b))
   const versions = blocks.map(block => {
     const [title, ...lines] = block.split('\n')
@@ -74,6 +83,8 @@ export function parseChangelog(markdown: string): ChangelogVersion[] {
     v.summary = summary.join(' ') || null
     return v
   })
-  versions.forEach((v, i) => { v.kind = kindOf(v.version, versions[i + 1]?.version) })
+  versions.forEach((v, i) => {
+    v.kind = kindOf(v.version, versions[i + 1]?.version)
+  })
   return versions
 }

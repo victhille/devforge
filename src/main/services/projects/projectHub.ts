@@ -33,7 +33,11 @@ const empty = () => ({ add: { databases: [], logs: [], domains: [] }, hide: { da
 
 function readLinks(): Links {
   if (!existsSync(linksPath())) return {}
-  try { return JSON.parse(readFileSync(linksPath(), 'utf-8')) as Links } catch { return {} }
+  try {
+    return JSON.parse(readFileSync(linksPath(), 'utf-8')) as Links
+  } catch {
+    return {}
+  }
 }
 
 function linksOf(projectId: string): Links[string] {
@@ -81,15 +85,21 @@ export async function getProjectHub(projectId: string): Promise<ProjectHub> {
   // (a group: the .env of each of its projects)
   const envs = p.framework === 'group' ? await Promise.all((await configDirs(p)).map(d => readEnvs({ ...p, path: d.dir }))) : [env]
   const wanted = envs.map(fromEnv).filter(w => !!w)
-  const autoDb = listDbConnections().filter(c =>
-    (c.type === 'sqlite' && !!c.file && inside(p.path, c.file)) ||
-    wanted.some(w => c.type === w.type && !!w.database && c.database === w.database && (!c.port || !w.port || c.port === w.port || !!c.sshConnectionId))
-  ).map(c => c.id)
+  const autoDb = listDbConnections()
+    .filter(
+      c =>
+        (c.type === 'sqlite' && !!c.file && inside(p.path, c.file)) ||
+        wanted.some(w => c.type === w.type && !!w.database && c.database === w.database && (!c.port || !w.port || c.port === w.port || !!c.sshConnectionId))
+    )
+    .map(c => c.id)
   const dbs = listDbConnections()
   const databases = [
     ...autoDb.filter(id => !links.hide.databases.includes(id)).map(id => ({ id, origin: 'auto' as const })),
     ...links.add.databases.filter(id => !autoDb.includes(id)).map(id => ({ id, origin: 'manual' as const }))
-  ].flatMap(({ id, origin }) => { const c = dbs.find(x => x.id === id); return c ? [{ id, name: c.name, type: c.type, origin }] : [] })
+  ].flatMap(({ id, origin }) => {
+    const c = dbs.find(x => x.id === id)
+    return c ? [{ id, name: c.name, type: c.type, origin }] : []
+  })
 
   const autoLogs = logs.map(l => l.path)
   const logList = [
@@ -103,10 +113,13 @@ export async function getProjectHub(projectId: string): Promise<ProjectHub> {
   const domains = [
     ...autoDomains.filter(id => !links.hide.domains.includes(id)).map(id => ({ id, origin: 'auto' as const })),
     ...links.add.domains.filter(id => !autoDomains.includes(id)).map(id => ({ id, origin: 'manual' as const }))
-  ].flatMap(({ id, origin }) => { const d = allDomains.find(x => x.id === id); return d ? [{ id, domain: d.domain, port: d.port, enabled: d.enabled, origin }] : [] })
+  ].flatMap(({ id, origin }) => {
+    const d = allDomains.find(x => x.id === id)
+    return d ? [{ id, domain: d.domain, port: d.port, enabled: d.enabled, origin }] : []
+  })
 
   return {
-    project: p.framework === 'group' ? { ...p, ...await groupContents(p.path) } : p,
+    project: p.framework === 'group' ? { ...p, ...(await groupContents(p.path)) } : p,
     composeDir,
     composeName: composeDir ? composeName(composeDir) : null,
     envFiles: envProject.files.map(f => ({ name: f.name, keys: Object.keys(f.values).length })),
@@ -116,12 +129,16 @@ export async function getProjectHub(projectId: string): Promise<ProjectHub> {
     ports,
     vercel: readLink(p.path),
     github: await repoOf(p.path).catch(() => null),
-    deployTargets: listTargets().filter(t => t.projectPath && resolve(t.projectPath).toLowerCase() === resolve(p.path).toLowerCase()).map(t => ({ id: t.id, name: t.name })),
+    deployTargets: listTargets()
+      .filter(t => t.projectPath && resolve(t.projectPath).toLowerCase() === resolve(p.path).toLowerCase())
+      .map(t => ({ id: t.id, name: t.name })),
     // Python, Rust, Go… too, so the Packages tab shows for them
-    manifests: [...new Set([
-      ...[...findManifestDirs(p.path), ...findManifestDirs(p.path, 'composer.json')].map(d => relative(p.path, d).split(sep).join('/')),
-      ...listOtherManifests(p.path).map(m => m.dir)
-    ])],
+    manifests: [
+      ...new Set([
+        ...[...findManifestDirs(p.path), ...findManifestDirs(p.path, 'composer.json')].map(d => relative(p.path, d).split(sep).join('/')),
+        ...listOtherManifests(p.path).map(m => m.dir)
+      ])
+    ],
     hidden: { databases: links.hide.databases, logs: links.hide.logs, domains: links.hide.domains }
   }
 }
@@ -153,7 +170,9 @@ export function getActiveProject(): string | null {
   try {
     const id = (JSON.parse(readFileSync(activePath(), 'utf-8')) as { id?: unknown }).id
     return typeof id === 'string' && loadProjects().some(p => p.id === id) ? id : null
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
 
 export function setActiveProject(id: string | null): void {

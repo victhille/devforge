@@ -24,7 +24,11 @@ export default function ErrorState({ title, error, onRetry, className }: Props) 
         <p className="text-sm font-medium text-danger">{title ?? t.common.loadFailed}</p>
         {error && <p className="mt-0.5 text-xs break-words text-fg-secondary">{error}</p>}
       </div>
-      {onRetry && <Button size="sm" variant="secondary" onClick={onRetry}><RotateCcw size={13} /> {t.common.retry}</Button>}
+      {onRetry && (
+        <Button size="sm" variant="secondary" onClick={onRetry}>
+          <RotateCcw size={13} /> {t.common.retry}
+        </Button>
+      )}
     </div>
   )
 }

@@ -32,11 +32,16 @@ export function notesText(p: Project): string {
   })
   let out = ''
   for (const part of parts) {
-    if (out.length + part.length > MAX_TEXT) { out += `… [${notes.length - parts.indexOf(part)} more note(s) left out]`; break }
+    if (out.length + part.length > MAX_TEXT) {
+      out += `… [${notes.length - parts.indexOf(part)} more note(s) left out]`
+      break
+    }
     out += `${part}\n\n`
   }
-  return `Notes of ${p.name} (in ${join(p.path, '.devforge', 'notes')}): ${notes.length} note(s), tasks: ${open} open, ${boxes.length - open} done ("- [ ]" open, "- [x]" done)\n`
-    + `<project_notes>\n${quoteNotes(out.trim())}\n</project_notes>`
+  return (
+    `Notes of ${p.name} (in ${join(p.path, '.devforge', 'notes')}): ${notes.length} note(s), tasks: ${open} open, ${boxes.length - open} done ("- [ ]" open, "- [x]" done)\n` +
+    `<project_notes>\n${quoteNotes(out.trim())}\n</project_notes>`
+  )
 }
 
 export type NotesUndo =
@@ -84,8 +89,15 @@ function boxNow(p: Project, text: string, noteId: string) {
   return now
 }
 
-export function taskPlan(p: Project, action: unknown, text: unknown, task: unknown): {
-  title: string; preview: string; run: () => Promise<{ output: string; undo: NotesUndo }>
+export function taskPlan(
+  p: Project,
+  action: unknown,
+  text: unknown,
+  task: unknown
+): {
+  title: string
+  preview: string
+  run: () => Promise<{ output: string; undo: NotesUndo }>
 } {
   if (action === 'add') {
     const t = typeof text === 'string' ? text.replace(/\s+/g, ' ').trim().slice(0, 500) : ''
@@ -99,8 +111,12 @@ export function taskPlan(p: Project, action: unknown, text: unknown, task: unkno
         const before = findTasksNote(projectNotes(p))
         if (before && isMarkdown(before)) throw new Error(markdownNote(before))
         const { added, note } = addTasks(p, [t])
-        if (!added.length || !note) return { output: `"${t}" is already a task of ${p.name}`, undo: { type: 'task-remove', projectId: p.id, noteId: '', text: '' } }
-        return { output: `Task added to ${fileOf(note)} of ${p.name}`, undo: { type: 'task-remove', projectId: p.id, noteId: note.id, text: t, created: !before } }
+        if (!added.length || !note)
+          return { output: `"${t}" is already a task of ${p.name}`, undo: { type: 'task-remove', projectId: p.id, noteId: '', text: '' } }
+        return {
+          output: `Task added to ${fileOf(note)} of ${p.name}`,
+          undo: { type: 'task-remove', projectId: p.id, noteId: note.id, text: t, created: !before }
+        }
       }
     }
   }
@@ -116,7 +132,10 @@ export function taskPlan(p: Project, action: unknown, text: unknown, task: unkno
         run: async () => {
           const now = boxNow(p, item.text, note.id)
           const saved = writeNoteBody(p, now.note.id, removeItem(now.html, now.item))
-          return { output: `Task removed from ${fileOf(saved)}`, undo: { type: 'task-restore', projectId: p.id, noteId: saved.id, html: now.html.slice(now.item.start, now.item.end), index: now.index } }
+          return {
+            output: `Task removed from ${fileOf(saved)}`,
+            undo: { type: 'task-restore', projectId: p.id, noteId: saved.id, html: now.html.slice(now.item.start, now.item.end), index: now.index }
+          }
         }
       }
     }
@@ -127,7 +146,10 @@ export function taskPlan(p: Project, action: unknown, text: unknown, task: unkno
       run: async () => {
         const now = boxNow(p, item.text, note.id)
         const saved = writeNoteBody(p, now.note.id, setItemChecked(now.html, now.item, done))
-        return { output: `Task ${done ? 'done' : 'reopened'}`, undo: { type: 'task-done', projectId: p.id, noteId: saved.id, text: now.item.text, done: now.item.checked } }
+        return {
+          output: `Task ${done ? 'done' : 'reopened'}`,
+          undo: { type: 'task-done', projectId: p.id, noteId: saved.id, text: now.item.text, done: now.item.checked }
+        }
       }
     }
   }

@@ -15,7 +15,8 @@ export const CRON_TAG = '# devforge-backup'
 /** Dump commands, run with `sh -c` inside the database container */
 export const DUMP: Record<'postgres' | 'mariadb', string> = {
   postgres: 'pg_dumpall --clean --if-exists -U "${POSTGRES_USER:-postgres}"',
-  mariadb: 'd=mariadb-dump; command -v $d >/dev/null 2>&1 || d=mysqldump; MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}" $d --all-databases --single-transaction --routines --events -uroot'
+  mariadb:
+    'd=mariadb-dump; command -v $d >/dev/null 2>&1 || d=mysqldump; MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}" $d --all-databases --single-transaction --routines --events -uroot'
 }
 
 /** Restore commands, fed the dump on stdin */
@@ -109,16 +110,23 @@ export const TARGET_RE = /^(?:[\w.-]+|(?:\/[\w.-]+)+)$/
 export const isTarget = (v: string) => TARGET_RE.test(v) && !v.split('/').includes('..')
 
 /** Containers that mount a volume or folder: ids, one per line */
-const usersOf = (v: string) => `docker ps -q | xargs -r docker inspect --format '{{.Id}} {{range .Mounts}}{{.Name}} {{.Source}} {{end}}' | grep -F " ${v} " | cut -c1-12 || true`
+const usersOf = (v: string) =>
+  `docker ps -q | xargs -r docker inspect --format '{{.Id}} {{range .Mounts}}{{.Name}} {{.Source}} {{end}}' | grep -F " ${v} " | cut -c1-12 || true`
 
-export interface BackupTargets { databases: { engine: 'postgres' | 'mariadb'; container: string }[]; volumes: string[]; keepDaily: number; keepWeekly: number }
+export interface BackupTargets {
+  databases: { engine: 'postgres' | 'mariadb'; container: string }[]
+  volumes: string[]
+  keepDaily: number
+  keepWeekly: number
+}
 
-export const configFile = (t: BackupTargets) => [
-  `KEEP_DAILY ${t.keepDaily}`,
-  `KEEP_WEEKLY ${t.keepWeekly}`,
-  ...t.databases.map(d => `DB ${d.engine} ${d.container}`),
-  ...t.volumes.map(v => `VOL ${v}`)
-].join('\n') + '\n'
+export const configFile = (t: BackupTargets) =>
+  [
+    `KEEP_DAILY ${t.keepDaily}`,
+    `KEEP_WEEKLY ${t.keepWeekly}`,
+    ...t.databases.map(d => `DB ${d.engine} ${d.container}`),
+    ...t.volumes.map(v => `VOL ${v}`)
+  ].join('\n') + '\n'
 
 const b64 = (s: string) => Buffer.from(s, 'utf-8').toString('base64')
 
@@ -137,7 +145,8 @@ export function installScript(t: BackupTargets, time: string): string {
   ].join('\n')
 }
 
-export const uninstallScript = () => `(crontab -l 2>/dev/null | grep -v '${CRON_TAG}' || true) | crontab - && echo "Nightly backup off (the files stay in ${BACKUP_DIR})"`
+export const uninstallScript = () =>
+  `(crontab -l 2>/dev/null | grep -v '${CRON_TAG}' || true) | crontab - && echo "Nightly backup off (the files stay in ${BACKUP_DIR})"`
 
 /** Path of a backup file, checked: inside daily/ or weekly/, no "..", a known extension */
 export const SAFE_FILE = /^(daily|weekly)\/\d{4}-\d{2}-\d{2}\/(db|vol)-[\w.-]+\.(sql|tar)\.gz$/
@@ -152,7 +161,10 @@ const projectPeers = (container: string) =>
  * current state in pre-restore/. The containers that use the data are stopped
  * meanwhile, then started again.
  */
-export function restoreScript(file: string, target: { kind: 'db'; engine: 'postgres' | 'mariadb'; container: string } | { kind: 'vol'; volume: string }): string {
+export function restoreScript(
+  file: string,
+  target: { kind: 'db'; engine: 'postgres' | 'mariadb'; container: string } | { kind: 'vol'; volume: string }
+): string {
   if (!SAFE_FILE.test(file)) throw new Error('Invalid backup file')
   const stamp = '$(date +%F-%H%M%S)'
   if (target.kind === 'db') {

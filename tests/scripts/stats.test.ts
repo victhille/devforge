@@ -2,16 +2,25 @@ import { describe, expect, it } from 'vitest'
 import { mergeDays, nextArchive, releaseCounts } from '../../site/public/admin/stats-core.js'
 
 const release = (tag: string, assets: [string, number][], draft = false) => ({
-  tag_name: tag, published_at: '2026-10-30T10:00:00Z', draft, assets: assets.map(([name, download_count]) => ({ name, download_count }))
+  tag_name: tag,
+  published_at: '2026-10-30T10:00:00Z',
+  draft,
+  assets: assets.map(([name, download_count]) => ({ name, download_count }))
 })
 const count = (date: string, n: number, u: number) => ({ timestamp: `${date}T00:00:00Z`, count: n, uniques: u })
 
 describe('releaseCounts', () => {
   it('counts the installers and the update feed apart, and leaves the blockmap and the drafts out', () => {
-    expect(releaseCounts([
-      release('v3.9.0', [['DevForge-Setup-v3.9.0.exe', 12], ['DevForge-Setup-v3.9.0.exe.blockmap', 5], ['latest.yml', 40]]),
-      release('v4.0.0', [['DevForge-Setup-v4.0.0.exe', 99]], true)
-    ])).toEqual([{ tag: 'v3.9.0', publishedAt: '2026-10-30T10:00:00Z', downloads: 12, updateChecks: 40 }])
+    expect(
+      releaseCounts([
+        release('v3.9.0', [
+          ['DevForge-Setup-v3.9.0.exe', 12],
+          ['DevForge-Setup-v3.9.0.exe.blockmap', 5],
+          ['latest.yml', 40]
+        ]),
+        release('v4.0.0', [['DevForge-Setup-v4.0.0.exe', 99]], true)
+      ])
+    ).toEqual([{ tag: 'v3.9.0', publishedAt: '2026-10-30T10:00:00Z', downloads: 12, updateChecks: 40 }])
   })
 })
 
@@ -29,7 +38,12 @@ describe('mergeDays', () => {
 describe('nextArchive', () => {
   const live = {
     repo: { stargazers_count: 7, forks_count: 1 },
-    releases: [release('v3.9.0', [['DevForge-Setup-v3.9.0.exe', 12], ['latest.yml', 40]])],
+    releases: [
+      release('v3.9.0', [
+        ['DevForge-Setup-v3.9.0.exe', 12],
+        ['latest.yml', 40]
+      ])
+    ],
     views: { views: [count('2026-10-30', 5, 2)] },
     clones: { clones: [] },
     referrers: [{ referrer: 'github.com', count: 4, uniques: 2 }],

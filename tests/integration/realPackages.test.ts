@@ -11,7 +11,7 @@ import { tempDir } from '../helpers'
  * crates.io reached). Opt-in: DEVFORGE_REAL_PKG=1, with Python and Cargo on the PATH.
  */
 describe.skipIf(!process.env.DEVFORGE_REAL_PKG)('Real package updates', () => {
-  it('pip: through the project\'s .venv, a pinned package moved to the latest, the file rewritten', { timeout: 240_000 }, async () => {
+  it("pip: through the project's .venv, a pinned package moved to the latest, the file rewritten", { timeout: 240_000 }, async () => {
     const root = tempDir('realpy')
     execFileSync('python', ['-m', 'venv', '.venv'], { cwd: root })
     writeFileSync(join(root, 'requirements.txt'), 'idna==3.6\n')
@@ -46,8 +46,12 @@ describe.skipIf(!process.env.DEVFORGE_REAL_PKG)('Real package updates', () => {
 
     // A crate that does not exist: cargo fails, Cargo.toml and Cargo.lock come back
     const before = [readFileSync(join(root, 'Cargo.toml'), 'utf-8'), readFileSync(join(root, 'Cargo.lock'), 'utf-8')]
-    const failed = await otherUpdate(root, { ...m, packages: [...m.packages, { name: 'devforge-no-such-crate-xyz', wanted: '1', installed: null, dev: false }] },
-      [{ name: 'devforge-no-such-crate-xyz', dev: false, target: 'compatible' }], () => {})
+    const failed = await otherUpdate(
+      root,
+      { ...m, packages: [...m.packages, { name: 'devforge-no-such-crate-xyz', wanted: '1', installed: null, dev: false }] },
+      [{ name: 'devforge-no-such-crate-xyz', dev: false, target: 'compatible' }],
+      () => {}
+    )
     expect(failed).toEqual({ ok: false, restored: true })
     expect([readFileSync(join(root, 'Cargo.toml'), 'utf-8'), readFileSync(join(root, 'Cargo.lock'), 'utf-8')]).toEqual(before)
   })

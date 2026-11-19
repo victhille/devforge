@@ -12,7 +12,10 @@ test.afterEach(async () => {
   await run.close()
 })
 
-const file = (path: string, content: string | Buffer) => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
+const file = (path: string, content: string | Buffer) => {
+  mkdirSync(join(path, '..'), { recursive: true })
+  writeFileSync(path, content)
+}
 
 /** A one-page PDF, its cross-reference offsets worked out */
 function tinyPdf(): Buffer {
@@ -25,7 +28,10 @@ function tinyPdf(): Buffer {
   ]
   let out = '%PDF-1.4\n'
   const offsets: number[] = []
-  objects.forEach((o, i) => { offsets.push(out.length); out += `${i + 1} 0 obj\n${o}\nendobj\n` })
+  objects.forEach((o, i) => {
+    offsets.push(out.length)
+    out += `${i + 1} 0 obj\n${o}\nendobj\n`
+  })
   const xref = out.length
   out += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.map(o => `${String(o).padStart(10, '0')} 00000 n \n`).join('')}`
   out += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`
@@ -43,11 +49,26 @@ test('a group: one-line buttons when folded, the rest of its folder, files previ
       file(join(g, 'docs', 'cahier.pdf'), tinyPdf())
       file(join(g, 'infra', 'Dockerfile'), 'FROM nginx:alpine\n')
       file(join(g, 'docs', 'logo.zip'), Buffer.from([0x50, 0x4b, 3, 4, 0, 0]))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([
-        { id: 'tm', name: 'agenda-app', path: g, framework: 'group', packageManager: 'npm', createdAt: '', lastOpenedAt: null, favorite: false },
-        { id: 'p2', name: 'blog', path: join(dir, 'code', 'blog'), framework: 'react', packageManager: 'npm', createdAt: '', lastOpenedAt: null, favorite: false }
-      ]))
-      writeFileSync(join(dir, 'settings.json'), JSON.stringify({ language: 'fr', onboarded: true, launcherEnabled: false, defaultProjectsDir: join(dir, 'code'), defaultIDE: 'vscode' }))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          { id: 'tm', name: 'agenda-app', path: g, framework: 'group', packageManager: 'npm', createdAt: '', lastOpenedAt: null, favorite: false },
+          {
+            id: 'p2',
+            name: 'blog',
+            path: join(dir, 'code', 'blog'),
+            framework: 'react',
+            packageManager: 'npm',
+            createdAt: '',
+            lastOpenedAt: null,
+            favorite: false
+          }
+        ])
+      )
+      writeFileSync(
+        join(dir, 'settings.json'),
+        JSON.stringify({ language: 'fr', onboarded: true, launcherEnabled: false, defaultProjectsDir: join(dir, 'code'), defaultIDE: 'vscode' })
+      )
     }
   })
   const { page } = run
@@ -98,7 +119,7 @@ test('a group: one-line buttons when folded, the rest of its folder, files previ
   await page.getByRole('button', { name: 'cahier.pdf' }).click()
   await expect(preview.locator('canvas')).toHaveCount(1, { timeout: 15_000 })
   await page.getByRole('button', { name: 'logo.zip' }).click()
-  await expect(preview).toHaveText('Fichier binaire : pas d\'aperçu.')
+  await expect(preview).toHaveText("Fichier binaire : pas d'aperçu.")
   await page.getByRole('button', { name: 'infra' }).click()
   await page.getByRole('button', { name: 'Dockerfile' }).click()
   await expect(preview.locator('pre')).toHaveText('FROM nginx:alpine\n')
@@ -151,11 +172,18 @@ test('tables are created, changed and dropped, the SQL shown first; rows copy as
   await page.evaluate(() => {
     const w = window as unknown as { copied: string[] }
     w.copied = []
-    navigator.clipboard.writeText = async (text: string) => { w.copied.push(text) }
+    navigator.clipboard.writeText = async (text: string) => {
+      w.copied.push(text)
+    }
   })
   await page.getByRole('button', { name: 'Copier en JSON' }).click()
   const copied = await page.evaluate(() => (window as unknown as { copied: string[] }).copied)
-  expect(copied.map(c => JSON.parse(c))).toEqual([[{ id: 1, name: 'Ada' }, { id: 2, name: 'Linus' }]])
+  expect(copied.map(c => JSON.parse(c))).toEqual([
+    [
+      { id: 1, name: 'Ada' },
+      { id: 2, name: 'Linus' }
+    ]
+  ])
 
   // A new table: an id ready, one column typed, the SQL before it runs
   await page.getByRole('button', { name: 'Autres actions sur la base' }).click()

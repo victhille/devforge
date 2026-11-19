@@ -11,9 +11,23 @@ export interface SearchOptions {
   include: string
 }
 
-export interface SearchMatch { line: number; column: number; length: number; text: string }
-export interface SearchFile { path: string; matches: SearchMatch[] }
-export interface SearchResult { files: SearchFile[]; total: number; truncated: boolean; error?: string; durationMs: number }
+export interface SearchMatch {
+  line: number
+  column: number
+  length: number
+  text: string
+}
+export interface SearchFile {
+  path: string
+  matches: SearchMatch[]
+}
+export interface SearchResult {
+  files: SearchFile[]
+  total: number
+  truncated: boolean
+  error?: string
+  durationMs: number
+}
 
 export const MAX_MATCHES = 1000
 /** A found line is cut around its match past this */
@@ -33,8 +47,11 @@ function globToRegex(glob: string): RegExp {
   let re = ''
   for (let i = 0; i < glob.length; i++) {
     const c = glob[i]
-    if (c === '*' && glob[i + 1] === '*') { re += '.*'; i++; if (glob[i + 1] === '/') i++ }
-    else if (c === '*') re += '[^/]*'
+    if (c === '*' && glob[i + 1] === '*') {
+      re += '.*'
+      i++
+      if (glob[i + 1] === '/') i++
+    } else if (c === '*') re += '[^/]*'
     else if (c === '?') re += '[^/]'
     else re += c.replace(/[.+^${}()|[\]\\]/g, '\\$&')
   }
@@ -46,7 +63,10 @@ function globToRegex(glob: string): RegExp {
  * looks at the name only (*.ts), one with "/" at the path (src/**).
  */
 export function fileFilter(include: string): (relPath: string) => boolean {
-  const parts = include.split(',').map(s => s.trim()).filter(Boolean)
+  const parts = include
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
   const test = (glob: string) => {
     const re = globToRegex(glob.replace(/^\.\//, '').replace(/\/$/, '/**'))
     return glob.includes('/') ? (p: string) => re.test(p) : (p: string) => re.test(p.split('/').pop() ?? p)
@@ -65,7 +85,10 @@ export function findInText(text: string, pattern: RegExp, room: number): SearchM
     pattern.lastIndex = 0
     let m: RegExpExecArray | null
     while ((m = pattern.exec(line)) && out.length < room) {
-      if (m[0] === '') { pattern.lastIndex++; continue }
+      if (m[0] === '') {
+        pattern.lastIndex++
+        continue
+      }
       // A long line (minified code): a window around the match
       const start = line.length > MAX_LINE ? Math.max(0, m.index - 60) : 0
       const shown = line.length > MAX_LINE ? line.slice(start, start + MAX_LINE) : line

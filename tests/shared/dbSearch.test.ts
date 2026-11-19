@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
-  matchRanges, regexFlags, riskyRegex, searchProblem, searchSql, searchStatements, searchWords, searchedColumns, snippet, type DbSearchOptions
+  matchRanges,
+  regexFlags,
+  riskyRegex,
+  searchProblem,
+  searchSql,
+  searchStatements,
+  searchWords,
+  searchedColumns,
+  snippet,
+  type DbSearchOptions
 } from '@shared/lib/dbSearch'
 import { sqlString } from '@shared/lib/sqlQuote'
 
@@ -31,7 +40,8 @@ describe('database search: the words', () => {
 
   it('tells a regular expression that could hang: a repeated group holding an unbounded repetition', () => {
     for (const risky of ['(a+)+', '(\\w+\\s?)*$', '(a{2,})*', '((ab)*c)+', '(a{1,50})*b', '(a+){8}b']) expect(riskyRegex(risky), risky).toBe(true)
-    for (const safe of ['^[a-z]+@example\\.(com|org)$', '(\\d{3})-(\\d{4})', '(\\d{3}){2}', '[(+)]+', '(?:ab|cd)+', '\\(a+\\)+']) expect(riskyRegex(safe), safe).toBe(false)
+    for (const safe of ['^[a-z]+@example\\.(com|org)$', '(\\d{3})-(\\d{4})', '(\\d{3}){2}', '[(+)]+', '(?:ab|cd)+', '\\(a+\\)+'])
+      expect(riskyRegex(safe), safe).toBe(false)
   })
 
   it('searches every column, or only the ones of that name (case ignored)', () => {
@@ -44,11 +54,14 @@ describe('database search: the words', () => {
 describe('database search: the SQL of each engine', () => {
   it('MySQL: every column read as text, the case ignored with LOWER, kept as bytes', () => {
     const q = searchStatements('mysql', client, ['id', 'name'], opts({}))
-    expect(q.rows.sql).toBe('SELECT * FROM `client` WHERE (LOCATE(LOWER(?), LOWER(CAST(`id` AS CHAR))) > 0 OR LOCATE(LOWER(?), LOWER(CAST(`name` AS CHAR))) > 0) LIMIT 50')
+    expect(q.rows.sql).toBe(
+      'SELECT * FROM `client` WHERE (LOCATE(LOWER(?), LOWER(CAST(`id` AS CHAR))) > 0 OR LOCATE(LOWER(?), LOWER(CAST(`name` AS CHAR))) > 0) LIMIT 50'
+    )
     expect(q.rows.params).toEqual(['ada', 'ada'])
     expect(q.count.sql).toMatch(/^SELECT COUNT\(\*\) AS n FROM `client` WHERE /)
-    expect(searchStatements('mysql', client, ['name'], opts({ caseSensitive: true })).rows.sql)
-      .toContain('LOCATE(CAST(? AS BINARY), CAST(CAST(`name` AS CHAR) AS BINARY)) > 0')
+    expect(searchStatements('mysql', client, ['name'], opts({ caseSensitive: true })).rows.sql).toContain(
+      'LOCATE(CAST(? AS BINARY), CAST(CAST(`name` AS CHAR) AS BINARY)) > 0'
+    )
   })
 
   it('PostgreSQL: numbered parameters, the schema in the name, ~* for an expression', () => {
@@ -59,7 +72,7 @@ describe('database search: the SQL of each engine', () => {
     expect(exact.rows.sql).toContain('LOWER(CAST("a" AS TEXT)) = LOWER($1) OR LOWER(CAST("b" AS TEXT)) = LOWER($2)')
   })
 
-  it('SQLite: DevForge\'s df_lower and REGEXP, the case given by (?i) or (?-i)', () => {
+  it("SQLite: DevForge's df_lower and REGEXP, the case given by (?i) or (?-i)", () => {
     expect(searchStatements('sqlite', client, ['name'], opts({})).rows.sql).toContain('instr(df_lower(CAST("name" AS TEXT)), df_lower(?)) > 0')
     const re = searchStatements('sqlite', client, ['name'], opts({ mode: 'regex', term: '(?i)^ad', caseSensitive: true }))
     expect(re.rows.sql).toContain('CAST("name" AS TEXT) REGEXP ?')
@@ -74,8 +87,9 @@ describe('database search: the SQL of each engine', () => {
   })
 
   it('quotes odd names and caps the rows brought back', () => {
-    expect(searchStatements('mysql', { name: 'we`ird', schema: '' }, ['co`l'], opts({ limit: 5000 })).rows.sql)
-      .toBe('SELECT * FROM `we``ird` WHERE LOCATE(LOWER(?), LOWER(CAST(`co``l` AS CHAR))) > 0 LIMIT 200')
+    expect(searchStatements('mysql', { name: 'we`ird', schema: '' }, ['co`l'], opts({ limit: 5000 })).rows.sql).toBe(
+      'SELECT * FROM `we``ird` WHERE LOCATE(LOWER(?), LOWER(CAST(`co``l` AS CHAR))) > 0 LIMIT 200'
+    )
   })
 
   it('the query shown has the values in place, quotes and MySQL backslashes doubled', () => {
@@ -83,19 +97,26 @@ describe('database search: the SQL of each engine', () => {
     expect(sqlString('postgres', "l'a")).toBe("'l''a'")
     expect(sqlString('sqlite', "l'a\\b")).toBe("'l''a\\b'")
     expect(sqlString('mysql', "l'a\\b")).toBe("'l''a\\\\b'")
-    expect(searchSql('sqlite', client, ['name'], opts({ term: "d'Arc" })))
-      .toBe(`SELECT * FROM "client"\nWHERE instr(df_lower(CAST("name" AS TEXT)), df_lower('d''Arc')) > 0;`)
+    expect(searchSql('sqlite', client, ['name'], opts({ term: "d'Arc" }))).toBe(
+      `SELECT * FROM "client"\nWHERE instr(df_lower(CAST("name" AS TEXT)), df_lower('d''Arc')) > 0;`
+    )
   })
 })
 
 describe('database search: what is lit', () => {
   it('finds each word, the case ignored or kept, overlaps merged', () => {
-    expect(matchRanges('Ada Lovelace, ada', { term: 'ada', mode: 'contains', caseSensitive: false })).toEqual([[0, 3], [14, 17]])
+    expect(matchRanges('Ada Lovelace, ada', { term: 'ada', mode: 'contains', caseSensitive: false })).toEqual([
+      [0, 3],
+      [14, 17]
+    ])
     expect(matchRanges('Ada Lovelace, ada', { term: 'ada', mode: 'contains', caseSensitive: true })).toEqual([[14, 17]])
     expect(matchRanges('abcd', { term: 'abc bcd', mode: 'any', caseSensitive: false })).toEqual([[0, 4]])
     expect(matchRanges('ABC', { term: 'abc', mode: 'exact', caseSensitive: false })).toEqual([[0, 3]])
     expect(matchRanges('ABCD', { term: 'abc', mode: 'exact', caseSensitive: false })).toEqual([])
-    expect(matchRanges('a1 b22', { term: '(?i)[0-9]+', mode: 'regex', caseSensitive: false })).toEqual([[1, 2], [4, 6]])
+    expect(matchRanges('a1 b22', { term: '(?i)[0-9]+', mode: 'regex', caseSensitive: false })).toEqual([
+      [1, 2],
+      [4, 6]
+    ])
     expect(matchRanges('x', { term: '(', mode: 'regex', caseSensitive: false })).toEqual([])
   })
 

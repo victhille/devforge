@@ -12,7 +12,10 @@ test.afterEach(async () => {
   await run.close()
 })
 
-const file = (path: string, content: string) => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
+const file = (path: string, content: string) => {
+  mkdirSync(join(path, '..'), { recursive: true })
+  writeFileSync(path, content)
+}
 const REQUIREMENTS = 'Django>=4.2\nrequests==2.31.0\n'
 
 test('a Python project updates its packages, an update that fails puts the file back, the audit shows', async () => {
@@ -27,14 +30,20 @@ test('a Python project updates its packages, an update that fails puts the file 
       file(join(api, '.venv', 'Scripts', 'python.exe'), '')
       mkdirSync(join(api, '.venv', 'Lib', 'site-packages', 'Django-4.2.11.dist-info'), { recursive: true })
       mkdirSync(join(api, '.venv', 'Lib', 'site-packages', 'requests-2.31.0.dist-info'), { recursive: true })
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'py', name: 'api', path: api, framework: 'unknown', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([{ id: 'py', name: 'api', path: api, framework: 'unknown', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }])
+      )
       // The "update" changes the file, and fails when a file named "fail" is there
       const update = `node -e "require('fs').writeFileSync('requirements.txt','changed'); process.exit(require('fs').existsSync('fail') ? 1 : 0)"`
-      writeFileSync(join(dir, 'packages.json'), JSON.stringify({
-        latest: { Django: '5.1.2', requests: '2.32.3' },
-        audit: { total: 1, bySeverity: { unknown: 1, info: 0, low: 0, moderate: 0, high: 0, critical: 0 }, packages: { Django: 'unknown' } },
-        update
-      }))
+      writeFileSync(
+        join(dir, 'packages.json'),
+        JSON.stringify({
+          latest: { Django: '5.1.2', requests: '2.32.3' },
+          audit: { total: 1, bySeverity: { unknown: 1, info: 0, low: 0, moderate: 0, high: 0, critical: 0 }, packages: { Django: 'unknown' } },
+          update
+        })
+      )
     }
   })
   const { page } = run
@@ -65,7 +74,10 @@ test('a Python project updates its packages, an update that fails puts the file 
   await goTo(page, '/project/py')
   await page.getByRole('tab', { name: 'Paquets' }).click()
   // A major version: confirmed first
-  await page.getByRole('row', { name: /Django/ }).getByRole('button', { name: 'Mettre à jour', exact: true }).click()
+  await page
+    .getByRole('row', { name: /Django/ })
+    .getByRole('button', { name: 'Mettre à jour', exact: true })
+    .click()
   await expect(confirmDialog(page)).toContainText('Django → 5.1.2')
   await confirmButton(page).click()
   await expect(page.getByText('La mise à jour a échoué : requirements.txt remis comme avant.')).toBeVisible({ timeout: 20_000 })
@@ -77,7 +89,10 @@ test('without a virtual environment, nothing updates and the way to create it is
     seed: dir => {
       const api = join(dir, 'api')
       file(join(api, 'requirements.txt'), 'flask\n')
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'py', name: 'api', path: api, framework: 'unknown', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([{ id: 'py', name: 'api', path: api, framework: 'unknown', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }])
+      )
     }
   })
   const { page } = run

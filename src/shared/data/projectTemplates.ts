@@ -132,8 +132,6 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
     requirements: [],
     optionalRequirements: [],
     defaultPackageManager: 'npm',
-    options: [
-      { id: 'initGit', label: 'Initialize Git', default: false }
-    ]
+    options: [{ id: 'initGit', label: 'Initialize Git', default: false }]
   }
 ]

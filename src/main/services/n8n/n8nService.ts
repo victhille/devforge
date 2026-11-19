@@ -32,14 +32,32 @@ const ID_RE = /^[\w-]{1,64}$/
 /** The official image, or the same one with the community French editor (github.com/victhille/n8n-fr) */
 const IMAGE = { en: 'docker.n8n.io/n8nio/n8n', fr: 'ghcr.io/victhille/n8n-fr' } as const
 
-interface Stored { connectionId: string; domain: string; exposure: N8nExposure; installedAt: string; locale?: N8nLocale; keyEnc?: string }
+interface Stored {
+  connectionId: string
+  domain: string
+  exposure: N8nExposure
+  installedAt: string
+  locale?: N8nLocale
+  keyEnc?: string
+}
 
 const storePath = () => join(app.getPath('userData'), 'n8n.json')
 function readStore(): Stored[] {
-  try { return (JSON.parse(readFileSync(storePath(), 'utf-8')) as { instances?: Stored[] }).instances ?? [] } catch { return [] }
+  try {
+    return (JSON.parse(readFileSync(storePath(), 'utf-8')) as { instances?: Stored[] }).instances ?? []
+  } catch {
+    return []
+  }
 }
 const writeStore = (instances: Stored[]) => writeJsonFile(storePath(), { instances })
-const publicOf = (s: Stored): N8nInstance => ({ connectionId: s.connectionId, domain: s.domain, exposure: s.exposure, installedAt: s.installedAt, locale: s.locale ?? 'en', hasKey: !!s.keyEnc })
+const publicOf = (s: Stored): N8nInstance => ({
+  connectionId: s.connectionId,
+  domain: s.domain,
+  exposure: s.exposure,
+  installedAt: s.installedAt,
+  locale: s.locale ?? 'en',
+  hasKey: !!s.keyEnc
+})
 
 export const listInstances = (): N8nInstance[] => readStore().map(publicOf)
 
@@ -121,7 +139,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-${https ? `
+${
+  https
+    ? `
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -134,7 +154,9 @@ ${https ? `
       - caddy_config:/config
     depends_on:
       - n8n
-` : ''}
+`
+    : ''
+}
 volumes:
   postgres_data:
   n8n_data:${https ? '\n  caddy_data:\n  caddy_config:' : ''}
@@ -165,11 +187,14 @@ export const waitEditor = (tries = 90) =>
  * already runs, the French image of that same version is used, so the
  * database is never handed to an older n8n; without it, the script stops.
  */
-const pinFrench = (locale: N8nLocale) => locale !== 'fr' ? [] : [
-  'TAG=latest',
-  "V=$(docker compose exec -T n8n n8n --version 2>/dev/null | tail -n 1 | tr -d '\\r' || true)",
-  `if echo "$V" | grep -Eq '^[0-9]+\\.[0-9]+\\.[0-9]+$'; then if docker pull -q ${IMAGE.fr}:"$V" >/dev/null 2>&1; then TAG="$V"; else echo "${SEP}FR_NOT_READY:$V"; exit 3; fi; fi`
-]
+const pinFrench = (locale: N8nLocale) =>
+  locale !== 'fr'
+    ? []
+    : [
+        'TAG=latest',
+        "V=$(docker compose exec -T n8n n8n --version 2>/dev/null | tail -n 1 | tr -d '\\r' || true)",
+        `if echo "$V" | grep -Eq '^[0-9]+\\.[0-9]+\\.[0-9]+$'; then if docker pull -q ${IMAGE.fr}:"$V" >/dev/null 2>&1; then TAG="$V"; else echo "${SEP}FR_NOT_READY:$V"; exit 3; fi; fi`
+      ]
 const writeCompose = (domain: string, exposure: N8nExposure, locale: N8nLocale) => [
   `echo ${b64(composeFile(domain, exposure, locale))} | base64 -d > docker-compose.yml`,
   ...(locale === 'fr' ? [`sed -i "s#${IMAGE.fr}:latest#${IMAGE.fr}:$TAG#" docker-compose.yml`] : [])
@@ -184,9 +209,9 @@ export function installScript(domain: string, exposure: N8nExposure, email: stri
     ...writeCompose(domain, exposure, locale),
     exposure === 'caddy' ? `echo ${b64(caddyFile(domain, email))} | base64 -d > Caddyfile` : 'rm -f Caddyfile',
     // The status page's site stays in a rewritten Caddyfile
-    "if [ -f Caddyfile ] && [ -f ~/devforge/status/site.caddy ]; then cat ~/devforge/status/site.caddy >> Caddyfile; fi",
+    'if [ -f Caddyfile ] && [ -f ~/devforge/status/site.caddy ]; then cat ~/devforge/status/site.caddy >> Caddyfile; fi',
     // Made here once: the secrets never travel and a re-install keeps the data readable
-    "if [ ! -f .env ]; then umask 077; R() { head -c \"$1\" /dev/urandom | od -An -tx1 | tr -d ' \\n'; }; printf 'POSTGRES_PASSWORD=%s\\nN8N_ENCRYPTION_KEY=%s\\n' \"$(R 24)\" \"$(R 32)\" > .env; fi",
+    'if [ ! -f .env ]; then umask 077; R() { head -c "$1" /dev/urandom | od -An -tx1 | tr -d \' \\n\'; }; printf \'POSTGRES_PASSWORD=%s\\nN8N_ENCRYPTION_KEY=%s\\n\' "$(R 24)" "$(R 32)" > .env; fi',
     'docker compose pull',
     // --remove-orphans: going back to "local" removes the Caddy of an earlier HTTPS install
     'docker compose up -d --remove-orphans',
@@ -210,12 +235,15 @@ export function validateInstall(opts: InstallOptions): Required<InstallOptions> 
 }
 
 export async function precheck(connectionId: string): Promise<N8nPrecheck> {
-  const out = await runOn(connectionId, [
-    'docker --version 2>/dev/null || true',
-    'docker compose version >/dev/null 2>&1 && echo yes || true',
-    "(ss -ltnH 2>/dev/null || netstat -ltn 2>/dev/null) | awk '{print $4}'",
-    `[ -d ${DIR} ] && echo yes || true`
-  ].join(`; echo '${SEP}'; `))
+  const out = await runOn(
+    connectionId,
+    [
+      'docker --version 2>/dev/null || true',
+      'docker compose version >/dev/null 2>&1 && echo yes || true',
+      "(ss -ltnH 2>/dev/null || netstat -ltn 2>/dev/null) | awk '{print $4}'",
+      `[ -d ${DIR} ] && echo yes || true`
+    ].join(`; echo '${SEP}'; `)
+  )
   const [docker = '', compose = '', ports = '', existing = ''] = out.split(SEP).map(s => s.trim())
   const busy = new Set<number>()
   for (const line of ports.split('\n')) {
@@ -230,11 +258,16 @@ async function stream(connectionId: string, script: string, onLog: (text: string
   const sid = await sessionFor(connectionId)
   // The exit code comes last as "@@DF@@<code>"; keep everything else for the log
   let all = ''
-  const code = await sshService.execStream(sid, `bash -lc ${shQuote(script)} 2>&1; echo "${SEP}$?"`, text => {
-    all += text
-    const clean = text.replace(new RegExp(`${SEP}FR_NOT_READY:\\S*\\s*`), '').replace(new RegExp(`${SEP}\\d*\\s*$`), '')
-    if (clean) onLog(clean)
-  }, 20 * 60_000)
+  const code = await sshService.execStream(
+    sid,
+    `bash -lc ${shQuote(script)} 2>&1; echo "${SEP}$?"`,
+    text => {
+      all += text
+      const clean = text.replace(new RegExp(`${SEP}FR_NOT_READY:\\S*\\s*`), '').replace(new RegExp(`${SEP}\\d*\\s*$`), '')
+      if (clean) onLog(clean)
+    },
+    20 * 60_000
+  )
   // The French image of the running version is not built yet
   const missing = new RegExp(`${SEP}FR_NOT_READY:(\\S*)`).exec(all)
   if (missing) throw new Error(`FR_NOT_READY:${missing[1]}`)
@@ -253,7 +286,14 @@ export async function install(connectionId: string, raw: InstallOptions, onLog: 
   if (ok) {
     const all = readStore().filter(i => i.connectionId !== connectionId)
     const keyEnc = readStore().find(i => i.connectionId === connectionId)?.keyEnc
-    all.push({ connectionId, domain: opts.domain, exposure: opts.exposure, installedAt: new Date().toISOString(), locale: opts.locale, ...(keyEnc ? { keyEnc } : {}) })
+    all.push({
+      connectionId,
+      domain: opts.domain,
+      exposure: opts.exposure,
+      installedAt: new Date().toISOString(),
+      locale: opts.locale,
+      ...(keyEnc ? { keyEnc } : {})
+    })
     writeStore(all)
   }
   return { ok }
@@ -268,7 +308,11 @@ const systemDns: Resolver = async name => (isIP(name) ? [name] : (await lookup(n
  * Before an HTTPS install: the sub-domain must point to the server, or Caddy
  * cannot get a certificate and the site is unreachable.
  */
-export async function checkDomain(connectionId: string, domain: string, dns: { domain: Resolver; server: Resolver } = { domain: publicDns, server: systemDns }): Promise<N8nDomainCheck> {
+export async function checkDomain(
+  connectionId: string,
+  domain: string,
+  dns: { domain: Resolver; server: Resolver } = { domain: publicDns, server: systemDns }
+): Promise<N8nDomainCheck> {
   const conn = loadSshConnections().find(c => c.id === connectionId)
   if (!conn) throw new Error('Unknown server')
   const [domainIps, serverIps] = await Promise.all([dns.domain(domain).catch(() => [] as string[]), dns.server(conn.host).catch(() => [] as string[])])
@@ -290,13 +334,25 @@ export function closeTunnel(connectionId: string): void {
 
 export async function status(connectionId: string): Promise<N8nStatus> {
   const s = readStore().find(i => i.connectionId === connectionId)
-  const out = testOutput('n8nStatus') ?? await runOn(connectionId, [
-    `[ -f ${DIR}/docker-compose.yml ] && echo yes || true`,
-    `cd ${DIR} 2>/dev/null && docker compose ps -a --format '{{.Service}}|{{.State}}|{{.Status}}' 2>/dev/null || true`,
-    `cd ${DIR} 2>/dev/null && docker compose exec -T n8n n8n --version 2>/dev/null || true`
-  ].join(`; echo '${SEP}'; `), 30_000)
+  const out =
+    testOutput('n8nStatus') ??
+    (await runOn(
+      connectionId,
+      [
+        `[ -f ${DIR}/docker-compose.yml ] && echo yes || true`,
+        `cd ${DIR} 2>/dev/null && docker compose ps -a --format '{{.Service}}|{{.State}}|{{.Status}}' 2>/dev/null || true`,
+        `cd ${DIR} 2>/dev/null && docker compose exec -T n8n n8n --version 2>/dev/null || true`
+      ].join(`; echo '${SEP}'; `),
+      30_000
+    ))
   const [installed = '', ps = '', version = ''] = out.split(SEP).map(x => x.trim())
-  const containers = ps.split('\n').filter(Boolean).map(l => { const [name = '', state = '', st = ''] = l.split('|'); return { name, state, status: st } })
+  const containers = ps
+    .split('\n')
+    .filter(Boolean)
+    .map(l => {
+      const [name = '', state = '', st = ''] = l.split('|')
+      return { name, state, status: st }
+    })
   return {
     installed: installed === 'yes',
     state: containers.find(c => c.name === 'n8n')?.state ?? null,
@@ -313,7 +369,11 @@ export async function logs(connectionId: string, lines: number): Promise<string>
 
 export async function control(connectionId: string, action: 'start' | 'stop' | 'restart'): Promise<{ ok: boolean; output: string }> {
   if (!['start', 'stop', 'restart'].includes(action)) throw new Error('Invalid action')
-  const out = await runOn(connectionId, `cd ${DIR} && docker compose ${action} 2>&1${action === 'stop' ? '' : ` && { ${waitEditor(60)}; }`}; echo "${SEP}$?"`, 180_000)
+  const out = await runOn(
+    connectionId,
+    `cd ${DIR} && docker compose ${action} 2>&1${action === 'stop' ? '' : ` && { ${waitEditor(60)}; }`}; echo "${SEP}$?"`,
+    180_000
+  )
   const [output = '', code = '1'] = out.split(SEP)
   return { ok: code.trim() === '0', output: output.trim() }
 }
@@ -327,14 +387,15 @@ const backup = [
 ]
 
 /** Dump of the database first (last 5 kept), then the newest n8n image (a pinned French one goes back to latest) */
-export const updateScript = () => [
-  'set -e',
-  ...backup,
-  `sed -i "s#${IMAGE.fr}:[^[:space:]]*#${IMAGE.fr}:latest#" docker-compose.yml`,
-  'docker compose pull n8n',
-  'docker compose up -d n8n',
-  waitEditor()
-].join('\n')
+export const updateScript = () =>
+  [
+    'set -e',
+    ...backup,
+    `sed -i "s#${IMAGE.fr}:[^[:space:]]*#${IMAGE.fr}:latest#" docker-compose.yml`,
+    'docker compose pull n8n',
+    'docker compose up -d n8n',
+    waitEditor()
+  ].join('\n')
 
 /** Same data, other editor: dump, then n8n restarted on the official or the French image */
 export function localeScript(domain: string, exposure: N8nExposure, locale: N8nLocale): string {
@@ -381,48 +442,85 @@ async function api<T>(connectionId: string, method: 'GET' | 'POST', path: string
   const sock = asSocket(await sshService.forwardOut(await sessionFor(connectionId), PORT))
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => req.destroy(new Error('n8n did not answer')), 20_000)
-    const req = request({
-      host: '127.0.0.1', port: PORT, method, path: `/api/v1${path}`,
-      headers: { 'X-N8N-API-KEY': key, accept: 'application/json' },
-      createConnection: () => sock
-    }, res => {
-      let body = ''
-      res.setEncoding('utf-8')
-      res.on('data', c => { body += c })
-      res.on('end', () => {
-        clearTimeout(timer)
-        sock.destroy()
-        if ((res.statusCode ?? 500) >= 400) {
-          let msg = body
-          try { msg = (JSON.parse(body) as { message?: string }).message ?? body } catch { /* text */ }
-          reject(new Error(res.statusCode === 401 ? 'BAD_KEY' : `n8n ${res.statusCode}: ${msg.slice(0, 200)}`))
-          return
-        }
-        try { resolve(JSON.parse(body || '{}') as T) } catch { reject(new Error('n8n answered something that is not JSON')) }
-      })
+    const req = request(
+      {
+        host: '127.0.0.1',
+        port: PORT,
+        method,
+        path: `/api/v1${path}`,
+        headers: { 'X-N8N-API-KEY': key, accept: 'application/json' },
+        createConnection: () => sock
+      },
+      res => {
+        let body = ''
+        res.setEncoding('utf-8')
+        res.on('data', c => {
+          body += c
+        })
+        res.on('end', () => {
+          clearTimeout(timer)
+          sock.destroy()
+          if ((res.statusCode ?? 500) >= 400) {
+            let msg = body
+            try {
+              msg = (JSON.parse(body) as { message?: string }).message ?? body
+            } catch {
+              /* text */
+            }
+            reject(new Error(res.statusCode === 401 ? 'BAD_KEY' : `n8n ${res.statusCode}: ${msg.slice(0, 200)}`))
+            return
+          }
+          try {
+            resolve(JSON.parse(body || '{}') as T)
+          } catch {
+            reject(new Error('n8n answered something that is not JSON'))
+          }
+        })
+      }
+    )
+    req.on('error', err => {
+      clearTimeout(timer)
+      sock.destroy()
+      reject(err)
     })
-    req.on('error', err => { clearTimeout(timer); sock.destroy(); reject(err) })
     req.end()
   })
 }
 
-interface RawWorkflow { id: string; name: string; active: boolean; updatedAt: string; tags?: { name: string }[]; nodes?: { name?: string; type?: string }[] }
+interface RawWorkflow {
+  id: string
+  name: string
+  active: boolean
+  updatedAt: string
+  tags?: { name: string }[]
+  nodes?: { name?: string; type?: string }[]
+}
 
 /** What starts a workflow, from its first trigger node: "n8n-nodes-base.scheduleTrigger" → schedule */
 export function triggerOf(nodes: RawWorkflow['nodes']): N8nWorkflow['trigger'] {
   const node = (Array.isArray(nodes) ? nodes : []).find(n => typeof n?.type === 'string' && /(trigger|\.webhook|\.cron|\.interval)$/i.test(n.type))
   if (!node?.type) return null
   const type = node.type.split('.').pop()!.toLowerCase()
-  const kind = type === 'webhook' ? 'webhook'
-    : ['scheduletrigger', 'cron', 'interval'].includes(type) ? 'schedule'
-    : type === 'manualtrigger' ? 'manual'
-    : type === 'errortrigger' ? 'error'
-    : 'other'
+  const kind =
+    type === 'webhook'
+      ? 'webhook'
+      : ['scheduletrigger', 'cron', 'interval'].includes(type)
+        ? 'schedule'
+        : type === 'manualtrigger'
+          ? 'manual'
+          : type === 'errortrigger'
+            ? 'error'
+            : 'other'
   return { kind, name: typeof node.name === 'string' ? node.name.slice(0, 80) : '' }
 }
 
 const toWorkflow = (w: RawWorkflow): N8nWorkflow => ({
-  id: String(w.id), name: w.name, active: !!w.active, updatedAt: w.updatedAt, tags: (w.tags ?? []).map(t => t.name), trigger: triggerOf(w.nodes)
+  id: String(w.id),
+  name: w.name,
+  active: !!w.active,
+  updatedAt: w.updatedAt,
+  tags: (w.tags ?? []).map(t => t.name),
+  trigger: triggerOf(w.nodes)
 })
 
 export async function workflows(connectionId: string): Promise<N8nWorkflow[]> {
@@ -430,7 +528,11 @@ export async function workflows(connectionId: string): Promise<N8nWorkflow[]> {
   let cursor = ''
   // Paged by 250; 4 pages are plenty for one server
   for (let i = 0; i < 4; i++) {
-    const r = await api<{ data: RawWorkflow[]; nextCursor?: string | null }>(connectionId, 'GET', `/workflows?limit=250${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`)
+    const r = await api<{ data: RawWorkflow[]; nextCursor?: string | null }>(
+      connectionId,
+      'GET',
+      `/workflows?limit=250${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`
+    )
     out.push(...r.data.map(toWorkflow))
     if (!r.nextCursor) break
     cursor = r.nextCursor
@@ -441,13 +543,21 @@ export async function workflows(connectionId: string): Promise<N8nWorkflow[]> {
 export async function executions(connectionId: string, onlyErrors: boolean): Promise<N8nExecution[]> {
   const [r, wf] = await Promise.all([
     api<{ data: { id: string; workflowId: string; status?: string; finished?: boolean; startedAt: string; stoppedAt?: string | null; mode: string }[] }>(
-      connectionId, 'GET', `/executions?limit=50&includeData=false${onlyErrors ? '&status=error' : ''}`),
+      connectionId,
+      'GET',
+      `/executions?limit=50&includeData=false${onlyErrors ? '&status=error' : ''}`
+    ),
     workflows(connectionId).catch(() => [] as N8nWorkflow[])
   ])
   const names = new Map(wf.map(w => [w.id, w.name]))
   return r.data.map(e => ({
-    id: String(e.id), workflowId: String(e.workflowId), workflowName: names.get(String(e.workflowId)) ?? String(e.workflowId),
-    status: e.status ?? (e.finished ? 'success' : 'error'), startedAt: e.startedAt, stoppedAt: e.stoppedAt ?? null, mode: e.mode
+    id: String(e.id),
+    workflowId: String(e.workflowId),
+    workflowName: names.get(String(e.workflowId)) ?? String(e.workflowId),
+    status: e.status ?? (e.finished ? 'success' : 'error'),
+    startedAt: e.startedAt,
+    stoppedAt: e.stoppedAt ?? null,
+    mode: e.mode
   }))
 }
 
@@ -462,7 +572,13 @@ export async function retryExecution(connectionId: string, executionId: string):
   return `Retried as execution ${r.id ?? '?'} (${r.status ?? 'started'})`
 }
 
-const slug = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'workflow'
+const slug = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '') || 'workflow'
 
 /** n8n/<name>.json in the project, pretty-printed for readable diffs */
 export async function exportWorkflow(connectionId: string, workflowId: string, projectId: string): Promise<string> {

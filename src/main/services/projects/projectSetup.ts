@@ -32,7 +32,15 @@ export async function freePort(start: number): Promise<number> {
 /** Docker volumes of an earlier database of this project's name (empty when Docker is off) */
 export async function previousVolumes(name: string): Promise<string[]> {
   const r = await runFile('docker', ['volume', 'ls', '--format', '{{.Name}}'], { timeout: 15_000 })
-  return r.ok ? oldVolumes(name, r.stdout.split(/\r?\n/).map(l => l.trim()).filter(Boolean)) : []
+  return r.ok
+    ? oldVolumes(
+        name,
+        r.stdout
+          .split(/\r?\n/)
+          .map(l => l.trim())
+          .filter(Boolean)
+      )
+    : []
 }
 
 /** GitHub CLI's account (the one `gh repo create` uses), null when gh is missing or logged out */
@@ -48,7 +56,8 @@ export function mergeEnv(text: string, vars: Record<string, string>): string {
   for (const [key, value] of Object.entries(vars)) {
     const line = `${key}="${value}"`
     const i = lines.findIndex(l => new RegExp(`^\\s*${key}\\s*=`).test(l))
-    if (i >= 0) lines[i] = line; else lines.push(line)
+    if (i >= 0) lines[i] = line
+    else lines.push(line)
   }
   return lines.join('\n') + '\n'
 }
@@ -71,10 +80,14 @@ function resolvePath(projPath: string, p: string): string {
 function resolveStep(step: SetupStep, projPath: string): SetupStep {
   const r = (p: string) => resolvePath(projPath, p)
   switch (step.kind) {
-    case 'run':    return { ...step, args: step.args.map(r) }
-    case 'write':  return { ...step, files: step.files.map(f => ({ ...f, path: r(f.path) })) }
-    case 'ignore': return { ...step, lines: step.lines.map(r) }
-    default:       return step
+    case 'run':
+      return { ...step, args: step.args.map(r) }
+    case 'write':
+      return { ...step, files: step.files.map(f => ({ ...f, path: r(f.path) })) }
+    case 'ignore':
+      return { ...step, lines: step.lines.map(r) }
+    default:
+      return step
   }
 }
 
@@ -83,7 +96,7 @@ export function withVitePlugin(text: string): string {
   if (text.includes('@tailwindcss/vite')) return text
   if (!/plugins:\s*\[/.test(text)) throw new Error('vite.config : liste « plugins » introuvable')
   const lines = text.split('\n')
-  const last = lines.reduce((at, l, i) => /^import\s/.test(l) ? i : at, -1)
+  const last = lines.reduce((at, l, i) => (/^import\s/.test(l) ? i : at), -1)
   lines.splice(last + 1, 0, "import tailwindcss from '@tailwindcss/vite'")
   return lines.join('\n').replace(/plugins:\s*\[/, m => `${m}tailwindcss(), `)
 }
@@ -93,7 +106,7 @@ export function withTrait(text: string, fqcn: string): string {
   const name = fqcn.split('\\').pop()!
   if (new RegExp(`\\b${name}\\b`).test(text)) return text
   const lines = text.split('\n')
-  const lastImport = lines.reduce((at, l, i) => /^use\s+[\w\\]+.*;/.test(l) ? i : at, -1)
+  const lastImport = lines.reduce((at, l, i) => (/^use\s+[\w\\]+.*;/.test(l) ? i : at), -1)
   const ns = lines.findIndex(l => /^namespace\s/.test(l))
   lines.splice((lastImport >= 0 ? lastImport : ns) + 1, 0, `use ${fqcn};`)
   const classAt = lines.findIndex(l => /^(final\s+|abstract\s+)?class\s/.test(l))
@@ -135,16 +148,20 @@ function writeText(file: string, content: string): void {
   writeFileSync(file, content)
 }
 
-const readText = (file: string) => existsSync(file) ? readFileSync(file, 'utf-8') : ''
+const readText = (file: string) => (existsSync(file) ? readFileSync(file, 'utf-8') : '')
 
 /** The runner's own messages */
 const MESSAGES = {
   fr: {
-    done: 'déjà en place', none: (f: string) => `sans objet (pas de ${f})`, failed: 'échec, la suite continue',
+    done: 'déjà en place',
+    none: (f: string) => `sans objet (pas de ${f})`,
+    failed: 'échec, la suite continue',
     docker: 'Docker ne répond pas. Lance Docker Desktop, puis « docker compose up -d » dans le projet ; la suite continue.'
   },
   en: {
-    done: 'already in place', none: (f: string) => `not needed (no ${f})`, failed: 'failed, carrying on',
+    done: 'already in place',
+    none: (f: string) => `not needed (no ${f})`,
+    failed: 'failed, carrying on',
     docker: 'Docker is not responding. Start Docker Desktop, then "docker compose up -d" in the project; carrying on.'
   }
 }
@@ -167,7 +184,13 @@ function applyStep(step: Exclude<SetupStep, { kind: 'run' }>, projPath: string, 
     }
     case 'drop-lines': {
       const file = join(projPath, step.file)
-      writeText(file, readText(file).split('\n').filter(l => !l.includes(step.match)).join('\n'))
+      writeText(
+        file,
+        readText(file)
+          .split('\n')
+          .filter(l => !l.includes(step.match))
+          .join('\n')
+      )
       return
     }
     case 'scripts': {
@@ -200,7 +223,10 @@ function applyStep(step: Exclude<SetupStep, { kind: 'run' }>, projPath: string, 
     }
     case 'connection':
       saveDbConnection({
-        id: randomUUID(), name, type: step.type, color: DB_COLOR,
+        id: randomUUID(),
+        name,
+        type: step.type,
+        color: DB_COLOR,
         ...(step.type === 'sqlite'
           ? { file: join(projPath, step.file ?? '') }
           : { host: '127.0.0.1', port: step.port, user: step.user, database: step.database, password })
@@ -213,15 +239,24 @@ function applyStep(step: Exclude<SetupStep, { kind: 'run' }>, projPath: string, 
  * Only the final result is sent, so the console sees a single task end.
  */
 export function runSetup(options: ProjectCreationOptions, projPath: string, taskId: string, onLog: LogCb, onResult: ResultCb): void {
-  if (!options.setup) { onResult({ taskId, exitCode: 0, status: 'success' }); return }
+  if (!options.setup) {
+    onResult({ taskId, exitCode: 0, status: 'success' })
+    return
+  }
   const password = randomBytes(12).toString('hex')
   const secret = randomBytes(32).toString('base64')
-  const steps = planSetup({ ...options, setup: options.setup }, { password, secret, lang: options.lang ?? 'fr', composeName: composeName(options.name, randomBytes(3).toString('hex')) })
+  const steps = planSetup(
+    { ...options, setup: options.setup },
+    { password, secret, lang: options.lang ?? 'fr', composeName: composeName(options.name, randomBytes(3).toString('hex')) }
+  )
   const m = MESSAGES[options.lang ?? 'fr']
   const log = (type: LogLine['type'], text: string) => onLog({ taskId, type, text, timestamp: new Date().toISOString() })
 
   const next = (i: number): void => {
-    if (i >= steps.length) { onResult({ taskId, exitCode: 0, status: 'success' }); return }
+    if (i >= steps.length) {
+      onResult({ taskId, exitCode: 0, status: 'success' })
+      return
+    }
     const step = resolveStep(steps[i], projPath)
     log('info', `▸ [${i + 1}/${steps.length}] ${step.label}`)
     if (step.kind !== 'run') {
@@ -249,7 +284,10 @@ export function runSetup(options: ProjectCreationOptions, projPath: string, task
     // docker compose with Docker Desktop off: a clear message instead of a pipe error
     if (step.exe === 'docker') {
       void runFile('docker', ['info', '--format', '{{.ServerVersion}}'], { timeout: 20_000 }).then(r => {
-        if (r.ok) { runStep(i, step); return }
+        if (r.ok) {
+          runStep(i, step)
+          return
+        }
         log('error', `⚠ ${step.label} : ${m.docker}`)
         next(i + 1)
       })
@@ -260,11 +298,24 @@ export function runSetup(options: ProjectCreationOptions, projPath: string, task
 
   const runStep = (i: number, step: Extract<SetupStep, { kind: 'run' }>): void => {
     commandRunner.run({
-      executable: step.exe, args: step.args, cwd: projPath, onLog,
+      executable: step.exe,
+      args: step.args,
+      cwd: projPath,
+      onLog,
       onResult: r => {
-        if (r.status === 'success') { next(i + 1); return }
-        if (r.status === 'cancelled') { onResult({ ...r, taskId }); return }
-        if (step.optional) { log('error', `⚠ ${step.label} : ${m.failed}`); next(i + 1); return }
+        if (r.status === 'success') {
+          next(i + 1)
+          return
+        }
+        if (r.status === 'cancelled') {
+          onResult({ ...r, taskId })
+          return
+        }
+        if (step.optional) {
+          log('error', `⚠ ${step.label} : ${m.failed}`)
+          next(i + 1)
+          return
+        }
         onResult({ taskId, exitCode: r.exitCode, status: 'failed' })
       }
     })

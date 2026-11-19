@@ -43,12 +43,17 @@ export function parseServices(ps: string): VpsService[] {
       const [, ip = '', hostPort = '', containerPort = ''] = m
       const port = Number(hostPort)
       // 0.0.0.0 and [::] list the same port twice
-      if (seen.has(port)) { const known = out.find(s => s.container === container && s.port === port); if (known && ip !== '127.0.0.1') known.exposed = true; continue }
+      if (seen.has(port)) {
+        const known = out.find(s => s.container === container && s.port === port)
+        if (known && ip !== '127.0.0.1') known.exposed = true
+        continue
+      }
       seen.add(port)
       const known = KNOWN.find(k => k.image.test(image) && k.port === Number(containerPort))
       if (!known && NOT_WEB.has(Number(containerPort))) continue
       out.push({
-        container, image,
+        container,
+        image,
         name: known?.name ?? container,
         kind: known?.kind ?? 'other',
         port,

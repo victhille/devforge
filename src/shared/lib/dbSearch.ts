@@ -67,9 +67,15 @@ function repetition(source: string, i: number): [number, number] | null {
   return [min, m[2] === undefined ? min : m[3] === '' ? Infinity : Number(m[3])]
 }
 /** Inside a group: a repetition that can match one text in several ways (*, +, {1,9}… but not {3}) */
-const ambiguous = (source: string, i: number) => { const r = repetition(source, i); return !!r && r[1] > r[0] && r[1] >= 2 }
+const ambiguous = (source: string, i: number) => {
+  const r = repetition(source, i)
+  return !!r && r[1] > r[0] && r[1] >= 2
+}
 /** After a group: any repetition of it (*, +, {2}, {1,9}…) */
-const repeated = (source: string, i: number) => { const r = repetition(source, i); return !!r && r[1] >= 2 }
+const repeated = (source: string, i: number) => {
+  const r = repetition(source, i)
+  return !!r && r[1] >= 2
+}
 
 /**
  * A repeated group that holds a repetition itself, like (a+)+, (\w+\s?)*,
@@ -82,16 +88,25 @@ export function riskyRegex(source: string): boolean {
   const groups: boolean[] = []
   for (let i = 0; i < source.length; i++) {
     const c = source[i]
-    if (c === '\\') { i++; continue }
+    if (c === '\\') {
+      i++
+      continue
+    }
     if (c === '[') {
       // A class: its * and + are plain characters
       i++
       if (source[i] === '^') i++
       if (source[i] === ']') i++
-      while (i < source.length && source[i] !== ']') { if (source[i] === '\\') i++; i++ }
+      while (i < source.length && source[i] !== ']') {
+        if (source[i] === '\\') i++
+        i++
+      }
       continue
     }
-    if (c === '(') { groups.push(false); continue }
+    if (c === '(') {
+      groups.push(false)
+      continue
+    }
     if (c === ')') {
       const inner = groups.pop()
       if (inner && repeated(source, i + 1)) return true
@@ -108,7 +123,11 @@ export function searchProblem(o: Pick<DbSearchOptions, 'term' | 'mode'>): 'empty
   if (!o.term.trim()) return 'empty'
   if (o.term.length > DB_SEARCH_MAX_TERM) return 'tooLong'
   if (o.mode === 'regex') {
-    try { new RegExp(regexFlags(o.term).source) } catch (err) { return { regex: (err as Error).message.replace(/^Invalid regular expression: /, '') } }
+    try {
+      new RegExp(regexFlags(o.term).source)
+    } catch (err) {
+      return { regex: (err as Error).message.replace(/^Invalid regular expression: /, '') }
+    }
     if (riskyRegex(regexFlags(o.term).source)) return 'risky'
   }
   if (!searchWords(o.term, o.mode).length) return 'empty'
@@ -157,13 +176,19 @@ export function searchWhere(db: DbType, columns: string[], o: DbSearchCriteria, 
   return words.map(anywhere).join(o.mode === 'all' ? ' AND ' : ' OR ')
 }
 
-export interface SearchStatement { sql: string; params: string[] }
+export interface SearchStatement {
+  sql: string
+  params: string[]
+}
 
 /** One table's search, run with parameters: its rows (up to the limit), then their count */
 export function searchStatements(db: DbType, table: DbTableRef, columns: string[], o: DbSearchOptions): { rows: SearchStatement; count: SearchStatement } {
   const make = (head: string, tail: string): SearchStatement => {
     const params: string[] = []
-    const where = searchWhere(db, columns, o, v => { params.push(v); return db === 'postgres' ? `$${params.length}` : '?' })
+    const where = searchWhere(db, columns, o, v => {
+      params.push(v)
+      return db === 'postgres' ? `$${params.length}` : '?'
+    })
     return { sql: `${head} FROM ${quoteIdent(db, table)} WHERE ${where}${tail}`, params }
   }
   const limit = Math.min(Math.max(Math.floor(o.limit) || 50, 1), DB_SEARCH_MAX_ROWS)
@@ -187,7 +212,11 @@ export function matchRanges(value: string, o: Pick<DbSearchOptions, 'term' | 'mo
     let re: RegExp
     const source = regexFlags(o.term).source
     if (riskyRegex(source)) return []
-    try { re = new RegExp(source, o.caseSensitive ? 'g' : 'gi') } catch { return [] }
+    try {
+      re = new RegExp(source, o.caseSensitive ? 'g' : 'gi')
+    } catch {
+      return []
+    }
     // In the window: the start of the value is enough to light (a cell shows ~90 characters)
     for (const m of value.slice(0, 2_000).matchAll(re)) {
       const at = m.index ?? 0
@@ -220,8 +249,6 @@ export function snippet(value: string, ranges: [number, number][], max = 90): { 
   const lead = start > 0 ? '…' : ''
   const text = `${lead}${value.slice(start, end)}${end < value.length ? '…' : ''}`
   const shift = lead.length - start
-  const moved = ranges
-    .filter(([a, b]) => b > start && a < end)
-    .map(([a, b]): [number, number] => [Math.max(a, start) + shift, Math.min(b, end) + shift])
+  const moved = ranges.filter(([a, b]) => b > start && a < end).map(([a, b]): [number, number] => [Math.max(a, start) + shift, Math.min(b, end) + shift])
   return { text, ranges: moved }
 }

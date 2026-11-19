@@ -61,33 +61,285 @@ export type UndoSpec =
 const project = { type: 'string', description: 'Project name or path from list_projects' } as const
 
 export const ACTION_TOOLS: Anthropic.Beta.BetaTool[] = [
-  { name: 'git_commit', description: 'Commit changes of a project (all changed files unless "files" lists some). The user sees the files and message and must approve.', input_schema: { type: 'object', properties: { project, message: { type: 'string', description: 'Conventional commit message' }, files: { type: 'array', items: { type: 'string' }, description: 'Paths relative to the project root' } }, required: ['project', 'message'] } },
-  { name: 'git_pull', description: 'Pull the current branch (fast-forward only). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project }, required: ['project'] } },
-  { name: 'git_push', description: 'Push the current branch to its upstream (never forced). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project }, required: ['project'] } },
-  { name: 'compose_action', description: 'Start (up), stop or restart the Docker Compose project of a saved project. Needs the user\'s approval.', input_schema: { type: 'object', properties: { project, action: { type: 'string', enum: ['up', 'stop', 'restart'] } }, required: ['project', 'action'] } },
-  { name: 'container_action', description: 'Start, stop or restart one local Docker container. Needs the user\'s approval.', input_schema: { type: 'object', properties: { container: { type: 'string', description: 'Name or id from docker_status' }, action: { type: 'string', enum: ['start', 'stop', 'restart'] } }, required: ['container', 'action'] } },
-  { name: 'sql_execute', description: 'Run ONE SQL statement on a saved connection: reads return up to 50 rows, writes need a WHERE. DROP, TRUNCATE and the like are refused. Needs the user\'s approval.', input_schema: { type: 'object', properties: { connection: { type: 'string', description: 'Connection name from db_connections' }, sql: { type: 'string' } }, required: ['connection', 'sql'] } },
-  { name: 'free_port', description: 'Free a local port by ending the process listening on it (never a Windows service). Needs the user\'s approval.', input_schema: { type: 'object', properties: { port: { type: 'integer' } }, required: ['port'] } },
-  { name: 'run_script', description: 'Start a package.json script of a project in the background (dev server, build, tests). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project, script: { type: 'string' } }, required: ['project', 'script'] } },
-  { name: 'n8n_set_workflow', description: 'Activate or deactivate an n8n workflow. Needs the user\'s approval; can be undone.', input_schema: { type: 'object', properties: { server: { type: 'string', description: 'SSH server name; optional with one n8n server' }, workflow: { type: 'string', description: 'Workflow name or id from n8n_workflows' }, active: { type: 'boolean' } }, required: ['workflow', 'active'] } },
-  { name: 'n8n_retry_execution', description: 'Retry a failed n8n execution. Needs the user\'s approval.', input_schema: { type: 'object', properties: { server: { type: 'string' }, execution: { type: 'string', description: 'Execution id from n8n_executions' } }, required: ['execution'] } },
-  { name: 'vercel_redeploy', description: 'Start a new Vercel build from a deployment (default: the one production points to). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project, deployment: { type: 'string', description: 'Deployment id from vercel_deployments' } }, required: ['project'] } },
-  { name: 'vercel_promote', description: 'Point production to a READY Vercel deployment: a preview, or an older production one to roll back. Needs the user\'s approval; can be undone.', input_schema: { type: 'object', properties: { project, deployment: { type: 'string' } }, required: ['project', 'deployment'] } },
-  { name: 'vpn_create_client', description: 'Create a WireGuard client on the VPS (wg-easy) and show its QR code to the user. Needs the user\'s approval.', input_schema: { type: 'object', properties: { server: { type: 'string', description: 'SSH server name; optional with one server' }, name: { type: 'string', description: 'Device name, e.g. "Phone of Léa"' }, expires: { type: 'string', description: 'Optional expiry date YYYY-MM-DD' } }, required: ['name'] } },
-  { name: 'backup_now', description: 'Run the VPS nightly backup now (databases and volumes set in DevForge). Needs the user\'s approval.', input_schema: { type: 'object', properties: { server: { type: 'string' } } } },
-  { name: 'github_rerun', description: 'Re-run the failed jobs of a GitHub Actions run of a project (run id from github_status). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project, run: { type: 'integer', description: 'Run id from github_status' } }, required: ['project', 'run'] } },
-  { name: 'env_add', description: 'Add a NEW key to a .env file of a project (existing keys are never changed). Needs the user\'s approval.', input_schema: { type: 'object', properties: { project, key: { type: 'string' }, value: { type: 'string' }, file: { type: 'string', description: 'Default .env' } }, required: ['project', 'key', 'value'] } },
-  { name: 'notes_task', description: 'A task of a project\'s notes (a checkbox): add one at the end of its tasks note, or check, reopen or remove one by its text (from project_notes). Needs the user\'s approval; can be undone.', input_schema: { type: 'object', properties: { project, action: { type: 'string', enum: ['add', 'done', 'reopen', 'remove'] }, text: { type: 'string', description: 'The new task (add)' }, task: { type: 'string', description: 'The task\'s text, as project_notes shows it (done, reopen, remove)' } }, required: ['project', 'action'] } },
-  { name: 'create_model', description: 'Create a model in a project\'s conception/ folder, shown on its Modeling tab. kind "mcd" (default, Merise conceptual model): source "database" reads the project\'s linked database (project_models says which; or give "connection") into an MCD and an MPD linked to it; source "description" draws the MCD from what the user described: entities with their attributes (Merise types: int, decimal, varchar, text, bool, date, datetime, time, uuid, json; mark the identifier, one is added when none is), associations named with a verb and their legs, each leg an entity and its cardinality (0,1 · 1,1 · 0,n · 1,n). kind "mpd" (physical model, on the project\'s engine): "database" as for an MCD, or "description" with "tables": columns with their SQL type (int, bigint, smallint, decimal, float, varchar, char, text, bool, date, datetime, time, uuid, json), pk, nullable (default true), unique, and "references" for a foreign key ("table" or "table.column"); a key id is added when none is. A diagram (kind usecase, class, sequence, flow, architecture; source "description"): "nodes" named and typed (usecase: actor, case, system — one system holds the cases; class: class, interface, enum with attributes and methods; sequence: actor, participant; flow: start, step, decision, io, end; architecture: client, gateway, service, database, queue, external) and "links" between them by name (usecase: association, include, extend, generalization; class: association, inheritance, implementation, composition, aggregation, dependency — from the child to its parent; sequence: message, return, in their order; flow: flow; architecture: link), laid out on their own. Ask what is unclear before calling. Needs the user\'s approval; can be undone (the files made are removed).', input_schema: { type: 'object', properties: {
-    project, kind: { type: 'string', enum: ['mcd', 'mpd', 'usecase', 'class', 'sequence', 'flow', 'architecture'], description: 'Default mcd' }, source: { type: 'string', enum: ['database', 'description'] }, name: { type: 'string', description: 'Model name, e.g. "Boutique" (default: the project\'s)' },
-    connection: { type: 'string', description: 'database: connection name from db_connections (default: the project\'s linked one)' },
-    entities: { type: 'array', description: 'description: the entities', items: { type: 'object', properties: { name: { type: 'string', description: 'e.g. CLIENT' }, attributes: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, type: { type: 'string' }, length: { type: 'integer', description: 'varchar only' }, identifier: { type: 'boolean' } }, required: ['name', 'type'] } } }, required: ['name'] } },
-    associations: { type: 'array', description: 'description: the associations between entities', items: { type: 'object', properties: { name: { type: 'string', description: 'A verb, e.g. PASSER' }, legs: { type: 'array', items: { type: 'object', properties: { entity: { type: 'string' }, card: { type: 'string', enum: ['0,1', '1,1', '0,n', '1,n'] } }, required: ['entity', 'card'] } }, attributes: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, type: { type: 'string' } }, required: ['name'] } } }, required: ['name', 'legs'] } },
-    tables: { type: 'array', description: 'mpd, description: the tables', items: { type: 'object', properties: { name: { type: 'string', description: 'e.g. article' }, columns: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, type: { type: 'string', description: 'Optional for a foreign key: the type of the key it points at' }, length: { type: 'integer', description: 'varchar, char; decimal: its precision' }, scale: { type: 'integer', description: 'decimal' }, pk: { type: 'boolean' }, nullable: { type: 'boolean' }, unique: { type: 'boolean' }, references: { type: 'string', description: 'A foreign key: "author" or "author.id"' } }, required: ['name'] } } }, required: ['name'] } },
-    nodes: { type: 'array', description: 'A diagram: its parts, each name unique', items: { type: 'object', properties: { name: { type: 'string' }, type: { type: 'string' }, attributes: { type: 'array', items: { type: 'string' }, description: 'class, interface: "- id: int"; enum: its values' }, methods: { type: 'array', items: { type: 'string' }, description: 'class, interface: "+ pay(): void"' }, steps: { type: 'array', items: { type: 'string' }, description: 'A use case\'s scenario' } }, required: ['name'] } },
-    links: { type: 'array', description: 'A diagram: the links between its parts, by their names', items: { type: 'object', properties: { from: { type: 'string' }, to: { type: 'string' }, type: { type: 'string' }, label: { type: 'string', description: 'e.g. a message\'s text, a flow\'s condition' } }, required: ['from', 'to'] } }
-  }, required: ['project', 'source'] } },
-  { name: 'update_packages', description: 'Update packages of a project (npm, pnpm, yarn, Composer; pip in the project\'s virtual environment, Poetry, uv, Pipenv, Cargo, Go, Bundler, pub — from project_packages; not .NET nor Java). to: "compatible" (default) stays within the declared range; "latest" moves to the latest version and rewrites the range (major versions may break). Needs the user\'s approval; can be undone (files put back, then reinstall).', input_schema: { type: 'object', properties: { project, packages: { type: 'array', items: { type: 'string' }, description: 'Package names, as declared' }, to: { type: 'string', enum: ['compatible', 'latest'] }, manifest: { type: 'string', description: 'Which manifest when several declare them: "package.json", "apps/web/package.json", "composer.json", "api/requirements.txt", "Cargo.toml"…' } }, required: ['project', 'packages'] } }
+  {
+    name: 'git_commit',
+    description: 'Commit changes of a project (all changed files unless "files" lists some). The user sees the files and message and must approve.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        project,
+        message: { type: 'string', description: 'Conventional commit message' },
+        files: { type: 'array', items: { type: 'string' }, description: 'Paths relative to the project root' }
+      },
+      required: ['project', 'message']
+    }
+  },
+  {
+    name: 'git_pull',
+    description: "Pull the current branch (fast-forward only). Needs the user's approval.",
+    input_schema: { type: 'object', properties: { project }, required: ['project'] }
+  },
+  {
+    name: 'git_push',
+    description: "Push the current branch to its upstream (never forced). Needs the user's approval.",
+    input_schema: { type: 'object', properties: { project }, required: ['project'] }
+  },
+  {
+    name: 'compose_action',
+    description: "Start (up), stop or restart the Docker Compose project of a saved project. Needs the user's approval.",
+    input_schema: { type: 'object', properties: { project, action: { type: 'string', enum: ['up', 'stop', 'restart'] } }, required: ['project', 'action'] }
+  },
+  {
+    name: 'container_action',
+    description: "Start, stop or restart one local Docker container. Needs the user's approval.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        container: { type: 'string', description: 'Name or id from docker_status' },
+        action: { type: 'string', enum: ['start', 'stop', 'restart'] }
+      },
+      required: ['container', 'action']
+    }
+  },
+  {
+    name: 'sql_execute',
+    description:
+      "Run ONE SQL statement on a saved connection: reads return up to 50 rows, writes need a WHERE. DROP, TRUNCATE and the like are refused. Needs the user's approval.",
+    input_schema: {
+      type: 'object',
+      properties: { connection: { type: 'string', description: 'Connection name from db_connections' }, sql: { type: 'string' } },
+      required: ['connection', 'sql']
+    }
+  },
+  {
+    name: 'free_port',
+    description: "Free a local port by ending the process listening on it (never a Windows service). Needs the user's approval.",
+    input_schema: { type: 'object', properties: { port: { type: 'integer' } }, required: ['port'] }
+  },
+  {
+    name: 'run_script',
+    description: "Start a package.json script of a project in the background (dev server, build, tests). Needs the user's approval.",
+    input_schema: { type: 'object', properties: { project, script: { type: 'string' } }, required: ['project', 'script'] }
+  },
+  {
+    name: 'n8n_set_workflow',
+    description: "Activate or deactivate an n8n workflow. Needs the user's approval; can be undone.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        server: { type: 'string', description: 'SSH server name; optional with one n8n server' },
+        workflow: { type: 'string', description: 'Workflow name or id from n8n_workflows' },
+        active: { type: 'boolean' }
+      },
+      required: ['workflow', 'active']
+    }
+  },
+  {
+    name: 'n8n_retry_execution',
+    description: "Retry a failed n8n execution. Needs the user's approval.",
+    input_schema: {
+      type: 'object',
+      properties: { server: { type: 'string' }, execution: { type: 'string', description: 'Execution id from n8n_executions' } },
+      required: ['execution']
+    }
+  },
+  {
+    name: 'vercel_redeploy',
+    description: "Start a new Vercel build from a deployment (default: the one production points to). Needs the user's approval.",
+    input_schema: {
+      type: 'object',
+      properties: { project, deployment: { type: 'string', description: 'Deployment id from vercel_deployments' } },
+      required: ['project']
+    }
+  },
+  {
+    name: 'vercel_promote',
+    description: "Point production to a READY Vercel deployment: a preview, or an older production one to roll back. Needs the user's approval; can be undone.",
+    input_schema: { type: 'object', properties: { project, deployment: { type: 'string' } }, required: ['project', 'deployment'] }
+  },
+  {
+    name: 'vpn_create_client',
+    description: "Create a WireGuard client on the VPS (wg-easy) and show its QR code to the user. Needs the user's approval.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        server: { type: 'string', description: 'SSH server name; optional with one server' },
+        name: { type: 'string', description: 'Device name, e.g. "Phone of Léa"' },
+        expires: { type: 'string', description: 'Optional expiry date YYYY-MM-DD' }
+      },
+      required: ['name']
+    }
+  },
+  {
+    name: 'backup_now',
+    description: "Run the VPS nightly backup now (databases and volumes set in DevForge). Needs the user's approval.",
+    input_schema: { type: 'object', properties: { server: { type: 'string' } } }
+  },
+  {
+    name: 'github_rerun',
+    description: "Re-run the failed jobs of a GitHub Actions run of a project (run id from github_status). Needs the user's approval.",
+    input_schema: { type: 'object', properties: { project, run: { type: 'integer', description: 'Run id from github_status' } }, required: ['project', 'run'] }
+  },
+  {
+    name: 'env_add',
+    description: "Add a NEW key to a .env file of a project (existing keys are never changed). Needs the user's approval.",
+    input_schema: {
+      type: 'object',
+      properties: { project, key: { type: 'string' }, value: { type: 'string' }, file: { type: 'string', description: 'Default .env' } },
+      required: ['project', 'key', 'value']
+    }
+  },
+  {
+    name: 'notes_task',
+    description:
+      "A task of a project's notes (a checkbox): add one at the end of its tasks note, or check, reopen or remove one by its text (from project_notes). Needs the user's approval; can be undone.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        project,
+        action: { type: 'string', enum: ['add', 'done', 'reopen', 'remove'] },
+        text: { type: 'string', description: 'The new task (add)' },
+        task: { type: 'string', description: "The task's text, as project_notes shows it (done, reopen, remove)" }
+      },
+      required: ['project', 'action']
+    }
+  },
+  {
+    name: 'create_model',
+    description:
+      'Create a model in a project\'s conception/ folder, shown on its Modeling tab. kind "mcd" (default, Merise conceptual model): source "database" reads the project\'s linked database (project_models says which; or give "connection") into an MCD and an MPD linked to it; source "description" draws the MCD from what the user described: entities with their attributes (Merise types: int, decimal, varchar, text, bool, date, datetime, time, uuid, json; mark the identifier, one is added when none is), associations named with a verb and their legs, each leg an entity and its cardinality (0,1 · 1,1 · 0,n · 1,n). kind "mpd" (physical model, on the project\'s engine): "database" as for an MCD, or "description" with "tables": columns with their SQL type (int, bigint, smallint, decimal, float, varchar, char, text, bool, date, datetime, time, uuid, json), pk, nullable (default true), unique, and "references" for a foreign key ("table" or "table.column"); a key id is added when none is. A diagram (kind usecase, class, sequence, flow, architecture; source "description"): "nodes" named and typed (usecase: actor, case, system — one system holds the cases; class: class, interface, enum with attributes and methods; sequence: actor, participant; flow: start, step, decision, io, end; architecture: client, gateway, service, database, queue, external) and "links" between them by name (usecase: association, include, extend, generalization; class: association, inheritance, implementation, composition, aggregation, dependency — from the child to its parent; sequence: message, return, in their order; flow: flow; architecture: link), laid out on their own. Ask what is unclear before calling. Needs the user\'s approval; can be undone (the files made are removed).',
+    input_schema: {
+      type: 'object',
+      properties: {
+        project,
+        kind: { type: 'string', enum: ['mcd', 'mpd', 'usecase', 'class', 'sequence', 'flow', 'architecture'], description: 'Default mcd' },
+        source: { type: 'string', enum: ['database', 'description'] },
+        name: { type: 'string', description: 'Model name, e.g. "Boutique" (default: the project\'s)' },
+        connection: { type: 'string', description: "database: connection name from db_connections (default: the project's linked one)" },
+        entities: {
+          type: 'array',
+          description: 'description: the entities',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'e.g. CLIENT' },
+              attributes: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    type: { type: 'string' },
+                    length: { type: 'integer', description: 'varchar only' },
+                    identifier: { type: 'boolean' }
+                  },
+                  required: ['name', 'type']
+                }
+              }
+            },
+            required: ['name']
+          }
+        },
+        associations: {
+          type: 'array',
+          description: 'description: the associations between entities',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'A verb, e.g. PASSER' },
+              legs: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: { entity: { type: 'string' }, card: { type: 'string', enum: ['0,1', '1,1', '0,n', '1,n'] } },
+                  required: ['entity', 'card']
+                }
+              },
+              attributes: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, type: { type: 'string' } }, required: ['name'] } }
+            },
+            required: ['name', 'legs']
+          }
+        },
+        tables: {
+          type: 'array',
+          description: 'mpd, description: the tables',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'e.g. article' },
+              columns: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    type: { type: 'string', description: 'Optional for a foreign key: the type of the key it points at' },
+                    length: { type: 'integer', description: 'varchar, char; decimal: its precision' },
+                    scale: { type: 'integer', description: 'decimal' },
+                    pk: { type: 'boolean' },
+                    nullable: { type: 'boolean' },
+                    unique: { type: 'boolean' },
+                    references: { type: 'string', description: 'A foreign key: "author" or "author.id"' }
+                  },
+                  required: ['name']
+                }
+              }
+            },
+            required: ['name']
+          }
+        },
+        nodes: {
+          type: 'array',
+          description: 'A diagram: its parts, each name unique',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              type: { type: 'string' },
+              attributes: { type: 'array', items: { type: 'string' }, description: 'class, interface: "- id: int"; enum: its values' },
+              methods: { type: 'array', items: { type: 'string' }, description: 'class, interface: "+ pay(): void"' },
+              steps: { type: 'array', items: { type: 'string' }, description: "A use case's scenario" }
+            },
+            required: ['name']
+          }
+        },
+        links: {
+          type: 'array',
+          description: 'A diagram: the links between its parts, by their names',
+          items: {
+            type: 'object',
+            properties: {
+              from: { type: 'string' },
+              to: { type: 'string' },
+              type: { type: 'string' },
+              label: { type: 'string', description: "e.g. a message's text, a flow's condition" }
+            },
+            required: ['from', 'to']
+          }
+        }
+      },
+      required: ['project', 'source']
+    }
+  },
+  {
+    name: 'update_packages',
+    description:
+      'Update packages of a project (npm, pnpm, yarn, Composer; pip in the project\'s virtual environment, Poetry, uv, Pipenv, Cargo, Go, Bundler, pub — from project_packages; not .NET nor Java). to: "compatible" (default) stays within the declared range; "latest" moves to the latest version and rewrites the range (major versions may break). Needs the user\'s approval; can be undone (files put back, then reinstall).',
+    input_schema: {
+      type: 'object',
+      properties: {
+        project,
+        packages: { type: 'array', items: { type: 'string' }, description: 'Package names, as declared' },
+        to: { type: 'string', enum: ['compatible', 'latest'] },
+        manifest: {
+          type: 'string',
+          description:
+            'Which manifest when several declare them: "package.json", "apps/web/package.json", "composer.json", "api/requirements.txt", "Cargo.toml"…'
+        }
+      },
+      required: ['project', 'packages']
+    }
+  }
 ]
 
 const ACTION_NAMES = new Set(ACTION_TOOLS.map(t => t.name))
@@ -109,7 +361,12 @@ const cap = (s: string, max = 3000) => (s.length > max ? `${s.slice(0, max)}\n�
  * permissions and file access are refused. Returns whether it only reads.
  */
 export function checkSql(raw: string): { sql: string; readOnly: boolean } {
-  const sql = raw.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/--[^\n]*/g, ' ').trim().replace(/;\s*$/, '').trim()
+  const sql = raw
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/--[^\n]*/g, ' ')
+    .trim()
+    .replace(/;\s*$/, '')
+    .trim()
   if (!sql) throw new ActionRefused('Empty SQL')
   if (/;/.test(sql.replace(/'(?:[^']|'')*'|"(?:[^"]|"")*"/g, ''))) throw new ActionRefused('One SQL statement at a time')
   const first = sql.match(/^\w+/)?.[0].toUpperCase() ?? ''
@@ -117,7 +374,8 @@ export function checkSql(raw: string): { sql: string; readOnly: boolean } {
     throw new ActionRefused(`${first} statements are refused: run them yourself from the Database page`)
   }
   if (/\b(INTO\s+OUTFILE|LOAD_FILE|LOAD\s+DATA|COPY\b[\s\S]*\bPROGRAM)\b/i.test(sql)) throw new ActionRefused('File access from SQL is refused')
-  if (['SELECT', 'WITH', 'EXPLAIN', 'SHOW', 'DESCRIBE', 'DESC'].includes(first) && !/\b(INSERT|UPDATE|DELETE|MERGE)\b/i.test(sql)) return { sql, readOnly: true }
+  if (['SELECT', 'WITH', 'EXPLAIN', 'SHOW', 'DESCRIBE', 'DESC'].includes(first) && !/\b(INSERT|UPDATE|DELETE|MERGE)\b/i.test(sql))
+    return { sql, readOnly: true }
   if (first === 'PRAGMA' && !sql.includes('=')) return { sql, readOnly: true }
   if ((first === 'DELETE' || first === 'UPDATE') && !/\bWHERE\b/i.test(sql)) throw new ActionRefused(`${first} without WHERE is refused`)
   return { sql, readOnly: false }
@@ -137,7 +395,8 @@ async function commitPlan(p: Project, message: string, files: unknown): Promise<
   return {
     title: `Commit · ${p.name}`,
     preview: `${message}\n\n${chosen.map(f => `  ${f}`).join('\n')}`,
-    reversible: true, safe: true,
+    reversible: true,
+    safe: true,
     run: async () => {
       const r = await gitCommit(p.path, message, chosen)
       if (!r.ok) throw new Error(r.output)
@@ -156,8 +415,13 @@ async function pushPlan(p: Project): Promise<ActionPlan> {
   return {
     title: `Push · ${p.name} (${d.branch})`,
     preview: log,
-    reversible: false, safe: false,
-    run: async () => { const r = await gitPush(p.path); if (!r.ok) throw new Error(r.output); return { output: r.output } }
+    reversible: false,
+    safe: false,
+    run: async () => {
+      const r = await gitPush(p.path)
+      if (!r.ok) throw new Error(r.output)
+      return { output: r.output }
+    }
   }
 }
 
@@ -167,8 +431,13 @@ async function pullPlan(p: Project): Promise<ActionPlan> {
   return {
     title: `Pull · ${p.name} (${d.branch})`,
     preview: `git pull --ff-only · ${d.behind} commit(s) behind${d.changes ? ` · ${d.changes} local change(s)` : ''}`,
-    reversible: false, safe: false,
-    run: async () => { const r = await gitPull(p.path); if (!r.ok) throw new Error(r.output); return { output: r.output } }
+    reversible: false,
+    safe: false,
+    run: async () => {
+      const r = await gitPull(p.path)
+      if (!r.ok) throw new Error(r.output)
+      return { output: r.output }
+    }
   }
 }
 
@@ -180,7 +449,8 @@ function composePlan(p: Project, action: unknown): ActionPlan {
   return {
     title: `Compose ${action} · ${name}`,
     preview: `docker compose ${action === 'up' ? 'up -d' : action}\n${dir}`,
-    reversible: action !== 'restart', safe: action !== 'restart',
+    reversible: action !== 'restart',
+    safe: action !== 'restart',
     run: async () => {
       const r = await composeAction({ name, dir, configFiles: '' }, action)
       if (!r.ok) throw new Error(r.output)
@@ -196,7 +466,8 @@ async function containerPlan(ref: string, action: unknown): Promise<ActionPlan> 
   return {
     title: `Container ${action} · ${c.name}`,
     preview: `docker ${action} ${c.name}\n${c.image} · ${c.status}`,
-    reversible: action !== 'restart', safe: false,
+    reversible: action !== 'restart',
+    safe: false,
     run: async () => {
       const r = await containerAction(c.id, action)
       if (!r.ok) throw new Error(r.output)
@@ -212,7 +483,8 @@ function sqlPlan(connection: string, raw: string): ActionPlan {
   return {
     title: `${readOnly ? 'SQL read' : 'SQL write'} · ${conn.name}`,
     preview: sql,
-    reversible: false, safe: readOnly,
+    reversible: false,
+    safe: readOnly,
     run: async () => {
       const r = await dbQuery(conn.id, sql)
       if (r.error) throw new Error(r.error)
@@ -230,8 +502,12 @@ async function freePortPlan(port: unknown): Promise<ActionPlan> {
   return {
     title: `Free port ${port}`,
     preview: `Stop ${owner.processName} (PID ${owner.pid}) and its child processes`,
-    reversible: false, safe: false,
-    run: async () => { const p = await freePort(port, owner.pid ?? undefined); return { output: `${p.processName} (PID ${p.pid}) stopped` } }
+    reversible: false,
+    safe: false,
+    run: async () => {
+      const p = await freePort(port, owner.pid ?? undefined)
+      return { output: `${p.processName} (PID ${p.pid}) stopped` }
+    }
   }
 }
 
@@ -245,7 +521,11 @@ function scriptPlan(p: Project, script: string): ActionPlan {
   // The command goes through a shell: only a real script of this package.json, with a plain name
   // (readScripts keeps those only), in a checked folder; one every object has (toString) is not one
   let scripts: Record<string, string> = {}
-  try { scripts = readScripts(p.path) } catch { /* a folder that cannot be checked */ }
+  try {
+    scripts = readScripts(p.path)
+  } catch {
+    /* a folder that cannot be checked */
+  }
   if (!Object.hasOwn(scripts, script)) throw new ToolError(`No "${script}" script in ${p.name}. Scripts: ${Object.keys(scripts).join(', ') || 'none'}`)
   // Known package managers only (loadProjects already keeps those; the project may come from elsewhere)
   const command = `${managerOf(p.packageManager)} run ${script}`
@@ -260,12 +540,17 @@ function scriptPlan(p: Project, script: string): ActionPlan {
   return {
     title: `Run ${script} · ${p.name}`,
     preview: [command, scripts[script], ...hooks.map(h => `${h}: ${scripts[h]}`)].join('\n'),
-    reversible: longRunning, safe: longRunning,
+    reversible: longRunning,
+    safe: longRunning,
     run: async () => {
       processManager.start(key, command, p.path)
       // A few seconds of output tell whether it started
       await new Promise(r => setTimeout(r, 4000))
-      const lines = processManager.logs(key).slice(-15).map(l => l.text).join('\n')
+      const lines = processManager
+        .logs(key)
+        .slice(-15)
+        .map(l => l.text)
+        .join('\n')
       // Stopping undoes a server; it does not undo what a build or a deploy already did
       return { output: `${processManager.isRunning(key) ? 'Running' : 'Exited'}\n${lines}`, undo: longRunning ? { type: 'stop-process', key } : undefined }
     }
@@ -278,12 +563,14 @@ async function envPlan(p: Project, key: string, value: unknown, file: unknown): 
   if (!ENV_KEY.test(key)) throw new ToolError('Invalid variable name')
   if (typeof value !== 'string') throw new ToolError('Missing "value"')
   const env = await readEnvProject(p.path)
-  if (env.files.find(f => f.name === name)?.values[key] !== undefined) throw new ActionRefused(`${key} already exists in ${name}: change it yourself from the Env variables page`)
+  if (env.files.find(f => f.name === name)?.values[key] !== undefined)
+    throw new ActionRefused(`${key} already exists in ${name}: change it yourself from the Env variables page`)
   return {
     title: `Add ${key} · ${p.name}`,
     // The value is masked: it may be a secret
     preview: `${name}\n${key}=${'•'.repeat(Math.min(12, Math.max(4, value.length)))}`,
-    reversible: true, safe: true,
+    reversible: true,
+    safe: true,
     run: async () => {
       await writeEnvValues(p.path, name, { [key]: value })
       return { output: `${key} added to ${name}`, undo: { type: 'env-remove', path: p.path, file: name, key } }
@@ -303,10 +590,14 @@ async function n8nTogglePlan(server: unknown, ref: string, active: unknown): Pro
   return {
     title: `${active ? 'Activate' : 'Deactivate'} n8n workflow · ${wf.name}`,
     preview: `${s.name} · workflow ${wf.id}\n${wf.active ? 'active' : 'inactive'} → ${active ? 'active' : 'inactive'}`,
-    reversible: true, safe: true,
+    reversible: true,
+    safe: true,
     run: async () => {
       const u = await n8nSetActive(s.id, wf.id, active)
-      return { output: `${u.name} is now ${u.active ? 'active' : 'inactive'}`, undo: { type: 'n8n-active', connectionId: s.id, workflowId: wf.id, active: !active } }
+      return {
+        output: `${u.name} is now ${u.active ? 'active' : 'inactive'}`,
+        undo: { type: 'n8n-active', connectionId: s.id, workflowId: wf.id, active: !active }
+      }
     }
   }
 }
@@ -317,7 +608,8 @@ function n8nRetryPlan(server: unknown, execution: string): ActionPlan {
   return {
     title: `Retry n8n execution #${execution}`,
     preview: `${s.name} · POST /executions/${execution}/retry\nThe workflow runs again with the same input.`,
-    reversible: false, safe: false,
+    reversible: false,
+    safe: false,
     run: async () => ({ output: await retryExecution(s.id, execution).catch(cloudError) })
   }
 }
@@ -325,13 +617,17 @@ function n8nRetryPlan(server: unknown, execution: string): ActionPlan {
 async function vercelRedeployPlan(p: Project, ref: unknown): Promise<ActionPlan> {
   const list = await vercelDeployments(p.id).catch(cloudError)
   const asked = typeof ref === 'string' && ref.trim() ? ref.trim() : null
-  const d = asked ? list.find(x => x.id === asked) : list.find(x => x.current) ?? list[0]
+  const d = asked ? list.find(x => x.id === asked) : (list.find(x => x.current) ?? list[0])
   if (!d) throw new ToolError(asked ? `Unknown deployment "${asked}"` : 'No deployment to rebuild')
   return {
     title: `Redeploy on Vercel · ${p.name}`,
     preview: `${d.target ?? 'preview'} · ${d.id}${d.branch ? ` · ${d.branch}` : ''}${d.commitMessage ? `\n"${d.commitMessage}"` : ''}\nA new build starts from the same source.`,
-    reversible: false, safe: false,
-    run: async () => { const n = await vercelRedeploy(p.id, d.id).catch(cloudError); return { output: `New deployment ${n.id} (${n.state}) ${n.url}` } }
+    reversible: false,
+    safe: false,
+    run: async () => {
+      const n = await vercelRedeploy(p.id, d.id).catch(cloudError)
+      return { output: `New deployment ${n.id} (${n.state}) ${n.url}` }
+    }
   }
 }
 
@@ -345,10 +641,14 @@ async function vercelPromotePlan(p: Project, ref: string): Promise<ActionPlan> {
   return {
     title: `${d.target === 'production' ? 'Roll back' : 'Promote'} on Vercel · ${p.name}`,
     preview: `Production → ${d.id}${d.commitMessage ? ` "${d.commitMessage}"` : ''}${previous ? `\nwas ${previous.id}` : ''}`,
-    reversible: !!previous, safe: false,
+    reversible: !!previous,
+    safe: false,
     run: async () => {
       await vercelPromote(p.id, d.id).catch(cloudError)
-      return { output: `Production now points to ${d.url}`, undo: previous ? { type: 'vercel-promote', projectId: p.id, deploymentId: previous.id } : undefined }
+      return {
+        output: `Production now points to ${d.url}`,
+        undo: previous ? { type: 'vercel-promote', projectId: p.id, deploymentId: previous.id } : undefined
+      }
     }
   }
 }
@@ -361,12 +661,15 @@ function vpnClientPlan(server: unknown, name: string, expires: unknown): ActionP
   return {
     title: `New VPN client · ${name}`,
     preview: `${s.name} · wg-easy\nA WireGuard device "${name}"${exp ? `, valid until ${exp}` : ', permanent'}. Its QR code opens on the VPN page.`,
-    reversible: false, safe: false,
+    reversible: false,
+    safe: false,
     run: async () => {
       const id = await vpnCreate(s.id, name, exp).catch(cloudError)
       // The window opens the VPN page on this client's QR code
       for (const w of BrowserWindow.getAllWindows()) if (!w.isDestroyed()) w.webContents.send('vpn:show-qr', { connectionId: s.id, clientId: id })
-      return { output: `Client "${name}" created (id ${id}) on ${s.name}. Its QR code is shown on the VPN page; it holds the private key, so only the user scans it.` }
+      return {
+        output: `Client "${name}" created (id ${id}) on ${s.name}. Its QR code is shown on the VPN page; it holds the private key, so only the user scans it.`
+      }
     }
   }
 }
@@ -378,10 +681,13 @@ function backupNowPlan(server: unknown): ActionPlan {
   return {
     title: `Back up ${s.name} now`,
     preview: `${[...plan.databases.map(d => `database ${d.container}`), ...plan.volumes.map(v => `volume ${v}`)].join(', ')}\nSame as the nightly run; old backups rotate as usual.`,
-    reversible: false, safe: false,
+    reversible: false,
+    safe: false,
     run: async () => {
       let log = ''
-      const r = await backupRunNow(s.id, t => { log += t }).catch(cloudError)
+      const r = await backupRunNow(s.id, t => {
+        log += t
+      }).catch(cloudError)
       return { output: cap(`${r.ok ? 'Backup done' : 'Backup FAILED'}\n${log.trim()}`, 1500) }
     }
   }
@@ -393,44 +699,68 @@ async function githubRerunPlan(p: Project, run: unknown): Promise<ActionPlan> {
   const st = await githubStatus(p.path).catch(cloudError)
   const r = st.runs.find(x => x.id === id)
   if (!r) throw new ToolError(`Run ${id} is not among the last runs of ${st.repo.owner}/${st.repo.repo}`)
-  if (r.status !== 'completed' || r.conclusion !== 'failure') throw new ActionRefused(`Run ${id} did not fail (${r.status}${r.conclusion ? `, ${r.conclusion}` : ''})`)
+  if (r.status !== 'completed' || r.conclusion !== 'failure')
+    throw new ActionRefused(`Run ${id} did not fail (${r.status}${r.conclusion ? `, ${r.conclusion}` : ''})`)
   return {
     title: `Re-run failed jobs · ${r.name} #${r.number}`,
     preview: `${st.repo.owner}/${st.repo.repo} · ${r.branch}\n"${r.title}"`,
-    reversible: false, safe: false,
-    run: async () => { await rerunFailed(p.path, id).catch(cloudError); return { output: `The failed jobs of ${r.name} #${r.number} run again: ${r.url}` } }
+    reversible: false,
+    safe: false,
+    run: async () => {
+      await rerunFailed(p.path, id).catch(cloudError)
+      return { output: `The failed jobs of ${r.name} #${r.number} run again: ${r.url}` }
+    }
   }
 }
 
 /** Validates a tool call and describes it; throws ToolError (bad input) or ActionRefused (guard rail) */
 export async function planAction(name: string, input: Record<string, unknown>): Promise<ActionPlan> {
   switch (name) {
-    case 'git_commit': return commitPlan(findProject(input.project), str(input.message, 'message'), input.files)
-    case 'git_push': return pushPlan(findProject(input.project))
-    case 'git_pull': return pullPlan(findProject(input.project))
-    case 'compose_action': return composePlan(findProject(input.project), input.action)
-    case 'container_action': return containerPlan(str(input.container, 'container'), input.action)
-    case 'sql_execute': return sqlPlan(str(input.connection, 'connection'), str(input.sql, 'sql'))
-    case 'free_port': return freePortPlan(input.port)
-    case 'run_script': return scriptPlan(findProject(input.project), str(input.script, 'script'))
-    case 'env_add': return envPlan(findProject(input.project), str(input.key, 'key'), input.value, input.file)
+    case 'git_commit':
+      return commitPlan(findProject(input.project), str(input.message, 'message'), input.files)
+    case 'git_push':
+      return pushPlan(findProject(input.project))
+    case 'git_pull':
+      return pullPlan(findProject(input.project))
+    case 'compose_action':
+      return composePlan(findProject(input.project), input.action)
+    case 'container_action':
+      return containerPlan(str(input.container, 'container'), input.action)
+    case 'sql_execute':
+      return sqlPlan(str(input.connection, 'connection'), str(input.sql, 'sql'))
+    case 'free_port':
+      return freePortPlan(input.port)
+    case 'run_script':
+      return scriptPlan(findProject(input.project), str(input.script, 'script'))
+    case 'env_add':
+      return envPlan(findProject(input.project), str(input.key, 'key'), input.value, input.file)
     // Removing a task always asks: the notes may come from a repository written by others
-    case 'notes_task': return { ...taskPlan(findProject(input.project), input.action, input.text, input.task), reversible: true, safe: input.action !== 'remove' }
+    case 'notes_task':
+      return { ...taskPlan(findProject(input.project), input.action, input.text, input.task), reversible: true, safe: input.action !== 'remove' }
     case 'update_packages': {
       // Changes the dependencies and reaches the registry: never without a click
       const plan = await updatePackagesPlan(findProject(input.project), input.packages, input.to, input.manifest)
       return { ...plan, reversible: true, safe: false }
     }
-    case 'n8n_set_workflow': return n8nTogglePlan(input.server, str(input.workflow, 'workflow'), input.active)
-    case 'n8n_retry_execution': return n8nRetryPlan(input.server, str(input.execution, 'execution'))
-    case 'vercel_redeploy': return vercelRedeployPlan(findProject(input.project), input.deployment)
-    case 'vercel_promote': return vercelPromotePlan(findProject(input.project), str(input.deployment, 'deployment'))
-    case 'vpn_create_client': return vpnClientPlan(input.server, str(input.name, 'name'), input.expires)
-    case 'backup_now': return backupNowPlan(input.server)
-    case 'github_rerun': return githubRerunPlan(findProject(input.project), input.run)
+    case 'n8n_set_workflow':
+      return n8nTogglePlan(input.server, str(input.workflow, 'workflow'), input.active)
+    case 'n8n_retry_execution':
+      return n8nRetryPlan(input.server, str(input.execution, 'execution'))
+    case 'vercel_redeploy':
+      return vercelRedeployPlan(findProject(input.project), input.deployment)
+    case 'vercel_promote':
+      return vercelPromotePlan(findProject(input.project), str(input.deployment, 'deployment'))
+    case 'vpn_create_client':
+      return vpnClientPlan(input.server, str(input.name, 'name'), input.expires)
+    case 'backup_now':
+      return backupNowPlan(input.server)
+    case 'github_rerun':
+      return githubRerunPlan(findProject(input.project), input.run)
     // Writes new files only, removed by the undo
-    case 'create_model': return { ...(await createModelPlan(findProject(input.project), input)), reversible: true, safe: false }
-    default: throw new ToolError(`Unknown action ${name}`)
+    case 'create_model':
+      return { ...(await createModelPlan(findProject(input.project), input)), reversible: true, safe: false }
+    default:
+      throw new ToolError(`Unknown action ${name}`)
   }
 }
 
@@ -441,9 +771,19 @@ const waiting = new Map<string, (approve: boolean) => void>()
 /** Resolves when the user clicks, or false when the answer is stopped */
 export function waitForDecision(id: string, signal: AbortSignal): Promise<boolean> {
   return new Promise(resolve => {
-    if (signal.aborted) { resolve(false); return }
+    if (signal.aborted) {
+      resolve(false)
+      return
+    }
     waiting.set(id, resolve)
-    signal.addEventListener('abort', () => { waiting.delete(id); resolve(false) }, { once: true })
+    signal.addEventListener(
+      'abort',
+      () => {
+        waiting.delete(id)
+        resolve(false)
+      },
+      { once: true }
+    )
   })
 }
 
@@ -455,14 +795,20 @@ export function decideAction(id: string, approve: boolean): void {
 
 // ─── Journal and undo ─────────────────────────────────────────────────────────
 
-interface StoredAction extends Omit<AssistantAction, 'canUndo'> { undo?: UndoSpec }
+interface StoredAction extends Omit<AssistantAction, 'canUndo'> {
+  undo?: UndoSpec
+}
 
 const MAX_JOURNAL = 200
 const journalPath = () => join(app.getPath('userData'), 'assistant', 'actions.json')
 
 function readJournal(): StoredAction[] {
   if (!existsSync(journalPath())) return []
-  try { return JSON.parse(readFileSync(journalPath(), 'utf-8')) as StoredAction[] } catch { return [] }
+  try {
+    return JSON.parse(readFileSync(journalPath(), 'utf-8')) as StoredAction[]
+  } catch {
+    return []
+  }
 }
 
 const publicAction = ({ undo, ...a }: StoredAction): AssistantAction => ({ ...a, canUndo: !!undo && a.status === 'done' })
@@ -486,16 +832,38 @@ async function runUndo(u: UndoSpec): Promise<string> {
       if (!r.ok) throw new Error((r.stdout + r.stderr).trim())
       return 'Commit undone, changes kept staged'
     }
-    case 'compose': { const r = await composeAction({ name: u.name, dir: u.dir, configFiles: '' }, u.action); if (!r.ok) throw new Error(r.output); return `compose ${u.action}` }
-    case 'container': { const r = await containerAction(u.id, u.action); if (!r.ok) throw new Error(r.output); return `docker ${u.action}` }
-    case 'env-remove': await writeEnvValues(u.path, u.file, { [u.key]: null }); return `${u.key} removed from ${u.file}`
-    case 'stop-process': await processManager.stop(u.key); return 'Stopped'
-    case 'n8n-active': { const w = await n8nSetActive(u.connectionId, u.workflowId, u.active); return `${w.name} ${w.active ? 'active' : 'inactive'} again` }
-    case 'vercel-promote': await vercelPromote(u.projectId, u.deploymentId); return 'Production points back to the previous deployment'
-    case 'task-remove': case 'task-done': case 'task-restore': return undoNotes(u)
-    case 'models-remove': return undoModels(u)
+    case 'compose': {
+      const r = await composeAction({ name: u.name, dir: u.dir, configFiles: '' }, u.action)
+      if (!r.ok) throw new Error(r.output)
+      return `compose ${u.action}`
+    }
+    case 'container': {
+      const r = await containerAction(u.id, u.action)
+      if (!r.ok) throw new Error(r.output)
+      return `docker ${u.action}`
+    }
+    case 'env-remove':
+      await writeEnvValues(u.path, u.file, { [u.key]: null })
+      return `${u.key} removed from ${u.file}`
+    case 'stop-process':
+      await processManager.stop(u.key)
+      return 'Stopped'
+    case 'n8n-active': {
+      const w = await n8nSetActive(u.connectionId, u.workflowId, u.active)
+      return `${w.name} ${w.active ? 'active' : 'inactive'} again`
+    }
+    case 'vercel-promote':
+      await vercelPromote(u.projectId, u.deploymentId)
+      return 'Production points back to the previous deployment'
+    case 'task-remove':
+    case 'task-done':
+    case 'task-restore':
+      return undoNotes(u)
+    case 'models-remove':
+      return undoModels(u)
     case 'packages-restore': {
-      if (!(await restoreAndInstall(u.path, u.dir, u.file, { store: u.store, files: u.files }))) throw new Error('Files put back, but the install failed: run it from the Packages tab')
+      if (!(await restoreAndInstall(u.path, u.dir, u.file, { store: u.store, files: u.files })))
+        throw new Error('Files put back, but the install failed: run it from the Packages tab')
       return `${u.file === 'composer.json' ? 'composer.json and composer.lock' : u.file === 'package.json' ? 'package.json and the lockfile' : `${u.file} and its lockfile`} put back, dependencies reinstalled`
     }
   }
@@ -505,7 +873,12 @@ export async function undoAction(id: string): Promise<AssistantAction> {
   const entry = readJournal().find(a => a.id === id)
   if (!entry?.undo || entry.status !== 'done') throw new Error('This action cannot be undone')
   const output = await runUndo(entry.undo)
-  const next: StoredAction = { ...entry, status: 'undone' as AssistantActionStatus, output: cap(`${entry.output ?? ''}\n↩ ${output}`.trim(), 2000), undo: undefined }
+  const next: StoredAction = {
+    ...entry,
+    status: 'undone' as AssistantActionStatus,
+    output: cap(`${entry.output ?? ''}\n↩ ${output}`.trim(), 2000),
+    undo: undefined
+  }
   recordAction(next)
   return publicAction(next)
 }

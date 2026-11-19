@@ -4,7 +4,7 @@ import { freePort, githubLogin, previousVolumes } from '../services/projects/pro
 import { phpEnable, phpStatus } from '../services/projects/phpCheck'
 
 const DATABASES: SetupDatabase[] = ['none', 'postgres', 'mysql', 'sqlite']
-const db = (v: unknown): SetupDatabase => DATABASES.includes(v as SetupDatabase) ? v as SetupDatabase : 'none'
+const db = (v: unknown): SetupDatabase => (DATABASES.includes(v as SetupDatabase) ? (v as SetupDatabase) : 'none')
 
 export function registerSetupHandlers(): void {
   ipcMain.handle('setup:free-port', (_e, start: unknown) => freePort(Number(start)))

@@ -42,7 +42,8 @@ export function parseSshConnection(v: unknown): SSHConnection {
   const authMethod = c.authMethod as SSHAuthMethod
   if (!AUTH_METHODS.includes(authMethod)) throw invalid('authMethod')
   // Passwords may hold any printable character, spaces included
-  if (c.password !== undefined && c.password !== null && (typeof c.password !== 'string' || c.password.length > 1024 || c.password.includes('\0'))) throw invalid('password')
+  if (c.password !== undefined && c.password !== null && (typeof c.password !== 'string' || c.password.length > 1024 || c.password.includes('\0')))
+    throw invalid('password')
   const password = authMethod === 'password' && typeof c.password === 'string' && c.password ? c.password : undefined
   const keyPath = text(c.privateKeyPath, 'privateKeyPath', 4096).trim()
   if (isNetworkPath(keyPath)) throw invalid('privateKeyPath')
@@ -50,7 +51,14 @@ export function parseSshConnection(v: unknown): SSHConnection {
   if (color && !/^#[0-9a-f]{3,8}$/i.test(color)) throw invalid('color')
   const createdAt = text(c.createdAt, 'createdAt', 64)
   return {
-    id, name, host, port, username, authMethod, color, createdAt,
+    id,
+    name,
+    host,
+    port,
+    username,
+    authMethod,
+    color,
+    createdAt,
     ...(password ? { password } : {}),
     ...(authMethod === 'privateKey' && keyPath ? { privateKeyPath: keyPath } : {})
   }
@@ -59,17 +67,17 @@ export function parseSshConnection(v: unknown): SSHConnection {
 export function registerSshHandlers(mainWindow: BrowserWindow): void {
   sshService.setCallbacks(
     (sessionId, data) => mainWindow.webContents.send('ssh:data', sessionId, data),
-    (status)          => mainWindow.webContents.send('ssh:status', status)
+    status => mainWindow.webContents.send('ssh:status', status)
   )
 
   // The pages keeping the list (useSshConnections) read it again
   sshConnectionsEvents.on('changed', () => dataChanged('ssh'))
 
-  ipcMain.handle('ssh:get-connections',    async () => loadSshConnections())
-  ipcMain.handle('ssh:save-connection',    async (_e, conn: unknown) => saveServer(parseSshConnection(conn)))
-  ipcMain.handle('ssh:remove-connection',  async (_e, id: unknown) => removeServer(String(id ?? '')))
+  ipcMain.handle('ssh:get-connections', async () => loadSshConnections())
+  ipcMain.handle('ssh:save-connection', async (_e, conn: unknown) => saveServer(parseSshConnection(conn)))
+  ipcMain.handle('ssh:remove-connection', async (_e, id: unknown) => removeServer(String(id ?? '')))
   // Asked here, not in the window: a forgotten key makes the next connection trust whoever answers at that address
-  ipcMain.handle('ssh:forget-host-key',    async (_e, id: unknown): Promise<boolean> => {
+  ipcMain.handle('ssh:forget-host-key', async (_e, id: unknown): Promise<boolean> => {
     const conn = loadSshConnections().find(c => c.id === id)
     if (!conn) return false
     const fr = loadSettings().language === 'fr'
@@ -87,22 +95,22 @@ export function registerSshHandlers(mainWindow: BrowserWindow): void {
     forgetHost(conn.host, conn.port)
     return true
   })
-  ipcMain.handle('ssh:connect',            async (_e, connectionId: string) => {
+  ipcMain.handle('ssh:connect', async (_e, connectionId: string) => {
     const conn = getSshConnectionWithSecret(connectionId)
     if (!conn) throw new Error(`Connection ${connectionId} not found`)
     return sshService.connect(conn)
   })
-  ipcMain.handle('ssh:connect-dashboard',  async (_e, connectionId: string) => {
+  ipcMain.handle('ssh:connect-dashboard', async (_e, connectionId: string) => {
     const conn = getSshConnectionWithSecret(connectionId)
     if (!conn) throw new Error(`Connection ${connectionId} not found`)
     return sshService.connectForDashboard(conn)
   })
-  ipcMain.handle('ssh:exec',               async (_e, sessionId: string, command: string) => {
+  ipcMain.handle('ssh:exec', async (_e, sessionId: string, command: string) => {
     return sshService.exec(sessionId, command)
   })
-  ipcMain.handle('ssh:write',      async (_e, sessionId: string, data: string)               => sshService.write(sessionId, data))
-  ipcMain.handle('ssh:resize',     async (_e, sessionId: string, cols: number, rows: number) => sshService.resize(sessionId, cols, rows))
-  ipcMain.handle('ssh:disconnect', async (_e, sessionId: string)                             => sshService.disconnect(sessionId))
+  ipcMain.handle('ssh:write', async (_e, sessionId: string, data: string) => sshService.write(sessionId, data))
+  ipcMain.handle('ssh:resize', async (_e, sessionId: string, cols: number, rows: number) => sshService.resize(sessionId, cols, rows))
+  ipcMain.handle('ssh:disconnect', async (_e, sessionId: string) => sshService.disconnect(sessionId))
 
   // The server's files, through the session already open (what its user may read, as in its terminal)
   ipcMain.handle('ssh:sftp-list', async (_e, sessionId: unknown, dir: unknown) => {
@@ -110,10 +118,14 @@ export function registerSshHandlers(mainWindow: BrowserWindow): void {
     return sshService.list(sessionId, dir)
   })
   ipcMain.handle('ssh:sftp-download', async (_e, sessionId: unknown, remotePath: unknown) => {
-    if (typeof sessionId !== 'string' || typeof remotePath !== 'string' || !remotePath.startsWith('/') || remotePath.length > 4096 || remotePath.includes('\0')) throw new Error('Invalid path')
+    if (typeof sessionId !== 'string' || typeof remotePath !== 'string' || !remotePath.startsWith('/') || remotePath.length > 4096 || remotePath.includes('\0'))
+      throw new Error('Invalid path')
     // The user picks where it lands. The server's name is proposed without what Windows refuses in a
     // file name, nor the direction marks that could show "invoice‮fdp.exe" as "invoiceexe.pdf"
-    const unsafe = (c: string) => { const n = c.charCodeAt(0); return n < 32 || n === 127 || n === 0x200e || n === 0x200f || (n >= 0x202a && n <= 0x202e) || (n >= 0x2066 && n <= 0x2069) || '<>:"/\\|?*'.includes(c) }
+    const unsafe = (c: string) => {
+      const n = c.charCodeAt(0)
+      return n < 32 || n === 127 || n === 0x200e || n === 0x200f || (n >= 0x202a && n <= 0x202e) || (n >= 0x2066 && n <= 0x2069) || '<>:"/\\|?*'.includes(c)
+    }
     const base = [...posix.basename(remotePath)].map(c => (unsafe(c) ? '_' : c)).join('')
     const name = base && base !== '.' && base !== '..' ? base : 'file'
     const pick = await dialog.showSaveDialog(mainWindow, { defaultPath: join(app.getPath('downloads'), name) })

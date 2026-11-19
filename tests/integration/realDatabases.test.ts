@@ -25,9 +25,23 @@ afterAll(() => closeAllDbs())
 describe.skipIf(!process.env.DEVFORGE_REAL_DB)('On real PostgreSQL and MariaDB', () => {
   for (const s of SERVERS) {
     it(`${s.type}: a table created and changed, its rows edited in one transaction, exported and imported`, async () => {
-      const conn: DbConnection = { id: s.id, name: s.id, type: s.type, host: '127.0.0.1', port: s.port, user: s.user, password: 'verify', database: 'verify', color: '#5B9BFF' }
+      const conn: DbConnection = {
+        id: s.id,
+        name: s.id,
+        type: s.type,
+        host: '127.0.0.1',
+        port: s.port,
+        user: s.user,
+        password: 'verify',
+        database: 'verify',
+        color: '#5B9BFF'
+      }
       saveDbConnection(conn)
-      const run = async (sql: string) => { const r = await dbQuery(s.id, sql); expect(r.error, sql).toBeUndefined(); return r }
+      const run = async (sql: string) => {
+        const r = await dbQuery(s.id, sql)
+        expect(r.error, sql).toBeUndefined()
+        return r
+      }
       const t = { name: 'invoice', schema: s.type === 'postgres' ? 'public' : '' }
       await dbQuery(s.id, `DROP TABLE IF EXISTS ${s.type === 'mysql' ? '`invoice`, `invoices`' : '"invoice", "invoices"'}`)
 
@@ -44,16 +58,35 @@ describe.skipIf(!process.env.DEVFORGE_REAL_DB)('On real PostgreSQL and MariaDB',
       expect(state.default).toMatch(/new/)
 
       // Rows, all or none
-      expect(await dbApplyRows(s.id, t, [
-        { kind: 'insert', values: { label: "O'Brien" } }, { kind: 'insert', values: { label: 'Ada', state: null } }, { kind: 'insert', values: { label: 'Linus' } }
-      ])).toEqual({ affected: 3 })
+      expect(
+        await dbApplyRows(s.id, t, [
+          { kind: 'insert', values: { label: "O'Brien" } },
+          { kind: 'insert', values: { label: 'Ada', state: null } },
+          { kind: 'insert', values: { label: 'Linus' } }
+        ])
+      ).toEqual({ affected: 3 })
       const rows = async () => (await run(`SELECT id, label, state FROM ${s.type === 'mysql' ? '`invoice`' : '"invoice"'} ORDER BY id`)).rows
-      expect(await rows()).toEqual([[1, "O'Brien", 'new'], [2, 'Ada', null], [3, 'Linus', 'new']])
-      expect(await dbApplyRows(s.id, t, [{ kind: 'update', key: { id: 2 }, set: { state: 'paid' } }, { kind: 'delete', key: { id: 3 } }])).toEqual({ affected: 2 })
+      expect(await rows()).toEqual([
+        [1, "O'Brien", 'new'],
+        [2, 'Ada', null],
+        [3, 'Linus', 'new']
+      ])
+      expect(
+        await dbApplyRows(s.id, t, [
+          { kind: 'update', key: { id: 2 }, set: { state: 'paid' } },
+          { kind: 'delete', key: { id: 3 } }
+        ])
+      ).toEqual({ affected: 2 })
       // label is required: the update before it is rolled back
-      const failed = await dbApplyRows(s.id, t, [{ kind: 'update', key: { id: 1 }, set: { label: 'changed' } }, { kind: 'insert', values: { state: 'x' } }])
+      const failed = await dbApplyRows(s.id, t, [
+        { kind: 'update', key: { id: 1 }, set: { label: 'changed' } },
+        { kind: 'insert', values: { state: 'x' } }
+      ])
       expect(failed.error).toBeTruthy()
-      expect(await rows()).toEqual([[1, "O'Brien", 'new'], [2, 'Ada', 'paid']])
+      expect(await rows()).toEqual([
+        [1, "O'Brien", 'new'],
+        [2, 'Ada', 'paid']
+      ])
 
       // Export, then import
       const dir = tempDir('real')
@@ -69,7 +102,10 @@ describe.skipIf(!process.env.DEVFORGE_REAL_DB)('On real PostgreSQL and MariaDB',
       const preview = await pickCsv({} as never, s.id, t)
       expect(preview && !('error' in preview) && preview.mapping).toEqual(['label', 'state'])
       expect(await importCsv(s.id, t, (preview as { token: string }).token, ['label', 'state'], true)).toEqual({ inserted: 2 })
-      expect((await rows()).slice(2).map(r => r.slice(1))).toEqual([['Grace', null], ['Margaret', 'sent']])
+      expect((await rows()).slice(2).map(r => r.slice(1))).toEqual([
+        ['Grace', null],
+        ['Margaret', 'sent']
+      ])
       // A refused row: none kept, its line named
       writeFileSync(dialog.next, 'label,state\nOk,a\n,b\n')
       const bad = await pickCsv({} as never, s.id, t)
@@ -84,13 +120,28 @@ describe.skipIf(!process.env.DEVFORGE_REAL_DB)('On real PostgreSQL and MariaDB',
     })
 
     it(`${s.type}: v3.8, the schema reads every table, primary key and foreign key, composite ones included`, async () => {
-      saveDbConnection({ id: s.id, name: s.id, type: s.type, host: '127.0.0.1', port: s.port, user: s.user, password: 'verify', database: 'verify', color: '#5B9BFF' })
+      saveDbConnection({
+        id: s.id,
+        name: s.id,
+        type: s.type,
+        host: '127.0.0.1',
+        port: s.port,
+        user: s.user,
+        password: 'verify',
+        database: 'verify',
+        color: '#5B9BFF'
+      })
       const q = (n: string) => (s.type === 'mysql' ? `\`${n}\`` : `"${n}"`)
-      const run = async (sql: string) => { const r = await dbQuery(s.id, sql); expect(r.error, sql).toBeUndefined() }
+      const run = async (sql: string) => {
+        const r = await dbQuery(s.id, sql)
+        expect(r.error, sql).toBeUndefined()
+      }
       for (const n of ['df_line', 'df_order', 'df_user']) await dbQuery(s.id, `DROP TABLE IF EXISTS ${q(n)}`)
       await run(`CREATE TABLE ${q('df_user')} (id INT PRIMARY KEY, email VARCHAR(100) NOT NULL)`)
       await run(`CREATE TABLE ${q('df_order')} (id INT, shop INT, user_id INT, PRIMARY KEY (id, shop), FOREIGN KEY (user_id) REFERENCES ${q('df_user')}(id))`)
-      await run(`CREATE TABLE ${q('df_line')} (order_id INT, order_shop INT, qty INT NOT NULL, FOREIGN KEY (order_id, order_shop) REFERENCES ${q('df_order')}(id, shop))`)
+      await run(
+        `CREATE TABLE ${q('df_line')} (order_id INT, order_shop INT, qty INT NOT NULL, FOREIGN KEY (order_id, order_shop) REFERENCES ${q('df_order')}(id, shop))`
+      )
       const d = await dbDiagram(s.id)
       const schema = s.type === 'postgres' ? 'public' : ''
       const order = d.tables.find(tb => tb.name === 'df_order')!
@@ -98,8 +149,15 @@ describe.skipIf(!process.env.DEVFORGE_REAL_DB)('On real PostgreSQL and MariaDB',
       expect(order.columns.filter(c => c.pk).map(c => c.name)).toEqual(['id', 'shop'])
       expect(d.tables.find(tb => tb.name === 'df_user')!.columns.find(c => c.name === 'email')).toMatchObject({ nullable: false, pk: false })
       const mine = d.links.filter(l => l.from.name.startsWith('df_'))
-      expect(mine).toContainEqual({ from: { schema, name: 'df_line' }, columns: ['order_id', 'order_shop'], to: { schema, name: 'df_order' }, refColumns: ['id', 'shop'] })
-      expect(mine.filter(l => l.from.name === 'df_order')).toEqual([{ from: { schema, name: 'df_order' }, columns: ['user_id'], to: { schema, name: 'df_user' }, refColumns: ['id'] }])
+      expect(mine).toContainEqual({
+        from: { schema, name: 'df_line' },
+        columns: ['order_id', 'order_shop'],
+        to: { schema, name: 'df_order' },
+        refColumns: ['id', 'shop']
+      })
+      expect(mine.filter(l => l.from.name === 'df_order')).toEqual([
+        { from: { schema, name: 'df_order' }, columns: ['user_id'], to: { schema, name: 'df_user' }, refColumns: ['id'] }
+      ])
       for (const n of ['df_line', 'df_order', 'df_user']) await run(`DROP TABLE ${q(n)}`)
     })
   }

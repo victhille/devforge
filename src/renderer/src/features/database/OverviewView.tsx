@@ -48,11 +48,13 @@ export default function OverviewView({ overview, onOpenTable }: { overview: DbOv
               <Th>{d.colName}</Th>
               <Th>{d.colType}</Th>
               <Th align="right">{d.rowsEstimate}</Th>
-              {hasSizes && <>
-                <Th align="right">{d.dataSize}</Th>
-                <Th align="right">{d.indexSize}</Th>
-                <Th align="right">{d.size}</Th>
-              </>}
+              {hasSizes && (
+                <>
+                  <Th align="right">{d.dataSize}</Th>
+                  <Th align="right">{d.indexSize}</Th>
+                  <Th align="right">{d.size}</Th>
+                </>
+              )}
               {hasEngine && <Th>{d.engine}</Th>}
               {hasEngine && <Th>{d.collation}</Th>}
               <Th>{d.comment}</Th>
@@ -64,18 +66,27 @@ export default function OverviewView({ overview, onOpenTable }: { overview: DbOv
                 <Td>
                   <button onClick={() => onOpenTable(tb)} className="flex items-center gap-2 font-mono font-medium text-fg hover:text-accent">
                     {tb.type === 'view' ? <Eye size={13} className="text-fg-muted" /> : <Table2 size={13} className="text-fg-muted" />}
-                    {showSchema && <span className="text-fg-muted">{tb.schema}.</span>}{tb.name}
+                    {showSchema && <span className="text-fg-muted">{tb.schema}.</span>}
+                    {tb.name}
                   </button>
                 </Td>
                 <Td className="text-xs text-fg-secondary">{tb.type === 'view' ? d.typeView : d.typeTable}</Td>
-                <Td align="right" className="tabular-nums text-fg-secondary">{tb.rows?.toLocaleString() ?? '—'}</Td>
-                {hasSizes && <>
-                  <Td align="right" className="tabular-nums text-xs text-fg-secondary">{formatSize(tb.dataBytes, lang)}</Td>
-                  <Td align="right" className="tabular-nums text-xs text-fg-secondary">{formatSize(tb.indexBytes, lang)}</Td>
-                  <Td align="right" className="tabular-nums text-xs font-medium text-fg">
-                    {formatSize(tb.dataBytes === null && tb.indexBytes === null ? null : (tb.dataBytes ?? 0) + (tb.indexBytes ?? 0), lang)}
-                  </Td>
-                </>}
+                <Td align="right" className="tabular-nums text-fg-secondary">
+                  {tb.rows?.toLocaleString() ?? '—'}
+                </Td>
+                {hasSizes && (
+                  <>
+                    <Td align="right" className="tabular-nums text-xs text-fg-secondary">
+                      {formatSize(tb.dataBytes, lang)}
+                    </Td>
+                    <Td align="right" className="tabular-nums text-xs text-fg-secondary">
+                      {formatSize(tb.indexBytes, lang)}
+                    </Td>
+                    <Td align="right" className="tabular-nums text-xs font-medium text-fg">
+                      {formatSize(tb.dataBytes === null && tb.indexBytes === null ? null : (tb.dataBytes ?? 0) + (tb.indexBytes ?? 0), lang)}
+                    </Td>
+                  </>
+                )}
                 {hasEngine && <Td className="text-xs text-fg-secondary">{tb.engine ?? ''}</Td>}
                 {hasEngine && <Td className="font-mono text-2xs text-fg-muted">{tb.collation ?? ''}</Td>}
                 <Td className="max-w-64 truncate text-xs text-fg-muted">{tb.comment ?? ''}</Td>

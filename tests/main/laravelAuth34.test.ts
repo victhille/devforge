@@ -11,12 +11,27 @@ import { tempDir } from '../helpers'
 
 /** Authentication of a Laravel project, on the shared contract */
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
-  database: 'postgres', dbName: 'shop', dbPort: 5433, features: ['auth'], git: false, github: null, openVSCode: false, ...s
+  database: 'postgres',
+  dbName: 'shop',
+  dbPort: 5433,
+  features: ['auth'],
+  git: false,
+  github: null,
+  openVSCode: false,
+  ...s
 })
 const ctx = { password: 'pw', secret: 's', lang: 'fr' as const, composeName: 'shop-a1b2c3' }
-const plan = (s: Partial<ProjectSetup> = {}) => planSetup({ name: 'shop', framework: 'laravel', packageManager: 'npm', typescript: true, eslint: true, setup: setup(s) }, ctx)
-const line = (step: SetupStep) => step.kind === 'run' ? stepCommand(step) : `${step.kind}:${step.label}`
-const hasPhp = (() => { try { execFileSync('php', ['-v'], { stdio: 'ignore' }); return true } catch { return false } })()
+const plan = (s: Partial<ProjectSetup> = {}) =>
+  planSetup({ name: 'shop', framework: 'laravel', packageManager: 'npm', typescript: true, eslint: true, setup: setup(s) }, ctx)
+const line = (step: SetupStep) => (step.kind === 'run' ? stepCommand(step) : `${step.kind}:${step.label}`)
+const hasPhp = (() => {
+  try {
+    execFileSync('php', ['-v'], { stdio: 'ignore' })
+    return true
+  } catch {
+    return false
+  }
+})()
 
 /** The parts of Fortify's stubs the patches aim at (laravel/fortify 1.41) */
 const PROVIDER = `    public function boot(): void
@@ -59,7 +74,7 @@ describe('Laravel authentication', () => {
     expect(layout.match(/@\w+/g)).toEqual(['@yield', '@yield'])
   })
 
-  it('registers Fortify\'s views once, and sends a signed-in user to /dashboard', () => {
+  it("registers Fortify's views once, and sends a signed-in user to /dashboard", () => {
     const once = patchText(PROVIDER, views)
     expect(once).toContain("Fortify::createUsersUsing(CreateNewUser::class);\n        Fortify::loginView(fn () => view('auth.login'));")
     expect(patchText(once, views)).toBe(once)

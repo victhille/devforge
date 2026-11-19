@@ -10,7 +10,9 @@ const h = vi.hoisted(() => ({ calls: [] as Record<string, unknown>[], script: []
 
 vi.mock('@anthropic-ai/sdk', () => {
   class AnthropicError extends Error {}
-  class APIError extends AnthropicError { status?: number }
+  class APIError extends AnthropicError {
+    status?: number
+  }
   class APIUserAbortError extends AnthropicError {}
   class AuthenticationError extends APIError {}
   class RateLimitError extends APIError {}
@@ -47,11 +49,13 @@ const { checkSql, decideAction, listActions, undoAction, ACTION_TOOLS } = await 
 /** One question; each action card is answered by `onAction` (or left waiting) */
 async function ask(text: string, onAction: (e: AssistantEvent & { type: 'action' }, conversationId: string) => void) {
   const events: AssistantEvent[] = []
-  const done = new Promise<void>(resolve => setAssistantEmitter(e => {
-    events.push(e)
-    if (e.type === 'action' && !e.auto) onAction(e, e.conversationId)
-    if (e.type === 'done') resolve()
-  }))
+  const done = new Promise<void>(resolve =>
+    setAssistantEmitter(e => {
+      events.push(e)
+      if (e.type === 'action' && !e.auto) onAction(e, e.conversationId)
+      if (e.type === 'done') resolve()
+    })
+  )
   const id = await sendToAssistant({ text })
   await done
   return { id, events }
@@ -100,10 +104,11 @@ describe('assistant actions', () => {
     saveConfig({ actionMode: 'ask' })
   })
 
-  const proposeEnv = (id: string, key = 'NEW_FLAG') => h.script.push(
-    { stop_reason: 'tool_use', content: [{ type: 'tool_use', id, name: 'env_add', input: { project: 'Shop', key, value: 'on' } }] },
-    { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Ok.' }] }
-  )
+  const proposeEnv = (id: string, key = 'NEW_FLAG') =>
+    h.script.push(
+      { stop_reason: 'tool_use', content: [{ type: 'tool_use', id, name: 'env_add', input: { project: 'Shop', key, value: 'on' } }] },
+      { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Ok.' }] }
+    )
 
   it('offers its action tools to the model', async () => {
     proposeEnv('a0')
@@ -138,16 +143,22 @@ describe('assistant actions', () => {
     writeFileSync(join(dir, 'package.json'), pkg)
     writeFileSync(join(dir, 'package-lock.json'), '{}')
     const data = join(tempDir('pkgs'), 'packages.json')
-    writeFileSync(data, JSON.stringify({
-      latest: { react: '19.0.0' },
-      // The "update" rewrites package.json, as npm install react@latest would
-      update: `node -e "require('fs').writeFileSync('package.json', JSON.stringify({ dependencies: { react: '^19.0.0' } }))"`,
-      install: 'node -e "process.exit(0)"'
-    }))
+    writeFileSync(
+      data,
+      JSON.stringify({
+        latest: { react: '19.0.0' },
+        // The "update" rewrites package.json, as npm install react@latest would
+        update: `node -e "require('fs').writeFileSync('package.json', JSON.stringify({ dependencies: { react: '^19.0.0' } }))"`,
+        install: 'node -e "process.exit(0)"'
+      })
+    )
     process.env.DEVFORGE_TEST_PACKAGES = data
     try {
       h.script.push(
-        { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'p1', name: 'update_packages', input: { project: 'Shop', packages: ['react'], to: 'latest' } }] },
+        {
+          stop_reason: 'tool_use',
+          content: [{ type: 'tool_use', id: 'p1', name: 'update_packages', input: { project: 'Shop', packages: ['react'], to: 'latest' } }]
+        },
         { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Ok.' }] }
       )
       const { events } = await ask('mets react à jour', e => decideAction(e.id, true))
@@ -169,7 +180,9 @@ describe('assistant actions', () => {
       const refused = await ask('mets lodash à jour', e => decideAction(e.id, true))
       expect(refused.events.some(e => e.type === 'action')).toBe(false)
       expect(resultOf(h.calls.length - 1, 'p2')).toMatchObject({ is_error: true })
-    } finally { delete process.env.DEVFORGE_TEST_PACKAGES }
+    } finally {
+      delete process.env.DEVFORGE_TEST_PACKAGES
+    }
   })
 
   it('does nothing when the user refuses, and tells the model', async () => {
@@ -184,7 +197,9 @@ describe('assistant actions', () => {
   it('runs a safe action without a click in auto-safe mode', async () => {
     saveConfig({ actionMode: 'auto-safe' })
     proposeEnv('a3')
-    const { events } = await ask('ajoute NEW_FLAG', () => { throw new Error('no card expected to wait') })
+    const { events } = await ask('ajoute NEW_FLAG', () => {
+      throw new Error('no card expected to wait')
+    })
     expect(events.find(e => e.type === 'action')).toMatchObject({ auto: true })
     expect(readFileSync(join(dir, '.env'), 'utf-8')).toContain('NEW_FLAG=on')
     expect(listActions().find(a => a.id === 'a3')).toMatchObject({ auto: true, status: 'done' })
@@ -211,9 +226,14 @@ describe('assistant actions', () => {
   it('commits the changed files, then undoes the commit keeping the changes', async () => {
     const repo = tempDir('repo')
     const git = (...args: string[]) => execFileSync('git', args, { cwd: repo, encoding: 'utf-8' })
-    git('init', '-q'); git('config', 'user.name', 't'); git('config', 'user.email', 't@t')
-    writeFileSync(join(repo, 'a.txt'), 'one\n'); git('add', '.'); git('commit', '-qm', 'first')
-    writeFileSync(join(repo, 'a.txt'), 'two\n'); writeFileSync(join(repo, 'b.txt'), 'new\n')
+    git('init', '-q')
+    git('config', 'user.name', 't')
+    git('config', 'user.email', 't@t')
+    writeFileSync(join(repo, 'a.txt'), 'one\n')
+    git('add', '.')
+    git('commit', '-qm', 'first')
+    writeFileSync(join(repo, 'a.txt'), 'two\n')
+    writeFileSync(join(repo, 'b.txt'), 'new\n')
     saveProjects([{ name: 'Repo', path: repo }])
     h.script.push(
       { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'g1', name: 'git_commit', input: { project: 'Repo', message: 'feat: two' } }] },

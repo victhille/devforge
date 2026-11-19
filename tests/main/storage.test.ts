@@ -51,7 +51,17 @@ describe('secrets at rest', () => {
   })
 
   it('SSH passwords are encrypted and old plain-text ones still load', () => {
-    saveSshConnection({ id: 's1', name: 'vps', host: '10.0.0.1', port: 22, username: 'root', authMethod: 'password', password: 'pw!', color: '', createdAt: '' })
+    saveSshConnection({
+      id: 's1',
+      name: 'vps',
+      host: '10.0.0.1',
+      port: 22,
+      username: 'root',
+      authMethod: 'password',
+      password: 'pw!',
+      color: '',
+      createdAt: ''
+    })
     expect(readFileSync(join(userData(), 'ssh-connections.json'), 'utf-8')).not.toContain('pw!')
     expect(loadSshConnections()[0]).not.toHaveProperty('password')
     expect(getSshConnectionWithSecret('s1')?.password).toBe('pw!')
@@ -60,14 +70,25 @@ describe('secrets at rest', () => {
   })
 
   it('several accounts on one machine still lead to it; several ports of one address may be several machines', async () => {
-    const server = (id: string, port: number, username: string): SSHConnection => ({ id, name: id, host: '10.0.0.9', port, username, authMethod: 'privateKey', color: '', createdAt: '' })
+    const server = (id: string, port: number, username: string): SSHConnection => ({
+      id,
+      name: id,
+      host: '10.0.0.9',
+      port,
+      username,
+      authMethod: 'privateKey',
+      color: '',
+      createdAt: ''
+    })
     saveSshConnection(server('root9', 22, 'root'))
     saveSshConnection(server('deploy9', 22, 'deploy'))
     expect(sshServerFor('10.0.0.9')?.id).toBe('root9')
     // A NAT: the database is neither guessed nor reached directly, unencrypted on the internet
     saveSshConnection(server('nat9', 2222, 'root'))
     expect(sshServerFor('10.0.0.9')).toBeUndefined()
-    await expect(testDb({ id: 'n9', name: 'db', type: 'postgres', host: '10.0.0.9', user: 'shop', password: 'pw', color: '' })).rejects.toThrow(/Plusieurs serveurs SSH|Several SSH servers/)
+    await expect(testDb({ id: 'n9', name: 'db', type: 'postgres', host: '10.0.0.9', user: 'shop', password: 'pw', color: '' })).rejects.toThrow(
+      /Plusieurs serveurs SSH|Several SSH servers/
+    )
   })
 })
 
@@ -77,7 +98,9 @@ describe('known hosts (trust on first use)', () => {
 
   it('remembers the first key, accepts it again, rejects a changed one', () => {
     let mismatch: Error | null = null
-    const verify = makeHostVerifier('example.org', 22, e => { mismatch = e })
+    const verify = makeHostVerifier('example.org', 22, e => {
+      mismatch = e
+    })
     expect(verify(keyA)).toBe(true)
     expect(knownFingerprint('EXAMPLE.org', 22)).toBe(fingerprintOf(keyA))
     expect(verify(keyA)).toBe(true)

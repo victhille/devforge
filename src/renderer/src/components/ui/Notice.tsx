@@ -35,8 +35,10 @@ interface Props {
 export default function Notice({ tone = 'info', title, children, action, live, role, className }: Props) {
   const { box, icon: Icon, iconTone } = TONES[tone]
   return (
-    <div role={role ?? (live ? (tone === 'danger' || tone === 'warning' ? 'alert' : 'status') : undefined)}
-      className={cn('flex items-start gap-2.5 rounded-control px-3 py-2.5 text-base text-fg', box, className)}>
+    <div
+      role={role ?? (live ? (tone === 'danger' || tone === 'warning' ? 'alert' : 'status') : undefined)}
+      className={cn('flex items-start gap-2.5 rounded-control px-3 py-2.5 text-base text-fg', box, className)}
+    >
       <Icon size={15} className={cn('mt-0.5 shrink-0', iconTone)} aria-hidden />
       <div className="min-w-0 flex-1">
         {title && <p className="font-medium">{title}</p>}

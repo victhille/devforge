@@ -14,7 +14,8 @@ test.afterEach(async () => {
 test('first launch: the language, the accounts (Git identity), then nothing more to set up', async () => {
   run = await launch({
     env: { GIT_CONFIG_GLOBAL: '{userData}/gitconfig' },
-    seed: dir => writeFileSync(join(dir, 'settings.json'), JSON.stringify({ language: 'fr', defaultProjectsDir: dir, onboarded: false, launcherEnabled: false }))
+    seed: dir =>
+      writeFileSync(join(dir, 'settings.json'), JSON.stringify({ language: 'fr', defaultProjectsDir: dir, onboarded: false, launcherEnabled: false }))
   })
   const { page, userData } = run
   await expect(page.getByRole('dialog', { name: 'Bienvenue dans DevForge' })).toBeVisible()

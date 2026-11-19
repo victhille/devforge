@@ -29,13 +29,14 @@ export function registerProjectHandlers(mainWindow: BrowserWindow): void {
     try {
       const actualTaskId = createProject(
         options,
-        (log: LogLine)          => mainWindow.webContents.send('task-log', log),
+        (log: LogLine) => mainWindow.webContents.send('task-log', log),
         (result: CommandResult) => mainWindow.webContents.send('task-result', result)
       )
       return actualTaskId
     } catch (err: unknown) {
       const errorLog: LogLine = {
-        taskId, type: 'error',
+        taskId,
+        type: 'error',
         text: err instanceof Error ? err.message : String(err),
         timestamp: new Date().toISOString()
       }
@@ -61,8 +62,8 @@ export function registerProjectHandlers(mainWindow: BrowserWindow): void {
       executable: managerOf(pm),
       args: ['run', script],
       cwd: projectPath,
-      onLog:    (log)    => mainWindow.webContents.send('task-log', log),
-      onResult: (result) => mainWindow.webContents.send('task-result', result)
+      onLog: log => mainWindow.webContents.send('task-log', log),
+      onResult: result => mainWindow.webContents.send('task-result', result)
     })
   })
 
@@ -85,8 +86,8 @@ export function registerProjectHandlers(mainWindow: BrowserWindow): void {
       executable: managerOf(pm),
       args: ['install'],
       cwd: projectPath,
-      onLog:    (log)    => mainWindow.webContents.send('task-log', log),
-      onResult: (result) => mainWindow.webContents.send('task-result', result)
+      onLog: log => mainWindow.webContents.send('task-log', log),
+      onResult: result => mainWindow.webContents.send('task-result', result)
     })
   })
 
@@ -95,9 +96,15 @@ export function registerProjectHandlers(mainWindow: BrowserWindow): void {
 
   // ─── Project Storage ──────────────────────────────────────────────────────────
   // A group's projects are read from disk each time: one added or removed shows at once
-  ipcMain.handle('get-projects', async () => Promise.all(loadProjects().map(async p => ({
-    ...p, missing: !existsSync(p.path), ...(p.framework === 'group' ? await groupContents(p.path) : {})
-  }))))
+  ipcMain.handle('get-projects', async () =>
+    Promise.all(
+      loadProjects().map(async p => ({
+        ...p,
+        missing: !existsSync(p.path),
+        ...(p.framework === 'group' ? await groupContents(p.path) : {})
+      }))
+    )
+  )
 
   ipcMain.handle('save-project', async (_event, project: Project) => {
     saveProject(project)

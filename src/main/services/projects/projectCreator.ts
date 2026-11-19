@@ -18,12 +18,18 @@ type ResultCb = (result: CommandResult) => void
 /** The creator's own messages, in the interface's language */
 const TEXT = {
   fr: {
-    install: 'Installation des dépendances…', mkdir: (p: string) => `Création du dossier : ${p}`, made: (p: string) => `Dossier créé : ${p}`,
-    libs: (n: number) => `Installation de ${n} paquet(s)…`, devLibs: (n: number) => `Installation de ${n} paquet(s) de développement…`
+    install: 'Installation des dépendances…',
+    mkdir: (p: string) => `Création du dossier : ${p}`,
+    made: (p: string) => `Dossier créé : ${p}`,
+    libs: (n: number) => `Installation de ${n} paquet(s)…`,
+    devLibs: (n: number) => `Installation de ${n} paquet(s) de développement…`
   },
   en: {
-    install: 'Installing dependencies…', mkdir: (p: string) => `Creating directory: ${p}`, made: (p: string) => `Created directory: ${p}`,
-    libs: (n: number) => `Installing ${n} package(s)…`, devLibs: (n: number) => `Installing ${n} dev package(s)…`
+    install: 'Installing dependencies…',
+    mkdir: (p: string) => `Creating directory: ${p}`,
+    made: (p: string) => `Created directory: ${p}`,
+    libs: (n: number) => `Installing ${n} package(s)…`,
+    devLibs: (n: number) => `Installing ${n} dev package(s)…`
   }
 }
 const text = (o: ProjectCreationOptions) => TEXT[o.lang ?? 'fr']
@@ -84,11 +90,7 @@ function checkNoConflict(destination: string, name: string): void {
 
 // ─── React (Vite) ─────────────────────────────────────────────────────────────
 
-function createReactProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createReactProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const { name, destination, packageManager, typescript, installDeps } = options
   const pm = packageManager
 
@@ -111,7 +113,7 @@ function createReactProject(
     args,
     cwd: destination,
     onLog,
-    onResult: (result) => {
+    onResult: result => {
       if (result.status === 'success' && installDeps) {
         // Chain: install dependencies
         const installArgs = pm === 'npm' ? ['install'] : pm === 'pnpm' ? ['install'] : []
@@ -138,11 +140,7 @@ function createReactProject(
 
 // ─── Next.js ──────────────────────────────────────────────────────────────────
 
-function createNextjsProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createNextjsProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const { name, destination, packageManager, typescript } = options
   const pm = packageManager
   const pmExe = managerOf(pm)
@@ -151,41 +149,28 @@ function createNextjsProject(
   const flags = ['--yes', typescript ? '--ts' : '--js', `--use-${pm}`]
   // DevForge makes the repository itself (branch main, its .gitignore first): create-next-app's would be on master
   if (options.setup?.git || options.setup?.github) flags.push('--disable-git')
-  const args =
-    pm === 'npm'
-      ? ['create', '--yes', 'next-app@latest', name, '--', ...flags]
-      : ['create', 'next-app', name, ...flags]
+  const args = pm === 'npm' ? ['create', '--yes', 'next-app@latest', name, '--', ...flags] : ['create', 'next-app', name, ...flags]
 
   return commandRunner.run({ executable: pmExe, args, cwd: destination, onLog, onResult })
 }
 
 // ─── Vue ──────────────────────────────────────────────────────────────────────
 
-function createVueProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createVueProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const { name, destination, packageManager, typescript } = options
   const pm = packageManager
   const pmExe = managerOf(pm)
   const template = typescript ? 'vue-ts' : 'vue'
 
   const args =
-    pm === 'npm'
-      ? ['create', '--yes', 'vite@latest', name, '--', '--template', template]
-      : ['create', 'vite@latest', name, '--', '--template', template]
+    pm === 'npm' ? ['create', '--yes', 'vite@latest', name, '--', '--template', template] : ['create', 'vite@latest', name, '--', '--template', template]
 
   return commandRunner.run({ executable: pmExe, args, cwd: destination, onLog, onResult })
 }
 
 // ─── Node.js ──────────────────────────────────────────────────────────────────
 
-function createNodejsProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createNodejsProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const { name, destination } = options
   const projectPath = join(destination, name)
 
@@ -208,11 +193,7 @@ function createNodejsProject(
 
 // ─── Symfony ──────────────────────────────────────────────────────────────────
 
-function createSymfonyProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createSymfonyProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const { name, destination } = options
 
   // Check for symfony CLI first, fall back to composer
@@ -243,11 +224,7 @@ function createSymfonyProject(
 
 // ─── Laravel ──────────────────────────────────────────────────────────────────
 
-function createLaravelProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createLaravelProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   return commandRunner.run({
     executable: 'composer',
     args: ['create-project', 'laravel/laravel', options.name, '--no-interaction', '--prefer-dist'],
@@ -259,11 +236,7 @@ function createLaravelProject(
 
 // ─── Empty project ────────────────────────────────────────────────────────────
 
-function createEmptyProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createEmptyProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const { name, destination } = options
   const projectPath = join(destination, name)
 
@@ -322,32 +295,29 @@ function declaredPackages(projPath: string): Set<string> {
   }
 }
 
-function withLibraryInstall(
-  options: ProjectCreationOptions,
-  taskId: string,
-  onLog: LogCb,
-  onResult: ResultCb,
-  innerOnResult: ResultCb
-): ResultCb {
+function withLibraryInstall(options: ProjectCreationOptions, taskId: string, onLog: LogCb, onResult: ResultCb, innerOnResult: ResultCb): ResultCb {
   const { packageManager: pm, name, destination } = options
   const projPath = join(destination, name)
-  const pmExe    = managerOf(pm)
+  const pmExe = managerOf(pm)
 
   if (!options.libraries?.length && !options.devLibraries?.length) return innerOnResult
 
-  return (result) => {
+  return result => {
     if (result.status !== 'success') {
       innerOnResult(result)
       return
     }
-    const declared     = declaredPackages(projPath)
-    const libraries    = (options.libraries ?? []).filter(p => !declared.has(packageName(p)))
+    const declared = declaredPackages(projPath)
+    const libraries = (options.libraries ?? []).filter(p => !declared.has(packageName(p)))
     const devLibraries = (options.devLibraries ?? []).filter(p => !declared.has(packageName(p)))
-    const hasLibs      = libraries.length > 0
-    const hasDevLibs   = devLibraries.length > 0
+    const hasLibs = libraries.length > 0
+    const hasDevLibs = devLibraries.length > 0
 
     const installDev = () => {
-      if (!hasDevLibs) { innerOnResult(result); return }
+      if (!hasDevLibs) {
+        innerOnResult(result)
+        return
+      }
       info(onLog, taskId, text(options).devLibs(devLibraries.length))
       const devArgs = pm === 'yarn' ? ['add', '--dev', ...devLibraries] : ['install', '--save-dev', ...devLibraries]
       commandRunner.run({ executable: pmExe, args: devArgs, cwd: projPath, onLog, onResult: innerOnResult })
@@ -365,11 +335,7 @@ function withLibraryInstall(
 
 // ─── Main entry ───────────────────────────────────────────────────────────────
 
-export function createProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+export function createProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   // The package manager goes into the commands (--use-pnpm…): a known one only, whatever the window or a template sent
   // Its language picks the messages and the generated pages' texts: fr or en, nothing else
   options = { ...options, packageManager: managerOf(options.packageManager), lang: options.lang === 'en' ? 'en' : 'fr' }
@@ -379,9 +345,9 @@ export function createProject(
   checkNoConflict(options.destination, options.name)
 
   // Chain: framework creation → libraries → DevForge setup (database, options, Git, GitHub)
-  const taskId       = 'init'
-  const projPath     = join(options.destination, options.name)
-  const afterLibs: ResultCb = (result) => {
+  const taskId = 'init'
+  const projPath = join(options.destination, options.name)
+  const afterLibs: ResultCb = result => {
     if (result.status === 'success' && options.setup) runSetup(options, projPath, result.taskId, onLog, onResult)
     else onResult(result)
   }

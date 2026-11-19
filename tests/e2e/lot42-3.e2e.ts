@@ -18,12 +18,35 @@ test('« Déduire le MCD » writes the MCD next to the MPD, opens it, and ties t
       project = join(dir, 'boutique')
       mkdirSync(join(project, 'conception'), { recursive: true })
       const col = (id: string, name: string, extra: object = {}) => ({ id, name, type: 'int', ...extra })
-      writeFileSync(join(project, 'conception', 'boutique.mpd.json'), JSON.stringify({ v: 1, kind: 'mpd', name: 'Boutique', updatedAt: '2026-11-01T00:00:00.000Z', mpd: {
-        engine: 'postgres', tables: [
-          { id: 'tC', name: 'client', x: 60, y: 60, indexes: [], columns: [col('c1', 'id', { pk: true, auto: true })] },
-          { id: 'tO', name: 'commande', x: 420, y: 60, indexes: [], columns: [col('o1', 'id', { pk: true, auto: true }), col('o2', 'client_id', { ref: { table: 'tC', column: 'c1' } })] }
-        ] } }))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'Boutique', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(project, 'conception', 'boutique.mpd.json'),
+        JSON.stringify({
+          v: 1,
+          kind: 'mpd',
+          name: 'Boutique',
+          updatedAt: '2026-11-01T00:00:00.000Z',
+          mpd: {
+            engine: 'postgres',
+            tables: [
+              { id: 'tC', name: 'client', x: 60, y: 60, indexes: [], columns: [col('c1', 'id', { pk: true, auto: true })] },
+              {
+                id: 'tO',
+                name: 'commande',
+                x: 420,
+                y: 60,
+                indexes: [],
+                columns: [col('o1', 'id', { pk: true, auto: true }), col('o2', 'client_id', { ref: { table: 'tC', column: 'c1' } })]
+              }
+            ]
+          }
+        })
+      )
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          { id: 'p1', name: 'Boutique', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page } = run
@@ -58,7 +81,12 @@ test('a model written while the lists are open (as Forgy does) shows up at once,
       project = join(dir, 'atelier')
       mkdirSync(project, { recursive: true })
       writeFileSync(join(project, 'package.json'), '{"name":"atelier"}')
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'Atelier', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          { id: 'p1', name: 'Atelier', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page } = run

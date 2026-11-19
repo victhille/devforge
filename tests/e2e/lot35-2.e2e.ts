@@ -11,7 +11,10 @@ test.afterEach(async () => {
   await run.close()
 })
 
-const file = (path: string, content: string) => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
+const file = (path: string, content: string) => {
+  mkdirSync(join(path, '..'), { recursive: true })
+  writeFileSync(path, content)
+}
 
 test('a group is detected, imported, unfolded on its card, and its page shows its projects side by side', async () => {
   run = await launch({
@@ -21,8 +24,25 @@ test('a group is detected, imported, unfolded on its card, and its page shows it
       file(join(fm, 'frontend', 'package.json'), JSON.stringify({ dependencies: { react: '^19' }, scripts: { dev: 'vite', build: 'vite build' } }))
       file(join(fm, 'compose.yaml'), 'services: {}\n')
       // Already saved on its own: shows inside the group once the group is saved
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'front', name: 'frontend', path: join(fm, 'frontend'), framework: 'react', packageManager: 'npm', createdAt: '', lastOpenedAt: null, favorite: false }]))
-      writeFileSync(join(dir, 'settings.json'), JSON.stringify({ language: 'fr', onboarded: true, launcherEnabled: false, defaultProjectsDir: join(dir, 'code') }))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'front',
+            name: 'frontend',
+            path: join(fm, 'frontend'),
+            framework: 'react',
+            packageManager: 'npm',
+            createdAt: '',
+            lastOpenedAt: null,
+            favorite: false
+          }
+        ])
+      )
+      writeFileSync(
+        join(dir, 'settings.json'),
+        JSON.stringify({ language: 'fr', onboarded: true, launcherEnabled: false, defaultProjectsDir: join(dir, 'code') })
+      )
     }
   })
   const { page } = run

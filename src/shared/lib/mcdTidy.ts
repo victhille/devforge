@@ -13,8 +13,16 @@ import { autoLayout } from './schemaLayout'
 
 /** Tables a framework creates for itself: not part of the domain */
 export const FRAMEWORK_TABLES = new Set([
-  'doctrine_migration_versions', 'messenger_messages', 'migrations', '_prisma_migrations',
-  'failed_jobs', 'job_batches', 'password_reset_tokens', 'password_resets', 'personal_access_tokens', 'cache_locks'
+  'doctrine_migration_versions',
+  'messenger_messages',
+  'migrations',
+  '_prisma_migrations',
+  'failed_jobs',
+  'job_batches',
+  'password_reset_tokens',
+  'password_resets',
+  'personal_access_tokens',
+  'cache_locks'
 ])
 export const isFrameworkTable = (name: string) => FRAMEWORK_TABLES.has(name.toLowerCase())
 
@@ -24,9 +32,13 @@ const mid = (b: Box): Point => ({ x: b.x + b.w / 2, y: b.y + b.h / 2 })
 
 /** Pairs of parts drawn one on another (entities and associations), by name */
 export function overlaps(m: McdModel): [string, string][] {
-  const boxes = [...m.entities.map(e => ({ id: e.id, name: e.name, box: entityBox(e) })), ...m.associations.map(a => ({ id: a.id, name: a.name, box: associationBox(a) }))]
+  const boxes = [
+    ...m.entities.map(e => ({ id: e.id, name: e.name, box: entityBox(e) })),
+    ...m.associations.map(a => ({ id: a.id, name: a.name, box: associationBox(a) }))
+  ]
   const out: [string, string][] = []
-  for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) if (hit(boxes[i].box, boxes[j].box)) out.push([boxes[i].name, boxes[j].name])
+  for (let i = 0; i < boxes.length; i++)
+    for (let j = i + 1; j < boxes.length; j++) if (hit(boxes[i].box, boxes[j].box)) out.push([boxes[i].name, boxes[j].name])
   return out
 }
 
@@ -56,7 +68,9 @@ export function freeSpot(taken: Box[], want: Point, w: number, h: number): Point
  */
 export function layoutMcd(m: McdModel): McdModel {
   const tables: DbDiagramTable[] = m.entities.map(e => ({
-    name: e.id, schema: '', type: 'table',
+    name: e.id,
+    schema: '',
+    type: 'table',
     columns: e.attributes.map(a => ({ name: a.name, type: a.type || 'text', nullable: !a.identifier, pk: !!a.identifier }))
   }))
   const links: DbDiagramLink[] = []
@@ -64,7 +78,9 @@ export function layoutMcd(m: McdModel): McdModel {
     const legs = m.links.filter(l => l.association === a.id)
     // The side that holds the key (1,1 or 0,1) points at the others
     const child = legs.find(l => l.card === '1,1' || l.card === '0,1') ?? legs[0]
-    for (const l of legs) if (child && l.entity !== child.entity) links.push({ from: { name: child.entity, schema: '' }, columns: ['k'], to: { name: l.entity, schema: '' }, refColumns: ['k'] })
+    for (const l of legs)
+      if (child && l.entity !== child.entity)
+        links.push({ from: { name: child.entity, schema: '' }, columns: ['k'], to: { name: l.entity, schema: '' }, refColumns: ['k'] })
   }
   const pos = autoLayout(tables, links)
 
@@ -72,7 +88,10 @@ export function layoutMcd(m: McdModel): McdModel {
   const ROWS = 7
   const byId = new Map(m.entities.map(e => [e.id, e]))
   const columns = new Map<number, string[]>()
-  for (const e of m.entities) { const x = pos[`.${e.id}`]?.x ?? 0; columns.set(x, [...(columns.get(x) ?? []), e.id]) }
+  for (const e of m.entities) {
+    const x = pos[`.${e.id}`]?.x ?? 0
+    columns.set(x, [...(columns.get(x) ?? []), e.id])
+  }
   const spot = new Map<string, Point>()
   let shift = 0
   for (const x of [...columns.keys()].sort((a, b) => a - b)) {
@@ -101,7 +120,8 @@ export function layoutMcd(m: McdModel): McdModel {
   entities = [...entities].sort((a, b) => a.y - b.y || a.x - b.x)
   for (let i = 0; i < entities.length; i++) {
     for (let j = 0; j < i; j++) {
-      const a = entityBox(entities[j]), b = entityBox(entities[i])
+      const a = entityBox(entities[j]),
+        b = entityBox(entities[i])
       if (hit(a, b, GAP * 2)) entities[i] = { ...entities[i], y: a.y + a.h + GAP * 3 }
     }
   }
@@ -114,12 +134,16 @@ export function layoutMcd(m: McdModel): McdModel {
   const order = [...m.associations].sort((a, b) => m.links.filter(l => l.association === b.id).length - m.links.filter(l => l.association === a.id).length)
   const placed = new Map<string, Point>()
   for (const a of order) {
-    const boxes = m.links.filter(l => l.association === a.id).map(l => at.get(l.entity)).filter((b): b is Box => !!b)
+    const boxes = m.links
+      .filter(l => l.association === a.id)
+      .map(l => at.get(l.entity))
+      .filter((b): b is Box => !!b)
     const size = associationBox(a)
     const ends = [...new Set(boxes)]
     let want: Point
     if (!ends.length) want = { x: a.x, y: a.y }
-    else if (ends.length === 1) want = { x: ends[0].x + ends[0].w + 70 + size.w / 2, y: mid(ends[0]).y } // on itself: beside it
+    else if (ends.length === 1)
+      want = { x: ends[0].x + ends[0].w + 70 + size.w / 2, y: mid(ends[0]).y } // on itself: beside it
     else want = { x: ends.reduce((s, b) => s + mid(b).x, 0) / ends.length, y: ends.reduce((s, b) => s + mid(b).y, 0) / ends.length }
     const p = free(want, size.w, size.h)
     taken.push({ x: p.x - size.w / 2, y: p.y - size.h / 2, w: size.w, h: size.h })
@@ -136,7 +160,8 @@ export function layoutMcd(m: McdModel): McdModel {
 
   // Starting at the top left
   const all = [...entities.map(entityBox), ...associations.map(associationBox), ...notes.map(noteBox)]
-  const dx = 40 - Math.min(...all.map(b => b.x)), dy = 40 - Math.min(...all.map(b => b.y))
+  const dx = 40 - Math.min(...all.map(b => b.x)),
+    dy = 40 - Math.min(...all.map(b => b.y))
   const move = <T extends Point>(p: T): T => ({ ...p, x: p.x + dx, y: p.y + dy })
   return { ...m, entities: entities.map(move), associations: associations.map(move), notes: notes.map(move) }
 }
@@ -157,7 +182,12 @@ export function tidyMcd(input: McdModel, mpd?: MpdModel | null): { mcd: McdModel
   const changes: TidyChange[] = []
   const linked = (id: string) => m.links.some(l => l.entity === id)
   let n = 0
-  const fresh = (p: string) => { let id: string; do id = `${p}t${(++n).toString(36)}`; while ([...m.entities, ...m.associations, ...m.links].some(x => x.id === id)); return id }
+  const fresh = (p: string) => {
+    let id: string
+    do id = `${p}t${(++n).toString(36)}`
+    while ([...m.entities, ...m.associations, ...m.links].some(x => x.id === id))
+    return id
+  }
 
   // 1. The framework's own tables, when nothing points at them
   for (const e of m.entities.filter(x => isFrameworkTable(x.name) && !linked(x.id))) {
@@ -172,7 +202,10 @@ export function tidyMcd(input: McdModel, mpd?: MpdModel | null): { mcd: McdModel
   for (const e of m.entities) for (const a of e.attributes.filter(x => x.identifier)) if (!keyOf.has(snake(a.name))) keyOf.set(snake(a.name), e.id)
   for (const e of [...m.entities]) {
     if (linked(e.id)) continue
-    const attr = e.attributes.find(a => { const t = keyOf.get(snake(a.name)); return t && t !== e.id })
+    const attr = e.attributes.find(a => {
+      const t = keyOf.get(snake(a.name))
+      return t && t !== e.id
+    })
     if (!attr) continue
     const parent = m.entities.find(x => x.id === keyOf.get(snake(attr.name)))!
     // Its key was that attribute: one each side (1,1 — 0,1), and an identifier of its own
@@ -180,7 +213,10 @@ export function tidyMcd(input: McdModel, mpd?: MpdModel | null): { mcd: McdModel
     const attributes = e.attributes.filter(a => a.id !== attr.id)
     if (!attributes.some(a => a.identifier)) attributes.unshift({ id: fresh('a'), name: `id_${snake(e.name)}`, type: 'int', identifier: true })
     const assoc = { id: fresh('s'), name: `${e.name}_${parent.name}`, x: e.x, y: e.y, attributes: [] }
-    const legs: { entity: string; card: Cardinality }[] = [{ entity: e.id, card: '1,1' }, { entity: parent.id, card: shared ? '0,1' : '0,n' }]
+    const legs: { entity: string; card: Cardinality }[] = [
+      { entity: e.id, card: '1,1' },
+      { entity: parent.id, card: shared ? '0,1' : '0,n' }
+    ]
     m = {
       ...m,
       entities: m.entities.map(x => (x.id === e.id ? { ...x, attributes } : x)),
@@ -207,11 +243,21 @@ export function tidyMcd(input: McdModel, mpd?: MpdModel | null): { mcd: McdModel
   const renamed = new Map<string, string>()
   for (const a of m.associations) {
     const key = a.name.trim().toLowerCase()
-    if ((used.get(key) ?? 0) < 2) { names.add(key); continue }
+    if ((used.get(key) ?? 0) < 2) {
+      names.add(key)
+      continue
+    }
     let next = roleName(a.id) ?? a.name
-    if (names.has(next.toLowerCase())) { let i = 2; while (names.has(`${a.name}_${i}`.toLowerCase())) i++; next = `${a.name}_${i}` }
+    if (names.has(next.toLowerCase())) {
+      let i = 2
+      while (names.has(`${a.name}_${i}`.toLowerCase())) i++
+      next = `${a.name}_${i}`
+    }
     names.add(next.toLowerCase())
-    if (next !== a.name) { renamed.set(a.id, next); changes.push({ code: 'renamed', name: a.name, to: next }) }
+    if (next !== a.name) {
+      renamed.set(a.id, next)
+      changes.push({ code: 'renamed', name: a.name, to: next })
+    }
   }
   m = { ...m, associations: m.associations.map(a => (renamed.has(a.id) ? { ...a, name: renamed.get(a.id)! } : a)) }
 

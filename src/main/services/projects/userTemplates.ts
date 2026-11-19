@@ -26,11 +26,16 @@ export function listTemplates(): UserTemplate[] {
   try {
     const raw = JSON.parse(readFileSync(indexFile(), 'utf-8'))
     return Array.isArray(raw) ? raw.filter(t => t && typeof t.id === 'string' && existsSync(archive(t.id))) : []
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 /** Written, then told to the windows (New project, Settings › Templates read the list again) */
-const saveList = (list: UserTemplate[]) => { writeJsonFile(indexFile(), list); dataChanged('templates') }
+const saveList = (list: UserTemplate[]) => {
+  writeJsonFile(indexFile(), list)
+  dataChanged('templates')
+}
 
 const find = (id: string) => {
   const t = listTemplates().find(x => x.id === id)
@@ -46,9 +51,15 @@ async function walk(root: string, exclude: string[]): Promise<{ files: { rel: st
   const visit = async (rel: string): Promise<boolean> => {
     for (const entry of await readdir(join(root, rel), { withFileTypes: true })) {
       const path = rel ? `${rel}/${entry.name}` : entry.name
-      if (isExcluded(path, exclude)) { if (!rel) skipped.add(entry.name); continue }
+      if (isExcluded(path, exclude)) {
+        if (!rel) skipped.add(entry.name)
+        continue
+      }
       if (entry.isSymbolicLink()) continue
-      if (entry.isDirectory()) { if (!await visit(path)) return false; continue }
+      if (entry.isDirectory()) {
+        if (!(await visit(path))) return false
+        continue
+      }
       if (!entry.isFile()) continue
       const size = (await lstat(join(root, path))).size
       files.push({ rel: path, size })
@@ -75,7 +86,14 @@ async function pack(projectPath: string, exclude: string[], id: string): Promise
   return { files: files.length, bytes: files.reduce((n, f) => n + f.size, 0) }
 }
 
-export async function saveTemplate(input: { projectPath: string; name: string; description: string; framework: Framework; packageManager: PackageManager; exclude: string[] }): Promise<UserTemplate> {
+export async function saveTemplate(input: {
+  projectPath: string
+  name: string
+  description: string
+  framework: Framework
+  packageManager: PackageManager
+  exclude: string[]
+}): Promise<UserTemplate> {
   const name = input.name.trim().slice(0, 80)
   if (!name) throw new Error('Name required')
   if (!existsSync(input.projectPath)) throw new Error('Project folder not found')
@@ -84,9 +102,21 @@ export async function saveTemplate(input: { projectPath: string; name: string; d
   const counts = await pack(input.projectPath, exclude, id)
   const now = new Date().toISOString()
   const template: UserTemplate = {
-    id, name, description: input.description.trim().slice(0, 300), framework: input.framework, packageManager: input.packageManager,
-    sourcePath: input.projectPath, sourceName: input.projectPath.replace(/[/\\]+$/, '').split(/[/\\]/).pop() ?? name,
-    exclude, ...counts, createdAt: now, updatedAt: now
+    id,
+    name,
+    description: input.description.trim().slice(0, 300),
+    framework: input.framework,
+    packageManager: input.packageManager,
+    sourcePath: input.projectPath,
+    sourceName:
+      input.projectPath
+        .replace(/[/\\]+$/, '')
+        .split(/[/\\]/)
+        .pop() ?? name,
+    exclude,
+    ...counts,
+    createdAt: now,
+    updatedAt: now
   }
   saveList([...listTemplates(), template])
   return template
@@ -123,7 +153,8 @@ export async function extractTemplate(id: string, dest: string, newName: string)
     const target = join(dest, f.path)
     await mkdir(dirname(target), { recursive: true })
     const text = /^(package(-lock)?\.json|composer\.json|pyproject\.toml|cargo\.toml|readme(\.md)?)$/i.test(f.path)
-      ? renameIn(f.path, Buffer.from(f.data).toString('utf-8'), t.sourceName, newName) : null
+      ? renameIn(f.path, Buffer.from(f.data).toString('utf-8'), t.sourceName, newName)
+      : null
     await writeFile(target, text ?? f.data)
   }
   return files.length

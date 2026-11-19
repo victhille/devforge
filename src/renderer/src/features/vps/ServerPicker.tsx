@@ -10,13 +10,25 @@ const KEY = 'devforge:vps-server'
 export function useServerPicker(key = KEY) {
   const { data, error } = useSshConnections()
   const connections: SSHConnection[] | null = data ?? (error ? NO_SERVERS : null)
-  const [serverId, setServerId] = useState(() => { try { return localStorage.getItem(key) ?? '' } catch { return '' } })
+  const [serverId, setServerId] = useState(() => {
+    try {
+      return localStorage.getItem(key) ?? ''
+    } catch {
+      return ''
+    }
+  })
 
   // The one remembered while it exists, else the first (a server removed elsewhere is let go)
   useEffect(() => {
-    if (connections) setServerId(prev => (connections.some(x => x.id === prev) ? prev : connections[0]?.id ?? ''))
+    if (connections) setServerId(prev => (connections.some(x => x.id === prev) ? prev : (connections[0]?.id ?? '')))
   }, [connections])
-  useEffect(() => { try { if (serverId) localStorage.setItem(key, serverId) } catch { /* not kept */ } }, [serverId, key])
+  useEffect(() => {
+    try {
+      if (serverId) localStorage.setItem(key, serverId)
+    } catch {
+      /* not kept */
+    }
+  }, [serverId, key])
 
   return { connections, conn: connections?.find(c => c.id === serverId), serverId, setServerId }
 }
@@ -29,7 +41,11 @@ export function ServerSelect({ connections, value, onChange }: { connections: SS
     <label className="flex items-center gap-2 text-sm text-fg-secondary">
       {t.vpsOps.server}
       <Select value={value} onChange={e => onChange(e.target.value)} className="w-64">
-        {connections.map(c => <option key={c.id} value={c.id}>{c.name} · {c.host}</option>)}
+        {connections.map(c => (
+          <option key={c.id} value={c.id}>
+            {c.name} · {c.host}
+          </option>
+        ))}
       </Select>
     </label>
   )
