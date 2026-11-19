@@ -506,6 +506,8 @@ export interface DevForgeAPI {
   /** v3.5: picks a program (.exe, .cmd, .bat) */
   selectProgram: () => Promise<string | null>
   openExternal: (url: string) => Promise<void>
+  /** The GPL-3.0 license or the third-party notices shipped with the app; false when the file is not there */
+  openLegal: (which: 'license' | 'notices') => Promise<boolean>
   pathExists: (path: string) => Promise<boolean>
   openTerminal: (path: string) => Promise<void>
   readDirectory: (path: string) => Promise<FileEntry[]>

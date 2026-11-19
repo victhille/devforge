@@ -1,15 +1,15 @@
 # Licences tierces
 
-DevForge 0.2.1 est distribué sous [GPL-3.0](LICENSE). Il inclut les 146 paquets open source ci-dessous, chacun sous sa propre licence : le texte complet de chaque licence est dans le dossier du paquet (`node_modules/<paquet>/LICENSE`) et sur sa page npm.
+DevForge 0.2.1 est distribué sous [GPL-3.0-only](LICENSE). Il inclut les 117 paquets open source ci-dessous, chacun sous sa propre licence. Le texte complet de chaque licence est livré avec l'application, dans `THIRD_PARTY_NOTICES.txt` (Paramètres › À propos › Licences tierces).
 
-Généré par `npm run licenses` à partir de `package-lock.json` : ne pas modifier à la main.
+Généré par `npm run licenses` à partir de `package-lock.json` (installeur Windows x64) : ne pas modifier à la main.
 
-**Résumé** : MIT (84), Apache-2.0 (19), BSD-3-Clause (13), LGPL-3.0-or-later (10), ISC (7), OFL-1.1 (3), Apache-2.0 AND LGPL-3.0-or-later (3), Unlicense (2), Apache-2.0 AND LGPL-3.0-or-later AND MIT (1), Python-2.0 (1), BlueOak-1.0.0 (1), 0BSD (1), (MIT OR CC0-1.0) (1).
+**Résumé** : MIT (80), BSD-3-Clause (13), Apache-2.0 (7), ISC (7), OFL-1.1 (3), Unlicense (2), Apache-2.0 AND LGPL-3.0-or-later (1), Python-2.0 (1), BlueOak-1.0.0 (1), 0BSD (1), (MIT OR CC0-1.0) (1).
 
 Points d'attention :
 - **Polices Inter, JetBrains Mono et Bricolage Grotesque** : SIL Open Font License 1.1 (OFL-1.1), redistribuables avec l'application, à ne pas vendre seules.
-- **Apache-2.0** : les fichiers `NOTICE` éventuels de ces paquets sont conservés dans leur dossier.
-- **LGPL-3.0** (bibliothèque d'images libvips, via sharp) : compatible avec la GPL-3.0 de DevForge.
+- **Apache-2.0** : les fichiers `NOTICE` de ces paquets, s'il y en a, sont repris dans `THIRD_PARTY_NOTICES.txt`.
+- **LGPL-3.0** (bibliothèque d'images libvips, via sharp) : compatible avec la GPL-3.0 de DevForge ; son texte et la liste des bibliothèques qu'elle contient sont dans `THIRD_PARTY_NOTICES.txt`.
 
 | Paquet | Version | Licence |
 |---|---|---|
@@ -23,31 +23,6 @@ Points d'attention :
 | @huggingface/tokenizers | 0.2.0 | Apache-2.0 |
 | @huggingface/transformers | 4.3.0 | Apache-2.0 |
 | @img/colour | 1.1.0 | MIT |
-| @img/sharp-darwin-arm64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-darwin-x64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-freebsd-wasm32 | 0.35.5 | Apache-2.0 |
-| @img/sharp-libvips-darwin-arm64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-darwin-x64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linux-arm | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linux-arm64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linux-ppc64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linux-riscv64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linux-s390x | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linux-x64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linuxmusl-arm64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linuxmusl-x64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-linux-arm | 0.35.5 | Apache-2.0 |
-| @img/sharp-linux-arm64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-linux-ppc64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-linux-riscv64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-linux-s390x | 0.35.5 | Apache-2.0 |
-| @img/sharp-linux-x64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-linuxmusl-arm64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-linuxmusl-x64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-wasm32 | 0.35.5 | Apache-2.0 AND LGPL-3.0-or-later AND MIT |
-| @img/sharp-webcontainers-wasm32 | 0.35.5 | Apache-2.0 |
-| @img/sharp-win32-arm64 | 0.35.5 | Apache-2.0 AND LGPL-3.0-or-later |
-| @img/sharp-win32-ia32 | 0.35.5 | Apache-2.0 AND LGPL-3.0-or-later |
 | @img/sharp-win32-x64 | 0.35.5 | Apache-2.0 AND LGPL-3.0-or-later |
 | @protobufjs/aspromise | 1.1.2 | BSD-3-Clause |
 | @protobufjs/base64 | 1.1.2 | BSD-3-Clause |
@@ -68,11 +43,9 @@ Points d'attention :
 | asn1 | 0.2.6 | MIT |
 | aws-ssl-profiles | 1.1.2 | MIT |
 | bcrypt-pbkdf | 1.0.2 | BSD-3-Clause |
-| buildcheck | 0.0.7 | MIT |
 | builder-util-runtime | 9.7.0 | MIT |
 | clsx | 2.1.1 | MIT |
 | cookie | 1.1.1 | MIT |
-| cpu-features | 0.0.10 | MIT |
 | debug | 4.4.3 | MIT |
 | define-data-property | 1.1.4 | MIT |
 | define-properties | 1.2.1 | MIT |
@@ -109,14 +82,12 @@ Points d'attention :
 | ms | 2.1.3 | MIT |
 | mysql2 | 3.24.5 | MIT |
 | named-placeholders | 1.1.6 | MIT |
-| nan | 2.29.0 | MIT |
 | node-addon-api | 7.1.1 | MIT |
 | node-pty | 1.1.0 | MIT |
 | object-keys | 1.1.1 | MIT |
 | onnxruntime-common | 1.30.0 | MIT |
 | onnxruntime-common | 1.31.0-dev.20260911-2a43ec07e | MIT |
 | onnxruntime-node | 1.30.0 | MIT |
-| onnxruntime-web | 1.31.0-dev.20260914-8d85527a0 | MIT |
 | pdfjs-dist | 6.3.289 | Apache-2.0 |
 | pg | 8.23.1 | MIT |
 | pg-cloudflare | 1.4.1 | MIT |

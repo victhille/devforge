@@ -1,8 +1,8 @@
 # Nom et logo · Name and logo
 
-Le code de DevForge est sous [GPL-3.0](LICENSE). Le **nom « DevForge »**, le **logo** et la mascotte **Forgy** ne le sont pas : ils appartiennent à victhille et désignent la version officielle, publiée sur [github.com/victhille/devforge](https://github.com/victhille/devforge).
+Tout le dépôt, images du logo et dessin de Forgy compris, est sous [GPL-3.0-only](LICENSE). Ce qui est réservé, ce sont les **marques** : le **nom « DevForge »**, le **logo** et la mascotte **Forgy** comme signes qui désignent la version officielle, publiée sur [github.com/victhille/devforge](https://github.com/victhille/devforge). La GPL-3.0 le permet (article 7, e) : elle donne le droit de modifier et de redistribuer le code et les fichiers, pas celui d'utiliser ces marques.
 
-DevForge's code is under the [GPL-3.0](LICENSE). The **"DevForge" name**, the **logo** and the **Forgy** mascot are not: they belong to victhille and mark the official version, published at [github.com/victhille/devforge](https://github.com/victhille/devforge).
+The whole repository, logo images and Forgy's drawing included, is under the [GPL-3.0-only](LICENSE). What is reserved are the **trademarks**: the **"DevForge" name**, the **logo** and the **Forgy** mascot as signs that mark the official version, published at [github.com/victhille/devforge](https://github.com/victhille/devforge). The GPL-3.0 allows this (section 7, e): it grants the right to change and redistribute the code and files, not to use these trademarks.
 
 ## Permis · Allowed
 

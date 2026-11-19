@@ -42,4 +42,6 @@ Tout se règle dans **Paramètres › Mises à jour** : canal **Stable** (versio
 
 ## Désinstaller
 
-Passe par **Paramètres Windows › Applications › Applications installées › DevForge › Désinstaller**. Pour aussi effacer tes données avant, utilise **Paramètres › Données › Tout effacer** dans DevForge.
+Passe par **Paramètres Windows › Applications › Applications installées › DevForge › Désinstaller**. La désinstallation retire l'application, les mises à jour déjà téléchargées et le lancement au démarrage de Windows.
+
+Tes données restent, pour une réinstallation plus tard : le dossier `%APPDATA%\DevForge` (réglages, projets enregistrés, connexions, modèles de dictée) et les domaines locaux ajoutés au fichier `hosts`. Pour les effacer, utilise d'abord **Paramètres › Données › Tout effacer** dans DevForge, et retire tes domaines dans **Domaines locaux**.

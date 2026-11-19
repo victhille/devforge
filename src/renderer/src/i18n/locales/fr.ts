@@ -2731,7 +2731,8 @@ const fr = {
     githubPage: "Page GitHub",
     reportIssue: "Signaler un problème",
     viewLicense: "Licence GPL-3.0",
-    legalNotice: "DevForge © 2026 victhille. Logiciel libre sous licence GPL-3.0 : tu peux le redistribuer et le modifier selon ses conditions. Il est fourni sans aucune garantie.",
+    thirdPartyLicenses: "Licences tierces",
+    legalNotice: "DevForge © 2026 victhille. Logiciel libre sous licence GPL-3.0 (version 3 uniquement) : tu peux le redistribuer et le modifier selon ses conditions. Il est fourni sans aucune garantie. Il inclut des composants open source, chacun sous sa licence.",
     notes: {
       back: "Paramètres",
       all: "Tout",
