@@ -1,0 +1,3 @@
+# Commits de pure mise en forme, ignorés par git blame (GitHub le fait seul ; en local : git config blame.ignoreRevsFile .git-blame-ignore-revs)
+# Prettier sur tout le code
+7d2f44e24c766db190bc23a7846993dbcb2a94c4
