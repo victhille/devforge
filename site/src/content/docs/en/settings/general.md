@@ -64,7 +64,7 @@ Alerts arrive as Windows notifications, and Forgy sulks in the desktop widget (t
 - **Channel**: *Stable* (final versions) or *Beta* (pre-releases too, earlier but sometimes with bugs).
 - **Check** looks for a new version right away; otherwise it is automatic, 15 s after startup then every 6 h.
 - **Look for updates by itself**: off, DevForge asks GitHub only when you click **Check**.
-- A ready version installs on the next restart, or with **Restart and update**: a small window shows the installation's progress, then DevForge starts again by itself.
+- A version downloads in a card at the bottom right, then installs with **Restart and update** or on the next restart: the installer shows its progress, then DevForge starts again by itself, with a small "Update installed" window.
 - **Show "What's new" after an update**: a window sums up the version on first launch; **See again** opens it again.
 - **What's new in the version**: the installed version's changes, filtered by **All**, **New**, **Improvements** or **Fixes**. **See all versions →** opens the **release notes**: every version, in the app's language.
 

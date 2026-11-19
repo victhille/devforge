@@ -263,7 +263,8 @@ export interface DataAPI {
 export type UpdateStatus =
   | { state: 'idle' | 'checking' }
   | { state: 'up-to-date'; checkedAt: number }
-  | { state: 'downloading'; version: string; percent: number }
+  /** transferred / total in bytes and the speed, once electron-updater reports them */
+  | { state: 'downloading'; version: string; percent: number; transferred?: number; total?: number; bytesPerSecond?: number }
   | { state: 'ready'; version: string }
   /** dev build, the release feed cannot be read (offline), or no GitHub token to read the private repository */
   | { state: 'unavailable'; reason: 'dev' | 'feed' | 'auth' }

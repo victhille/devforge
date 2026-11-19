@@ -34,6 +34,20 @@
   ${endif}
 !macroend
 
+; An update shows only the progress page: its header says what is happening, in the installer's language
+!macro customPageAfterChangeDir
+  !define MUI_PAGE_CUSTOMFUNCTION_SHOW devforgeInstFilesShow
+  Function devforgeInstFilesShow
+    ${if} ${isUpdated}
+      ${if} $LANGUAGE == 1036
+        !insertmacro MUI_HEADER_TEXT "Mise à jour de DevForge" "Installation de la version ${VERSION}. DevForge se relance tout seul à la fin."
+      ${else}
+        !insertmacro MUI_HEADER_TEXT "Updating DevForge" "Installing version ${VERSION}. DevForge starts again by itself when it is done."
+      ${endif}
+    ${endif}
+  FunctionEnd
+!macroend
+
 ; The last page: « Lancer DevForge » after a first install; an update skips it and starts DevForge at once
 !macro customFinishPage
   Function devforgeStartApp

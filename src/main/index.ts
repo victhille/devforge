@@ -11,6 +11,7 @@ import { closeAllDbs } from './services/database/dbClient'
 import { closeAllTails } from './services/logs/logTail'
 import { stopWebhooks } from './services/webhooks/webhookServer'
 import { applyLoginItem, startedHidden } from './lib/loginItem'
+import { showUpdateSplash, startedAfterUpdate } from './services/updates/splash'
 import { guardNavigation, guardPermissions } from './lib/windowGuards'
 import { present } from './lib/present'
 import { disposeWidget, initWidget } from './widget'
@@ -186,7 +187,10 @@ app.whenReady().then(() => {
   const settings = loadSettings()
   applyLoginItem(settings)
 
+  // After an update: a small window while the main one loads
+  const splash = startedAfterUpdate && !startedHidden ? showUpdateSplash(language !== 'en') : null
   createWindow()
+  if (splash && mainWindow) splash.closeWith(mainWindow)
   if (mainWindow) initUpdater(mainWindow, settings.updateChannel === 'beta', settings.autoUpdate !== false)
   // Copies the night's VPS backup to this PC, warns about a missed one
   startBackupWatch()
