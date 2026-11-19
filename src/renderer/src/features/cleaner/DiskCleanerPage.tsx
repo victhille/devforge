@@ -179,6 +179,7 @@ export default function DiskCleanerPage() {
                 </tr>
               </thead>
               <tbody>
+                {/* A click anywhere on the row ticks it; the keyboard goes through its checkbox (one Tab stop per row) */}
                 {visible.map(r => (
                   <tr key={r.path} onClick={() => toggle(r.path, !selected.has(r.path))}
                     className={cn('cursor-pointer', selected.has(r.path) && '[&_td]:bg-accent-soft/40')}>
