@@ -13,6 +13,7 @@ La présentation, l'installation et la compilation sont dans le [README](../READ
 | Page | Contenu |
 |---|---|
 | [dev/architecture.md](dev/architecture.md) | Organisation du code, IPC, données, secrets, tests |
+| [dev/maintenance.md](dev/maintenance.md) | Versions des dépendances, `overrides`, poids de l'app, minuteurs |
 | [dev/portage.md](dev/portage.md) | Étude : ce qu'il faut pour DevForge sur macOS et Linux |
 | [dev/versions.md](dev/versions.md) | Numéros de version, messages de commit, sortir une release, mises à jour automatiques |
 
