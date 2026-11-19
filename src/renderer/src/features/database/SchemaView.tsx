@@ -135,7 +135,7 @@ export default function SchemaView({
     }
     setPos(next)
     setSaved(v => ({ ...v, pos: next }))
-  }, [diagram, shown]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [diagram, shown]) // eslint-disable-line react-hooks/exhaustive-deps -- placed when the diagram or the tables shown change
 
   const boxes = useMemo(() => {
     const out = new Map<string, Box>()
@@ -155,7 +155,7 @@ export default function SchemaView({
       fitted.current = true
       fit()
     }
-  }, [boxes.size, size.w]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [boxes.size, size.w]) // eslint-disable-line react-hooks/exhaustive-deps -- fitted once, when the first cards are placed
 
   const zoom = (factor: number, cx = size.w / 2, cy = size.h / 2) =>
     setView(v => {

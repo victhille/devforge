@@ -1,6 +1,7 @@
 import { execSync } from 'child_process'
 import type { EnvironmentTool } from '@shared/types'
 import { run } from '../../lib/exec'
+import { stripAnsi } from '@shared/lib/testReports'
 
 interface ToolDef {
   id: string
@@ -119,8 +120,7 @@ function toTool(def: ToolDef, output: string | null): EnvironmentTool {
     name: def.name,
     command: `${def.command} ${def.args.join(' ')}`,
     // Some CLIs (symfony) colour their output even when piped
-    // eslint-disable-next-line no-control-regex
-    version: output === null ? null : def.parseVersion(output.replace(/\u001b\[[\d;]*m/g, '')),
+    version: output === null ? null : def.parseVersion(stripAnsi(output)),
     status: output === null ? 'not_detected' : 'detected',
     required: def.required
   }

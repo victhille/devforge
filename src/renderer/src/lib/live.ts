@@ -146,7 +146,7 @@ export const reloadLive = (key: string): Promise<void> => {
 export function useLive<T>(key: string | null, load: () => Promise<T>, watch?: LiveWatch) {
   // The page's latest way of reading it
   if (key) entryFor(key, load, watch)
-  const subscribe = useCallback((cb: () => void) => (key ? watchLive(key, load, cb, watch) : () => {}), [key]) // eslint-disable-line react-hooks/exhaustive-deps
+  const subscribe = useCallback((cb: () => void) => (key ? watchLive(key, load, cb, watch) : () => {}), [key]) // eslint-disable-line react-hooks/exhaustive-deps -- the subscription follows the key; entryFor above keeps load and watch current
   // The same snapshot on a server render (the menu's tests render the sidebar to a string)
   const read = () => (key ? liveSnapshot(key) : EMPTY)
   const snap = useSyncExternalStore(subscribe, read, read)

@@ -135,6 +135,7 @@
     "ssh2": "1.17.0"
   },
   "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "4.8.1",
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.65.1",
     "@tailwindcss/vite": "^4.3.5",

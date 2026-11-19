@@ -54,7 +54,7 @@ export default function ProjectEnvEditor({
       .then(setBackup)
       .catch(() => setBackup(null))
     // onEnvChange may be a new function each render: load once per project
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onEnvChange may be a new function each render: loaded once per project
   }, [projectPath])
 
   if (!env) return null

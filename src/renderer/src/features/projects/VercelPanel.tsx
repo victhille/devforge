@@ -51,7 +51,7 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
       .account()
       .then(setAcc)
       .catch(err => setAccFailed(say(err)))
-  }, [accRound]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [accRound]) // eslint-disable-line react-hooks/exhaustive-deps -- read again only when the account changes (accRound)
 
   const load = useCallback(async () => {
     setError('')
@@ -70,7 +70,7 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
     } catch (err) {
       setError(say(err))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- say only words the errors: one load per project
   }, [projectId])
   useEffect(() => {
     if (acc?.connected) load()

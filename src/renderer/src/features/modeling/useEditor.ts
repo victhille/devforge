@@ -197,7 +197,7 @@ export function useCanvasView({
   }
   useEffect(() => {
     if (!touched.current && open && size.w > 100) fit()
-  }, [open, size.w, size.h, refit]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, size.w, size.h, refit]) // eslint-disable-line react-hooks/exhaustive-deps -- fit reads the latest model itself; refit asks for a new fit
 
   const zoom = (factor: number, cx = size.w / 2, cy = size.h / 2) => {
     touched.current = true

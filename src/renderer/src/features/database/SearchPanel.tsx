@@ -303,7 +303,7 @@ function HitCard({
   // Where the term is, cell by cell
   const marks = useMemo(
     () => rows.map(r => r.map((v, ci) => (v !== null && v !== undefined && searched.has(columns[ci]) ? matchRanges(String(v), run.form) : []))),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- searched comes from columns and run.form, both listed
     [rows, columns, run.form]
   )
   const matched = columns.filter((_, ci) => marks.some(m => m[ci].length))

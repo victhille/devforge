@@ -90,7 +90,7 @@ export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableR
   const pending = rows.changes.length > 0
   useEffect(() => {
     rows.reset()
-  }, [page, limit, sort, reload, table.name, table.schema]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [page, limit, sort, reload, table.name, table.schema]) // eslint-disable-line react-hooks/exhaustive-deps -- pending changes are dropped when the page, the sort or the table changes
 
   if (!result || !grid) return <TableSkeleton label={d.loading} toolbar rows={10} columns={6} />
 

@@ -101,7 +101,7 @@ export default function RichNotes({
   useEffect(() => {
     if (ref.current) ref.current.innerHTML = toEditorHtml(value)
     document.execCommand('styleWithCSS', false, 'false')
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- filled once: later changes come from the user typing
 
   // The buttons show the format under the caret
   useEffect(() => {
