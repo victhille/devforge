@@ -10,7 +10,7 @@ import { PAGES } from './navigation'
 import ErrorBoundary from './ErrorBoundary'
 import WhatsNew from './WhatsNew'
 import Onboarding from './Onboarding'
-import UpdateNotice from './UpdateNotice'
+import UpdateCard from './UpdateCard'
 import { AssistantProvider } from '@renderer/features/assistant/AssistantContext'
 import { useI18n } from '@renderer/i18n/I18nContext'
 
@@ -46,7 +46,7 @@ export default function App() {
       <ConfirmProvider>
         <WhatsNew />
         <Onboarding />
-        <UpdateNotice />
+        <UpdateCard />
         <ConsoleProvider>
           <VPSProvider>
             <AssistantProvider>

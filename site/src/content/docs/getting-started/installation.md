@@ -39,8 +39,8 @@ Tout reste sur ton PC, dans le dossier de données de DevForge (`%APPDATA%\DevFo
 ## Mises à jour automatiques
 
 - DevForge regarde les releases GitHub **15 secondes après son démarrage**, puis **toutes les 6 heures**.
-- Une nouvelle version se télécharge en arrière-plan. Elle s'installe **au prochain redémarrage**, ou tout de suite avec **Redémarrer et mettre à jour** : DevForge se ferme, une petite fenêtre montre l'avancement de l'installation (sans rien te demander, sauf l'autorisation de Windows si DevForge est installé pour tous les utilisateurs), puis DevForge se relance sur la nouvelle version.
-- Le menu affiche aussi un bouton **Mettre à jour (vX.Y.Z)** quand une version est prête.
+- Une nouvelle version se télécharge en arrière-plan, dans un bloc en bas à droite : avancement, taille et temps restant. Tu peux continuer à travailler, ou le réduire en pastille dans la barre de titre.
+- Une fois prête, elle s'installe avec **Redémarrer et mettre à jour**, ou **au prochain redémarrage** si tu choisis **Plus tard**. DevForge se ferme, l'installeur montre l'avancement (sans rien te demander, sauf l'autorisation de Windows si DevForge est installé pour tous les utilisateurs), puis une petite fenêtre « Mise à jour installée » s'affiche le temps que DevForge se rouvre.
 - Après la mise à jour, une fenêtre **Quoi de neuf** résume la version (désactivable).
 
 :::caution[Tu as une version 1.x à 4.x ?]

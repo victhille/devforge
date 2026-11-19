@@ -97,7 +97,8 @@ export function initUpdater(window: BrowserWindow, beta: boolean, autoCheck = tr
   setUpdateChannel(beta)
   autoUpdater.on('update-available', info => set({ state: 'downloading', version: info.version, percent: 0 }))
   autoUpdater.on('download-progress', p => {
-    if (status.state === 'downloading') set({ ...status, percent: Math.round(p.percent) })
+    if (status.state === 'downloading')
+      set({ ...status, percent: Math.round(p.percent), transferred: p.transferred, total: p.total, bytesPerSecond: p.bytesPerSecond })
   })
   autoUpdater.on('update-downloaded', info => set({ state: 'ready', version: info.version }))
   autoUpdater.on('error', err => {
