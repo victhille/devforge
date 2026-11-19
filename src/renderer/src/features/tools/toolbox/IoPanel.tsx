@@ -31,7 +31,7 @@ export function IoPanel({ label, actions, className, children }: Props) {
 }
 
 export const IO_TEXTAREA =
-  'min-h-48 flex-1 resize-none rounded-control border border-line-subtle bg-canvas p-3.5 font-mono text-sm leading-relaxed text-fg outline-none placeholder:text-fg-muted focus:border-accent'
+  'min-h-48 flex-1 resize-none rounded-control border border-line-strong bg-canvas p-3.5 font-mono text-sm leading-relaxed text-fg outline-none placeholder:text-fg-muted focus:border-accent'
 
 /** Two side-by-side panels taking the remaining height. */
 export function IoGrid({ children }: { children: ReactNode }) {

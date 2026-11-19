@@ -444,7 +444,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
                   <PanelTitle>{isEntity ? e.entity : e.association}</PanelTitle>
                   <label className="flex flex-col gap-1 text-xs text-fg-secondary">{e.name}
                     <input value={node.name} onChange={ev => setNode(n => ({ ...n, name: ev.target.value }), `name:${node.id}`)} spellCheck={false}
-                      className="h-8 rounded-md border border-line bg-canvas px-2 font-mono text-sm text-fg outline-none focus:border-accent" />
+                      className="h-8 rounded-md border border-line-strong bg-canvas px-2 font-mono text-sm text-fg outline-none focus:border-accent" />
                   </label>
                   <PanelTitle>{isEntity ? e.attributes : e.carried}</PanelTitle>
                   <ul className="flex flex-col gap-1.5" aria-label={isEntity ? e.attributes : e.carried}>
@@ -461,13 +461,13 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
                         </div>
                         <div className="flex items-center gap-1.5 pl-5.5">
                           <select value={a.type} aria-label={e.attrType.replace('{name}', a.name)} onChange={ev => setAttr(a.id, { type: ev.target.value as McdType | '' })}
-                            className="h-7 min-w-0 flex-1 rounded border border-line bg-surface px-1 text-xs text-fg-secondary outline-none focus:border-accent">
+                            className="h-7 min-w-0 flex-1 rounded border border-line-strong bg-surface px-1 text-xs text-fg-secondary outline-none focus:border-accent">
                             <option value="">{e.noType}</option>
                             {MCD_TYPES.map(ty => <option key={ty} value={ty}>{e.types[ty]}</option>)}
                           </select>
                           {a.type === 'varchar' && (
                             <input type="number" min={1} max={65535} value={a.length ?? 255} aria-label={e.length} onChange={ev => setAttr(a.id, { length: Number(ev.target.value) || undefined }, `len:${a.id}`)}
-                              className="h-7 w-16 rounded border border-line bg-surface px-1 font-mono text-xs text-fg outline-none focus:border-accent" />
+                              className="h-7 w-16 rounded border border-line-strong bg-surface px-1 font-mono text-xs text-fg outline-none focus:border-accent" />
                           )}
                         </div>
                       </li>
@@ -503,7 +503,7 @@ function McdEditor({ projectPath, file }: { projectPath: string; file: string })
               <>
                 <PanelTitle>{e.note}</PanelTitle>
                 <textarea value={selNote.text} rows={5} aria-label={e.note} onChange={ev => change(x => ({ ...x, notes: x.notes.map(n => (n.id === selNote.id ? { ...n, text: ev.target.value } : n)) }), `note:${selNote.id}`)}
-                  className="rounded-md border border-line bg-canvas p-2 text-sm text-fg outline-none focus:border-accent" />
+                  className="rounded-md border border-line-strong bg-canvas p-2 text-sm text-fg outline-none focus:border-accent" />
                 <Button variant="secondary" size="sm" className="self-start text-danger" onClick={removeSel}><Trash2 size={13} /> {e.remove}</Button>
               </>
             )}

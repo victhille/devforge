@@ -22,6 +22,7 @@ import { ServerSelect, useServerPicker } from '@renderer/features/vps/ServerPick
 import { errorText } from '@renderer/lib/errors'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
 import Notice from '@renderer/components/ui/Notice'
+import { visibleInterval } from '@renderer/lib/visibleInterval'
 
 /** Clients refresh while the page is open: transfers and last handshakes move */
 const REFRESH_MS = 15_000
@@ -158,8 +159,7 @@ function Clients({ conn, found, select, onForget }: { conn: SSHConnection; found
   const load = useCallback(() => window.devforge.vpn.clients(conn.id).then(c => { setClients(c); setError('') }).catch(err => setError(say(err))), [conn.id, say])
   useEffect(() => {
     load()
-    const id = setInterval(() => { if (document.visibilityState === 'visible') load() }, REFRESH_MS)
-    return () => clearInterval(id)
+    return visibleInterval(() => { load() }, REFRESH_MS)
   }, [load])
 
   const shown = useMemo(() => {

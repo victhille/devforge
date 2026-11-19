@@ -223,7 +223,7 @@ export default function SchemaView({ conn, dbName, onClose, onOpenTable }: {
         <aside aria-label={s.tables} className="flex w-[240px] shrink-0 flex-col border-r border-line-subtle bg-sidebar">
           <div className="flex flex-col gap-2 border-b border-line-subtle p-2.5">
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder={s.search} aria-label={s.search}
-              className="h-8 w-full rounded-md border border-line-subtle bg-canvas px-2.5 text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent" />
+              className="h-8 w-full rounded-md border border-line-strong bg-canvas px-2.5 text-sm text-fg outline-none placeholder:text-fg-muted focus:border-accent" />
             <div className="flex gap-1">
               <button onClick={() => setShown(new Set([...shown, ...listed.map(tableKey)]))} className="rounded-md border border-line px-2 py-0.5 text-xs text-fg-secondary hover:text-fg">{s.all}</button>
               <button onClick={() => setShown(new Set([...shown].filter(k => !listed.some(tb => tableKey(tb) === k))))} className="rounded-md border border-line px-2 py-0.5 text-xs text-fg-secondary hover:text-fg">{s.none}</button>

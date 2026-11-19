@@ -341,7 +341,7 @@ export default function AssistantPanel() {
             </div>
 
             <div className="flex flex-wrap items-center gap-1.5">
-              <label className="relative flex h-7 items-center rounded-md border border-line bg-surface pr-1 pl-2.5 text-xs text-fg-secondary focus-within:border-accent">
+              <label className="relative flex h-7 items-center rounded-md border border-line-strong bg-surface pr-1 pl-2.5 text-xs text-fg-secondary focus-within:border-accent">
                 <span className="sr-only">{a.noProject}</span>
                 <select value={projectPath ?? ''} onChange={e => setProjectPath(e.target.value || null)}
                   className="max-w-[170px] cursor-pointer appearance-none truncate bg-transparent pr-4 outline-none">
@@ -359,7 +359,7 @@ export default function AssistantPanel() {
               )}
             </div>
 
-            <div className="flex items-end gap-2 rounded-xl border border-line bg-surface py-1.5 pr-1.5 pl-3 transition-[border-color,box-shadow] focus-within:border-accent focus-within:ring-3 focus-within:ring-accent-soft" title={a.footer}>
+            <div className="flex items-end gap-2 rounded-xl border border-line-strong bg-surface py-1.5 pr-1.5 pl-3 transition-[border-color,box-shadow] focus-within:border-accent focus-within:ring-3 focus-within:ring-accent-soft" title={a.footer}>
               <textarea
                 ref={inputRef}
                 value={input}

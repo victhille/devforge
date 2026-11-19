@@ -12,6 +12,7 @@ import { Input } from '@renderer/components/ui/Input'
 import ErrorState from '@renderer/components/ui/ErrorState'
 import { errorText } from '@renderer/lib/errors'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
+import { visibleInterval } from '@renderer/lib/visibleInterval'
 
 const STATE_TONE: Record<string, string> = {
   READY: 'bg-success-soft text-success', ERROR: 'bg-danger-soft text-danger', BUILDING: 'bg-warning-soft text-warning',
@@ -64,8 +65,7 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
   const building = deps?.some(d => ['BUILDING', 'QUEUED', 'INITIALIZING'].includes(d.state))
   useEffect(() => {
     if (!building) return
-    const id = setInterval(() => window.devforge.vercel.deployments(projectId).then(setDeps).catch(() => {}), 5000)
-    return () => clearInterval(id)
+    return visibleInterval(() => { window.devforge.vercel.deployments(projectId).then(setDeps).catch(() => {}) }, 5000)
   }, [building, projectId])
 
   async function connect() {

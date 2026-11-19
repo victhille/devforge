@@ -219,7 +219,7 @@ function ActiveProjectCard({ projects, repos }: { projects: Project[]; repos: { 
     <label className="flex items-center">
       <span className="sr-only">{h.choose}</span>
       <select value={active?.id ?? ''} onChange={e => setActive(e.target.value || null)}
-        className="h-7.5 max-w-[200px] rounded-md border border-line bg-surface px-2.5 text-sm text-fg-secondary outline-none focus-visible:border-accent">
+        className="h-7.5 max-w-[200px] rounded-md border border-line-strong bg-surface px-2.5 text-sm text-fg-secondary outline-none focus-visible:border-accent">
         <option value="">{h.choose}</option>
         {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
       </select>
@@ -376,7 +376,7 @@ function ForgyCard({ project }: { project: Project | null }) {
         </div>
       </div>
       <form onSubmit={e => { e.preventDefault(); send() }}
-        className="flex items-center gap-2 rounded-control border border-line bg-canvas py-1.5 pr-1.5 pl-3.5 focus-within:border-accent">
+        className="flex items-center gap-2 rounded-control border border-line-strong bg-canvas py-1.5 pr-1.5 pl-3.5 focus-within:border-accent">
         <label className="min-w-0 flex-1">
           <span className="sr-only">{t.home.askForgy}</span>
           <input value={question} onChange={e => setQuestion(e.target.value)} placeholder={t.home.askForgyPlaceholder}
@@ -490,7 +490,7 @@ function WidgetBar({ widgets, onAdd, onReset, onDone }: { widgets: HomeWidget[];
       <label className="flex items-center">
         <span className="sr-only">{w.add}</span>
         <select value="" disabled={!missing.length} onChange={e => { if (e.target.value) onAdd(e.target.value as WidgetId) }}
-          className="h-9 rounded-control border border-line bg-surface px-3 text-sm text-fg outline-none focus-visible:border-accent disabled:opacity-50">
+          className="h-9 rounded-control border border-line-strong bg-surface px-3 text-sm text-fg outline-none focus-visible:border-accent disabled:opacity-50">
           <option value="">{missing.length ? `+ ${w.add}` : w.allShown}</option>
           {missing.map(id => <option key={id} value={id}>{w.names[id]}</option>)}
         </select>

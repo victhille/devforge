@@ -123,7 +123,7 @@ export default function AssistantSettings({ onSaved, settings, set }: { onSaved:
 
       <SettingsCard title={s.groups.provider}>
         <SettingRow label={s.forgyWho} hint={a.providerHint}>
-          <select aria-label={a.provider} value={config.provider} className="h-9 rounded-lg border border-line bg-canvas px-2.5 text-sm text-fg outline-none focus:border-accent"
+          <select aria-label={a.provider} value={config.provider} className="h-9 rounded-lg border border-line-strong bg-canvas px-2.5 text-sm text-fg outline-none focus:border-accent"
             onChange={ev => { setModels(null); setModelsError(''); setTested(null); setReplacing(false); void save({ provider: ev.target.value as AssistantProvider }) }}>
             {PROVIDERS.map(p => <option key={p.id} value={p.id}>{providerLabel(p.id, t)}{config.keys[p.id] ? ' ✓' : ''}</option>)}
           </select>

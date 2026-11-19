@@ -168,7 +168,7 @@ function NamingSelect<T extends string>({ label, value, options, onChange }: { l
     <label className="flex flex-col gap-1 text-sm text-fg-secondary">
       {label}
       <select value={value} onChange={e => onChange(e.target.value as T)}
-        className="h-8 rounded-md border border-line bg-canvas px-2 font-mono text-sm text-fg outline-none focus:border-accent">
+        className="h-8 rounded-md border border-line-strong bg-canvas px-2 font-mono text-sm text-fg outline-none focus:border-accent">
         {(Object.keys(options) as T[]).map(k => <option key={k} value={k}>{options[k]}</option>)}
       </select>
     </label>

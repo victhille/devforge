@@ -50,7 +50,7 @@ export function SearchBar({ s }: { s: ReturnType<typeof useProjectSearch> }) {
   const f = t.files
   return (
     <div className="flex shrink-0 flex-col gap-1 border-b border-line-subtle p-2">
-      <label className="flex h-8 items-center gap-1.5 rounded-md border border-line bg-canvas px-2 focus-within:border-accent">
+      <label className="flex h-8 items-center gap-1.5 rounded-md border border-line-strong bg-canvas px-2 focus-within:border-accent">
         <Search size={13} className="shrink-0 text-fg-muted" aria-hidden />
         <input value={s.query} onChange={e => s.setQuery(e.target.value)} placeholder={f.searchPlaceholder} aria-label={f.searchPlaceholder} spellCheck={false}
           onKeyDown={e => { if (e.key === 'Escape') s.setQuery('') }}
@@ -62,7 +62,7 @@ export function SearchBar({ s }: { s: ReturnType<typeof useProjectSearch> }) {
       </label>
       {s.active && (
         <input value={s.include} onChange={e => s.setInclude(e.target.value)} placeholder={f.searchInclude} aria-label={f.searchInclude} spellCheck={false}
-          className="h-7 rounded-md border border-line-subtle bg-canvas px-2 font-mono text-xs text-fg outline-none placeholder:font-sans placeholder:text-fg-muted focus:border-accent" />
+          className="h-7 rounded-md border border-line-strong bg-canvas px-2 font-mono text-xs text-fg outline-none placeholder:font-sans placeholder:text-fg-muted focus:border-accent" />
       )}
     </div>
   )

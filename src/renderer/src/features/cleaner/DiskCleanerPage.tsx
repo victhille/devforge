@@ -93,7 +93,7 @@ export default function DiskCleanerPage() {
       <PageHeader crumb={t.nav.groupSystem} title={c.title} subtitle={c.subtitle}
         actions={
           <form className="flex items-center gap-2" onSubmit={ev => { ev.preventDefault(); if (root) runScan() }}>
-            <div className="flex h-9 items-center rounded-control border border-line bg-surface focus-within:border-accent">
+            <div className="flex h-9 items-center rounded-control border border-line-strong bg-surface focus-within:border-accent">
               <Input value={root} onChange={e => setRoot(e.target.value)} placeholder="C:\Dev" aria-label={c.folder} className="h-full w-64 border-0 bg-transparent font-mono focus:ring-0" />
               <IconButton size="sm" title={c.browse} onClick={browse} className="mr-1"><FolderOpen size={14} /></IconButton>
             </div>

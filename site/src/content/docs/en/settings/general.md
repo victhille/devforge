@@ -45,6 +45,10 @@ description: Every DevForge setting, section by section, from General to About.
 
 Beside it, the **Preview** card shows a project card with these choices, before you look at the pages.
 
+### Accessibility
+
+**Windows high contrast** is followed: the app then takes the colors chosen in Windows, and focus, chosen tabs, switches, gauges and buttons stay visible. Input fields have a border of at least 3:1 in every color, and screen readers are told the chosen language.
+
 ## Servers
 
 One sample a minute in the background, kept 7 days. Two cards:

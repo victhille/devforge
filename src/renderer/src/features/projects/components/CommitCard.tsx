@@ -36,7 +36,7 @@ export default function CommitCard({ commit, canPush }: { commit: CommitState; c
     <Card className="flex shrink-0 flex-col gap-3 p-4.5">
       <label htmlFor={id} className="text-sm font-semibold text-fg-secondary">{g.message}</label>
       <textarea id={id} value={text} rows={2} onChange={e => { edited.current = true; setText(e.target.value) }}
-        className="min-h-16 resize-y rounded-control border border-line bg-canvas px-3 py-2 font-mono text-sm text-fg outline-none focus:border-accent focus:ring-3 focus:ring-accent-soft" />
+        className="min-h-16 resize-y rounded-control border border-line-strong bg-canvas px-3 py-2 font-mono text-sm text-fg outline-none focus:border-accent focus:ring-3 focus:ring-accent-soft" />
       {open && (
         <div className="flex max-h-40 flex-col overflow-y-auto rounded-lg border border-line-subtle bg-canvas py-1">
           <div className="flex items-center px-3 py-1">
