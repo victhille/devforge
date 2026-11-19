@@ -179,7 +179,8 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
   if (!SQL) {
     // Locate the wasm next to the sql.js package (works in dev and packaged)
     const wasmDir = dirname(createRequire(__filename).resolve('sql.js/dist/sql-wasm.wasm'))
-    SQL = await initSqlJs({ locateFile: f => join(wasmDir, f) })
+    // SQLite's own math functions, as the apps that use these files get them (not sql.js's older ones)
+    SQL = await initSqlJs({ locateFile: f => join(wasmDir, f), useOldExtensionFunctions: false })
   }
   const file = c.file
   const db: SqlJsDb = new SQL.Database(await readFile(file))
