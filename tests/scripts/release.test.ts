@@ -47,6 +47,13 @@ describe('versions', () => {
     expect(bumpFor([])).toBe('patch')
   })
 
+  it('before 1.0, a breaking change moves the minor version only: 1.0.0 is asked for explicitly', () => {
+    expect(bumpFor([ch('feat'), ch('breaking', true)], '0.2.1')).toBe('minor')
+    expect(bumpFor([ch('fix')], '0.2.1')).toBe('patch')
+    expect(bumpFor([ch('breaking', true)], '1.0.0-beta.1')).toBe('major')
+    expect(bumpFor([ch('breaking', true)], '1.4.2')).toBe('major')
+  })
+
   it.each([
     ['1.1.0', 'patch', null, '1.1.1'],
     ['1.1.0', 'minor', null, '1.2.0'],
