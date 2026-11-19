@@ -3,10 +3,10 @@ import { join } from 'path'
 import { describe, expect, it } from 'vitest'
 import { expectedActual, locationIn, parseCargoTest, parseGoTest, parseJestJson, parseJunit, parsePlaywrightJson, rebase, totalsOf } from '../../src/shared/lib/testReports'
 
-/** v3.7 lot 1: each test tool's report, read (real Vitest and Cargo outputs, the others as documented) */
+/** Each test tool's report, read (real Vitest and Cargo outputs, the others as documented) */
 const fixture = (name: string) => readFileSync(join(__dirname, '..', 'fixtures', 'tests', name), 'utf-8')
 
-describe('v3.7: Vitest and Jest', () => {
+describe('Vitest and Jest', () => {
   it('reads a real Vitest report: suites, statuses, the failure, expected and received, where', () => {
     const files = parseJestJson(fixture('vitest.json'), 'C:/work/shop')!
     expect(files.map(f => f.file)).toEqual(['tests/main/zz-sample.test.ts'])
@@ -33,7 +33,7 @@ describe('v3.7: Vitest and Jest', () => {
   })
 })
 
-describe('v3.7: Playwright', () => {
+describe('Playwright', () => {
   it('reads nested suites, the last retry, a skipped test', () => {
     const json = JSON.stringify({ suites: [{ title: 'login.spec.ts', file: 'login.spec.ts', specs: [], suites: [{ title: 'login', file: 'login.spec.ts', specs: [
       { title: 'works', file: 'login.spec.ts', line: 3, tests: [{ status: 'expected', results: [{ status: 'passed', duration: 120 }] }] },
@@ -47,7 +47,7 @@ describe('v3.7: Playwright', () => {
   })
 })
 
-describe('v3.7: JUnit (PHPUnit, pytest)', () => {
+describe('JUnit (PHPUnit, pytest)', () => {
   it('reads PHPUnit: nested suites, a failure with its expected value, an error, a skip', () => {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <testsuites><testsuite name="Project Test Suite" tests="4"><testsuite name="App\\Tests\\CartTest" file="C:\\p\\tests\\CartTest.php">
@@ -85,7 +85,7 @@ tests/test_cart.py:9: AssertionError</failure></testcase>
   })
 })
 
-describe('v3.7: Go and Cargo', () => {
+describe('Go and Cargo', () => {
   it('reads go test -json: packages as folders, subtests, the failing output, a package that does not build', () => {
     const ev = (o: object) => JSON.stringify(o)
     const stream = [
@@ -115,7 +115,7 @@ describe('v3.7: Go and Cargo', () => {
   })
 })
 
-describe('v3.7: paths written with Windows\' short names', () => {
+describe('Paths written with Windows\' short names', () => {
   it('reads a place under a short folder name, and rebases a path spelled the other way', () => {
     expect(locationIn('Error\n    at C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\shop\\src\\cart.test.ts:6:15', 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\shop'))
       .toEqual({ file: 'src/cart.test.ts', line: 6 })
@@ -125,7 +125,7 @@ describe('v3.7: paths written with Windows\' short names', () => {
   })
 })
 
-describe('v3.7: expected and received in words', () => {
+describe('Expected and received in words', () => {
   it('knows each tool\'s way', () => {
     expect(expectedActual('expected [ 1, 2 ] to deeply equal [ 1, 3 ]')).toEqual({ expected: '[ 1, 3 ]', actual: '[ 1, 2 ]' })
     expect(expectedActual('Failed asserting that two strings are identical.')).toEqual({})

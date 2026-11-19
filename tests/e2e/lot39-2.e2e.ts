@@ -5,7 +5,7 @@ import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
 import { pullLink } from './pull'
 
-/** v3.9 lot 2: the Modeling page and the MCD editor, saved in the project's conception/ folder */
+/** The Modeling page and the MCD editor, saved in the project's conception/ folder */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

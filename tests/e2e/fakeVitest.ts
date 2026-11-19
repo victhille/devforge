@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 
 /**
- * v3.7: a stand-in "vitest" for a seeded project: it prints a few lines and
+ * A stand-in "vitest" for a seeded project: it prints a few lines and
  * writes a report in Vitest's JSON format where it is told. The discount test
  * fails until a file named "fixed" is in the project; file arguments run only
  * those files.

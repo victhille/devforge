@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import type { DataTopic } from '@shared/types'
 
-/** v4.2: the data kept between pages — one request for many pages, shown at once, read again when the main process says it changed */
+/** The data kept between pages — one request for many pages, shown at once, read again when the main process says it changed */
 
 let emit: (e: { topic: DataTopic; scope?: string }) => void = () => {}
 vi.stubGlobal('window', { devforge: { onDataChanged: (cb: typeof emit) => { emit = cb; return () => {} } } })

@@ -6,7 +6,7 @@ import { planSetup } from '@shared/lib/projectSetup'
 import { extractTemplate, listTemplates, previewTemplate, refreshTemplate, removeTemplate, renameTemplate, saveTemplate } from '../../src/main/services/projects/userTemplates'
 import { tempDir } from '../helpers'
 
-/** v3.8 lot 5: my project templates */
+/** My project templates */
 
 describe('what a template leaves out', () => {
   it('never takes a .env, but keeps the examples', () => {

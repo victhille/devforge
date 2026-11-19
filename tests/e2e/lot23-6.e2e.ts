@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { launch, type Launched } from './launch'
 
-/** v2.3 lot 6: Forgy in the Laravel workshop (scripted model, status canned) */
+/** Forgy in the Laravel workshop (scripted model, status canned) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

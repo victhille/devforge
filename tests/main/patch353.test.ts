@@ -13,7 +13,7 @@ import { tempDir } from '../helpers'
 const file = (path: string, content: string) => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
 const names = (deps: { name: string; wanted: string; dev: boolean }[]) => deps.map(d => `${d.name} ${d.wanted}${d.dev ? ' dev' : ''}`)
 
-describe('v3.5.3: TOML, just enough', () => {
+describe('TOML, just enough', () => {
   it('reads tables, dotted keys, multi-line arrays, inline tables and arrays of tables', () => {
     const doc = parseToml([
       'name = "app" # a comment',
@@ -41,7 +41,7 @@ describe('v3.5.3: TOML, just enough', () => {
   })
 })
 
-describe('v3.5.3: Python', () => {
+describe('Python', () => {
   it('reads requirements.txt, skipping options and URLs', () => {
     expect(names(parseRequirements([
       '# web', 'Django>=5.0,<6  # pinned below 6', 'requests[socks] == 2.31.0', '-r base.txt', '-e .',
@@ -67,7 +67,7 @@ describe('v3.5.3: Python', () => {
   })
 })
 
-describe('v3.5.3: Rust, Go, Ruby, Dart, .NET, Java', () => {
+describe('Rust, Go, Ruby, Dart, .NET, Java', () => {
   it('reads Cargo.toml with its tables', () => {
     expect(names(parseCargo('[package]\nname = "cli"\n[dependencies]\nserde = { version = "1.0", features = ["derive"] }\nclap = "4.5"\nlocal = { path = "../local" }\n[dependencies.tokio]\nversion = "1.36"\n[dev-dependencies]\ninsta = "1"\n')))
       .toEqual(['serde 1.0', 'clap 4.5', 'local *', 'tokio 1.36', 'insta 1 dev'])
@@ -102,7 +102,7 @@ describe('v3.5.3: Rust, Go, Ruby, Dart, .NET, Java', () => {
   })
 })
 
-describe('v3.5.3: a project\'s other packages', () => {
+describe('A project\'s other packages', () => {
   it('finds each file, with what its lockfile or virtual environment holds; never inside a venv', () => {
     const root = tempDir('pkgs')
     file(join(root, 'api', 'requirements.txt'), 'Django>=5.0\nrequests\n')
@@ -128,7 +128,7 @@ describe('v3.5.3: a project\'s other packages', () => {
   })
 })
 
-describe('v3.5.3: code colours', () => {
+describe('Code colours', () => {
   it('picks the grammar from the name', () => {
     expect(['ComingSoon.vue', 'main.ts', 'Dockerfile', 'Dockerfile.dev', '.env.local', 'compose.yaml', 'app.py', 'yarn.lock', 'LICENSE', 'Gemfile'].map(codeLanguage))
       .toEqual(['xml', 'typescript', 'dockerfile', 'dockerfile', 'properties', 'yaml', 'python', null, null, 'ruby'])

@@ -4,7 +4,7 @@ import { cn } from '@renderer/lib/cn'
 import { modelUrl, siblings, type ModelTab } from './model'
 
 /**
- * v3.9 lot 3: the steps of one model, MCD → MLD → MPD → SQL, in the editor's bar.
+ * the steps of one model, MCD → MLD → MPD → SQL, in the editor's bar.
  * The MLD needs the MCD; the MPD and the SQL need the MPD.
  */
 export default function ModelTabs({ projectPath, file, tab, hasMcd, hasMpd, before }: {

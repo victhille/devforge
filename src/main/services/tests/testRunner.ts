@@ -12,7 +12,7 @@ import { writeJsonFile } from '../../lib/jsonFile'
 import { venvPython } from '../packages/otherUpdates'
 
 /**
- * v3.7: a project's tests: the tools it has, run with a report the app can
+ * A project's tests: the tools it has, run with a report the app can
  * read (written in DevForge's data, never in the project), the output
  * streamed while they run, the last run kept per folder and tool.
  */

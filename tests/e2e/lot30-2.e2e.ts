@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.0 lot 2: the first launch on an empty profile, and the pages that need a service nobody set up */
+/** The first launch on an empty profile, and the pages that need a service nobody set up */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

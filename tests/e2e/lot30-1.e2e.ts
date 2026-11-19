@@ -5,7 +5,7 @@ import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 import { acceptConfirms } from './confirm'
 
-/** v3.0 lot 1: Settings › Connections on an empty profile (Git's global config redirected to the profile) */
+/** Settings › Connections on an empty profile (Git's global config redirected to the profile) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

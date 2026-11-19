@@ -5,7 +5,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.7 lot 3: Git in the file tree (piste A): colours and letters, a dot on folders, "Modified only", the diff */
+/** Git in the file tree (piste A): colours and letters, a dot on folders, "Modified only", the diff */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

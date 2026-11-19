@@ -1,5 +1,5 @@
 /**
- * v3.7 lot 3: a file's changes since the last commit, read from `git diff`
+ * a file's changes since the last commit, read from `git diff`
  * into lines with their old and new numbers, for the Files tab's preview.
  */
 

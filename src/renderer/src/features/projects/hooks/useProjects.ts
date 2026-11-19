@@ -16,7 +16,7 @@ interface Options {
 
 /** Saved projects + common actions, shared by Home and Projects pages. */
 export function useProjects({ withDetails = false }: Options = {}) {
-  // v4.2: the kept list, shown at once when coming back, read again when it changes (here, Forgy, another window)
+  // The kept list, shown at once when coming back, read again when it changes (here, Forgy, another window)
   const live = useProjectList()
   const projects = live.data ?? NO_PROJECTS
   const loaded = live.loaded
@@ -100,7 +100,7 @@ const within = (root: string, path: string) => {
   return /^[/\\]/.test(path.slice(r.length)) && path.toLowerCase().startsWith(r)
 }
 
-/** v3.5: the projects to list, without those living in a saved group (they show inside it) */
+/** The projects to list, without those living in a saved group (they show inside it) */
 export function hideGroupMembers<P extends { path: string; framework: Framework }>(list: P[]): P[] {
   const groups = list.filter(p => p.framework === 'group')
   return list.filter(p => p.framework === 'group' || !groups.some(g => within(g.path, p.path)))

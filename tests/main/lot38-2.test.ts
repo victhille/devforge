@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ciChanges, latestByWorkflow } from '../../src/shared/lib/ciAlerts'
 
-/** v3.8 lot 2: the CI watch's reading of the runs */
+/** The CI watch's reading of the runs */
 const run = (name: string, conclusion: string | null, status = 'completed', branch = 'main') => ({ name, conclusion, status, branch })
 
 describe('v3.8 lot 2: GitHub CI alerts', () => {

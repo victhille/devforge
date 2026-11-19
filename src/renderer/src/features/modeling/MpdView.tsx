@@ -42,7 +42,7 @@ function retype(c: MpdColumn, type: MpdType): Partial<MpdColumn> {
 }
 
 /**
- * v3.9 lot 3: the MPD, made from the MCD and touched up by hand (names, types,
+ * the MPD, made from the MCD and touched up by hand (names, types,
  * lengths, indexes), drawn like the database schema; and its SQL for the
  * engine chosen, written next to it in conception/.
  */
@@ -75,7 +75,7 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
   const update = () => { if (mcd) change(x => generateMpd(mcd, found?.mcd?.naming ?? DEFAULT_NAMING, x.engine, x, sib.mcd)) }
 
   // ── The linked database (lot 4) ────────────────────────────────────────────
-  // v4.2: the kept lists of connections and projects
+  // The kept lists of connections and projects
   const connections = useDbConnections().data ?? NO_CONNECTIONS
   const symfony = !!useProjectList().data?.some(x => x.path === projectPath && x.framework === 'symfony')
   const [projectDb, setProjectDb] = useState<{ database?: string; port?: number } | null>(null)
@@ -109,7 +109,7 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
   const all = bounds([...boxes.values()])
   const canvas = useCanvasView({ open: mpd !== null, remount: tab, all, start: { x: 40, y: 40, k: 1 }, minZoom: 0.15 })
   const { viewport, view, size, touched, fit, zoom, toWorld } = canvas
-  /** v4.1: the tables picked together (a zone, Shift+click), moved and removed as one */
+  /** The tables picked together (a zone, Shift+click), moved and removed as one */
   const picker = useCanvasPick(canvas, { tool, parts: boxes, onPick: ids => setSel(ids.length === 1 ? ids[0] : null) })
   const { multi, zone, pick } = picker
 
@@ -134,7 +134,7 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
     pick([])
   }
 
-  // ── v4.2 lot 2: copy, paste, duplicate; line up, spread out ─────────────────
+  // ── Copy, paste, duplicate; line up, spread out ─────────────────
   const clip = useClipboard<MpdTable[]>(canvas, {
     kind: 'mpd', selected: multi.length ? multi : sel ? [sel] : [], boxes,
     copy: ids => copyMpd(mpd!, ids),
@@ -229,7 +229,7 @@ export default function MpdView({ projectPath, file, tab }: { projectPath: strin
       toast.show({ tone: 'success', title: p.written, description: path })
     } catch (err) { toast.show({ tone: 'error', title: p.writeFailed, description: errorText(err) }) }
   }
-  // v4.2 lot 3: the MCD worked out from these tables, then opened
+  // The MCD worked out from these tables, then opened
   const navigate = useNavigate()
   const from = useSearchParams()[0].get('from')
   const [deriving, setDeriving] = useState(false)

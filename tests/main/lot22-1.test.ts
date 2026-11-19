@@ -48,12 +48,12 @@ describe('v2.2 lot 1: project setup plan', () => {
     const sf = planSetup(opts('symfony', { database: 'none', features: ['api', 'auth', 'docker', 'tests', 'ci'] }), ctx)
     const files = sf.flatMap(s => s.kind === 'write' ? s.files.map(f => f.path) : [])
     expect(files).toEqual(expect.arrayContaining(['src/Controller/HealthController.php', 'tests/SmokeTest.php', 'Dockerfile', '.github/workflows/ci.yml', 'compose.yaml']))
-    // v3.4: the contract's User entity is written (it has a name, make:user has none), then migrated
+    // The contract's User entity is written (it has a name, make:user has none), then migrated
     expect(files).toEqual(expect.arrayContaining(['src/Entity/User.php', 'config/packages/security.yaml']))
     expect(runs(sf)).toContain('php bin/console doctrine:migrations:migrate --no-interaction')
 
     const next = planSetup(opts('nextjs', { database: 'none', features: ['api', 'auth', 'tests'] }), ctx)
-    // v3.4: authentication without a database takes SQLite (so Prisma), and follows the DevForge contract
+    // Authentication without a database takes SQLite (so Prisma), and follows the DevForge contract
     expect(next.flatMap(s => s.kind === 'write' ? s.files.map(f => f.path) : [])).toEqual(expect.arrayContaining([
       '{src}lib/prisma.ts', '{app}/api/health/route.ts', '{src}lib/auth.ts', '{app}/api/auth/login/route.ts', 'tests/smoke.test.ts'
     ]))

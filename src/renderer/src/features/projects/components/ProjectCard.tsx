@@ -51,7 +51,7 @@ function FavoriteButton({ active, onClick, title, size }: { active: boolean; onC
   )
 }
 
-/** v3.8: a red dot while a GitHub workflow of the project is failing */
+/** A red dot while a GitHub workflow of the project is failing */
 export function CiDot({ failing }: { failing?: string[] }) {
   const { t } = useI18n()
   if (!failing?.length) return null
@@ -59,7 +59,7 @@ export function CiDot({ failing }: { failing?: string[] }) {
   return <span role="img" aria-label={label} title={label} data-testid="ci-dot" className="size-2 shrink-0 rounded-full bg-danger ring-2 ring-danger/25" />
 }
 
-/** v3.8: the project's open tasks; a click opens its Notes tab */
+/** The project's open tasks; a click opens its Notes tab */
 export function TasksChip({ count, onClick }: { count?: number; onClick?: () => void }) {
   const { t } = useI18n()
   if (!count) return null
@@ -103,12 +103,12 @@ interface SavedProps {
   onRunScript?: (script: string) => void
   /** Position in the list, to stagger the entrance */
   index?: number
-  /** v3.5: the name of its projects folder, shown when there are several */
+  /** The name of its projects folder, shown when there are several */
   folder?: string | null
-  /** v3.8: its open tasks, and the way to them */
+  /** Its open tasks, and the way to them */
   openTasks?: number
   onOpenTasks?: () => void
-  /** v3.8: its GitHub workflows failing now */
+  /** Its GitHub workflows failing now */
   ciFailing?: string[]
   /** The active project (Forgy and the widget work on it): its card stands out */
   active?: boolean
@@ -195,7 +195,7 @@ interface DetectedProps {
   onImport: () => void
   onOpen: () => void
   onTerminal: () => void
-  /** v3.5: the name of its projects folder, shown when there are several */
+  /** The name of its projects folder, shown when there are several */
   folder?: string | null
 }
 

@@ -14,7 +14,7 @@ import { tempDir } from '../helpers'
 
 const file = (path: string, content = '{}') => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
 
-describe('v3.5.1: a group lists the rest of its folder', () => {
+describe('A group lists the rest of its folder', () => {
   it('shows docs, infra, README and Dockerfile, not its projects nor hidden or dependency folders', async () => {
     const root = tempDir('extras')
     const g = join(root, 'agenda-app')
@@ -34,7 +34,7 @@ describe('v3.5.1: a group lists the rest of its folder', () => {
   })
 })
 
-describe('v3.5.1: file previews', () => {
+describe('File previews', () => {
   it('picks the preview from the name', () => {
     expect(previewKind('README.md')).toBe('markdown')
     expect(previewKind('cahier.PDF')).toBe('pdf')
@@ -51,7 +51,7 @@ describe('v3.5.1: file previews', () => {
   })
 })
 
-describe('v3.5.1: copy results as CSV or JSON', () => {
+describe('Copy results as CSV or JSON', () => {
   const r = { columns: ['id', 'name', 'id'], rows: [[1, 'Ada, "the first"', 7], [2, null, 8]] }
 
   it('quotes CSV per RFC 4180', () => {
@@ -68,7 +68,7 @@ const col = (patch: Partial<ColumnDef>): ColumnDef => ({ ...EMPTY_COLUMN, ...pat
 const info = (patch: Partial<DbColumnInfo>): DbColumnInfo => ({ name: 'x', type: 'INT', nullable: true, default: null, key: '', extra: '', comment: '', ...patch })
 const users = { name: 'users', schema: '' }
 
-describe('v3.5.1: table SQL', () => {
+describe('Table SQL', () => {
   it('quotes defaults that are not numbers, keywords or SQL already', () => {
     expect(defaultSql('42')).toBe('42')
     expect(defaultSql('CURRENT_TIMESTAMP')).toBe('CURRENT_TIMESTAMP')

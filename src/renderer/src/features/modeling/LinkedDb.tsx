@@ -17,7 +17,7 @@ const SIGN: Record<MpdDiff['kind'], string> = {
 }
 
 /**
- * v3.9 lot 4: under the MPD, its linked database. Which connection, what
+ * under the MPD, its linked database. Which connection, what
  * differs (+ missing from the database, − only in it, ~ different), and the
  * ways to bring them together.
  */

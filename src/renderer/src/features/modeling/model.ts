@@ -3,7 +3,7 @@ import type { DbDiagram, ModelKind, ModelSummary } from '@shared/types'
 import { errorText } from '@renderer/lib/errors'
 import { useLive } from '@renderer/lib/live'
 
-/** v3.9: what the Modeling screens share (kept out of the components, for Fast Refresh) */
+/** What the Modeling screens share (kept out of the components, for Fast Refresh) */
 
 /** The colour of each kind's tag, the same everywhere */
 export const KIND_TONE: Record<ModelKind, string> = {
@@ -18,7 +18,7 @@ export const KIND_TONE: Record<ModelKind, string> = {
 
 export type ModelTab = 'mcd' | 'mld' | 'mpd' | 'sql'
 
-/** `from`: the id of the project whose page opened it (v4.1: the crumbs lead back there) */
+/** `from`: the id of the project whose page opened it (the crumbs lead back there) */
 export const modelUrl = (projectPath: string, file: string, tab?: ModelTab, from?: string | null) =>
   `/model?project=${encodeURIComponent(projectPath)}&file=${encodeURIComponent(file)}${tab ? `&tab=${tab}` : ''}${from ? `&from=${encodeURIComponent(from)}` : ''}`
 
@@ -29,7 +29,7 @@ export function siblings(file: string) {
 }
 
 /**
- * v4.2: a project's models, kept between pages (shown at once when coming
+ * A project's models, kept between pages (shown at once when coming
  * back) and read again as soon as one is written or removed: by Forgy, an
  * import, an editor.
  */
@@ -52,7 +52,7 @@ export function useSiblings(projectPath: string, file: string, tick = 0) {
 /** "{a} and {b}" filled in */
 export const fill = (tpl: string, vars: Record<string, string | number>) => tpl.replace(/\{(\w+)\}/g, (all, k: string) => (k in vars ? String(vars[k]) : all))
 
-/** v3.9 lot 4: the linked database as its schema reads, read again on demand */
+/** The linked database as its schema reads, read again on demand */
 export function useLinkedDb(connection?: string) {
   const [state, setState] = useState<{ diagram?: DbDiagram; error?: string; loading: boolean }>({ loading: false })
   const [tick, setTick] = useState(0)

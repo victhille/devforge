@@ -6,7 +6,7 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 
 /**
- * v3.7 lot 3 (piste A of the mock-up): what Git says of the tree's files:
+ * What Git says of the tree's files:
  * a colour and a letter per changed file, a dot on folders holding one,
  * and a file's changes as a diff.
  */

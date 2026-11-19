@@ -5,7 +5,7 @@ import { assertProjectPath } from '../../src/main/lib/safe'
 import { closeTail, openTail, rememberLogFile } from '../../src/main/services/logs/logTail'
 import { saveProjects, tempDir } from '../helpers'
 
-/** v4.0: what the window may name, through the IPC bridge, outside the projects */
+/** What the window may name, through the IPC bridge, outside the projects */
 
 const project = tempDir('shop')
 mkdirSync(join(project, 'storage', 'logs'), { recursive: true })

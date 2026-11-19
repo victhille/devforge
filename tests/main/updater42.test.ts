@@ -1,7 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { app } from 'electron'
 
-/** v4.2 lot 4: updates from the GitHub releases — the states shown in the title bar (electron-updater faked) */
+/** Updates from the GitHub releases — the states shown in the title bar (electron-updater faked) */
 
 const fake = vi.hoisted(() => {
   const handlers = new Map<string, (arg: never) => void>()

@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v2.3 lot 5: a Laravel project in Sail (status canned): every line goes through the container */
+/** A Laravel project in Sail (status canned): every line goes through the container */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

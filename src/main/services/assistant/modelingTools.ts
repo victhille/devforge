@@ -12,7 +12,7 @@ import { getProjectHub } from '../projects/projectHub'
 import { ToolError } from './assistantTools'
 
 /**
- * v3.9 lot 6: Forgy reads the Modeling page's models — the list, and one model
+ * Forgy reads the Modeling page's models — the list, and one model
  * as text: an MCD with its MLD and the rules applied, an MPD with its SQL, a
  * diagram's parts and links. Read only.
  */
@@ -36,7 +36,7 @@ export async function modelsText(p: Project): Promise<string> {
   }), linked].join('\n')
 }
 
-// ─── v4.1: Forgy makes a model ────────────────────────────────────────────────
+// ─── Forgy makes a model ────────────────────────────────────────────────
 
 export type ModelsUndo = { type: 'models-remove'; path: string; files: string[] }
 
@@ -53,7 +53,7 @@ const KIND_NAMES: Record<DiagramKind, string> = { usecase: 'use case', class: 'c
 /**
  * A model made by Forgy: an MCD read from the project's database (and its
  * MPD, linked to it), or drawn from a description it worked out with the
- * user; v4.2: an MPD (its tables) or a diagram (its parts and links)
+ * user; an MPD (its tables) or a diagram (its parts and links)
  * described the same way. Nothing is written before the click; the undo
  * removes the files made.
  */

@@ -5,7 +5,7 @@ import Button from '@renderer/components/ui/Button'
 import { useAssistant } from './AssistantContext'
 
 /**
- * v4.2 lot 4: the one way a page offers Forgy, with the same look everywhere:
+ * the one way a page offers Forgy, with the same look everywhere:
  * the panel opens, and the question (when there is one, worked out at the
  * click) is sent in a new conversation.
  */

@@ -6,7 +6,7 @@ import { associationBox, checkMcd, cleanMcd, cleanModelFile, entityBox, legLine,
 import { createModel, listModels, readModel, removeModel, renameModel, saveModel } from '../../src/main/services/modeling/models'
 import { saveProjects, tempDir } from '../helpers'
 
-/** v3.9 lot 2: the Modeling page and the MCD editor */
+/** The Modeling page and the MCD editor */
 
 const shop = (): McdModel => ({
   entities: [

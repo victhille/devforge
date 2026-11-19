@@ -3,7 +3,7 @@ import { AUTH_PAGES } from '../data/authContract'
 import { ANVIL, DEVFORGE_CSS } from './devforgeStyle'
 
 /**
- * v3.4 lot 1, 3.4.1: the page a project created by DevForge opens on, in place
+ * The page a project created by DevForge opens on, in place
  * of the framework's. Pure: the summary lists the same files the setup writes.
  * Views hold markup only: the look is the project's devforge.css, and on
  * Symfony a controller renders a Twig view. With authentication the top bar

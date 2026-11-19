@@ -6,7 +6,7 @@ import { mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 
-/** v3.8 lot 2: GitHub CI alerts (a local stand-in for GitHub's API) */
+/** GitHub CI alerts (a local stand-in for GitHub's API) */
 let run: Launched
 let server: Server
 test.afterEach(async () => {

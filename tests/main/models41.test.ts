@@ -12,7 +12,7 @@ import { runTool } from '../../src/main/services/assistant/assistantTools'
 import { undoModels } from '../../src/main/services/assistant/modelingTools'
 import { saveProjects, tempDir } from '../helpers'
 
-/** v4.1: a project's MCD and MPD made from its database, and Forgy making models */
+/** A project's MCD and MPD made from its database, and Forgy making models */
 
 const project = tempDir('shop')
 const empty = tempDir('blank')

@@ -4,7 +4,7 @@ import { join } from 'path'
 import { pathToFileURL } from 'url'
 import { launch, type Launched } from './launch'
 
-/** v4.0 lot 1: what an injected piece of HTML could do in the app's page — nothing */
+/** What an injected piece of HTML could do in the app's page — nothing */
 let run: Launched
 test.afterEach(async () => {
   await run.close()

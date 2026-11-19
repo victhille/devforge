@@ -6,7 +6,7 @@ import { missingTool, otherAudit, otherReinstall, otherUpdate } from './otherUpd
 
 /**
  * npm and Composer behind one door, for the Packages tab and for Forgy
- * (v3.3 lots 2 to 4): the manifest file picks the tool. v3.5.3: the other
+ *: the manifest file picks the tool. The other
  * languages' files too, listed and compared but never audited nor updated.
  */
 

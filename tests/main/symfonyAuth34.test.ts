@@ -9,7 +9,7 @@ import { planSetup, stepCommand } from '../../src/shared/lib/projectSetup'
 import { symfonyAuthFiles } from '../../src/shared/lib/symfonyAuthTemplate'
 import { tempDir } from '../helpers'
 
-/** v3.4 lot 5: authentication of a Symfony project, on the shared contract */
+/** Authentication of a Symfony project, on the shared contract */
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
   database: 'postgres', dbName: 'shop', dbPort: 5433, features: ['auth'], git: false, github: null, openVSCode: false, ...s
 })
@@ -18,7 +18,7 @@ const plan = (s: Partial<ProjectSetup> = {}) => planSetup({ name: 'shop', framew
 const line = (step: SetupStep) => step.kind === 'run' ? stepCommand(step) : `${step.kind}:${step.label}`
 const hasPhp = (() => { try { execFileSync('php', ['-v'], { stdio: 'ignore' }); return true } catch { return false } })()
 
-describe('v3.4: Symfony authentication', () => {
+describe('Symfony authentication', () => {
   const files = symfonyAuthFiles('shop', 'fr')
   const file = (p: string) => files.find(f => f.path === p)!.content
 

@@ -24,7 +24,7 @@ interface Props {
   style?: CSSProperties
 }
 
-/** v4.3: the state of a service, a container, a server: one size, one color per state, one pulse, on every page */
+/** The state of a service, a container, a server: one size, one color per state, one pulse, on every page */
 export default function StatusDot({ state, live, size = 'sm', label, className, style }: Props) {
   return (
     <span

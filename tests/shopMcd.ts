@@ -1,6 +1,6 @@
 import type { Cardinality, McdAttribute, McdModel } from '../src/shared/types/modeling'
 
-/** v3.9: the shop of the roadmap, 6 entities and 5 associations (unit tests and e2e) */
+/** The shop of the roadmap, 6 entities and 5 associations (unit tests and e2e) */
 
 const attr = (id: string, name: string, type: McdAttribute['type'], more: Partial<McdAttribute> = {}): McdAttribute => ({ id, name, type, ...more })
 export const identifier = (x: string, name: string) => attr(x, name, 'int', { identifier: true })

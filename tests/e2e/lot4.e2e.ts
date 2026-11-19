@@ -30,7 +30,7 @@ test('first launch: projects folder, scan, optional key, then never again', asyn
   await expect(page.getByText('1 projet(s) trouvé(s)')).toBeVisible()
   await page.getByRole('button', { name: 'Ajouter 1 projet(s)' }).click()
   await expect(page.getByText('1 projet(s) ajouté(s)')).toBeVisible()
-  // v3.0: the accounts step, everything optional
+  // The accounts step, everything optional
   await expect(page.getByRole('heading', { name: 'Tes comptes' })).toBeVisible()
   await page.getByRole('button', { name: 'Suivant' }).click()
   await page.getByRole('button', { name: 'Plus tard' }).click()

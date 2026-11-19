@@ -19,7 +19,7 @@ interface Props {
   options: ProjectCreationOptions
   stack: Pick<ProjectSetup, 'database' | 'dbName' | 'dbPort' | 'appPort' | 'features'> | null
   libraries: number
-  /** v3.8: created from this template of the user */
+  /** Created from this template of the user */
   templateName?: string
   steps: WizardStep[]
   /** "Create" was clicked: the page follows the creation */
@@ -42,7 +42,7 @@ export default function FinishForm({ options, stack, libraries, templateName, st
   const [openVSCode, setOpenVSCode] = useState(true)
   const [makeActive, setMakeActive] = useState(true)
   const [welcome, setWelcome] = useState(true)
-  // v3.4: a React or Vue front (TypeScript) can be the contract's client
+  // A React or Vue front (TypeScript) can be the contract's client
   const spa = !options.template && (options.framework === 'react' || options.framework === 'vue') && options.typescript
   const [spaAuth, setSpaAuth] = useState(false)
   const [apiUrl, setApiUrl] = useState(DEFAULT_API_URL)

@@ -3,7 +3,7 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import type { PreferredIde } from '@renderer/lib/ide'
 
-/** v3.5: the IDE one project opens in: the default one, or one found on this PC */
+/** The IDE one project opens in: the default one, or one found on this PC */
 export default function IdeSelect({ ide, value, onChange, label, className }: {
   ide: PreferredIde
   value?: DefaultIDE

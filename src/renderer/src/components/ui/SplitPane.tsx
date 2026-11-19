@@ -22,10 +22,10 @@ interface Props {
 }
 
 /**
- * v4.3: a list beside its content, filling the page's height. When the page is
+ * A list beside its content, filling the page's height. When the page is
  * narrow (a small window, Forgy's panel open) the list goes above the content,
  * its height capped, instead of leaving the content no room — as the menus of
- * Settings and Docker do since v4.2.
+ * Settings and Docker do.
  */
 export default function SplitPane({ side, children, width = 'md', label, sideClassName, className }: Props) {
   return (

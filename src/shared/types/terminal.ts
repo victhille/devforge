@@ -1,4 +1,4 @@
-// ─── Terminal in blocks (v2.2 lot 5) ──────────────────────────────────────────
+// ─── Terminal in blocks ──────────────────────────────────────────
 
 import type { ShellKind } from '../lib/shellBlocks'
 

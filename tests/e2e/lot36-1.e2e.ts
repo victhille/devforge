@@ -5,7 +5,7 @@ import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 import { confirmDialog, confirmButton } from './confirm'
 
-/** v3.6 lot 1: Python packages updated and audited (the commands simulated, as for npm) */
+/** Python packages updated and audited (the commands simulated, as for npm) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

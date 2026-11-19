@@ -14,7 +14,7 @@ const COLORS: Record<BadgeColor, string> = {
 
 interface Props {
   color?: BadgeColor
-  /** v4.3: a dot before the word, in its color (a state: running, stopped…) */
+  /** A dot before the word, in its color (a state: running, stopped…) */
   dot?: boolean
   /** A technical value (a framework, a version, a code), in the code font; a state stays in words */
   mono?: boolean

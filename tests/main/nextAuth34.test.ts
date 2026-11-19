@@ -5,7 +5,7 @@ import { AUTH_PAGES, AUTH_ROUTES } from '../../src/shared/data/authContract'
 import { planSetup, stepCommand } from '../../src/shared/lib/projectSetup'
 import { USER_MODEL, nextAuthFiles } from '../../src/shared/lib/nextAuthTemplate'
 
-/** v3.4 lot 3: authentication of a Next.js project, on the shared contract */
+/** Authentication of a Next.js project, on the shared contract */
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
   database: 'postgres', dbName: 'shop', dbPort: 5433, features: ['auth'], git: false, github: null, openVSCode: false, ...s
 })
@@ -19,7 +19,7 @@ function syntaxErrors(path: string, source: string): string[] {
   return (out.diagnostics ?? []).map(d => `${path}: ${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`)
 }
 
-describe('v3.4: Next.js authentication', () => {
+describe('Next.js authentication', () => {
   const files = nextAuthFiles('shop', 'fr')
 
   it('writes valid TypeScript for every file', () => {

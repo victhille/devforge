@@ -19,7 +19,7 @@ import ErrorState from '@renderer/components/ui/ErrorState'
 const relationText = (r: MldRelation) => `${r.name.toUpperCase()} (${r.columns.map(c => `${c.fk ? '#' : ''}${c.pk ? `_${c.name}_` : c.name}`).join(', ')})`
 
 /**
- * v3.9 lot 3: the MLD, worked out from the MCD at every change: the relations
+ * the MLD, worked out from the MCD at every change: the relations
  * (keys underlined, foreign keys after a #), the rules applied, and the naming
  * the MPD will use. "Make the MPD" writes it next to the MCD.
  */

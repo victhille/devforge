@@ -8,7 +8,7 @@ import { writeJsonFile } from '../../lib/jsonFile'
 import { findExecutable } from '../../lib/safe'
 
 /**
- * v3.5 lot 5: commands the user adds to the Docs page (a command, what it
+ * commands the user adds to the Docs page (a command, what it
  * does, a category), kept in userData/doc-commands.json and exported with
  * the rest of DevForge's data. A command is checked against this PC (its
  * program found with `where`) but may be saved anyway: a remote server's.

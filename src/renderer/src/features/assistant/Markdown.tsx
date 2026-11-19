@@ -30,7 +30,7 @@ function inline(text: string, key = 0): ReactNode[] {
 const isTableSep = (l: string) => /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(l)
 const cells = (l: string) => l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim())
 
-/** `asDocument`: a project's .md file (v3.5.1), with real, larger headings */
+/** `asDocument`: a project's .md file, with real, larger headings */
 export default function Markdown({ text, asDocument = false }: { text: string; asDocument?: boolean }) {
   // Windows files end their lines with \r\n: a trailing \r breaks the line patterns
   const lines = text.split(/\r?\n/)

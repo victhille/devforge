@@ -26,7 +26,7 @@ const DOTS = { backgroundImage: 'radial-gradient(circle, var(--border) 1px, tran
 /**
  * A project's models as cards: a thumbnail that opens the model, its kind,
  * name and size, renamed or removed in place. The Modeling page and the
- * project's Modeling tab (v4.1) show the same.
+ * project's Modeling tab show the same.
  */
 export default function ModelGrid({ project, models, onChanged, from, onNew }: { project: Project; models: ModelSummary[]; onChanged: () => void; from?: string; onNew?: () => void }) {
   const { t, lang } = useI18n()

@@ -9,7 +9,7 @@ import Modal from '@renderer/components/ui/Modal'
 import { Field, Input, Textarea } from '@renderer/components/ui/Input'
 import { errorText } from '@renderer/lib/errors'
 
-/** v3.8 lot 5: a project saved as a template, with what is left out and what will be copied */
+/** A project saved as a template, with what is left out and what will be copied */
 export default function SaveTemplateDialog({ project, onClose }: { project: Project; onClose: () => void }) {
   const { t, lang } = useI18n()
   const m = t.templates

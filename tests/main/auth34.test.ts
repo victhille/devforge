@@ -3,12 +3,12 @@ import type { ProjectSetup } from '../../src/shared/types'
 import { AUTH_PAGES, AUTH_ROUTES, AUTH_RULES } from '../../src/shared/data/authContract'
 import { planSetup, withAuthDatabase } from '../../src/shared/lib/projectSetup'
 
-/** v3.4 lot 2: one authentication API for every server DevForge creates */
+/** One authentication API for every server DevForge creates */
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
   database: 'none', dbName: 'shop', dbPort: 0, features: ['auth'], git: false, github: null, openVSCode: false, ...s
 })
 
-describe('v3.4: authentication contract', () => {
+describe('Authentication contract', () => {
   it('names four JSON routes under /api/auth, two of them behind the token', () => {
     expect(Object.values(AUTH_ROUTES).map(r => `${r.method} ${r.path}`)).toEqual([
       'POST /api/auth/register', 'POST /api/auth/login', 'POST /api/auth/logout', 'GET /api/auth/me'

@@ -2,10 +2,10 @@ import type { AppSettings, DbConnection, Project, SSHConnection, UserTemplate } 
 import type { IdeInfo } from '@shared/data/ides'
 import { setLive, useLive } from '@renderer/lib/live'
 
-/** v4.2: the saved projects, the same list for every page; read again when one is added, changed or removed */
+/** The saved projects, the same list for every page; read again when one is added, changed or removed */
 export const useProjectList = () => useLive<Project[]>('projects', () => window.devforge.getProjects(), { topic: 'projects' })
 
-/** v4.2: the database connections, the same list for every page; read again when one is saved or removed */
+/** The database connections, the same list for every page; read again when one is saved or removed */
 export const useDbConnections = () => useLive<DbConnection[]>('db-connections', () => window.devforge.db.list(), { topic: 'db-connections' })
 
 /** The boxes left to check in each project's notes; read again when a note changes (a page, Forgy, the Modeling page) */

@@ -38,7 +38,7 @@ let mounted: Confirm | null = null
 export const confirmDialog: Confirm = (message, options) => (mounted ? mounted(message, options) : Promise.resolve(window.confirm(message)))
 
 /**
- * v4.3: the question before a deletion, asked in the app's own dialog (in
+ * The question before a deletion, asked in the app's own dialog (in
  * its theme, its language, the keyboard kept inside) instead of Windows' grey
  * `window.confirm`. `await confirm(message)` reads the same way.
  *

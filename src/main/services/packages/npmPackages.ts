@@ -8,7 +8,7 @@ import { assertSafeDir } from '../../lib/safe'
 import { commandRunner } from '../system/commandRunner'
 
 /**
- * A project's npm packages (v3.3 lot 2): what each package.json declares,
+ * A project's npm packages: what each package.json declares,
  * what is installed, what is published, the known vulnerabilities, and the
  * update, saved first and put back if it fails. Nothing updates by itself.
  */

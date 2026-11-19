@@ -7,7 +7,7 @@ import { runCapture } from '../../lib/exec'
 import { backup, findManifestDirs, readJson, restoreBackup, runLogged, testData, type PackagesBackup } from './npmPackages'
 
 /**
- * A project's Composer packages (v3.3 lot 3): the same tab as npm, read from
+ * A project's Composer packages: the same tab as npm, read from
  * composer.json and vendor/composer/installed.json, Packagist for the latest
  * versions, `composer audit`, and the update in Sail's container when the
  * project runs on Sail.

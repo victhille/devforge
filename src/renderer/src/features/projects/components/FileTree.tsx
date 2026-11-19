@@ -37,11 +37,11 @@ interface NodeProps {
   dirs:     Map<string, FileEntry[]>
   expanded: Set<string>
   onToggle: (path: string) => void
-  /** v3.5.1: a file opens in the preview */
+  /** A file opens in the preview */
   selected: string | null
   onSelect: (entry: FileEntry) => void
   emptyLabel: string
-  /** v3.7: what Git says of the files (none outside a repository) */
+  /** What Git says of the files (none outside a repository) */
   git?: GitTree
 }
 
@@ -112,7 +112,7 @@ function ChangedTreeNode({ node, depth, selected, onSelect }: { node: ChangedNod
 // ─── Tree ─────────────────────────────────────────────────────────────────────
 
 /**
- * Lazy-loaded directory tree rooted at `rootPath`, a file opened beside it (v3.5.1).
+ * Lazy-loaded directory tree rooted at `rootPath`, a file opened beside it.
  * As in the mock-up: the tree in a card on the left (under `header`: the branch and its actions),
  * the file on the right, `below` it (the commit). `open`: a file of the project (relative path)
  * to show at once, at a line (a failed test's place). `rev` reads Git's view again (after a commit);
@@ -126,7 +126,7 @@ export default function FileTree({ rootPath, ide, open, header, below, rev = 0, 
   const { t } = useI18n()
   const f = t.files
   const [file,     setFile]     = useState<FileEntry | null>(null)
-  /** v3.6: the line a search result opens at */
+  /** The line a search result opens at */
   const [line,     setLine]     = useState<number | undefined>(undefined)
   const search = useProjectSearch(rootPath)
   const sep = rootPath.includes('\\') ? '\\' : '/'
@@ -137,7 +137,7 @@ export default function FileTree({ rootPath, ide, open, header, below, rev = 0, 
   }
   const pickFile = (entry: FileEntry) => { setFile(entry); setLine(undefined) }
   const [dirs,     setDirs]     = useState<Map<string, FileEntry[]>>(new Map())
-  /** v3.7: Git's view of the files, null outside a repository */
+  /** Git's view of the files, null outside a repository */
   const [states,   setStates]   = useState<GitStates | null>(null)
   const [onlyChanged, setOnlyChanged] = useState(false)
   /** The preview starts on the changes (a file opened from "Modified only") */
@@ -208,7 +208,7 @@ export default function FileTree({ rootPath, ide, open, header, below, rev = 0, 
       <Card className="flex h-[640px] min-h-0 min-w-0 flex-col gap-2.5 p-3.5 lg:col-span-4">
         {header}
         <div className="flex items-center gap-1.5">
-          {/* v3.7: the tree reduced to what changed since the last commit */}
+          {/* The tree reduced to what changed since the last commit */}
           {states && (changedCount > 0 || onlyChanged) && (
             <button aria-pressed={onlyChanged} onClick={() => setOnlyChanged(v => !v)}
               className={cn('flex h-7.5 items-center gap-1.5 rounded-md border px-2.5 text-sm font-medium',

@@ -10,7 +10,7 @@ import { Select } from '@renderer/components/ui/Input'
 import { errorText } from '@renderer/lib/errors'
 import Notice from '@renderer/components/ui/Notice'
 
-/** v3.6 lot 4: the whole table into a file, in the format picked */
+/** The whole table into a file, in the format picked */
 export function ExportMenu({ conn, table }: { conn: DbConnection; table: DbTableRef }) {
   const { t } = useI18n()
   const d = t.database
@@ -50,7 +50,7 @@ export function ExportMenu({ conn, table }: { conn: DbConnection; table: DbTable
   )
 }
 
-/** v3.6 lot 4: a CSV into the table: its columns matched by name, a preview, then one transaction */
+/** A CSV into the table: its columns matched by name, a preview, then one transaction */
 export function ImportDialog({ conn, table, columns, onClose, onDone }: {
   conn: DbConnection; table: DbTableRef; columns: string[]; onClose: () => void; onDone: (inserted: number) => void
 }) {

@@ -1,5 +1,5 @@
 /**
- * Terminal in blocks (v2.2 lot 5). The shells are taught to mark their
+ * Terminal in blocks. The shells are taught to mark their
  * prompt with invisible OSC 633 sequences (the ones VS Code uses):
  *   ESC ] 633 ; A BEL          the prompt starts (the previous command ended)
  *   ESC ] 633 ; D ; <code> BEL its exit code

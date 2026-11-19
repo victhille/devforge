@@ -20,7 +20,7 @@ const KINDS: ModelKind[] = ['mcd', 'mpd', 'usecase', 'class', 'sequence', 'flow'
 const NO_MODELS: ModelSummary[] = []
 
 /**
- * v4.1: a project's Modeling tab. Its models, a new one by hand, the MCD and
+ * A project's Modeling tab. Its models, a new one by hand, the MCD and
  * MPD made at once from the project's database (step by step), or Forgy
  * drawing one from what the user describes.
  */
@@ -36,7 +36,7 @@ export default function ProjectModels({ project, databases }: { project: Project
   const [brief, setBrief] = useState('')
   const imp = useModelImport()
 
-  // v4.2: kept between pages, read again when one is written or removed (Forgy, an import…)
+  // Kept between pages, read again when one is written or removed (Forgy, an import…)
   const { data: list, error: listError, reload: load } = useModels(project.path)
   const models = list ?? (listError ? NO_MODELS : null)
   useEffect(() => { if (listError) toast.show({ tone: 'error', title: m.loadFailed, description: errorText(listError) }) }, [listError, toast, m.loadFailed])

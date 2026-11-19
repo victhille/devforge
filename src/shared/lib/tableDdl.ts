@@ -2,7 +2,7 @@ import type { DbColumnInfo, DbTableRef, DbType } from '../types'
 import { quoteColumn, quoteIdent } from './sqlQuote'
 
 /**
- * v3.5.1: the SQL that creates, changes or drops a table or a column, per
+ * The SQL that creates, changes or drops a table or a column, per
  * engine. Shown before it runs; each statement runs on its own (MySQL takes
  * one at a time).
  */

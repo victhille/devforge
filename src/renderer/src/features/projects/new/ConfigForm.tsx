@@ -29,7 +29,7 @@ const PM_FRAMEWORKS: Framework[] = ['react', 'nextjs', 'vue', 'nodejs']
 interface Props {
   framework: Framework
   settings:  AppSettings | null
-  /** v3.8: one of the user's templates, in place of the framework's starter */
+  /** One of the user's templates, in place of the framework's starter */
   userTemplate?: UserTemplate | null
   /** What was typed before coming back to this step */
   initial?:  ProjectCreationOptions | null
@@ -94,7 +94,7 @@ const ConfigForm = forwardRef<ConfigHandle, Props>(function ConfigForm({ framewo
     { id: 'installDeps', label: t.newProject.optInstall }
   ].filter(o => templateOptions.some(opt => opt.id === o.id)) as { id: BoolOption; label: string }[]
 
-  // v3.5: the projects folders, one click each
+  // The projects folders, one click each
   const folders = settings ? projectFolders(settings) : []
   const sameDir = (a: string, b: string) => a.replace(/[/\\]+$/, '').toLowerCase() === b.trim().replace(/[/\\]+$/, '').toLowerCase()
 

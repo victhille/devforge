@@ -7,7 +7,7 @@ import { processManager } from '../../src/main/services/stacks/processManager'
 import { assertStack, loadStacks, saveStack, startStep, stopStack } from '../../src/main/services/stacks/stackService'
 import { tempDir, userData } from '../helpers'
 
-/** v4.0: the stack launcher, the one place where a saved shell line runs */
+/** The stack launcher, the one place where a saved shell line runs */
 
 const node = JSON.stringify(process.execPath)
 const stack = (steps: Stack['steps']): Stack => ({ id: 's1', name: 'Shop', color: 'blue', steps })

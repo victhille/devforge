@@ -5,7 +5,7 @@ import { createModel, listModels, readModel, saveModel } from '../../src/main/se
 import { saveProjects, tempDir } from '../helpers'
 import { samples } from '../diagrams'
 
-/** v3.9 lot 5: use cases, classes, sequence, flowchart, architecture */
+/** Use cases, classes, sequence, flowchart, architecture */
 
 const COLORS = { canvas: '#000', card: '#111', line: '#888', text: '#fff', muted: '#999', accent: '#c7f', actor: '#fc6', system: '#59f', note: '#330', noteText: '#fff' }
 

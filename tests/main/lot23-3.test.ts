@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import * as rv from '../../src/main/services/nextjs/prismaRevert'
 
-/** v2.3 lot 3: undoing a Prisma migration */
+/** Undoing a Prisma migration */
 describe('v2.3 lot 3: Prisma going back', () => {
   it('a shadow database next to the real one, created then dropped by name', () => {
     expect(rv.shadowUrl('postgresql://app:pw@localhost:5450/site?schema=public', 'postgresql')).toBe('postgresql://app:pw@localhost:5450/site_devforge_shadow?schema=public')

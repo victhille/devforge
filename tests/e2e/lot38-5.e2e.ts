@@ -6,7 +6,7 @@ import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 import { confirmButton } from './confirm'
 
-/** v3.8 lot 5: a project saved as a template, then a new project from it (piste A) */
+/** A project saved as a template, then a new project from it (piste A) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

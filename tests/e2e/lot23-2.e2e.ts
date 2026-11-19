@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
 
-/** v2.3 lot 2: cmd's exit codes, and the project page's shells kept across tabs (real cmd) */
+/** Cmd's exit codes, and the project page's shells kept across tabs (real cmd) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

@@ -4,7 +4,7 @@ import type { Point } from './mcd'
 import { autoLayout, boxSize, bounds } from './schemaLayout'
 
 /**
- * v3.9 lot 3: from the MCD to the database. The MLD (relations, keys) follows
+ * from the MCD to the database. The MLD (relations, keys) follows
  * the Merise rules; the MPD gives it SQL names and types and can be changed by
  * hand; the SQL is the MPD written for one engine.
  */

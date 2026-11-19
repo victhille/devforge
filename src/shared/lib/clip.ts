@@ -2,7 +2,7 @@ import type { DiagramModel, McdModel, MpdModel, MpdTable } from '../types'
 import { uid, type Point } from './mcd'
 
 /**
- * v4.2 lot 2: parts copied, then pasted or duplicated, in an MCD, a diagram
+ * parts copied, then pasted or duplicated, in an MCD, a diagram
  * or an MPD. The copy gets new ids, keeps the links between the parts copied
  * (only those), and names not already taken.
  */

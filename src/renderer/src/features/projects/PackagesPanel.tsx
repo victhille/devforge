@@ -45,8 +45,8 @@ function Missing({ text, install }: { text: string; install: string }) {
 }
 
 /**
- * A project's packages (v3.3 lot 2): one card per package.json, what is
- * behind, what is vulnerable, and the update the user chooses. v3.5.3: the
+ * A project's packages: one card per package.json, what is
+ * behind, what is vulnerable, and the update the user chooses. The
  * other languages' files too, compared only, with the command that updates them.
  */
 export default function PackagesPanel({ projectId }: { projectId: string }) {

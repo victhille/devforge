@@ -6,7 +6,7 @@ import { commitsByWeek, toFollow } from '@shared/lib/activity'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { ROW, Tile, TileLink, TileLoading } from './parts'
 
-/** v3.8 lot 3: this week's commits (mine) and the branches to push; the Activity page has the rest */
+/** This week's commits (mine) and the branches to push; the Activity page has the rest */
 export function CommitsWidget({ i }: { i: number }) {
   const { t } = useI18n()
   const k = t.activity

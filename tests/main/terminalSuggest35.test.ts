@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { scriptCommand, suggestRest } from '../../src/shared/lib/terminalSuggest'
 
-/** v3.5 lot 6: the greyed rest of a terminal line */
-describe('v3.5: terminal suggestions', () => {
+/** The greyed rest of a terminal line */
+describe('Terminal suggestions', () => {
   const sources = {
     scripts: ['npm run dev', 'npm run build'],
     history: ['npm run dev -- --host', 'git pull', 'git push origin main'],

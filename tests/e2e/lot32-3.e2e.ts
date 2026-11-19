@@ -5,7 +5,7 @@ import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 import { acceptConfirms } from './confirm'
 
-/** v3.2 lot 3: n8n and the status page's ntfy alerts in Settings › Connections (the server's answers simulated) */
+/** N8n and the status page's ntfy alerts in Settings › Connections (the server's answers simulated) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

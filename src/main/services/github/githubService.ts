@@ -124,7 +124,7 @@ export async function status(projectPath: string): Promise<GithubStatus> {
   return { repo, auth: tok.auth, runs: runs.workflow_runs.map(toRun), pulls: pulls.map(toPull), releases: releases.map(toRelease) }
 }
 
-/** v3.8: a project's latest workflow runs (the CI watch); null when it is not on GitHub or there is no token */
+/** A project's latest workflow runs (the CI watch); null when it is not on GitHub or there is no token */
 export async function latestRuns(projectPath: string): Promise<GithubRun[] | null> {
   const repo = await repoOf(projectPath)
   if (!repo) return null

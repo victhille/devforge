@@ -3,8 +3,8 @@ import {
   BASE64_ENCODED, BASE64_TEXT, DIFF_EXAMPLE, JSON_EXAMPLE, REGEX_MODELS, URL_EXAMPLE, WEBHOOK_EXAMPLE, WEBHOOK_EXAMPLE_TARGET, jwtExample
 } from '@renderer/features/tools/examples'
 
-/** v3.5 lot 4: the tools' examples work in their tool, and point nowhere real */
-describe('v3.5: tool examples', () => {
+/** The tools' examples work in their tool, and point nowhere real */
+describe('Tool examples', () => {
   it('gives each regex model matches, and leaves out what it must not match', () => {
     const found = (m: keyof typeof REGEX_MODELS) => [...REGEX_MODELS[m].text.matchAll(new RegExp(REGEX_MODELS[m].pattern, REGEX_MODELS[m].flags))].map(x => x[0])
     expect(found('email')).toEqual(['ada@example.invalid', 'support+dev@devforge.invalid'])

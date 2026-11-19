@@ -8,7 +8,7 @@ import { attr, identifier as id, shop } from '../shopMcd'
 import { createModel, listModels, projectEngine, readModel, renameModel, saveModel, writeSql } from '../../src/main/services/modeling/models'
 import { saveProjects, tempDir } from '../helpers'
 
-/** v3.9 lot 3: MLD and MPD made from the MCD, and the SQL */
+/** MLD and MPD made from the MCD, and the SQL */
 
 const line = (m: McdModel, name: string) => {
   const r = toMld(m).relations.find(x => x.name === name)!

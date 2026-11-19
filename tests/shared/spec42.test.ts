@@ -10,7 +10,7 @@ import type { Box } from '@shared/lib/mcd'
 
 const overlaps = (a: Box, b: Box) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
 
-/** v4.2 lot 3: an MPD and the diagrams from a description (Forgy); the MCD of an MPD drawn by hand */
+/** An MPD and the diagrams from a description (Forgy); the MCD of an MPD drawn by hand */
 
 const named = (d: DiagramModel, name: string) => d.nodes.find(n => n.name === name)!
 

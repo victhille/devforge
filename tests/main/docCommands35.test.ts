@@ -6,8 +6,8 @@ import { DATA_ENTRIES } from '../../src/main/services/storage/migrations'
 import { techIdFor, withCustom } from '../../src/renderer/src/features/docs/withCustom'
 import type { DocTech } from '../../src/renderer/src/features/docs/data'
 
-/** v3.5 lot 5: commands added to the Docs page */
-describe('v3.5: custom commands', () => {
+/** Commands added to the Docs page */
+describe('Custom commands', () => {
   const sources = { programs: ['git', 'gh', 'node', 'npm', 'npx', 'php'], commands: ['git log --oneline --graph', 'docker compose up -d'] }
 
   it('completes the first word with tools and PATH programs, then known sub-commands', () => {

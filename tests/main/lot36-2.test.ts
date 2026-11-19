@@ -3,7 +3,7 @@ import { join } from 'path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { tempDir } from '../helpers'
 
-/** v3.6 lot 2: Forgy and the packages of the other languages */
+/** Forgy and the packages of the other languages */
 const file = (path: string, content: string) => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
 const REQUIREMENTS = 'Django>=4.2\nrequests==2.31.0\n'
 

@@ -26,7 +26,7 @@ export function StatusIcon({ status, size = 13 }: { status: TestCase['status']; 
     : <Circle size={size - 3} className="shrink-0 text-fg-muted" aria-hidden />
 }
 
-/** v3.7 lot 2: a failed test in the detail, as in the mock-up: its message, expected and received, where; Forgy, rerun it, open its file */
+/** A failed test in the detail, as in the mock-up: its message, expected and received, where; Forgy, rerun it, open its file */
 function Failure({ file, test, onOpen, onRerunTest, onExplain, running }: {
   file: string; test: TestCase; onOpen?: (file: string, line: number) => void; onRerunTest: () => void; onExplain: () => void; running: boolean
 }) {
@@ -94,7 +94,7 @@ function FileItem({ file, selected, onSelect, lang }: { file: TestFile; selected
 }
 
 /**
- * v3.7: a project's tests, as in the mock-up: the tool and Run, the totals as
+ * A project's tests, as in the mock-up: the tool and Run, the totals as
  * badges, the files on the left, the chosen file on the right (its first failure
  * in detail, then its tests); the command's output below.
  */
@@ -102,7 +102,7 @@ export default function TestsPanel({ path, runners, projectName, onOpen }: {
   path: string
   runners: TestRunnerInfo[]
   projectName?: string
-  /** v3.7 lot 2: a failure's place, opened in the Files tab */
+  /** A failure's place, opened in the Files tab */
   onOpen?: (file: string, line: number) => void
 }) {
   const { t, lang } = useI18n()

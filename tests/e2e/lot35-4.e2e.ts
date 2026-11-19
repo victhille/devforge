@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.5 lot 4: each tool says what it is for and loads examples, which save and send nothing */
+/** Each tool says what it is for and loads examples, which save and send nothing */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

@@ -4,7 +4,7 @@ import { join } from 'path'
 import { settledAxeIssues as settledAxe } from './axe'
 import { goTo, launch, type Launched } from './launch'
 
-/** v4.2 lot 2: the selection lined up and spread out; parts copied, pasted (in another model too), duplicated */
+/** The selection lined up and spread out; parts copied, pasted (in another model too), duplicated */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

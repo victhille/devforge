@@ -2,7 +2,7 @@ import type { DbTableRef, DbType } from '../types'
 import { quoteColumn, quoteIdent, sqlString } from './sqlQuote'
 
 /**
- * v3.6 lot 3: the rows of a table changed from the Browse tab. Values always
+ * the rows of a table changed from the Browse tab. Values always
  * travel as parameters; the SQL shown to the user inlines them, for reading only.
  */
 

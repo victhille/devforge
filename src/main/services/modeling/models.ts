@@ -10,7 +10,7 @@ import { parseEnv } from '../envfiles/envFiles'
 import { fromEnv } from '../database/dbDetect'
 
 /**
- * v3.9: a project's models, files of its conception/ folder (so versioned with Git).
+ * A project's models, files of its conception/ folder (so versioned with Git).
  * Only for a saved project, and only names DevForge gives: nothing is read or
  * written anywhere else.
  */
@@ -30,7 +30,7 @@ function modelPath(projectPath: string, file: string): string {
 }
 
 /**
- * v4.2: a model written or removed (by Forgy, an import, the editor): the
+ * A model written or removed (by Forgy, an import, the editor): the
  * windows showing the project's models list them again. `path`: a file of
  * the project's conception/ folder.
  */
@@ -134,7 +134,7 @@ export function removeModel(projectPath: string, file: string): void {
   modelsChanged(path)
 }
 
-/** v3.9 lot 3: the SQL script next to an MPD */
+/** The SQL script next to an MPD */
 export function writeSql(projectPath: string, file: string, sql: string): string {
   if (!file.endsWith('.mpd.json')) throw new Error('Only an MPD has a SQL script')
   const path = join(modelPath(projectPath, file), '..', sqlName(file))
@@ -150,7 +150,7 @@ export function projectEngine(projectPath: string): SqlEngine {
   return projectDatabase(projectPath).engine
 }
 
-/** v3.9 lot 4: the project's database as its files describe it: the engine, and its name and port when they say */
+/** The project's database as its files describe it: the engine, and its name and port when they say */
 export function projectDatabase(projectPath: string): { engine: SqlEngine; database?: string; port?: number } {
   const dir = projectDir(projectPath)
   const env: Record<string, string> = {}

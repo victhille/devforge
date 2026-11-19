@@ -25,7 +25,7 @@ function persist(stacks: Stack[]): void {
 const STEP_TYPES = new Set(['command', 'vscode', 'url'])
 const optString = (v: unknown, max: number) => v === undefined || (typeof v === 'string' && v.length <= max)
 
-/** v4.0: what the window sends is checked before it is kept (and run later) */
+/** What the window sends is checked before it is kept (and run later) */
 export function assertStack(stack: unknown): Stack {
   const s = stack as Stack
   if (!s || typeof s !== 'object' || typeof s.id !== 'string' || !s.id || typeof s.name !== 'string' || !Array.isArray(s.steps)) throw new Error('Invalid stack')

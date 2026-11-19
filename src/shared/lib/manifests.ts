@@ -2,7 +2,7 @@ import type { PackageInfo, PackageManagerKind } from '../types/packages'
 import { parseToml, type TomlTable, type TomlValue } from './tomlLite'
 
 /**
- * v3.5.3: the dependencies other languages declare, read from their files:
+ * The dependencies other languages declare, read from their files:
  * Python (requirements.txt, pyproject.toml, Pipfile), Rust (Cargo.toml),
  * Go (go.mod), Ruby (Gemfile), Dart and Flutter (pubspec.yaml), .NET
  * (*.csproj), Java and Kotlin (pom.xml, build.gradle). Pure functions: the

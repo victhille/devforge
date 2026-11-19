@@ -10,7 +10,7 @@ import { shop } from '../shopMcd'
 import { doctrineMigration } from '../../src/main/services/modeling/linked'
 import { saveProjects, tempDir } from '../helpers'
 
-/** v3.9 lot 4: the MPD against a real database (SQLite here; PostgreSQL and MySQL checked by hand) */
+/** The MPD against a real database (SQLite here; PostgreSQL and MySQL checked by hand) */
 
 const NOTES = { pk: 'pk {table}', fkExtra: 'fk {table} {db}', sqliteType: 'type {table}.{column}', sqliteFk: 'fk {table} {mpd}' }
 

@@ -5,7 +5,7 @@ import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 import { confirmButton } from './confirm'
 
-/** v3.0 lot 4: export, erase everything (back to the welcome screen), import (paths in place of the dialogs, a reload in place of the restart) */
+/** Export, erase everything (back to the welcome screen), import (paths in place of the dialogs, a reload in place of the restart) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { tempDir } from '../helpers'
 import { exportConfig, importConfig, stripSecrets, wipeData } from '../../src/main/services/storage/profile'
 
-/** v3.0 lot 4: erase everything, export and import the setup */
+/** Erase everything, export and import the setup */
 function profile(): string {
   const dir = tempDir('profile')
   writeFileSync(join(dir, 'settings.json'), JSON.stringify({ language: 'fr', onboarded: true, defaultProjectsDir: 'C:/code' }))

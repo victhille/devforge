@@ -10,7 +10,7 @@ import { providerModels, sendToAssistant, setAssistantEmitter } from '../../src/
 import { importConfig } from '../../src/main/services/storage/profile'
 import { saveProjects, tempDir, userData } from '../helpers'
 
-/** v4.2: Forgy on providers other than Anthropic — an OpenAI-compatible API, a key per provider */
+/** Forgy on providers other than Anthropic — an OpenAI-compatible API, a key per provider */
 
 // A small OpenAI-compatible server: each request takes the next scripted answer
 // `endless`: a server that never stops writing (one SSE chunk again and again, or a body of x), until the client closes

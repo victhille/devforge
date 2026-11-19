@@ -1,5 +1,5 @@
 /**
- * v3.5.3: just enough TOML to read dependency lists (pyproject.toml, Pipfile,
+ * Just enough TOML to read dependency lists (pyproject.toml, Pipfile,
  * Cargo.toml) and lockfiles (poetry.lock, uv.lock, Cargo.lock): tables,
  * arrays of tables, strings, numbers, booleans, arrays (over several lines)
  * and inline tables. Anything else is skipped, never thrown on.

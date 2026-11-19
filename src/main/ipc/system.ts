@@ -37,11 +37,11 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
     await shell.openPath(assertSafeDir(dirPath))
   })
 
-  // v3.5: the catalog's IDEs and those added by hand
+  // The catalog's IDEs and those added by hand
   ipcMain.handle('open-in-ide', async (_event, dirPath: string, ide: string) => openInIde(dirPath, String(ide ?? '')))
   ipcMain.handle('open-file-in-ide', async (_event, filePath: string, ide: string, root?: string, line?: number) =>
     openFileInIde(filePath, String(ide ?? ''), typeof root === 'string' ? root : undefined, typeof line === 'number' ? line : undefined))
-  // v3.6 lot 5: a text or a regex in a whole project
+  // A text or a regex in a whole project
   ipcMain.handle('fs:search', async (_event, root: string, query: string, options: SearchOptions) =>
     searchProject(root, String(query ?? ''), { regex: !!options?.regex, caseSensitive: !!options?.caseSensitive, wholeWord: !!options?.wholeWord, include: String(options?.include ?? '') }))
   ipcMain.handle('ide:list', async (_event, fresh: boolean) => listIdes(fresh === true))
@@ -54,7 +54,7 @@ export function registerSystemHandlers(mainWindow: BrowserWindow): void {
 
   ipcMain.handle('path-exists', async (_event, p: string) => existsSync(p))
 
-  // v3.5.1: a file of a saved project, read for its preview (never run)
+  // A file of a saved project, read for its preview (never run)
   ipcMain.handle('fs:preview', async (_event, filePath: string): Promise<FilePreview> => {
     if (typeof filePath !== 'string' || !isInsideProject(filePath)) return { kind: 'unreadable', size: 0 }
     try {

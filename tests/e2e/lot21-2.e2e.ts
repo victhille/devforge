@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
 
-/** v2.1 lot 2: nightly backups (canned server outputs, no real VPS) */
+/** Nightly backups (canned server outputs, no real VPS) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

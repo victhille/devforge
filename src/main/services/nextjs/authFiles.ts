@@ -2,7 +2,7 @@ import type { AuthProvider } from '@shared/types'
 import { GENERATED_MARK } from './nextFiles'
 
 /**
- * Auth.js in the Next.js workshop (v2.3 lot 4): the Prisma adapter's models,
+ * Auth.js in the Next.js workshop: the Prisma adapter's models,
  * auth.ts, the sign-in and sign-up pages, and a route that needs a session.
  * Pure text; the service decides where and with which import paths.
  */

@@ -5,7 +5,7 @@ import { useProjectList } from '@renderer/hooks/useLiveData'
 import IconButton from '@renderer/components/ui/IconButton'
 
 /**
- * v4.1: where a model is, and the way back. Opened from a project's Modeling
+ * Where a model is, and the way back. Opened from a project's Modeling
  * tab (`from` = its id): Project › Modélisation › the model, the arrow back to
  * the project; else Modélisation › the model.
  */
@@ -15,7 +15,7 @@ export default function ModelCrumbs({ name, before }: { name: string; before?: (
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const from = params.get('from')
-  // v4.2: the kept list of projects, so the crumb shows at once
+  // The kept list of projects, so the crumb shows at once
   const projects = useProjectList().data
   const project = from ? projects?.find(p => p.id === from)?.name ?? null : null
 

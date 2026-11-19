@@ -14,7 +14,7 @@ import Tabs from '@renderer/components/ui/Tabs'
 const ICON = { removed: Trash2, linked: Link2, renamed: Pencil, moved: MoveDiagonal } as const
 
 /**
- * v4.1: what the MCD would look like tidy (nothing hidden, one name each, the
+ * What the MCD would look like tidy (nothing hidden, one name each, the
  * framework's tables out, keys linked), next to what it is now; the user keeps
  * one or the other. Taking the new one is one step of the editor's history.
  */

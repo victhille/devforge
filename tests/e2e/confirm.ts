@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 
-/** v4.3: the app's own confirm dialog, which replaced Windows' `window.confirm` */
+/** The app's own confirm dialog, which replaced Windows' `window.confirm` */
 export const confirmDialog = (page: Page): Locator => page.getByRole('dialog', { name: /^(Es-tu sûr \?|Are you sure\?)$/ })
 
 /** Its buttons */

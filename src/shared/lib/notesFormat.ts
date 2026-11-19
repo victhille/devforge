@@ -1,5 +1,5 @@
 /**
- * v3.8.1: a project's notes are formatted text (HTML from the editor). Notes
+ * A project's notes are formatted text (HTML from the editor). Notes
  * written in Markdown (before v3.8.1, or by hand in the project's folder) are
  * converted when they are opened.
  *

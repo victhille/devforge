@@ -28,7 +28,7 @@ export default function DeployEditor({ initial, onSave, onClose }: Props) {
   const d = t.deploy
   // The kept list of servers, shown at once
   const connections: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
-  // v4.2: the kept list of projects, shown at once
+  // The kept list of projects, shown at once
   const projects = useProjectList().data ?? NO_PROJECTS
   const [form, setForm] = useState<DeployTarget>(initial ?? {
     id: crypto.randomUUID(), name: '', connectionId: '', remotePath: '/var/www/', script: PRESETS[0].script, pushFirst: false

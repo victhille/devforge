@@ -11,7 +11,7 @@ import { writeJsonFile } from '../../lib/jsonFile'
 import { dataChanged } from '../../lib/changes'
 
 /**
- * v3.8 lot 5: projects saved as templates. The list in templates.json, each
+ * projects saved as templates. The list in templates.json, each
  * template's files in one archive (templates/<id>.dftpl); never a .env.
  */
 

@@ -2,7 +2,7 @@ import { AUTH_RULES } from '../data/authContract'
 import { ANVIL, DEVFORGE_CSS } from './devforgeStyle'
 
 /**
- * v3.4 lot 5: authentication of a Symfony project, on the shared contract.
+ * authentication of a Symfony project, on the shared contract.
  * Pages: form_login on /login, /register (signs in once created), /dashboard
  * (ROLE_USER). API: /api/auth/… on a stateless firewall whose access_token
  * authenticator reads an HS256 token signed with APP_SECRET (no JWT bundle, no

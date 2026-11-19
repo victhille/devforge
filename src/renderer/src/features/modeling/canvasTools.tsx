@@ -13,7 +13,7 @@ import IconButton from '@renderer/components/ui/IconButton'
 import { dragPart } from './connect'
 
 /**
- * v4.1: the editors' floating bar, at the bottom of the canvas: the cursor
+ * The editors' floating bar, at the bottom of the canvas: the cursor
  * (select a zone, or move the view) and the parts to place. Shared by the
  * MCD, the diagrams and the MPD.
  */
@@ -28,7 +28,7 @@ const SPACE_CONTROLS = 'button, a[href], summary, [role="button"], [role="radio"
 const ownsSpace = (t: EventTarget | null) => t instanceof Element && !!t.closest(SPACE_CONTROLS)
 
 /**
- * v4.2: a short message for screen readers, told politely (one live region
+ * A short message for screen readers, told politely (one live region
  * for the whole window, made the first time; no role, so that it is never
  * mistaken for a page's own status).
  */
@@ -48,7 +48,7 @@ export function announce(text: string): void {
   requestAnimationFrame(() => { target.textContent = text })
 }
 
-/** v4.2: the focus back on the editor's canvas (after its selection went away with the panel that had it) */
+/** The focus back on the editor's canvas (after its selection went away with the panel that had it) */
 export function focusCanvas(): void {
   document.querySelector<HTMLElement>('[data-canvas]')?.focus({ preventScroll: true })
 }
@@ -140,7 +140,7 @@ export function BarItem({ label, icon, onClick, drag, pressed, radio }: { label:
 /** A thin line between groups of the bar */
 export const BarSeparator = () => <span className="mx-1 h-7 w-px shrink-0 bg-line" aria-hidden />
 
-// ── v4.2 lot 1: the other pieces the three editors share ─────────────────────
+// ── The other pieces the three editors share ─────────────────────
 
 type ViewLike = { x: number; y: number; k: number }
 
@@ -185,7 +185,7 @@ export function ZoomButtons({ k, zoom }: { k: number; zoom: (factor: number) => 
 }
 
 /**
- * v4.2 lot 2: several parts picked: how many, lined up (edges, middles),
+ * several parts picked: how many, lined up (edges, middles),
  * spread out (three at least), duplicated, removed.
  */
 export function SelectionPanel({ count, onAlign, onSpread, onDuplicate, onRemove, rowOnly }: {

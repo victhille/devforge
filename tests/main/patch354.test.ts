@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { fileArgs } from '../../src/main/services/system/ides'
 
-/** v3.5.4: a file opens in its project's window, not in the last one used */
-describe('v3.5.4: a file opened in the IDE', () => {
+/** A file opens in its project's window, not in the last one used */
+describe('A file opened in the IDE', () => {
   const file = 'C:\\code\\agenda\\frontend\\src\\Logo.vue'
   const root = 'C:\\code\\agenda'
 

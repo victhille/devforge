@@ -5,7 +5,7 @@ import initSqlJs from 'sql.js'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.5.1: the fixes after trying 3.5.0 */
+/** The fixes after trying 3.5.0 */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

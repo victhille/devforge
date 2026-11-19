@@ -28,7 +28,7 @@ export function isInsideProject(path: string): boolean {
   })
 }
 
-/** v4.0: a saved project's folder (or one inside it), as the window sends it. Throws otherwise. */
+/** A saved project's folder (or one inside it), as the window sends it. Throws otherwise. */
 export function assertProjectPath(path: unknown): string {
   if (typeof path !== 'string' || !isAbsolute(path) || !isInsideProject(path)) throw new Error('Not a saved project')
   return path

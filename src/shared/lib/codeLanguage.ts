@@ -1,5 +1,5 @@
 /**
- * v3.5.3: the highlight.js grammar for a file, from its name. null: plain
+ * The highlight.js grammar for a file, from its name. null: plain
  * text (no colours). Vue and Svelte files read as HTML, whose <script> and
  * <style> blocks get their own colours.
  */

@@ -18,7 +18,7 @@ import SplitPane from '@renderer/components/ui/SplitPane'
 export default function EnvFilesPage() {
   const { t } = useI18n()
   const e = t.envFiles
-  // v4.2: the shared project list, read again when a project is added or removed
+  // The shared project list, read again when a project is added or removed
   const projects = useProjectList().data ?? NO_PROJECTS
   const [envs, setEnvs] = useState<Record<string, EnvProject> | null>(null)
   const [selected, setSelected] = useState<string | null>(null)

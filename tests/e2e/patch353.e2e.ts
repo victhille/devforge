@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.5.3: Python packages, code in colours, a file opened in the IDE */
+/** Python packages, code in colours, a file opened in the IDE */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -41,7 +41,7 @@ test('a Python project lists its packages, compared with PyPI, with the command 
   await expect(django).toContainText('majeure')
   await expect(page.getByRole('row', { name: /pytest/ })).toContainText('développement')
 
-  // v3.6: updatable, but this environment has no Python of its own: the way to create one
+  // Updatable, but this environment has no Python of its own: the way to create one
   await expect(page.getByRole('status').filter({ hasText: 'environnement virtuel' }).first()).toContainText('python -m venv .venv')
 
   // .NET stays read only: no audit nor update, the command instead

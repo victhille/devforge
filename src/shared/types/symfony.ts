@@ -1,4 +1,4 @@
-// ─── Symfony workshop (v2.2 lot 2) ─────────────────────────────────────────────
+// ─── Symfony workshop ─────────────────────────────────────────────
 
 export type SfFieldType = 'string' | 'text' | 'integer' | 'float' | 'decimal' | 'boolean' | 'date' | 'datetime' | 'json'
 

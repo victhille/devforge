@@ -10,7 +10,7 @@ import { loadSettings } from '../settings/settingsService'
 import { latestRuns } from './githubService'
 
 /**
- * v3.8 lot 2: the GitHub CI of the user's projects, watched while the app is
+ * the GitHub CI of the user's projects, watched while the app is
  * open: every 5 minutes, the last finished run of each workflow. One that
  * breaks (green, now red) rings a Windows notification; back to green rings
  * once more. Favourite projects only by default, nothing without a token.

@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.3 lot 3: Composer in the Packages tab, next to npm (Packagist and Composer simulated) */
+/** Composer in the Packages tab, next to npm (Packagist and Composer simulated) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

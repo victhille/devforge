@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { ProjectActivity } from '@shared/types'
 import { asleep, commitsByWeek, mostActive, parseGitLog, parseHeadRef, toFollow, weekStart, WEEKS } from '@shared/lib/activity'
 
-/** v3.8 lot 3: the Activity page's figures */
+/** The Activity page's figures */
 
 const DAY = 24 * 3600
 // A Wednesday at noon (local)

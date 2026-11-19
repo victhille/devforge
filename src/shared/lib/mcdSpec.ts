@@ -4,7 +4,7 @@ import { snake } from './mpd'
 import { layoutMcd } from './mcdTidy'
 
 /**
- * v4.1: an MCD from a description (what Forgy writes from the user's words):
+ * An MCD from a description (what Forgy writes from the user's words):
  * entities with their attributes, associations with their legs. Checked, an
  * identifier added where none is given, then laid out like an imported base
  * (each association at a free spot near its entities).

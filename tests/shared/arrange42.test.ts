@@ -5,7 +5,7 @@ import { DEFAULT_NAMING } from '@shared/lib/mpd'
 import { align, distribute, pasteShift, placed } from '@shared/lib/arrange'
 import { copyDiagram, copyMcd, copyMpd, pasteDiagram, pasteMcd, pasteMpd, uniqueName } from '@shared/lib/clip'
 
-/** v4.2 lot 2: the selection lined up and spread out; parts copied, pasted, duplicated */
+/** The selection lined up and spread out; parts copied, pasted, duplicated */
 
 const boxes = (...list: [string, number, number, number, number][]) => new Map<string, Box>(list.map(([id, x, y, w, h]) => [id, { x, y, w, h }]))
 

@@ -22,7 +22,7 @@ const MINI = { w: 200, h: 130 }
 interface Saved { pos: Record<string, Point>; shown: string[] | null }
 
 /**
- * v3.8 lot 4 (piste B): the database's schema, full screen. The tables to
+ * The database's schema, full screen. The tables to
  * show on the left; cards placed on their own, then moved by hand (kept per
  * database); zoom, fit, a minimap, PNG or SVG export. A click on a card opens
  * its Structure.

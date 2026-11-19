@@ -2,7 +2,7 @@ import { useCallback, useSyncExternalStore } from 'react'
 import type { DataTopic } from '@shared/types'
 
 /**
- * v4.2: data the pages read often (the projects, the connections, a project's
+ * Data the pages read often (the projects, the connections, a project's
  * models), kept in memory once read. A page coming back shows it at once and
  * asks again in the background; two pages asking at the same moment make one
  * request; and when the main process says it changed (a page, Forgy, an

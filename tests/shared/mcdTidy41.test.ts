@@ -4,7 +4,7 @@ import { checkMcd } from '@shared/lib/mcd'
 import { freeSpot, overlaps, tidyMcd } from '@shared/lib/mcdTidy'
 import { diffMpd, importDb } from '@shared/lib/mpdDb'
 
-/** v4.1: the tidy MCD the editor proposes, and an import laid out the same way */
+/** The tidy MCD the editor proposes, and an import laid out the same way */
 
 const attr = (id: string, name: string, identifier = false) => ({ id, name, type: 'int' as const, ...(identifier ? { identifier: true } : {}) })
 /** An MCD as imports made it before: names twice, every box at the same spots, keys unlinked */

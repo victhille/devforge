@@ -5,8 +5,8 @@ import { decodeLine, lineCollapser, lineReader, stripAnsi } from '../../src/main
 import { loadProjects, saveProject } from '../../src/main/services/projects/projectStorage'
 import { userData } from '../helpers'
 
-/** v3.3.1: the creation and script logs stay readable */
-describe('v3.3.1: log lines', () => {
+/** The creation and script logs stay readable */
+describe('Log lines', () => {
   it('strips OSC 8 links, ended by BEL or by ESC \\', () => {
     expect(stripAnsi('Created \x1b]8;;file:///C:/app/src/Entity/User.php\x1b\\src/Entity/User.php\x1b]8;;\x1b\\')).toBe('Created src/Entity/User.php')
     expect(stripAnsi('\x1b]8;;https://x.dev\x07link\x1b]8;;\x07')).toBe('link')
@@ -77,7 +77,7 @@ describe('v3.3.1: log lines', () => {
   })
 })
 
-describe('v3.3.1: projects whose folder is gone', () => {
+describe('Projects whose folder is gone', () => {
   it('never saves the "missing" flag worked out on load', () => {
     saveProject({ id: 'p1', name: 'gone', path: join(userData(), 'nowhere'), framework: 'nodejs', packageManager: 'npm', createdAt: '', lastOpenedAt: null, favorite: false, missing: true })
     const file = join(userData(), 'projects.json')

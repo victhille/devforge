@@ -1,4 +1,4 @@
-// ─── Status page and 24/7 watch (v2.2 lot 4) ──────────────────────────────────
+// ─── Status page and 24/7 watch ──────────────────────────────────
 
 /**
  * How the page reaches the internet:

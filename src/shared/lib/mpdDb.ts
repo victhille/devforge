@@ -4,7 +4,7 @@ import { isFrameworkTable, layoutMcd } from './mcdTidy'
 import { columnSql, foreignKeys, foreignKeySql, generateMpd, mpdDiagram, mpdStatements, placeNew, quoteName, snake, sqlType } from './mpd'
 
 /**
- * v3.9 lot 4: the MPD and a real database. What differs, the script that
+ * the MPD and a real database. What differs, the script that
  * catches up, the database taken into the MPD, and an MCD read back from a
  * database (link tables become associations, foreign keys 1,1 — 0,n legs).
  */
@@ -80,7 +80,7 @@ export function diffMpd(mpd: MpdModel, db: DbDiagram): MpdDiff[] {
     for (const f of theirs) if (!mine.some(x => x.sig === f.sig)) out.push({ kind: 'fkExtra', table: t.name, db: f.text })
   }
   const mineNames = new Set(mpd.tables.map(t => lc(t.name)))
-  // v4.1: a framework's own tables (migrations…) are never in the MPD, nor to drop
+  // A framework's own tables (migrations…) are never in the MPD, nor to drop
   for (const d of tables) if (!mineNames.has(lc(d.name)) && !isFrameworkTable(d.name)) out.push({ kind: 'tableExtra', table: d.name, danger: true })
   return out
 }
@@ -233,7 +233,7 @@ export function guessNaming(db: DbDiagram): MldNaming {
  * association between its two tables, 1,1 (0,1 when it can be empty) — 0,n.
  */
 export function importDb(db: DbDiagram, engine: SqlEngine, mcdFile: string): { mcd: McdModel; naming: MldNaming; mpd: MpdModel } {
-  // v4.1: a framework's own tables (migrations, queues…) are not the domain
+  // A framework's own tables (migrations, queues…) are not the domain
   const tables = dbTablesOf(db).filter(t => !isFrameworkTable(t.name))
   const key = (t: { schema: string; name: string }) => `${t.schema}.${t.name}`
   const keys = new Set(tables.map(key))
@@ -273,7 +273,7 @@ export function importDb(db: DbDiagram, engine: SqlEngine, mcdFile: string): { m
     entityOf.set(key(t), e.id)
     tableName.set(e.id, t.name)
   }
-  // One name per element: the tables' names, then the associations' (v4.1)
+  // One name per element: the tables' names, then the associations'
   const taken = new Set(mcd.entities.map(e => lc(e.name)))
   const unique = (name: string) => { let n = name; for (let i = 2; taken.has(lc(n)); i++) n = `${name}_${i}`; taken.add(lc(n)); return n }
   const leg = (entity: string, association: string, card: Cardinality) => { const l = { id: id('l'), entity, association, card }; mcd.links.push(l); return l }
@@ -308,7 +308,7 @@ export function importDb(db: DbDiagram, engine: SqlEngine, mcdFile: string): { m
     mapFk(f, leg(parent, a.id, '0,n').id)
   }
 
-  // Laid out so nothing hides anything (v4.1), then the MPD from that MCD, with the database's own names and types
+  // Laid out so nothing hides anything, then the MPD from that MCD, with the database's own names and types
   const laid = layoutMcd(mcd)
   const made = generateMpd(laid, naming, engine, null, mcdFile)
   const renamed: MpdModel = {
@@ -328,7 +328,7 @@ export function importDb(db: DbDiagram, engine: SqlEngine, mcdFile: string): { m
 }
 
 /**
- * v4.2 lot 3: the MCD of an MPD drawn by hand, read as a database would be;
+ * the MCD of an MPD drawn by hand, read as a database would be;
  * the MPD made again from that MCD, so that the two stay tied, with what the
  * hand gave it kept: the places, the indexes, the unique and numbered
  * columns, the connection. A table the MCD leaves out (a framework's) stays

@@ -5,7 +5,7 @@ import initSqlJs from 'sql.js'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.6 lot 4: a table exported to a file, a CSV imported (Windows' dialogs answered by the test) */
+/** A table exported to a file, a CSV imported (Windows' dialogs answered by the test) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

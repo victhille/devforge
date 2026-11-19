@@ -2,7 +2,7 @@ import initSqlJs from 'sql.js'
 import { describe, expect, it } from 'vitest'
 import { previewStatement, rowChangesProblem, rowStatements, type RowChange } from '../../src/shared/lib/rowEdits'
 
-/** v3.6 lot 3: rows changed from the Browse tab */
+/** Rows changed from the Browse tab */
 const client = { name: 'client', schema: '' }
 
 describe('v3.6 lot 3: row statements', () => {

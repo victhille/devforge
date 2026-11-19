@@ -1,5 +1,5 @@
 /**
- * v3.4 lot 2: the authentication API every server DevForge creates exposes
+ * the authentication API every server DevForge creates exposes
  * (Next.js, Laravel, Symfony), so a React or Vue front made by DevForge works
  * with any of them. Written once here: the templates of lots 3 to 6 follow it,
  * and their tests check them against it.

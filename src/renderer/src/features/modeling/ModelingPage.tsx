@@ -31,7 +31,7 @@ const NO_PROJECTS: Project[] = []
 const NO_MODELS: ModelSummary[] = []
 
 /**
- * v3.9 lot 2, the mock-up's page: a project's models (files of its conception/
+ * The mock-up's page: a project's models (files of its conception/
  * folder) as cards, filtered by kind; Forgy or « New model » above them; the
  * chain MCD → MLD → MPD → SQL → database below.
  */
@@ -46,7 +46,7 @@ export default function ModelingPage() {
   const [picking, setPicking] = useState(false)
   const [filter, setFilter] = useState<ModelKind | 'all'>('all')
 
-  // v4.2: kept between pages, read again when they change (Forgy, an import…)
+  // Kept between pages, read again when they change (Forgy, an import…)
   const projectList = useProjectList()
   const projects = projectList.data ?? (projectList.error ? NO_PROJECTS : null)
   // The project chosen here, else the active one, else the first

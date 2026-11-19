@@ -18,7 +18,7 @@ interface ConsoleState {
   projectId: string | null
   /** A finished creation opens the project (which makes it the active one) */
   openOnDone: boolean
-  /** v3.9: a creation started from the wizard, followed from any page (title bar, back to the wizard) */
+  /** A creation started from the wizard, followed from any page (title bar, back to the wizard) */
   creation: CreationView | null
 }
 

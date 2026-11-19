@@ -9,7 +9,7 @@ import { UPDATABLE } from '@shared/lib/manifestUpdates'
 import { testData } from './npmPackages'
 
 /**
- * v3.5.3: the packages of Python, Rust, Go, Ruby, Dart, .NET and Java
+ * The packages of Python, Rust, Go, Ruby, Dart, .NET and Java
  * projects, in the same tab as npm and Composer: what each file declares,
  * what is installed (lockfile, or the virtual environment for Python) and
  * the latest published version. Read only: the tab shows the command that

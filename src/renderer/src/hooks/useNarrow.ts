@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 
 /**
- * v4.3: whether an element is narrower than `px` (a small window, Forgy's
+ * Whether an element is narrower than `px` (a small window, Forgy's
  * panel open), followed as it changes. For what a CSS container query cannot
  * do alone, such as folding a menu the user can also fold by hand.
  */

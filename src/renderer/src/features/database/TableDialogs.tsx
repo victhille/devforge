@@ -15,7 +15,7 @@ import { Field, Input } from '@renderer/components/ui/Input'
 import Notice from '@renderer/components/ui/Notice'
 
 /**
- * v3.5.1: create, change and drop tables and columns. Every dialog shows the
+ * Create, change and drop tables and columns. Every dialog shows the
  * SQL first; nothing runs before "Apply". Statements run one by one and stop
  * at the first error, which stays on screen.
  */

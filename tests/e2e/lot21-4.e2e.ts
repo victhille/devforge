@@ -4,7 +4,7 @@ import { mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { goTo, openProjectTab, launch, type Launched } from './launch'
 
-/** v2.1 lot 4: .env sync panel, GitHub tab (no network call: the repo here has no GitHub origin) */
+/** .env sync panel, GitHub tab (no network call: the repo here has no GitHub origin) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])

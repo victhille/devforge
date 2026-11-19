@@ -53,7 +53,7 @@ export default function AssistantPanel() {
   const typingTimer = useRef<ReturnType<typeof setTimeout>>()
   const [config, setConfig] = useState<AssistantConfig | null>(null)
   const [usage, setUsage] = useState<AssistantUsage | null>(null)
-  // v4.2: the kept list of projects, so a project added meanwhile shows in the picker
+  // The kept list of projects, so a project added meanwhile shows in the picker
   const projects = useProjectList().data ?? NO_PROJECTS
   const [conversation, setConversation] = useState<AssistantConversation | null>(null)
   const [items, setItems] = useState<AssistantItem[]>([])
@@ -184,7 +184,7 @@ export default function AssistantPanel() {
   const project = projects.find(p => p.path === projectPath)
   const skill = skillById(skillId)
   const started = items.length > 0
-  // v4.2: another provider's model, else Claude's
+  // Another provider's model, else Claude's
   const otherProvider = (conversation ? conversation.provider : config?.provider) ?? 'anthropic'
   const modelShown = conversation?.model ?? (otherProvider !== 'anthropic' ? config?.providerModel : config?.model === 'auto' ? skill.model : config?.model)
   const available = (s: AssistantSkill) => !(s.needs === 'project' && !project) && !(s.needs === 'page' && !pageContext)

@@ -1,4 +1,4 @@
-// ─── Next.js workshop (v2.2 lot 6) ─────────────────────────────────────────────
+// ─── Next.js workshop ─────────────────────────────────────────────
 
 import type { SfApiConfig, SfEntity, SfEntityDraft, SfMigration, SfWriteResult } from './symfony'
 
@@ -37,7 +37,7 @@ export interface NextRoute {
   file: string
 }
 
-// ─── Auth.js (v2.3 lot 4) ─────────────────────────────────────────────────────
+// ─── Auth.js ─────────────────────────────────────────────────────
 
 export type AuthProvider = 'github' | 'google' | 'credentials'
 
@@ -54,7 +54,7 @@ export interface NextAuthStatus {
   keys: Record<string, boolean>
 }
 
-/** A migration that undoes the last one, written, not run (v2.3 lot 3) */
+/** A migration that undoes the last one, written, not run */
 export interface NextRevertResult extends SfWriteResult {
   /** The migration it undoes */
   migration: string

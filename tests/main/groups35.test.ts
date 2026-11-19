@@ -6,12 +6,12 @@ import { configDirs, detectLocal } from '../../src/main/services/database/dbDete
 import { saveProject } from '../../src/main/services/projects/projectStorage'
 import { tempDir } from '../helpers'
 
-/** v3.5 lot 2: a folder holding several projects (backend/ + frontend/) is a group */
+/** A folder holding several projects (backend/ + frontend/) is a group */
 const file = (path: string, content = '{}') => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
 const pkg = (dir: string, deps: Record<string, string>) => file(join(dir, 'package.json'), JSON.stringify({ dependencies: deps }))
 const composer = (dir: string, req: Record<string, string>) => file(join(dir, 'composer.json'), JSON.stringify({ require: req }))
 
-describe('v3.5: groups of projects', () => {
+describe('Groups of projects', () => {
   it('finds a back and a front in a folder that is not a project, skipping dependencies and hidden folders', async () => {
     const root = tempDir('scan')
     const fm = join(root, 'FreelanceManager')

@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { pullLink } from './pull'
 
-/** v4.1 lot 2: the MCD editor suggests a tidy MCD (zoomed like the canvas); the user keeps the current one, or takes the new one (Ctrl+Z goes back); a new association never lands on a part */
+/** The MCD editor suggests a tidy MCD (zoomed like the canvas); the user keeps the current one, or takes the new one (Ctrl+Z goes back); a new association never lands on a part */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -12,7 +12,7 @@ test.afterEach(async () => {
 })
 
 const attr = (id: string, name: string, identifier = false) => ({ id, name, type: 'int', ...(identifier ? { identifier: true } : {}) })
-/** As imports made them before v4.1: two associations of the same name, all on top of USER, a key left unlinked */
+/** As imports made them before two associations of the same name, all on top of USER, a key left unlinked */
 const MESSY = {
   v: 1, kind: 'mcd', name: 'RH', updatedAt: '2026-11-01T00:00:00.000Z',
   mcd: {

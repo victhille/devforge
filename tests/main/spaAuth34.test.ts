@@ -4,7 +4,7 @@ import { AUTH_ROUTES } from '../../src/shared/data/authContract'
 import { planSetup, stepCommand } from '../../src/shared/lib/projectSetup'
 import { API_URL_RE, spaAuthFiles } from '../../src/shared/lib/spaAuthTemplate'
 
-/** v3.4 lot 6: a React or Vue front, client of the shared contract (checked by a real `npm run build` of both Vite templates while writing it) */
+/** A React or Vue front, client of the shared contract (checked by a real `npm run build` of both Vite templates while writing it) */
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
   database: 'none', dbName: '', dbPort: 0, features: ['auth'], git: false, github: null, openVSCode: false, apiUrl: 'http://localhost:3000/', ...s
 })
@@ -13,7 +13,7 @@ const plan = (framework: 'react' | 'vue', s: Partial<ProjectSetup> = {}, typescr
   planSetup({ name: 'shop', framework, packageManager: 'npm', typescript, eslint: true, setup: setup(s) }, ctx)
 const line = (step: SetupStep) => step.kind === 'run' ? stepCommand(step) : `${step.kind}:${step.kind === 'write' ? step.files.map(f => f.path).join(',') : step.label}`
 
-describe('v3.4: React and Vue authentication', () => {
+describe('React and Vue authentication', () => {
   it('calls every route of the contract with the token as Bearer', () => {
     const client = spaAuthFiles('react', 'shop', 'fr', 'http://localhost:8000').find(f => f.path === 'src/api/auth.ts')!.content
     for (const route of Object.values(AUTH_ROUTES)) expect(client, route.path).toContain(`'${route.method}', '${route.path}'`)

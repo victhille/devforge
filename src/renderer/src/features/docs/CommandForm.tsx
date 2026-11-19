@@ -11,7 +11,7 @@ import { Field, Input, Select } from '@renderer/components/ui/Input'
 const NEW = '__new__'
 
 /**
- * v3.5 lot 5: adding or changing a command of the Docs page. The command is
+ * adding or changing a command of the Docs page. The command is
  * completed as it is typed (PATH programs, known sub-commands, the page's own
  * commands) and checked on this PC; a command not found can still be saved.
  */

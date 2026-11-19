@@ -159,7 +159,7 @@ export async function gitCommit(path: string, message: string, files: string[]):
   return action(path, ['commit', '-m', message, '--', ...files])
 }
 
-// ─── The Files tab (v3.7 lot 3) ───────────────────────────────────────────────
+// ─── The Files tab ───────────────────────────────────────────────
 
 /**
  * The changed files of a project's folder, paths relative to it (a project

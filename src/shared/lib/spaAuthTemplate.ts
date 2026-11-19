@@ -3,7 +3,7 @@ import { AUTH_API_ENV, AUTH_RULES } from '../data/authContract'
 import { ANVIL, DEVFORGE_CSS } from './devforgeStyle'
 
 /**
- * v3.4 lot 6, 3.4.1: sign-in, sign-up and a dashboard for a React or Vue
+ * Sign-in, sign-up and a dashboard for a React or Vue
  * (Vite, TypeScript) front, client of the shared contract. Laid out as:
  * src/api (calls to the server), src/pages (one view per page),
  * src/components (shared pieces), src/styles/devforge.css (the look),

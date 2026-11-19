@@ -5,7 +5,7 @@ import { snake } from './mpd'
 import { autoLayout } from './schemaLayout'
 
 /**
- * v4.1: an MCD made tidy. Each part where it can be read (none on another),
+ * An MCD made tidy. Each part where it can be read (none on another),
  * one name per element, the tables a framework keeps for itself left out,
  * an entity whose key points at another one linked to it. The editor shows
  * the result before the user keeps it or not; an import is laid out the same.

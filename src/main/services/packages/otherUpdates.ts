@@ -11,7 +11,7 @@ import { backup, restoreBackup, runLogged, testData, type PackagesBackup } from 
 import { otherLatest, registryOf } from './otherPackages'
 
 /**
- * v3.6 lot 1: updating and auditing Python, Rust, Go, Ruby and Dart packages,
+ * updating and auditing Python, Rust, Go, Ruby and Dart packages,
  * as npm and Composer are: the files saved first, put back if a step fails.
  * Python always goes through the project's virtual environment.
  */

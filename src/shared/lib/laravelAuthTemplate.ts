@@ -3,7 +3,7 @@ import { AUTH_RULES } from '../data/authContract'
 import { ANVIL, DEVFORGE_CSS } from './devforgeStyle'
 
 /**
- * v3.4 lot 4: authentication of a Laravel project. Fortify serves the pages
+ * authentication of a Laravel project. Fortify serves the pages
  * (/login, /register, /logout) with Blade views in DevForge's look, and the
  * shared contract's API (/api/auth/…) runs on Sanctum's personal tokens.
  * Laravel answers api/* in JSON on its own: 422 { message, errors } for

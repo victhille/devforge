@@ -1,4 +1,4 @@
-// ─── Settings › Connections (v3.0 lot 1) ───────────────────────────────────────
+// ─── Settings › Connections ───────────────────────────────────────
 
 import type { VercelAccount } from './vercel'
 import type { AssistantProvider } from '../data/assistantProviders'
@@ -13,7 +13,7 @@ export interface ConnectionsOverview {
   }
   /** Git's global identity, used by the commits */
   git: { name: string | null; email: string | null }
-  /** v4.2: the active provider's key (Anthropic by default) */
+  /** The active provider's key (Anthropic by default) */
   forgy: { hasKey: boolean; source: 'saved' | 'env' | null; provider: AssistantProvider; label: string }
   vercel: VercelAccount
   /** Docker on this PC: the engine's version, null when it does not answer */

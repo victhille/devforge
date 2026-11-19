@@ -12,7 +12,7 @@ import Modal from '@renderer/components/ui/Modal'
 import { QuestionDialog } from '@renderer/app/ConfirmContext'
 import { isPale, paleClass } from '@renderer/lib/brand'
 
-/** v4.3: the shared components that replace the patterns each page copied (the design review) */
+/** The shared components that replace the patterns each page copied (the design review) */
 const html = (el: ReturnType<typeof h>) => renderToStaticMarkup(el)
 
 describe('ErrorState', () => {

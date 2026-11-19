@@ -131,7 +131,7 @@ export default function ProjectDetailPage() {
   const [git, setGit] = useState<GitRepoDetails | null>(null)
   const [docker, setDocker] = useState<DockerOverview | null>(null)
   const [listening, setListening] = useState<ListeningPort[]>([])
-  // v4.2: the kept list of connections
+  // The kept list of connections
   const connections = useDbConnections().data ?? NO_CONNECTIONS
   const [domains, setDomains] = useState<LocalDomain[]>([])
   const [scripts, setScripts] = useState<Record<string, string>>({})
@@ -144,7 +144,7 @@ export default function ProjectDetailPage() {
   /** The linked database shown in the Database tab */
   const [shownDb, setShownDb] = useState<string | null>(null)
   const [newLog, setNewLog] = useState('')
-  /** v3.7: the project's test tools (no tool, no Tests tab) */
+  /** The project's test tools (no tool, no Tests tab) */
   const [testRunners, setTestRunners] = useState<TestRunnerInfo[]>([])
   /** The last test run, on the overview */
   const [testRun, setTestRun] = useState<TestRun | null>(null)
@@ -213,7 +213,7 @@ export default function ProjectDetailPage() {
     } finally { setBusy(null); loadGit(true); setGitRev(r => r + 1) }
   }
 
-  /** v3.5: the project's own IDE (a group: its projects' too) */
+  /** The project's own IDE (a group: its projects' too) */
   async function saveProject(patch: { ide?: DefaultIDE; subIdes?: Record<string, DefaultIDE> }) {
     await window.devforge.saveProject({ ...p, ...patch })
     loadHub()
@@ -575,7 +575,7 @@ export default function ProjectDetailPage() {
 
     vercel: hub.vercel ? <VercelPanel projectId={p.id} /> : null,
 
-    // v4.1: the project's models, made by hand, from its database or by Forgy
+    // The project's models, made by hand, from its database or by Forgy
     modeling: <ProjectModels project={p} databases={hub.databases} />,
 
     github: hub.github ? <GithubPanel projectPath={p.path} repo={hub.github} /> : null,

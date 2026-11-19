@@ -6,7 +6,7 @@ import {
   findManifestDirs, latestVersions, listManifests, detectManager, manifestDir, parseAudit, parseYarnAudit, update, updateCommands
 } from '../../src/main/services/packages/npmPackages'
 
-/** v3.3 lot 2: a project's npm packages, main side */
+/** A project's npm packages, main side */
 const json = (path: string, data: unknown) => writeFileSync(path, JSON.stringify(data))
 
 function monorepo(): string {

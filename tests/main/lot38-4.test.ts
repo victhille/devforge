@@ -7,7 +7,7 @@ import { closeAllDbs, dbDiagram, dbQuery } from '../../src/main/services/databas
 import { saveDbConnection } from '../../src/main/services/database/dbStorage'
 import { tempDir } from '../helpers'
 
-/** v3.8 lot 4: the database schema */
+/** The database schema */
 
 const table = (name: string, cols: string[] = ['id']): DbDiagramTable =>
   ({ name, schema: '', type: 'table', columns: cols.map((c, i) => ({ name: c, type: 'int', nullable: i > 0, pk: i === 0 })) })

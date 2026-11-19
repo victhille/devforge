@@ -5,7 +5,7 @@ import { driverFor } from '../database/dbClient'
 import { projectDir } from './models'
 
 /**
- * v3.9 lot 4: an MPD's catch-up script, run on its database (all or none where
+ * an MPD's catch-up script, run on its database (all or none where
  * the engine allows it), or handed to Doctrine as a migration in a Symfony project.
  */
 

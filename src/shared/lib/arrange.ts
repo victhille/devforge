@@ -1,7 +1,7 @@
 import type { Box, Point } from './mcd'
 
 /**
- * v4.2 lot 2: the selection lined up, spread out, and where pasted parts go.
+ * the selection lined up, spread out, and where pasted parts go.
  * Shared by the MCD, the diagrams and the MPD; each gets back the new top
  * left corner of the parts that move.
  */

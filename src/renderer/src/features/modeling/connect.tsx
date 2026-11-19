@@ -39,7 +39,7 @@ export function Handles({ box, k, name, shown, sides = SIDES, onPull }: {
   box: Box; k: number; name: string; shown?: boolean; sides?: Side[]
   onPull: (ev: ReactPointerEvent, from: Point) => void
 }) {
-  // v4.2: the same size on screen, but never more than 40 % of the part's smaller side: zoomed far
+  // The same size on screen, but never more than 40 % of the part's smaller side: zoomed far
   // out, the points would cover the whole part, and a click could no longer pick it
   const hit = Math.min(22 / k, Math.min(box.w, box.h) * 0.4), dot = Math.min(11 / k, hit / 2)
   return <>

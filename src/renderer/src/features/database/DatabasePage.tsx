@@ -24,7 +24,7 @@ import { ENGINE_NAME } from './engines'
 export default function DatabasePage() {
   const { t } = useI18n()
   const d = t.database
-  // v4.2: the kept list of connections, read again when one is saved or removed (here, by Forgy…)
+  // The kept list of connections, read again when one is saved or removed (here, by Forgy…)
   const { data, reload: reloadConnections } = useDbConnections()
   const connections = data ?? NO_CONNECTIONS
   const [active, setActive] = useState<string | null>(null)
@@ -48,7 +48,7 @@ export default function DatabasePage() {
 
   // ?from=<project id>: "← Back to the project", on its Database tab
   const navigate = useNavigate()
-  // v4.2: from the kept list of projects (the page's first address only)
+  // From the kept list of projects (the page's first address only)
   const fromId = useRef(params.get('from')).current
   const fromProject = useProjectList().data?.find(x => x.id === fromId)
   const from = fromId && fromProject ? { id: fromProject.id, name: fromProject.name } : null

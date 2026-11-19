@@ -207,7 +207,7 @@ const sqlite = {
   }
 }
 
-// ─── Schema (v3.8) ────────────────────────────────────────────────────────────
+// ─── Schema ────────────────────────────────────────────────────────────
 
 /** Tables and links from flat rows; links to tables not shown (another schema or database) are left out */
 function diagramOf(cols: { s: string; t: string; view: boolean; n: string; ty: string; nu: boolean; pk: boolean }[], fks: { name: string; s: string; t: string; rs: string; rt: string; col: string; refcol: string }[]): DbDiagram {
