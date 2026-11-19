@@ -9,25 +9,25 @@ describe('v3.5: projects folders', () => {
   })
 
   it('lists them in order, without blanks nor the same folder twice', () => {
-    expect(projectFolders({ defaultProjectsDir: 'C:\\Dev\\Projet Perso', extraProjectsDirs: ['', 'C:\\Dev\\Projet Cefim', 'c:/dev/projet perso/'] }))
-      .toEqual(['C:\\Dev\\Projet Perso', 'C:\\Dev\\Projet Cefim'])
+    expect(projectFolders({ defaultProjectsDir: 'C:\\Dev\\Projet Perso', extraProjectsDirs: ['', 'C:\\Dev\\Projet Client', 'c:/dev/projet perso/'] }))
+      .toEqual(['C:\\Dev\\Projet Perso', 'C:\\Dev\\Projet Client'])
   })
 
   it('saves the first one as the default', () => {
-    expect(withProjectFolders(['D:\\Cefim', ' ', 'C:\\Perso'])).toEqual({ defaultProjectsDir: 'D:\\Cefim', extraProjectsDirs: ['C:\\Perso'] })
+    expect(withProjectFolders(['D:\\Client', ' ', 'C:\\Perso'])).toEqual({ defaultProjectsDir: 'D:\\Client', extraProjectsDirs: ['C:\\Perso'] })
     expect(withProjectFolders([])).toEqual({ defaultProjectsDir: '', extraProjectsDirs: [] })
   })
 
   it('finds the folder of a project: the deepest one holding it, not a name that only starts the same', () => {
-    const folders = ['C:\\Dev', 'C:\\Dev\\Cefim', 'C:\\Perso']
-    expect(folderOf('C:\\Dev\\Cefim\\shop', folders)).toBe('C:\\Dev\\Cefim')
+    const folders = ['C:\\Dev', 'C:\\Dev\\Client', 'C:\\Perso']
+    expect(folderOf('C:\\Dev\\Client\\shop', folders)).toBe('C:\\Dev\\Client')
     expect(folderOf('c:/dev/blog', folders)).toBe('C:\\Dev')
     expect(folderOf('C:\\Personal\\x', folders)).toBeNull()
     expect(folderOf('C:\\Perso', folders)).toBeNull()
   })
 
   it('names a folder by its last segment', () => {
-    expect(folderName('C:\\Users\\me\\Projet Cefim\\')).toBe('Projet Cefim')
+    expect(folderName('C:\\Users\\me\\Projet Client\\')).toBe('Projet Client')
     expect(folderName('/home/me/code')).toBe('code')
   })
 })
