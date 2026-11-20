@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, Bot, Box, Cloud, Database, ExternalLink, GitBranch, GitPullRequest, KeyRound, Plus, Server, Trash2, Workflow } from 'lucide-react'
+import { Bell, Bot, Box, Cloud, Database, ExternalLink, GitBranch, GitPullRequest, KeyRound, LogIn, Plus, Server, Trash2, Workflow } from 'lucide-react'
 import type { ConnectionKind, ConnectionTest, ConnectionsOverview, SSHConnection, StatusAlertsState } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -14,6 +14,7 @@ import ConnectionForm from '@renderer/features/ssh/components/ConnectionForm'
 import DbConnectionForm from '@renderer/features/database/DbConnectionForm'
 import { SettingRow, SettingsCard } from './parts'
 import McpServers from './McpServers'
+import SignInPanel from './SignInPanel'
 import { useLive } from '@renderer/lib/live'
 import { CardSkeleton } from '@renderer/components/ui/Skeleton'
 
@@ -304,6 +305,24 @@ export default function ConnectionsSettings() {
     toast.show({ tone: 'success', title: c.removed.replace('{name}', name) })
     load()
   }
+  const signedIn = (name: string, as: string | null) => {
+    setOpen(null)
+    toast.show({ tone: 'success', title: c.signInDone.replace('{name}', as ? `${name} · ${as}` : name) })
+    load()
+  }
+  /** « Se connecter », when DevForge's app with that service is set */
+  const signInButton = (key: 'github' | 'vercel', name: string) =>
+    data?.signIn[key] && (
+      <Button
+        size="sm"
+        variant="secondary"
+        aria-expanded={open === `${key}-sign-in`}
+        aria-label={`${c.signIn} · ${name}`}
+        onClick={() => setOpen(o => (o === `${key}-sign-in` ? null : `${key}-sign-in`))}
+      >
+        <LogIn size={13} /> {c.signIn}
+      </Button>
+    )
   const saved = (fn: (v: string) => Promise<unknown>) => async (v: string) => {
     await fn(v)
     setOpen(null)
@@ -443,10 +462,12 @@ export default function ConnectionsSettings() {
                   {c.remove}
                 </Button>
               )}
+              {!data.github.cli && !data.github.token && signInButton('github', 'GitHub')}
               {!data.github.cli && !data.github.token && addButton('github', c.addToken, 'GitHub')}
             </>
           }
         >
+          {open === 'github-sign-in' && <SignInPanel service="github" onDone={as => signedIn('GitHub', as)} onClose={() => setOpen(null)} />}
           {open === 'github' && (
             <SecretForm
               label={c.githubToken}
@@ -465,7 +486,7 @@ export default function ConnectionsSettings() {
             <>
               {result('vercel')}
               <span title={data.vercel.username ? c.vercelAs.replace('{name}', data.vercel.username) : undefined}>
-                <State on={data.vercel.connected}>{data.vercel.connected ? c.tokenSaved : c.noToken}</State>
+                <State on={data.vercel.connected}>{data.vercel.signedIn ? c.signedInState : data.vercel.connected ? c.tokenSaved : c.noToken}</State>
               </span>
               {data.vercel.connected && testButton('vercel', 'Vercel')}
               {data.vercel.connected ? (
@@ -473,17 +494,21 @@ export default function ConnectionsSettings() {
                   size="sm"
                   variant="ghost"
                   className={REMOVE}
-                  aria-label={c.removeOf.replace('{name}', c.vercelToken)}
-                  onClick={() => disconnect('vercel', c.vercelToken)}
+                  aria-label={c.removeOf.replace('{name}', data.vercel.signedIn ? c.vercelSession : c.vercelToken)}
+                  onClick={() => disconnect('vercel', data.vercel.signedIn ? c.vercelSession : c.vercelToken)}
                 >
                   {c.remove}
                 </Button>
               ) : (
-                addButton('vercel', c.addToken, 'Vercel')
+                <>
+                  {signInButton('vercel', 'Vercel')}
+                  {addButton('vercel', c.addToken, 'Vercel')}
+                </>
               )}
             </>
           }
         >
+          {open === 'vercel-sign-in' && <SignInPanel service="vercel" onDone={as => signedIn('Vercel', as)} onClose={() => setOpen(null)} />}
           {open === 'vercel' && (
             <SecretForm
               label={c.vercelToken}

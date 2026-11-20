@@ -15,9 +15,10 @@ Tout reste sur ce PC, dans le dossier de DevForge. Clés, jetons et mots de pass
 
 ### GitHub
 
-Dépôts, Actions et releases. Deux façons de se connecter :
+Dépôts, Actions et releases. Trois façons de se connecter :
 
 - **GitHub CLI** : lance une fois `gh auth login` dans un terminal. DevForge utilise cette connexion quand elle existe et affiche `GitHub CLI : ton-compte`.
+- **Se connecter** : sans GitHub CLI, DevForge affiche un code (`WDJB-MJHT`). **Ouvrir GitHub** ouvre la page où le taper, puis tu acceptes l'accès de DevForge (dépôts, privés compris, et organisations). La ligne passe au vert toute seule, le jeton reçu est chiffré.
 - **Jeton personnel** : sans GitHub CLI, **Ajouter un jeton**, puis colle un jeton GitHub. Droits utiles : *Actions* et *Contents* en lecture, *Actions* en écriture pour relancer les jobs en échec. Il est vérifié, puis chiffré.
 
 Sans l'un ni l'autre, l'onglet GitHub des projets et la création de dépôt GitHub depuis [Nouveau projet](/devforge/dev/new-project/) restent indisponibles.
@@ -32,7 +33,7 @@ La **clé API** qui fait parler [Forgy](/devforge/forgy/assistant/) : celle d'An
 
 ### Vercel
 
-Déploiements, domaines et variables des projets liés à Vercel. Crée un jeton sur *vercel.com › Account Settings › Tokens*, puis **Ajouter un jeton** et colle-le ; la ligne affiche ensuite « jeton enregistré » (le compte au survol). Voir [Déploiement](/devforge/online/deploy/#vercel).
+Déploiements, domaines et variables des projets liés à Vercel. **Se connecter** ouvre le navigateur sur Vercel : tu acceptes l'accès de DevForge, le navigateur revient sur ce PC (`127.0.0.1`) et la ligne affiche « connecté ». L'accès dure une heure et DevForge le renouvelle tout seul ; au bout de 30 jours sans servir, il faut se reconnecter. Sinon, crée un jeton sur *vercel.com › Account Settings › Tokens*, puis **Ajouter un jeton** et colle-le ; la ligne affiche alors « jeton enregistré » (le compte au survol). Voir [Déploiement](/devforge/online/deploy/#vercel).
 
 ### Docker
 

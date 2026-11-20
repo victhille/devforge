@@ -1,4 +1,4 @@
-import { loadSettings } from '../settings/settingsService'
+import { loadSettings } from '../services/settings/settingsService'
 
 /** A message the window shows, in the language the user chose (French when it cannot be read) */
 export function say(fr: string, en: string): string {

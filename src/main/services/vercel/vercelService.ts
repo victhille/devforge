@@ -6,10 +6,11 @@ import { writeJsonFile } from '../../lib/jsonFile'
 import { log, redact } from '../../lib/log'
 import { loadProjects } from '../projects/projectStorage'
 import { parseEnv } from '../envfiles/envFiles'
+import { vercelClientId, vercelTokenUrl } from '../connections/oauthApps'
 
 /**
- * Vercel, read and driven from the project page. A personal access token
- * (encrypted like the other secrets) is the only sign-in; the link between a
+ * Vercel, read and driven from the project page. A personal access token, or
+ * the sign-in in the browser (renewed every hour), encrypted like the other secrets; the link between a
  * folder and its Vercel project is `.vercel/project.json` (`vercel link`).
  * Environment values are never read: only key names are compared.
  */
@@ -22,6 +23,9 @@ export const ID_RE = /^[\w-]{1,80}$/
 interface Stored {
   tokenEnc?: string
   username?: string
+  /** Signed in through the browser: the token lasts an hour, this one renews it (used once each) */
+  refreshEnc?: string
+  expiresAt?: number
 }
 const storePath = () => join(app.getPath('userData'), 'vercel.json')
 function readStore(): Stored {
@@ -33,17 +37,69 @@ function readStore(): Stored {
 }
 
 export function account(): VercelAccount {
-  if (testToken()) return { connected: true, username: 'test' }
+  if (testToken()) return { connected: true, username: 'test', signedIn: false }
   const s = readStore()
-  return { connected: !!s.tokenEnc, username: s.tokenEnc ? (s.username ?? null) : null }
+  return { connected: !!s.tokenEnc, username: s.tokenEnc ? (s.username ?? null) : null, signedIn: !!(s.tokenEnc && s.refreshEnc) }
 }
 
-function token(): string {
+const encrypt = (v: string) => safeStorage.encryptString(v).toString('base64')
+const decrypt = (v: string) => safeStorage.decryptString(Buffer.from(v, 'base64'))
+
+/** What the token endpoint gives on a sign-in or a renewal */
+export interface VercelTokens {
+  access_token: string
+  refresh_token?: string
+  expires_in?: number
+}
+
+let renewing: Promise<string> | null = null
+
+const stored = (t: VercelTokens, username?: string, keptRefresh?: string): Stored => {
+  const refreshEnc = t.refresh_token ? encrypt(t.refresh_token) : keptRefresh
+  return { tokenEnc: encrypt(t.access_token), username, refreshEnc, expiresAt: refreshEnc ? Date.now() + (t.expires_in ?? 3600) * 1000 : undefined }
+}
+
+/**
+ * A refresh token works once: two calls at the same time share one renewal. What it gives is kept only
+ * if the sign-in is still the same (not removed, replaced by a pasted token or a new sign-in meanwhile).
+ */
+function renew(refreshEnc: string): Promise<string> {
+  renewing ??= (async () => {
+    const same = () => readStore().refreshEnc === refreshEnc
+    try {
+      const res = await fetch(vercelTokenUrl(), {
+        method: 'POST',
+        headers: { 'content-type': 'application/x-www-form-urlencoded', accept: 'application/json' },
+        body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: decrypt(refreshEnc), client_id: vercelClientId() }),
+        signal: AbortSignal.timeout(20_000)
+      })
+      const t = res.ok ? ((await res.json().catch(() => ({}))) as Partial<VercelTokens>) : {}
+      if (typeof t.access_token !== 'string' || !t.access_token) {
+        // Refused (revoked, 30 days unused): forgotten, the row asks for a new sign-in
+        if (res.status >= 400 && res.status < 500 && same()) writeJsonFile(storePath(), {})
+        throw new Error('BAD_TOKEN')
+      }
+      if (same()) {
+        const now = readStore()
+        // No new refresh token in the answer: the one that worked is kept
+        writeJsonFile(storePath(), stored(t as VercelTokens, now.username, t.refresh_token ? undefined : refreshEnc))
+      }
+      return t.access_token
+    } finally {
+      renewing = null
+    }
+  })()
+  return renewing
+}
+
+async function token(): Promise<string> {
   const test = testToken()
   if (test) return test
-  const enc = readStore().tokenEnc
-  if (!enc) throw new Error('NO_TOKEN')
-  return safeStorage.decryptString(Buffer.from(enc, 'base64'))
+  const s = readStore()
+  if (!s.tokenEnc) throw new Error('NO_TOKEN')
+  // Renewed a minute before it ends
+  if (s.refreshEnc && (s.expiresAt ?? 0) - 60_000 < Date.now()) return renew(s.refreshEnc)
+  return decrypt(s.tokenEnc)
 }
 
 export async function call<T>(path: string, init: { method?: string; body?: unknown; teamId?: string | null; bearer?: string } = {}): Promise<T> {
@@ -51,7 +107,7 @@ export async function call<T>(path: string, init: { method?: string; body?: unkn
   if (init.teamId) url.searchParams.set('teamId', init.teamId)
   const res = await fetch(url, {
     method: init.method ?? 'GET',
-    headers: { authorization: `Bearer ${init.bearer ?? token()}`, ...(init.body ? { 'content-type': 'application/json' } : {}) },
+    headers: { authorization: `Bearer ${init.bearer ?? (await token())}`, ...(init.body ? { 'content-type': 'application/json' } : {}) },
     body: init.body ? JSON.stringify(init.body) : undefined,
     signal: AbortSignal.timeout(20_000)
   })
@@ -81,8 +137,17 @@ export async function saveToken(raw: string | null): Promise<VercelAccount> {
   if (!safeStorage.isEncryptionAvailable()) throw new Error('OS encryption is not available')
   const t = raw.trim()
   const me = await call<{ user: { username: string } }>('/v2/user', { bearer: t })
-  writeJsonFile(storePath(), { tokenEnc: safeStorage.encryptString(t).toString('base64'), username: me.user.username })
+  writeJsonFile(storePath(), { tokenEnc: encrypt(t), username: me.user.username })
   log('info', 'vercel', `Connected as ${me.user.username}`)
+  return account()
+}
+
+/** The sign-in in the browser gave its tokens: checked, then kept like a pasted one */
+export async function saveSession(t: VercelTokens): Promise<VercelAccount> {
+  if (!safeStorage.isEncryptionAvailable()) throw new Error('OS encryption is not available')
+  const me = await call<{ user: { username: string } }>('/v2/user', { bearer: t.access_token })
+  writeJsonFile(storePath(), stored(t, me.user.username))
+  log('info', 'vercel', `Signed in as ${me.user.username}`)
   return account()
 }
 

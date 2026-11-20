@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron'
 import type { ConnectionKind } from '@shared/types'
 import { alerts, disconnect, overview, setGitIdentity, setNtfy, test } from '../services/connections/connectionsService'
+import { cancelSignIn, githubStart, githubWait, openGithubPage, vercelSignIn } from '../services/connections/signIn'
 
 const KINDS: ConnectionKind[] = ['github', 'forgy', 'vercel', 'docker', 'server', 'database', 'n8n', 'alerts']
 const kindOf = (v: unknown): ConnectionKind => {
@@ -22,4 +23,10 @@ export function registerConnectionsHandlers(): void {
     setNtfy(String(id ?? ''), String(server ?? ''), String(topic ?? ''))
   )
   ipcMain.handle('connections:set-git-identity', (_e, name: unknown, email: unknown) => setGitIdentity(String(name ?? ''), String(email ?? '')))
+  // Sign-in without a token: no argument, the addresses are DevForge's own
+  ipcMain.handle('connections:github-sign-in', () => githubStart())
+  ipcMain.handle('connections:github-open-page', () => openGithubPage())
+  ipcMain.handle('connections:github-wait', () => githubWait())
+  ipcMain.handle('connections:vercel-sign-in', () => vercelSignIn())
+  ipcMain.handle('connections:cancel-sign-in', () => cancelSignIn())
 }

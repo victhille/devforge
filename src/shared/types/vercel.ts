@@ -4,6 +4,8 @@ export interface VercelAccount {
   /** A personal access token is saved (encrypted, never sent to the window) */
   connected: boolean
   username: string | null
+  /** Signed in through the browser (renewed by DevForge), not a pasted token */
+  signedIn: boolean
 }
 
 /** .vercel/project.json, written by `vercel link` */

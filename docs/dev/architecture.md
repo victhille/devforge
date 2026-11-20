@@ -99,7 +99,14 @@ Les valeurs viennent du thème (`src/renderer/src/styles/index.css`) :
 - `src/main/services/mcp/` : DevForge est client MCP, avec le SDK officiel `@modelcontextprotocol/sdk`, en `devDependencies` : Vite n'empaquette que la partie client dans le processus principal, sans son côté serveur (express, hono). Ses licences sont listées par `MAIN` dans `scripts/third-party-licenses.mjs`.
 - `catalog.ts` fixe les adresses des serveurs officiels : la fenêtre ne désigne un serveur que par son id. Un serveur ajouté à la main est une adresse https, ou une commande découpée en mots sans shell (`parseCustom`).
 - La connexion passe par OAuth avec PKCE. DevForge se présente par un document publié sur son site (`site/public/oauth/mcp-client.json`, CIMD), sinon par l'enregistrement dynamique. Le navigateur revient sur `127.0.0.1:47823`. Jetons et enregistrement sont chiffrés par `safeStorage` dans `mcp.json`.
-- `mcpTools.ts` ajoute les outils des serveurs activés à ceux de Forgy (`mcp__<serveur>__<outil>`). Un outil marqué `readOnlyHint` s'exécute aussitôt ; les autres passent par une carte d'action (`planMcpAction`), jamais automatique. Les réponses sont encadrées comme des données du service.
+- `mcpTools.ts` ajoute les outils des serveurs activés à ceux de Forgy (`mcp__<serveur>__<outil>`). Un outil marqué `readOnlyHint` par un serveur du catalogue s'exécute aussitôt ; les autres, et tous ceux d'un serveur ajouté à la main, passent par une carte d'action (`planMcpAction`), jamais automatique. Les réponses sont encadrées comme des données du service.
+
+## Se connecter sans jeton
+
+- `src/main/lib/oauthLoopback.ts` : le retour du navigateur sur `127.0.0.1:47823/callback`, partagé par les serveurs MCP et Vercel. Une connexion à la fois ; une requête sans le bon `state` est refusée, le port se referme toujours.
+- `services/connections/oauthApps.ts` : les identifiants publics des applis de DevForge chez GitHub (Device Flow) et Vercel (client `none`, PKCE). Aucun secret. Un identifiant vide masque le bouton **Se connecter** ; les tests donnent les leurs par `DEVFORGE_TEST_GITHUB_CLIENT_ID` et `DEVFORGE_TEST_VERCEL_CLIENT_ID`.
+- `services/connections/signIn.ts` : GitHub affiche un code et interroge GitHub jusqu'à la validation (`slow_down` respecté) ; Vercel ouvre le navigateur et échange le code avec son vérificateur. Le jeton reçu passe par `saveToken` / `saveSession`, comme un jeton collé.
+- Vercel : le jeton dure une heure. `vercelService.ts` garde le jeton de renouvellement (`refreshEnc`) et le renouvelle une minute avant la fin, une seule fois pour des appels simultanés (il ne sert qu'une fois).
 
 ## Secrets
 

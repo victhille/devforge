@@ -8,9 +8,12 @@ What is coming to DevForge, from the nearest to the furthest. No date is promise
 
 An idea, a need? Suggest it in the [discussions](https://github.com/victhille/devforge/discussions) or as an [issue](https://github.com/victhille/devforge/issues/new/choose).
 
-## Next
+## Ready for the next version
 
-- Signing in without a token for **GitHub** and **Vercel** in **Accounts**: a button that opens the browser, instead of pasting a token.
+Done and in review:
+
+- **Signing in without a token** to **GitHub** and **Vercel** in **Settings › Connections**: a code to type on GitHub, the browser for Vercel, instead of pasting a token ([the page](/devforge/en/getting-started/connections/#github)).
+- **Expo**: when Windows reserves Metro's port (WSL, Hyper-V), DevForge takes the next free one, instead of staying stuck at startup.
 
 ## Towards 1.0
 
