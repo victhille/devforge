@@ -527,6 +527,19 @@ const api: DevForgeAPI = {
     remove: invoke('dictation:remove')
   },
 
+  expo: {
+    projects: invoke('expo:projects'),
+    status: invoke('expo:status'),
+    logs: invoke('expo:logs'),
+    start: invoke('expo:start'),
+    stop: invoke('expo:stop'),
+    key: invoke('expo:key'),
+    installNgrok: invoke('expo:install-ngrok'),
+    check: invoke('expo:check'),
+    fix: invoke('expo:fix'),
+    onLog: on('expo:log'),
+    onStatus: on('expo:status')
+  },
   vercel: {
     account: invoke('vercel:account'),
     saveToken: invoke('vercel:save-token'),

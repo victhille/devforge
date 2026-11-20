@@ -26,6 +26,7 @@ import { registerLaravelHandlers } from './laravel'
 import { registerConnectionsHandlers } from './connections'
 import { registerPackagesHandlers } from './packages'
 import { registerVercelHandlers } from './vercel'
+import { registerExpoHandlers } from './expo'
 import { registerDictationHandlers } from './dictation'
 import { registerDomainHandlers } from './domains'
 import { registerDatabaseHandlers } from './database'
@@ -70,6 +71,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerConnectionsHandlers()
   registerPackagesHandlers(mainWindow)
   registerVercelHandlers()
+  registerExpoHandlers(mainWindow)
   registerDictationHandlers()
   registerDomainHandlers()
   registerDatabaseHandlers(mainWindow)

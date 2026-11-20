@@ -29,6 +29,7 @@ import {
   Cpu,
   Workflow,
   Triangle,
+  Smartphone,
   BarChart3,
   ShieldCheck,
   AppWindow,
@@ -103,6 +104,15 @@ export const PAGES: NavPage[] = [
     load: () => import('@renderer/features/stacks/StacksPage'),
     keywords: ['start', 'démarrer', 'dev server', 'launch', 'lancer', 'stack'],
     docs: 'dev/stacks'
+  },
+  {
+    path: '/expo',
+    labelKey: 'expo',
+    icon: Smartphone,
+    section: 'sectionMain',
+    load: () => import('@renderer/features/expo/ExpoPage'),
+    keywords: ['expo', 'react native', 'mobile', 'android', 'iphone', 'qr', 'metro', 'téléphone', 'phone'],
+    docs: 'dev/expo'
   },
   {
     path: '/new-project',
@@ -427,9 +437,9 @@ export { DEFAULT_FAVORITES } from '@shared/lib/favorites'
 
 export type GroupKey = 'groupDev' | 'groupServers' | 'groupOnline' | 'groupData' | 'groupSystem' | 'groupTools'
 
-/** Five pages at most per group: a group stays readable at a glance */
+/** Six pages at most per group: a group stays readable at a glance */
 export const MENU_GROUPS: { key: GroupKey; icon: LucideIcon; paths: string[] }[] = [
-  { key: 'groupDev', icon: Code2, paths: ['/projects', '/new-project', '/git', '/activity', '/stacks'] },
+  { key: 'groupDev', icon: Code2, paths: ['/projects', '/new-project', '/git', '/activity', '/stacks', '/expo'] },
   { key: 'groupServers', icon: Server, paths: ['/ssh', '/health', '/services', '/backups', '/monitor'] },
   { key: 'groupOnline', icon: UploadCloud, paths: ['/deploy', '/vercel', '/docker', '/n8n', '/vpn', '/status'] },
   { key: 'groupData', icon: Database, paths: ['/database', '/modeling', '/api-tester', '/webhooks', '/logs'] },
