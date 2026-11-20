@@ -8,6 +8,7 @@ import Button from '@renderer/components/ui/Button'
 import Badge, { type BadgeColor } from '@renderer/components/ui/Badge'
 import Card from '@renderer/components/ui/Card'
 import Switch from '@renderer/components/ui/Switch'
+import { startInstall } from '@renderer/app/updateCardState'
 import { WhatsNewDialog } from '@renderer/app/WhatsNew'
 import { CHANGE_META, Inline, changelog } from './ReleaseNotes'
 import { Segmented, SettingRow, SettingsCard } from './parts'
@@ -94,7 +95,7 @@ export default function UpdatesSettings({
             </Badge>
           )}
           {status.state === 'ready' ? (
-            <Button onClick={() => window.devforge.updates.install()}>
+            <Button onClick={startInstall}>
               <RotateCcw size={14} /> {u.updateRestart}
             </Button>
           ) : (

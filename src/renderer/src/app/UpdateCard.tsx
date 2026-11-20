@@ -1,18 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Download, Minus, RotateCw } from 'lucide-react'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useUpdateStatus } from '@renderer/features/settings/UpdatesRow'
 import Button from '@renderer/components/ui/Button'
 import IconButton from '@renderer/components/ui/IconButton'
-import { setUpdateCardOpen, takeFocus, useUpdateCardOpen } from './updateCardState'
+import { setUpdateCardOpen, startInstall, takeFocus, useInstalling, useUpdateCardOpen } from './updateCardState'
 
 const MB = 1024 * 1024
 
 /**
  * A new version, from its download to its install: a card at the bottom right (as Discord does), shrunk into
  * the title-bar pill on demand. « Restart and update » covers the window while DevForge closes, so the switch
- * to the installer never looks like a crash.
+ * to the installer never looks like a crash (Settings goes through it too: `startInstall`).
  */
 export default function UpdateCard() {
   const { t } = useI18n()
@@ -20,7 +20,7 @@ export default function UpdateCard() {
   const navigate = useNavigate()
   const status = useUpdateStatus()
   const open = useUpdateCardOpen()
-  const [installing, setInstalling] = useState(false)
+  const installing = useInstalling()
   const heading = useRef<HTMLHeadingElement>(null)
   // Opened again from the pill: the focus goes to the card, never when it appears by itself
   useEffect(() => {
@@ -46,11 +46,7 @@ export default function UpdateCard() {
   if (!open) return null
 
   const downloading = status.state === 'downloading'
-  const restart = () => {
-    setInstalling(true)
-    // The cover is painted first, then DevForge closes and the installer takes over
-    setTimeout(() => window.devforge.updates.install(), 400)
-  }
+  const restart = startInstall
   const left =
     downloading && status.total && status.transferred !== undefined && status.bytesPerSecond
       ? (status.total - status.transferred) / status.bytesPerSecond

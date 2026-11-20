@@ -23,6 +23,43 @@ export function takeFocus(): boolean {
   return pending
 }
 
+/**
+ * « Restart and update », wherever it is clicked (the card, Settings): the card opens and covers the window
+ * while DevForge closes, then the update installs behind DevForge's own small window. One way, one look.
+ */
+let installing = false
+/** DevForge still here this long after « install »: the installer did not take over, the window comes back */
+const GIVE_UP_MS = 20_000
+
+function setInstalling(next: boolean): void {
+  installing = next
+  listeners.forEach(l => l())
+}
+
+export function startInstall(): void {
+  if (installing) return
+  setUpdateCardOpen(true)
+  setInstalling(true)
+  // The cover is painted first, then DevForge closes
+  setTimeout(() => {
+    window.devforge.updates
+      .install()
+      .then(() => setTimeout(() => setInstalling(false), GIVE_UP_MS))
+      .catch(() => setInstalling(false))
+  }, 600)
+}
+
+export function useInstalling(): boolean {
+  return useSyncExternalStore(
+    cb => {
+      listeners.add(cb)
+      return () => listeners.delete(cb)
+    },
+    () => installing,
+    () => installing
+  )
+}
+
 export function useUpdateCardOpen(): boolean {
   return useSyncExternalStore(
     cb => {

@@ -40,7 +40,7 @@ Tout reste sur ton PC, dans le dossier de données de DevForge (`%APPDATA%\DevFo
 
 - DevForge regarde les releases GitHub **15 secondes après son démarrage**, puis **toutes les 6 heures**.
 - Une nouvelle version se télécharge en arrière-plan, dans un bloc en bas à droite : avancement, taille et temps restant. Tu peux continuer à travailler, ou le réduire en pastille dans la barre de titre.
-- Une fois prête, elle s'installe avec **Redémarrer et mettre à jour**, ou **au prochain redémarrage** si tu choisis **Plus tard**. DevForge se ferme, l'installeur montre l'avancement (sans rien te demander, sauf l'autorisation de Windows si DevForge est installé pour tous les utilisateurs), puis une petite fenêtre « Mise à jour installée » s'affiche le temps que DevForge se rouvre.
+- Une fois prête, elle s'installe avec **Redémarrer et mettre à jour**, ou **au prochain redémarrage** si tu choisis **Plus tard**. Le bloc annonce l'installation, puis DevForge se ferme. Pendant que Windows remplace ses fichiers, sans fenêtre d'installeur, une petite fenêtre « Mise à jour de DevForge » montre que l'installation avance. Seule l'autorisation de Windows est demandée, si DevForge est installé pour tous les utilisateurs. Puis la fenêtre « Mise à jour installée » s'affiche le temps que DevForge se rouvre.
 - Après la mise à jour, une fenêtre **Quoi de neuf** résume la version (désactivable).
 
 :::caution[Tu as une version 1.x à 4.x ?]

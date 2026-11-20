@@ -64,7 +64,7 @@ Les alertes arrivent en notification Windows, et Forgy fait la tête dans le wid
 - **Canal** : *Stable* (versions finales) ou *Bêta* (aussi les préversions, plus tôt mais parfois avec des bugs).
 - **Vérifier** cherche tout de suite une nouvelle version ; sinon c'est automatique, 15 s après le démarrage puis toutes les 6 h.
 - **Chercher les mises à jour tout seul** : désactivé, DevForge n'interroge GitHub que quand tu cliques sur **Vérifier**.
-- Une version se télécharge dans un bloc en bas à droite, puis s'installe avec **Redémarrer et mettre à jour** ou au prochain redémarrage : l'installeur montre l'avancement, puis DevForge se relance tout seul, avec une petite fenêtre « Mise à jour installée ».
+- Une version se télécharge dans un bloc en bas à droite, puis s'installe avec **Redémarrer et mettre à jour** ou au prochain redémarrage : une petite fenêtre « Mise à jour de DevForge » remplace l'installeur pendant l'installation, puis DevForge se relance tout seul, avec la fenêtre « Mise à jour installée ». **Redémarrer et mettre à jour**, ici ou dans le bloc, suit le même chemin.
 - **Montrer « Quoi de neuf » après une mise à jour** : une fenêtre résume la version au premier lancement ; **Revoir** la rouvre.
 - **Nouveautés de la version** : les changements de la version installée, filtrés par **Tout**, **Nouveautés**, **Améliorations** ou **Corrections**. **Voir toutes les versions →** ouvre les **notes de version** : toutes les versions, dans la langue de l'application.
 
