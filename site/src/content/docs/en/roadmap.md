@@ -13,6 +13,7 @@ An idea, a need? Suggest it in the [discussions](https://github.com/victhille/de
 Done and in review:
 
 - **Vercel**: a page of its own, with every project, deployment and domain of the account or of a team. It can cancel a build, promote a preview to production and link a Vercel project to a DevForge folder ([the page](/devforge/en/online/vercel/)).
+- **Expo**: a page to run a React Native app, open it on the phone with the QR code (Expo Go or a dev build, Wi-Fi, tunnel or this PC), send Metro's commands and align the packages on the SDK ([the page](/devforge/en/dev/expo/)).
 
 ## Towards 1.0
 
@@ -23,6 +24,4 @@ Done and in review:
 
 ## Under consideration
 
-Nothing started yet, and the order may change:
-
-- an **Expo** page: start a React Native project, show the QR code to scan with Expo Go, and follow the development server.
+No other work under consideration for now: share your ideas in the [discussions](https://github.com/victhille/devforge/discussions).

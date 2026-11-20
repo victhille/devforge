@@ -17,6 +17,7 @@ import { present } from './lib/present'
 import { disposeWidget, initWidget } from './widget'
 import { disposeLauncher, initLauncher } from './launcher'
 import { killAll as killTerminals } from './services/terminal/terminalService'
+import { stopExpo } from './services/expo/expoService'
 import { initLog, log } from './lib/log'
 import { migrateData } from './services/storage/migrations'
 import { initUpdater, stopUpdater } from './services/updates/updater'
@@ -221,6 +222,7 @@ app.on('before-quit', () => {
   disposeWidget()
   disposeLauncher()
   killTerminals()
+  stopExpo(true)
   stopAllProcessesNow()
   stopMonitors()
   stopProxy()
