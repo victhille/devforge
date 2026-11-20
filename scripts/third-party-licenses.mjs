@@ -28,6 +28,10 @@ const RENDERER = [
   'tailwind-merge',
   'uqr'
 ]
+// Bundled into the main process by Vite (devDependencies too): the MCP client. Its server side
+// (express, hono…) is never imported, so it is not shipped
+const MAIN = ['@modelcontextprotocol/sdk']
+const MAIN_NOT_BUNDLED = new Set(['express', 'hono', '@hono/node-server', 'cors', 'raw-body', 'express-rate-limit', 'content-type', 'jose'])
 // Left out of the installer by package.json › build.files
 const NOT_SHIPPED = ['onnxruntime-web', '@img/sharp-wasm32']
 // Packages whose lock entry has no "license" field (checked in their own package.json)
@@ -50,13 +54,23 @@ const add = (path, info) => {
 for (const [path, info] of Object.entries(lock.packages)) {
   if (path && (!info.dev || RENDERER.includes(nameOf(path)))) add(path, info)
 }
-// Transitive dependencies of the renderer packages
-const deps = new Set(RENDERER)
-for (const name of deps) {
-  const info = lock.packages[`node_modules/${name}`]
+// Transitive dependencies of the renderer packages, and of the main process's bundled ones
+// Resolved like Node: a copy nested under the package that needs it wins over the top-level one
+const resolveDep = (from, dep) => {
+  for (let base = from; base; base = base.includes('/node_modules/') ? base.slice(0, base.lastIndexOf('/node_modules/')) : '') {
+    if (lock.packages[`${base}/node_modules/${dep}`]) return `${base}/node_modules/${dep}`
+  }
+  return lock.packages[`node_modules/${dep}`] ? `node_modules/${dep}` : null
+}
+const paths = new Set([...RENDERER, ...MAIN].map(name => `node_modules/${name}`))
+for (const path of paths) {
+  const info = lock.packages[path]
   if (!info) continue
-  for (const dep of Object.keys(info.dependencies ?? {})) deps.add(dep)
-  add(`node_modules/${name}`, info)
+  for (const dep of Object.keys(info.dependencies ?? {})) {
+    const p = MAIN_NOT_BUNDLED.has(dep) ? null : resolveDep(path, dep)
+    if (p) paths.add(p)
+  }
+  add(path, info)
 }
 
 const rows = [...entries.values()].sort((a, b) => a.name.localeCompare(b.name))

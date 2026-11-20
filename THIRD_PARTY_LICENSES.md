@@ -1,10 +1,10 @@
 # Licences tierces
 
-DevForge 0.4.0 est distribué sous [GPL-3.0-only](LICENSE). Il inclut les 119 paquets open source ci-dessous, chacun sous sa propre licence. Le texte complet de chaque licence est livré avec l'application, dans `THIRD_PARTY_NOTICES.txt` (Paramètres › À propos › Licences tierces).
+DevForge 0.4.0 est distribué sous [GPL-3.0-only](LICENSE). Il inclut les 137 paquets open source ci-dessous, chacun sous sa propre licence. Le texte complet de chaque licence est livré avec l'application, dans `THIRD_PARTY_NOTICES.txt` (Paramètres › À propos › Licences tierces).
 
 Généré par `npm run licenses` à partir de `package-lock.json` (installeur Windows x64) : ne pas modifier à la main.
 
-**Résumé** : MIT (80), BSD-3-Clause (13), Apache-2.0 (9), ISC (7), OFL-1.1 (3), Unlicense (2), Apache-2.0 AND LGPL-3.0-or-later (1), Python-2.0 (1), BlueOak-1.0.0 (1), 0BSD (1), (MIT OR CC0-1.0) (1).
+**Résumé** : MIT (93), BSD-3-Clause (14), ISC (10), Apache-2.0 (9), OFL-1.1 (3), Unlicense (2), Apache-2.0 AND LGPL-3.0-or-later (1), Python-2.0 (1), BSD-2-Clause (1), BlueOak-1.0.0 (1), 0BSD (1), (MIT OR CC0-1.0) (1).
 
 Points d'attention :
 - **Polices Inter, JetBrains Mono et Bricolage Grotesque** : SIL Open Font License 1.1 (OFL-1.1), redistribuables avec l'application, à ne pas vendre seules.
@@ -24,6 +24,7 @@ Points d'attention :
 | @huggingface/transformers | 4.3.2 | Apache-2.0 |
 | @img/colour | 1.1.0 | MIT |
 | @img/sharp-win32-x64 | 0.35.5 | Apache-2.0 AND LGPL-3.0-or-later |
+| @modelcontextprotocol/sdk | 1.32.2 | MIT |
 | @opentelemetry/api | 1.10.0 | Apache-2.0 |
 | @protobufjs/aspromise | 1.1.2 | BSD-3-Clause |
 | @protobufjs/base64 | 1.1.2 | BSD-3-Clause |
@@ -40,6 +41,8 @@ Points d'attention :
 | @xterm/addon-web-links | 0.12.0 | MIT |
 | @xterm/xterm | 6.0.0 | MIT |
 | adm-zip | 0.6.1 | MIT |
+| ajv | 8.20.0 | MIT |
+| ajv-formats | 3.0.1 | MIT |
 | argparse | 2.0.1 | Python-2.0 |
 | asn1 | 0.2.6 | MIT |
 | aws-ssl-profiles | 1.1.2 | MIT |
@@ -47,6 +50,7 @@ Points d'attention :
 | builder-util-runtime | 9.7.0 | MIT |
 | clsx | 2.1.1 | MIT |
 | cookie | 1.1.1 | MIT |
+| cross-spawn | 7.0.6 | MIT |
 | debug | 4.4.3 | MIT |
 | define-data-property | 1.1.4 | MIT |
 | define-properties | 1.2.1 | MIT |
@@ -55,7 +59,11 @@ Points d'attention :
 | es-define-property | 1.0.1 | MIT |
 | es-errors | 1.3.0 | MIT |
 | escape-string-regexp | 4.0.0 | MIT |
+| eventsource | 3.0.7 | MIT |
+| eventsource-parser | 3.1.1 | MIT |
+| fast-deep-equal | 3.1.3 | MIT |
 | fast-sha256 | 1.3.0 | Unlicense |
+| fast-uri | 3.1.9 | BSD-3-Clause |
 | flatbuffers | 25.9.23 | Apache-2.0 |
 | fs-extra | 10.1.0 | MIT |
 | generate-function | 2.3.1 | MIT |
@@ -68,9 +76,12 @@ Points d'attention :
 | highlight.js | 11.12.0 | BSD-3-Clause |
 | iconv-lite | 0.7.3 | MIT |
 | is-property | 1.0.2 | MIT |
+| isexe | 2.0.0 | ISC |
 | js-tokens | 4.0.0 | MIT |
 | js-yaml | 4.3.2 | MIT |
 | json-schema-to-ts | 3.1.1 | MIT |
+| json-schema-traverse | 1.0.0 | MIT |
+| json-schema-typed | 8.0.2 | BSD-2-Clause |
 | jsonfile | 6.2.1 | MIT |
 | lazy-val | 1.0.5 | MIT |
 | lodash.escaperegexp | 4.1.2 | MIT |
@@ -89,6 +100,7 @@ Points d'attention :
 | onnxruntime-common | 1.30.0 | MIT |
 | onnxruntime-common | 1.31.0-dev.20260911-2a43ec07e | MIT |
 | onnxruntime-node | 1.30.0 | MIT |
+| path-key | 3.1.1 | MIT |
 | pdfjs-dist | 6.5.438 | Apache-2.0 |
 | pg | 8.23.1 | MIT |
 | pg-cloudflare | 1.4.1 | MIT |
@@ -98,6 +110,7 @@ Points d'attention :
 | pg-protocol | 1.16.1 | MIT |
 | pg-types | 2.2.0 | MIT |
 | pgpass | 1.0.5 | MIT |
+| pkce-challenge | 5.0.1 | MIT |
 | platform | 1.3.6 | MIT |
 | postgres-array | 2.0.0 | MIT |
 | postgres-bytea | 1.0.1 | MIT |
@@ -108,6 +121,7 @@ Points d'attention :
 | react-dom | 18.3.1 | MIT |
 | react-router | 7.18.6 | MIT |
 | react-router-dom | 7.18.6 | MIT |
+| require-from-string | 2.0.2 | MIT |
 | safer-buffer | 2.1.2 | MIT |
 | sax | 1.6.1 | BlueOak-1.0.0 |
 | scheduler | 0.23.2 | MIT |
@@ -116,6 +130,8 @@ Points d'attention :
 | serialize-error | 8.1.0 | MIT |
 | set-cookie-parser | 2.7.3 | MIT |
 | sharp | 0.35.5 | Apache-2.0 |
+| shebang-command | 2.0.0 | MIT |
+| shebang-regex | 3.0.0 | MIT |
 | split2 | 4.2.0 | ISC |
 | sql-escaper | 1.5.2 | MIT |
 | sql.js | 1.17.0 | MIT |
@@ -130,5 +146,7 @@ Points d'attention :
 | undici-types | 6.21.0 | MIT |
 | universalify | 2.0.1 | MIT |
 | uqr | 0.1.3 | MIT |
+| which | 2.0.2 | ISC |
 | xtend | 4.0.2 | MIT |
 | zod | 4.6.7 | MIT |
+| zod-to-json-schema | 3.25.2 | ISC |

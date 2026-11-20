@@ -529,6 +529,16 @@ const api: DevForgeAPI = {
     remove: invoke('dictation:remove')
   },
 
+  mcp: {
+    list: invoke('mcp:list'),
+    add: invoke('mcp:add'),
+    addCustom: invoke('mcp:add-custom'),
+    remove: invoke('mcp:remove'),
+    setEnabled: invoke('mcp:set-enabled'),
+    signIn: invoke('mcp:sign-in'),
+    signOut: invoke('mcp:sign-out'),
+    test: invoke('mcp:test')
+  },
   expo: {
     projects: invoke('expo:projects'),
     status: invoke('expo:status'),

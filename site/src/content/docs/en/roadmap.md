@@ -8,6 +8,16 @@ What is coming to DevForge, from the nearest to the furthest. No date is promise
 
 An idea, a need? Suggest it in the [discussions](https://github.com/victhille/devforge/discussions) or as an [issue](https://github.com/victhille/devforge/issues/new/choose).
 
+## Ready for the next version
+
+Done and in review:
+
+- **MCP servers for Forgy**: in **Settings › Connections**, the official servers (Vercel, Supabase, Sentry, Linear, Notion, Context7, Playwright) plug in with one click, with no token to copy, and become Forgy's tools ([the page](/devforge/en/getting-started/connections/#mcp-servers-for-forgy)).
+
+## Next
+
+- Signing in without a token for **GitHub** and **Vercel** in **Accounts**: a button that opens the browser, instead of pasting a token.
+
 ## Towards 1.0
 
 1. A **1.0.0-beta.1 pre-release**, on the **Beta** channel (**Settings › Updates**).
