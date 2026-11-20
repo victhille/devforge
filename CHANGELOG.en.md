@@ -26,6 +26,7 @@ Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en
 - **Forgy**: in auto-safe mode, only development servers start on their own; other scripts ask for a click
 - **Forgy**: it no longer reads some sensitive files
 - **Log**: it masks more secrets and user folders
+- **Webhooks**: replaying a captured request always sends it to the chosen address, even when the incoming call gave a full address
 - **Database**: an opened database can no longer run a regular expression outside the search
 - **Publishing**: the installer is built without write access to the repository, and GitHub attests its provenance
 

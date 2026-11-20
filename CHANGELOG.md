@@ -26,6 +26,7 @@ Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachange
 - **Forgy** : en mode auto-sûr, seuls les serveurs de développement démarrent seuls ; les autres scripts demandent un clic
 - **Forgy** : il ne lit plus certains fichiers sensibles
 - **Journal** : il masque plus de secrets et les dossiers d'utilisateur
+- **Webhooks** : relancer une requête capturée l'envoie toujours à l'adresse choisie, même si l'appel reçu donnait une adresse complète
 - **Base de données** : une base ouverte ne peut plus lancer d'expression régulière en dehors de la recherche
 - **Publication** : l'installeur est construit sans droit d'écriture sur le dépôt, et sa provenance est attestée par GitHub
 

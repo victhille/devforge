@@ -97,14 +97,21 @@ export async function replay(id: string, targetUrl: string) {
   if (!/^https?:\/\//i.test(targetUrl)) return { status: null, body: '', error: 'URL must start with http:// or https://' }
   try {
     const target = new URL(targetUrl)
+    // The captured URL comes from whoever called the receiver: an absolute one (`GET http://other/ HTTP/1.1`)
+    // or `//other/` must never pick the host. Only its path and query are copied onto the target.
     const captured = new URL(r.url, 'http://x')
+    const final = new URL(target.origin)
     // Keep the target's own path when one is given, else reuse the captured path
-    const final = target.pathname !== '/' ? new URL(target.pathname + captured.search, target.origin) : new URL(r.url, target.origin)
-    const res = await fetch(final, {
+    final.pathname = target.pathname !== '/' ? target.pathname : captured.pathname
+    final.search = captured.search
+    if (final.origin !== target.origin) return { status: null, body: '', error: 'Invalid target' }
+    const res = await fetch(final.href, {
       method: r.method,
       headers: Object.fromEntries(Object.entries(r.headers).filter(([k]) => !SKIP_HEADERS.has(k))),
       body: ['GET', 'HEAD'].includes(r.method) ? undefined : r.body,
-      signal: AbortSignal.timeout(15_000)
+      signal: AbortSignal.timeout(15_000),
+      // A redirect is shown, not followed: it would resend the captured body and headers to another host
+      redirect: 'manual'
     })
     return { status: res.status, body: (await res.text()).slice(0, 20_000) }
   } catch (err) {
