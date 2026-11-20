@@ -4,6 +4,35 @@ Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/victhille/devforge/compare/v0.2.1...v0.3.0) — 2026-11-20
+
+> Updates are now visible: a download card, a restart screen, and an app that is more accessible and more private.
+
+### New features
+
+- **Updates**: a card at the bottom right follows the download (bar, MB received, time left); it shrinks into a pill in the title bar, and offers **Restart and update** or **Later** once the version is ready
+- **Updates**: on restart, a cover says the install is starting, the installer is titled "Updating DevForge", and a small "Update installed" window shows while DevForge opens again
+- **Privacy**: automatic updates can be turned off, and **Settings** explains what leaves the PC
+- **Licenses**: the DevForge license and those of its components ship with the installer and can be read from **Settings › About**
+
+### Improvements
+
+- **Accessibility**: Windows high contrast is followed, input fields are easier to read, the chosen language is announced to screen readers, and small buttons are at least 24 px
+- **Lighter on resources**: screens that poll the network (Docker, Vercel, VPS, GitHub…) pause while the window is minimized
+- **Installer**: it is lighter, and uninstalling cleans up
+
+### Security
+
+- **Forgy**: in auto-safe mode, only development servers start on their own; other scripts ask for a click
+- **Forgy**: it no longer reads some sensitive files
+- **Log**: it masks more secrets and user folders
+- **Database**: an opened database can no longer run a regular expression outside the search
+- **Publishing**: the installer is built without write access to the repository, and GitHub attests its provenance
+
+### Dependencies and build
+
+- **Electron** 44.11.5 and minor updates of the other components
+
 ## [0.2.1](https://github.com/victhille/devforge/compare/v0.2.0...v0.2.1) — 2026-11-10
 
 > Security fixes for running scripts, and an interface that follows the text size everywhere.
