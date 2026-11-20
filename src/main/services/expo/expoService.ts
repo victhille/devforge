@@ -2,6 +2,7 @@ import { execFile } from 'child_process'
 import { readdirSync } from 'fs'
 import { join } from 'path'
 import { networkInterfaces } from 'os'
+import { createServer } from 'net'
 import { app } from 'electron'
 import type { IPty } from 'node-pty'
 import type { ExpoCheck, ExpoKey, ExpoLog, ExpoProject, ExpoStartOptions, ExpoStatus } from '@shared/types'
@@ -151,6 +152,33 @@ function lanEnv(o: ExpoStartOptions): Record<string, string> {
   return ip ? { REACT_NATIVE_PACKAGER_HOSTNAME: ip } : {}
 }
 
+// ─── The port ────────────────────────────────────────────────────────────────
+
+/** Whether this PC lets a server listen on the port, on one address (null: every address) */
+function canListen(port: number, host: string | null): Promise<boolean> {
+  return new Promise(resolve => {
+    const s = createServer()
+    s.once('error', () => resolve(false))
+    s.listen({ port, host: host ?? undefined, exclusive: true }, () => s.close(() => resolve(true)))
+  })
+}
+
+const PORT_TRIES = 1500
+
+/**
+ * The first port from `wanted` that Metro can take, tested on the addresses Expo tests itself. Windows
+ * reserves whole ranges for WSL and Hyper-V (often 7681-8380, which holds 8081): Expo then says the
+ * port « is being used by another process » and waits for an answer nobody gives (tested).
+ */
+export async function freePort(wanted: number, hosts: (string | null)[], listen = canListen): Promise<number | null> {
+  for (let port = wanted; port < Math.min(wanted + PORT_TRIES, 65_536); port++) {
+    let ok = true
+    for (const host of hosts) if (!(await listen(port, host))) ok = false
+    if (ok) return port
+  }
+  return null
+}
+
 // ─── Reading Metro's output ──────────────────────────────────────────────────
 
 /** One line as a person reads it: no colors or cursor moves, the last rewrite of a line kept */
@@ -236,16 +264,28 @@ function stopPoll(): void {
 }
 
 export async function startExpo(id: string, options: ExpoStartOptions): Promise<ExpoStatus> {
-  const o = checkOptions(options)
+  const asked = checkOptions(options)
   const { app: target, dir } = folderOf(String(id))
   stopExpo()
   logs = []
   pending = ''
-  status = { id: target.id, state: 'starting', port: o.port, url: null, options: o, needsNgrok: false }
+  status = { id: target.id, state: 'starting', port: asked.port, url: null, options: asked, needsNgrok: false }
   onStatus(expoStatus())
+  const lan = lanEnv(asked)
+  // The port is chosen here: Expo's own question (« use another port? ») would wait in its terminal
+  const port = await freePort(asked.port, [null, '0.0.0.0', '127.0.0.1', ...(lan.REACT_NATIVE_PACKAGER_HOSTNAME ? [lan.REACT_NATIVE_PACKAGER_HOSTNAME] : [])])
+  if (port === null) {
+    push('system', `No free port from ${asked.port}: Windows or another program holds them all`)
+    set({ state: 'failed' })
+    return expoStatus()
+  }
+  const o = { ...asked, port }
+  if (port !== asked.port) {
+    push('system', `Port ${asked.port} is taken or reserved by Windows (WSL, Hyper-V): Metro uses ${port}`)
+    set({ port, options: o })
+  }
   const c = command(startArgs(o))
   push('system', `$ npx ${startArgs(o).join(' ')}  (${target.label})`)
-  const lan = lanEnv(o)
   if (lan.REACT_NATIVE_PACKAGER_HOSTNAME) push('system', `Address given to the phone: ${lan.REACT_NATIVE_PACKAGER_HOSTNAME} (local network card)`)
   try {
     // A native module, loaded on first use

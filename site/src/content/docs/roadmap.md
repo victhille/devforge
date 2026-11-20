@@ -8,9 +8,12 @@ Ce qui arrive dans DevForge, du plus proche au plus lointain. Aucune date n'est 
 
 Une idée, un besoin ? Propose-le dans les [discussions](https://github.com/victhille/devforge/discussions) ou en [issue](https://github.com/victhille/devforge/issues/new/choose).
 
-## Ensuite
+## Prêt pour la prochaine version
 
-- La connexion sans jeton pour **GitHub** et **Vercel** dans **Comptes** : un bouton qui ouvre le navigateur, au lieu de coller un jeton.
+Fait et en relecture :
+
+- **Se connecter sans jeton** à **GitHub** et à **Vercel** dans **Paramètres › Connexions** : un code à taper sur GitHub, le navigateur pour Vercel, au lieu de coller un jeton ([la page](/devforge/getting-started/connections/#github)).
+- **Expo** : quand Windows réserve le port de Metro (WSL, Hyper-V), DevForge prend le suivant qui est libre, au lieu de rester bloqué au démarrage.
 
 ## Vers la 1.0
 

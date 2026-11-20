@@ -32,6 +32,3 @@ export const catalogEntry = (id: string): CatalogServer | undefined => CATALOG.f
  * accepts it needs no registration, and the sign-in comes back to this PC only.
  */
 export const CLIENT_METADATA_URL = 'https://victhille.github.io/devforge/oauth/mcp-client.json'
-/** Where the browser comes back after a sign-in: this PC only, a fixed port (registered with each server) */
-export const CALLBACK_PORT = 47823
-export const CALLBACK_URL = `http://127.0.0.1:${CALLBACK_PORT}/callback`

@@ -43,12 +43,12 @@ test('the Expo page finds the apps of a monorepo, serves one with its QR code, s
   await expect(page.getByText(/Le serveur est arrêté/)).toBeVisible()
   expect(await settledAxeIssues(page)).toEqual([])
 
-  // Start on port 8082: the QR code holds Metro's address
+  // Start on port 19082 (outside the ranges Windows reserves): the QR code holds Metro's address
   const port = page.getByRole('textbox', { name: 'Port' })
-  await port.fill('8082')
+  await port.fill('19082')
   await page.getByRole('button', { name: 'Démarrer' }).click()
-  await expect(page.getByRole('img', { name: 'QR code de exp://192.168.1.71:8082' })).toBeVisible()
-  await expect(page.getByText('En marche · port 8082')).toBeVisible()
+  await expect(page.getByRole('img', { name: 'QR code de exp://192.168.1.71:19082' })).toBeVisible()
+  await expect(page.getByText('En marche · port 19082')).toBeVisible()
   await expect(port).toBeDisabled()
 
   // Keys go to Expo's terminal

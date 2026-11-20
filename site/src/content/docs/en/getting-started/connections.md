@@ -15,9 +15,10 @@ Everything stays on this PC, in DevForge's folder. Keys, tokens and passwords ar
 
 ### GitHub
 
-Repositories, Actions and releases. Two ways to sign in:
+Repositories, Actions and releases. Three ways to sign in:
 
 - **GitHub CLI**: run `gh auth login` once in a terminal. DevForge uses that sign-in when it exists and shows `GitHub CLI: your-account`.
+- **Sign in**: without GitHub CLI, DevForge shows a code (`WDJB-MJHT`). **Open GitHub** opens the page where you type it, then you allow DevForge's access (repositories, private ones included, and organizations). The row turns green on its own, and the token it gets is encrypted.
 - **Personal token**: without GitHub CLI, **Add a token**, then paste a GitHub token. Useful permissions: *Actions* and *Contents* read, *Actions* write to re-run failed jobs. It is checked, then encrypted.
 
 Without either, the projects' GitHub tab and creating a GitHub repository from [New Project](/devforge/en/dev/new-project/) are not available.
@@ -32,7 +33,7 @@ The **API key** that makes [Forgy](/devforge/en/forgy/assistant/) talk: Anthropi
 
 ### Vercel
 
-Deployments, domains and variables of the projects linked to Vercel. Create a token on *vercel.com › Account Settings › Tokens*, then **Add a token** and paste it; the row then shows "token saved" (the account on hover). See [Deploy](/devforge/en/online/deploy/#vercel).
+Deployments, domains and variables of the projects linked to Vercel. **Sign in** opens the browser on Vercel: you allow DevForge's access, the browser comes back to this PC (`127.0.0.1`) and the row shows "signed in". The access lasts an hour and DevForge renews it on its own; after 30 days unused, sign in again. Otherwise, create a token on *vercel.com › Account Settings › Tokens*, then **Add a token** and paste it; the row then shows "token saved" (the account on hover). See [Deploy](/devforge/en/online/deploy/#vercel).
 
 ### Docker
 

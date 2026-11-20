@@ -508,7 +508,12 @@ const api: DevForgeAPI = {
     disconnect: invoke('connections:disconnect'),
     setGitIdentity: invoke('connections:set-git-identity'),
     alerts: invoke('connections:alerts'),
-    setNtfy: invoke('connections:set-ntfy')
+    setNtfy: invoke('connections:set-ntfy'),
+    githubSignIn: invoke('connections:github-sign-in'),
+    githubOpenPage: invoke('connections:github-open-page'),
+    githubWait: invoke('connections:github-wait'),
+    vercelSignIn: invoke('connections:vercel-sign-in'),
+    cancelSignIn: invoke('connections:cancel-sign-in')
   },
 
   laravel: {
