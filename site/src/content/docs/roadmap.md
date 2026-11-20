@@ -8,6 +8,12 @@ Ce qui arrive dans DevForge, du plus proche au plus lointain. Aucune date n'est 
 
 Une idée, un besoin ? Propose-le dans les [discussions](https://github.com/victhille/devforge/discussions) ou en [issue](https://github.com/victhille/devforge/issues/new/choose).
 
+## Prêt pour la prochaine version
+
+Fait et en relecture :
+
+- **Vercel** : une page à part entière, avec tous les projets, les déploiements et les domaines du compte ou d'une équipe. Elle sait annuler un build, passer un aperçu en production et lier un projet Vercel à un dossier de DevForge ([la page](/devforge/online/vercel/)).
+
 ## Vers la 1.0
 
 1. Une **préversion 1.0.0-beta.1**, sur le canal **Bêta** (**Paramètres › Mises à jour**).
@@ -19,5 +25,4 @@ Une idée, un besoin ? Propose-le dans les [discussions](https://github.com/vict
 
 Rien de commencé, et l'ordre peut changer :
 
-- une page **Vercel** à part entière : les projets, les déploiements et les domaines du compte connecté ;
 - une page **Expo** : lancer un projet React Native, montrer le QR code à scanner avec Expo Go et suivre le serveur de développement.

@@ -54,7 +54,7 @@ export default defineConfig({
           'servers/ssh', 'servers/health', 'servers/services', 'servers/backups', 'servers/monitoring'
         ]),
         group('Mise en ligne', 'Going live', [
-          'online/deploy', 'online/n8n', 'online/vpn', 'online/status-page'
+          'online/deploy', 'online/vercel', 'online/n8n', 'online/vpn', 'online/status-page'
         ]),
         group('Données & API', 'Data & API', [
           'data/database', 'data/modeling', 'data/api-tester', 'data/webhooks', 'data/logs'
