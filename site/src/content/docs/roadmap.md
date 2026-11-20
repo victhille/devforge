@@ -12,8 +12,12 @@ Une idée, un besoin ? Propose-le dans les [discussions](https://github.com/vict
 
 Fait et en relecture :
 
-- **Se connecter sans jeton** à **GitHub** et à **Vercel** dans **Paramètres › Connexions** : un code à taper sur GitHub, le navigateur pour Vercel, au lieu de coller un jeton ([la page](/devforge/getting-started/connections/#github)).
+- **Se connecter sans jeton** à **GitHub** dans **Paramètres › Connexions** : un code à taper sur GitHub, au lieu de coller un jeton ([la page](/devforge/getting-started/connections/#github)).
 - **Expo** : quand Windows réserve le port de Metro (WSL, Hyper-V), DevForge prend le suivant qui est libre, au lieu de rester bloqué au démarrage.
+
+## Ensuite
+
+- **Se connecter sans jeton** à **Vercel** : le navigateur au lieu d'un jeton. Le code est prêt ; il attend que Vercel ouvre aux applis l'accès à son API, encore en bêta privée.
 
 ## Vers la 1.0
 

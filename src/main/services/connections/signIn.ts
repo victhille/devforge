@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'crypto'
 import { shell } from 'electron'
 import type { GithubDeviceCode, VercelAccount } from '@shared/types'
 import { log } from '../../lib/log'
-import { LOOPBACK_URL, openLoopback } from '../../lib/oauthLoopback'
+import { LOOPBACK_URL, openLoopback, type Loopback } from '../../lib/oauthLoopback'
 import { saveToken as saveGithubToken } from '../github/githubService'
 import { saveSession as saveVercelSession, type VercelTokens } from '../vercel/vercelService'
 import {
@@ -34,15 +34,21 @@ const form = (url: string, body: Record<string, string>, signal?: AbortSignal) =
 
 /** The sign-in under way: cancelled by the window, or by another one */
 let current: AbortController | null = null
+/** Its way back to this PC (Vercel): freed at once on a cancel, so the next try finds the port free */
+let port: Loopback | null = null
 
 function begin(): AbortController {
   current?.abort()
+  port?.stop()
+  port = null
   current = new AbortController()
   return current
 }
 
 export function cancelSignIn(): void {
   current?.abort()
+  port?.stop()
+  port = null
   current = null
 }
 
@@ -134,14 +140,19 @@ export function vercelAuthorizeUrl(clientId: string, challenge: string, state: s
 export async function vercelSignIn(): Promise<VercelAccount> {
   const clientId = vercelClientId()
   if (!clientId) throw new Error('SIGN_IN_UNAVAILABLE')
+  // Our own previous try is let go first; a sign-in of an MCP server keeps the port
+  if (port) cancelSignIn()
   const loop = openLoopback()
   const { signal } = begin()
+  port = loop
   try {
     const verifier = base64url(randomBytes(32))
     const state = base64url(randomBytes(16))
     loop.expect(state)
-    await shell.openExternal(vercelAuthorizeUrl(clientId, base64url(createHash('sha256').update(verifier).digest()), state))
+    // Listened to before anything is awaited: a cancel while the browser opens is not missed
     const cancelled = new Promise<never>((_, reject) => signal.addEventListener('abort', () => reject(new Error('CANCELLED')), { once: true }))
+    cancelled.catch(() => {})
+    await Promise.race([shell.openExternal(vercelAuthorizeUrl(clientId, base64url(createHash('sha256').update(verifier).digest()), state)), cancelled])
     const code = await Promise.race([loop.code, cancelled])
     const res = await form(
       vercelTokenUrl(),
@@ -153,5 +164,6 @@ export async function vercelSignIn(): Promise<VercelAccount> {
     return await saveVercelSession(t as VercelTokens)
   } finally {
     loop.stop()
+    if (port === loop) port = null
   }
 }
