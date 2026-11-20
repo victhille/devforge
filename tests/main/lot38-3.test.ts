@@ -2,18 +2,28 @@ import { describe, expect, it } from 'vitest'
 import type { ProjectActivity } from '@shared/types'
 import { asleep, commitsByWeek, mostActive, parseGitLog, parseHeadRef, toFollow, weekStart, WEEKS } from '@shared/lib/activity'
 
-/** v3.8 lot 3: the Activity page's figures */
+/** The Activity page's figures */
 
 const DAY = 24 * 3600
 // A Wednesday at noon (local)
 const NOW = Math.floor(new Date(2026, 9, 28, 12).getTime() / 1000)
-const proj = (id: string, commits: ProjectActivity['commits'], extra: Partial<ProjectActivity> = {}): ProjectActivity =>
-  ({ id, name: id, path: `/p/${id}`, commits, lastCommitAt: commits.length ? Math.max(...commits.map(c => c.at)) : null, branch: 'main', ahead: 0, behind: 0, ...extra })
+const proj = (id: string, commits: ProjectActivity['commits'], extra: Partial<ProjectActivity> = {}): ProjectActivity => ({
+  id,
+  name: id,
+  path: `/p/${id}`,
+  commits,
+  lastCommitAt: commits.length ? Math.max(...commits.map(c => c.at)) : null,
+  branch: 'main',
+  ahead: 0,
+  behind: 0,
+  ...extra
+})
 const c = (daysAgo: number, email = 'me@x.dev', added = 1, removed = 0) => ({ at: NOW - daysAgo * DAY, email, added, removed })
 
 describe('parseGitLog', () => {
   it('reads each commit with its lines, merges and empty stats included', () => {
-    const out = '\x1e1700000000\x1fMe@X.dev\n\n 2 files changed, 10 insertions(+), 3 deletions(-)\n\x1e1700000100\x1fother@x.dev\n\n 1 file changed, 1 insertion(+)\n\x1e1700000200\x1fme@x.dev\n'
+    const out =
+      '\x1e1700000000\x1fMe@X.dev\n\n 2 files changed, 10 insertions(+), 3 deletions(-)\n\x1e1700000100\x1fother@x.dev\n\n 1 file changed, 1 insertion(+)\n\x1e1700000200\x1fme@x.dev\n'
     expect(parseGitLog(out)).toEqual([
       { at: 1700000000, email: 'me@x.dev', added: 10, removed: 3 },
       { at: 1700000100, email: 'other@x.dev', added: 1, removed: 0 },
@@ -62,7 +72,10 @@ describe('the cards', () => {
   })
 
   it('finds the projects asleep for 3 months, the oldest first, never a folder without Git', () => {
-    const r = asleep([proj('a', [c(1)]), proj('b', [], { lastCommitAt: NOW - 100 * DAY }), proj('c', [], { lastCommitAt: NOW - 400 * DAY }), proj('d', [])], NOW)
+    const r = asleep(
+      [proj('a', [c(1)]), proj('b', [], { lastCommitAt: NOW - 100 * DAY }), proj('c', [], { lastCommitAt: NOW - 400 * DAY }), proj('d', [])],
+      NOW
+    )
     expect(r.map(p => p.id)).toEqual(['c', 'b'])
   })
 

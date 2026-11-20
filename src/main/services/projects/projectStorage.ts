@@ -31,8 +31,11 @@ export function getProjectPaths(): Set<string> {
 function persist(projects: Project[]): void {
   const path = getStoragePath()
   mkdirSync(dirname(path), { recursive: true })
-  writeJsonFile(path, projects.map(({ missing: _missing, subprojects: _subprojects, extras: _extras, ...p }) => p))
-  // v4.2: every list of projects in the windows follows
+  writeJsonFile(
+    path,
+    projects.map(({ missing: _missing, subprojects: _subprojects, extras: _extras, ...p }) => p)
+  )
+  // Every list of projects in the windows follows
   dataChanged('projects')
 }
 
@@ -63,7 +66,7 @@ export function updateLastOpened(id: string): void {
 
 export function toggleFavorite(id: string): void {
   const projects = loadProjects()
-  const project  = projects.find(p => p.id === id)
+  const project = projects.find(p => p.id === id)
   if (project) {
     project.favorite = !project.favorite
     persist(projects)

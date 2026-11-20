@@ -17,8 +17,9 @@ import { runFile } from '../../lib/exec'
 const sessions = new Map<string, IPty>()
 let counter = 0
 
-const GIT_BASH = ['C:\\Program Files\\Git\\bin\\bash.exe', 'C:\\Program Files (x86)\\Git\\bin\\bash.exe']
-  .concat(process.env.LOCALAPPDATA ? [join(process.env.LOCALAPPDATA, 'Programs', 'Git', 'bin', 'bash.exe')] : [])
+const GIT_BASH = ['C:\\Program Files\\Git\\bin\\bash.exe', 'C:\\Program Files (x86)\\Git\\bin\\bash.exe'].concat(
+  process.env.LOCALAPPDATA ? [join(process.env.LOCALAPPDATA, 'Programs', 'Git', 'bin', 'bash.exe')] : []
+)
 
 let pwshFound: boolean | null = null
 
@@ -42,24 +43,33 @@ function bashRc(): string {
 
 function command(kind: Exclude<ShellKind, 'ssh'>): { file: string; args: string[]; env?: Record<string, string> } {
   switch (kind) {
-    case 'powershell': return { file: 'powershell.exe', args: ['-NoLogo', '-NoExit', '-EncodedCommand', encodePowerShell(POWERSHELL_INIT)] }
-    case 'pwsh':       return { file: 'pwsh.exe', args: ['-NoLogo', '-NoExit', '-EncodedCommand', encodePowerShell(POWERSHELL_INIT)] }
+    case 'powershell':
+      return { file: 'powershell.exe', args: ['-NoLogo', '-NoExit', '-EncodedCommand', encodePowerShell(POWERSHELL_INIT)] }
+    case 'pwsh':
+      return { file: 'pwsh.exe', args: ['-NoLogo', '-NoExit', '-EncodedCommand', encodePowerShell(POWERSHELL_INIT)] }
     case 'gitbash': {
       const bash = GIT_BASH.find(p => existsSync(p))
       if (!bash) throw new Error('NO_GIT_BASH')
       return { file: bash, args: ['--rcfile', bashRc(), '-i'] }
     }
     // cmd reads its prompt from the environment (no quoting through the command line)
-    case 'cmd':        return { file: 'cmd.exe', args: [], env: { PROMPT: CMD_PROMPT } }
+    case 'cmd':
+      return { file: 'cmd.exe', args: [], env: { PROMPT: CMD_PROMPT } }
   }
 }
 
-export function create(kind: Exclude<ShellKind, 'ssh'>, cwd: string, cols: number, rows: number,
-  onData: (id: string, data: string) => void, onExit: (id: string, code: number) => void): string {
+export function create(
+  kind: Exclude<ShellKind, 'ssh'>,
+  cwd: string,
+  cols: number,
+  rows: number,
+  onData: (id: string, data: string) => void,
+  onExit: (id: string, code: number) => void
+): string {
   const dir = assertSafeDir(cwd)
   const c = command(kind)
   // Loaded on first use: a native module, the rest of the app starts without it
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- node-pty is a native module: loaded on first use, not at startup
   const pty = require('node-pty') as typeof import('node-pty')
   const p = pty.spawn(c.file, c.args, {
     name: 'xterm-256color',
@@ -72,20 +82,33 @@ export function create(kind: Exclude<ShellKind, 'ssh'>, cwd: string, cols: numbe
   const id = `t${++counter}`
   sessions.set(id, p)
   p.onData(d => onData(id, d))
-  p.onExit(e => { sessions.delete(id); onExit(id, e.exitCode) })
+  p.onExit(e => {
+    sessions.delete(id)
+    onExit(id, e.exitCode)
+  })
   return id
 }
 
-export const write = (id: string, data: string) => { sessions.get(id)?.write(data) }
+export const write = (id: string, data: string) => {
+  sessions.get(id)?.write(data)
+}
 
 export function resize(id: string, cols: number, rows: number): void {
-  try { sessions.get(id)?.resize(Math.max(20, Math.min(500, Math.round(cols))), Math.max(5, Math.min(200, Math.round(rows)))) } catch { /* exited */ }
+  try {
+    sessions.get(id)?.resize(Math.max(20, Math.min(500, Math.round(cols))), Math.max(5, Math.min(200, Math.round(rows))))
+  } catch {
+    /* exited */
+  }
 }
 
 export function kill(id: string): void {
   const p = sessions.get(id)
   sessions.delete(id)
-  try { p?.kill() } catch { /* already gone */ }
+  try {
+    p?.kill()
+  } catch {
+    /* already gone */
+  }
 }
 
 export function killAll(): void {
@@ -97,7 +120,11 @@ export function killAll(): void {
 const MAX_PER_KEY = 500
 const historyPath = () => join(app.getPath('userData'), 'terminal-history.json')
 const readHistory = (): Record<string, TerminalHistoryEntry[]> => {
-  try { return JSON.parse(readFileSync(historyPath(), 'utf-8')) } catch { return {} }
+  try {
+    return JSON.parse(readFileSync(historyPath(), 'utf-8'))
+  } catch {
+    return {}
+  }
 }
 
 export const history = (key: string): TerminalHistoryEntry[] => readHistory()[key.toLowerCase()] ?? []

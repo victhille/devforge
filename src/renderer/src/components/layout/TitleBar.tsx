@@ -16,12 +16,7 @@ import Kbd from '@renderer/components/ui/Kbd'
 /** A round button of the bar, icon only (help, terminal) */
 const TOOL = 'app-no-drag flex size-[30px] shrink-0 items-center justify-center rounded-lg text-fg-secondary transition-colors hover:bg-elevated hover:text-fg'
 
-function WindowButton({ title, onClick, danger, children }: {
-  title: string
-  onClick: () => void
-  danger?: boolean
-  children: ReactNode
-}) {
+function WindowButton({ title, onClick, danger, children }: { title: string; onClick: () => void; danger?: boolean; children: ReactNode }) {
   return (
     <button
       title={title}
@@ -47,7 +42,12 @@ export default function TitleBar() {
 
   // F1: the documentation of the page on screen, like in most apps
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'F1') { e.preventDefault(); openDocs(docsOf(pathname, search), lang) } }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'F1') {
+        e.preventDefault()
+        openDocs(docsOf(pathname, search), lang)
+      }
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [pathname, search, lang])
@@ -62,8 +62,11 @@ export default function TitleBar() {
     <div className="app-drag flex h-[44px] shrink-0 select-none items-center gap-3 border-b border-line-subtle bg-chrome pl-[16px]">
       {/* As wide as the menu below it (rail and panel), so the search lines up with the page */}
       <div className="flex w-[268px] shrink-0 items-center">
-        <Link to="/" aria-label={t.nav.brandHome}
-          className="app-no-drag flex items-center gap-2 rounded-lg pr-1.5 font-display text-md font-bold tracking-tight text-fg">
+        <Link
+          to="/"
+          aria-label={t.nav.brandHome}
+          className="app-no-drag flex items-center gap-2 rounded-lg pr-1.5 font-display text-md font-bold tracking-tight text-fg"
+        >
           <img src={logo} alt="" className="size-[22px] object-contain" />
           <span>DevForge</span>
         </Link>
@@ -79,7 +82,7 @@ export default function TitleBar() {
         <Kbd>Ctrl K</Kbd>
       </button>
 
-      {/* v3.9: a project being created, from any page */}
+      {/* A project being created, from any page */}
       <CreationBadge />
 
       {/* The documentation of this page, on the site (F1) */}
@@ -90,7 +93,12 @@ export default function TitleBar() {
       )}
 
       {/* Terminal in blocks, docked at the bottom (Ctrl+`) */}
-      <button onClick={() => window.dispatchEvent(new Event(TOGGLE_TERMINAL))} title={t.terminal.dockLabel + ' (Ctrl+`)'} aria-label={t.terminal.dockLabel} className={TOOL}>
+      <button
+        onClick={() => window.dispatchEvent(new Event(TOGGLE_TERMINAL))}
+        title={t.terminal.dockLabel + ' (Ctrl+`)'}
+        aria-label={t.terminal.dockLabel}
+        className={TOOL}
+      >
         <SquareTerminal size={16} />
       </button>
 
@@ -102,8 +110,10 @@ export default function TitleBar() {
         onClick={() => setOpen(o => !o)}
         aria-pressed={open}
         title={`${t.assistant.mascotName} — ${t.assistant.moods[mood]} (Ctrl+J)`}
-        className={cn('app-no-drag flex h-[30px] shrink-0 items-center gap-1.5 rounded-full border pr-3 pl-1 text-sm font-semibold text-forgy transition-colors',
-          open ? 'border-forgy/60 bg-forgy-soft' : 'border-forgy/30 bg-forgy-soft hover:border-forgy/60')}
+        className={cn(
+          'app-no-drag flex h-[30px] shrink-0 items-center gap-1.5 rounded-full border pr-3 pl-1 text-sm font-semibold text-forgy transition-colors',
+          open ? 'border-forgy/60 bg-forgy-soft' : 'border-forgy/30 bg-forgy-soft hover:border-forgy/60'
+        )}
       >
         <Mascot mood={mood} size={22} followCursor={false} /> {t.assistant.mascotName}
         <Kbd>Ctrl J</Kbd>

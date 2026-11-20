@@ -30,7 +30,7 @@ export interface Driver {
   raw: Raw
   /** Parameterized query, rows as arrays in the columns' order (the search); `regexp`: SQLite's REGEXP on while it runs */
   rows(sql: string, params: string[], opts?: { regexp?: boolean }): Promise<{ columns: string[]; rows: unknown[][] }>
-  /** v3.6: statements with their parameters, all or none (rolled back at the first error, which carries its `statementIndex`); rows affected */
+  /** Statements with their parameters, all or none (rolled back at the first error, which carries its `statementIndex`); rows affected */
   transaction(statements: RowStatement[]): Promise<number>
   close(): Promise<void>
   /** Called once if the server drops the connection (restart, container stopped…) */
@@ -44,9 +44,17 @@ export interface Driver {
 function lostSignal(emitter: { on(event: string, fn: (...args: unknown[]) => void): unknown }, events: string[]) {
   let cb: (() => void) | null = null
   let fired = false
-  const fire = () => { if (!fired) { fired = true; cb?.() } }
+  const fire = () => {
+    if (!fired) {
+      fired = true
+      cb?.()
+    }
+  }
   for (const ev of events) emitter.on(ev, fire)
-  return (fn: () => void) => { cb = fn; if (fired) fn() }
+  return (fn: () => void) => {
+    cb = fn
+    if (fired) fn()
+  }
 }
 
 function limitRows(rows: unknown[][]): { rows: unknown[][]; truncated: boolean } {
@@ -64,8 +72,14 @@ function cell(v: unknown): unknown {
 
 async function mysqlDriver(c: DbConnection): Promise<Driver> {
   const conn = await mysql.createConnection({
-    host: c.host, port: c.port ?? 3306, user: c.user, password: c.password, database: c.database,
-    connectTimeout: TIMEOUT_MS, multipleStatements: false, dateStrings: true,
+    host: c.host,
+    port: c.port ?? 3306,
+    user: c.user,
+    password: c.password,
+    database: c.database,
+    connectTimeout: TIMEOUT_MS,
+    multipleStatements: false,
+    dateStrings: true,
     // The search's statements are prepared on the server, whose count is shared with other apps: few kept
     maxPreparedStatements: 32
   })
@@ -81,7 +95,8 @@ async function mysqlDriver(c: DbConnection): Promise<Driver> {
       const [cols] = await conn.query(
         `SELECT c.TABLE_NAME t, c.COLUMN_NAME n, c.COLUMN_TYPE ty, c.IS_NULLABLE nu, c.COLUMN_KEY k, tb.TABLE_TYPE tt
          FROM information_schema.COLUMNS c JOIN information_schema.TABLES tb ON tb.TABLE_SCHEMA = c.TABLE_SCHEMA AND tb.TABLE_NAME = c.TABLE_NAME
-         WHERE c.TABLE_SCHEMA = DATABASE() ORDER BY c.TABLE_NAME, c.ORDINAL_POSITION`)
+         WHERE c.TABLE_SCHEMA = DATABASE() ORDER BY c.TABLE_NAME, c.ORDINAL_POSITION`
+      )
       const map = new Map<string, DbTable>()
       for (const r of cols as { t: string; n: string; ty: string; nu: string; k: string; tt: string }[]) {
         if (!map.has(r.t)) map.set(r.t, { name: r.t, schema: '', type: r.tt === 'VIEW' ? 'view' : 'table', columns: [] })
@@ -95,7 +110,10 @@ async function mysqlDriver(c: DbConnection): Promise<Driver> {
       const { rows, truncated } = limitRows((result as unknown[][]).map(r => r.map(cell)))
       return { columns: (fields ?? []).map(f => f.name), rows, affected: null, truncated }
     },
-    async raw(sql, params = []) { const [rows] = await conn.query({ sql, values: params, timeout: 60_000 }); return rows as Record<string, unknown>[] },
+    async raw(sql, params = []) {
+      const [rows] = await conn.query({ sql, values: params, timeout: 60_000 })
+      return rows as Record<string, unknown>[]
+    },
     // Prepared on the server: the values never go into the SQL text (whatever sql_mode says of backslashes)
     async rows(sql, params) {
       const [result, fields] = await conn.execute({ sql, values: params, rowsAsArray: true, timeout: 60_000 })
@@ -106,12 +124,17 @@ async function mysqlDriver(c: DbConnection): Promise<Driver> {
       try {
         let n = 0
         for (const [i, s] of statements.entries()) {
-          const [r] = await conn.query({ sql: s.sql, values: s.params, timeout: 60_000 }).catch(err => { throw Object.assign(err, { statementIndex: i }) })
+          const [r] = await conn.query({ sql: s.sql, values: s.params, timeout: 60_000 }).catch(err => {
+            throw Object.assign(err, { statementIndex: i })
+          })
           n += (r as { affectedRows?: number }).affectedRows ?? 0
         }
         await conn.commit()
         return n
-      } catch (err) { await conn.rollback().catch(() => {}); throw err }
+      } catch (err) {
+        await conn.rollback().catch(() => {})
+        throw err
+      }
     },
     close: () => conn.end()
   }
@@ -119,14 +142,22 @@ async function mysqlDriver(c: DbConnection): Promise<Driver> {
 
 async function postgresDriver(c: DbConnection): Promise<Driver> {
   const client = new pg.Client({
-    host: c.host, port: c.port ?? 5432, user: c.user, password: c.password, database: c.database,
-    connectionTimeoutMillis: TIMEOUT_MS, statement_timeout: 60_000
+    host: c.host,
+    port: c.port ?? 5432,
+    user: c.user,
+    password: c.password,
+    database: c.database,
+    connectionTimeoutMillis: TIMEOUT_MS,
+    statement_timeout: 60_000
   })
   const onLost = lostSignal(client, ['error', 'end'])
   await client.connect()
   return {
     onLost,
-    async version() { const r = await client.query('SHOW server_version'); return `PostgreSQL ${r.rows[0].server_version}` },
+    async version() {
+      const r = await client.query('SHOW server_version')
+      return `PostgreSQL ${r.rows[0].server_version}`
+    },
     async schema() {
       const r = await client.query(
         `SELECT c.table_schema s, c.table_name t, c.column_name n, c.data_type ty, c.is_nullable nu, t.table_type tt,
@@ -134,7 +165,8 @@ async function postgresDriver(c: DbConnection): Promise<Driver> {
                         ON tc.constraint_name = k.constraint_name AND tc.constraint_type = 'PRIMARY KEY'
                         WHERE k.table_schema = c.table_schema AND k.table_name = c.table_name AND k.column_name = c.column_name) pk
          FROM information_schema.columns c JOIN information_schema.tables t ON t.table_schema = c.table_schema AND t.table_name = c.table_name
-         WHERE c.table_schema NOT IN ('pg_catalog', 'information_schema') ORDER BY c.table_schema, c.table_name, c.ordinal_position`)
+         WHERE c.table_schema NOT IN ('pg_catalog', 'information_schema') ORDER BY c.table_schema, c.table_name, c.ordinal_position`
+      )
       const map = new Map<string, DbTable>()
       for (const row of r.rows) {
         const key = `${row.s}.${row.t}`
@@ -150,7 +182,9 @@ async function postgresDriver(c: DbConnection): Promise<Driver> {
       const { rows, truncated } = limitRows((res.rows as unknown[][]).map(row => row.map(cell)))
       return { columns: res.fields.map((f: { name: string }) => f.name), rows, affected: null, truncated }
     },
-    async raw(sql, params = []) { return (await client.query(sql, params as unknown[])).rows },
+    async raw(sql, params = []) {
+      return (await client.query(sql, params as unknown[])).rows
+    },
     async rows(sql, params) {
       const r = await client.query({ text: sql, values: params, rowMode: 'array' })
       return { columns: r.fields.map((f: { name: string }) => f.name), rows: (r.rows as unknown[][]).map(row => row.map(cell)) }
@@ -159,10 +193,19 @@ async function postgresDriver(c: DbConnection): Promise<Driver> {
       await client.query('BEGIN')
       try {
         let n = 0
-        for (const [i, s] of statements.entries()) n += (await client.query(s.sql, s.params).catch(err => { throw Object.assign(err, { statementIndex: i }) })).rowCount ?? 0
+        for (const [i, s] of statements.entries())
+          n +=
+            (
+              await client.query(s.sql, s.params).catch(err => {
+                throw Object.assign(err, { statementIndex: i })
+              })
+            ).rowCount ?? 0
         await client.query('COMMIT')
         return n
-      } catch (err) { await client.query('ROLLBACK').catch(() => {}); throw err }
+      } catch (err) {
+        await client.query('ROLLBACK').catch(() => {})
+        throw err
+      }
     },
     close: () => client.end()
   }
@@ -173,27 +216,39 @@ let SQL: SqlJsStatic | null = null
 async function sqliteDriver(c: DbConnection): Promise<Driver> {
   if (!c.file) throw new Error('No SQLite file')
   // Opening \\server\share makes Windows send the user's credentials to that server: the path may come from an import
-  if (isNetworkPath(c.file)) throw new Error(loadSettings().language === 'fr'
-    ? 'Fichier SQLite sur un partage réseau refusé : copie-le sur ce PC.'
-    : 'SQLite file on a network share refused: copy it to this PC.')
+  if (isNetworkPath(c.file))
+    throw new Error(
+      loadSettings().language === 'fr'
+        ? 'Fichier SQLite sur un partage réseau refusé : copie-le sur ce PC.'
+        : 'SQLite file on a network share refused: copy it to this PC.'
+    )
   if (!SQL) {
     // Locate the wasm next to the sql.js package (works in dev and packaged)
     const wasmDir = dirname(createRequire(__filename).resolve('sql.js/dist/sql-wasm.wasm'))
-    SQL = await initSqlJs({ locateFile: f => join(wasmDir, f) })
+    // SQLite's own math functions, as the apps that use these files get them (not sql.js's older ones)
+    SQL = await initSqlJs({ locateFile: f => join(wasmDir, f), useOldExtensionFunctions: false })
   }
   const file = c.file
   const db: SqlJsDb = new SQL.Database(await readFile(file))
   sqliteFunctions(db)
   // export() reopens the database in sql.js, which forgets the functions added: add them again
-  const persist = async () => { const bytes = db.export(); sqliteFunctions(db); await writeFile(file, bytes) }
+  const persist = async () => {
+    const bytes = db.export()
+    sqliteFunctions(db)
+    await writeFile(file, bytes)
+  }
   return {
-    async version() { return `SQLite ${db.exec('select sqlite_version()')[0].values[0][0]}` },
+    async version() {
+      return `SQLite ${db.exec('select sqlite_version()')[0].values[0][0]}`
+    },
     async schema() {
       const objs = db.exec(`SELECT name, type FROM sqlite_master WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%' ORDER BY name`)[0]?.values ?? []
       return objs.map(([name, type]) => {
         const info = db.exec(`PRAGMA table_info("${String(name).replace(/"/g, '""')}")`)[0]?.values ?? []
         return {
-          name: String(name), schema: '', type: type === 'view' ? 'view' : 'table',
+          name: String(name),
+          schema: '',
+          type: type === 'view' ? 'view' : 'table',
           columns: info.map(col => ({ name: String(col[1]), type: String(col[2]), nullable: col[3] === 0, key: Number(col[5]) > 0 }))
         } as DbTable
       })
@@ -218,7 +273,9 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
         const rows: Record<string, unknown>[] = []
         while (stmt.step()) rows.push(stmt.getAsObject())
         return rows
-      } finally { stmt.free() }
+      } finally {
+        stmt.free()
+      }
     },
     async rows(sql, params, opts) {
       const run = () => {
@@ -229,7 +286,9 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
           const rows: unknown[][] = []
           while (stmt.step()) rows.push(stmt.get().map(cell))
           return { columns, rows }
-        } finally { stmt.free() }
+        } finally {
+          stmt.free()
+        }
       }
       return opts?.regexp ? withRegexp(db, run) : run()
     },
@@ -239,19 +298,33 @@ async function sqliteDriver(c: DbConnection): Promise<Driver> {
         let n = 0
         for (const [i, s] of statements.entries()) {
           // sql.js takes 1/0 for booleans
-          try { db.run(s.sql, s.params.map(v => (typeof v === 'boolean' ? Number(v) : v))) }
-          catch (err) { throw Object.assign(err as Error, { statementIndex: i }) }
+          try {
+            db.run(
+              s.sql,
+              s.params.map(v => (typeof v === 'boolean' ? Number(v) : v))
+            )
+          } catch (err) {
+            throw Object.assign(err as Error, { statementIndex: i })
+          }
           n += db.getRowsModified()
         }
         db.run('COMMIT')
         await persist()
         return n
-      } catch (err) { try { db.run('ROLLBACK') } catch { /* already over */ } throw err }
+      } catch (err) {
+        try {
+          db.run('ROLLBACK')
+        } catch {
+          /* already over */
+        }
+        throw err
+      }
     },
-    async close() { db.close() }
+    async close() {
+      db.close()
+    }
   }
 }
-
 
 /** `persist`: remember the address found (false for a test of settings not saved yet: Cancel must leave nothing) */
 async function open(c: DbConnection, persist = true): Promise<Driver> {
@@ -261,9 +334,11 @@ async function open(c: DbConnection, persist = true): Promise<Driver> {
   const server = c.type !== 'sqlite' && !c.sshConnectionId ? sshServerFor(c.host) : undefined
   // Several machines behind that address (a NAT): never fall back on a direct connection, unencrypted on the internet
   if (c.type !== 'sqlite' && !c.sshConnectionId && !server && sshServersAt(c.host).length > 1) {
-    throw new Error(loadSettings().language === 'fr'
-      ? `Plusieurs serveurs SSH sont enregistrés à l'adresse ${c.host}, sur des ports différents : choisis celui qui héberge la base dans « Se connecter via ».`
-      : `Several SSH servers are saved at ${c.host}, on different ports: pick the one hosting the database in "Connect through".`)
+    throw new Error(
+      loadSettings().language === 'fr'
+        ? `Plusieurs serveurs SSH sont enregistrés à l'adresse ${c.host}, sur des ports différents : choisis celui qui héberge la base dans « Se connecter via ».`
+        : `Several SSH servers are saved at ${c.host}, on different ports: pick the one hosting the database in "Connect through".`
+    )
   }
   // An empty id from the window counts as none
   const sshId = c.sshConnectionId || server?.id
@@ -294,9 +369,12 @@ async function open(c: DbConnection, persist = true): Promise<Driver> {
   }
   try {
     switch (c.type) {
-      case 'mysql':    return await mysqlDriver(c)
-      case 'postgres': return await postgresDriver(c)
-      case 'sqlite':   return await sqliteDriver(c)
+      case 'mysql':
+        return await mysqlDriver(c)
+      case 'postgres':
+        return await postgresDriver(c)
+      case 'sqlite':
+        return await sqliteDriver(c)
     }
   } catch (err) {
     const e = err as Error & { code?: string }
@@ -320,13 +398,17 @@ const AUTH_ERRORS = ['28P01', '28000', 'ER_ACCESS_DENIED_ERROR']
 const isLocal = (c: DbConnection) => !c.host || ['127.0.0.1', 'localhost', '::1'].includes(c.host)
 
 class UnreachableFromServer extends Error {
-  constructor(readonly cause: Error) { super(cause.message) }
+  constructor(readonly cause: Error) {
+    super(cause.message)
+  }
   withHint(c: DbConnection): Error {
-    return new Error(loadSettings().language === 'fr'
-      ? `Le serveur SSH n'arrive pas à joindre ${c.host}:${c.port} (${this.cause.message}), ` +
-        "et aucune base de ce type n'a été trouvée dans ses conteneurs Docker. Vérifiez l'hôte et le port."
-      : `The SSH server cannot reach ${c.host}:${c.port} (${this.cause.message}), ` +
-        'and no database of that type was found in its Docker containers. Check the host and port.')
+    return new Error(
+      loadSettings().language === 'fr'
+        ? `Le serveur SSH n'arrive pas à joindre ${c.host}:${c.port} (${this.cause.message}), ` +
+            "et aucune base de ce type n'a été trouvée dans ses conteneurs Docker. Vérifiez l'hôte et le port."
+        : `The SSH server cannot reach ${c.host}:${c.port} (${this.cause.message}), ` +
+            'and no database of that type was found in its Docker containers. Check the host and port.'
+    )
   }
 }
 
@@ -340,7 +422,12 @@ async function reachVia(target: DbConnection, original: DbConnection, persist: b
   const d = await viaSsh(target, target.sshConnectionId!)
   const moved = target.host !== original.host || target.port !== original.port || target.sshConnectionId !== original.sshConnectionId
   if (persist && moved && getDbConnection(original.id)) {
-    try { assertServerUnchanged() } catch (err) { await d.close().catch(() => {}); throw err }
+    try {
+      assertServerUnchanged()
+    } catch (err) {
+      await d.close().catch(() => {})
+      throw err
+    }
     // Saved connections only; credentials are kept: read again, a server pointed elsewhere meanwhile has just forgotten them
     saveDbConnection({ ...target, password: storedPasswordFor(original) })
   }
@@ -354,7 +441,13 @@ async function viaSsh(c: DbConnection, sshConnectionId: string): Promise<Driver>
   try {
     const direct = { ...c, host: '127.0.0.1', port: tunnel.localPort, sshConnectionId: undefined }
     const d = await (c.type === 'mysql' ? mysqlDriver(direct) : postgresDriver(direct))
-    return { ...d, close: async () => { await d.close().catch(() => {}); tunnel.close() } }
+    return {
+      ...d,
+      close: async () => {
+        await d.close().catch(() => {})
+        tunnel.close()
+      }
+    }
   } catch (err) {
     tunnel.close()
     // The driver only sees a closed socket; the real reason is on the SSH side
@@ -367,11 +460,12 @@ async function viaSsh(c: DbConnection, sshConnectionId: string): Promise<Driver>
 function unreachableHint(err: Error & { code?: string }, c: DbConnection): Error {
   const local = !c.host || ['127.0.0.1', 'localhost', '::1'].includes(c.host)
   if (local || !['ETIMEDOUT', 'ECONNREFUSED', 'EHOSTUNREACH'].includes(err.code ?? '')) return err
-  return new Error(loadSettings().language === 'fr'
-    ? `${c.host}:${c.port} ne répond pas (${err.code}). Le port est sans doute fermé par le pare-feu : ` +
-      'ajoutez le serveur dans SSH puis choisissez « Se connecter via » ce serveur.'
-    : `${c.host}:${c.port} does not answer (${err.code}). The port is probably firewalled: ` +
-      'add the server in SSH, then pick it in "Connect through".')
+  return new Error(
+    loadSettings().language === 'fr'
+      ? `${c.host}:${c.port} ne répond pas (${err.code}). Le port est sans doute fermé par le pare-feu : ` +
+          'ajoutez le serveur dans SSH puis choisissez « Se connecter via » ce serveur.'
+      : `${c.host}:${c.port} does not answer (${err.code}). The port is probably firewalled: ` + 'add the server in SSH, then pick it in "Connect through".'
+  )
 }
 
 // ─── Connection pool (one open driver per saved connection) ─────────────────
@@ -386,7 +480,13 @@ export function driverFor(id: string): Promise<Driver> {
     const opening = open(c)
     d = opening
     // Dropped by the server: forget it, the next query reconnects
-    opening.then(dr => dr.onLost?.(() => { if (open$.get(id) === opening) open$.delete(id) }), () => open$.delete(id))
+    opening.then(
+      dr =>
+        dr.onLost?.(() => {
+          if (open$.get(id) === opening) open$.delete(id)
+        }),
+      () => open$.delete(id)
+    )
     open$.set(id, d)
   }
   return d
@@ -406,7 +506,11 @@ export async function closeAllDbs(): Promise<void> {
 export async function testDb(c: DbConnection): Promise<string> {
   const full = { ...c, password: c.password || storedPasswordFor(c) }
   const d = await open(full, false)
-  try { return await d.version() } finally { await d.close().catch(() => {}) }
+  try {
+    return await d.version()
+  } finally {
+    await d.close().catch(() => {})
+  }
 }
 
 export async function dbSchema(id: string): Promise<DbTable[]> {
@@ -447,20 +551,23 @@ export async function dbDiagram(id: string): Promise<DbDiagram> {
 export async function dbDetails(id: string, t: DbTableRef): Promise<DbTableDetails> {
   const c = connOf(id)
   const d = await driverFor(id)
-  const stats = (await overviewFor(c.type, d.raw, '', c.file).catch(() => null))?.tables
-    .find(s => s.name === t.name && s.schema === t.schema) ?? null
+  const stats = (await overviewFor(c.type, d.raw, '', c.file).catch(() => null))?.tables.find(s => s.name === t.name && s.schema === t.schema) ?? null
   return detailsFor(c.type, d.raw, t, stats)
 }
 
 /**
- * v3.6 lot 3: rows changed from the Browse tab, checked against the table's
+ * rows changed from the Browse tab, checked against the table's
  * real columns and primary key, then run in one transaction.
  */
 export async function dbApplyRows(id: string, t: DbTableRef, changes: RowChange[]): Promise<{ affected: number; error?: string }> {
   const c = connOf(id)
   const details = await dbDetails(id, t)
   if (details.stats?.type === 'view') return { affected: 0, error: 'A view cannot be changed here' }
-  const problem = rowChangesProblem(changes, details.columns.map(x => x.name), details.columns.filter(x => x.key === 'PRI').map(x => x.name))
+  const problem = rowChangesProblem(
+    changes,
+    details.columns.map(x => x.name),
+    details.columns.filter(x => x.key === 'PRI').map(x => x.name)
+  )
   if (problem) return { affected: 0, error: problem }
   try {
     return { affected: await (await driverFor(id)).transaction(rowStatements(c.type, t, changes)) }

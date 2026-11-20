@@ -4,7 +4,15 @@ import { app, safeStorage } from 'electron'
 import { writeJsonFile } from '../../lib/jsonFile'
 import type Anthropic from '@anthropic-ai/sdk'
 import type {
-  AssistantActionMode, AssistantConfig, AssistantConfigUpdate, AssistantConversation, AssistantConversationSummary, AssistantEffort, AssistantModel, AssistantProvider, AssistantUsage
+  AssistantActionMode,
+  AssistantConfig,
+  AssistantConfigUpdate,
+  AssistantConversation,
+  AssistantConversationSummary,
+  AssistantEffort,
+  AssistantModel,
+  AssistantProvider,
+  AssistantUsage
 } from '@shared/types'
 import { isProvider, providerInfo, PROVIDERS } from '@shared/data/assistantProviders'
 
@@ -19,17 +27,25 @@ const conversationsDir = () => join(dir(), 'conversations')
 interface StoredConfig {
   /** Anthropic's key (where it always was) */
   keyEnc?: string
-  /** v4.2: the other providers' keys, each encrypted */
+  /** The other providers' keys, each encrypted */
   keysEnc?: Partial<Record<AssistantProvider, string>>
   provider?: AssistantProvider
-  /** v4.2: the model and the endpoint chosen for each provider */
+  /** The model and the endpoint chosen for each provider */
   models?: Partial<Record<AssistantProvider, string>>
   baseUrls?: Partial<Record<AssistantProvider, string>>
-  model?: AssistantModel | 'auto'; effort?: AssistantEffort | 'auto'; monthlyBudget?: number; desktopWidget?: boolean; actionMode?: AssistantActionMode
+  model?: AssistantModel | 'auto'
+  effort?: AssistantEffort | 'auto'
+  monthlyBudget?: number
+  desktopWidget?: boolean
+  actionMode?: AssistantActionMode
 }
 
 function readConfig(): StoredConfig {
-  try { return JSON.parse(readFileSync(configPath(), 'utf-8')) as StoredConfig } catch { return {} }
+  try {
+    return JSON.parse(readFileSync(configPath(), 'utf-8')) as StoredConfig
+  } catch {
+    return {}
+  }
 }
 
 function writeJson(path: string, data: unknown): void {
@@ -41,7 +57,10 @@ function writeJson(path: string, data: unknown): void {
 export function envKeyFor(p: AssistantProvider): string | null {
   // An unknown provider reads nothing (providerInfo would give Anthropic's variables)
   if (!isProvider(p)) return null
-  for (const name of providerInfo(p).env) { const v = process.env[name]?.trim(); if (v) return v }
+  for (const name of providerInfo(p).env) {
+    const v = process.env[name]?.trim()
+    if (v) return v
+  }
   return null
 }
 
@@ -52,7 +71,7 @@ const savedKey = (c: StoredConfig, p: AssistantProvider) => (p === 'anthropic' ?
 const activeOf = (c: StoredConfig): AssistantProvider => (isProvider(c.provider) ? c.provider : 'anthropic')
 
 /**
- * v4.2: the endpoint a provider is reached at. Only a local or custom
+ * The endpoint a provider is reached at. Only a local or custom
  * server's address can be chosen: a known provider is always reached at its
  * own, so that its key never goes anywhere else.
  */
@@ -68,7 +87,11 @@ export function endpointOf(p: AssistantProvider): string {
 function storedEndpoint(c: StoredConfig, p: AssistantProvider): string {
   const raw = providerInfo(p).editableUrl ? c.baseUrls?.[p] : ''
   if (!raw) return ''
-  try { return checkEndpoint(raw, p === 'ollama') } catch { return '' }
+  try {
+    return checkEndpoint(raw, p === 'ollama')
+  } catch {
+    return ''
+  }
 }
 
 /** This PC, whatever it is called */
@@ -88,7 +111,11 @@ export function checkEndpoint(raw: string, lan = false): string {
   const url = raw.trim().replace(/\/+$/, '')
   if (!url) return ''
   let u: URL
-  try { u = new URL(url) } catch { throw new Error('URL_INVALID') }
+  try {
+    u = new URL(url)
+  } catch {
+    throw new Error('URL_INVALID')
+  }
   if (u.username || u.password) throw new Error('URL_CREDENTIALS')
   if (u.protocol === 'https:') return url
   if (u.protocol !== 'http:') throw new Error('URL_INVALID')
@@ -128,11 +155,15 @@ export function getConfig(): AssistantConfig {
 export function getApiKey(p: AssistantProvider = 'anthropic'): string | null {
   const enc = savedKey(readConfig(), p)
   if (!enc) return null
-  try { return safeStorage.decryptString(Buffer.from(enc, 'base64')) } catch { return null }
+  try {
+    return safeStorage.decryptString(Buffer.from(enc, 'base64'))
+  } catch {
+    return null
+  }
 }
 
 /** The key a provider is called with: the saved one, else the environment's; never one for Ollama (it may be on the local network, in clear) */
-export const keyFor = (p: AssistantProvider): string | null => (!isProvider(p) || p === 'ollama' ? null : getApiKey(p) ?? envKeyFor(p))
+export const keyFor = (p: AssistantProvider): string | null => (!isProvider(p) || p === 'ollama' ? null : (getApiKey(p) ?? envKeyFor(p)))
 
 export function saveConfig(u: AssistantConfigUpdate): AssistantConfig {
   const c = readConfig()
@@ -170,7 +201,11 @@ const usagePath = () => join(dir(), 'usage.json')
 const thisMonth = () => new Date().toISOString().slice(0, 7)
 
 function readUsage(): Record<string, number> {
-  try { return JSON.parse(readFileSync(usagePath(), 'utf-8')) as Record<string, number> } catch { return {} }
+  try {
+    return JSON.parse(readFileSync(usagePath(), 'utf-8')) as Record<string, number>
+  } catch {
+    return {}
+  }
 }
 
 export function addSpending(cost: number): void {
@@ -202,13 +237,21 @@ const convPath = (id: string) => {
 
 export function loadConversation(id: string): StoredConversation | null {
   let c: StoredConversation
-  try { c = JSON.parse(readFileSync(convPath(id), 'utf-8')) as StoredConversation } catch { return null }
+  try {
+    c = JSON.parse(readFileSync(convPath(id), 'utf-8')) as StoredConversation
+  } catch {
+    return null
+  }
   // Conversations saved before skills and cost tracking; a provider not known (a file changed by hand) is left out: Anthropic, the default
   return {
     ...c,
     provider: isProvider(c.provider) ? c.provider : undefined,
-    skill: c.skill ?? 'chat', model: c.model ?? 'claude-opus-5-5', effort: c.effort ?? 'medium',
-    cost: c.cost ?? 0, tokens: c.tokens ?? { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, lastInput: c.lastInput ?? 0
+    skill: c.skill ?? 'chat',
+    model: c.model ?? 'claude-opus-5-5',
+    effort: c.effort ?? 'medium',
+    cost: c.cost ?? 0,
+    tokens: c.tokens ?? { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    lastInput: c.lastInput ?? 0
   }
 }
 

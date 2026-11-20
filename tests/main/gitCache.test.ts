@@ -12,9 +12,11 @@ describe('repository details cache', () => {
     const repo = tempDir('repo')
     git(repo, 'init', '-q')
     // DevForge's own commit uses the repository identity: CI machines have no global one
-    git(repo, 'config', 'user.name', 't'); git(repo, 'config', 'user.email', 't@t')
+    git(repo, 'config', 'user.name', 't')
+    git(repo, 'config', 'user.email', 't@t')
     writeFileSync(join(repo, 'a.txt'), 'a')
-    git(repo, 'add', '.'); git(repo, 'commit', '-qm', 'first')
+    git(repo, 'add', '.')
+    git(repo, 'commit', '-qm', 'first')
 
     expect((await getRepoDetails(repo)).changes).toBe(0)
     writeFileSync(join(repo, 'b.txt'), 'b')
@@ -31,7 +33,11 @@ describe('repository details cache', () => {
   })
 
   it('reads many repositories without failing (6 at a time)', async () => {
-    const repos = Array.from({ length: 14 }, () => { const r = tempDir('many'); git(r, 'init', '-q'); return r })
+    const repos = Array.from({ length: 14 }, () => {
+      const r = tempDir('many')
+      git(r, 'init', '-q')
+      return r
+    })
     const all = await Promise.all(repos.map(r => getRepoDetails(r, true)))
     expect(all.every(d => d.isRepo)).toBe(true)
   })

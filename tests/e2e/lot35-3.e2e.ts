@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.5 lot 3: an IDE added by hand, chosen for one project */
+/** An IDE added by hand, chosen for one project */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -17,8 +17,14 @@ test('an IDE added by hand joins the choices, and one project keeps it as its ow
       const shop = join(dir, 'code', 'shop')
       mkdirSync(shop, { recursive: true })
       writeFileSync(join(shop, 'package.json'), '{}')
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'shop', path: shop, framework: 'nodejs', packageManager: 'npm', createdAt: '', lastOpenedAt: null, favorite: false }]))
-      writeFileSync(join(dir, 'settings.json'), JSON.stringify({ language: 'fr', onboarded: true, launcherEnabled: false, defaultProjectsDir: join(dir, 'code'), defaultIDE: 'none' }))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([{ id: 'p1', name: 'shop', path: shop, framework: 'nodejs', packageManager: 'npm', createdAt: '', lastOpenedAt: null, favorite: false }])
+      )
+      writeFileSync(
+        join(dir, 'settings.json'),
+        JSON.stringify({ language: 'fr', onboarded: true, launcherEnabled: false, defaultProjectsDir: join(dir, 'code'), defaultIDE: 'none' })
+      )
     }
   })
   const { page, userData } = run

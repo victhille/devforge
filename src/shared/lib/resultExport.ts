@@ -12,7 +12,7 @@ export function toCsv(r: Pick<DbQueryResult, 'columns' | 'rows'>): string {
 }
 
 /**
- * v3.5.1: one object per row, keyed by column. A repeated column name (a join
+ * One object per row, keyed by column. A repeated column name (a join
  * without aliases) gets a suffix, `id_2`, so no value is lost.
  */
 export function toJson(r: Pick<DbQueryResult, 'columns' | 'rows'>): string {
@@ -26,5 +26,4 @@ export function toJson(r: Pick<DbQueryResult, 'columns' | 'rows'>): string {
   return JSON.stringify(objects, (_k, v) => (typeof v === 'bigint' ? v.toString() : v), 2)
 }
 
-export const formatResult = (r: Pick<DbQueryResult, 'columns' | 'rows'>, format: ResultFormat) =>
-  format === 'json' ? toJson(r) : toCsv(r)
+export const formatResult = (r: Pick<DbQueryResult, 'columns' | 'rows'>, format: ResultFormat) => (format === 'json' ? toJson(r) : toCsv(r))

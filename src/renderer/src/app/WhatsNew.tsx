@@ -40,24 +40,41 @@ export default function WhatsNew() {
     try {
       previous = localStorage.getItem(KEY)
       localStorage.setItem(KEY, __APP_VERSION__)
-    } catch { /* storage unavailable: no notice */ }
+    } catch {
+      /* storage unavailable: no notice */
+    }
     if (!previous || previous === __APP_VERSION__) return
     const notes = changelog(lang).find(v => v.version === __APP_VERSION__)
-    window.devforge.getSettings().then(s => {
-      if (notes?.items.length && s.showWhatsNew !== false) { setVersion(notes); return }
-      toast.show({
-        tone: 'info',
-        title: t.settings.updatedTo.replace('{v}', __APP_VERSION__),
-        description: t.settings.updatedFrom.replace('{v}', previous!),
-        action: { label: t.settings.seeWhatsNew, onClick: () => navigate(`/settings?notes=${__APP_VERSION__}`) }
+    window.devforge
+      .getSettings()
+      .then(s => {
+        if (notes?.items.length && s.showWhatsNew !== false) {
+          setVersion(notes)
+          return
+        }
+        toast.show({
+          tone: 'info',
+          title: t.settings.updatedTo.replace('{v}', __APP_VERSION__),
+          description: t.settings.updatedFrom.replace('{v}', previous!),
+          action: { label: t.settings.seeWhatsNew, onClick: () => navigate(`/settings?notes=${__APP_VERSION__}`) }
+        })
       })
-    }).catch(() => {})
-  // Once per launch
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+      .catch(() => {})
+    // Once per launch
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per launch
   }, [])
 
   if (!version) return null
-  return <WhatsNewDialog version={version} onClose={() => setVersion(null)} onAllNotes={() => { setVersion(null); navigate(`/settings?notes=${version.version}`) }} />
+  return (
+    <WhatsNewDialog
+      version={version}
+      onClose={() => setVersion(null)}
+      onAllNotes={() => {
+        setVersion(null)
+        navigate(`/settings?notes=${version.version}`)
+      }}
+    />
+  )
 }
 
 export function WhatsNewDialog({ version, onClose, onAllNotes }: { version: ChangelogVersion; onClose: () => void; onAllNotes: () => void }) {
@@ -86,16 +103,32 @@ export function WhatsNewDialog({ version, onClose, onAllNotes }: { version: Chan
   const groups = (['new', 'better', 'fix', 'other'] as const).map(type => ({ type, items: rest.filter(i => i.type === type) })).filter(g => g.items.length)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-[2px]" onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div role="dialog" aria-modal="true" aria-labelledby="whats-new-title"
-        className="df-pop flex max-h-[min(660px,calc(100vh-48px))] w-[min(760px,100%)] flex-col overflow-hidden rounded-[20px] border border-line bg-elevated shadow-2xl">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-[2px]"
+      onMouseDown={e => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="whats-new-title"
+        className="df-pop flex max-h-[min(660px,calc(100vh-48px))] w-[min(760px,100%)] flex-col overflow-hidden rounded-[20px] border border-line bg-elevated shadow-2xl"
+      >
         <div className="flex items-center gap-3.5 px-5.5 pt-5 pb-4">
           <Mascot mood="happy" size={46} followCursor={false} />
           <div className="min-w-0 flex-1">
-            <div className="font-mono text-xs font-medium tracking-[.08em] text-forgy">{w.eyebrow.replace('{v}', version.version)}{date && ` · ${date}`}</div>
-            <h2 id="whats-new-title" className="mt-0.5 text-2xl font-semibold tracking-tight text-fg">{w.title.replace('{v}', version.version)}</h2>
+            <div className="font-mono text-xs font-medium tracking-[.08em] text-forgy">
+              {w.eyebrow.replace('{v}', version.version)}
+              {date && ` · ${date}`}
+            </div>
+            <h2 id="whats-new-title" className="mt-0.5 text-2xl font-semibold tracking-tight text-fg">
+              {w.title.replace('{v}', version.version)}
+            </h2>
           </div>
-          <IconButton title={w.close} onClick={onClose}><X size={16} /></IconButton>
+          <IconButton title={w.close} onClick={onClose}>
+            <X size={16} />
+          </IconButton>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5.5">
@@ -104,7 +137,9 @@ export function WhatsNewDialog({ version, onClose, onAllNotes }: { version: Chan
               <Picture item={highlight} />
               <div>
                 <h3 className="text-lg font-semibold text-fg">{highlight.scope ?? n.typeNew}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-fg-secondary"><Inline text={highlight.text} /></p>
+                <p className="mt-1.5 text-sm leading-relaxed text-fg-secondary">
+                  <Inline text={highlight.text} />
+                </p>
                 {step === 0 && version.summary && <p className="mt-2 text-base text-fg-muted">{version.summary}</p>}
               </div>
             </div>
@@ -116,11 +151,17 @@ export function WhatsNewDialog({ version, onClose, onAllNotes }: { version: Chan
                 const meta = CHANGE_META[g.type]
                 return (
                   <div key={g.type} className="flex flex-col gap-2">
-                    <div className={cn('flex items-center gap-2 font-mono text-xs font-medium tracking-[.06em] uppercase', meta.tone)}><meta.icon size={14} aria-hidden />{meta.label(n)}</div>
+                    <div className={cn('flex items-center gap-2 font-mono text-xs font-medium tracking-[.06em] uppercase', meta.tone)}>
+                      <meta.icon size={14} aria-hidden />
+                      {meta.label(n)}
+                    </div>
                     {g.items.map((it, i) => (
                       <div key={i} className="flex gap-2.5 rounded-control bg-surface px-3 py-2.5 text-base leading-normal text-fg">
                         <span className={cn('mt-[7px] size-1.5 shrink-0 rounded-full', meta.dot)} />
-                        <span>{it.scope && <b className="font-semibold">{it.scope} · </b>}<Inline text={it.text} /></span>
+                        <span>
+                          {it.scope && <b className="font-semibold">{it.scope} · </b>}
+                          <Inline text={it.text} />
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -134,14 +175,29 @@ export function WhatsNewDialog({ version, onClose, onAllNotes }: { version: Chan
           {pages > 1 && (
             <div role="tablist" aria-label={w.title.replace('{v}', version.version)} className="flex gap-1.5">
               {Array.from({ length: pages }, (_, i) => (
-                <button key={i} role="tab" aria-selected={i === step} aria-label={`${i + 1} / ${pages}`} onClick={() => setStep(i)}
-                  className={cn('h-2 rounded-full transition-[width,background-color]', i === step ? 'w-[22px] bg-accent' : 'w-2 bg-active hover:bg-fg-disabled')} />
+                <button
+                  key={i}
+                  role="tab"
+                  aria-selected={i === step}
+                  aria-label={`${i + 1} / ${pages}`}
+                  onClick={() => setStep(i)}
+                  className={cn(
+                    'h-2 rounded-full transition-[width,background-color]',
+                    i === step ? 'w-[22px] bg-accent' : 'w-2 bg-active hover:bg-fg-disabled'
+                  )}
+                />
               ))}
             </div>
           )}
-          <button onClick={onAllNotes} className="ml-2 text-base text-accent hover:underline">{w.allNotes}</button>
+          <button onClick={onAllNotes} className="ml-2 text-base text-accent hover:underline">
+            {w.allNotes}
+          </button>
           <span className="flex-1" />
-          {step > 0 && <Button variant="secondary" onClick={() => setStep(step - 1)}>{w.previous}</Button>}
+          {step > 0 && (
+            <Button variant="secondary" onClick={() => setStep(step - 1)}>
+              {w.previous}
+            </Button>
+          )}
           <Button onClick={() => (last ? onClose() : setStep(step + 1))}>{last ? w.done : w.next}</Button>
         </div>
       </div>
@@ -158,8 +214,12 @@ function Picture({ item }: { item: ChangeItem }) {
       <div className="absolute -top-10 -left-10 size-48 rounded-full bg-white/[.04]" />
       <div className="absolute -right-8 -bottom-16 size-64 rounded-full bg-white/[.04]" />
       {Icon ? (
-        <div className="df-pop flex size-24 items-center justify-center rounded-[26px] border border-line bg-surface shadow-xl"><Icon size={44} className="text-fg" strokeWidth={1.6} /></div>
-      ) : <Mascot mood="happy" size={120} followCursor={false} />}
+        <div className="df-pop flex size-24 items-center justify-center rounded-[26px] border border-line bg-surface shadow-xl">
+          <Icon size={44} className="text-fg" strokeWidth={1.6} />
+        </div>
+      ) : (
+        <Mascot mood="happy" size={120} followCursor={false} />
+      )}
     </div>
   )
 }

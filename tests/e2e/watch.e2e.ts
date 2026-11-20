@@ -20,16 +20,27 @@ test('monitoring shows 24 h of a site and the watched servers', async () => {
         { start: new Date(now - 2 * 86_400_000).toISOString(), end: new Date(now - 2 * 86_400_000 + 12 * 60_000).toISOString() },
         { start: new Date(now - 40 * 86_400_000).toISOString(), end: new Date(now - 40 * 86_400_000 + 60_000).toISOString() }
       ]
-      writeFileSync(join(dir, 'monitors.json'), JSON.stringify({
-        monitors: [{ id: 'm1', name: 'Shop', url: 'http://127.0.0.1:9/', intervalSec: 60, enabled: false }],
-        states: [{ id: 'm1', status: 'up', checks: [], since: null, incidents }]
-      }))
+      writeFileSync(
+        join(dir, 'monitors.json'),
+        JSON.stringify({
+          monitors: [{ id: 'm1', name: 'Shop', url: 'http://127.0.0.1:9/', intervalSec: 60, enabled: false }],
+          states: [{ id: 'm1', status: 'up', checks: [], since: null, incidents }]
+        })
+      )
       mkdirSync(join(dir, 'history'))
       // 4 checks in the last hour: 3 up, 1 down
-      const rows = [[now - 3600_000, 1, 120], [now - 2400_000, 1, 80], [now - 1200_000, 0, null], [now - 60_000, 1, 100]]
+      const rows = [
+        [now - 3600_000, 1, 120],
+        [now - 2400_000, 1, 80],
+        [now - 1200_000, 0, null],
+        [now - 60_000, 1, 100]
+      ]
       writeFileSync(join(dir, 'history', 'site_m1.json'), JSON.stringify({ fields: ['up', 'latency'], rows }))
       // A server nobody can reach, not watched
-      writeFileSync(join(dir, 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'Prod', host: '127.0.0.1', port: 1, username: 'root', authMethod: 'key', color: '', createdAt: '' }]))
+      writeFileSync(
+        join(dir, 'ssh-connections.json'),
+        JSON.stringify([{ id: 'v1', name: 'Prod', host: '127.0.0.1', port: 1, username: 'root', authMethod: 'key', color: '', createdAt: '' }])
+      )
       writeFileSync(join(dir, 'watch.json'), JSON.stringify({ watched: [], diskAlert: 85 }))
     }
   })

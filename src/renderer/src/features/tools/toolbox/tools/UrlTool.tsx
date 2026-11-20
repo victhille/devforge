@@ -13,20 +13,47 @@ export default function UrlTool({ t }: { t: ToolboxT }) {
   const h = useI18n().t.toolHelp
 
   const parsed = useMemo(() => {
-    try { return new URL(input.trim()) } catch { return null }
+    try {
+      return new URL(input.trim())
+    } catch {
+      return null
+    }
   }, [input])
 
   function run(fn: (s: string) => string) {
-    try { setOutput(fn(input)) } catch { setOutput(t.invalid) }
+    try {
+      setOutput(fn(input))
+    } catch {
+      setOutput(t.invalid)
+    }
   }
 
   return (
     <>
-      <ToolHelp id="url" what={h.url.what} how={h.url.how}
-        examples={[{ label: h.url.sample, onPick: () => { setInput(URL_EXAMPLE); setOutput('') } }]} />
+      <ToolHelp
+        id="url"
+        what={h.url.what}
+        how={h.url.how}
+        examples={[
+          {
+            label: h.url.sample,
+            onPick: () => {
+              setInput(URL_EXAMPLE)
+              setOutput('')
+            }
+          }
+        ]}
+      />
       <IoGrid>
         <IoPanel label={t.input}>
-          <textarea className={IO_TEXTAREA} value={input} onChange={e => setInput(e.target.value)} placeholder={URL_EXAMPLE} aria-label={t.input} spellCheck={false} />
+          <textarea
+            className={IO_TEXTAREA}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder={URL_EXAMPLE}
+            aria-label={t.input}
+            spellCheck={false}
+          />
         </IoPanel>
         <IoPanel label={t.output} actions={output && <CopyButton text={output} />}>
           <textarea className={IO_TEXTAREA} value={output} readOnly aria-label={t.output} spellCheck={false} />
@@ -34,19 +61,31 @@ export default function UrlTool({ t }: { t: ToolboxT }) {
       </IoGrid>
       <ToolActions>
         <Button onClick={() => run(encodeURIComponent)}>{t.encode}</Button>
-        <Button variant="secondary" onClick={() => run(decodeURIComponent)}>{t.decode}</Button>
-        <Button variant="ghost" onClick={() => run(encodeURI)}>encodeURI</Button>
+        <Button variant="secondary" onClick={() => run(decodeURIComponent)}>
+          {t.decode}
+        </Button>
+        <Button variant="ghost" onClick={() => run(encodeURI)}>
+          encodeURI
+        </Button>
       </ToolActions>
 
       {parsed && (
         <Card className="divide-y divide-line-subtle">
-          {([
-            ['protocol', parsed.protocol], ['host', parsed.host], ['pathname', decodeURIComponent(parsed.pathname)], ['hash', parsed.hash]
-          ] as const).filter(([, v]) => v).map(([k, v]) => (
-            <div key={k} className="flex gap-4 px-4 py-2 font-mono text-sm">
-              <span className="w-28 shrink-0 text-fg-muted">{k}</span><span className="text-fg">{v}</span>
-            </div>
-          ))}
+          {(
+            [
+              ['protocol', parsed.protocol],
+              ['host', parsed.host],
+              ['pathname', decodeURIComponent(parsed.pathname)],
+              ['hash', parsed.hash]
+            ] as const
+          )
+            .filter(([, v]) => v)
+            .map(([k, v]) => (
+              <div key={k} className="flex gap-4 px-4 py-2 font-mono text-sm">
+                <span className="w-28 shrink-0 text-fg-muted">{k}</span>
+                <span className="text-fg">{v}</span>
+              </div>
+            ))}
           {[...parsed.searchParams.entries()].map(([k, v], i) => (
             <div key={`${k}-${i}`} className="flex items-center gap-4 px-4 py-2 font-mono text-sm">
               <span className="w-28 shrink-0 text-accent">?{k}</span>

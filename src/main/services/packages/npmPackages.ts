@@ -6,9 +6,10 @@ import { isPackageName } from '@shared/lib/packages'
 import { runCapture } from '../../lib/exec'
 import { assertSafeDir } from '../../lib/safe'
 import { commandRunner } from '../system/commandRunner'
+import type { ParsedJson } from '@shared/lib/json'
 
 /**
- * A project's npm packages (v3.3 lot 2): what each package.json declares,
+ * A project's npm packages: what each package.json declares,
  * what is installed, what is published, the known vulnerabilities, and the
  * update, saved first and put back if it fails. Nothing updates by itself.
  */
@@ -23,20 +24,28 @@ export function findManifestDirs(root: string, file = 'package.json', depth = 3)
     if (existsSync(join(dir, file))) found.push(dir)
     if (level >= depth) return
     let entries: string[]
-    try { entries = readdirSync(dir, { withFileTypes: true }).filter(e => e.isDirectory() && !SKIP.has(e.name) && !e.name.startsWith('.')).map(e => e.name) } catch { return }
+    try {
+      entries = readdirSync(dir, { withFileTypes: true })
+        .filter(e => e.isDirectory() && !SKIP.has(e.name) && !e.name.startsWith('.'))
+        .map(e => e.name)
+    } catch {
+      return
+    }
     for (const e of entries.sort()) walk(join(dir, e), level + 1)
   }
   walk(root, 0)
   return found
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function readJson(path: string): Record<string, any> | null {
-  try { return JSON.parse(readFileSync(path, 'utf-8')) } catch { return null }
+export function readJson(path: string): Record<string, ParsedJson> | null {
+  try {
+    return JSON.parse(readFileSync(path, 'utf-8'))
+  } catch {
+    return null
+  }
 }
 
 /** The lockfile next to the manifest, or the nearest one up to the project's root (workspaces) */
-export function managerOf(dir: string, root: string): PackageManagerKind {
+export function detectManager(dir: string, root: string): PackageManagerKind {
   for (let d = dir; ; d = dirname(d)) {
     if (existsSync(join(d, 'pnpm-lock.yaml'))) return 'pnpm'
     if (existsSync(join(d, 'yarn.lock'))) return 'yarn'
@@ -60,18 +69,29 @@ export function readManifest(root: string, dir: string): PackageManifest | null 
   const pkg = readJson(join(dir, 'package.json'))
   if (!pkg) return null
   const packages: PackageInfo[] = []
-  for (const [field, dev] of [['dependencies', false], ['devDependencies', true]] as const) {
+  for (const [field, dev] of [
+    ['dependencies', false],
+    ['devDependencies', true]
+  ] as const) {
     for (const [name, wanted] of Object.entries((pkg[field] ?? {}) as Record<string, unknown>)) {
       if (typeof wanted !== 'string' || !isPackageName(name)) continue
       packages.push({ name, wanted, installed: installedVersion(dir, root, name), dev })
     }
   }
   packages.sort((a, b) => Number(a.dev) - Number(b.dev) || a.name.localeCompare(b.name))
-  return { dir: relative(root, dir).split(sep).join('/'), file: 'package.json', name: typeof pkg.name === 'string' ? pkg.name : null, manager: managerOf(dir, root), packages }
+  return {
+    dir: relative(root, dir).split(sep).join('/'),
+    file: 'package.json',
+    name: typeof pkg.name === 'string' ? pkg.name : null,
+    manager: detectManager(dir, root),
+    packages
+  }
 }
 
 export function listManifests(root: string): PackageManifest[] {
-  return findManifestDirs(root).map(d => readManifest(root, d)).filter((m): m is PackageManifest => !!m)
+  return findManifestDirs(root)
+    .map(d => readManifest(root, d))
+    .filter((m): m is PackageManifest => !!m)
 }
 
 /** A manifest folder given by the window: inside the project, holding that manifest, and safe for a shell */
@@ -86,8 +106,7 @@ export function manifestDir(root: string, dir: string, file: string = 'package.j
 // ─── Latest versions ──────────────────────────────────────────────────────────
 
 /** End-to-end tests: DEVFORGE_TEST_PACKAGES names a JSON file of { latest, audit, update } */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function testData(): Record<string, any> | null {
+export function testData(): Record<string, ParsedJson> | null {
   const file = process.env.DEVFORGE_TEST_PACKAGES
   if (!file || app.isPackaged) return null
   return readJson(file)
@@ -102,7 +121,9 @@ function registryOf(dir: string): string {
     try {
       const m = readFileSync(join(d, '.npmrc'), 'utf-8').match(/^\s*registry\s*=\s*(https?:\/\/\S+)/m)
       if (m) return m[1].replace(/\/?$/, '/')
-    } catch { /* none here */ }
+    } catch {
+      /* none here */
+    }
     if (dirname(d) === d) return 'https://registry.npmjs.org/'
   }
 }
@@ -110,12 +131,15 @@ function registryOf(dir: string): string {
 async function fetchLatest(registry: string, name: string): Promise<string | null> {
   try {
     const res = await fetch(`${registry}${name.replace('/', '%2f')}`, {
-      headers: { accept: 'application/vnd.npm.install-v1+json' }, signal: AbortSignal.timeout(10_000)
+      headers: { accept: 'application/vnd.npm.install-v1+json' },
+      signal: AbortSignal.timeout(10_000)
     })
     if (!res.ok) return null
     const v = ((await res.json()) as { 'dist-tags'?: { latest?: string } })['dist-tags']?.latest
     return typeof v === 'string' ? v : null
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
 
 export async function latestVersions(dir: string, names: string[]): Promise<Record<string, string | null>> {
@@ -126,16 +150,21 @@ export async function latestVersions(dir: string, names: string[]): Promise<Reco
   const out: Record<string, string | null> = {}
   const todo = wanted.filter(n => {
     const c = latestCache.get(registry + n)
-    if (c && Date.now() - c.at < LATEST_TTL) { out[n] = c.version; return false }
+    if (c && Date.now() - c.at < LATEST_TTL) {
+      out[n] = c.version
+      return false
+    }
     return true
   })
   // 8 at a time: quick, without hammering the registry
   for (let i = 0; i < todo.length; i += 8) {
-    await Promise.all(todo.slice(i, i + 8).map(async n => {
-      const v = await fetchLatest(registry, n)
-      latestCache.set(registry + n, { at: Date.now(), version: v })
-      out[n] = v
-    }))
+    await Promise.all(
+      todo.slice(i, i + 8).map(async n => {
+        const v = await fetchLatest(registry, n)
+        latestCache.set(registry + n, { at: Date.now(), version: v })
+        out[n] = v
+      })
+    )
   }
   return out
 }
@@ -143,15 +172,18 @@ export async function latestVersions(dir: string, names: string[]): Promise<Reco
 // ─── Audit ────────────────────────────────────────────────────────────────────
 
 const SEVERITIES: AuditSeverity[] = ['info', 'low', 'moderate', 'high', 'critical']
-const worse = (a: AuditSeverity | undefined, b: AuditSeverity) => !a || SEVERITIES.indexOf(b) > SEVERITIES.indexOf(a) ? b : a
+const worse = (a: AuditSeverity | undefined, b: AuditSeverity) => (!a || SEVERITIES.indexOf(b) > SEVERITIES.indexOf(a) ? b : a)
 const emptySummary = (): AuditSummary => ({ total: 0, bySeverity: { unknown: 0, info: 0, low: 0, moderate: 0, high: 0, critical: 0 }, packages: {} })
 const isSeverity = (s: unknown): s is AuditSeverity => SEVERITIES.includes(s as AuditSeverity)
 
 /** npm 7+ (`vulnerabilities`) and pnpm (`advisories`) JSON reports */
 export function parseAudit(json: string): AuditSummary | null {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let r: any
-  try { r = JSON.parse(json) } catch { return null }
+  let r: ParsedJson
+  try {
+    r = JSON.parse(json)
+  } catch {
+    return null
+  }
   const meta = r?.metadata?.vulnerabilities
   if (!meta || typeof meta !== 'object') return null
   const s = emptySummary()
@@ -171,9 +203,12 @@ export function parseYarnAudit(ndjson: string): AuditSummary | null {
   const s = emptySummary()
   let seen = false
   for (const line of ndjson.split('\n')) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let o: any
-    try { o = JSON.parse(line) } catch { continue }
+    let o: ParsedJson
+    try {
+      o = JSON.parse(line)
+    } catch {
+      continue
+    }
     if (o.type === 'auditAdvisory') {
       const a = o.data?.advisory
       if (a?.module_name && isSeverity(a.severity)) s.packages[a.module_name] = worse(s.packages[a.module_name], a.severity)
@@ -218,25 +253,44 @@ export function updateCommands(manager: PackageManagerKind, updates: PackageUpda
   const ok = updates.filter(u => isPackageName(u.name))
   const names = (list: PackageUpdate[]) => list.map(u => u.name).join(' ')
   const compatible = ok.filter(u => u.target === 'compatible')
-  const latest = (dev: boolean) => ok.filter(u => u.target === 'latest' && u.dev === dev).map(u => `${u.name}@latest`).join(' ')
+  const latest = (dev: boolean) =>
+    ok
+      .filter(u => u.target === 'latest' && u.dev === dev)
+      .map(u => `${u.name}@latest`)
+      .join(' ')
   const cmds: string[] = []
   if (compatible.length) {
-    cmds.push(manager === 'pnpm' ? `pnpm update ${names(compatible)}`
-      : manager === 'yarn' ? (berry ? `yarn up -R ${names(compatible)}` : `yarn upgrade ${names(compatible)}`)
-      : `npm update ${names(compatible)}`)
+    cmds.push(
+      manager === 'pnpm'
+        ? `pnpm update ${names(compatible)}`
+        : manager === 'yarn'
+          ? berry
+            ? `yarn up -R ${names(compatible)}`
+            : `yarn upgrade ${names(compatible)}`
+          : `npm update ${names(compatible)}`
+    )
   }
   for (const dev of [false, true]) {
     const list = latest(dev)
     if (!list) continue
-    cmds.push(manager === 'pnpm' ? `pnpm add ${list}${dev ? ' -D' : ''}`
-      : manager === 'yarn' ? (berry ? `yarn up ${list}` : `yarn add ${list}${dev ? ' --dev' : ''}`)
-      : `npm install ${list}${dev ? ' --save-dev' : ''}`)
+    cmds.push(
+      manager === 'pnpm'
+        ? `pnpm add ${list}${dev ? ' -D' : ''}`
+        : manager === 'yarn'
+          ? berry
+            ? `yarn up ${list}`
+            : `yarn add ${list}${dev ? ' --dev' : ''}`
+          : `npm install ${list}${dev ? ' --save-dev' : ''}`
+    )
   }
   return cmds
 }
 
 /** What an update saved before running: where, and which files */
-export interface PackagesBackup { store: string; files: string[] }
+export interface PackagesBackup {
+  store: string
+  files: string[]
+}
 
 /** Copies the manifest and the lockfiles beside it */
 export function backup(dir: string, names = ['package.json', ...LOCKFILES]): PackagesBackup {
@@ -259,14 +313,22 @@ export function runLogged(command: string, cwd: string, onLog: (line: string) =>
   return new Promise(res => {
     const [exe, ...args] = command.split(' ')
     commandRunner.run({
-      executable: exe, args, cwd,
+      executable: exe,
+      args,
+      cwd,
       onLog: l => onLog(l.text),
       onResult: r => res(r.status === 'success')
     })
   })
 }
 
-export async function update(root: string, dir: string, manager: PackageManagerKind, updates: PackageUpdate[], onLog: (line: string) => void): Promise<{ ok: boolean; restored: boolean; backup?: PackagesBackup }> {
+export async function update(
+  root: string,
+  dir: string,
+  manager: PackageManagerKind,
+  updates: PackageUpdate[],
+  onLog: (line: string) => void
+): Promise<{ ok: boolean; restored: boolean; backup?: PackagesBackup }> {
   const fake = testData()?.update as string | undefined
   const cmds = fake ? [fake] : updateCommands(manager, updates, manager === 'yarn' && isYarnBerry(dir, root))
   if (!cmds.length) return { ok: true, restored: false }

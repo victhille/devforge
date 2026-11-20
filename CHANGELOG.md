@@ -4,7 +4,37 @@ Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachange
 
 ## [Non publié]
 
-## [0.2.1](https://github.com/victhille/devforge/compare/v0.2.0...v0.2.1) — 2026-11-09
+## [0.3.0](https://github.com/victhille/devforge/compare/v0.2.1...v0.3.0) — 2026-11-20
+
+> Les mises à jour se voient : un bloc de téléchargement, un écran au redémarrage, et une app plus accessible et plus discrète.
+
+### Nouveautés
+
+- **Mises à jour** : un bloc en bas à droite suit le téléchargement (barre, Mo reçus, temps restant) ; il se réduit en pastille dans la barre de titre, et propose **Redémarrer et mettre à jour** ou **Plus tard** quand la version est prête
+- **Mises à jour** : au redémarrage, un voile annonce l'installation, l'installeur s'intitule « Mise à jour de DevForge », et une petite fenêtre « Mise à jour installée » s'affiche le temps que DevForge se rouvre
+- **Vie privée** : les mises à jour automatiques peuvent se couper, et **Paramètres** explique ce qui sort du PC
+- **Licences** : la licence de DevForge et celles de ses composants sont livrées dans l'installeur et se lisent depuis **Paramètres › À propos**
+
+### Améliorations
+
+- **Accessibilité** : le contraste élevé de Windows est suivi, les champs de saisie sont plus lisibles, la langue choisie est annoncée aux lecteurs d'écran, et les petits boutons font au moins 24 px
+- **Sobriété** : les écrans qui interrogent le réseau (Docker, Vercel, VPS, GitHub…) s'arrêtent quand la fenêtre est réduite
+- **Installeur** : il est plus léger, et la désinstallation fait le ménage
+
+### Sécurité
+
+- **Forgy** : en mode auto-sûr, seuls les serveurs de développement démarrent seuls ; les autres scripts demandent un clic
+- **Forgy** : il ne lit plus certains fichiers sensibles
+- **Journal** : il masque plus de secrets et les dossiers d'utilisateur
+- **Webhooks** : relancer une requête capturée l'envoie toujours à l'adresse choisie, même si l'appel reçu donnait une adresse complète
+- **Base de données** : une base ouverte ne peut plus lancer d'expression régulière en dehors de la recherche
+- **Publication** : l'installeur est construit sans droit d'écriture sur le dépôt, et sa provenance est attestée par GitHub
+
+### Dépendances et build
+
+- **Electron** 44.11.5 et mises à jour mineures des autres composants
+
+## [0.2.1](https://github.com/victhille/devforge/compare/v0.2.0...v0.2.1) — 2026-11-10
 
 > Correctifs de sécurité pour le lancement des scripts, et une interface qui suit partout la taille du texte.
 

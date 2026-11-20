@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.0 lot 2: the first launch on an empty profile, and the pages that need a service nobody set up */
+/** The first launch on an empty profile, and the pages that need a service nobody set up */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -14,7 +14,8 @@ test.afterEach(async () => {
 test('first launch: the language, the accounts (Git identity), then nothing more to set up', async () => {
   run = await launch({
     env: { GIT_CONFIG_GLOBAL: '{userData}/gitconfig' },
-    seed: dir => writeFileSync(join(dir, 'settings.json'), JSON.stringify({ language: 'fr', defaultProjectsDir: dir, onboarded: false, launcherEnabled: false }))
+    seed: dir =>
+      writeFileSync(join(dir, 'settings.json'), JSON.stringify({ language: 'fr', defaultProjectsDir: dir, onboarded: false, launcherEnabled: false }))
   })
   const { page, userData } = run
   await expect(page.getByRole('dialog', { name: 'Bienvenue dans DevForge' })).toBeVisible()

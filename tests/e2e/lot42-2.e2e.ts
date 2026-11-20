@@ -4,7 +4,7 @@ import { join } from 'path'
 import { settledAxeIssues as settledAxe } from './axe'
 import { goTo, launch, type Launched } from './launch'
 
-/** v4.2 lot 2: the selection lined up and spread out; parts copied, pasted (in another model too), duplicated */
+/** The selection lined up and spread out; parts copied, pasted (in another model too), duplicated */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -21,23 +21,44 @@ test('MCD: aligned, spread out, copied with its leg, pasted and duplicated', asy
       const project = join(dir, 'shop')
       mkdirSync(join(project, 'conception'), { recursive: true })
       file = join(project, 'conception', 'shop.mcd.json')
-      writeFileSync(file, JSON.stringify({ v: 1, kind: 'mcd', name: 'Shop', updatedAt: '2026-11-01T00:00:00.000Z', mcd: {
-        entities: [
-          { id: 'a', name: 'CLIENT', x: 100, y: 100, attributes: [attr('a1', 'id_client', true)] },
-          { id: 'b', name: 'COMMANDE', x: 300, y: 140, attributes: [attr('b1', 'id_commande', true)] },
-          { id: 'c', name: 'PRODUIT', x: 700, y: 100, attributes: [attr('c1', 'id_produit', true)] }
-        ],
-        associations: [{ id: 's', name: 'PASSER', x: 220, y: 320, attributes: [] }],
-        links: [{ id: 'l1', entity: 'a', association: 's', card: '0,n' }, { id: 'l2', entity: 'b', association: 's', card: '1,1' }],
-        notes: [] } }))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'Shop', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        file,
+        JSON.stringify({
+          v: 1,
+          kind: 'mcd',
+          name: 'Shop',
+          updatedAt: '2026-11-01T00:00:00.000Z',
+          mcd: {
+            entities: [
+              { id: 'a', name: 'CLIENT', x: 100, y: 100, attributes: [attr('a1', 'id_client', true)] },
+              { id: 'b', name: 'COMMANDE', x: 300, y: 140, attributes: [attr('b1', 'id_commande', true)] },
+              { id: 'c', name: 'PRODUIT', x: 700, y: 100, attributes: [attr('c1', 'id_produit', true)] }
+            ],
+            associations: [{ id: 's', name: 'PASSER', x: 220, y: 320, attributes: [] }],
+            links: [
+              { id: 'l1', entity: 'a', association: 's', card: '0,n' },
+              { id: 'l2', entity: 'b', association: 's', card: '1,1' }
+            ],
+            notes: []
+          }
+        })
+      )
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          { id: 'p1', name: 'Shop', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page } = run
   const project = file.replace(/[\\/]conception[\\/]shop\.mcd\.json$/, '')
   await goTo(page, `/model?project=${encodeURIComponent(project)}&file=shop.mcd.json`)
   const saved = () => JSON.parse(readFileSync(file, 'utf-8')).mcd
-  const at = (name: string) => { const e = saved().entities.find((x: { name: string }) => x.name === name); return e && [e.x, e.y] }
+  const at = (name: string) => {
+    const e = saved().entities.find((x: { name: string }) => x.name === name)
+    return e && [e.x, e.y]
+  }
   const [client, commande, produit] = ['CLIENT', 'COMMANDE', 'PRODUIT'].map(n => page.locator(`[data-entity="${n}"]`))
   const panel = page.getByRole('complementary', { name: 'Élément choisi' })
 
@@ -56,7 +77,13 @@ test('MCD: aligned, spread out, copied with its leg, pasted and duplicated', asy
   await panel.getByRole('button', { name: 'Aligner en haut' }).click()
   await expect.poll(() => at('COMMANDE')).toEqual([300, 100])
   await panel.getByRole('button', { name: 'Répartir horizontalement' }).click()
-  await expect.poll(() => [at('CLIENT'), at('COMMANDE'), at('PRODUIT')]).toEqual([[100, 100], [400, 100], [700, 100]])
+  await expect
+    .poll(() => [at('CLIENT'), at('COMMANDE'), at('PRODUIT')])
+    .toEqual([
+      [100, 100],
+      [400, 100],
+      [700, 100]
+    ])
   // Two picked: nothing to spread
   await commande.click()
   await client.click({ modifiers: ['Shift'] })
@@ -90,18 +117,39 @@ test('MPD: a table duplicated keeps its key; tables pasted in another MPD', asyn
       dir = d
       const project = join(d, 'blog')
       mkdirSync(join(project, 'conception'), { recursive: true })
-      const mpd = (name: string, tables: object[]) => JSON.stringify({ v: 1, kind: 'mpd', name, updatedAt: '2026-11-01T00:00:00.000Z', mpd: { engine: 'postgres', tables } })
-      writeFileSync(join(project, 'conception', 'blog.mpd.json'), mpd('Blog', [
-        { id: 'tA', name: 'auteur', x: 80, y: 80, indexes: [], columns: [col('cA', 'id', { pk: true })] },
-        { id: 'tB', name: 'article', x: 380, y: 80, indexes: [], columns: [col('cB', 'id', { pk: true }), col('cF', 'auteur_id', { ref: { table: 'tA', column: 'cA' } })] }
-      ]))
+      const mpd = (name: string, tables: object[]) =>
+        JSON.stringify({ v: 1, kind: 'mpd', name, updatedAt: '2026-11-01T00:00:00.000Z', mpd: { engine: 'postgres', tables } })
+      writeFileSync(
+        join(project, 'conception', 'blog.mpd.json'),
+        mpd('Blog', [
+          { id: 'tA', name: 'auteur', x: 80, y: 80, indexes: [], columns: [col('cA', 'id', { pk: true })] },
+          {
+            id: 'tB',
+            name: 'article',
+            x: 380,
+            y: 80,
+            indexes: [],
+            columns: [col('cB', 'id', { pk: true }), col('cF', 'auteur_id', { ref: { table: 'tA', column: 'cA' } })]
+          }
+        ])
+      )
       writeFileSync(join(project, 'conception', 'autre.mpd.json'), mpd('Autre', []))
-      writeFileSync(join(d, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'Blog', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(d, 'projects.json'),
+        JSON.stringify([
+          { id: 'p1', name: 'Blog', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page } = run
   const project = join(dir, 'blog')
-  const tables = (f: string) => JSON.parse(readFileSync(join(project, 'conception', f), 'utf-8')).mpd.tables as { id: string; name: string; columns: { name: string; ref?: { table: string } }[] }[]
+  const tables = (f: string) =>
+    JSON.parse(readFileSync(join(project, 'conception', f), 'utf-8')).mpd.tables as {
+      id: string
+      name: string
+      columns: { name: string; ref?: { table: string } }[]
+    }[]
   await goTo(page, `/model?project=${encodeURIComponent(project)}&file=blog.mpd.json&tab=mpd`)
   const canvas = page.getByTestId('mpd-canvas')
 
@@ -113,15 +161,22 @@ test('MPD: a table duplicated keeps its key; tables pasted in another MPD', asyn
 
   // Both first tables copied, pasted in another MPD of the project: the key follows the copy of auteur
   await canvas.locator('[data-table="auteur"]').locator('div').first().click()
-  await canvas.locator('[data-table="article"]').locator('div').first().click({ modifiers: ['Shift'] })
+  await canvas
+    .locator('[data-table="article"]')
+    .locator('div')
+    .first()
+    .click({ modifiers: ['Shift'] })
   await page.keyboard.press('Control+c')
   await goTo(page, `/model?project=${encodeURIComponent(project)}&file=autre.mpd.json&tab=mpd`)
   await expect(page.getByText(/Pas encore de table/)).toBeVisible()
   await page.keyboard.press('Control+v')
   await expect(page.getByTestId('mpd-canvas').locator('[data-table]')).toHaveCount(2)
-  await expect.poll(() => {
-    const list = tables('autre.mpd.json')
-    const auteur = list.find(t => t.name === 'auteur'), article = list.find(t => t.name === 'article')
-    return !!auteur && article?.columns[1].ref?.table === auteur.id
-  }).toBe(true)
+  await expect
+    .poll(() => {
+      const list = tables('autre.mpd.json')
+      const auteur = list.find(t => t.name === 'auteur'),
+        article = list.find(t => t.name === 'article')
+      return !!auteur && article?.columns[1].ref?.table === auteur.id
+    })
+    .toBe(true)
 })

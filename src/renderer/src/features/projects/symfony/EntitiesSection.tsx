@@ -33,8 +33,15 @@ export default function EntitiesSection({ kit, entities, draft, onDraftUsed, onW
         entities={entities}
         existing={editing === 'new' ? null : editing}
         initial={draft}
-        onCancel={() => { setEditing(null); onDraftUsed() }}
-        onDone={r => { setEditing(null); onDraftUsed(); onWritten(r) }}
+        onCancel={() => {
+          setEditing(null)
+          onDraftUsed()
+        }}
+        onDone={r => {
+          setEditing(null)
+          onDraftUsed()
+          onWritten(r)
+        }}
       />
     )
   }
@@ -43,10 +50,21 @@ export default function EntitiesSection({ kit, entities, draft, onDraftUsed, onW
     <Section
       title={s.entitiesTitle.replace('{n}', String(entities.length))}
       help={kit.listHelp}
-      actions={<>
-        <Tabs<'schema' | 'list'> value={view} onChange={setView} items={[{ value: 'schema', label: s.schema }, { value: 'list', label: s.list }]} />
-        <Button size="sm" onClick={() => setEditing('new')}><Plus size={13} /> {s.newEntity}</Button>
-      </>}
+      actions={
+        <>
+          <Tabs<'schema' | 'list'>
+            value={view}
+            onChange={setView}
+            items={[
+              { value: 'schema', label: s.schema },
+              { value: 'list', label: s.list }
+            ]}
+          />
+          <Button size="sm" onClick={() => setEditing('new')}>
+            <Plus size={13} /> {s.newEntity}
+          </Button>
+        </>
+      }
     >
       {entities.length === 0 ? (
         <EmptyState title={s.noEntities} description={s.noEntitiesHelp} />
@@ -56,26 +74,41 @@ export default function EntitiesSection({ kit, entities, draft, onDraftUsed, onW
             <article
               key={e.name}
               aria-label={e.name}
-              className={cn('flex flex-col rounded-xl border bg-surface transition-colors',
-                hover === e.name ? 'border-accent shadow-[0_0_0_2px] shadow-accent/25' : 'border-line-subtle')}
+              className={cn(
+                'flex flex-col rounded-xl border bg-surface transition-colors',
+                hover === e.name ? 'border-accent shadow-[0_0_0_2px] shadow-accent/25' : 'border-line-subtle'
+              )}
             >
               <header className="flex items-center gap-2 border-b border-line-subtle px-3 py-2">
                 <strong className="flex-1 truncate text-fg">{e.name}</strong>
                 {e.apiResource && <span className="rounded-full bg-accent-soft px-2 font-mono text-2xs text-accent">API</span>}
-                <button onClick={() => setEditing(e)} className="text-xs font-medium text-accent hover:underline">{s.addTo}</button>
+                <button onClick={() => setEditing(e)} className="text-xs font-medium text-accent hover:underline">
+                  {s.addTo}
+                </button>
               </header>
               <ul className="flex flex-col gap-0.5 px-3 py-2 font-mono text-xs text-fg-secondary">
                 {e.fields.map(f => (
                   <li key={f.name} className="flex gap-2">
                     <span className="truncate">{f.name}</span>
-                    <span className="ml-auto shrink-0 text-fg-muted">{s.types[f.type]}{f.nullable ? '' : ' *'}{f.unique ? ' · ' + s.uniqueShort : ''}</span>
+                    <span className="ml-auto shrink-0 text-fg-muted">
+                      {s.types[f.type]}
+                      {f.nullable ? '' : ' *'}
+                      {f.unique ? ' · ' + s.uniqueShort : ''}
+                    </span>
                   </li>
                 ))}
                 {e.relations.map(r => (
-                  <li key={r.name} onMouseEnter={() => setHover(r.target)} onMouseLeave={() => setHover(null)}
-                    title={relationSentence(s, e.name, r)} className="flex gap-2 text-accent">
+                  <li
+                    key={r.name}
+                    onMouseEnter={() => setHover(r.target)}
+                    onMouseLeave={() => setHover(null)}
+                    title={relationSentence(s, e.name, r)}
+                    className="flex gap-2 text-accent"
+                  >
                     <span className="truncate">{r.name}</span>
-                    <span className="ml-auto shrink-0">{r.kind === 'OneToMany' || r.kind === 'ManyToMany' ? '⇉' : '→'} {r.target}</span>
+                    <span className="ml-auto shrink-0">
+                      {r.kind === 'OneToMany' || r.kind === 'ManyToMany' ? '⇉' : '→'} {r.target}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -90,9 +123,15 @@ export default function EntitiesSection({ kit, entities, draft, onDraftUsed, onW
                 <strong className="text-fg">{e.name}</strong>
                 <code className="font-mono text-xs text-fg-muted">{e.file}</code>
                 <span className="ml-auto text-xs text-fg-muted">{s.fieldCount.replace('{n}', String(e.fields.length))}</span>
-                <button onClick={() => setEditing(e)} className="text-xs font-medium text-accent hover:underline">{s.addTo}</button>
+                <button onClick={() => setEditing(e)} className="text-xs font-medium text-accent hover:underline">
+                  {s.addTo}
+                </button>
               </div>
-              {e.relations.map(r => <span key={r.name} className="text-sm text-fg-secondary">{relationSentence(s, e.name, r)}</span>)}
+              {e.relations.map(r => (
+                <span key={r.name} className="text-sm text-fg-secondary">
+                  {relationSentence(s, e.name, r)}
+                </span>
+              ))}
             </div>
           ))}
         </div>

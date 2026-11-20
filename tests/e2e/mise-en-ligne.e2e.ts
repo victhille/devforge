@@ -16,7 +16,10 @@ const ago = (min: number) => new Date(Date.now() - min * 60_000).toISOString()
 
 function seed(write: (dir: string) => void) {
   return (dir: string) => {
-    writeFileSync(join(dir, 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'Prod', host: '203.0.113.10', port: 1, username: 'ubuntu', authMethod: 'privateKey', color: '', createdAt: '' }]))
+    writeFileSync(
+      join(dir, 'ssh-connections.json'),
+      JSON.stringify([{ id: 'v1', name: 'Prod', host: '203.0.113.10', port: 1, username: 'ubuntu', authMethod: 'privateKey', color: '', createdAt: '' }])
+    )
     write(dir)
   }
 }
@@ -25,13 +28,28 @@ test('deploy: the last run with its steps and log, the targets in a table', asyn
   const script = 'git pull\nnpm ci\nnpm run build\npm2 reload ecosystem.config.js'
   run = await launch({
     settings: { onboarded: true },
-    seed: seed(dir => writeFileSync(join(dir, 'deploy.json'), JSON.stringify({
-      targets: [
-        { id: 't1', name: 'boutique', connectionId: 'v1', remotePath: '/srv/boutique', script, pushFirst: false },
-        { id: 't2', name: 'portfolio', connectionId: 'v1', remotePath: '/var/www/portfolio', script: 'git pull\nnpm run build', pushFirst: false }
-      ],
-      runs: [{ id: 'r1', targetId: 't1', status: 'failed', startedAt: ago(90), finishedAt: ago(89), exitCode: 1, log: '$ git pull\nok\n$ npm ci\nERR! ENOSPC\n\n▸ exit code 1\n' }]
-    })))
+    seed: seed(dir =>
+      writeFileSync(
+        join(dir, 'deploy.json'),
+        JSON.stringify({
+          targets: [
+            { id: 't1', name: 'boutique', connectionId: 'v1', remotePath: '/srv/boutique', script, pushFirst: false },
+            { id: 't2', name: 'portfolio', connectionId: 'v1', remotePath: '/var/www/portfolio', script: 'git pull\nnpm run build', pushFirst: false }
+          ],
+          runs: [
+            {
+              id: 'r1',
+              targetId: 't1',
+              status: 'failed',
+              startedAt: ago(90),
+              finishedAt: ago(89),
+              exitCode: 1,
+              log: '$ git pull\nok\n$ npm ci\nERR! ENOSPC\n\n▸ exit code 1\n'
+            }
+          ]
+        })
+      )
+    )
   })
   const { page } = run
   await goTo(page, '/deploy')
@@ -66,23 +84,48 @@ test('n8n: its state and version, the counts of the day, the workflows with thei
     settings: { onboarded: true },
     env: { DEVFORGE_TEST_VPS: '{userData}/vps.json' },
     seed: seed(dir => {
-      writeFileSync(join(dir, 'n8n.json'), JSON.stringify({ instances: [{ connectionId: 'v1', domain: 'n8n.example.com', exposure: 'caddy', installedAt: '2026-10-01T10:00:00Z', locale: 'fr', keyEnc: 'canned' }] }))
-      writeFileSync(join(dir, 'vps.json'), JSON.stringify({
-        n8nStatus: ['yes', 'n8n|running|Up 2 days\npostgres|running|Up 2 days', '1.82.1'].join(SEP),
-        n8nApi: {
-          'GET /workflows': { data: [
-            { id: 'w1', name: 'Nouvelle commande', active: true, updatedAt: ago(3000), nodes: [{ name: 'Webhook', type: 'n8n-nodes-base.webhook' }] },
-            { id: 'w2', name: 'Relance des factures', active: true, updatedAt: ago(9000), nodes: [{ name: 'Chaque jour', type: 'n8n-nodes-base.scheduleTrigger' }] },
-            { id: 'w3', name: 'Veille des prix', active: false, updatedAt: '2026-11-02T10:00:00Z', nodes: [{ name: 'Toutes les 6 h', type: 'n8n-nodes-base.scheduleTrigger' }] }
-          ], nextCursor: null },
-          'GET /executions': { data: [
-            { id: '3', workflowId: 'w1', status: 'success', startedAt: ago(4), mode: 'webhook' },
-            { id: '4', workflowId: 'w2', status: 'error', startedAt: ago(60), mode: 'trigger' },
-            { id: '2', workflowId: 'w2', status: 'error', startedAt: ago(300), mode: 'trigger' },
-            { id: '1', workflowId: 'w1', status: 'success', startedAt: ago(600), mode: 'webhook' }
-          ] }
-        }
-      }))
+      writeFileSync(
+        join(dir, 'n8n.json'),
+        JSON.stringify({
+          instances: [{ connectionId: 'v1', domain: 'n8n.example.com', exposure: 'caddy', installedAt: '2026-10-01T10:00:00Z', locale: 'fr', keyEnc: 'canned' }]
+        })
+      )
+      writeFileSync(
+        join(dir, 'vps.json'),
+        JSON.stringify({
+          n8nStatus: ['yes', 'n8n|running|Up 2 days\npostgres|running|Up 2 days', '1.82.1'].join(SEP),
+          n8nApi: {
+            'GET /workflows': {
+              data: [
+                { id: 'w1', name: 'Nouvelle commande', active: true, updatedAt: ago(3000), nodes: [{ name: 'Webhook', type: 'n8n-nodes-base.webhook' }] },
+                {
+                  id: 'w2',
+                  name: 'Relance des factures',
+                  active: true,
+                  updatedAt: ago(9000),
+                  nodes: [{ name: 'Chaque jour', type: 'n8n-nodes-base.scheduleTrigger' }]
+                },
+                {
+                  id: 'w3',
+                  name: 'Veille des prix',
+                  active: false,
+                  updatedAt: '2026-11-02T10:00:00Z',
+                  nodes: [{ name: 'Toutes les 6 h', type: 'n8n-nodes-base.scheduleTrigger' }]
+                }
+              ],
+              nextCursor: null
+            },
+            'GET /executions': {
+              data: [
+                { id: '3', workflowId: 'w1', status: 'success', startedAt: ago(4), mode: 'webhook' },
+                { id: '4', workflowId: 'w2', status: 'error', startedAt: ago(60), mode: 'trigger' },
+                { id: '2', workflowId: 'w2', status: 'error', startedAt: ago(300), mode: 'trigger' },
+                { id: '1', workflowId: 'w1', status: 'success', startedAt: ago(600), mode: 'webhook' }
+              ]
+            }
+          }
+        })
+      )
     })
   })
   const { page } = run
@@ -111,16 +154,27 @@ test('VPN: the devices in a table, the QR code of the one picked beside them', a
     env: { DEVFORGE_TEST_VPS: '{userData}/vps.json' },
     seed: seed(dir => {
       writeFileSync(join(dir, 'vpn.json'), JSON.stringify({ servers: [{ connectionId: 'v1', port: 51821, username: 'admin', passwordEnc: 'canned' }] }))
-      writeFileSync(join(dir, 'vps.json'), JSON.stringify({
-        vpnDetect: 'wg-easy|ghcr.io/wg-easy/wg-easy:15|0.0.0.0:51820->51820/udp, 127.0.0.1:51821->51821/tcp',
-        vpnApi: {
-          'GET /client': [
-            { id: 1, name: 'Téléphone de Camille', enabled: true, ipv4Address: '10.8.0.2', latestHandshakeAt: ago(1), transferRx: 22_000_000, transferTx: 190_000_000 },
-            { id: 2, name: 'Ancien PC', enabled: false, ipv4Address: '10.8.0.4', latestHandshakeAt: null, transferRx: null, transferTx: null }
-          ],
-          'GET /client/1/qrcode.svg': svg
-        }
-      }))
+      writeFileSync(
+        join(dir, 'vps.json'),
+        JSON.stringify({
+          vpnDetect: 'wg-easy|ghcr.io/wg-easy/wg-easy:15|0.0.0.0:51820->51820/udp, 127.0.0.1:51821->51821/tcp',
+          vpnApi: {
+            'GET /client': [
+              {
+                id: 1,
+                name: 'Téléphone de Camille',
+                enabled: true,
+                ipv4Address: '10.8.0.2',
+                latestHandshakeAt: ago(1),
+                transferRx: 22_000_000,
+                transferTx: 190_000_000
+              },
+              { id: 2, name: 'Ancien PC', enabled: false, ipv4Address: '10.8.0.4', latestHandshakeAt: null, transferRx: null, transferTx: null }
+            ],
+            'GET /client/1/qrcode.svg': svg
+          }
+        })
+      )
     })
   })
   const { page } = run

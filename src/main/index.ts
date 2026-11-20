@@ -11,6 +11,7 @@ import { closeAllDbs } from './services/database/dbClient'
 import { closeAllTails } from './services/logs/logTail'
 import { stopWebhooks } from './services/webhooks/webhookServer'
 import { applyLoginItem, startedHidden } from './lib/loginItem'
+import { showUpdateSplash, startedAfterUpdate } from './services/updates/splash'
 import { guardNavigation, guardPermissions } from './lib/windowGuards'
 import { present } from './lib/present'
 import { disposeWidget, initWidget } from './widget'
@@ -46,9 +47,7 @@ let mainWindow: BrowserWindow | null = null
 let forceQuit = false
 
 function getIconPath(): string {
-  return isDev
-    ? join(app.getAppPath(), 'src/renderer/src/assets/icon.png')
-    : join(process.resourcesPath, 'icon.png')
+  return isDev ? join(app.getAppPath(), 'src/renderer/src/assets/icon.png') : join(process.resourcesPath, 'icon.png')
 }
 
 function buildTrayMenu(win: BrowserWindow): Electron.Menu {
@@ -56,14 +55,22 @@ function buildTrayMenu(win: BrowserWindow): Electron.Menu {
     {
       label: win.isVisible() ? 'Masquer DevForge' : 'Afficher DevForge',
       click: () => {
-        if (win.isVisible()) { win.hide() } else { win.show(); win.focus() }
+        if (win.isVisible()) {
+          win.hide()
+        } else {
+          win.show()
+          win.focus()
+        }
         tray?.setContextMenu(buildTrayMenu(win))
       }
     },
     { type: 'separator' },
     {
       label: 'Quitter',
-      click: () => { forceQuit = true; app.quit() }
+      click: () => {
+        forceQuit = true
+        app.quit()
+      }
     }
   ])
 }
@@ -75,7 +82,12 @@ function createTray(win: BrowserWindow): void {
   tray.setContextMenu(buildTrayMenu(win))
 
   tray.on('click', () => {
-    if (win.isVisible()) { win.hide() } else { win.show(); win.focus() }
+    if (win.isVisible()) {
+      win.hide()
+    } else {
+      win.show()
+      win.focus()
+    }
     tray?.setContextMenu(buildTrayMenu(win))
   })
 }
@@ -101,11 +113,13 @@ function createWindow(): void {
     }
   })
 
-  win.on('ready-to-show', () => { if (!startedHidden) present(win) })
+  win.on('ready-to-show', () => {
+    if (!startedHidden) present(win)
+  })
   win.webContents.on('render-process-gone', (_e, details) => log('error', 'renderer', `process gone: ${details.reason} (${details.exitCode})`))
 
   // Minimize to tray instead of closing
-  win.on('close', (e) => {
+  win.on('close', e => {
     if (forceQuit) return
     const settings = loadSettings()
     if (settings.minimizeToTray) {
@@ -173,8 +187,11 @@ app.whenReady().then(() => {
   const settings = loadSettings()
   applyLoginItem(settings)
 
+  // After an update: a small window while the main one loads
+  const splash = startedAfterUpdate && !startedHidden ? showUpdateSplash(language !== 'en') : null
   createWindow()
-  if (mainWindow) initUpdater(mainWindow, settings.updateChannel === 'beta')
+  if (splash && mainWindow) splash.closeWith(mainWindow)
+  if (mainWindow) initUpdater(mainWindow, settings.updateChannel === 'beta', settings.autoUpdate !== false)
   // Copies the night's VPS backup to this PC, warns about a missed one
   startBackupWatch()
 
@@ -199,7 +216,24 @@ app.whenReady().then(() => {
 
 // Never leave dev servers, log follows, commands or tests running after DevForge quits (killed before it exits).
 // Everything stops here: the windows must close now, not go to the tray (Cmd+Q, an update on Windows…)
-app.on('before-quit', () => { forceQuit = true; disposeWidget(); disposeLauncher(); killTerminals(); stopAllProcessesNow(); stopMonitors(); stopProxy(); closeAllDbs(); closeAllTails(); stopWebhooks(); stopUpdater(); stopCiWatch(); stopWatch(); stopHistory(); stopBackupWatch(); closeAllForwards() })
+app.on('before-quit', () => {
+  forceQuit = true
+  disposeWidget()
+  disposeLauncher()
+  killTerminals()
+  stopAllProcessesNow()
+  stopMonitors()
+  stopProxy()
+  closeAllDbs()
+  closeAllTails()
+  stopWebhooks()
+  stopUpdater()
+  stopCiWatch()
+  stopWatch()
+  stopHistory()
+  stopBackupWatch()
+  closeAllForwards()
+})
 
 app.on('window-all-closed', () => {
   sshService.disconnectAll()

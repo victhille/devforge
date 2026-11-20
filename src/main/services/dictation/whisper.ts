@@ -28,7 +28,9 @@ function sizeOf(path: string): number {
   try {
     const st = statSync(path)
     return st.isDirectory() ? readdirSync(path).reduce((n, f) => n + sizeOf(join(path, f)), 0) : st.size
-  } catch { return 0 }
+  } catch {
+    return 0
+  }
 }
 
 export function dictationStatus(model: DictationModel): DictationStatus {
@@ -66,7 +68,8 @@ function load(model: DictationModel, onProgress: (p: DictationProgress) => void)
   return p
 }
 
-export const prepareDictation = (model: DictationModel, onProgress: (p: DictationProgress) => void) => load(model, onProgress).then(() => dictationStatus(model))
+export const prepareDictation = (model: DictationModel, onProgress: (p: DictationProgress) => void) =>
+  load(model, onProgress).then(() => dictationStatus(model))
 
 /** Root mean square: below this the recording is silence (Whisper invents text on silence) */
 export const SILENCE_RMS = 0.006
@@ -85,7 +88,10 @@ export function cleanTranscript(text: string): string {
       const gram = words.slice(i, i + n).join(' ')
       let repeats = 1
       while (words.slice(i + repeats * n, i + (repeats + 1) * n).join(' ') === gram) repeats++
-      if (repeats >= 3) { t = words.slice(0, i + n).join(' '); return cleanTranscript(t) }
+      if (repeats >= 3) {
+        t = words.slice(0, i + n).join(' ')
+        return cleanTranscript(t)
+      }
     }
   }
   // Known filler of Whisper on silence or music

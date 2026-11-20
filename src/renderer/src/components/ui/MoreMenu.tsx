@@ -4,7 +4,12 @@ import { MoreHorizontal, type LucideIcon } from 'lucide-react'
 import { cn } from '@renderer/lib/cn'
 import IconButton from './IconButton'
 
-export interface MoreItem { label: string; icon: LucideIcon; danger?: boolean; onSelect: () => void }
+export interface MoreItem {
+  label: string
+  icon: LucideIcon
+  danger?: boolean
+  onSelect: () => void
+}
 
 /**
  * The « ⋯ » of a page header or a table row: the less frequent actions in a menu.
@@ -67,11 +72,23 @@ export default function MoreMenu({ label, items, size = 'md' }: { label: string;
   const onKey = (e: ReactKeyboardEvent) => {
     const list = [...(menu.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])]
     const i = list.indexOf(document.activeElement as HTMLElement)
-    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setOpen(false); button.current?.focus() }
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      e.stopPropagation()
+      setOpen(false)
+      button.current?.focus()
+    }
     // Tab leaves the menu: it closes, the focus moves on from its button (the menu sits at the document's end)
-    else if (e.key === 'Tab') { setOpen(false); button.current?.focus() }
-    else if (e.key === 'ArrowDown') { e.preventDefault(); list[(i + 1) % list.length]?.focus() }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); list[(i - 1 + list.length) % list.length]?.focus() }
+    else if (e.key === 'Tab') {
+      setOpen(false)
+      button.current?.focus()
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      list[(i + 1) % list.length]?.focus()
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      list[(i - 1 + list.length) % list.length]?.focus()
+    }
   }
 
   return (
@@ -80,21 +97,42 @@ export default function MoreMenu({ label, items, size = 'md' }: { label: string;
         <MoreHorizontal size={size === 'sm' ? 14 : 16} />
       </IconButton>
       {/* Keys pressed in it still reach the box above: React events follow the components, not the document */}
-      {open && createPortal(
-        <div ref={menu} role="menu" aria-label={label} style={{ position: 'fixed', ...place }}
-          className={cn('z-50 flex min-w-[220px] flex-col rounded-xl border border-line bg-surface p-1 text-left shadow-pop', mockup && 'df-mockup', !('top' in place || 'bottom' in place) && 'invisible')}>
-          {items.map((it, i) => (
-            <button key={it.label} type="button" role="menuitem" onClick={() => { setOpen(false); button.current?.focus(); it.onSelect() }}
-              className={cn('flex h-9 items-center gap-2.5 rounded-lg px-3 text-left text-sm whitespace-nowrap transition-colors',
-                // The first destructive action is set apart from the others
-                it.danger && i > 0 && !items[i - 1].danger && 'mt-1 border-t border-line-subtle',
-                it.danger ? 'text-danger hover:bg-danger-soft' : 'text-fg-secondary hover:bg-elevated hover:text-fg')}>
-              <it.icon size={14} aria-hidden className="shrink-0" /> {it.label}
-            </button>
-          ))}
-        </div>,
-        document.body
-      )}
+      {open &&
+        createPortal(
+          <div
+            ref={menu}
+            role="menu"
+            aria-label={label}
+            style={{ position: 'fixed', ...place }}
+            className={cn(
+              'z-50 flex min-w-[220px] flex-col rounded-xl border border-line bg-surface p-1 text-left shadow-pop',
+              mockup && 'df-mockup',
+              !('top' in place || 'bottom' in place) && 'invisible'
+            )}
+          >
+            {items.map((it, i) => (
+              <button
+                key={it.label}
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false)
+                  button.current?.focus()
+                  it.onSelect()
+                }}
+                className={cn(
+                  'flex h-9 items-center gap-2.5 rounded-lg px-3 text-left text-sm whitespace-nowrap transition-colors',
+                  // The first destructive action is set apart from the others
+                  it.danger && i > 0 && !items[i - 1].danger && 'mt-1 border-t border-line-subtle',
+                  it.danger ? 'text-danger hover:bg-danger-soft' : 'text-fg-secondary hover:bg-elevated hover:text-fg'
+                )}
+              >
+                <it.icon size={14} aria-hidden className="shrink-0" /> {it.label}
+              </button>
+            ))}
+          </div>,
+          document.body
+        )}
     </div>
   )
 }

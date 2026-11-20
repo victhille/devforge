@@ -1,4 +1,4 @@
-// ─── A project's tests (v3.7) ─────────────────────────────────────────────────
+// ─── A project's tests ─────────────────────────────────────────────────
 
 export type TestRunner = 'vitest' | 'jest' | 'playwright' | 'phpunit' | 'pytest' | 'go' | 'cargo'
 
@@ -20,9 +20,16 @@ export interface TestCase {
   location?: { file: string; line: number }
 }
 
-export interface TestFile { file: string; tests: TestCase[] }
+export interface TestFile {
+  file: string
+  tests: TestCase[]
+}
 
-export interface TestTotals { passed: number; failed: number; skipped: number }
+export interface TestTotals {
+  passed: number
+  failed: number
+  skipped: number
+}
 
 export interface TestRun {
   runner: TestRunner

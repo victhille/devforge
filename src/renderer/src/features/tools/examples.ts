@@ -1,5 +1,5 @@
 /**
- * v3.5 lot 4: the examples the tools load on demand. They only fill fields:
+ * the examples the tools load on demand. They only fill fields:
  * nothing here is saved, and the addresses use .invalid, a name that never
  * exists (RFC 2606), so nothing could be sent anywhere for real.
  */
@@ -10,11 +10,18 @@ export const BASE64_TEXT = 'Hello DevForge ✓'
 export const BASE64_ENCODED = 'SGVsbG8gRGV2Rm9yZ2Ug4pyT'
 
 const b64url = (value: unknown) =>
-  btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(value)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(value))))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
 
 /** A JWT shaped like a real one; its signature is a placeholder (the tool decodes, it never checks) */
 export function jwtExample(): string {
-  return [b64url({ alg: 'HS256', typ: 'JWT' }), b64url({ sub: '42', name: 'Ada Lovelace', role: 'admin', iat: 1793145600, exp: 1793232000 }), 'signature-example'].join('.')
+  return [
+    b64url({ alg: 'HS256', typ: 'JWT' }),
+    b64url({ sub: '42', name: 'Ada Lovelace', role: 'admin', iat: 1793145600, exp: 1793232000 }),
+    'signature-example'
+  ].join('.')
 }
 
 export type RegexModel = 'email' | 'date' | 'url' | 'phone'
@@ -23,7 +30,11 @@ export type RegexModel = 'email' | 'date' | 'url' | 'phone'
 export const REGEX_MODELS: Record<RegexModel, { pattern: string; flags: string; text: string }> = {
   email: { pattern: '[\\w.+-]+@[\\w-]+(\\.[\\w-]+)+', flags: 'g', text: 'Contact: ada@example.invalid, support+dev@devforge.invalid or not-an-email@' },
   date: { pattern: '\\b\\d{2}/\\d{2}/\\d{4}\\b', flags: 'g', text: 'Shipped on 28/10/2026, billed on 02/11/2026, ref 123/45/6789.' },
-  url: { pattern: 'https?://[^\\s,]+', flags: 'g', text: 'Docs: https://docs.example.invalid/start, local: http://localhost:5173, not ftp://files.example.invalid' },
+  url: {
+    pattern: 'https?://[^\\s,]+',
+    flags: 'g',
+    text: 'Docs: https://docs.example.invalid/start, local: http://localhost:5173, not ftp://files.example.invalid'
+  },
   phone: { pattern: '(\\+33\\s?|0)[1-9]([\\s.-]?\\d{2}){4}', flags: 'g', text: 'Call 06 12 34 56 78 or +33 1 23 45 67 89, not 12 34.' }
 }
 
@@ -53,8 +64,20 @@ export const SNIPPET_EXAMPLE = {
 export const WEBHOOK_EXAMPLE = {
   method: 'POST',
   url: '/webhooks/stripe',
-  headers: { 'content-type': 'application/json', 'stripe-signature': 't=1793145600,v1=example', 'user-agent': 'Stripe/1.0 (+https://stripe.com/docs/webhooks)' },
-  body: JSON.stringify({ id: 'evt_example', type: 'checkout.session.completed', data: { object: { id: 'cs_example', amount_total: 4200, currency: 'eur', customer_email: 'ada@example.invalid' } } }, null, 2)
+  headers: {
+    'content-type': 'application/json',
+    'stripe-signature': 't=1793145600,v1=example',
+    'user-agent': 'Stripe/1.0 (+https://stripe.com/docs/webhooks)'
+  },
+  body: JSON.stringify(
+    {
+      id: 'evt_example',
+      type: 'checkout.session.completed',
+      data: { object: { id: 'cs_example', amount_total: 4200, currency: 'eur', customer_email: 'ada@example.invalid' } }
+    },
+    null,
+    2
+  )
 }
 
 /** Where a replay would go in the example: an address that never answers */

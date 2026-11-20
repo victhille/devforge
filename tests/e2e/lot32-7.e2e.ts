@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 
-/** v3.2 lot 7: no language mix (New project, project dates) and Forgy with ANTHROPIC_API_KEY */
+/** No language mix (New project, project dates) and Forgy with ANTHROPIC_API_KEY */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -13,7 +13,12 @@ test.afterEach(async () => {
 const project = (dir: string) => {
   const path = join(dir, 'shop')
   mkdirSync(path)
-  writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'shop', path, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '2026-01-15T10:00:00.000Z', lastOpenedAt: null }]))
+  writeFileSync(
+    join(dir, 'projects.json'),
+    JSON.stringify([
+      { id: 'p1', name: 'shop', path, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '2026-01-15T10:00:00.000Z', lastOpenedAt: null }
+    ])
+  )
 }
 
 test('New project speaks French: templates, options, libraries', async () => {

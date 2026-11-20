@@ -21,8 +21,12 @@ export function guardNavigation(win: BrowserWindow): void {
     if (/^https?:\/\//i.test(url)) shell.openExternal(url)
     return { action: 'deny' }
   })
-  win.webContents.on('will-navigate', (e, url) => { if (!ownPage(url)) e.preventDefault() })
-  win.webContents.on('will-redirect', (e, url) => { if (!ownPage(url)) e.preventDefault() })
+  win.webContents.on('will-navigate', (e, url) => {
+    if (!ownPage(url)) e.preventDefault()
+  })
+  win.webContents.on('will-redirect', (e, url) => {
+    if (!ownPage(url)) e.preventDefault()
+  })
   win.webContents.on('will-attach-webview', e => e.preventDefault())
 }
 
@@ -50,6 +54,6 @@ export function guardPermissions(s: Session = session.defaultSession): void {
   })
   s.setPermissionCheckHandler((_wc, permission, origin, details) => {
     const media = details && 'mediaType' in details && details.mediaType ? [details.mediaType as string] : undefined
-    return allowed(permission, origin || '', permission === 'media' ? media ?? ['audio'] : undefined)
+    return allowed(permission, origin || '', permission === 'media' ? (media ?? ['audio']) : undefined)
   })
 }

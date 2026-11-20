@@ -46,14 +46,26 @@ export async function diffEnv(targetId: string, localName: string, remoteName: s
   const t = target(targetId)
   const local = (await readEnvProject(t.projectPath)).files.find(f => f.name === localName)?.values ?? {}
   const text = await readRemote(t.connectionId, remoteFile(t.remotePath, remoteName))
-  return { localName, remoteName, remotePath: remoteFile(t.remotePath, remoteName), remoteExists: text !== null, keys: compareEnv(local, text === null ? {} : parseEnv(text)) }
+  return {
+    localName,
+    remoteName,
+    remotePath: remoteFile(t.remotePath, remoteName),
+    remoteExists: text !== null,
+    keys: compareEnv(local, text === null ? {} : parseEnv(text))
+  }
 }
 
 /**
  * 'push': the server's file takes the chosen keys from this PC (a key missing
  * here is removed there); 'pull': the other way.
  */
-export async function applyEnv(targetId: string, localName: string, remoteName: string, direction: 'push' | 'pull', keys: string[]): Promise<{ changed: number; backup: string | null }> {
+export async function applyEnv(
+  targetId: string,
+  localName: string,
+  remoteName: string,
+  direction: 'push' | 'pull',
+  keys: string[]
+): Promise<{ changed: number; backup: string | null }> {
   if (!isEnvName(localName) || !isEnvName(remoteName)) throw new Error('Not an env file')
   if (direction !== 'push' && direction !== 'pull') throw new Error('Invalid direction')
   const t = target(targetId)
@@ -83,13 +95,17 @@ export async function applyEnv(targetId: string, localName: string, remoteName: 
   const next = applyEnvChanges(text ?? '', changes)
   const backup = text === null ? null : `${path}.devforge-${new Date().toISOString().replace(/[:.]/g, '-')}.bak`
   const b64 = Buffer.from(next, 'utf-8').toString('base64')
-  const out = await runOn(t.connectionId, [
-    'set -e',
-    backup ? `cp -p ${shQuote(path)} ${shQuote(backup)}` : 'umask 077',
-    // Written in place: the file keeps its owner and rights
-    `echo ${b64} | base64 -d > ${shQuote(path)}`,
-    `echo '${SEP}ok'`
-  ].join('\n'), 30_000)
+  const out = await runOn(
+    t.connectionId,
+    [
+      'set -e',
+      backup ? `cp -p ${shQuote(path)} ${shQuote(backup)}` : 'umask 077',
+      // Written in place: the file keeps its owner and rights
+      `echo ${b64} | base64 -d > ${shQuote(path)}`,
+      `echo '${SEP}ok'`
+    ].join('\n'),
+    30_000
+  )
   if (!out.includes(`${SEP}ok`)) throw new Error(out.trim().slice(-300) || 'Could not write the file on the server')
   log('info', 'env', `${changed} key(s) pushed to ${t.connectionId}:${path}`)
   return { changed, backup }

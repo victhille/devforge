@@ -1,12 +1,12 @@
 import type { TestCase, TestFile, TestStatus, TestTotals } from '../types/tests'
 
 /**
- * v3.7: each test tool's report read into one shape: files, their tests,
+ * Each test tool's report read into one shape: files, their tests,
  * and for a failure its message, "expected" and "received", and where.
  * Pure functions: the main process runs the tool and reads the report.
  */
 
-// eslint-disable-next-line no-control-regex
+// eslint-disable-next-line no-control-regex -- an ANSI colour code starts with the ESC character
 export const stripAnsi = (s: string) => s.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '')
 
 /** "C:\\p\\src\\a.test.ts" → "src/a.test.ts", relative to the project */
@@ -35,7 +35,12 @@ export function totalsOf(files: TestFile[]): TestTotals {
   return t
 }
 
-const firstLines = (s: string, n = 4) => s.split('\n').filter(l => l.trim()).slice(0, n).join('\n')
+const firstLines = (s: string, n = 4) =>
+  s
+    .split('\n')
+    .filter(l => l.trim())
+    .slice(0, n)
+    .join('\n')
 
 /**
  * "Expected" and "received" from a failure's text: Jest (Expected: / Received:),
@@ -79,7 +84,14 @@ interface JestJson {
   testResults?: {
     name: string
     message?: string
-    assertionResults?: { ancestorTitles?: string[]; title: string; status: string; duration?: number | null; failureMessages?: string[]; location?: { line: number } | null }[]
+    assertionResults?: {
+      ancestorTitles?: string[]
+      title: string
+      status: string
+      duration?: number | null
+      failureMessages?: string[]
+      location?: { line: number } | null
+    }[]
   }[]
 }
 
@@ -87,13 +99,22 @@ const jestStatus = (s: string): TestStatus => (s === 'passed' ? 'passed' : s ===
 
 export function parseJestJson(json: string, root: string): TestFile[] | null {
   let r: JestJson
-  try { r = JSON.parse(json) } catch { return null }
+  try {
+    r = JSON.parse(json)
+  } catch {
+    return null
+  }
   if (!Array.isArray(r?.testResults)) return null
   return r.testResults.map(f => {
     const file = relPath(f.name, root)
     const tests: TestCase[] = (f.assertionResults ?? []).map(a => {
       const status = jestStatus(a.status)
-      const base: TestCase = { name: a.title, suite: a.ancestorTitles?.length ? a.ancestorTitles.join(' › ') : undefined, status, durationMs: a.duration ?? null }
+      const base: TestCase = {
+        name: a.title,
+        suite: a.ancestorTitles?.length ? a.ancestorTitles.join(' › ') : undefined,
+        status,
+        durationMs: a.duration ?? null
+      }
       if (status !== 'failed') return base
       const f2 = failure((a.failureMessages ?? []).join('\n'), root, file)
       return { ...base, ...f2, location: a.location ? { file, line: a.location.line } : f2.location }
@@ -109,13 +130,22 @@ export function parseJestJson(json: string, root: string): TestFile[] | null {
 interface PwSuite {
   title: string
   file?: string
-  specs?: { title: string; file?: string; line?: number; tests?: { status?: string; results?: { status?: string; duration?: number; error?: { message?: string; stack?: string } }[] }[] }[]
+  specs?: {
+    title: string
+    file?: string
+    line?: number
+    tests?: { status?: string; results?: { status?: string; duration?: number; error?: { message?: string; stack?: string } }[] }[]
+  }[]
   suites?: PwSuite[]
 }
 
 export function parsePlaywrightJson(json: string, root: string): TestFile[] | null {
   let r: { suites?: PwSuite[] }
-  try { r = JSON.parse(json) } catch { return null }
+  try {
+    r = JSON.parse(json)
+  } catch {
+    return null
+  }
   if (!Array.isArray(r?.suites)) return null
   const byFile = new Map<string, TestCase[]>()
   const walk = (s: PwSuite, path: string[], file: string) => {
@@ -126,7 +156,10 @@ export function parsePlaywrightJson(json: string, root: string): TestFile[] | nu
         const status: TestStatus = t.status === 'skipped' ? 'skipped' : t.status === 'expected' || t.status === 'flaky' ? 'passed' : 'failed'
         const c: TestCase = { name: spec.title, suite: path.length ? path.join(' › ') : undefined, status, durationMs: last?.duration ?? null }
         const err = last?.error
-        const failed = status === 'failed' ? { ...failure(`${err?.message ?? ''}\n${err?.stack ?? ''}`, root, f), location: spec.line ? { file: f, line: spec.line } : undefined } : {}
+        const failed =
+          status === 'failed'
+            ? { ...failure(`${err?.message ?? ''}\n${err?.stack ?? ''}`, root, f), location: spec.line ? { file: f, line: spec.line } : undefined }
+            : {}
         const list = byFile.get(f) ?? []
         list.push({ ...c, ...failed })
         byFile.set(f, list)
@@ -140,11 +173,24 @@ export function parsePlaywrightJson(json: string, root: string): TestFile[] | nu
 
 // ─── JUnit XML (PHPUnit, pytest) ──────────────────────────────────────────────
 
-const decode = (s: string) => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#(\d+);/g, (_, n: string) => String.fromCharCode(Number(n))).replace(/&amp;/g, '&')
+const decode = (s: string) =>
+  s
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, n: string) => String.fromCharCode(Number(n)))
+    .replace(/&amp;/g, '&')
 const attrs = (s: string): Record<string, string> => Object.fromEntries([...s.matchAll(/([\w:-]+)="([^"]*)"/g)].map(m => [m[1], decode(m[2])]))
 
 /** A pytest class path ("tests.test_cart.TestCart") or a PHP class ("App\\Tests\\CartTest") as a file, when the report gives none */
-const fileFromClass = (cls: string) => (cls.includes('\\') ? `${cls.replace(/\\/g, '/')}.php` : `${cls.split('.').filter(p => !/^[A-Z]/.test(p)).join('/')}.py`)
+const fileFromClass = (cls: string) =>
+  cls.includes('\\')
+    ? `${cls.replace(/\\/g, '/')}.php`
+    : `${cls
+        .split('.')
+        .filter(p => !/^[A-Z]/.test(p))
+        .join('/')}.py`
 
 export function parseJunit(xml: string, root: string): TestFile[] | null {
   if (!/<testsuites?\b/.test(xml)) return null
@@ -156,7 +202,9 @@ export function parseJunit(xml: string, root: string): TestFile[] | null {
     const bad = body.match(/<(failure|error)\b([^>]*?)(?:\/>|>([\s\S]*?)<\/\1>)/)
     const status: TestStatus = bad ? 'failed' : /<skipped\b/.test(body) ? 'skipped' : 'passed'
     const c: TestCase = {
-      name: a.name ?? '?', suite: a.classname && a.file ? a.classname.split(/[.\\]/).pop() : undefined, status,
+      name: a.name ?? '?',
+      suite: a.classname && a.file ? a.classname.split(/[.\\]/).pop() : undefined,
+      status,
       durationMs: a.time ? Math.round(Number(a.time) * 1000) : null
     }
     if (bad) {
@@ -180,7 +228,11 @@ export function parseGoTest(stream: string, module: string, root: string): TestF
   const pkgFail = new Map<string, string[]>()
   for (const line of stream.split('\n')) {
     let e: { Action?: string; Package?: string; Test?: string; Elapsed?: number; Output?: string }
-    try { e = JSON.parse(line) } catch { continue }
+    try {
+      e = JSON.parse(line)
+    } catch {
+      continue
+    }
     if (!e.Package) continue
     seen = true
     if (!e.Test) {
@@ -206,7 +258,8 @@ export function parseGoTest(stream: string, module: string, root: string): TestF
     const out = t.out.join('')
     const loc = out.match(/^\s*([\w.-]+\.go):(\d+):/m)
     const c: TestCase = { name: t.name, status: t.status, durationMs: t.elapsed !== undefined ? Math.round(t.elapsed * 1000) : null }
-    if (t.status === 'failed') Object.assign(c, failure(out, root, ''), loc ? { location: { file: dir ? `${dir}/${loc[1]}` : loc[1], line: Number(loc[2]) } } : {})
+    if (t.status === 'failed')
+      Object.assign(c, failure(out, root, ''), loc ? { location: { file: dir ? `${dir}/${loc[1]}` : loc[1], line: Number(loc[2]) } } : {})
     byPkg.set(dir || '.', [...(byPkg.get(dir || '.') ?? []), c])
   }
   // A package that does not build: one failed entry with the compiler's words
@@ -230,9 +283,16 @@ export function parseCargoTest(output: string, root: string): TestFile[] | null 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     const run = line.match(/^\s*Running (?:unittests )?(\S+)(?: \(|$)/) ?? line.match(/^\s*Doc-tests (\S+)/)
-    if (run) { current = { file: run[0].includes('Doc-tests') ? `doc-tests ${run[1]}` : relPath(run[1], root), tests: [] }; files.push(current); continue }
+    if (run) {
+      current = { file: run[0].includes('Doc-tests') ? `doc-tests ${run[1]}` : relPath(run[1], root), tests: [] }
+      files.push(current)
+      continue
+    }
     const t = line.match(/^test (\S+) \.\.\. (ok|FAILED|ignored)/)
-    if (t && current) { current.tests.push({ name: t[1], status: t[2] === 'ok' ? 'passed' : t[2] === 'FAILED' ? 'failed' : 'skipped', durationMs: null }); continue }
+    if (t && current) {
+      current.tests.push({ name: t[1], status: t[2] === 'ok' ? 'passed' : t[2] === 'FAILED' ? 'failed' : 'skipped', durationMs: null })
+      continue
+    }
     // ---- name stdout ---- then its output, up to the next section
     const f = line.match(/^---- (\S+) stdout ----$/)
     if (f) {

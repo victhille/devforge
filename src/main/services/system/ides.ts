@@ -7,7 +7,7 @@ import { loadSettings } from '../settings/settingsService'
 import { CMD_META, assertSafeDir, findExecutable, isInsideProject } from '../../lib/safe'
 
 /**
- * v3.5 lot 3: finds the IDEs on this PC and opens a folder with one: an IDE
+ * finds the IDEs on this PC and opens a folder with one: an IDE
  * of the catalog, or one added by hand in Settings (a program and its
  * arguments). Programs run without a shell; a .cmd or .bat needs one, so its
  * path and arguments must hold no character cmd.exe would interpret.
@@ -20,15 +20,21 @@ export function expandPattern(pattern: string, env: NodeJS.ProcessEnv = process.
   const parts = path.split('\\')
   let found = [parts[0]]
   for (const part of parts.slice(1)) {
-    if (!part.includes('*')) { found = found.map(p => `${p}\\${part}`); continue }
+    if (!part.includes('*')) {
+      found = found.map(p => `${p}\\${part}`)
+      continue
+    }
     const prefix = part.slice(0, part.indexOf('*'))
     found = found.flatMap(p => {
       try {
         return readdirSync(p, { withFileTypes: true })
           .filter(e => e.isDirectory() && e.name.toLowerCase().startsWith(prefix.toLowerCase()))
           .map(e => `${p}\\${e.name}`)
-          .sort().reverse() // the newest version first
-      } catch { return [] }
+          .sort()
+          .reverse() // the newest version first
+      } catch {
+        return []
+      }
     })
   }
   return found.filter(p => existsSync(p))
@@ -56,13 +62,17 @@ export async function listIdes(fresh = false): Promise<IdeInfo[]> {
 /** Starts a program detached; resolves once it started */
 function start(program: string, args: string[]): Promise<void> {
   const script = /\.(cmd|bat)$/i.test(program)
-  if (script && [program, ...args].some(a => CMD_META.test(a))) throw new Error('This program or its arguments contain characters that cannot be passed safely to a shell')
+  if (script && [program, ...args].some(a => CMD_META.test(a)))
+    throw new Error('This program or its arguments contain characters that cannot be passed safely to a shell')
   const child = script
     ? spawn([program, ...args].map(a => `"${a}"`).join(' '), { shell: true, detached: true, stdio: 'ignore', windowsHide: true, cwd: dirname(program) })
     : spawn(program, args, { detached: true, stdio: 'ignore', cwd: dirname(program) })
   return new Promise((res, rej) => {
     child.once('error', err => rej(err))
-    child.once('spawn', () => { child.unref(); res() })
+    child.once('spawn', () => {
+      child.unref()
+      res()
+    })
   })
 }
 
@@ -83,7 +93,10 @@ export async function openInIde(dirPath: string, ideId: string): Promise<void> {
   if (!ide) throw new Error(`Unknown IDE: ${ideId}`)
   const program = await programOf(ide)
   if (!program) throw new Error(`${ide.name} was not found on this PC`)
-  return start(program, (ide.args ?? ['{dir}']).map(a => a.split('{dir}').join(dir)))
+  return start(
+    program,
+    (ide.args ?? ['{dir}']).map(a => a.split('{dir}').join(dir))
+  )
 }
 
 /** Given a folder then a file, these open the folder's window (the one already open, if any) with the file in it */
@@ -92,7 +105,7 @@ const FOLDER_THEN_FILE = new Set(['vscode', 'cursor', 'windsurf', 'antigravity',
 const JETBRAINS = new Set(['phpstorm', 'webstorm', 'intellij', 'pycharm', 'rider', 'goland', 'rustrover'])
 
 /**
- * The catalog IDE's arguments for a file of the project at `root`; v3.6 lot 5:
+ * The catalog IDE's arguments for a file of the project at `root`;
  * at a line, each IDE its own way (VS Code -g file:line, JetBrains --line…)
  */
 export function fileArgs(ideId: string, filePath: string, root: string | null, line?: number): string[] {
@@ -108,16 +121,24 @@ export function fileArgs(ideId: string, filePath: string, root: string | null, l
 }
 
 /**
- * v3.5.3: one file of a saved project, in an IDE. v3.5.4: with the project's
+ * One file of a saved project, in an IDE. With the project's
  * folder (`root`) for the editors of the VS Code family and Zed, so the file
  * opens in that project's window, not in the last one used. Others get the
  * file alone; one added by hand gets its arguments, {dir} being the file.
  */
 export async function openFileInIde(filePath: string, ideId: string, root?: string, line?: number): Promise<void> {
-  if (typeof filePath !== 'string' || !isInsideProject(filePath) || !existsSync(filePath) || !statSync(filePath).isFile()) throw new Error('Not a file of a saved project')
+  if (typeof filePath !== 'string' || !isInsideProject(filePath) || !existsSync(filePath) || !statSync(filePath).isFile())
+    throw new Error('Not a file of a saved project')
   // The folder must be a saved project's, and hold the file
-  const folder = typeof root === 'string' && root && isInsideProject(root) && existsSync(root) && statSync(root).isDirectory()
-    && !relative(resolve(root), resolve(filePath)).startsWith('..') ? resolve(root) : null
+  const folder =
+    typeof root === 'string' &&
+    root &&
+    isInsideProject(root) &&
+    existsSync(root) &&
+    statSync(root).isDirectory() &&
+    !relative(resolve(root), resolve(filePath)).startsWith('..')
+      ? resolve(root)
+      : null
   if (!ideId || ideId === 'none') return
   const custom = customIdes().find(c => c.id === ideId)
   if (custom) {

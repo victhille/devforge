@@ -7,17 +7,30 @@ import { packageName } from '../../src/shared/data/projectLibraries'
 import { runSetup, withTrait, withVitePlugin } from '../../src/main/services/projects/projectSetup'
 import { tempDir } from '../helpers'
 
-/** v3.3.1: what the creation tests on real projects turned up (Node, React, Next.js, Laravel) */
+/** What the creation tests on real projects turned up (Node, React, Next.js, Laravel) */
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
-  database: 'none', dbName: 'boutique', dbPort: 5433, features: [], git: true, github: null, openVSCode: false, ...s
+  database: 'none',
+  dbName: 'boutique',
+  dbPort: 5433,
+  features: [],
+  git: true,
+  github: null,
+  openVSCode: false,
+  ...s
 })
 const opts = (framework: Framework, s: Partial<ProjectSetup> = {}, extra: Partial<ProjectCreationOptions> = {}) => ({
-  name: 'boutique', framework, packageManager: 'npm' as const, typescript: true, eslint: true, setup: setup(s), ...extra
+  name: 'boutique',
+  framework,
+  packageManager: 'npm' as const,
+  typescript: true,
+  eslint: true,
+  setup: setup(s),
+  ...extra
 })
 const ctx = { password: 'pw', secret: 'sec', lang: 'fr' as const, composeName: 'boutique-a1b2c3' }
-const commands = (steps: SetupStep[]) => steps.map(s => s.kind === 'run' ? stepCommand(s) : s.kind)
+const commands = (steps: SetupStep[]) => steps.map(s => (s.kind === 'run' ? stepCommand(s) : s.kind))
 
-describe('v3.3.1: creation plan', () => {
+describe('Creation plan', () => {
   it('Node: an entry file, dev and start scripts, node_modules ignored before the first commit', () => {
     const steps = planSetup(opts('nodejs'), ctx)
     expect(steps.find(s => s.kind === 'write')).toMatchObject({ files: [{ path: 'index.js' }, { path: 'test/index.test.js' }] })
@@ -69,7 +82,7 @@ describe('v3.3.1: creation plan', () => {
   })
 })
 
-describe('v3.3.1: Tailwind wired in', () => {
+describe('Tailwind wired in', () => {
   it('adds the Vite plugin to the config once', () => {
     const config = "import { defineConfig } from 'vite'\nimport react from '@vitejs/plugin-react'\n\nexport default defineConfig({\n  plugins: [react()],\n})\n"
     const out = withVitePlugin(config)
@@ -85,21 +98,49 @@ describe('v3.3.1: Tailwind wired in', () => {
     mkdirSync(join(dir, 'src'))
     writeFileSync(join(dir, 'vite.config.ts'), "import react from '@vitejs/plugin-react'\nexport default { plugins: [react()] }\n")
     writeFileSync(join(dir, 'src/index.css'), ':root { color: red; }\n')
-    const options = { ...opts('react', { git: false }, { devLibraries: ['tailwindcss'] }), destination: dir, installDeps: false, initGit: false, openAfter: false } as ProjectCreationOptions
+    const options = {
+      ...opts('react', { git: false }, { devLibraries: ['tailwindcss'] }),
+      destination: dir,
+      installDeps: false,
+      initGit: false,
+      openAfter: false
+    } as ProjectCreationOptions
     const lines: string[] = []
-    const result = await new Promise<string>(resolve => runSetup(options, dir, 't1', l => lines.push(l.text), r => resolve(r.status)))
+    const result = await new Promise<string>(resolve =>
+      runSetup(
+        options,
+        dir,
+        't1',
+        l => lines.push(l.text),
+        r => resolve(r.status)
+      )
+    )
     expect(result).toBe('success')
     expect(readFileSync(join(dir, 'vite.config.ts'), 'utf-8')).toContain('plugins: [tailwindcss(), react()]')
     expect(readFileSync(join(dir, 'src/index.css'), 'utf-8')).toBe('@import "tailwindcss";\n\n:root { color: red; }\n')
     expect(lines.some(l => l.includes('déjà en place'))).toBe(true)
   })
 
-  it('leaves Next.js\'s own Tailwind alone, and resolves {app} in src/app', async () => {
+  it("leaves Next.js's own Tailwind alone, and resolves {app} in src/app", async () => {
     const dir = tempDir('next')
     mkdirSync(join(dir, 'src/app'), { recursive: true })
-    const options = { ...opts('nextjs', { git: false, features: ['api'] }, { devLibraries: ['tailwindcss'] }), destination: dir, installDeps: false, initGit: false, openAfter: false } as ProjectCreationOptions
+    const options = {
+      ...opts('nextjs', { git: false, features: ['api'] }, { devLibraries: ['tailwindcss'] }),
+      destination: dir,
+      installDeps: false,
+      initGit: false,
+      openAfter: false
+    } as ProjectCreationOptions
     const lines: string[] = []
-    const result = await new Promise<string>(resolve => runSetup(options, dir, 't2', l => lines.push(l.text), r => resolve(r.status)))
+    const result = await new Promise<string>(resolve =>
+      runSetup(
+        options,
+        dir,
+        't2',
+        l => lines.push(l.text),
+        r => resolve(r.status)
+      )
+    )
     expect(result).toBe('success')
     expect(existsSync(join(dir, 'postcss.config.mjs'))).toBe(false)
     // {app} resolved: written in src/app, and the log says so
@@ -109,7 +150,7 @@ describe('v3.3.1: Tailwind wired in', () => {
   })
 })
 
-describe('v3.3.1: Laravel after its creation', () => {
+describe('Laravel after its creation', () => {
   it('migrates the chosen database (on this PC, or in the Sail container) and gives User its API tokens', () => {
     const local = planSetup(opts('laravel', { database: 'postgres', features: ['api'] }), ctx)
     expect(commands(local)).toContain('php artisan migrate --force')
@@ -123,9 +164,21 @@ describe('v3.3.1: Laravel after its creation', () => {
 
   it('adds the trait to the model once, next to its imports and on its use line', () => {
     const user = [
-      '<?php', '', 'namespace App\\Models;', '', '// use Illuminate\\Contracts\\Auth\\MustVerifyEmail;',
-      'use Database\\Factories\\UserFactory;', 'use Illuminate\\Foundation\\Auth\\User as Authenticatable;', 'use Illuminate\\Notifications\\Notifiable;', '',
-      'class User extends Authenticatable', '{', '    /** @use HasFactory<UserFactory> */', '    use HasFactory, Notifiable;', '}', ''
+      '<?php',
+      '',
+      'namespace App\\Models;',
+      '',
+      '// use Illuminate\\Contracts\\Auth\\MustVerifyEmail;',
+      'use Database\\Factories\\UserFactory;',
+      'use Illuminate\\Foundation\\Auth\\User as Authenticatable;',
+      'use Illuminate\\Notifications\\Notifiable;',
+      '',
+      'class User extends Authenticatable',
+      '{',
+      '    /** @use HasFactory<UserFactory> */',
+      '    use HasFactory, Notifiable;',
+      '}',
+      ''
     ].join('\n')
     const out = withTrait(user, 'Laravel\\Sanctum\\HasApiTokens')
     expect(out).toContain('use Illuminate\\Notifications\\Notifiable;\nuse Laravel\\Sanctum\\HasApiTokens;\n')

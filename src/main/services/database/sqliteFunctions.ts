@@ -16,8 +16,10 @@ export function sqliteFunctions(db: SqlJsDb): void {
 
 const fr = () => loadSettings().language === 'fr'
 
+// Two parameters, like the real one: sql.js registers a function for the number of arguments it declares
+// (since 1.15), so an off switch with none would sit beside the real REGEXP instead of replacing it
 function regexpOff(db: SqlJsDb): void {
-  db.create_function('regexp', () => {
+  db.create_function('regexp', (_pattern: unknown, _value: unknown) => {
     throw new Error(fr() ? 'REGEXP ne sert qu’à l’onglet Rechercher de DevForge.' : 'REGEXP only works in DevForge’s Search tab.')
   })
 }
@@ -32,7 +34,8 @@ function regexp(pattern: unknown, value: unknown): number {
   let re = compiled.get(key)
   if (!re) {
     const { source, ignoreCase } = regexFlags(key)
-    if (riskyRegex(source)) throw new Error(fr() ? 'Expression régulière refusée : elle pourrait bloquer DevForge.' : 'Regular expression refused: it could freeze DevForge.')
+    if (riskyRegex(source))
+      throw new Error(fr() ? 'Expression régulière refusée : elle pourrait bloquer DevForge.' : 'Regular expression refused: it could freeze DevForge.')
     re = new RegExp(source, ignoreCase ? 'i' : '')
     if (compiled.size > 100) compiled.clear()
     compiled.set(key, re)
@@ -43,5 +46,9 @@ function regexp(pattern: unknown, value: unknown): number {
 /** Runs a search's statement with REGEXP on: the statement runs at once (sql.js is synchronous), then it is off again */
 export function withRegexp<T>(db: SqlJsDb, run: () => T): T {
   db.create_function('regexp', regexp)
-  try { return run() } finally { regexpOff(db) }
+  try {
+    return run()
+  } finally {
+    regexpOff(db)
+  }
 }

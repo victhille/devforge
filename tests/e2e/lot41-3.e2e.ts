@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 
-/** v4.1 lot 3: the floating bar — the selection cursor picks a zone, its parts move together; the hand moves the view */
+/** The floating bar — the selection cursor picks a zone, its parts move together; the hand moves the view */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -29,13 +29,31 @@ test('MCD: a zone picks two entities, they move together, the hand moves the vie
       const project = join(dir, 'shop')
       mkdirSync(join(project, 'conception'), { recursive: true })
       file = join(project, 'conception', 'shop.mcd.json')
-      writeFileSync(file, JSON.stringify({ v: 1, kind: 'mcd', name: 'Shop', updatedAt: '2026-11-01T00:00:00.000Z', mcd: {
-        entities: [
-          { id: 'a', name: 'CLIENT', x: 100, y: 100, attributes: [attr('a1', 'id_client', true)] },
-          { id: 'b', name: 'COMMANDE', x: 380, y: 100, attributes: [attr('b1', 'id_commande', true)] },
-          { id: 'c', name: 'PRODUIT', x: 100, y: 380, attributes: [attr('c1', 'id_produit', true)] }
-        ], associations: [], links: [], notes: [] } }))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'Shop', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        file,
+        JSON.stringify({
+          v: 1,
+          kind: 'mcd',
+          name: 'Shop',
+          updatedAt: '2026-11-01T00:00:00.000Z',
+          mcd: {
+            entities: [
+              { id: 'a', name: 'CLIENT', x: 100, y: 100, attributes: [attr('a1', 'id_client', true)] },
+              { id: 'b', name: 'COMMANDE', x: 380, y: 100, attributes: [attr('b1', 'id_commande', true)] },
+              { id: 'c', name: 'PRODUIT', x: 100, y: 380, attributes: [attr('c1', 'id_produit', true)] }
+            ],
+            associations: [],
+            links: [],
+            notes: []
+          }
+        })
+      )
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          { id: 'p1', name: 'Shop', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page } = run
@@ -49,7 +67,8 @@ test('MCD: a zone picks two entities, they move together, the hand moves the vie
   const [client, commande, produit] = ['CLIENT', 'COMMANDE', 'PRODUIT'].map(n => page.locator(`[data-entity="${n}"]`))
 
   // A zone around CLIENT and COMMANDE, from the background
-  const a = await box(client), b = await box(commande)
+  const a = await box(client),
+    b = await box(commande)
   await dragFrom(page, { x: a.x - 20, y: a.y - 20 }, { x: b.x + b.width + 20, y: b.y + b.height + 20 })
   const panel = page.getByRole('complementary', { name: 'Élément choisi' })
   await expect(panel.getByRole('status')).toHaveText('2 éléments sélectionnés')
@@ -60,8 +79,14 @@ test('MCD: a zone picks two entities, they move together, the hand moves the vie
   const before = await box(produit)
   // By the middle of the box (its points pull links)
   await dragFrom(page, { x: a.x + a.width / 2, y: a.y + a.height / 2 }, { x: a.x + a.width / 2 + 120, y: a.y + a.height / 2 + 60 })
-  const pos = () => Object.fromEntries(JSON.parse(readFileSync(file, 'utf-8')).mcd.entities.map((e: { name: string; x: number; y: number }) => [e.name, [e.x, e.y]]))
-  await expect.poll(() => { const p = pos(); return [p.CLIENT[0] - 100 === p.COMMANDE[0] - 380, p.CLIENT[0] > 100, p.PRODUIT[0]] }).toEqual([true, true, 100])
+  const pos = () =>
+    Object.fromEntries(JSON.parse(readFileSync(file, 'utf-8')).mcd.entities.map((e: { name: string; x: number; y: number }) => [e.name, [e.x, e.y]]))
+  await expect
+    .poll(() => {
+      const p = pos()
+      return [p.CLIENT[0] - 100 === p.COMMANDE[0] - 380, p.CLIENT[0] > 100, p.PRODUIT[0]]
+    })
+    .toEqual([true, true, 100])
   expect((await box(produit)).x).toBeCloseTo(before.x, 0)
 
   // One step back, both at once
@@ -104,17 +129,48 @@ test('a flowchart and an MPD: the same bar, a zone, a move together', async () =
       dir = d
       const project = join(d, 'flow')
       mkdirSync(join(project, 'conception'), { recursive: true })
-      writeFileSync(join(project, 'conception', 'flux.flow.json'), JSON.stringify({ v: 1, kind: 'flow', name: 'Flux', updatedAt: '2026-11-01T00:00:00.000Z', diagram: {
-        nodes: [{ id: 'n1', type: 'start', name: 'Début', x: 100, y: 100 }, { id: 'n2', type: 'step', name: 'Valider', x: 100, y: 260 }, { id: 'n3', type: 'end', name: 'Fin', x: 500, y: 460 }],
-        edges: [], notes: [] } }))
+      writeFileSync(
+        join(project, 'conception', 'flux.flow.json'),
+        JSON.stringify({
+          v: 1,
+          kind: 'flow',
+          name: 'Flux',
+          updatedAt: '2026-11-01T00:00:00.000Z',
+          diagram: {
+            nodes: [
+              { id: 'n1', type: 'start', name: 'Début', x: 100, y: 100 },
+              { id: 'n2', type: 'step', name: 'Valider', x: 100, y: 260 },
+              { id: 'n3', type: 'end', name: 'Fin', x: 500, y: 460 }
+            ],
+            edges: [],
+            notes: []
+          }
+        })
+      )
       const col = (id: string, name: string, pk = false) => ({ id, name, type: 'int', ...(pk ? { pk: true } : {}) })
-      writeFileSync(join(project, 'conception', 'base.mpd.json'), JSON.stringify({ v: 1, kind: 'mpd', name: 'Base', updatedAt: '2026-11-01T00:00:00.000Z', mpd: {
-        engine: 'postgres', tables: [
-          { id: 't1', name: 'client', x: 80, y: 80, columns: [col('c1', 'id', true)] },
-          { id: 't2', name: 'commande', x: 380, y: 80, columns: [col('c2', 'id', true)] },
-          { id: 't3', name: 'produit', x: 80, y: 420, columns: [col('c3', 'id', true)] }
-        ] } }))
-      writeFileSync(join(d, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'Flow', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(project, 'conception', 'base.mpd.json'),
+        JSON.stringify({
+          v: 1,
+          kind: 'mpd',
+          name: 'Base',
+          updatedAt: '2026-11-01T00:00:00.000Z',
+          mpd: {
+            engine: 'postgres',
+            tables: [
+              { id: 't1', name: 'client', x: 80, y: 80, columns: [col('c1', 'id', true)] },
+              { id: 't2', name: 'commande', x: 380, y: 80, columns: [col('c2', 'id', true)] },
+              { id: 't3', name: 'produit', x: 80, y: 420, columns: [col('c3', 'id', true)] }
+            ]
+          }
+        })
+      )
+      writeFileSync(
+        join(d, 'projects.json'),
+        JSON.stringify([
+          { id: 'p1', name: 'Flow', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page } = run
@@ -124,8 +180,11 @@ test('a flowchart and an MPD: the same bar, a zone, a move together', async () =
   await goTo(page, `/model?project=${encodeURIComponent(project)}&file=flux.flow.json`)
   const bar = page.getByRole('toolbar', { name: 'Palette' })
   await expect(bar.getByRole('button', { name: 'Décision', exact: true })).toBeVisible()
-  const start = page.locator('[data-node="Début"]'), step = page.locator('[data-node="Valider"]'), end = page.locator('[data-node="Fin"]')
-  const s1 = await box(start), s2 = await box(step)
+  const start = page.locator('[data-node="Début"]'),
+    step = page.locator('[data-node="Valider"]'),
+    end = page.locator('[data-node="Fin"]')
+  const s1 = await box(start),
+    s2 = await box(step)
   await dragFrom(page, { x: s1.x - 20, y: s1.y - 20 }, { x: s2.x + s2.width + 20, y: s2.y + s2.height + 20 })
   await expect(page.getByRole('complementary', { name: 'Élément' }).getByRole('status')).toHaveText('2 éléments sélectionnés')
   const fin = await box(end)
@@ -138,7 +197,9 @@ test('a flowchart and an MPD: the same bar, a zone, a move together', async () =
   const mpd = page.getByTestId('mpd-canvas')
   await expect(page.getByRole('toolbar', { name: 'Palette' }).getByRole('radio', { name: 'Main (H)' })).toBeVisible()
   const [t1, t2, t3] = ['client', 'commande', 'produit'].map(n => mpd.locator(`[data-table="${n}"]`))
-  const b1 = await box(t1), b2 = await box(t2), b3 = await box(t3)
+  const b1 = await box(t1),
+    b2 = await box(t2),
+    b3 = await box(t3)
   await dragFrom(page, { x: b1.x - 20, y: b1.y - 20 }, { x: b2.x + b2.width + 20, y: b2.y + b2.height + 20 })
   await expect(t1).toHaveAttribute('data-picked', 'true')
   await expect(t2).toHaveAttribute('data-picked', 'true')

@@ -13,7 +13,7 @@ function decodePart(part: string): unknown {
 }
 
 export default function JwtTool({ t }: { t: ToolboxT }) {
-  const [input, setInput]   = useState('')
+  const [input, setInput] = useState('')
   const [output, setOutput] = useState('')
   const h = useI18n().t.toolHelp
 
@@ -29,11 +29,29 @@ export default function JwtTool({ t }: { t: ToolboxT }) {
 
   return (
     <>
-      <ToolHelp id="jwt" what={h.jwt.what} how={h.jwt.how}
-        examples={[{ label: h.jwt.sample, onPick: () => { setInput(jwtExample()); setOutput('') } }]} />
+      <ToolHelp
+        id="jwt"
+        what={h.jwt.what}
+        how={h.jwt.how}
+        examples={[
+          {
+            label: h.jwt.sample,
+            onPick: () => {
+              setInput(jwtExample())
+              setOutput('')
+            }
+          }
+        ]}
+      />
       <IoGrid>
         <IoPanel label="JWT Token">
-          <textarea className={IO_TEXTAREA} value={input} onChange={e => setInput(e.target.value)} placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." spellCheck={false} />
+          <textarea
+            className={IO_TEXTAREA}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            spellCheck={false}
+          />
         </IoPanel>
         <IoPanel label="Decoded" actions={output && <CopyButton text={output} />}>
           <textarea className={IO_TEXTAREA} value={output} readOnly aria-label={t.output} spellCheck={false} />

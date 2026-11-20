@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v2.3 lot 5: a Laravel project in Sail (status canned): every line goes through the container */
+/** A Laravel project in Sail (status canned): every line goes through the container */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -19,17 +19,40 @@ test('Sail stopped: start it; the commands run in the app container', async () =
       mkdirSync(join(dir, 'app', 'Models'), { recursive: true })
       writeFileSync(join(dir, 'composer.json'), JSON.stringify({ require: { 'laravel/framework': '^13.0' } }))
       writeFileSync(join(dir, 'compose.yaml'), 'services:\n    laravel.test:\n        image: sail-8.5/app\n')
-      writeFileSync(join(data, 'projects.json'), JSON.stringify([
-        { id: 'lv', name: 'escale', path: dir, framework: 'laravel', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }
-      ]))
-      writeFileSync(join(data, 'laravel.json'), JSON.stringify({
-        status: {
-          booted: false, error: 'SAIL_DOWN', version: null, connection: 'pgsql', composeDatabase: true, api: true, faker: true,
-          sail: true, appUrl: 'http://localhost:8091', database: { reachable: false, error: null }
-        },
-        migrations: [],
-        routes: []
-      }))
+      writeFileSync(
+        join(data, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'lv',
+            name: 'escale',
+            path: dir,
+            framework: 'laravel',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
+      writeFileSync(
+        join(data, 'laravel.json'),
+        JSON.stringify({
+          status: {
+            booted: false,
+            error: 'SAIL_DOWN',
+            version: null,
+            connection: 'pgsql',
+            composeDatabase: true,
+            api: true,
+            faker: true,
+            sail: true,
+            appUrl: 'http://localhost:8091',
+            database: { reachable: false, error: null }
+          },
+          migrations: [],
+          routes: []
+        })
+      )
     }
   })
   const { page } = run

@@ -3,7 +3,7 @@ import { AUTH_API_ENV, AUTH_RULES } from '../data/authContract'
 import { ANVIL, DEVFORGE_CSS } from './devforgeStyle'
 
 /**
- * v3.4 lot 6, 3.4.1: sign-in, sign-up and a dashboard for a React or Vue
+ * Sign-in, sign-up and a dashboard for a React or Vue
  * (Vite, TypeScript) front, client of the shared contract. Laid out as:
  * src/api (calls to the server), src/pages (one view per page),
  * src/components (shared pieces), src/styles/devforge.css (the look),
@@ -20,19 +20,65 @@ export const API_URL_RE = /^https?:\/\/[^\s'"`\\]+$/
 
 const TEXT = {
   fr: {
-    name: 'Nom', email: 'E-mail', password: 'Mot de passe', home: 'Accueil',
-    login: { title: 'Se connecter', lead: 'Content de vous revoir.', submit: 'Se connecter', other: 'Pas encore de compte ?', otherLink: 'Créer un compte', otherHref: '#/register' },
-    register: { title: 'Créer un compte', lead: 'Quelques secondes, et vous y êtes.', submit: 'Créer mon compte', other: 'Déjà un compte ?', otherLink: 'Se connecter', otherHref: '#/login' },
-    hello: 'Bonjour', signedIn: 'Vous êtes connecté.', logout: 'Se déconnecter', loading: 'Chargement…', dashboard: 'Tableau de bord',
-    apiTitle: 'Votre API', apiLead: 'Ce front suit le contrat DevForge : il parle à', network: 'Le serveur ne répond pas. Est-il lancé ?',
+    name: 'Nom',
+    email: 'E-mail',
+    password: 'Mot de passe',
+    home: 'Accueil',
+    login: {
+      title: 'Se connecter',
+      lead: 'Content de vous revoir.',
+      submit: 'Se connecter',
+      other: 'Pas encore de compte ?',
+      otherLink: 'Créer un compte',
+      otherHref: '#/register'
+    },
+    register: {
+      title: 'Créer un compte',
+      lead: 'Quelques secondes, et vous y êtes.',
+      submit: 'Créer mon compte',
+      other: 'Déjà un compte ?',
+      otherLink: 'Se connecter',
+      otherHref: '#/login'
+    },
+    hello: 'Bonjour',
+    signedIn: 'Vous êtes connecté.',
+    logout: 'Se déconnecter',
+    loading: 'Chargement…',
+    dashboard: 'Tableau de bord',
+    apiTitle: 'Votre API',
+    apiLead: 'Ce front suit le contrat DevForge : il parle à',
+    network: 'Le serveur ne répond pas. Est-il lancé ?',
     password8: `Au moins ${AUTH_RULES.passwordMin} caractères.`
   },
   en: {
-    name: 'Name', email: 'Email', password: 'Password', home: 'Home',
-    login: { title: 'Sign in', lead: 'Good to see you again.', submit: 'Sign in', other: 'No account yet?', otherLink: 'Create an account', otherHref: '#/register' },
-    register: { title: 'Create an account', lead: 'A few seconds, and you are in.', submit: 'Create my account', other: 'Already have an account?', otherLink: 'Sign in', otherHref: '#/login' },
-    hello: 'Hello', signedIn: 'You are signed in.', logout: 'Sign out', loading: 'Loading…', dashboard: 'Dashboard',
-    apiTitle: 'Your API', apiLead: 'This front follows the DevForge contract: it talks to', network: 'The server is not answering. Is it running?',
+    name: 'Name',
+    email: 'Email',
+    password: 'Password',
+    home: 'Home',
+    login: {
+      title: 'Sign in',
+      lead: 'Good to see you again.',
+      submit: 'Sign in',
+      other: 'No account yet?',
+      otherLink: 'Create an account',
+      otherHref: '#/register'
+    },
+    register: {
+      title: 'Create an account',
+      lead: 'A few seconds, and you are in.',
+      submit: 'Create my account',
+      other: 'Already have an account?',
+      otherLink: 'Sign in',
+      otherHref: '#/login'
+    },
+    hello: 'Hello',
+    signedIn: 'You are signed in.',
+    logout: 'Sign out',
+    loading: 'Loading…',
+    dashboard: 'Dashboard',
+    apiTitle: 'Your API',
+    apiLead: 'This front follows the DevForge contract: it talks to',
+    network: 'The server is not answering. Is it running?',
     password8: `At least ${AUTH_RULES.passwordMin} characters.`
   }
 }
@@ -112,7 +158,11 @@ export async function me(): Promise<User | null> {
 }
 `
 
-const textsFile = (lang: 'fr' | 'en', name: string, apiUrl: string) => `/** Texts of the account pages, the project's name and DevForge's anvil (the look: styles/devforge.css) */
+const textsFile = (
+  lang: 'fr' | 'en',
+  name: string,
+  apiUrl: string
+) => `/** Texts of the account pages, the project's name and DevForge's anvil (the look: styles/devforge.css) */
 export const t = ${JSON.stringify({ ...TEXT[lang], project: name, api: apiUrl }, null, 2)}
 
 export const anvil = ${JSON.stringify(ANVIL)}
@@ -505,12 +555,21 @@ export function spaAuthPatches(framework: 'react' | 'vue', apiUrl: string, label
   const react = framework === 'react'
   return [
     {
-      kind: 'patch', label: label.main, file: react ? 'src/main.tsx' : 'src/main.ts',
-      find: react ? "import App from '\\./App(\\.tsx)?'" : "import App from '\\./App\\.vue'", mode: 'replace',
-      unless: './Router', text: react ? "import App from './Router'" : "import App from './Router.vue'"
+      kind: 'patch',
+      label: label.main,
+      file: react ? 'src/main.tsx' : 'src/main.ts',
+      find: react ? "import App from '\\./App(\\.tsx)?'" : "import App from '\\./App\\.vue'",
+      mode: 'replace',
+      unless: './Router',
+      text: react ? "import App from './Router'" : "import App from './Router.vue'"
     },
     {
-      kind: 'patch', label: label.proxy, file: 'vite.config.ts', find: 'plugins:\\s*\\[', mode: 'replace', unless: "'/api'",
+      kind: 'patch',
+      label: label.proxy,
+      file: 'vite.config.ts',
+      find: 'plugins:\\s*\\[',
+      mode: 'replace',
+      unless: "'/api'",
       text: `// DevForge: the contract's API, on the server's address (no CORS in development)\n  server: { proxy: { '/api': { target: '${apiUrl}', changeOrigin: true } } },\n  plugins: [`
     },
     { kind: 'env', label: '.env.example', file: '.env.example', vars: { [AUTH_API_ENV]: '' } }

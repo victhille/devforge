@@ -7,7 +7,7 @@ import { settledAxeIssues } from './axe'
 import { pullLink, pullToEmpty } from './pull'
 import { shop } from '../shopMcd'
 
-/** v3.9: links pulled from the parts' points, the palette dragged onto the canvas (MCD, flowchart, MPD) */
+/** Links pulled from the parts' points, the palette dragged onto the canvas (MCD, flowchart, MPD) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -21,9 +21,20 @@ test('parts dragged from the palette, links pulled from their points, a foreign 
       project = join(dir, 'shop')
       mkdirSync(join(project, 'conception'), { recursive: true })
       const mpd = generateMpd(shop(), DEFAULT_NAMING, 'postgres', null, 'boutique.mcd.json')
-      writeFileSync(join(project, 'conception', 'boutique.mcd.json'), JSON.stringify({ v: 1, kind: 'mcd', name: 'Boutique', updatedAt: '2026-10-01T10:00:00.000Z', mcd: shop() }))
-      writeFileSync(join(project, 'conception', 'boutique.mpd.json'), JSON.stringify({ v: 1, kind: 'mpd', name: 'Boutique', updatedAt: '2026-10-01T10:00:00.000Z', mpd }))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 's', name: 'shop', path: project, framework: 'other', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(project, 'conception', 'boutique.mcd.json'),
+        JSON.stringify({ v: 1, kind: 'mcd', name: 'Boutique', updatedAt: '2026-10-01T10:00:00.000Z', mcd: shop() })
+      )
+      writeFileSync(
+        join(project, 'conception', 'boutique.mpd.json'),
+        JSON.stringify({ v: 1, kind: 'mpd', name: 'Boutique', updatedAt: '2026-10-01T10:00:00.000Z', mpd })
+      )
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          { id: 's', name: 'shop', path: project, framework: 'other', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page, app } = run
@@ -53,10 +64,15 @@ test('parts dragged from the palette, links pulled from their points, a foreign 
   // Let go on empty space: a new entity there, joined by a new association
   await pullToEmpty(page, 'Produit', 'bottom', 0, 260)
   const file = join(project, 'conception', 'stock.mcd.json')
-  await expect.poll(() => {
-    const m = JSON.parse(readFileSync(file, 'utf-8')).mcd
-    return [m.entities.length, m.associations.length, m.links.length, m.associations[0]?.name]
-  }, { timeout: 10_000 }).toEqual([3, 2, 4, 'Acheter'])
+  await expect
+    .poll(
+      () => {
+        const m = JSON.parse(readFileSync(file, 'utf-8')).mcd
+        return [m.entities.length, m.associations.length, m.links.length, m.associations[0]?.name]
+      },
+      { timeout: 10_000 }
+    )
+    .toEqual([3, 2, 4, 'Acheter'])
   // A slip (let go next to the point) makes nothing
   await pullToEmpty(page, 'Client', 'top', 0, -15)
   await page.waitForTimeout(700)
@@ -70,10 +86,15 @@ test('parts dragged from the palette, links pulled from their points, a foreign 
   await page.getByRole('dialog').getByRole('button', { name: 'Créer' }).click()
   await palette.getByRole('button', { name: 'Début', exact: true }).dragTo(page.getByTestId('diagram-canvas'), { targetPosition: { x: 300, y: 120 } })
   await pullToEmpty(page, 'Début', 'bottom', 0, 160)
-  await expect.poll(() => {
-    const d = JSON.parse(readFileSync(join(project, 'conception', 'paiement.flow.json'), 'utf-8')).diagram
-    return [d.nodes.map((n: { type: string }) => n.type).join(','), d.edges.map((e: { type: string }) => e.type).join(',')]
-  }, { timeout: 10_000 }).toEqual(['start,step', 'flow'])
+  await expect
+    .poll(
+      () => {
+        const d = JSON.parse(readFileSync(join(project, 'conception', 'paiement.flow.json'), 'utf-8')).diagram
+        return [d.nodes.map((n: { type: string }) => n.type).join(','), d.edges.map((e: { type: string }) => e.type).join(',')]
+      },
+      { timeout: 10_000 }
+    )
+    .toEqual(['start,step', 'flow'])
 
   // The MPD: a line from adresse onto categorie adds the foreign key
   await page.getByRole('button', { name: 'Modélisation' }).click()
@@ -83,10 +104,15 @@ test('parts dragged from the palette, links pulled from their points, a foreign 
   await pullLink(page, 'adresse', mpdCanvas.locator('[data-table="categorie"]'))
   await expect(page.getByText('Clé étrangère adresse.categorie_id ajoutée')).toBeVisible()
   await expect(mpdCanvas.locator('[data-table="adresse"]')).toContainText('categorie_id')
-  await expect.poll(() => {
-    const m = JSON.parse(readFileSync(join(project, 'conception', 'boutique.mpd.json'), 'utf-8')).mpd
-    const adresse = m.tables.find((t: { name: string }) => t.name === 'adresse')
-    const categorie = m.tables.find((t: { name: string }) => t.name === 'categorie')
-    return adresse.columns.find((c: { name: string }) => c.name === 'categorie_id')?.ref?.table === categorie.id
-  }, { timeout: 10_000 }).toBe(true)
+  await expect
+    .poll(
+      () => {
+        const m = JSON.parse(readFileSync(join(project, 'conception', 'boutique.mpd.json'), 'utf-8')).mpd
+        const adresse = m.tables.find((t: { name: string }) => t.name === 'adresse')
+        const categorie = m.tables.find((t: { name: string }) => t.name === 'categorie')
+        return adresse.columns.find((c: { name: string }) => c.name === 'categorie_id')?.ref?.table === categorie.id
+      },
+      { timeout: 10_000 }
+    )
+    .toBe(true)
 })

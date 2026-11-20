@@ -22,7 +22,12 @@ async function api(path) {
 }
 
 const [info, releases, views, clones, referrers, paths] = await Promise.all([
-  api(''), api('/releases?per_page=100'), api('/traffic/views'), api('/traffic/clones'), api('/traffic/popular/referrers'), api('/traffic/popular/paths')
+  api(''),
+  api('/releases?per_page=100'),
+  api('/traffic/views'),
+  api('/traffic/clones'),
+  api('/traffic/popular/referrers'),
+  api('/traffic/popular/paths')
 ])
 const archive = existsSync(file) ? JSON.parse(readFileSync(file, 'utf-8')) : null
 const now = new Date()

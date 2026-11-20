@@ -23,15 +23,13 @@ export function IoPanel({ label, actions, className, children }: Props) {
         <h2 className="font-display text-md font-bold text-fg">{label}</h2>
         <div className="flex items-center gap-1.5 text-sm">{actions}</div>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col px-4.5 pb-4.5 [&_textarea[readonly]]:border-transparent [&_textarea[readonly]]:bg-console">
-        {children}
-      </div>
+      <div className="flex min-h-0 flex-1 flex-col px-4.5 pb-4.5 [&_textarea[readonly]]:border-transparent [&_textarea[readonly]]:bg-console">{children}</div>
     </section>
   )
 }
 
 export const IO_TEXTAREA =
-  'min-h-48 flex-1 resize-none rounded-control border border-line-subtle bg-canvas p-3.5 font-mono text-sm leading-relaxed text-fg outline-none placeholder:text-fg-muted focus:border-accent'
+  'min-h-48 flex-1 resize-none rounded-control border border-line-strong bg-canvas p-3.5 font-mono text-sm leading-relaxed text-fg outline-none placeholder:text-fg-muted focus:border-accent'
 
 /** Two side-by-side panels taking the remaining height. */
 export function IoGrid({ children }: { children: ReactNode }) {

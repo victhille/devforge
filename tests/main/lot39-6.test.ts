@@ -6,7 +6,7 @@ import { saveProjects, tempDir } from '../helpers'
 import { shop } from '../shopMcd'
 import { samples } from '../diagrams'
 
-/** v3.9 lot 6: Forgy reads the Modeling page's models */
+/** Forgy reads the Modeling page's models */
 
 describe("Forgy's modeling tools", () => {
   it('lists the models, then reads an MCD, an MPD and a diagram as text', async () => {
@@ -15,7 +15,13 @@ describe("Forgy's modeling tools", () => {
     expect(await runTool('project_models', { project: 'shop' })).toMatch(/has no model yet/)
 
     saveModel(project, 'boutique.mcd.json', { v: 1, kind: 'mcd', name: 'Boutique', updatedAt: '', mcd: shop() })
-    saveModel(project, 'boutique.mpd.json', { v: 1, kind: 'mpd', name: 'Boutique', updatedAt: '', mpd: { ...generateMpd(shop(), DEFAULT_NAMING, 'mysql', null, 'boutique.mcd.json'), connection: 'dev' } })
+    saveModel(project, 'boutique.mpd.json', {
+      v: 1,
+      kind: 'mpd',
+      name: 'Boutique',
+      updatedAt: '',
+      mpd: { ...generateMpd(shop(), DEFAULT_NAMING, 'mysql', null, 'boutique.mcd.json'), connection: 'dev' }
+    })
     saveModel(project, 'parcours.usecase.json', { v: 1, kind: 'usecase', name: 'Parcours', updatedAt: '', diagram: samples.usecase() })
     saveModel(project, 'commande.sequence.json', { v: 1, kind: 'sequence', name: 'Commande', updatedAt: '', diagram: samples.sequence() })
 
@@ -36,7 +42,9 @@ describe("Forgy's modeling tools", () => {
     expect(mpd).toContain('id INT AUTO_INCREMENT PRIMARY KEY')
 
     const uc = await runTool('read_model', { project: 'shop', file: 'parcours.usecase.json' })
-    expect(uc).toContain('- case "Passer une commande" · actors Client · includes Payer · extended by Appliquer un coupon\n  scenario: 1. Le client valide son panier 2. Il paie')
+    expect(uc).toContain(
+      '- case "Passer une commande" · actors Client · includes Payer · extended by Appliquer un coupon\n  scenario: 1. Le client valide son panier 2. Il paie'
+    )
     expect(uc).toContain('- include: Passer une commande → Payer')
     const seq = await runTool('read_model', { project: 'shop', file: 'commande.sequence.json' })
     expect(seq.indexOf('"valider le panier"')).toBeLessThan(seq.indexOf('"POST /commandes"'))

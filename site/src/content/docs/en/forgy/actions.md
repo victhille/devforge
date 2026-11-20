@@ -16,7 +16,7 @@ Forgy can also **act**. Each action shows as a **card** in the panel: what will 
 | Container | `start`, `stop` or `restart` of a container | yes (`start` ↔ `stop`) | no |
 | SQL | one query: read (50 rows) or write | no | read only |
 | Free a port | stops the process listening on a port | no | no |
-| Script | runs a `package.json` script in the background | yes (stop) | yes |
+| Script | runs a `package.json` script in the background | yes (stop) for a server or watcher: `dev`, `start`, `serve`, `watch`; no for the others | `dev`, `start`, `serve`, `watch` |
 | .env variable | adds a **new** key to a `.env` (value masked on the card) | yes (removal) | yes |
 | n8n workflow | turns a workflow on or off | yes (the reverse) | yes |
 | n8n execution | retries a failed execution | no | no |
@@ -34,7 +34,7 @@ Forgy can also **act**. Each action shows as a **card** in the panel: what will 
 **Settings › Forgy › Forgy's actions**:
 
 - **Always ask** (default): every action waits for your click.
-- **Auto for safe actions**: only the actions of the "Auto possible" column (undoable or read-only) go without a click. Push, pull, SQL writes, ports and package updates always ask for your approval.
+- **Auto for safe actions**: only the actions of the "Auto possible" column (undoable or read-only) go without a click. Push, pull, SQL writes, ports, package updates and scripts other than `dev`, `start`, `serve` and `watch` (build, deploy, publish…) always ask for your approval, as does one of these four that runs something else with it (a `predev` or `postdev` script, commands chained with `&&`, another script called with `npm run`).
 
 ## Guardrails
 

@@ -18,7 +18,7 @@ interface ConsoleState {
   projectId: string | null
   /** A finished creation opens the project (which makes it the active one) */
   openOnDone: boolean
-  /** v3.9: a creation started from the wizard, followed from any page (title bar, back to the wizard) */
+  /** A creation started from the wizard, followed from any page (title bar, back to the wizard) */
   creation: CreationView | null
 }
 
@@ -56,17 +56,17 @@ export const ConsoleContext = createContext<ConsoleContextValue | null>(null)
 
 export function ConsoleProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<ConsoleState>({
-    visible:     false,
-    minimized:   false,
-    label:       '',
-    taskId:      null,
-    logs:        [],
-    result:      null,
+    visible: false,
+    minimized: false,
+    label: '',
+    taskId: null,
+    logs: [],
+    result: null,
     projectPath: null,
-    isCreation:  false,
-    projectId:   null,
-    openOnDone:  true,
-    creation:    null
+    isCreation: false,
+    projectId: null,
+    openOnDone: true,
+    creation: null
   })
   const saveProjUnsubRef = useRef<(() => void) | null>(null)
   const { t } = useI18n()
@@ -77,12 +77,15 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
     let pending: LogLine[] = []
     let timer: ReturnType<typeof setTimeout> | null = null
     const flush = () => {
-      if (timer) { clearTimeout(timer); timer = null }
+      if (timer) {
+        clearTimeout(timer)
+        timer = null
+      }
       if (!pending.length) return
       const batch = pending
       pending = []
       // A creation is followed even with the console closed: its page and the title bar show it
-      setState(prev => prev.visible || prev.isCreation ? { ...prev, logs: prev.logs.concat(batch) } : prev)
+      setState(prev => (prev.visible || prev.isCreation ? { ...prev, logs: prev.logs.concat(batch) } : prev))
     }
     const unsubLog = window.devforge.onTaskLog(log => {
       pending.push(log)
@@ -103,91 +106,120 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
               new Notification('DevForge', { body: `✗ ${prev.label} — failed`, silent: false })
             }
           }
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
         return { ...prev, result }
       })
     })
 
-    return () => { unsubLog(); unsubResult(); if (timer) clearTimeout(timer) }
+    return () => {
+      unsubLog()
+      unsubResult()
+      if (timer) clearTimeout(timer)
+    }
   }, [])
 
-  const startCreation = useCallback(async (options: ProjectCreationOptions, after?: CreationAfter) => {
-    const sep      = options.destination.includes('/') ? '/' : '\\'
-    const projPath = options.destination.replace(/[/\\]$/, '') + sep + options.name
+  const startCreation = useCallback(
+    async (options: ProjectCreationOptions, after?: CreationAfter) => {
+      const sep = options.destination.includes('/') ? '/' : '\\'
+      const projPath = options.destination.replace(/[/\\]$/, '') + sep + options.name
 
-    setState({
-      visible:     true,
-      minimized:   after?.minimized ?? false,
-      label:       t.console.creating.replace('{name}', options.name),
-      taskId:      null,
-      logs:        [],
-      result:      null,
-      projectPath: projPath,
-      isCreation:  true,
-      projectId:   null,
-      openOnDone:  after?.openOnDone ?? true,
-      creation:    after?.view ? { ...after.view, name: options.name, startedAt: Date.now() } : null
-    })
-
-    const taskId = await window.devforge.createProject(options)
-    setState(prev => ({ ...prev, taskId }))
-
-    // Clean up any leftover listener from a previous aborted creation
-    saveProjUnsubRef.current?.()
-
-    // One-shot listener to save the project when creation succeeds
-    const unsub = window.devforge.onTaskResult(async result => {
-      if (result.status === 'success') {
-        const id = crypto.randomUUID()
-        await window.devforge.saveProject({
-          id,
-          name:          options.name,
-          path:          projPath,
-          framework:     options.framework,
-          packageManager:options.packageManager,
-          createdAt:     new Date().toISOString(),
-          lastOpenedAt:  null,
-          favorite:      false
-        })
-        // The console opens the project's page once it is saved (unless asked not to)
-        setState(prev => ({ ...prev, projectId: id }))
-      }
-      saveProjUnsubRef.current = null
-      unsub()
-    })
-    saveProjUnsubRef.current = unsub
-  }, [t])
-
-  const runScript = useCallback(async (
-    projectPath: string,
-    script: string,
-    pm: PackageManager,
-    projectName: string
-  ) => {
-    const base = { visible: true, minimized: false, taskId: null, result: null, projectPath, isCreation: false, projectId: null, openOnDone: false, creation: null }
-    // No node_modules: offer to install first, then the script follows in the same console
-    let installed = false
-    if (await window.devforge.scriptNeedsInstall(projectPath) && (await confirmDialog(t.hub.installFirst))) {
-      setState({ ...base, label: `${pm} install (${projectName})`, logs: [] })
-      const installId = await window.devforge.installProjectDeps(projectPath, pm)
-      setState(prev => ({ ...prev, taskId: installId }))
-      const ok = await new Promise<boolean>(resolve => {
-        const unsub = window.devforge.onTaskResult(r => {
-          if (r.taskId !== installId) return
-          unsub()
-          resolve(r.status === 'success')
-        })
+      setState({
+        visible: true,
+        minimized: after?.minimized ?? false,
+        label: t.console.creating.replace('{name}', options.name),
+        taskId: null,
+        logs: [],
+        result: null,
+        projectPath: projPath,
+        isCreation: true,
+        projectId: null,
+        openOnDone: after?.openOnDone ?? true,
+        creation: after?.view ? { ...after.view, name: options.name, startedAt: Date.now() } : null
       })
-      if (!ok) return
-      installed = true
-    }
-    setState(prev => ({ ...base, label: `${pm} run ${script} (${projectName})`, logs: installed ? prev.logs : [] }))
-    const taskId = await window.devforge.runProjectScript(projectPath, script, pm)
-    setState(prev => ({ ...prev, taskId }))
-  }, [t])
+
+      const taskId = await window.devforge.createProject(options)
+      setState(prev => ({ ...prev, taskId }))
+
+      // Clean up any leftover listener from a previous aborted creation
+      saveProjUnsubRef.current?.()
+
+      // One-shot listener to save the project when creation succeeds
+      const unsub = window.devforge.onTaskResult(async result => {
+        if (result.status === 'success') {
+          const id = crypto.randomUUID()
+          await window.devforge.saveProject({
+            id,
+            name: options.name,
+            path: projPath,
+            framework: options.framework,
+            packageManager: options.packageManager,
+            createdAt: new Date().toISOString(),
+            lastOpenedAt: null,
+            favorite: false
+          })
+          // The console opens the project's page once it is saved (unless asked not to)
+          setState(prev => ({ ...prev, projectId: id }))
+        }
+        saveProjUnsubRef.current = null
+        unsub()
+      })
+      saveProjUnsubRef.current = unsub
+    },
+    [t]
+  )
+
+  const runScript = useCallback(
+    async (projectPath: string, script: string, pm: PackageManager, projectName: string) => {
+      const base = {
+        visible: true,
+        minimized: false,
+        taskId: null,
+        result: null,
+        projectPath,
+        isCreation: false,
+        projectId: null,
+        openOnDone: false,
+        creation: null
+      }
+      // No node_modules: offer to install first, then the script follows in the same console
+      let installed = false
+      if ((await window.devforge.scriptNeedsInstall(projectPath)) && (await confirmDialog(t.hub.installFirst))) {
+        setState({ ...base, label: `${pm} install (${projectName})`, logs: [] })
+        const installId = await window.devforge.installProjectDeps(projectPath, pm)
+        setState(prev => ({ ...prev, taskId: installId }))
+        const ok = await new Promise<boolean>(resolve => {
+          const unsub = window.devforge.onTaskResult(r => {
+            if (r.taskId !== installId) return
+            unsub()
+            resolve(r.status === 'success')
+          })
+        })
+        if (!ok) return
+        installed = true
+      }
+      setState(prev => ({ ...base, label: `${pm} run ${script} (${projectName})`, logs: installed ? prev.logs : [] }))
+      const taskId = await window.devforge.runProjectScript(projectPath, script, pm)
+      setState(prev => ({ ...prev, taskId }))
+    },
+    [t]
+  )
 
   const runTask = useCallback(async (label: string, projectPath: string, start: () => Promise<string>) => {
-    setState({ visible: true, minimized: false, label, taskId: null, logs: [], result: null, projectPath, isCreation: false, projectId: null, openOnDone: false, creation: null })
+    setState({
+      visible: true,
+      minimized: false,
+      label,
+      taskId: null,
+      logs: [],
+      result: null,
+      projectPath,
+      isCreation: false,
+      projectId: null,
+      openOnDone: false,
+      creation: null
+    })
     try {
       const taskId = await start()
       setState(prev => ({ ...prev, taskId }))
@@ -233,10 +265,19 @@ export function ConsoleProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <ConsoleContext.Provider value={{
-      ...state,
-      startCreation, runScript, runTask, cancelTask, hide, setMinimized, openFolder, openVSCode
-    }}>
+    <ConsoleContext.Provider
+      value={{
+        ...state,
+        startCreation,
+        runScript,
+        runTask,
+        cancelTask,
+        hide,
+        setMinimized,
+        openFolder,
+        openVSCode
+      }}
+    >
       {children}
     </ConsoleContext.Provider>
   )

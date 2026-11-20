@@ -4,17 +4,12 @@ import { PROJECT_TREES, drawTree } from '../../src/shared/data/projectTrees'
 /** The tree the new project wizard shows, drawn as text */
 describe('drawTree', () => {
   it('draws folders, their files and the last entry of each level', () => {
-    expect(drawTree('shop', ['app/', '  layout.tsx', '  page.tsx', 'public/', 'README.md'])).toBe([
-      'shop/',
-      '├─ app/',
-      '│  ├─ layout.tsx',
-      '│  └─ page.tsx',
-      '├─ public/',
-      '└─ README.md'
-    ].join('\n'))
+    expect(drawTree('shop', ['app/', '  layout.tsx', '  page.tsx', 'public/', 'README.md'])).toBe(
+      ['shop/', '├─ app/', '│  ├─ layout.tsx', '│  └─ page.tsx', '├─ public/', '└─ README.md'].join('\n')
+    )
   })
 
-  it('ends on a folder\'s files', () => {
+  it("ends on a folder's files", () => {
     expect(drawTree('x', ['README.md', 'src/', '  index.ts'])).toBe(['x/', '├─ README.md', '└─ src/', '   └─ index.ts'].join('\n'))
   })
 

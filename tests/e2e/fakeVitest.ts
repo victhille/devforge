@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 
 /**
- * v3.7: a stand-in "vitest" for a seeded project: it prints a few lines and
+ * A stand-in "vitest" for a seeded project: it prints a few lines and
  * writes a report in Vitest's JSON format where it is told. The discount test
  * fails until a file named "fixed" is in the project; file arguments run only
  * those files.
@@ -34,11 +34,17 @@ fs.writeFileSync(out, JSON.stringify({ testResults: files }))
 process.exit(files.some(f => f.assertionResults.some(a => a.status === 'failed')) ? 1 : 0)
 `
 
-const file = (path: string, content: string) => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
+const file = (path: string, content: string) => {
+  mkdirSync(join(path, '..'), { recursive: true })
+  writeFileSync(path, content)
+}
 
 export function seedVitestProject(dir: string): void {
   file(join(dir, 'package.json'), JSON.stringify({ name: 'shop', devDependencies: { vitest: '^3.2.0' } }))
-  file(join(dir, 'src', 'cart.test.ts'), "import { expect, it } from 'vitest'\n\nit('adds the items', () => {})\n\nit('applies the discount', () => {\n  expect(90).toBe(85)\n})\n")
+  file(
+    join(dir, 'src', 'cart.test.ts'),
+    "import { expect, it } from 'vitest'\n\nit('adds the items', () => {})\n\nit('applies the discount', () => {\n  expect(90).toBe(85)\n})\n"
+  )
   file(join(dir, 'node_modules', '.bin', 'fake-vitest.js'), FAKE_VITEST)
   file(join(dir, 'node_modules', '.bin', 'vitest.cmd'), '@node "%~dp0fake-vitest.js" %*\r\n')
   file(join(dir, 'node_modules', '.bin', 'vitest'), '#!/bin/sh\nnode "$(dirname "$0")/fake-vitest.js" "$@"\n')

@@ -12,10 +12,15 @@ import { Input } from '@renderer/components/ui/Input'
 import ErrorState from '@renderer/components/ui/ErrorState'
 import { errorText } from '@renderer/lib/errors'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
+import { visibleInterval } from '@renderer/lib/visibleInterval'
 
 const STATE_TONE: Record<string, string> = {
-  READY: 'bg-success-soft text-success', ERROR: 'bg-danger-soft text-danger', BUILDING: 'bg-warning-soft text-warning',
-  QUEUED: 'bg-active text-fg-secondary', INITIALIZING: 'bg-warning-soft text-warning', CANCELED: 'bg-active text-fg-muted'
+  READY: 'bg-success-soft text-success',
+  ERROR: 'bg-danger-soft text-danger',
+  BUILDING: 'bg-warning-soft text-warning',
+  QUEUED: 'bg-active text-fg-secondary',
+  INITIALIZING: 'bg-warning-soft text-warning',
+  CANCELED: 'bg-active text-fg-muted'
 }
 
 /** Project page → Vercel: deployments (redeploy, promote, build logs), env keys, domains */
@@ -41,7 +46,12 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
     return e === 'BAD_TOKEN' ? v.badToken : e === 'NOT_LINKED' ? v.notLinked : e
   }
 
-  useEffect(() => { window.devforge.vercel.account().then(setAcc).catch(err => setAccFailed(say(err))) }, [accRound]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    window.devforge.vercel
+      .account()
+      .then(setAcc)
+      .catch(err => setAccFailed(say(err)))
+  }, [accRound]) // eslint-disable-line react-hooks/exhaustive-deps -- read again only when the account changes (accRound)
 
   const load = useCallback(async () => {
     setError('')
@@ -54,43 +64,79 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
         window.devforge.vercel.env(projectId).catch(() => 'failed' as const),
         window.devforge.vercel.domains(projectId).catch(() => 'failed' as const)
       ])
-      setDeps(d); setEnv(e); setDomains(dm)
-    } catch (err) { setError(say(err)) }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+      setDeps(d)
+      setEnv(e)
+      setDomains(dm)
+    } catch (err) {
+      setError(say(err))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- say only words the errors: one load per project
   }, [projectId])
-  useEffect(() => { if (acc?.connected) load() }, [acc?.connected, load])
+  useEffect(() => {
+    if (acc?.connected) load()
+  }, [acc?.connected, load])
 
   // A build in progress is followed every 5 s
   const building = deps?.some(d => ['BUILDING', 'QUEUED', 'INITIALIZING'].includes(d.state))
   useEffect(() => {
     if (!building) return
-    const id = setInterval(() => window.devforge.vercel.deployments(projectId).then(setDeps).catch(() => {}), 5000)
-    return () => clearInterval(id)
+    return visibleInterval(() => {
+      window.devforge.vercel
+        .deployments(projectId)
+        .then(setDeps)
+        .catch(() => {})
+    }, 5000)
   }, [building, projectId])
 
   async function connect() {
     setBusy('token')
-    try { setAcc(await window.devforge.vercel.saveToken(token)); setToken('') }
-    catch (err) { toast.show({ tone: 'error', title: say(err) }) }
-    finally { setBusy(null) }
+    try {
+      setAcc(await window.devforge.vercel.saveToken(token))
+      setToken('')
+    } catch (err) {
+      toast.show({ tone: 'error', title: say(err) })
+    } finally {
+      setBusy(null)
+    }
   }
 
   async function act(key: string, confirmText: string, fn: () => Promise<unknown>, done: string) {
     if (!(await confirmDialog(confirmText))) return
     setBusy(key)
-    try { await fn(); toast.show({ tone: 'success', title: done }); load() }
-    catch (err) { toast.show({ tone: 'error', title: say(err) }) }
-    finally { setBusy(null) }
+    try {
+      await fn()
+      toast.show({ tone: 'success', title: done })
+      load()
+    } catch (err) {
+      toast.show({ tone: 'error', title: say(err) })
+    } finally {
+      setBusy(null)
+    }
   }
 
   async function showLogs(id: string) {
-    if (logs?.id === id) { setLogs(null); return }
+    if (logs?.id === id) {
+      setLogs(null)
+      return
+    }
     setLogs({ id, text: null })
-    try { setLogs({ id, text: await window.devforge.vercel.buildLogs(projectId, id) }) }
-    catch (err) { setLogs({ id, text: say(err) }) }
+    try {
+      setLogs({ id, text: await window.devforge.vercel.buildLogs(projectId, id) })
+    } catch (err) {
+      setLogs({ id, text: say(err) })
+    }
   }
 
-  if (accFailed) return <ErrorState error={accFailed} onRetry={() => { setAccFailed(''); setAccRound(r => r + 1) }} />
+  if (accFailed)
+    return (
+      <ErrorState
+        error={accFailed}
+        onRetry={() => {
+          setAccFailed('')
+          setAccRound(r => r + 1)
+        }}
+      />
+    )
   if (!acc) return <CardSkeleton rows={2} />
 
   if (!acc.connected) {
@@ -99,8 +145,18 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
         <h2 className="text-md font-semibold text-fg">{v.connectTitle}</h2>
         <p className="text-sm text-fg-secondary">{v.connectHint}</p>
         <div className="flex gap-2">
-          <Input type="password" value={token} onChange={e => setToken(e.target.value)} placeholder={v.tokenPlaceholder} aria-label={v.tokenPlaceholder} className="font-mono" autoComplete="off" />
-          <Button disabled={!token.trim()} loading={busy === 'token'} onClick={connect}>{busy !== 'token' && <KeyRound size={14} />} {v.connect}</Button>
+          <Input
+            type="password"
+            value={token}
+            onChange={e => setToken(e.target.value)}
+            placeholder={v.tokenPlaceholder}
+            aria-label={v.tokenPlaceholder}
+            className="font-mono"
+            autoComplete="off"
+          />
+          <Button disabled={!token.trim()} loading={busy === 'token'} onClick={connect}>
+            {busy !== 'token' && <KeyRound size={14} />} {v.connect}
+          </Button>
         </div>
       </Card>
     )
@@ -116,52 +172,102 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <svg aria-hidden width="16" height="16" viewBox="0 0 24 24" className="fill-fg"><path d="M12 3l10 18H2z" /></svg>
+            <svg aria-hidden width="16" height="16" viewBox="0 0 24 24" className="fill-fg">
+              <path d="M12 3l10 18H2z" />
+            </svg>
             <h2 className="text-md font-semibold text-fg">{info.name}</h2>
             {info.framework && <span className="rounded-full bg-elevated px-2 py-0.5 font-mono text-xs text-fg-muted">{info.framework}</span>}
           </div>
-          <div className="mt-0.5 text-xs text-fg-muted">{v.connectedAs.replace('{user}', acc.username ?? '?')} · <button className="hover:text-danger" onClick={async () => setAcc(await window.devforge.vercel.saveToken(null))}>{v.disconnect}</button></div>
+          <div className="mt-0.5 text-xs text-fg-muted">
+            {v.connectedAs.replace('{user}', acc.username ?? '?')} ·{' '}
+            <button
+              type="button"
+              className="-my-1 rounded px-1 py-1 hover:text-danger"
+              onClick={async () => setAcc(await window.devforge.vercel.saveToken(null))}
+            >
+              {v.disconnect}
+            </button>
+          </div>
         </div>
-        {info.productionUrl && <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(info.productionUrl!)}><ExternalLink size={13} /> {v.openSite}</Button>}
-        <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal(`https://vercel.com/${acc.username ?? ''}/${info.name}`)}>{v.openDashboard}</Button>
+        {info.productionUrl && (
+          <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(info.productionUrl!)}>
+            <ExternalLink size={13} /> {v.openSite}
+          </Button>
+        )}
+        <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal(`https://vercel.com/${acc.username ?? ''}/${info.name}`)}>
+          {v.openDashboard}
+        </Button>
       </div>
 
       <Card className="overflow-hidden">
         <h3 className="px-4.5 pt-4 pb-2 text-md font-semibold text-fg">{v.deployments}</h3>
-        {!deps ? <LinesSkeleton lines={3} className="px-4.5 py-4" /> : deps.length === 0 ? <p className="px-4.5 pb-4 text-sm text-fg-muted">{v.noDeployments}</p> : deps.map(d => (
-          <div key={d.id} className="border-t border-line-subtle">
-            <div className="group flex flex-wrap items-center gap-3 px-4.5 py-3">
-              <span className={cn('rounded-full px-2 py-0.5 font-mono text-xs font-medium', STATE_TONE[d.state] ?? 'bg-active text-fg-secondary')}>{v.states[d.state as keyof typeof v.states] ?? d.state.toLowerCase()}</span>
-              <span className={cn('rounded-full px-2 py-0.5 font-mono text-xs', d.target === 'production' ? 'bg-accent-soft text-accent' : 'bg-elevated text-fg-muted')}>{d.target === 'production' ? v.production : v.preview}</span>
-              {d.current && <span className="rounded-full bg-success-soft px-2 py-0.5 font-mono text-xs text-success">{v.current}</span>}
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm text-fg">{d.commitMessage ?? d.url.replace('https://', '')}</div>
-                <div className="flex items-center gap-1.5 truncate font-mono text-xs text-fg-muted">
-                  {d.branch && <><GitBranch size={11} /> {d.branch} · </>}{formatRelative(new Date(d.createdAt).toISOString(), lang)}{d.creator && ` · ${d.creator}`}
+        {!deps ? (
+          <LinesSkeleton lines={3} className="px-4.5 py-4" />
+        ) : deps.length === 0 ? (
+          <p className="px-4.5 pb-4 text-sm text-fg-muted">{v.noDeployments}</p>
+        ) : (
+          deps.map(d => (
+            <div key={d.id} className="border-t border-line-subtle">
+              <div className="group flex flex-wrap items-center gap-3 px-4.5 py-3">
+                <span className={cn('rounded-full px-2 py-0.5 font-mono text-xs font-medium', STATE_TONE[d.state] ?? 'bg-active text-fg-secondary')}>
+                  {v.states[d.state as keyof typeof v.states] ?? d.state.toLowerCase()}
+                </span>
+                <span
+                  className={cn(
+                    'rounded-full px-2 py-0.5 font-mono text-xs',
+                    d.target === 'production' ? 'bg-accent-soft text-accent' : 'bg-elevated text-fg-muted'
+                  )}
+                >
+                  {d.target === 'production' ? v.production : v.preview}
+                </span>
+                {d.current && <span className="rounded-full bg-success-soft px-2 py-0.5 font-mono text-xs text-success">{v.current}</span>}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm text-fg">{d.commitMessage ?? d.url.replace('https://', '')}</div>
+                  <div className="flex items-center gap-1.5 truncate font-mono text-xs text-fg-muted">
+                    {d.branch && (
+                      <>
+                        <GitBranch size={11} /> {d.branch} ·{' '}
+                      </>
+                    )}
+                    {formatRelative(new Date(d.createdAt).toISOString(), lang)}
+                    {d.creator && ` · ${d.creator}`}
+                  </div>
+                </div>
+                <div className="flex gap-1 opacity-70 group-hover:opacity-100">
+                  <Button size="sm" variant="ghost" onClick={() => showLogs(d.id)}>
+                    <ScrollText size={13} /> {v.buildLogs}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal(d.url)}>
+                    <ExternalLink size={13} />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    loading={busy === `re-${d.id}`}
+                    onClick={() => act(`re-${d.id}`, v.redeployConfirm, () => window.devforge.vercel.redeploy(projectId, d.id), v.redeployed)}
+                  >
+                    {busy !== `re-${d.id}` && <RotateCcw size={13} />} {v.redeploy}
+                  </Button>
+                  {!d.current && d.state === 'READY' && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      loading={busy === `pr-${d.id}`}
+                      onClick={() => act(`pr-${d.id}`, v.promoteConfirm, () => window.devforge.vercel.promote(projectId, d.id), v.promoted)}
+                    >
+                      {busy !== `pr-${d.id}` && <Upload size={13} />} {d.target === 'production' ? v.rollback : v.promote}
+                    </Button>
+                  )}
                 </div>
               </div>
-              <div className="flex gap-1 opacity-70 group-hover:opacity-100">
-                <Button size="sm" variant="ghost" onClick={() => showLogs(d.id)}><ScrollText size={13} /> {v.buildLogs}</Button>
-                <Button size="sm" variant="ghost" onClick={() => window.devforge.openExternal(d.url)}><ExternalLink size={13} /></Button>
-                <Button size="sm" variant="secondary" loading={busy === `re-${d.id}`}
-                  onClick={() => act(`re-${d.id}`, v.redeployConfirm, () => window.devforge.vercel.redeploy(projectId, d.id), v.redeployed)}>
-                  {busy !== `re-${d.id}` && <RotateCcw size={13} />} {v.redeploy}
-                </Button>
-                {!d.current && d.state === 'READY' && (
-                  <Button size="sm" variant="secondary" loading={busy === `pr-${d.id}`}
-                    onClick={() => act(`pr-${d.id}`, v.promoteConfirm, () => window.devforge.vercel.promote(projectId, d.id), v.promoted)}>
-                    {busy !== `pr-${d.id}` && <Upload size={13} />} {d.target === 'production' ? v.rollback : v.promote}
-                  </Button>
-                )}
-              </div>
+              {logs?.id === d.id && (
+                <pre className="mx-4.5 mb-3 max-h-80 overflow-auto rounded-control bg-console px-4 py-3 font-mono text-xs leading-relaxed whitespace-pre-wrap break-all text-fg-secondary">
+                  {logs.text === null ? '…' : logs.text || v.noLogs}
+                </pre>
+              )}
             </div>
-            {logs?.id === d.id && (
-              <pre className="mx-4.5 mb-3 max-h-80 overflow-auto rounded-control bg-console px-4 py-3 font-mono text-xs leading-relaxed whitespace-pre-wrap break-all text-fg-secondary">
-                {logs.text === null ? '…' : logs.text || v.noLogs}
-              </pre>
-            )}
-          </div>
-        ))}
+          ))
+        )}
       </Card>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -170,20 +276,40 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
             <h3 className="text-md font-semibold text-fg">{v.env}</h3>
             <p className="text-xs text-fg-muted">{v.envHint}</p>
           </div>
-          {env === 'failed' ? <ErrorState /> : !env ? <LinesSkeleton lines={3} /> : (
+          {env === 'failed' ? (
+            <ErrorState />
+          ) : !env ? (
+            <LinesSkeleton lines={3} />
+          ) : (
             <>
               {!env.missingRemote.length && !env.missingLocal.length && <p className="text-sm text-success">{v.envOk}</p>}
-              {[[v.missingRemote, env.missingRemote, 'text-warning'], [v.missingLocal, env.missingLocal, 'text-fg-secondary']].map(([label, keys, tone]) => (keys as string[]).length > 0 && (
-                <div key={label as string}>
-                  <div className="mb-1.5 text-xs font-medium text-fg-secondary">{(label as string).replace('{file}', fileLabel)}</div>
-                  <div className="flex flex-wrap gap-1.5">{(keys as string[]).map(k => <span key={k} className={cn('rounded-md border border-line bg-canvas px-2 py-0.5 font-mono text-xs', tone as string)}>{k}</span>)}</div>
-                </div>
-              ))}
+              {[
+                [v.missingRemote, env.missingRemote, 'text-warning'],
+                [v.missingLocal, env.missingLocal, 'text-fg-secondary']
+              ].map(
+                ([label, keys, tone]) =>
+                  (keys as string[]).length > 0 && (
+                    <div key={label as string}>
+                      <div className="mb-1.5 text-xs font-medium text-fg-secondary">{(label as string).replace('{file}', fileLabel)}</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(keys as string[]).map(k => (
+                          <span key={k} className={cn('rounded-md border border-line bg-canvas px-2 py-0.5 font-mono text-xs', tone as string)}>
+                            {k}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+              )}
               <div className="flex flex-col">
                 {env.remote.map(e => (
                   <div key={e.key} className="flex items-center gap-2 border-t border-line-subtle py-1.5 text-sm">
                     <span className="flex-1 truncate font-mono text-fg">{e.key}</span>
-                    {e.targets.map(tg => <span key={tg} className="rounded bg-elevated px-1.5 font-mono text-2xs text-fg-muted">{tg}</span>)}
+                    {e.targets.map(tg => (
+                      <span key={tg} className="rounded bg-elevated px-1.5 font-mono text-2xs text-fg-muted">
+                        {tg}
+                      </span>
+                    ))}
                   </div>
                 ))}
               </div>
@@ -192,16 +318,40 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
         </Card>
         <Card className="flex flex-col gap-3 self-start p-4.5">
           <h3 className="text-md font-semibold text-fg">{v.domains}</h3>
-          {domains === 'failed' ? <ErrorState /> : !domains ? <LinesSkeleton lines={2} /> : domains.length === 0 ? <p className="text-sm text-fg-muted">{v.noDomains}</p> : domains.map(d => (
-            <div key={d.name} className="flex flex-wrap items-center gap-2 border-t border-line-subtle pt-2.5 first:border-t-0 first:pt-0">
-              <button onClick={() => window.devforge.openExternal(`https://${d.name}`)} className="min-w-0 flex-1 truncate text-left font-mono text-base text-fg hover:text-accent">{d.name}</button>
-              {d.redirect && <span className="text-xs text-fg-muted">{v.redirect.replace('{to}', d.redirect)}</span>}
-              <span className={cn('rounded-full px-2 py-0.5 font-mono text-xs', d.verified ? 'bg-success-soft text-success' : 'bg-warning-soft text-warning')}>{d.verified ? v.verified : v.notVerified}</span>
-              {d.misconfigured !== null && (
-                <span className={cn('rounded-full px-2 py-0.5 font-mono text-xs', d.misconfigured ? 'bg-danger-soft text-danger' : 'bg-success-soft text-success')}>{d.misconfigured ? v.misconfigured : v.certOk}</span>
-              )}
-            </div>
-          ))}
+          {domains === 'failed' ? (
+            <ErrorState />
+          ) : !domains ? (
+            <LinesSkeleton lines={2} />
+          ) : domains.length === 0 ? (
+            <p className="text-sm text-fg-muted">{v.noDomains}</p>
+          ) : (
+            domains.map(d => (
+              <div key={d.name} className="flex flex-wrap items-center gap-2 border-t border-line-subtle pt-2.5 first:border-t-0 first:pt-0">
+                <button
+                  onClick={() => window.devforge.openExternal(`https://${d.name}`)}
+                  className="min-w-0 flex-1 truncate text-left font-mono text-base text-fg hover:text-accent"
+                >
+                  {d.name}
+                </button>
+                {d.redirect && <span className="text-xs text-fg-muted">{v.redirect.replace('{to}', d.redirect)}</span>}
+                <span
+                  className={cn('rounded-full px-2 py-0.5 font-mono text-xs', d.verified ? 'bg-success-soft text-success' : 'bg-warning-soft text-warning')}
+                >
+                  {d.verified ? v.verified : v.notVerified}
+                </span>
+                {d.misconfigured !== null && (
+                  <span
+                    className={cn(
+                      'rounded-full px-2 py-0.5 font-mono text-xs',
+                      d.misconfigured ? 'bg-danger-soft text-danger' : 'bg-success-soft text-success'
+                    )}
+                  >
+                    {d.misconfigured ? v.misconfigured : v.certOk}
+                  </span>
+                )}
+              </div>
+            ))
+          )}
         </Card>
       </div>
     </div>

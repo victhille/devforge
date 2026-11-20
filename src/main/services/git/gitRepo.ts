@@ -11,8 +11,7 @@ const SEP = '\u001f' // unit separator, never in commit messages
 const GIT_ENV = { GIT_TERMINAL_PROMPT: '0' }
 
 /** git -C <path> <args…>, without a shell. */
-export const git = (path: string, args: string[], timeout = 6000) =>
-  runFile('git', ['-C', path, ...args], { timeout, env: GIT_ENV })
+export const git = (path: string, args: string[], timeout = 6000) => runFile('git', ['-C', path, ...args], { timeout, env: GIT_ENV })
 
 /**
  * Repository details are read for many projects at once (Git dashboard,
@@ -29,11 +28,18 @@ const waiting: (() => void)[] = []
 async function limited<T>(fn: () => Promise<T>): Promise<T> {
   if (running >= MAX_PARALLEL) await new Promise<void>(resolve => waiting.push(resolve))
   running++
-  try { return await fn() } finally { running--; waiting.shift()?.() }
+  try {
+    return await fn()
+  } finally {
+    running--
+    waiting.shift()?.()
+  }
 }
 
 /** Forget the cached details of a repository changed by an action */
-export function forgetRepo(path: string): void { detailsCache.delete(path) }
+export function forgetRepo(path: string): void {
+  detailsCache.delete(path)
+}
 
 /** Details of one repository; `fresh` skips the short cache (refresh button) */
 export async function getRepoDetails(path: string, fresh = false): Promise<GitRepoDetails> {
@@ -47,8 +53,15 @@ export async function getRepoDetails(path: string, fresh = false): Promise<GitRe
 /** Everything the dashboard shows for one repository, in 3 parallel git calls. */
 async function readRepoDetails(path: string): Promise<GitRepoDetails> {
   const details: GitRepoDetails = {
-    path, isRepo: false, branch: null, changes: 0, ahead: 0, behind: 0,
-    hasUpstream: false, remoteUrl: null, lastCommit: null
+    path,
+    isRepo: false,
+    branch: null,
+    changes: 0,
+    ahead: 0,
+    behind: 0,
+    hasUpstream: false,
+    remoteUrl: null,
+    lastCommit: null
   }
 
   const [status, log, remote] = await Promise.all([
@@ -67,7 +80,10 @@ async function readRepoDetails(path: string): Promise<GitRepoDetails> {
       details.hasUpstream = true
     } else if (line.startsWith('# branch.ab ')) {
       const m = line.match(/\+(\d+) -(\d+)/)
-      if (m) { details.ahead = parseInt(m[1]); details.behind = parseInt(m[2]) }
+      if (m) {
+        details.ahead = parseInt(m[1])
+        details.behind = parseInt(m[2])
+      }
     } else if (line.trim() && !line.startsWith('#')) {
       details.changes++
     }
@@ -89,8 +105,8 @@ async function action(path: string, args: string[]): Promise<GitActionResult> {
 }
 
 export const gitFetch = (path: string) => action(path, ['fetch', '--prune'])
-export const gitPull  = (path: string) => action(path, ['pull', '--ff-only'])
-export const gitPush  = (path: string) => action(path, ['push'])
+export const gitPull = (path: string) => action(path, ['pull', '--ff-only'])
+export const gitPush = (path: string) => action(path, ['push'])
 
 const STATUS: Record<string, FileChangeStatus> = { A: 'added', M: 'modified', D: 'deleted', R: 'renamed', C: 'added', T: 'modified', U: 'modified' }
 
@@ -101,7 +117,10 @@ function parseNumstat(out: string): Map<string, [number | null, number | null]> 
     const [a, d, ...rest] = line.split('\t')
     if (!rest.length) continue
     // Renames look like "old => new" or "dir/{old => new}"
-    const file = rest.join('\t').replace(/\{[^}]* => ([^}]*)\}/, '$1').replace(/^.* => /, '')
+    const file = rest
+      .join('\t')
+      .replace(/\{[^}]* => ([^}]*)\}/, '$1')
+      .replace(/^.* => /, '')
     map.set(file, [a === '-' ? null : Number(a), d === '-' ? null : Number(d)])
   }
   return map
@@ -126,14 +145,16 @@ export async function getChanges(path: string): Promise<GitFileChange[]> {
   for (let i = 0; i < parts.length; i++) {
     const entry = parts[i]
     if (entry.length < 4) continue
-    const x = entry[0], y = entry[1], file = entry.slice(3)
+    const x = entry[0],
+      y = entry[1],
+      file = entry.slice(3)
     if (x === 'R' || x === 'C') i++ // skip the original path
     const untracked = x === '?'
     const code = untracked ? '?' : x !== ' ' ? x : y
     const [ins, del] = counts.get(file) ?? [null, null]
     changes.push({
       path: file,
-      status: untracked ? 'untracked' : STATUS[code] ?? 'modified',
+      status: untracked ? 'untracked' : (STATUS[code] ?? 'modified'),
       staged: !untracked && x !== ' ',
       insertions: ins,
       deletions: del
@@ -159,7 +180,7 @@ export async function gitCommit(path: string, message: string, files: string[]):
   return action(path, ['commit', '-m', message, '--', ...files])
 }
 
-// ─── The Files tab (v3.7 lot 3) ───────────────────────────────────────────────
+// ─── The Files tab ───────────────────────────────────────────────
 
 /**
  * The changed files of a project's folder, paths relative to it (a project
@@ -178,11 +199,16 @@ export async function getFileStates(path: string): Promise<{ inRepo: boolean; fi
 
 /** A file's changes since the last commit (staged ones included); a new file: all of it, added */
 export async function getFileDiff(path: string, rel: string): Promise<{ diff: string; status: FileChangeStatus | null }> {
-  if (!isInsideProject(path) || typeof rel !== 'string' || !rel || rel.split(/[\\/]/).includes('..') || isAbsolute(rel)) throw new Error('Not a file of this project')
+  if (!isInsideProject(path) || typeof rel !== 'string' || !rel || rel.split(/[\\/]/).includes('..') || isAbsolute(rel))
+    throw new Error('Not a file of this project')
   const states = await getFileStates(path)
   const status = states.files[rel] ?? null
   if (status === 'untracked' || (status === 'added' && !(await git(path, ['rev-parse', '--verify', 'HEAD'])).ok)) {
-    try { return { diff: newFileDiff(readFileSync(join(path, rel), 'utf-8')), status } } catch { return { diff: '', status } }
+    try {
+      return { diff: newFileDiff(readFileSync(join(path, rel), 'utf-8')), status }
+    } catch {
+      return { diff: '', status }
+    }
   }
   const r = await git(path, ['diff', 'HEAD', '--no-color', '--no-ext-diff', '--', rel], 10_000)
   return { diff: r.ok ? r.stdout : '', status }

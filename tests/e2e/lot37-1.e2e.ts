@@ -5,15 +5,17 @@ import { goTo, launch, type Launched } from './launch'
 import { seedVitestProject } from './fakeVitest'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.7 lot 1: the Tests tab (a stand-in "vitest" writes a real-format report) */
+/** The Tests tab (a stand-in "vitest" writes a real-format report) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
   await run.close()
 })
 
-const file = (path: string, content: string) => { mkdirSync(join(path, '..'), { recursive: true }); writeFileSync(path, content) }
-
+const file = (path: string, content: string) => {
+  mkdirSync(join(path, '..'), { recursive: true })
+  writeFileSync(path, content)
+}
 
 test('the Tests tab runs the tools, shows each test by file, keeps the last run', async () => {
   run = await launch({
@@ -22,7 +24,10 @@ test('the Tests tab runs the tools, shows each test by file, keeps the last run'
       seedVitestProject(shop)
       // pytest without a virtual environment: listed, with what is missing
       file(join(shop, 'requirements-dev.txt'), 'pytest\n')
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p', name: 'shop', path: shop, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([{ id: 'p', name: 'shop', path: shop, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }])
+      )
     }
   })
   const { page } = run
@@ -49,7 +54,9 @@ test('the Tests tab runs the tools, shows each test by file, keeps the last run'
 
   // The command's output
   await page.getByText(/^Sortie de la commande/).click()
-  await expect(page.getByRole('region', { name: 'Sortie des tests' }).or(page.getByLabel('Sortie des tests'))).toContainText('src/cart.test.ts (3 tests | 1 failed)')
+  await expect(page.getByRole('region', { name: 'Sortie des tests' }).or(page.getByLabel('Sortie des tests'))).toContainText(
+    'src/cart.test.ts (3 tests | 1 failed)'
+  )
   expect(await settledAxe(page)).toEqual([])
 
   // pytest is offered, with what it lacks

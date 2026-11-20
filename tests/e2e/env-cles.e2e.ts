@@ -18,7 +18,21 @@ test('a new key that starts with a digit cannot be added; a valid one is written
       app = join(dir, 'shop')
       mkdirSync(app)
       writeFileSync(join(app, '.env'), 'A=1\n')
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'Shop', path: app, framework: 'nextjs', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'p1',
+            name: 'Shop',
+            path: app,
+            framework: 'nextjs',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
     }
   })
   const { page } = run

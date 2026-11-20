@@ -109,7 +109,7 @@ Forgy peut aussi agir. Chaque action s'affiche en **carte** dans le panneau : ce
 | `container_action` | `start` / `stop` / `restart` d'un conteneur | oui (`start` ↔ `stop`) | non |
 | `sql_execute` | une requête SQL : lecture (50 lignes) ou écriture | non | lecture seule |
 | `free_port` | arrête le processus qui écoute sur un port | non | non |
-| `run_script` | lance un script `package.json` en arrière-plan | oui (arrêt) | oui |
+| `run_script` | lance un script `package.json` en arrière-plan | oui (arrêt) pour `dev`, `start`, `serve`, `watch` ; non pour les autres | `dev`, `start`, `serve`, `watch`, sans script `pre`/`post`, commandes enchaînées ni autre script appelé |
 | `env_add` | ajoute une **nouvelle** clé à un `.env` (valeur masquée sur la carte) | oui (suppression) | oui |
 | `n8n_set_workflow` | active ou désactive un workflow n8n | oui (inverse) | oui |
 | `n8n_retry_execution` | relance une exécution n8n en échec | non | non |

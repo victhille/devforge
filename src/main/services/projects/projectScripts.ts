@@ -24,12 +24,18 @@ export function assertScriptsDir(projectPath: unknown): string {
 export function scriptsOf(pkg: unknown): Record<string, string> {
   const scripts = pkg && typeof pkg === 'object' ? (pkg as { scripts?: unknown }).scripts : undefined
   if (!scripts || typeof scripts !== 'object' || Array.isArray(scripts)) return {}
-  return Object.fromEntries(Object.entries(scripts).filter((e): e is [string, string] => SCRIPT_NAME.test(e[0]) && typeof e[1] === 'string' && e[1].trim() !== ''))
+  return Object.fromEntries(
+    Object.entries(scripts).filter((e): e is [string, string] => SCRIPT_NAME.test(e[0]) && typeof e[1] === 'string' && e[1].trim() !== '')
+  )
 }
 
 /** The scripts of a folder's package.json (scriptsOf), {} without one or when it cannot be read, once the folder is checked (assertScriptsDir) */
 export function readScripts(projectPath: unknown): Record<string, string> {
   const pkgPath = join(assertScriptsDir(projectPath), 'package.json')
   if (!existsSync(pkgPath)) return {}
-  try { return scriptsOf(JSON.parse(readFileSync(pkgPath, 'utf-8'))) } catch { return {} }
+  try {
+    return scriptsOf(JSON.parse(readFileSync(pkgPath, 'utf-8')))
+  } catch {
+    return {}
+  }
 }

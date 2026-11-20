@@ -12,7 +12,9 @@ let response: WebhookResponse = { status: 200, contentType: 'application/json', 
 let requests: CapturedRequest[] = []
 let onRequest: (r: CapturedRequest) => void = () => {}
 
-export function setWebhookCallback(cb: typeof onRequest): void { onRequest = cb }
+export function setWebhookCallback(cb: typeof onRequest): void {
+  onRequest = cb
+}
 
 function handle(req: http.IncomingMessage, res: http.ServerResponse): void {
   const chunks: Buffer[] = []
@@ -20,7 +22,8 @@ function handle(req: http.IncomingMessage, res: http.ServerResponse): void {
   let truncated = false
   req.on('data', (c: Buffer) => {
     size += c.length
-    if (size <= MAX_BODY) chunks.push(c); else truncated = true
+    if (size <= MAX_BODY) chunks.push(c)
+    else truncated = true
   })
   req.on('end', () => {
     const captured: CapturedRequest = {
@@ -28,7 +31,7 @@ function handle(req: http.IncomingMessage, res: http.ServerResponse): void {
       at: new Date().toISOString(),
       method: req.method ?? 'GET',
       url: req.url ?? '/',
-      headers: Object.fromEntries(Object.entries(req.headers).map(([k, v]) => [k, Array.isArray(v) ? v.join(', ') : v ?? ''])),
+      headers: Object.fromEntries(Object.entries(req.headers).map(([k, v]) => [k, Array.isArray(v) ? v.join(', ') : (v ?? '')])),
       body: Buffer.concat(chunks).toString('utf-8'),
       truncated
     }
@@ -73,7 +76,9 @@ export function stopWebhooks(): WebhookStatus {
 }
 
 export const listRequests = () => requests
-export function clearRequests(): void { requests = [] }
+export function clearRequests(): void {
+  requests = []
+}
 
 export function setResponse(r: WebhookResponse): void {
   if (!Number.isInteger(r.status) || r.status < 100 || r.status > 599) throw new Error('Invalid status code')
@@ -92,14 +97,21 @@ export async function replay(id: string, targetUrl: string) {
   if (!/^https?:\/\//i.test(targetUrl)) return { status: null, body: '', error: 'URL must start with http:// or https://' }
   try {
     const target = new URL(targetUrl)
+    // The captured URL comes from whoever called the receiver: an absolute one (`GET http://other/ HTTP/1.1`)
+    // or `//other/` must never pick the host. Only its path and query are copied onto the target.
     const captured = new URL(r.url, 'http://x')
+    const final = new URL(target.origin)
     // Keep the target's own path when one is given, else reuse the captured path
-    const final = target.pathname !== '/' ? new URL(target.pathname + captured.search, target.origin) : new URL(r.url, target.origin)
-    const res = await fetch(final, {
+    final.pathname = target.pathname !== '/' ? target.pathname : captured.pathname
+    final.search = captured.search
+    if (final.origin !== target.origin) return { status: null, body: '', error: 'Invalid target' }
+    const res = await fetch(final.href, {
       method: r.method,
       headers: Object.fromEntries(Object.entries(r.headers).filter(([k]) => !SKIP_HEADERS.has(k))),
       body: ['GET', 'HEAD'].includes(r.method) ? undefined : r.body,
-      signal: AbortSignal.timeout(15_000)
+      signal: AbortSignal.timeout(15_000),
+      // A redirect is shown, not followed: it would resend the captured body and headers to another host
+      redirect: 'manual'
     })
     return { status: res.status, body: (await res.text()).slice(0, 20_000) }
   } catch (err) {

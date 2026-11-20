@@ -17,12 +17,18 @@ import StatusDot from '@renderer/components/ui/StatusDot'
 
 const DOT: Record<ProcessInfo['status'], 'on' | 'off' | 'error'> = {
   running: 'on',
-  exited:  'off',
+  exited: 'off',
   stopped: 'off',
-  failed:  'error'
+  failed: 'error'
 }
 
-function StackCard({ stack, procs, running, onEdit, onDelete }: {
+function StackCard({
+  stack,
+  procs,
+  running,
+  onEdit,
+  onDelete
+}: {
   stack: Stack
   procs: Record<string, ProcessInfo>
   running: number
@@ -37,9 +43,13 @@ function StackCard({ stack, procs, running, onEdit, onDelete }: {
 
   async function startAll() {
     setBusy(true)
-    try { await window.devforge.stacks.start(stack.id) }
-    catch (err) { toast.show({ tone: 'error', title: s.startFailed, description: String(err) }) }
-    finally { setBusy(false) }
+    try {
+      await window.devforge.stacks.start(stack.id)
+    } catch (err) {
+      toast.show({ tone: 'error', title: s.startFailed, description: String(err) })
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -48,11 +58,21 @@ function StackCard({ stack, procs, running, onEdit, onDelete }: {
         <span className="size-2.5 rounded-full" style={{ background: stack.color }} />
         <CardTitle className="flex-1">{stack.name}</CardTitle>
         {running > 0 && <Badge color="success">{s.running.replace('{n}', String(running))}</Badge>}
-        <IconButton title={s.edit} onClick={onEdit}><Pencil size={14} /></IconButton>
-        <IconButton title={t.common.delete} tone="danger" onClick={onDelete}><Trash2 size={14} /></IconButton>
-        {running > 0
-          ? <Button variant="danger" size="sm" onClick={() => window.devforge.stacks.stop(stack.id)}><Square size={12} /> {s.stopAll}</Button>
-          : <Button size="sm" loading={busy} onClick={startAll}>{!busy && <Play size={13} />} {s.startAll}</Button>}
+        <IconButton title={s.edit} onClick={onEdit}>
+          <Pencil size={14} />
+        </IconButton>
+        <IconButton title={t.common.delete} tone="danger" onClick={onDelete}>
+          <Trash2 size={14} />
+        </IconButton>
+        {running > 0 ? (
+          <Button variant="danger" size="sm" onClick={() => window.devforge.stacks.stop(stack.id)}>
+            <Square size={12} /> {s.stopAll}
+          </Button>
+        ) : (
+          <Button size="sm" loading={busy} onClick={startAll}>
+            {!busy && <Play size={13} />} {s.startAll}
+          </Button>
+        )}
       </div>
 
       <div className="divide-y divide-line-subtle">
@@ -68,7 +88,9 @@ function StackCard({ stack, procs, running, onEdit, onDelete }: {
                   <button onClick={() => setOpen(o => (o === key ? null : key))} className="text-fg-muted hover:text-fg" aria-label="Logs">
                     {open === key ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                   </button>
-                ) : <span className="w-3.5" />}
+                ) : (
+                  <span className="w-3.5" />
+                )}
                 <Icon size={15} className="shrink-0 text-fg-muted" />
                 <div className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate font-medium text-fg">{step.label}</span>
@@ -79,15 +101,37 @@ function StackCard({ stack, procs, running, onEdit, onDelete }: {
                 {isCommand && info && (
                   <span className="flex items-center gap-1.5 text-xs text-fg-secondary">
                     <StatusDot state={DOT[info.status]} live={info.status === 'running'} />
-                    {s.status[info.status]}{info.exitCode !== null && info.status === 'failed' ? ` (${info.exitCode})` : ''}
+                    {s.status[info.status]}
+                    {info.exitCode !== null && info.status === 'failed' ? ` (${info.exitCode})` : ''}
                   </span>
                 )}
-                {isCommand && (info?.status === 'running'
-                  ? <IconButton title={s.stop} tone="danger" onClick={() => window.devforge.stacks.stopStep(stack.id, step.id)}><Square size={12} /></IconButton>
-                  : <IconButton title={s.start} onClick={() => { window.devforge.stacks.startStep(stack.id, step.id); setOpen(key) }}><Play size={13} /></IconButton>)}
-                {!isCommand && <IconButton title={s.start} onClick={() => window.devforge.stacks.startStep(stack.id, step.id)}><Play size={13} /></IconButton>}
+                {isCommand &&
+                  (info?.status === 'running' ? (
+                    <IconButton title={s.stop} tone="danger" onClick={() => window.devforge.stacks.stopStep(stack.id, step.id)}>
+                      <Square size={12} />
+                    </IconButton>
+                  ) : (
+                    <IconButton
+                      title={s.start}
+                      onClick={() => {
+                        window.devforge.stacks.startStep(stack.id, step.id)
+                        setOpen(key)
+                      }}
+                    >
+                      <Play size={13} />
+                    </IconButton>
+                  ))}
+                {!isCommand && (
+                  <IconButton title={s.start} onClick={() => window.devforge.stacks.startStep(stack.id, step.id)}>
+                    <Play size={13} />
+                  </IconButton>
+                )}
               </div>
-              {open === key && <div className="mt-2.5"><LogPanel procKey={key} /></div>}
+              {open === key && (
+                <div className="mt-2.5">
+                  <LogPanel procKey={key} />
+                </div>
+              )}
             </div>
           )
         })}
@@ -108,7 +152,11 @@ export default function StacksPage() {
         icon={<Rocket size={18} />}
         title={s.title}
         subtitle={s.subtitle}
-        actions={<Button onClick={() => setEditing({})}><Plus size={14} /> {s.newStack}</Button>}
+        actions={
+          <Button onClick={() => setEditing({})}>
+            <Plus size={14} /> {s.newStack}
+          </Button>
+        }
       />
 
       {stacks.length === 0 ? (
@@ -116,7 +164,11 @@ export default function StacksPage() {
           icon={<Rocket size={32} />}
           title={s.emptyTitle}
           description={s.emptyHint}
-          action={<Button onClick={() => setEditing({})}><Plus size={14} /> {s.newStack}</Button>}
+          action={
+            <Button onClick={() => setEditing({})}>
+              <Plus size={14} /> {s.newStack}
+            </Button>
+          }
         />
       ) : (
         <div className="flex flex-col gap-4">
@@ -127,7 +179,9 @@ export default function StacksPage() {
               procs={procs}
               running={running(stack)}
               onEdit={() => setEditing({ stack })}
-              onDelete={async () => { if ((await confirmDialog(s.deleteConfirm.replace('{name}', stack.name), { danger: true }))) remove(stack.id) }}
+              onDelete={async () => {
+                if (await confirmDialog(s.deleteConfirm.replace('{name}', stack.name), { danger: true })) remove(stack.id)
+              }}
             />
           ))}
         </div>
@@ -137,7 +191,10 @@ export default function StacksPage() {
         <StackEditor
           initial={editing.stack}
           onClose={() => setEditing(null)}
-          onSave={async stack => { await save(stack); setEditing(null) }}
+          onSave={async stack => {
+            await save(stack)
+            setEditing(null)
+          }}
         />
       )}
     </Page>

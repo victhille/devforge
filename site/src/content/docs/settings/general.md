@@ -45,6 +45,10 @@ description: Tous les réglages de DevForge, section par section, de Général �
 
 À côté, la carte **Aperçu** montre une carte de projet avec ces choix, avant d'aller voir les pages.
 
+### Accessibilité
+
+Le **contraste élevé de Windows** est suivi : l'application prend alors les couleurs choisies dans Windows, et les focus, onglets choisis, interrupteurs, jauges et boutons restent visibles. Les champs de saisie ont une bordure d'au moins 3:1 dans chaque couleur, et la langue choisie est annoncée aux lecteurs d'écran.
+
 ## Serveurs
 
 Un relevé par minute en arrière-plan, gardé 7 jours. Deux cartes :
@@ -59,7 +63,8 @@ Les alertes arrivent en notification Windows, et Forgy fait la tête dans le wid
 - La première carte montre la **version installée**, sa date de construction et son commit, et « DevForge est à jour » quand c'est le cas.
 - **Canal** : *Stable* (versions finales) ou *Bêta* (aussi les préversions, plus tôt mais parfois avec des bugs).
 - **Vérifier** cherche tout de suite une nouvelle version ; sinon c'est automatique, 15 s après le démarrage puis toutes les 6 h.
-- Une version prête s'installe au prochain redémarrage, ou avec **Redémarrer et mettre à jour** : une petite fenêtre montre l'avancement de l'installation, puis DevForge se relance tout seul.
+- **Chercher les mises à jour tout seul** : désactivé, DevForge n'interroge GitHub que quand tu cliques sur **Vérifier**.
+- Une version se télécharge dans un bloc en bas à droite, puis s'installe avec **Redémarrer et mettre à jour** ou au prochain redémarrage : l'installeur montre l'avancement, puis DevForge se relance tout seul, avec une petite fenêtre « Mise à jour installée ».
 - **Montrer « Quoi de neuf » après une mise à jour** : une fenêtre résume la version au premier lancement ; **Revoir** la rouvre.
 - **Nouveautés de la version** : les changements de la version installée, filtrés par **Tout**, **Nouveautés**, **Améliorations** ou **Corrections**. **Voir toutes les versions →** ouvre les **notes de version** : toutes les versions, dans la langue de l'application.
 
@@ -69,6 +74,6 @@ La carte **Cette version** donne la version et son canal, le commit, la date de 
 
 - **DevForge sur GitHub** : **Page GitHub** et **Signaler un problème** ;
 - **Notes de version** : toutes les versions ;
-- **Licence** : DevForge est un logiciel libre sous GPL-3.0, **Licence GPL-3.0** en ouvre le texte.
+- **Licence** : DevForge est un logiciel libre sous GPL-3.0 (version 3 uniquement). **Licence GPL-3.0** en ouvre le texte, et **Licences tierces** celui des composants open source inclus. Les deux fichiers sont livrés avec l'application et s'ouvrent sans connexion.
 
 **Rapport de diagnostic › Copier le rapport** copie un **rapport de diagnostic** : version, système et dernières lignes du journal local, clés et mots de passe masqués. Rien n'est envoyé : colle-le où tu veux, par exemple dans une [issue GitHub](https://github.com/victhille/devforge/issues). Relis-le avant : il peut contenir des noms de serveurs ou de projets.

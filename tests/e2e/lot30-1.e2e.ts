@@ -5,7 +5,7 @@ import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 import { acceptConfirms } from './confirm'
 
-/** v3.0 lot 1: Settings › Connections on an empty profile (Git's global config redirected to the profile) */
+/** Settings › Connections on an empty profile (Git's global config redirected to the profile) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -50,15 +50,15 @@ test('an empty profile: nothing set; a key, a Git identity, a server added, test
   // A server: added from here, tested (nothing listens there), removed
   await page.getByRole('button', { name: 'Ajouter un serveur' }).click()
   const dialog = page.getByRole('dialog')
-  await dialog.getByLabel('Nom', { exact: true }).fill('Banc d\'essai')
+  await dialog.getByLabel('Nom', { exact: true }).fill("Banc d'essai")
   await dialog.getByLabel('Hôte / IP').fill('127.0.0.1')
   await dialog.getByLabel('Port', { exact: true }).fill('1')
   await dialog.getByLabel("Nom d'utilisateur").fill('test')
   await dialog.getByRole('button', { name: 'Enregistrer', exact: true }).click()
   await expect(page.getByText('test@127.0.0.1')).toBeVisible()
-  await page.getByRole('button', { name: 'Tester Banc d\'essai' }).click()
+  await page.getByRole('button', { name: "Tester Banc d'essai" }).click()
   await expect(page.getByRole('status').filter({ hasText: 'Échec' })).toBeVisible({ timeout: 30_000 })
   expect(await settledAxe(page)).toEqual([])
-  await page.getByRole('button', { name: 'Retirer Banc d\'essai' }).click()
+  await page.getByRole('button', { name: "Retirer Banc d'essai" }).click()
   await expect(page.getByText('Aucun serveur', { exact: true })).toBeVisible()
 })

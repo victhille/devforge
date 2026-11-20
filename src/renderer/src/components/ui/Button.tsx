@@ -14,14 +14,10 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 /** Forge: flat, no shadow; the main action in orange, the others on the surface */
 const VARIANTS: Record<Variant, string> = {
-  primary:
-    'bg-accent font-semibold text-accent-fg hover:bg-accent-hover',
-  secondary:
-    'border border-line bg-surface font-semibold text-fg hover:bg-elevated',
-  ghost:
-    'bg-transparent font-medium text-fg-secondary hover:bg-elevated hover:text-fg',
-  danger:
-    'border border-danger/25 bg-danger-soft font-semibold text-danger hover:border-danger hover:bg-danger hover:text-danger-fg'
+  primary: 'bg-accent font-semibold text-accent-fg hover:bg-accent-hover',
+  secondary: 'border border-line bg-surface font-semibold text-fg hover:bg-elevated',
+  ghost: 'bg-transparent font-medium text-fg-secondary hover:bg-elevated hover:text-fg',
+  danger: 'border border-danger/25 bg-danger-soft font-semibold text-danger hover:border-danger hover:bg-danger hover:text-danger-fg'
 }
 
 /** 30, 36 and 44 px */
@@ -44,6 +40,8 @@ const Button = forwardRef<HTMLButtonElement, Props>(function Button(
         'inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap',
         'transition-[background-color,border-color,color,transform] duration-150 active:translate-y-px',
         'disabled:pointer-events-none disabled:opacity-40',
+        // Windows high contrast erases the fill: an edge shows the button
+        'forced-colors:border',
         VARIANTS[variant],
         SIZES[size],
         loading && 'cursor-wait',

@@ -22,10 +22,25 @@ export async function openForward(connectionId: string, remotePort: number, pref
     sock.pause()
     sessionFor(connectionId)
       .then(sid => sshService.forwardOut(sid, remotePort))
-      .then(remote => { sock.pipe(remote).pipe(sock); remote.on('error', () => sock.destroy()); sock.on('error', () => remote.destroy()); sock.resume() })
-      .catch(err => { log('warn', 'ssh', `Forward ${remotePort}: ${err instanceof Error ? err.message : err}`); sock.destroy() })
+      .then(remote => {
+        sock.pipe(remote).pipe(sock)
+        remote.on('error', () => sock.destroy())
+        sock.on('error', () => remote.destroy())
+        sock.resume()
+      })
+      .catch(err => {
+        log('warn', 'ssh', `Forward ${remotePort}: ${err instanceof Error ? err.message : err}`)
+        sock.destroy()
+      })
   })
-  const listen = (port: number) => new Promise<void>((ok, ko) => { server.once('error', ko); server.listen(port, '127.0.0.1', () => { server.off('error', ko); ok() }) })
+  const listen = (port: number) =>
+    new Promise<void>((ok, ko) => {
+      server.once('error', ko)
+      server.listen(port, '127.0.0.1', () => {
+        server.off('error', ko)
+        ok()
+      })
+    })
   await listen(preferred).catch(() => listen(0))
   forwards.set(key, server)
   const port = (server.address() as AddressInfo).port
@@ -64,24 +79,49 @@ export function asSocket(stream: import('stream').Duplex): Socket {
   return stream as unknown as Socket
 }
 
-export interface SshHttpResponse { status: number; headers: Record<string, string | string[] | undefined>; body: Buffer }
+export interface SshHttpResponse {
+  status: number
+  headers: Record<string, string | string[] | undefined>
+  body: Buffer
+}
 
 /** One HTTP request to 127.0.0.1:<port> on the server, through the SSH session (no local port opened) */
-export async function sshHttp(connectionId: string, port: number, opts: { method: string; path: string; headers?: Record<string, string>; body?: string; timeoutMs?: number }): Promise<SshHttpResponse> {
+export async function sshHttp(
+  connectionId: string,
+  port: number,
+  opts: { method: string; path: string; headers?: Record<string, string>; body?: string; timeoutMs?: number }
+): Promise<SshHttpResponse> {
   const sock = asSocket(await sshService.forwardOut(await sessionFor(connectionId), port))
   return new Promise((resolve, reject) => {
     // Our own timer: the channel has no real socket timeout
     const timer = setTimeout(() => req.destroy(new Error('The server did not answer')), opts.timeoutMs ?? 20_000)
-    const req = request({
-      host: '127.0.0.1', port, method: opts.method, path: opts.path,
-      headers: { ...(opts.body !== undefined ? { 'content-type': 'application/json', 'content-length': String(Buffer.byteLength(opts.body)) } : {}), ...opts.headers },
-      createConnection: () => sock
-    }, res => {
-      const chunks: Buffer[] = []
-      res.on('data', c => chunks.push(c as Buffer))
-      res.on('end', () => { clearTimeout(timer); sock.destroy(); resolve({ status: res.statusCode ?? 500, headers: res.headers, body: Buffer.concat(chunks) }) })
+    const req = request(
+      {
+        host: '127.0.0.1',
+        port,
+        method: opts.method,
+        path: opts.path,
+        headers: {
+          ...(opts.body !== undefined ? { 'content-type': 'application/json', 'content-length': String(Buffer.byteLength(opts.body)) } : {}),
+          ...opts.headers
+        },
+        createConnection: () => sock
+      },
+      res => {
+        const chunks: Buffer[] = []
+        res.on('data', c => chunks.push(c as Buffer))
+        res.on('end', () => {
+          clearTimeout(timer)
+          sock.destroy()
+          resolve({ status: res.statusCode ?? 500, headers: res.headers, body: Buffer.concat(chunks) })
+        })
+      }
+    )
+    req.on('error', err => {
+      clearTimeout(timer)
+      sock.destroy()
+      reject(err)
     })
-    req.on('error', err => { clearTimeout(timer); sock.destroy(); reject(err) })
     req.end(opts.body)
   })
 }

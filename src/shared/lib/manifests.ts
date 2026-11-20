@@ -2,7 +2,7 @@ import type { PackageInfo, PackageManagerKind } from '../types/packages'
 import { parseToml, type TomlTable, type TomlValue } from './tomlLite'
 
 /**
- * v3.5.3: the dependencies other languages declare, read from their files:
+ * The dependencies other languages declare, read from their files:
  * Python (requirements.txt, pyproject.toml, Pipfile), Rust (Cargo.toml),
  * Go (go.mod), Ruby (Gemfile), Dart and Flutter (pubspec.yaml), .NET
  * (*.csproj), Java and Kotlin (pom.xml, build.gradle). Pure functions: the
@@ -46,7 +46,9 @@ function versionOf(v: TomlValue): string {
 
 function tableDeps(table: TomlValue | undefined, dev: boolean, skip: (name: string) => boolean = () => false): Dep[] {
   if (!isTable(table)) return []
-  return Object.entries(table).filter(([name]) => !skip(name)).map(([name, v]) => ({ name, wanted: versionOf(v), dev }))
+  return Object.entries(table)
+    .filter(([name]) => !skip(name))
+    .map(([name, v]) => ({ name, wanted: versionOf(v), dev }))
 }
 
 /** pyproject.toml: PEP 621 ([project]), its optional groups, PEP 735 groups, and Poetry */
@@ -54,9 +56,13 @@ export function parsePyproject(text: string): { deps: Dep[]; poetry: boolean } {
   const { tables } = parseToml(text)
   const deps: Dep[] = []
   const project = tables.project ?? {}
-  const fromList = (list: string[], dev: boolean) => list.forEach(l => { const r = parseRequirement(l); if (r) deps.push({ ...r, dev }) })
+  const fromList = (list: string[], dev: boolean) =>
+    list.forEach(l => {
+      const r = parseRequirement(l)
+      if (r) deps.push({ ...r, dev })
+    })
   fromList(strings(project.dependencies), false)
-  const optional = tables['project.optional-dependencies'] ?? (isTable(project['optional-dependencies']) ? project['optional-dependencies'] as TomlTable : {})
+  const optional = tables['project.optional-dependencies'] ?? (isTable(project['optional-dependencies']) ? (project['optional-dependencies'] as TomlTable) : {})
   Object.values(optional).forEach(v => fromList(strings(v), true))
   Object.values(tables['dependency-groups'] ?? {}).forEach(v => fromList(strings(v), true))
 
@@ -78,10 +84,16 @@ export function parsePipfile(text: string): Dep[] {
 export function parseCargo(text: string): Dep[] {
   const { tables } = parseToml(text)
   const deps: Dep[] = []
-  for (const [section, dev] of [['dependencies', false], ['dev-dependencies', true], ['build-dependencies', true], ['workspace.dependencies', false]] as const) {
+  for (const [section, dev] of [
+    ['dependencies', false],
+    ['dev-dependencies', true],
+    ['build-dependencies', true],
+    ['workspace.dependencies', false]
+  ] as const) {
     deps.push(...tableDeps(tables[section], dev))
     for (const [name, table] of Object.entries(tables)) {
-      if (name.startsWith(`${section}.`) && !name.slice(section.length + 1).includes('.')) deps.push({ name: name.slice(section.length + 1), wanted: versionOf(table), dev })
+      if (name.startsWith(`${section}.`) && !name.slice(section.length + 1).includes('.'))
+        deps.push({ name: name.slice(section.length + 1), wanted: versionOf(table), dev })
     }
   }
   return dedupe(deps)
@@ -93,8 +105,14 @@ export function parseGoMod(text: string): Dep[] {
   let block = false
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.trim()
-    if (/^require\s*\($/.test(line)) { block = true; continue }
-    if (block && line === ')') { block = false; continue }
+    if (/^require\s*\($/.test(line)) {
+      block = true
+      continue
+    }
+    if (block && line === ')') {
+      block = false
+      continue
+    }
     const body = block ? line : line.match(/^require\s+(.*)$/)?.[1]
     if (!body || body.includes('// indirect')) continue
     const m = body.match(/^(\S+)\s+(v\S+)/)
@@ -109,9 +127,18 @@ export function parseGemfile(text: string): Dep[] {
   const groups: boolean[] = []
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.replace(/#.*$/, '').trim()
-    if (/^group\b.*\bdo$/.test(line)) { groups.push(/:(development|test)\b/.test(line)); continue }
-    if (/^(platforms?|source|install_if)\b.*\bdo$/.test(line)) { groups.push(groups[groups.length - 1] ?? false); continue }
-    if (line === 'end') { groups.pop(); continue }
+    if (/^group\b.*\bdo$/.test(line)) {
+      groups.push(/:(development|test)\b/.test(line))
+      continue
+    }
+    if (/^(platforms?|source|install_if)\b.*\bdo$/.test(line)) {
+      groups.push(groups[groups.length - 1] ?? false)
+      continue
+    }
+    if (line === 'end') {
+      groups.pop()
+      continue
+    }
     const m = line.match(/^gem\s+["']([^"']+)["']((?:\s*,\s*["'][^"']*["'])*)/)
     if (!m) continue
     const versions = [...m[2].matchAll(/["']([^"']*)["']/g)].map(v => v[1])
@@ -127,7 +154,10 @@ export function parsePubspec(text: string): Dep[] {
   let section: 'dependencies' | 'dev_dependencies' | null = null
   const lines = text.split(/\r?\n/)
   lines.forEach((raw, i) => {
-    if (/^\S/.test(raw)) { section = raw.startsWith('dependencies:') ? 'dependencies' : raw.startsWith('dev_dependencies:') ? 'dev_dependencies' : null; return }
+    if (/^\S/.test(raw)) {
+      section = raw.startsWith('dependencies:') ? 'dependencies' : raw.startsWith('dev_dependencies:') ? 'dev_dependencies' : null
+      return
+    }
     if (!section) return
     const m = raw.match(/^ {2}([a-z0-9_]+):\s*(.*?)\s*$/)
     if (!m) return
@@ -181,7 +211,12 @@ export function parseGradle(text: string): Dep[] {
 
 function dedupe(deps: Dep[]): Dep[] {
   const seen = new Set<string>()
-  return deps.filter(d => { const k = `${d.name}|${d.dev}`; if (seen.has(k)) return false; seen.add(k); return true })
+  return deps.filter(d => {
+    const k = `${d.name}|${d.dev}`
+    if (seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
 }
 
 // ─── What is installed: lockfiles ─────────────────────────────────────────────
@@ -204,7 +239,9 @@ export function pipfileLockVersions(text: string): Record<string, string> {
       for (const [name, info] of Object.entries(part ?? {})) if (info?.version) out[pyName(name)] = info.version.replace(/^==/, '')
     }
     return out
-  } catch { return {} }
+  } catch {
+    return {}
+  }
 }
 
 /** Gemfile.lock: "    rails (7.1.3)" under specs */
@@ -220,7 +257,10 @@ export function pubspecLockVersions(text: string): Record<string, string> {
   let name: string | null = null
   for (const raw of text.split(/\r?\n/)) {
     const n = raw.match(/^ {2}([a-z0-9_]+):\s*$/)
-    if (n) { name = n[1]; continue }
+    if (n) {
+      name = n[1]
+      continue
+    }
     const v = raw.match(/^ {4}version:\s*["']?([^"'\s]+)/)
     if (v && name) out[name] = v[1]
   }

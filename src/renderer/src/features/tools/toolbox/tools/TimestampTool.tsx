@@ -29,23 +29,38 @@ export default function TimestampTool({ t }: { t: ToolboxT }) {
   const [input, setInput] = useState(() => String(Math.floor(Date.now() / 1000)))
   const date = useMemo(() => parseInput(input), [input])
 
-  const rows: [string, string][] = date ? [
-    [t.tsUnix,     String(Math.floor(date.getTime() / 1000))],
-    [t.tsMillis,   String(date.getTime())],
-    ['ISO 8601',   date.toISOString()],
-    [t.tsLocal,    date.toLocaleString(lang, { dateStyle: 'full', timeStyle: 'medium' })],
-    ['UTC',        date.toUTCString()],
-    ['RFC 2822 / HTTP', date.toUTCString().replace('GMT', '+0000')],
-    [t.tsRelative, formatRelative(date.toISOString(), lang)]
-  ] : []
+  const rows: [string, string][] = date
+    ? [
+        [t.tsUnix, String(Math.floor(date.getTime() / 1000))],
+        [t.tsMillis, String(date.getTime())],
+        ['ISO 8601', date.toISOString()],
+        [t.tsLocal, date.toLocaleString(lang, { dateStyle: 'full', timeStyle: 'medium' })],
+        ['UTC', date.toUTCString()],
+        ['RFC 2822 / HTTP', date.toUTCString().replace('GMT', '+0000')],
+        [t.tsRelative, formatRelative(date.toISOString(), lang)]
+      ]
+    : []
 
   return (
     <div className="flex max-w-3xl flex-col gap-4">
-      <ToolHelp id="timestamp" what={h.timestamp.what} how={h.timestamp.how}
-        examples={[h.timestamp.seconds, h.timestamp.millis, h.timestamp.iso].map((label, i) => ({ label, onPick: () => setInput(TIMESTAMP_EXAMPLES[i]) }))} />
+      <ToolHelp
+        id="timestamp"
+        what={h.timestamp.what}
+        how={h.timestamp.how}
+        examples={[h.timestamp.seconds, h.timestamp.millis, h.timestamp.iso].map((label, i) => ({ label, onPick: () => setInput(TIMESTAMP_EXAMPLES[i]) }))}
+      />
       <div className="flex gap-2">
-        <Input value={input} onChange={e => setInput(e.target.value)} placeholder="1793145600 · 2026-10-28T09:00:00Z" aria-label={t.tabTimestamp} className="h-12 font-mono text-lg" spellCheck={false} />
-        <Button variant="secondary" size="lg" onClick={() => setInput(String(Math.floor(Date.now() / 1000)))}><Clock size={15} /> {t.tsNow}</Button>
+        <Input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="1793145600 · 2026-10-28T09:00:00Z"
+          aria-label={t.tabTimestamp}
+          className="h-12 font-mono text-lg"
+          spellCheck={false}
+        />
+        <Button variant="secondary" size="lg" onClick={() => setInput(String(Math.floor(Date.now() / 1000)))}>
+          <Clock size={15} /> {t.tsNow}
+        </Button>
       </div>
       {!date ? (
         input.trim() && <Card className="border-danger/30 bg-danger-soft p-4 text-danger">{t.invalid}</Card>

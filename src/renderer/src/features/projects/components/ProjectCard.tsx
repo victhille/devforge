@@ -32,7 +32,8 @@ function SubNames({ project }: { project: DetectedProject }) {
   if (!project.subprojects?.length) return null
   return (
     <span className="truncate text-xs text-fg-secondary">
-      {t.projects.groupCount.replace('{n}', String(project.subprojects.length)).replace('{s}', project.subprojects.length > 1 ? 's' : '')} · {project.subprojects.map(s => `${s.name} (${FRAMEWORK_LABEL[s.framework] ?? s.framework})`).join(', ')}
+      {t.projects.groupCount.replace('{n}', String(project.subprojects.length)).replace('{s}', project.subprojects.length > 1 ? 's' : '')} ·{' '}
+      {project.subprojects.map(s => `${s.name} (${FRAMEWORK_LABEL[s.framework] ?? s.framework})`).join(', ')}
     </span>
   )
 }
@@ -43,7 +44,10 @@ function FavoriteButton({ active, onClick, title, size }: { active: boolean; onC
       size={size}
       title={title}
       aria-pressed={active}
-      onClick={e => { e.stopPropagation(); onClick() }}
+      onClick={e => {
+        e.stopPropagation()
+        onClick()
+      }}
       className={cn(active && 'text-accent hover:text-accent')}
     >
       <Star size={13} fill={active ? 'currentColor' : 'none'} />
@@ -51,7 +55,7 @@ function FavoriteButton({ active, onClick, title, size }: { active: boolean; onC
   )
 }
 
-/** v3.8: a red dot while a GitHub workflow of the project is failing */
+/** A red dot while a GitHub workflow of the project is failing */
 export function CiDot({ failing }: { failing?: string[] }) {
   const { t } = useI18n()
   if (!failing?.length) return null
@@ -59,13 +63,19 @@ export function CiDot({ failing }: { failing?: string[] }) {
   return <span role="img" aria-label={label} title={label} data-testid="ci-dot" className="size-2 shrink-0 rounded-full bg-danger ring-2 ring-danger/25" />
 }
 
-/** v3.8: the project's open tasks; a click opens its Notes tab */
+/** The project's open tasks; a click opens its Notes tab */
 export function TasksChip({ count, onClick }: { count?: number; onClick?: () => void }) {
   const { t } = useI18n()
   if (!count) return null
   return (
-    <button onClick={e => { e.stopPropagation(); onClick?.() }} data-testid="tasks-chip"
-      className="inline-flex items-center gap-1 rounded-md border border-warning/40 bg-warning-soft px-2 py-0.5 font-mono text-xs text-warning hover:border-warning">
+    <button
+      onClick={e => {
+        e.stopPropagation()
+        onClick?.()
+      }}
+      data-testid="tasks-chip"
+      className="inline-flex items-center gap-1 rounded-md border border-warning/40 bg-warning-soft px-2 py-0.5 font-mono text-xs text-warning hover:border-warning"
+    >
       <ListTodo size={11} aria-hidden /> {t.notes.toDo.replace('{n}', String(count))}
     </button>
   )
@@ -103,19 +113,38 @@ interface SavedProps {
   onRunScript?: (script: string) => void
   /** Position in the list, to stagger the entrance */
   index?: number
-  /** v3.5: the name of its projects folder, shown when there are several */
+  /** The name of its projects folder, shown when there are several */
   folder?: string | null
-  /** v3.8: its open tasks, and the way to them */
+  /** Its open tasks, and the way to them */
   openTasks?: number
   onOpenTasks?: () => void
-  /** v3.8: its GitHub workflows failing now */
+  /** Its GitHub workflows failing now */
   ciFailing?: string[]
   /** The active project (Forgy and the widget work on it): its card stands out */
   active?: boolean
 }
 
 export function ProjectCard(props: SavedProps) {
-  const { project, layout, gitStatus, scripts = {}, ideLabel, onOpen, onOpenVSCode, onTerminal, onToggleFavorite, onDetail, onRemove, onRunScript, index = 0, folder, openTasks, onOpenTasks, ciFailing, active } = props
+  const {
+    project,
+    layout,
+    gitStatus,
+    scripts = {},
+    ideLabel,
+    onOpen,
+    onOpenVSCode,
+    onTerminal,
+    onToggleFavorite,
+    onDetail,
+    onRemove,
+    onRunScript,
+    index = 0,
+    folder,
+    openTasks,
+    onOpenTasks,
+    ciFailing,
+    active
+  } = props
   const { t, lang } = useI18n()
   const label = FRAMEWORK_LABEL[project.framework] ?? project.framework
   const git = useGitLine(gitStatus)
@@ -123,38 +152,75 @@ export function ProjectCard(props: SavedProps) {
   if (layout === 'grid') {
     // The less frequent actions behind « ⋯ »: its scripts, then taking it out of DevForge
     const more: MoreItem[] = [
-      ...(onRunScript ? Object.keys(scripts).slice(0, 8).map(name => ({ label: t.hub.scriptRun.replace('{name}', name), icon: Play, onSelect: () => onRunScript(name) })) : []),
+      ...(onRunScript
+        ? Object.keys(scripts)
+            .slice(0, 8)
+            .map(name => ({ label: t.hub.scriptRun.replace('{name}', name), icon: Play, onSelect: () => onRunScript(name) }))
+        : []),
       ...(onRemove ? [{ label: t.hub.remove, icon: Trash2, danger: true, onSelect: onRemove }] : [])
     ]
     const date = project.lastOpenedAt ?? project.createdAt
     const when = date ? formatRelative(date, lang) : ''
     // As in the mock-up: one main action (Open, in orange for the active project), the others as icons
     return (
-      <Card interactive onClick={onDetail} className={cn('df-rise group flex flex-col gap-3.5 rounded-card p-4.5', active && 'border-accent/35')} style={{ '--i': index } as CSSProperties}>
+      <Card
+        interactive
+        onClick={onDetail}
+        className={cn('df-rise group flex flex-col gap-3.5 rounded-card p-4.5', active && 'border-accent/35')}
+        style={{ '--i': index } as CSSProperties}
+      >
         <div className="flex items-start gap-2.5">
           <ProjectIcon framework={project.framework} />
           <div className="min-w-0 flex-1">
-            <h2 className="flex items-center gap-2 truncate text-md font-semibold text-fg">{project.name}<CiDot failing={ciFailing} /></h2>
-            <div className="truncate font-mono text-xs text-fg-muted" title={project.path}>{project.path}</div>
+            <h2 className="flex items-center gap-2 truncate text-md font-semibold text-fg">
+              {project.name}
+              <CiDot failing={ciFailing} />
+            </h2>
+            <div className="truncate font-mono text-xs text-fg-muted" title={project.path}>
+              {project.path}
+            </div>
           </div>
           <FavoriteButton size="sm" active={project.favorite} onClick={onToggleFavorite} title={t.projects.favorite} />
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {[label, project.packageManager].filter(Boolean).map(tag => <Badge key={tag} mono>{tag}</Badge>)}
+          {[label, project.packageManager].filter(Boolean).map(tag => (
+            <Badge key={tag} mono>
+              {tag}
+            </Badge>
+          ))}
           <FolderTag name={folder} />
           <TasksChip count={openTasks} onClick={onOpenTasks} />
         </div>
         {project.missing && <div className="text-xs font-medium text-warning">{t.hub.missing}</div>}
         {(git || when) && (
           <p className="flex min-w-0 items-center gap-1.5 text-sm text-fg-secondary">
-            {git && <><GitBranch size={13} aria-hidden className="shrink-0" /><span className="font-mono">{gitStatus!.branch}</span><span className={git.color}>{git.text}</span></>}
-            {when && <span className="truncate text-fg-muted">{git ? '· ' : ''}{when}</span>}
+            {git && (
+              <>
+                <GitBranch size={13} aria-hidden className="shrink-0" />
+                <span className="font-mono">{gitStatus!.branch}</span>
+                <span className={git.color}>{git.text}</span>
+              </>
+            )}
+            {when && (
+              <span className="truncate text-fg-muted">
+                {git ? '· ' : ''}
+                {when}
+              </span>
+            )}
           </p>
         )}
         <div className="mt-auto flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-          <Button size="sm" variant={active ? 'primary' : 'secondary'} className="flex-1" onClick={onOpen}>{t.projects.open}</Button>
-          {ideLabel && <IconButton size="sm" title={ideLabel} onClick={onOpenVSCode}><Code2 size={14} /></IconButton>}
-          <IconButton size="sm" title={t.projects.terminal} onClick={onTerminal}><Terminal size={14} /></IconButton>
+          <Button size="sm" variant={active ? 'primary' : 'secondary'} className="flex-1" onClick={onOpen}>
+            {t.projects.open}
+          </Button>
+          {ideLabel && (
+            <IconButton size="sm" title={ideLabel} onClick={onOpenVSCode}>
+              <Code2 size={14} />
+            </IconButton>
+          )}
+          <IconButton size="sm" title={t.projects.terminal} onClick={onTerminal}>
+            <Terminal size={14} />
+          </IconButton>
           {more.length > 0 && <MoreMenu size="sm" label={t.hub.moreActions} items={more} />}
         </div>
       </Card>
@@ -166,7 +232,10 @@ export function ProjectCard(props: SavedProps) {
       <FavoriteButton active={project.favorite} onClick={onToggleFavorite} title={t.projects.favorite} />
       <ProjectIcon framework={project.framework} />
       <button onClick={onDetail} className="flex min-w-0 flex-1 flex-col items-start text-left">
-        <span className="flex items-center gap-2 truncate font-medium text-fg group-hover:text-accent">{project.name}<CiDot failing={ciFailing} /></span>
+        <span className="flex items-center gap-2 truncate font-medium text-fg group-hover:text-accent">
+          {project.name}
+          <CiDot failing={ciFailing} />
+        </span>
         <span className="flex w-full items-center gap-2 truncate font-mono text-xs text-fg-muted">
           <span className="truncate">{project.path}</span>
           <GitBadge status={gitStatus} />
@@ -177,11 +246,23 @@ export function ProjectCard(props: SavedProps) {
       <FolderTag name={folder} />
       <Badge mono>{label}</Badge>
       <div className="flex shrink-0 items-center gap-2">
-        <IconButton title={t.projects.terminal} onClick={onTerminal}><Terminal size={13} /></IconButton>
+        <IconButton title={t.projects.terminal} onClick={onTerminal}>
+          <Terminal size={13} />
+        </IconButton>
         {onRunScript && <ScriptsMenu scripts={scripts} onRun={onRunScript} />}
-        {ideLabel && <Button variant="ghost" size="sm" onClick={onOpenVSCode}><Code2 size={13} /> {ideLabel}</Button>}
-        <Button variant={active ? 'primary' : 'secondary'} size="sm" onClick={onOpen}>{t.projects.open}</Button>
-        {onRemove && <IconButton tone="danger" title={t.projects.remove} onClick={onRemove}><Trash2 size={13} /></IconButton>}
+        {ideLabel && (
+          <Button variant="ghost" size="sm" onClick={onOpenVSCode}>
+            <Code2 size={13} /> {ideLabel}
+          </Button>
+        )}
+        <Button variant={active ? 'primary' : 'secondary'} size="sm" onClick={onOpen}>
+          {t.projects.open}
+        </Button>
+        {onRemove && (
+          <IconButton tone="danger" title={t.projects.remove} onClick={onRemove}>
+            <Trash2 size={13} />
+          </IconButton>
+        )}
       </div>
     </Card>
   )
@@ -195,7 +276,7 @@ interface DetectedProps {
   onImport: () => void
   onOpen: () => void
   onTerminal: () => void
-  /** v3.5: the name of its projects folder, shown when there are several */
+  /** The name of its projects folder, shown when there are several */
   folder?: string | null
 }
 
@@ -205,8 +286,12 @@ export function DetectedProjectCard({ project, layout, onImport, onOpen, onTermi
 
   const actions = (
     <>
-      <IconButton title={t.projects.openFolder} onClick={onOpen}><FolderOpen size={13} /></IconButton>
-      <IconButton title={t.projects.terminal} onClick={onTerminal}><Terminal size={13} /></IconButton>
+      <IconButton title={t.projects.openFolder} onClick={onOpen}>
+        <FolderOpen size={13} />
+      </IconButton>
+      <IconButton title={t.projects.terminal} onClick={onTerminal}>
+        <Terminal size={13} />
+      </IconButton>
     </>
   )
 
@@ -215,7 +300,10 @@ export function DetectedProjectCard({ project, layout, onImport, onOpen, onTermi
       <Card className="flex flex-col gap-3 border-dashed p-4">
         <div className="flex items-start justify-between">
           <ProjectIcon framework={project.framework} size="lg" />
-          <div className="flex items-center gap-1"><FolderTag name={folder} /><Badge mono>{label}</Badge></div>
+          <div className="flex items-center gap-1">
+            <FolderTag name={folder} />
+            <Badge mono>{label}</Badge>
+          </div>
         </div>
         <div className="flex min-w-0 flex-col gap-1">
           <span className="truncate text-md font-semibold text-fg">{project.name}</span>
@@ -223,7 +311,9 @@ export function DetectedProjectCard({ project, layout, onImport, onOpen, onTermi
           <SubNames project={project} />
         </div>
         <div className="mt-auto flex items-center gap-2">
-          <Button variant="secondary" size="sm" className="flex-1" onClick={onImport}><Plus size={12} /> {t.projects.import}</Button>
+          <Button variant="secondary" size="sm" className="flex-1" onClick={onImport}>
+            <Plus size={12} /> {t.projects.import}
+          </Button>
           {actions}
         </div>
       </Card>
@@ -242,7 +332,9 @@ export function DetectedProjectCard({ project, layout, onImport, onOpen, onTermi
       <Badge mono>{label}</Badge>
       <div className="flex shrink-0 items-center gap-2">
         {actions}
-        <Button variant="secondary" size="sm" onClick={onImport}><Plus size={12} /> {t.projects.import}</Button>
+        <Button variant="secondary" size="sm" onClick={onImport}>
+          <Plus size={12} /> {t.projects.import}
+        </Button>
       </div>
     </Card>
   )

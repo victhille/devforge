@@ -19,7 +19,7 @@ import ErrorState from '@renderer/components/ui/ErrorState'
 const relationText = (r: MldRelation) => `${r.name.toUpperCase()} (${r.columns.map(c => `${c.fk ? '#' : ''}${c.pk ? `_${c.name}_` : c.name}`).join(', ')})`
 
 /**
- * v3.9 lot 3: the MLD, worked out from the MCD at every change: the relations
+ * the MLD, worked out from the MCD at every change: the relations
  * (keys underlined, foreign keys after a #), the rules applied, and the naming
  * the MPD will use. "Make the MPD" writes it next to the MCD.
  */
@@ -36,7 +36,10 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    window.devforge.modeling.read(projectPath, file).then(setModel).catch(err => setError(errorText(err)))
+    window.devforge.modeling
+      .read(projectPath, file)
+      .then(setModel)
+      .catch(err => setError(errorText(err)))
   }, [projectPath, file])
 
   const mld = useMemo(() => (model?.mcd ? toMld(model.mcd) : null), [model])
@@ -47,8 +50,11 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
     if (!model) return
     const changed = { ...model, naming: next }
     setModel(changed)
-    try { await window.devforge.modeling.save(projectPath, file, changed) }
-    catch (err) { toast.show({ tone: 'error', title: m.editor.saveFailed, description: errorText(err) }) }
+    try {
+      await window.devforge.modeling.save(projectPath, file, changed)
+    } catch (err) {
+      toast.show({ tone: 'error', title: m.editor.saveFailed, description: errorText(err) })
+    }
   }
 
   /** The MPD made (or made again, keeping its hand changes), then opened */
@@ -58,7 +64,7 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
     try {
       const target = siblings(file).mpd
       const prev = found?.mpd?.mpd ?? null
-      const engine = prev?.engine ?? await window.devforge.modeling.engine(projectPath)
+      const engine = prev?.engine ?? (await window.devforge.modeling.engine(projectPath))
       const mpd = generateMpd(model.mcd, naming, engine, prev, file)
       await window.devforge.modeling.save(projectPath, target, { v: 1, kind: 'mpd', name: model.name, updatedAt: '', mpd })
       navigate(modelUrl(projectPath, target, 'mpd', params.get('from')), { replace: true })
@@ -74,17 +80,40 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
     toast.show({ tone: 'success', title: l.copied })
   }
 
-  if (error) return <div className="p-8"><ErrorState title={m.loadFailed} error={error} /></div>
+  if (error)
+    return (
+      <div className="p-8">
+        <ErrorState title={m.loadFailed} error={error} />
+      </div>
+    )
   if (!model || !mld) return <CanvasSkeleton />
 
   const ruleText = (r: MldRule): ReactNode => {
     switch (r.kind) {
-      case 'entity': return fill(l.rule.entity, { relation: r.relation, key: r.key.join(', ') })
-      case 'noIdentifier': return fill(l.rule.noIdentifier, { relation: r.relation, key: r.key })
-      case 'fk': return fill(l.rule.fk, { association: r.association, cards: r.cards, parent: r.parent, child: r.child, columns: r.columns.map(c => `#${c}`).join(', ') })
-      case 'oneToOne': return fill(l.rule.oneToOne, { association: r.association, cards: r.cards, parent: r.parent, child: r.child, columns: r.columns.map(c => `#${c}`).join(', ') })
-      case 'table': return fill(r.legs > 2 ? l.rule.tableMany : l.rule.table, { association: r.association, n: r.legs, columns: r.columns.map(c => `#${c}`).join(', ') })
-      case 'skipped': return fill(l.rule.skipped, { association: r.association })
+      case 'entity':
+        return fill(l.rule.entity, { relation: r.relation, key: r.key.join(', ') })
+      case 'noIdentifier':
+        return fill(l.rule.noIdentifier, { relation: r.relation, key: r.key })
+      case 'fk':
+        return fill(l.rule.fk, {
+          association: r.association,
+          cards: r.cards,
+          parent: r.parent,
+          child: r.child,
+          columns: r.columns.map(c => `#${c}`).join(', ')
+        })
+      case 'oneToOne':
+        return fill(l.rule.oneToOne, {
+          association: r.association,
+          cards: r.cards,
+          parent: r.parent,
+          child: r.child,
+          columns: r.columns.map(c => `#${c}`).join(', ')
+        })
+      case 'table':
+        return fill(r.legs > 2 ? l.rule.tableMany : l.rule.table, { association: r.association, n: r.legs, columns: r.columns.map(c => `#${c}`).join(', ') })
+      case 'skipped':
+        return fill(l.rule.skipped, { association: r.association })
     }
   }
 
@@ -96,19 +125,28 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
           <ModelTabs projectPath={projectPath} file={file} tab="mld" hasMcd hasMpd={!!found?.mpd} />
           <span className="hidden min-w-0 truncate text-xs text-fg-muted md:block">{m.fromMcd}</span>
           <span className="flex-1" />
-          <Button variant="secondary" size="sm" onClick={copy} disabled={!mld.relations.length}><Copy size={13} /> {l.copy}</Button>
-          <Button size="sm" onClick={generate} disabled={busy || !mld.relations.length}>{found?.mpd ? l.update : l.generate} <ArrowRight size={13} /></Button>
+          <Button variant="secondary" size="sm" onClick={copy} disabled={!mld.relations.length}>
+            <Copy size={13} /> {l.copy}
+          </Button>
+          <Button size="sm" onClick={generate} disabled={busy || !mld.relations.length}>
+            {found?.mpd ? l.update : l.generate} <ArrowRight size={13} />
+          </Button>
         </header>
 
         <div className="flex min-h-0 flex-1">
           <div className="flex min-w-0 flex-1 flex-col gap-5 overflow-y-auto p-5">
             {errors > 0 && (
-              <button type="button" onClick={() => navigate(modelUrl(projectPath, file, 'mcd', params.get('from')), { replace: true })}
-                className="flex items-center gap-2 self-start rounded-lg bg-warning-soft px-3 py-2 text-left text-sm text-fg">
+              <button
+                type="button"
+                onClick={() => navigate(modelUrl(projectPath, file, 'mcd', params.get('from')), { replace: true })}
+                className="flex items-center gap-2 self-start rounded-lg bg-warning-soft px-3 py-2 text-left text-sm text-fg"
+              >
                 <AlertTriangle size={14} className="shrink-0 text-warning" /> {m.toFix.replace('{n}', String(errors))} · {m.chainName.mcd}
               </button>
             )}
-            {!mld.relations.length ? <p className="text-sm text-fg-secondary">{l.empty}</p> : (
+            {!mld.relations.length ? (
+              <p className="text-sm text-fg-secondary">{l.empty}</p>
+            ) : (
               <section aria-label={fill(l.title, { n: mld.relations.length })} className="flex flex-col gap-3">
                 <h2 className="text-xs font-semibold tracking-[.04em] text-fg-muted uppercase">{fill(l.title, { n: mld.relations.length })}</h2>
                 <ul className="flex flex-col gap-1.5 rounded-xl border border-line-subtle bg-canvas p-4 font-mono text-base leading-relaxed">
@@ -119,7 +157,10 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
                       {r.columns.map((c, i) => (
                         <span key={c.key}>
                           {i > 0 && <span className="text-fg-muted">, </span>}
-                          <span className={cn(c.pk && 'underline underline-offset-2', c.fk ? 'text-accent' : 'text-fg')}>{c.fk ? '#' : ''}{c.name}</span>
+                          <span className={cn(c.pk && 'underline underline-offset-2', c.fk ? 'text-accent' : 'text-fg')}>
+                            {c.fk ? '#' : ''}
+                            {c.name}
+                          </span>
                         </span>
                       ))}
                       <span className="text-fg-muted"> )</span>
@@ -128,8 +169,12 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
                   ))}
                 </ul>
                 <p className="flex gap-4 text-xs text-fg-muted">
-                  <span><span className="font-mono text-fg underline underline-offset-2">id</span> {l.legendPk}</span>
-                  <span><span className="font-mono text-accent">#id</span> {l.legendFk}</span>
+                  <span>
+                    <span className="font-mono text-fg underline underline-offset-2">id</span> {l.legendPk}
+                  </span>
+                  <span>
+                    <span className="font-mono text-accent">#id</span> {l.legendFk}
+                  </span>
                 </p>
               </section>
             )}
@@ -139,8 +184,14 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
                 <ol className="flex flex-col gap-2">
                   {mld.rules.map((r, i) => (
                     <li key={i} className="flex gap-2.5 text-sm text-fg-secondary">
-                      <span className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-xs font-semibold',
-                        r.kind === 'skipped' || r.kind === 'noIdentifier' ? 'bg-warning-soft text-warning' : 'bg-accent-soft text-accent')}>{i + 1}</span>
+                      <span
+                        className={cn(
+                          'flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-xs font-semibold',
+                          r.kind === 'skipped' || r.kind === 'noIdentifier' ? 'bg-warning-soft text-warning' : 'bg-accent-soft text-accent'
+                        )}
+                      >
+                        {i + 1}
+                      </span>
                       <span>{ruleText(r)}</span>
                     </li>
                   ))}
@@ -163,13 +214,30 @@ export default function MldView({ projectPath, file }: { projectPath: string; fi
   )
 }
 
-function NamingSelect<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: Record<T, string>; onChange: (v: T) => void }) {
+function NamingSelect<T extends string>({
+  label,
+  value,
+  options,
+  onChange
+}: {
+  label: string
+  value: T
+  options: Record<T, string>
+  onChange: (v: T) => void
+}) {
   return (
     <label className="flex flex-col gap-1 text-sm text-fg-secondary">
       {label}
-      <select value={value} onChange={e => onChange(e.target.value as T)}
-        className="h-8 rounded-md border border-line bg-canvas px-2 font-mono text-sm text-fg outline-none focus:border-accent">
-        {(Object.keys(options) as T[]).map(k => <option key={k} value={k}>{options[k]}</option>)}
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value as T)}
+        className="h-8 rounded-md border border-line-strong bg-canvas px-2 font-mono text-sm text-fg outline-none focus:border-accent"
+      >
+        {(Object.keys(options) as T[]).map(k => (
+          <option key={k} value={k}>
+            {options[k]}
+          </option>
+        ))}
       </select>
     </label>
   )

@@ -15,17 +15,44 @@ import WizardFrame, { FamilyLabel, type WizardStep } from './WizardFrame'
 const CATEGORIES = ['frontend', 'fullstack', 'backend', 'other'] as const
 
 /** A tile of the choice, as in the mock-up: picked, its border and background in the accent, and a tick */
-function Tile({ on, onPick, onOpen, icon, name, desc }: { on: boolean; onPick: () => void; onOpen: () => void; icon: React.ReactNode; name: string; desc: string }) {
+function Tile({
+  on,
+  onPick,
+  onOpen,
+  icon,
+  name,
+  desc
+}: {
+  on: boolean
+  onPick: () => void
+  onOpen: () => void
+  icon: React.ReactNode
+  name: string
+  desc: string
+}) {
   return (
-    <button type="button" aria-pressed={on} onClick={onPick} onDoubleClick={onOpen}
-      className={cn('flex min-w-0 items-center gap-3 rounded-xl border p-3 text-left transition-colors',
-        on ? 'border-accent bg-accent-soft' : 'border-line-subtle bg-surface hover:border-fg-muted')}>
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onPick}
+      onDoubleClick={onOpen}
+      className={cn(
+        'flex min-w-0 items-center gap-3 rounded-xl border p-3 text-left transition-colors',
+        on ? 'border-accent bg-accent-soft' : 'border-line-subtle bg-surface hover:border-fg-muted'
+      )}
+    >
       {icon}
       <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="truncate font-semibold text-fg" title={name}>{name}</span>
+        <span className="truncate font-semibold text-fg" title={name}>
+          {name}
+        </span>
         <span className="text-xs leading-snug text-fg-muted">{desc}</span>
       </span>
-      {on && <span aria-hidden className="flex size-5 shrink-0 items-center justify-center rounded-full bg-accent text-accent-fg"><Check size={12} strokeWidth={3} /></span>}
+      {on && (
+        <span aria-hidden className="flex size-5 shrink-0 items-center justify-center rounded-full bg-accent text-accent-fg">
+          <Check size={12} strokeWidth={3} />
+        </span>
+      )}
     </button>
   )
 }
@@ -35,7 +62,15 @@ function Tile({ on, onPick, onOpen, icon, name, desc }: { on: boolean; onPick: (
  * picked, not opened; the card on the right says what will be made, and Continue
  * goes on (a double click too).
  */
-export default function TechSelector({ steps, templates, framework, template, onPick, onTemplate, onContinue }: {
+export default function TechSelector({
+  steps,
+  templates,
+  framework,
+  template,
+  onPick,
+  onTemplate,
+  onContinue
+}: {
   steps: WizardStep[]
   templates: UserTemplate[]
   framework: Framework | null
@@ -49,19 +84,34 @@ export default function TechSelector({ steps, templates, framework, template, on
   const [mine, setMine] = useState(!!template)
   const labels = { frontend: n.catFrontend, fullstack: n.catFullstack, backend: n.catBackend, other: n.catOther }
   const tree = !template && framework ? PROJECT_TREES[framework] : undefined
-  const picked = template ? template.name : framework ? n.templateName[framework] ?? PROJECT_TEMPLATES.find(x => x.id === framework)?.name ?? framework : null
+  const picked = template ? template.name : framework ? (n.templateName[framework] ?? PROJECT_TEMPLATES.find(x => x.id === framework)?.name ?? framework) : null
 
   // Technologies or the user's templates: two lists, one at a time
   const seg = templates.length > 0 && (
-    <Tabs<'tech' | 'mine'> label={n.techOrTemplate} value={mine ? 'mine' : 'tech'} onChange={v => setMine(v === 'mine')}
+    <Tabs<'tech' | 'mine'>
+      label={n.techOrTemplate}
+      value={mine ? 'mine' : 'tech'}
+      onChange={v => setMine(v === 'mine')}
       items={[
         { value: 'tech', label: n.technologies },
-        { value: 'mine', label: <>{t.templates.mine}<span className="font-mono text-2xs text-fg-muted">{templates.length}</span></> }
-      ]} />
+        {
+          value: 'mine',
+          label: (
+            <>
+              {t.templates.mine}
+              <span className="font-mono text-2xs text-fg-muted">{templates.length}</span>
+            </>
+          )
+        }
+      ]}
+    />
   )
 
   return (
-    <WizardFrame steps={steps} subtitle={n.subtitle} headerRight={seg || undefined}
+    <WizardFrame
+      steps={steps}
+      subtitle={n.subtitle}
+      headerRight={seg || undefined}
       asideTitle={n.willMake}
       aside={
         tree ? (
@@ -71,34 +121,64 @@ export default function TechSelector({ steps, templates, framework, template, on
           </>
         ) : template ? (
           <p className="text-sm text-fg-secondary">{n.willCopy.replace('{name}', template.name)}</p>
-        ) : <p className="text-sm text-fg-muted">{n.pickFirst}</p>
+        ) : (
+          <p className="text-sm text-fg-muted">{n.pickFirst}</p>
+        )
       }
-      footer={<Button disabled={!picked} onClick={onContinue}>{n.continue}</Button>}>
+      footer={
+        <Button disabled={!picked} onClick={onContinue}>
+          {n.continue}
+        </Button>
+      }
+    >
       {mine && templates.length > 0 ? (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-3.5">
           {templates.map(tpl => (
-            <Tile key={tpl.id} on={template?.id === tpl.id} onPick={() => onTemplate(tpl)} onOpen={() => { onTemplate(tpl); onContinue() }}
-              icon={<ProjectIcon framework={tpl.framework} />} name={tpl.name} desc={tpl.description || t.templates.files.replace('{n}', String(tpl.files))} />
+            <Tile
+              key={tpl.id}
+              on={template?.id === tpl.id}
+              onPick={() => onTemplate(tpl)}
+              onOpen={() => {
+                onTemplate(tpl)
+                onContinue()
+              }}
+              icon={<ProjectIcon framework={tpl.framework} />}
+              name={tpl.name}
+              desc={tpl.description || t.templates.files.replace('{n}', String(tpl.files))}
+            />
           ))}
         </div>
-      ) : CATEGORIES.map(cat => {
-        const list = PROJECT_TEMPLATES.filter(tpl => tpl.category === cat)
-        if (!list.length) return null
-        return (
-          <section key={cat} className="flex flex-col gap-3" aria-label={labels[cat]}>
-            <FamilyLabel>{labels[cat]}</FamilyLabel>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-3.5">
-              {list.map(tpl => (
-                <Tile key={tpl.id} on={!template && framework === tpl.id} onPick={() => onPick(tpl.id)} onOpen={() => { onPick(tpl.id); onContinue() }}
-                  icon={<span className="flex size-9 shrink-0 items-center justify-center rounded-control" style={{ background: `${tpl.color}18` }}>
-                    <FrameworkIcon name={tpl.iconName} size={18} className={paleClass(tpl.color)} style={{ color: tpl.color }} />
-                  </span>}
-                  name={n.templateName[tpl.id] ?? tpl.name} desc={n.templateDesc[tpl.id] ?? tpl.description} />
-              ))}
-            </div>
-          </section>
-        )
-      })}
+      ) : (
+        CATEGORIES.map(cat => {
+          const list = PROJECT_TEMPLATES.filter(tpl => tpl.category === cat)
+          if (!list.length) return null
+          return (
+            <section key={cat} className="flex flex-col gap-3" aria-label={labels[cat]}>
+              <FamilyLabel>{labels[cat]}</FamilyLabel>
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-3.5">
+                {list.map(tpl => (
+                  <Tile
+                    key={tpl.id}
+                    on={!template && framework === tpl.id}
+                    onPick={() => onPick(tpl.id)}
+                    onOpen={() => {
+                      onPick(tpl.id)
+                      onContinue()
+                    }}
+                    icon={
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-control" style={{ background: `${tpl.color}18` }}>
+                        <FrameworkIcon name={tpl.iconName} size={18} className={paleClass(tpl.color)} style={{ color: tpl.color }} />
+                      </span>
+                    }
+                    name={n.templateName[tpl.id] ?? tpl.name}
+                    desc={n.templateDesc[tpl.id] ?? tpl.description}
+                  />
+                ))}
+              </div>
+            </section>
+          )
+        })
+      )}
     </WizardFrame>
   )
 }

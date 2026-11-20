@@ -7,7 +7,11 @@ export const isSshHost = (host: string): boolean => /^[\p{L}\p{N}._:%-]+$/u.test
 export const isNetworkPath = (path: string): boolean => /^[\\/]{2}/.test(path)
 
 /** Optional: a file written by an older version or by hand may lack a field */
-interface Address { host?: string; port?: number; username?: string }
+interface Address {
+  host?: string
+  port?: number
+  username?: string
+}
 
 /**
  * Same machine and account: the host compared as the known hosts compare it (without case or

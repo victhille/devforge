@@ -39,7 +39,11 @@ describe('disk cleaner: sizes', () => {
     const store = join(root, 'store')
     mkdirSync(store)
     writeFileSync(join(store, 'big.bin'), Buffer.alloc(50_000))
-    try { symlinkSync(store, join(app, 'node_modules', 'linked'), 'junction') } catch { /* no links here: the count stays the same */ }
+    try {
+      symlinkSync(store, join(app, 'node_modules', 'linked'), 'junction')
+    } catch {
+      /* no links here: the count stays the same */
+    }
 
     const found = await scanForCleanable(root)
     expect(found.map(f => f.name)).toEqual(['node_modules'])

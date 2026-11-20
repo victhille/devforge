@@ -21,6 +21,7 @@ let beta = false
 let status: UpdateStatus = { state: 'idle' }
 let win: BrowserWindow | null = null
 let timer: ReturnType<typeof setInterval> | null = null
+let firstCheck: ReturnType<typeof setTimeout> | null = null
 
 function set(next: UpdateStatus): void {
   status = next
@@ -37,18 +38,28 @@ export function setUpdateChannel(wantBeta: boolean): void {
 }
 
 export async function checkForUpdates(): Promise<UpdateStatus> {
-  if (!app.isPackaged) { set({ state: 'unavailable', reason: 'dev' }); return status }
+  if (!app.isPackaged) {
+    set({ state: 'unavailable', reason: 'dev' })
+    return status
+  }
   if (status.state === 'downloading' || status.state === 'ready') return status
   set({ state: 'checking' })
-  if (!OWNER || !REPO) { set({ state: 'unavailable', reason: 'feed' }); return status }
-  // A private repository needs a token (GitHub CLI's, or the one saved in DevForge); a public one does not
-  const tok = await githubToken()
-  if (PRIVATE && !tok) { set({ state: 'unavailable', reason: 'auth' }); return status }
+  if (!OWNER || !REPO) {
+    set({ state: 'unavailable', reason: 'feed' })
+    return status
+  }
+  // A private repository needs a token (GitHub CLI's, or the one saved in DevForge); a public one does not,
+  // and then no token leaves the PC with the check
+  const tok = PRIVATE ? await githubToken() : null
+  if (PRIVATE && !tok) {
+    set({ state: 'unavailable', reason: 'auth' })
+    return status
+  }
   autoUpdater.setFeedURL({ provider: 'github', owner: OWNER, repo: REPO, private: PRIVATE, ...(PRIVATE && tok ? { token: tok } : {}) })
   try {
     // electron-updater's beta channel takes the first pre-release of the list, even when a newer final
     // version exists: pre-releases are allowed only while the newest release is one
-    autoUpdater.allowPrerelease = beta && await newestIsPrerelease(OWNER, REPO, tok).catch(() => true)
+    autoUpdater.allowPrerelease = beta && (await newestIsPrerelease(OWNER, REPO, tok).catch(() => true))
     const r = await autoUpdater.checkForUpdates()
     if (!r?.isUpdateAvailable) set({ state: 'up-to-date', checkedAt: Date.now() })
   } catch (err) {
@@ -67,7 +78,7 @@ export function installUpdate(): void {
   if (status.state === 'ready') autoUpdater.quitAndInstall(false, true)
 }
 
-export function initUpdater(window: BrowserWindow, beta: boolean): void {
+export function initUpdater(window: BrowserWindow, beta: boolean, autoCheck = true): void {
   win = window
   if (!app.isPackaged) {
     // Tests of the title-bar button set a status by hand (never in the installed app)
@@ -85,18 +96,40 @@ export function initUpdater(window: BrowserWindow, beta: boolean): void {
   }
   setUpdateChannel(beta)
   autoUpdater.on('update-available', info => set({ state: 'downloading', version: info.version, percent: 0 }))
-  autoUpdater.on('download-progress', p => { if (status.state === 'downloading') set({ ...status, percent: Math.round(p.percent) }) })
+  autoUpdater.on('download-progress', p => {
+    if (status.state === 'downloading')
+      set({ ...status, percent: Math.round(p.percent), transferred: p.transferred, total: p.total, bytesPerSecond: p.bytesPerSecond })
+  })
   autoUpdater.on('update-downloaded', info => set({ state: 'ready', version: info.version }))
   autoUpdater.on('error', err => {
     log('warn', 'updates', err)
     if (status.state !== 'ready') set({ state: 'unavailable', reason: 'feed' })
   })
   // A little after startup, so the first screen is not slowed down
-  setTimeout(() => { checkForUpdates() }, 15_000)
-  timer = setInterval(() => { checkForUpdates() }, EVERY)
+  if (autoCheck)
+    firstCheck = setTimeout(() => {
+      firstCheck = null
+      checkForUpdates()
+    }, 15_000)
+  setAutoUpdate(autoCheck)
+}
+
+/**
+ * Settings › Updates › « Look for updates by itself »: off, DevForge asks GitHub only when the
+ * Check button is clicked (a found version still downloads then)
+ */
+export function setAutoUpdate(on: boolean): void {
+  if (!app.isPackaged) return
+  if (on && !timer)
+    timer = setInterval(() => {
+      checkForUpdates()
+    }, EVERY)
+  if (!on) stopUpdater()
 }
 
 export function stopUpdater(): void {
   if (timer) clearInterval(timer)
+  if (firstCheck) clearTimeout(firstCheck)
   timer = null
+  firstCheck = null
 }

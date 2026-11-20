@@ -26,13 +26,28 @@
 import { execFileSync, spawnSync } from 'child_process'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import {
-  LANGS, RELEASE_FILES, bumpFor, changelogFile, extractSection, missingNotes, nextVersion, parseCommit,
-  prepareStep, prependSection, releaseBranch, renderSection, tagProblems, unexpectedFiles
+  LANGS,
+  RELEASE_FILES,
+  bumpFor,
+  changelogFile,
+  extractSection,
+  missingNotes,
+  nextVersion,
+  parseCommit,
+  prepareStep,
+  prependSection,
+  releaseBranch,
+  renderSection,
+  tagProblems,
+  unexpectedFiles
 } from './lib/release.mjs'
 
 const args = process.argv.slice(2)
 const flag = name => args.includes(name)
-const option = name => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : null }
+const option = name => {
+  const i = args.indexOf(name)
+  return i >= 0 ? args[i + 1] : null
+}
 const WITH_VALUE = ['--pre', '--summary-fr', '--summary-en']
 const [mode, positional = null] = args.filter((a, i) => !a.startsWith('--') && !WITH_VALUE.includes(args[i - 1]))
 const dryRun = flag('--dry-run')
@@ -40,23 +55,27 @@ const dryRun = flag('--dry-run')
 const git = (...a) => execFileSync('git', a, { encoding: 'utf-8' }).trim()
 // Quiet: null when git fails (no remote, offline, missing ref)
 const tryGit = (...a) => {
-  try { return execFileSync('git', a, { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() } catch { return null }
+  try {
+    return execFileSync('git', a, { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
+  } catch {
+    return null
+  }
 }
 const npm = (...a) => {
   // npm is a .cmd on Windows: needs a shell (arguments here are fixed or a checked version)
   const r = spawnSync('npm', a, { stdio: 'inherit', shell: process.platform === 'win32' })
   if (r.status !== 0) fail(`npm ${a.join(' ')} failed`)
 }
-function fail(msg) { console.error(`\n✖ ${msg}`); process.exit(1) }
+function fail(msg) {
+  console.error(`\n✖ ${msg}`)
+  process.exit(1)
+}
 
 const readText = file => (existsSync(file) ? readFileSync(file, 'utf-8') : '')
 const pkgVersion = () => JSON.parse(readFileSync('package.json', 'utf-8')).version
 const sectionOf = (lang, version) => extractSection(readText(changelogFile(lang)), version)
 // Staged, unstaged and untracked files
-const changedFiles = () => [
-  ...git('diff', '--name-only', 'HEAD').split('\n'),
-  ...git('ls-files', '--others', '--exclude-standard').split('\n')
-].filter(Boolean)
+const changedFiles = () => [...git('diff', '--name-only', 'HEAD').split('\n'), ...git('ls-files', '--others', '--exclude-standard').split('\n')].filter(Boolean)
 
 /** How HEAD stands against origin/<name> after a fetch (null without a remote or offline) */
 function againstOrigin(name) {
@@ -67,18 +86,23 @@ function againstOrigin(name) {
   return { behind, ahead }
 }
 
-const repoUrl = tryGit('remote', 'get-url', 'origin')?.replace(/^git@([^:]+):/, 'https://$1/').replace(/\.git$/, '') ?? null
+const repoUrl =
+  tryGit('remote', 'get-url', 'origin')
+    ?.replace(/^git@([^:]+):/, 'https://$1/')
+    .replace(/\.git$/, '') ?? null
 const branch = git('rev-parse', '--abbrev-ref', 'HEAD')
 
 if (mode === 'prepare') prepare()
 else if (mode === 'tag') tag()
 else {
-  fail([
-    'Usage:',
-    '  npm run release -- prepare [patch|minor|major|X.Y.Z] [--pre beta] [--summary-fr "…"] [--summary-en "…"] [--commit] [--no-check] [--dry-run]',
-    '  npm run release -- tag [X.Y.Z] [--dry-run]',
-    'Flow: docs/dev/versions.md, "Sortir une version".'
-  ].join('\n'))
+  fail(
+    [
+      'Usage:',
+      '  npm run release -- prepare [patch|minor|major|X.Y.Z] [--pre beta] [--summary-fr "…"] [--summary-en "…"] [--commit] [--no-check] [--dry-run]',
+      '  npm run release -- tag [X.Y.Z] [--dry-run]',
+      'Flow: docs/dev/versions.md, "Sortir une version".'
+    ].join('\n')
+  )
 }
 
 // ─── prepare ──────────────────────────────────────────────────────────────────
@@ -106,15 +130,24 @@ function prepare() {
 
   // Changes since the last tag (main merged back into develop brings it here)
   const lastTag = tryGit('describe', '--tags', '--abbrev=0', '--match', 'v[0-9]*')
-  const SEP = '\x1f', END = '\x1e'
+  const SEP = '\x1f',
+    END = '\x1e'
   const log = git('log', `--format=%H${SEP}%s${SEP}%b${END}`, ...(lastTag ? [`${lastTag}..HEAD`] : []))
-  const changes = log.split(END).map(e => e.trim()).filter(Boolean)
-    .map(e => { const [hash, subject, body] = e.split(SEP); return parseCommit(hash, subject, body) })
+  const changes = log
+    .split(END)
+    .map(e => e.trim())
+    .filter(Boolean)
+    .map(e => {
+      const [hash, subject, body] = e.split(SEP)
+      return parseCommit(hash, subject, body)
+    })
     .filter(Boolean)
   if (!changes.length && !positional) fail(`No change since ${lastTag ?? 'the beginning'}.`)
 
   const pre = option('--pre')
-  const bump = positional ?? bumpFor(changes)
+  const bump = positional ?? bumpFor(changes, current)
+  if (!positional && bump === 'minor' && changes.some(c => c.breaking))
+    console.log('A breaking change before 1.0 moves the minor version: pass `major` for 1.0.0.')
   const version = nextVersion(current, bump, pre)
   const target = state.branchVersion ? branch : releaseBranch(version)
   if (state.branchVersion && state.branchVersion !== version) {
@@ -126,7 +159,9 @@ function prepare() {
   if (!state.branchVersion && tryGit('rev-parse', '-q', '--verify', `refs/heads/${target}`)) fail(`Branch ${target} already exists.`)
 
   const previous = lastTag?.replace(/^v/, '') ?? null
-  const sections = Object.fromEntries(LANGS.map(lang => [lang, renderSection(version, changes, { lang, repoUrl, previous, summary: option(`--summary-${lang}`) })]))
+  const sections = Object.fromEntries(
+    LANGS.map(lang => [lang, renderSection(version, changes, { lang, repoUrl, previous, summary: option(`--summary-${lang}`) })])
+  )
 
   console.log(`\n${current} → ${version}  (${positional ? bump : `${bump}, from ${changes.length} commit(s)`}${pre ? `, ${pre}` : ''}) on ${target}\n`)
   console.log(sections.fr)
@@ -149,11 +184,13 @@ function prepare() {
   console.log(`\n✔ v${version} written on ${target}: ${RELEASE_FILES.join(', ')}`)
 
   if (flag('--commit')) return commitRelease(version, target)
-  console.log([
-    '',
-    `Next: rewrite the v${version} sections of CHANGELOG.md and CHANGELOG.en.md for users`,
-    '(by area, in each language), then commit the release with: npm run release -- prepare'
-  ].join('\n'))
+  console.log(
+    [
+      '',
+      `Next: rewrite the v${version} sections of CHANGELOG.md and CHANGELOG.en.md for users`,
+      '(by area, in each language), then commit the release with: npm run release -- prepare'
+    ].join('\n')
+  )
 }
 
 function commitRelease(version, onBranch) {
@@ -171,12 +208,15 @@ function commitRelease(version, onBranch) {
 }
 
 function afterCommit(version) {
-  console.log([
-    'Next:',
-    `  git push -u origin ${releaseBranch(version)}`,
-    `  PR ${releaseBranch(version)} → main, merged with a merge commit (CI "check" must pass)`,
-    `  then on main, pulled: npm run release -- tag ${version}`
-  ].join('\n'))
+  console.log(
+    [
+      'Next:',
+      `  git push -u origin ${releaseBranch(version)}`,
+      `  PR ${releaseBranch(version)} → main, merged with a merge commit (CI "check" must pass):`,
+      `    gh pr merge ${releaseBranch(version)} --merge --subject "chore(release): v${version}" --body ""`,
+      `  then on main, pulled: npm run release -- tag ${version}`
+    ].join('\n')
+  )
 }
 
 // ─── tag ──────────────────────────────────────────────────────────────────────
@@ -201,5 +241,7 @@ function tag() {
   git('tag', '-a', name, '--cleanup=verbatim', '-m', sections.fr)
   git('push', 'origin', `refs/tags/${name}`)
   console.log(`✔ Pushed ${name}: the Release workflow builds the installer and publishes the release${repoUrl ? ` (${repoUrl}/actions)` : ''}`)
-  console.log('Last step: a PR main → develop, merged with a merge commit, so that develop has the version and the tag.')
+  console.log('Last step: a PR main → develop, merged with a merge commit, so that develop has the version and the tag:')
+  console.log(`  gh pr create --base develop --head main --title "chore(release): v${version} dans develop" --body ""`)
+  console.log(`  gh pr merge main --merge --subject "chore(release): v${version} dans develop" --body ""`)
 }

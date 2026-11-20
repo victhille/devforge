@@ -21,14 +21,16 @@ interface Props {
 }
 
 /**
- * v4.3: the output of a command (an install, a backup, a compose up…): the
+ * The output of a command (an install, a backup, a compose up…): the
  * same box on every page, its height capped, kept at its last line.
  */
 export default function LogBox({ text, title, running, actions, follow = true, placeholder = '…', label, className }: Props) {
   const { t } = useI18n()
   const name = label ?? (typeof title === 'string' ? title : t.common.output)
   const ref = useRef<HTMLPreElement>(null)
-  useEffect(() => { if (follow) ref.current?.scrollTo({ top: ref.current.scrollHeight }) }, [text, follow])
+  useEffect(() => {
+    if (follow) ref.current?.scrollTo({ top: ref.current.scrollHeight })
+  }, [text, follow])
   return (
     <div className={cn('overflow-hidden rounded-card border border-line-subtle bg-console', className)}>
       {(title || actions) && (
@@ -38,7 +40,15 @@ export default function LogBox({ text, title, running, actions, follow = true, p
           {actions}
         </div>
       )}
-      <pre ref={ref} tabIndex={0} role="region" aria-label={name} className="max-h-72 overflow-auto px-4 py-3 font-mono text-xs leading-relaxed whitespace-pre-wrap break-all text-fg-secondary">{text || placeholder}</pre>
+      <pre
+        ref={ref}
+        tabIndex={0}
+        role="region"
+        aria-label={name}
+        className="max-h-72 overflow-auto px-4 py-3 font-mono text-xs leading-relaxed whitespace-pre-wrap break-all text-fg-secondary"
+      >
+        {text || placeholder}
+      </pre>
     </div>
   )
 }

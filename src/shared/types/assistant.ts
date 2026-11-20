@@ -23,7 +23,7 @@ export interface AssistantConfig {
   desktopWidget: boolean
   /** How Forgy's actions are approved */
   actionMode: AssistantActionMode
-  /** v4.2: who answers (Anthropic by default); `hasKey` and `keySource` speak of this one */
+  /** Who answers (Anthropic by default); `hasKey` and `keySource` speak of this one */
   provider: AssistantProvider
   /** The model asked for with a provider other than Anthropic ('': not chosen yet) */
   providerModel: string
@@ -36,7 +36,7 @@ export interface AssistantConfig {
 export interface AssistantConfigUpdate {
   apiKey?: string
   clearKey?: boolean
-  /** v4.2: the provider whose key is saved or removed (default: Anthropic) */
+  /** The provider whose key is saved or removed (default: Anthropic) */
   keyFor?: AssistantProvider
   provider?: AssistantProvider
   providerModel?: string
@@ -107,9 +107,9 @@ export interface AssistantConversation extends AssistantConversationSummary {
   items: AssistantItem[]
   /** Fixed for the conversation (switching would restart the prompt cache) */
   skill: AssistantSkillId
-  /** A Claude model, or the model of another provider (v4.2) */
+  /** A Claude model, or the model of another provider */
   model: string
-  /** v4.2: who answers this conversation (missing: Anthropic) */
+  /** Who answers this conversation (missing: Anthropic) */
   provider?: AssistantProvider
   /** Estimated cost in USD (Claude only: the others' prices are not known) and tokens used */
   cost: number
@@ -164,7 +164,7 @@ export interface AiToolsAPI {
 export interface AssistantAPI {
   getConfig: () => Promise<AssistantConfig>
   saveConfig: (update: AssistantConfigUpdate) => Promise<AssistantConfig>
-  /** v4.2: the models a provider offers, read from it with its key (sorted) */
+  /** The models a provider offers, read from it with its key (sorted) */
   models: (provider: AssistantProvider) => Promise<string[]>
   /** Starts a turn; events follow on onEvent. Resolves with the conversation id at once */
   send: (req: AssistantSendRequest) => Promise<string>

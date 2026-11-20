@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Download, RotateCw } from 'lucide-react'
 import type { UpdateStatus } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
+import { setUpdateCardOpen, takeFocus, useUpdateCardOpen } from '@renderer/app/updateCardState'
 
 /**
  * Title-bar button, next to Forgy, shown only when a new version is on its
@@ -15,27 +16,40 @@ export default function UpdateButton() {
   const [status, setStatus] = useState<UpdateStatus>({ state: 'idle' })
 
   useEffect(() => {
-    window.devforge.updates.status().then(setStatus).catch(() => {})
+    window.devforge.updates
+      .status()
+      .then(setStatus)
+      .catch(() => {})
     return window.devforge.updates.onStatus(setStatus)
   }, [])
 
-  if (status.state !== 'downloading' && status.state !== 'ready') return null
+  const cardOpen = useUpdateCardOpen()
+  const pill = useRef<HTMLButtonElement>(null)
+  // Shrunk by the user: the focus lands on the pill, not on the page
+  useEffect(() => {
+    if (!cardOpen && pill.current && takeFocus()) pill.current.focus()
+  }, [cardOpen])
+  // The card at the bottom right says it all while open: the pill is the card shrunk
+  if (cardOpen || (status.state !== 'downloading' && status.state !== 'ready')) return null
   const ready = status.state === 'ready'
   const label = ready ? s.updateRestart : s.updateDownloading.replace('{v}', status.version).replace('{p}', String(status.percent))
 
   return (
     <button
-      onClick={() => { if (ready) window.devforge.updates.install() }}
-      disabled={!ready}
+      ref={pill}
+      type="button"
+      onClick={() => setUpdateCardOpen(true, true)}
       title={ready ? `${s.updateRestart} (v${status.version})` : label}
       aria-label={label}
       className={cn(
         'app-no-drag relative flex h-[30px] shrink-0 items-center gap-1.5 overflow-hidden rounded-full border px-3 text-sm font-medium transition-colors',
-        ready ? 'border-accent/50 bg-accent-soft text-accent hover:border-accent' : 'cursor-default border-line bg-canvas text-fg-secondary'
+        ready ? 'border-accent/50 bg-accent-soft text-accent hover:border-accent' : 'border-line bg-canvas text-fg-secondary hover:text-fg'
       )}
     >
       {/* Download progress fills the pill */}
-      {!ready && <span aria-hidden className="absolute inset-y-0 left-0 bg-accent-soft transition-[width] duration-500" style={{ width: `${status.percent}%` }} />}
+      {!ready && (
+        <span aria-hidden className="absolute inset-y-0 left-0 bg-accent-soft transition-[width] duration-500" style={{ width: `${status.percent}%` }} />
+      )}
       <span className="relative flex items-center gap-1.5">
         {ready ? <RotateCw size={14} /> : <Download size={14} />}
         {ready ? t.nav.update.replace('{v}', status.version) : `v${status.version} · ${status.percent} %`}

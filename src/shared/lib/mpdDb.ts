@@ -4,7 +4,7 @@ import { isFrameworkTable, layoutMcd } from './mcdTidy'
 import { columnSql, foreignKeys, foreignKeySql, generateMpd, mpdDiagram, mpdStatements, placeNew, quoteName, snake, sqlType } from './mpd'
 
 /**
- * v3.9 lot 4: the MPD and a real database. What differs, the script that
+ * the MPD and a real database. What differs, the script that
  * catches up, the database taken into the MPD, and an MCD read back from a
  * database (link tables become associations, foreign keys 1,1 — 0,n legs).
  */
@@ -17,7 +17,11 @@ export function parseSqlType(raw: string): Pick<MpdColumn, 'type' | 'length' | '
   const m = s.match(/\((\d+)(?:\s*,\s*(\d+))?\)/)
   const n = m ? Number(m[1]) : undefined
   const scale = m?.[2] !== undefined ? Number(m[2]) : undefined
-  const base = s.replace(/\(.*?\)/g, '').replace(/\b(unsigned|zerofill|signed)\b/g, '').replace(/\s+/g, ' ').trim()
+  const base = s
+    .replace(/\(.*?\)/g, '')
+    .replace(/\b(unsigned|zerofill|signed)\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
   if ((base === 'tinyint' && n === 1) || base === 'boolean' || base === 'bool') return { type: 'bool' }
   if (/^(integer|int|int4|mediumint|serial)$/.test(base)) return { type: 'int' }
   if (/^(bigint|int8|bigserial)$/.test(base)) return { type: 'bigint' }
@@ -60,27 +64,42 @@ export function diffMpd(mpd: MpdModel, db: DbDiagram): MpdDiff[] {
   const out: MpdDiff[] = []
   for (const t of mpd.tables) {
     const d = byName.get(lc(t.name))
-    if (!d) { out.push({ kind: 'tableMissing', table: t.name }); continue }
+    if (!d) {
+      out.push({ kind: 'tableMissing', table: t.name })
+      continue
+    }
     const cols = new Map(d.columns.map(c => [lc(c.name), c]))
     for (const c of t.columns) {
       const dc = cols.get(lc(c.name))
-      if (!dc) { out.push({ kind: 'columnMissing', table: t.name, column: c.name, mpd: sqlType(c, e) }); continue }
+      if (!dc) {
+        out.push({ kind: 'columnMissing', table: t.name, column: c.name, mpd: sqlType(c, e) })
+        continue
+      }
       if (!sameType(c, dc.type, e)) out.push({ kind: 'type', table: t.name, column: c.name, mpd: sqlType(c, e), db: dc.type.toUpperCase() })
       const nullable = !!c.nullable && !c.pk
-      if (nullable !== dc.nullable && !c.pk) out.push({ kind: 'nullable', table: t.name, column: c.name, mpd: nullable ? 'NULL' : 'NOT NULL', db: dc.nullable ? 'NULL' : 'NOT NULL' })
+      if (nullable !== dc.nullable && !c.pk)
+        out.push({ kind: 'nullable', table: t.name, column: c.name, mpd: nullable ? 'NULL' : 'NOT NULL', db: dc.nullable ? 'NULL' : 'NOT NULL' })
     }
     const names = new Set(t.columns.map(c => lc(c.name)))
-    for (const dc of d.columns) if (!names.has(lc(dc.name))) out.push({ kind: 'columnExtra', table: t.name, column: dc.name, db: dc.type.toUpperCase(), danger: true })
+    for (const dc of d.columns)
+      if (!names.has(lc(dc.name))) out.push({ kind: 'columnExtra', table: t.name, column: dc.name, db: dc.type.toUpperCase(), danger: true })
     const pk = t.columns.filter(c => c.pk).map(c => c.name)
     const dbPk = d.columns.filter(c => c.pk).map(c => c.name)
     if (lc([...pk].sort().join(',')) !== lc([...dbPk].sort().join(','))) out.push({ kind: 'pk', table: t.name, mpd: pk.join(', '), db: dbPk.join(', ') })
-    const mine = foreignKeys(mpd, t).map(f => ({ sig: fkSig(f.columns.map(c => c.name), f.to.name, f.refColumns.map(c => c.name)), text: `(${f.columns.map(c => c.name).join(', ')}) → ${f.to.name}` }))
+    const mine = foreignKeys(mpd, t).map(f => ({
+      sig: fkSig(
+        f.columns.map(c => c.name),
+        f.to.name,
+        f.refColumns.map(c => c.name)
+      ),
+      text: `(${f.columns.map(c => c.name).join(', ')}) → ${f.to.name}`
+    }))
     const theirs = linksFrom(db, d).map(l => ({ sig: fkSig(l.columns, l.to.name, l.refColumns), text: `(${l.columns.join(', ')}) → ${l.to.name}` }))
     for (const f of mine) if (!theirs.some(x => x.sig === f.sig)) out.push({ kind: 'fkMissing', table: t.name, mpd: f.text })
     for (const f of theirs) if (!mine.some(x => x.sig === f.sig)) out.push({ kind: 'fkExtra', table: t.name, db: f.text })
   }
   const mineNames = new Set(mpd.tables.map(t => lc(t.name)))
-  // v4.1: a framework's own tables (migrations…) are never in the MPD, nor to drop
+  // A framework's own tables (migrations…) are never in the MPD, nor to drop
   for (const d of tables) if (!mineNames.has(lc(d.name)) && !isFrameworkTable(d.name)) out.push({ kind: 'tableExtra', table: d.name, danger: true })
   return out
 }
@@ -99,7 +118,12 @@ export function diffScript(mpd: MpdModel, diffs: MpdDiff[], notes: ScriptNotes):
   const q = (s: string) => quoteName(s, e)
   const byName = new Map(mpd.tables.map(t => [lc(t.name), t]))
   const col = (d: MpdDiff) => byName.get(lc(d.table))?.columns.find(c => lc(c.name) === lc(d.column ?? ''))
-  const fill = (tpl: string, d: MpdDiff) => tpl.replace('{table}', d.table).replace('{column}', d.column ?? '').replace('{mpd}', d.mpd ?? '').replace('{db}', d.db ?? '')
+  const fill = (tpl: string, d: MpdDiff) =>
+    tpl
+      .replace('{table}', d.table)
+      .replace('{column}', d.column ?? '')
+      .replace('{mpd}', d.mpd ?? '')
+      .replace('{db}', d.db ?? '')
   const lines: ScriptLine[] = []
   const at = (kind: MpdDiff['kind']) => diffs.filter(d => d.kind === kind)
 
@@ -119,10 +143,15 @@ export function diffScript(mpd: MpdModel, diffs: MpdDiff[], notes: ScriptNotes):
     const d = { kind: 'type', table, column } as MpdDiff
     const c = col(d)!
     const typeDiff = at('type').find(x => x.table === table && x.column === column)
-    if (e === 'sqlite') { if (typeDiff) lines.push({ sql: `-- ${fill(notes.sqliteType, typeDiff)}`, comment: true }); continue }
+    if (e === 'sqlite') {
+      if (typeDiff) lines.push({ sql: `-- ${fill(notes.sqliteType, typeDiff)}`, comment: true })
+      continue
+    }
     if (e === 'mysql') {
       const lone = c.pk && byName.get(lc(table))!.columns.filter(x => x.pk).length === 1
-      lines.push({ sql: `ALTER TABLE ${q(table)} MODIFY COLUMN ${q(c.name)} ${sqlType(c, e)}${!c.nullable || c.pk ? ' NOT NULL' : ''}${lone && c.auto ? ' AUTO_INCREMENT' : ''};` })
+      lines.push({
+        sql: `ALTER TABLE ${q(table)} MODIFY COLUMN ${q(c.name)} ${sqlType(c, e)}${!c.nullable || c.pk ? ' NOT NULL' : ''}${lone && c.auto ? ' AUTO_INCREMENT' : ''};`
+      })
       continue
     }
     if (typeDiff) lines.push({ sql: `ALTER TABLE ${q(table)} ALTER COLUMN ${q(c.name)} TYPE ${sqlType(c, e)} USING ${q(c.name)}::${sqlType(c, e)};` })
@@ -173,8 +202,11 @@ export function adoptDb(mpd: MpdModel, db: DbDiagram): MpdModel {
       const changed = !w || typeChanged || !!w.pk !== dc.pk || (!!w.nullable && !w.pk) !== nullable || w.name !== dc.name
       const { ref: _r, ...rest } = w ?? { id: `c-db-${snake(d.name)}-${snake(dc.name)}`, name: dc.name, type: typed.type }
       const c: MpdColumn = {
-        ...rest, name: dc.name, ...(typeChanged ? { type: typed.type, length: typed.length, scale: typed.scale } : {}),
-        pk: dc.pk || undefined, nullable: nullable || undefined,
+        ...rest,
+        name: dc.name,
+        ...(typeChanged ? { type: typed.type, length: typed.length, scale: typed.scale } : {}),
+        pk: dc.pk || undefined,
+        nullable: nullable || undefined,
         auto: dc.pk && lonePk && ['int', 'bigint', 'smallint'].includes(typeChanged ? typed.type : w!.type) ? (w ? w.auto : true) : undefined,
         ...(changed || w?.edited ? { edited: true } : {})
       }
@@ -184,14 +216,21 @@ export function adoptDb(mpd: MpdModel, db: DbDiagram): MpdModel {
     ids.set(`${d.schema}.${d.name}`, { id, cols })
     const colIds = new Set(columns.map(c => c.id))
     return {
-      id, name: d.name, x: was?.x ?? 0, y: was?.y ?? 0, columns, indexes: (was?.indexes ?? []).filter(i => i.columns.every(c => colIds.has(c))),
-      ...(was?.from ? { from: was.from } : {}), ...(was && (was.edited || was.name !== d.name) ? { edited: true } : {})
+      id,
+      name: d.name,
+      x: was?.x ?? 0,
+      y: was?.y ?? 0,
+      columns,
+      indexes: (was?.indexes ?? []).filter(i => i.columns.every(c => colIds.has(c))),
+      ...(was?.from ? { from: was.from } : {}),
+      ...(was && (was.edited || was.name !== d.name) ? { edited: true } : {})
     }
   })
   // The database's foreign keys become the MPD's
   const byId = new Map(tables.map(t => [t.id, t]))
   for (const l of db.links) {
-    const from = ids.get(`${l.from.schema}.${l.from.name}`), to = ids.get(`${l.to.schema}.${l.to.name}`)
+    const from = ids.get(`${l.from.schema}.${l.from.name}`),
+      to = ids.get(`${l.to.schema}.${l.to.name}`)
     if (!from || !to) continue
     l.columns.forEach((name, i) => {
       const c = byId.get(from.id)!.columns.find(x => x.id === from.cols.get(lc(name)))
@@ -206,8 +245,20 @@ export function adoptDb(mpd: MpdModel, db: DbDiagram): MpdModel {
 
 function mcdType(t: Pick<MpdColumn, 'type' | 'length'>): Pick<McdAttribute, 'type' | 'length'> {
   const map: Record<MpdColumn['type'], McdType> = {
-    int: 'int', bigint: 'int', smallint: 'int', decimal: 'decimal', float: 'decimal', varchar: 'varchar', char: 'varchar',
-    text: 'text', bool: 'bool', date: 'date', datetime: 'datetime', time: 'time', uuid: 'uuid', json: 'json'
+    int: 'int',
+    bigint: 'int',
+    smallint: 'int',
+    decimal: 'decimal',
+    float: 'decimal',
+    varchar: 'varchar',
+    char: 'varchar',
+    text: 'text',
+    bool: 'bool',
+    date: 'date',
+    datetime: 'datetime',
+    time: 'time',
+    uuid: 'uuid',
+    json: 'json'
   }
   const type = map[t.type]
   return type === 'varchar' && t.length ? { type, length: t.length } : { type }
@@ -217,7 +268,10 @@ function mcdType(t: Pick<MpdColumn, 'type' | 'length'>): Pick<McdAttribute, 'typ
 export function guessNaming(db: DbDiagram): MldNaming {
   const tables = dbTablesOf(db)
   const names = tables.map(t => t.name)
-  const pks = tables.map(t => t.columns.filter(c => c.pk)).filter(p => p.length === 1).map(p => p[0].name)
+  const pks = tables
+    .map(t => t.columns.filter(c => c.pk))
+    .filter(p => p.length === 1)
+    .map(p => p[0].name)
   const fkCols = db.links.flatMap(l => l.columns)
   return {
     tables: names.length && names.every(n => n === n.toUpperCase() && /[A-Z]/.test(n)) ? 'upper' : names.some(n => /^[A-Z][a-z]/.test(n)) ? 'pascal' : 'snake',
@@ -233,7 +287,7 @@ export function guessNaming(db: DbDiagram): MldNaming {
  * association between its two tables, 1,1 (0,1 when it can be empty) — 0,n.
  */
 export function importDb(db: DbDiagram, engine: SqlEngine, mcdFile: string): { mcd: McdModel; naming: MldNaming; mpd: MpdModel } {
-  // v4.1: a framework's own tables (migrations, queues…) are not the domain
+  // A framework's own tables (migrations, queues…) are not the domain
   const tables = dbTablesOf(db).filter(t => !isFrameworkTable(t.name))
   const key = (t: { schema: string; name: string }) => `${t.schema}.${t.name}`
   const keys = new Set(tables.map(key))
@@ -256,8 +310,10 @@ export function importDb(db: DbDiagram, engine: SqlEngine, mcdFile: string): { m
   const id = (p: string) => `${p}${(++n).toString(36)}`
   const attribute = (t: DbDiagramTable, c: DbDiagramTable['columns'][number], identifier: boolean): McdAttribute => {
     const a: McdAttribute = {
-      id: id('a'), name: identifier && lc(c.name) === 'id' && t.columns.filter(x => x.pk).length === 1 ? `id_${snake(t.name)}` : c.name,
-      ...mcdType(parseSqlType(c.type) ?? { type: 'text' }), ...(identifier ? { identifier: true } : {})
+      id: id('a'),
+      name: identifier && lc(c.name) === 'id' && t.columns.filter(x => x.pk).length === 1 ? `id_${snake(t.name)}` : c.name,
+      ...mcdType(parseSqlType(c.type) ?? { type: 'text' }),
+      ...(identifier ? { identifier: true } : {})
     }
     attrOf.set(`${key(t)}.${lc(c.name)}`, a.id)
     colName.set(a.id, c.name)
@@ -273,25 +329,44 @@ export function importDb(db: DbDiagram, engine: SqlEngine, mcdFile: string): { m
     entityOf.set(key(t), e.id)
     tableName.set(e.id, t.name)
   }
-  // One name per element: the tables' names, then the associations' (v4.1)
+  // One name per element: the tables' names, then the associations'
   const taken = new Set(mcd.entities.map(e => lc(e.name)))
-  const unique = (name: string) => { let n = name; for (let i = 2; taken.has(lc(n)); i++) n = `${name}_${i}`; taken.add(lc(n)); return n }
-  const leg = (entity: string, association: string, card: Cardinality) => { const l = { id: id('l'), entity, association, card }; mcd.links.push(l); return l }
+  const unique = (name: string) => {
+    let n = name
+    for (let i = 2; taken.has(lc(n)); i++) n = `${name}_${i}`
+    taken.add(lc(n))
+    return n
+  }
+  const leg = (entity: string, association: string, card: Cardinality) => {
+    const l = { id: id('l'), entity, association, card }
+    mcd.links.push(l)
+    return l
+  }
   /** The foreign key's columns, named in the MPD after the leg and the identifier they point at */
-  const mapFk = (l: DbDiagramLink, legId: string) => l.columns.forEach((c, i) => {
-    const target = attrOf.get(`${key(l.to)}.${lc(l.refColumns[i] ?? '')}`)
-    if (target) colName.set(`${legId}:${target}`, c)
-  })
+  const mapFk = (l: DbDiagramLink, legId: string) =>
+    l.columns.forEach((c, i) => {
+      const target = attrOf.get(`${key(l.to)}.${lc(l.refColumns[i] ?? '')}`)
+      if (target) colName.set(`${legId}:${target}`, c)
+    })
 
   for (const t of tables.filter(isJoin)) {
     // In the table's column order (SQLite lists its keys backwards)
     const at = (l: DbDiagramLink) => t.columns.findIndex(c => c.name === l.columns[0])
     const fks = links.filter(l => key(l.from) === key(t)).sort((a, b) => at(a) - at(b))
     const fkCols = new Set(fks.flatMap(l => l.columns.map(lc)))
-    const a = { id: id('s'), name: unique(upper(t.name)), x: 0, y: 0, attributes: t.columns.filter(c => !fkCols.has(lc(c.name))).map(c => attribute(t, c, false)) }
+    const a = {
+      id: id('s'),
+      name: unique(upper(t.name)),
+      x: 0,
+      y: 0,
+      attributes: t.columns.filter(c => !fkCols.has(lc(c.name))).map(c => attribute(t, c, false))
+    }
     mcd.associations.push(a)
     tableName.set(a.id, t.name)
-    for (const f of fks) { const to = entityOf.get(key(f.to)); if (to) mapFk(f, leg(to, a.id, '0,n').id) }
+    for (const f of fks) {
+      const to = entityOf.get(key(f.to))
+      if (to) mapFk(f, leg(to, a.id, '0,n').id)
+    }
   }
   for (const f of links) {
     const child = tables.find(t => key(t) === key(f.from))!
@@ -308,7 +383,7 @@ export function importDb(db: DbDiagram, engine: SqlEngine, mcdFile: string): { m
     mapFk(f, leg(parent, a.id, '0,n').id)
   }
 
-  // Laid out so nothing hides anything (v4.1), then the MPD from that MCD, with the database's own names and types
+  // Laid out so nothing hides anything, then the MPD from that MCD, with the database's own names and types
   const laid = layoutMcd(mcd)
   const made = generateMpd(laid, naming, engine, null, mcdFile)
   const renamed: MpdModel = {
@@ -316,7 +391,9 @@ export function importDb(db: DbDiagram, engine: SqlEngine, mcdFile: string): { m
     tables: made.tables.map(t => {
       const name = (t.from && tableName.get(t.from)) || t.name
       return {
-        ...t, name, ...(name !== t.name ? { edited: true } : {}),
+        ...t,
+        name,
+        ...(name !== t.name ? { edited: true } : {}),
         columns: t.columns.map(c => {
           const real = c.from ? colName.get(c.from) : undefined
           return real && real !== c.name ? { ...c, name: real, edited: true } : c
@@ -328,7 +405,7 @@ export function importDb(db: DbDiagram, engine: SqlEngine, mcdFile: string): { m
 }
 
 /**
- * v4.2 lot 3: the MCD of an MPD drawn by hand, read as a database would be;
+ * the MCD of an MPD drawn by hand, read as a database would be;
  * the MPD made again from that MCD, so that the two stay tied, with what the
  * hand gave it kept: the places, the indexes, the unique and numbered
  * columns, the connection. A table the MCD leaves out (a framework's) stays
@@ -354,15 +431,17 @@ export function mcdFromMpd(mpd: MpdModel, mcdFile: string): { mcd: McdModel; nam
   })
   const now = new Map(tables.map(t => [lc(t.name), t]))
   const oldById = new Map(mpd.tables.map(t => [t.id, t]))
-  const kept = mpd.tables.filter(t => !now.has(lc(t.name))).map(t => ({
-    ...t,
-    columns: t.columns.map(c => {
-      const target = c.ref && oldById.get(c.ref.table)
-      const into = target && now.get(lc(target.name))
-      const refName = target && target.columns.find(x => x.id === c.ref!.column)?.name
-      const col = into && refName ? into.columns.find(x => lc(x.name) === lc(refName)) : undefined
-      return into && col ? { ...c, ref: { table: into.id, column: col.id } } : c
-    })
-  }))
+  const kept = mpd.tables
+    .filter(t => !now.has(lc(t.name)))
+    .map(t => ({
+      ...t,
+      columns: t.columns.map(c => {
+        const target = c.ref && oldById.get(c.ref.table)
+        const into = target && now.get(lc(target.name))
+        const refName = target && target.columns.find(x => x.id === c.ref!.column)?.name
+        const col = into && refName ? into.columns.find(x => lc(x.name) === lc(refName)) : undefined
+        return into && col ? { ...c, ref: { table: into.id, column: col.id } } : c
+      })
+    }))
   return { mcd: made.mcd, naming: made.naming, mpd: { ...made.mpd, tables: [...tables, ...kept], ...(mpd.connection ? { connection: mpd.connection } : {}) } }
 }

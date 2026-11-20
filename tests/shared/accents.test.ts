@@ -3,9 +3,15 @@ import { readFileSync } from 'fs'
 import { ACCENT_COLORS, PALETTES, PALETTE_VARS, TEXT_SCALE, TEXT_SIZES, type Palette } from '../../src/shared/lib/accents'
 
 const rgb = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16))
-const lin = (c: number) => { const v = c / 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
+const lin = (c: number) => {
+  const v = c / 255
+  return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+}
 const lum = (c: number[]) => 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2])
-const ratio = (a: number[], b: number[]) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05) }
+const ratio = (a: number[], b: number[]) => {
+  const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p)
+  return (x + 0.05) / (y + 0.05)
+}
 const mix = (fg: number[], bg: number[], alpha: number) => fg.map((c, i) => Math.round(c * alpha + bg[i] * (1 - alpha)))
 
 /** The backgrounds text sits on, and the texts that must be read (the disabled one is exempt) */
@@ -15,7 +21,9 @@ const TEXTS: (keyof Palette)[] = ['fg', 'fgSecondary', 'fgMuted', 'accent']
 describe('colour palettes', () => {
   it('read at 4.5:1 at least: every text on every background, the accent on its own tint, the text on the accent', () => {
     const low: string[] = []
-    const check = (what: string, value: number) => { if (value < 4.5) low.push(`${what} : ${value.toFixed(2)}`) }
+    const check = (what: string, value: number) => {
+      if (value < 4.5) low.push(`${what} : ${value.toFixed(2)}`)
+    }
     for (const id of ACCENT_COLORS) {
       for (const theme of ['dark', 'light'] as const) {
         const p = PALETTES[id][theme]
@@ -28,7 +36,27 @@ describe('colour palettes', () => {
     expect(low).toEqual([])
   })
 
-  it("keep Forge as the stylesheet has it, and write every theme variable", () => {
+  it("draw a field's edge at 3:1 at least on every background (WCAG 1.4.11)", () => {
+    // index.css mixes the muted text into the surface (srgb): the same mix here
+    const css = readFileSync('src/renderer/src/styles/index.css', 'utf8')
+    const m = /--color-line-strong:\s*color-mix\(in srgb, var\(--text-muted\) (\d+)%, var\(--bg-surface\)\)/.exec(css)
+    expect(m, '--color-line-strong in index.css').not.toBeNull()
+    const share = Number(m![1]) / 100
+    const low: string[] = []
+    for (const id of ACCENT_COLORS) {
+      for (const theme of ['dark', 'light'] as const) {
+        const p = PALETTES[id][theme]
+        const edge = mix(rgb(p.fgMuted), rgb(p.surface), share)
+        for (const bg of ['base', 'surface', 'elevated', 'sidebar', 'console'] as const) {
+          const r = ratio(edge, rgb(p[bg]))
+          if (r < 3) low.push(`${id} ${theme} bord sur ${bg} : ${r.toFixed(2)}`)
+        }
+      }
+    }
+    expect(low).toEqual([])
+  })
+
+  it('keep Forge as the stylesheet has it, and write every theme variable', () => {
     const css = readFileSync('src/renderer/src/styles/index.css', 'utf8')
     for (const theme of ['dark', 'light'] as const) {
       for (const value of Object.values(PALETTES.forge[theme])) expect(css).toContain(value)

@@ -179,6 +179,9 @@
 
   --color-line:         var(--border);
   --color-line-subtle:  var(--border-subtle);
+  /* A field's edge: the only thing that shows where to type, so it reads at 3:1 on every background,
+     in every colour of Settings › Appearance (tests/shared/accents.test.ts) */
+  --color-line-strong:  color-mix(in srgb, var(--text-muted) 75%, var(--bg-surface));
 
   --color-fg:           var(--text-primary);
   --color-fg-secondary: var(--text-secondary);
@@ -229,7 +232,7 @@
   /* The home page's greeting */
   --text-hero: calc(34px * var(--df-text-scale, 1)); --text-hero--line-height: 1.1;
 
-  /* v4.3: the terminal stays dark in both themes, its colors in one place (and XTERM_THEME in features/terminal/snapshot.ts) */
+  /* The terminal stays dark in both themes, its colors in one place (and XTERM_THEME in features/terminal/snapshot.ts) */
   --color-term:       #0B0A09;
   --color-term-block: #141210;
   --color-term-fg:    #E8E2DA;
@@ -320,7 +323,7 @@
 @utility df-rise { animation: df-rise .45s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 60ms); }
 /* A live service dot */
 @utility df-ping { position: relative; &::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: inherit; animation: df-ping 2s ease-out infinite; } }
-/* v4.3: a pale brand color (yellow, light gray…), darkened on the light theme's white (lib/brand.ts) */
+/* A pale brand color (yellow, light gray…), darkened on the light theme's white (lib/brand.ts) */
 [data-theme='light'] .df-pale { filter: brightness(.62) saturate(1.3); }
 @media (prefers-color-scheme: light) {
   [data-theme='system'] .df-pale { filter: brightness(.62) saturate(1.3); }
@@ -341,7 +344,30 @@
 }
 :root[data-motion=reduced] *, :root[data-motion=reduced] *::before, :root[data-motion=reduced] *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 
-/* ─── Code in file previews (highlight.js classes, v3.5.3) ─────────────────── */
+/* ─── Windows high contrast (forced colors) ────────────────────────────────── */
+/* Windows paints every text, background and border in the user's own colours and drops the shadows.
+   What only a shadow or a background showed is drawn again with an outline or a system colour */
+@media (forced-colors: active) {
+  /* The focus rings are shadows, and the fields hide their outline */
+  :focus-visible { outline: 2px solid Highlight !important; outline-offset: 2px !important; }
+  /* The chosen tab or option, the current page, a pressed toggle: shown by a tint alone */
+  [aria-selected='true'], [aria-pressed='true'], [role='radio'][aria-checked='true'], [aria-current]:not([aria-current='false']) { outline: 1px solid Highlight; outline-offset: -1px; }
+  /* A switch is a track and a knob, both backgrounds */
+  [role='switch'] { forced-color-adjust: none; background: Canvas; border: 1px solid CanvasText; }
+  [role='switch'] > span { background: CanvasText; }
+  [role='switch'][aria-checked='true'] { background: Highlight; border-color: Highlight; }
+  [role='switch'][aria-checked='true'] > span { background: HighlightText; }
+  [role='switch']:disabled { border-color: GrayText; }
+  [role='switch']:disabled > span { background: GrayText; }
+  /* Gauges and progress bars: the track gets an edge, the fill (df-fill) the highlight */
+  [role='meter'], [role='progressbar'] { outline: 1px solid CanvasText; }
+  /* A status dot: filled when something runs or fails, hollow when off or unknown (its state is said in words next to it) */
+  .df-dot { forced-color-adjust: none; background: CanvasText; }
+  .df-dot[data-state='off'], .df-dot[data-state='unknown'] { background: Canvas; border: 1px solid CanvasText; }
+}
+@utility df-fill { @media (forced-colors: active) { forced-color-adjust: none; background: Highlight; } }
+
+/* ─── Code in file previews (highlight.js classes) ─────────────────── */
 .df-code .hljs-comment, .df-code .hljs-quote { color: var(--color-fg-muted); font-style: italic; }
 .df-code .hljs-keyword, .df-code .hljs-selector-tag, .df-code .hljs-meta .hljs-keyword, .df-code .hljs-doctag { color: var(--syntax-keyword); }
 .df-code .hljs-string, .df-code .hljs-regexp, .df-code .hljs-template-tag, .df-code .hljs-addition { color: var(--syntax-string); }

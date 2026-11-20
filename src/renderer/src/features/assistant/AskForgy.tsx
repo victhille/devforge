@@ -5,11 +5,20 @@ import Button from '@renderer/components/ui/Button'
 import { useAssistant } from './AssistantContext'
 
 /**
- * v4.2 lot 4: the one way a page offers Forgy, with the same look everywhere:
+ * the one way a page offers Forgy, with the same look everywhere:
  * the panel opens, and the question (when there is one, worked out at the
  * click) is sent in a new conversation.
  */
-export default function AskForgy({ question, label, icon, size = 'sm', solid, disabled, title, className }: {
+export default function AskForgy({
+  question,
+  label,
+  icon,
+  size = 'sm',
+  solid,
+  disabled,
+  title,
+  className
+}: {
   /** Nothing: the panel only opens */
   question?: string | (() => string)
   label: string
@@ -28,8 +37,17 @@ export default function AskForgy({ question, label, icon, size = 'sm', solid, di
     else setOpen(true)
   }
   return (
-    <Button size={size} variant="secondary" disabled={disabled} title={title} onClick={go}
-      className={cn(solid ? 'border-transparent bg-forgy text-forgy-fg hover:border-transparent hover:bg-forgy/90' : 'border-forgy/30 text-forgy hover:border-forgy/50', className)}>
+    <Button
+      size={size}
+      variant="secondary"
+      disabled={disabled}
+      title={title}
+      onClick={go}
+      className={cn(
+        solid ? 'border-transparent bg-forgy text-forgy-fg hover:border-transparent hover:bg-forgy/90' : 'border-forgy/30 text-forgy hover:border-forgy/50',
+        className
+      )}
+    >
       {icon ?? <Bot size={size === 'md' ? 15 : 13} />} {label}
     </Button>
   )

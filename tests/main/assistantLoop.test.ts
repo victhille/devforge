@@ -9,7 +9,9 @@ const h = vi.hoisted(() => ({ calls: [] as Record<string, unknown>[], script: []
 
 vi.mock('@anthropic-ai/sdk', () => {
   class AnthropicError extends Error {}
-  class APIError extends AnthropicError { status?: number }
+  class APIError extends AnthropicError {
+    status?: number
+  }
   class APIUserAbortError extends AnthropicError {}
   class AuthenticationError extends APIError {}
   class RateLimitError extends APIError {}
@@ -32,9 +34,15 @@ vi.mock('@anthropic-ai/sdk', () => {
               const content = (msg.content ?? []) as { type: string; text?: string }[]
               if (event === 'text') for (const b of content) if (b.type === 'text') cb(b.text!)
               // Server tools announce themselves with a content_block_start event
-              if (event === 'streamEvent') content.forEach((b, index) => { if (b.type === 'server_tool_use') cb({ type: 'content_block_start', index, content_block: b }) })
+              if (event === 'streamEvent')
+                content.forEach((b, index) => {
+                  if (b.type === 'server_tool_use') cb({ type: 'content_block_start', index, content_block: b })
+                })
             },
-            finalMessage: async () => { if (msg.rejectFinal) throw msg.rejectFinal; return msg }
+            finalMessage: async () => {
+              if (msg.rejectFinal) throw msg.rejectFinal
+              return msg
+            }
           }
         }
       }
@@ -48,7 +56,12 @@ const { loadConversation } = await import('../../src/main/services/assistant/ass
 
 async function ask(text: string, extra: Record<string, unknown> = {}) {
   const events: AssistantEvent[] = []
-  const done = new Promise<void>(resolve => setAssistantEmitter(e => { events.push(e); if (e.type === 'done') resolve() }))
+  const done = new Promise<void>(resolve =>
+    setAssistantEmitter(e => {
+      events.push(e)
+      if (e.type === 'done') resolve()
+    })
+  )
   const id = await sendToAssistant({ text, ...extra })
   await done
   return { id, events }
@@ -67,12 +80,15 @@ describe('assistant loop', () => {
 
   it('streams text, runs tools, sends results back and keeps an append-only history', async () => {
     h.script.push(
-      { stop_reason: 'tool_use', content: [
-        { type: 'thinking', thinking: '', signature: 'sig' },
-        { type: 'text', text: 'Je regarde. ' },
-        { type: 'tool_use', id: 't1', name: 'read_file', input: { project: 'Shop', path: 'src/a.ts' } },
-        { type: 'tool_use', id: 't2', name: 'read_file', input: { project: 'Shop', path: '.env' } }
-      ] },
+      {
+        stop_reason: 'tool_use',
+        content: [
+          { type: 'thinking', thinking: '', signature: 'sig' },
+          { type: 'text', text: 'Je regarde. ' },
+          { type: 'tool_use', id: 't1', name: 'read_file', input: { project: 'Shop', path: 'src/a.ts' } },
+          { type: 'tool_use', id: 't2', name: 'read_file', input: { project: 'Shop', path: '.env' } }
+        ]
+      },
       { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Le fichier exporte **hello**.' }] }
     )
     const { id, events } = await ask('Que fait a.ts ?', { projectPath: dir, pageContext: { label: 'API Tester — GET x', content: 'status 200' } })
@@ -81,8 +97,12 @@ describe('assistant loop', () => {
     const first = h.calls[0] as Record<string, unknown>
     // Free question in auto mode: Sonnet 5.5 at low effort
     expect(first).toMatchObject({
-      model: 'claude-sonnet-5-5', max_tokens: 16000, output_config: { effort: 'low' },
-      cache_control: { type: 'ephemeral' }, fallbacks: 'default', betas: ['server-side-fallback-2026-07-01']
+      model: 'claude-sonnet-5-5',
+      max_tokens: 16000,
+      output_config: { effort: 'low' },
+      cache_control: { type: 'ephemeral' },
+      fallbacks: 'default',
+      betas: ['server-side-fallback-2026-07-01']
     })
     // Explicit breakpoint on the static system text, skill instructions after it
     const system = first.system as { text: string; cache_control?: unknown }[]
@@ -94,7 +114,7 @@ describe('assistant loop', () => {
     expect(userBlocks[2].text).toBe('Que fait a.ts ?')
 
     // Tool results: one user message, file content in, secret refused
-    const second = (h.calls[1].messages as { role: string; content: unknown }[])
+    const second = h.calls[1].messages as { role: string; content: unknown }[]
     expect(second).toHaveLength(3)
     expect(second[1].content).toEqual(first.messages ? expect.arrayContaining([expect.objectContaining({ type: 'thinking', signature: 'sig' })]) : null)
     const results = second[2].content as { tool_use_id: string; content: string; is_error?: boolean }[]
@@ -104,7 +124,12 @@ describe('assistant loop', () => {
     expect(JSON.stringify(h.calls)).not.toContain('secret-value')
 
     // Events and saved conversation
-    expect(events.filter(e => e.type === 'text').map(e => (e as { delta: string }).delta).join('')).toBe('Je regarde. Le fichier exporte **hello**.')
+    expect(
+      events
+        .filter(e => e.type === 'text')
+        .map(e => (e as { delta: string }).delta)
+        .join('')
+    ).toBe('Je regarde. Le fichier exporte **hello**.')
     // Tools run in parallel: compare by id, not by finishing order
     const done = Object.fromEntries(events.filter(e => e.type === 'tool-done').map(e => [(e as { id: string }).id, (e as { ok: boolean }).ok]))
     expect(done).toEqual({ t1: true, t2: false })
@@ -162,7 +187,12 @@ describe('assistant loop', () => {
   })
 
   it('a skill picks its model and effort, kept for the whole conversation', async () => {
-    const msg = { stop_reason: 'end_turn', model: 'claude-haiku-5-5', content: [{ type: 'text', text: 'ok' }], usage: { input_tokens: 1000, output_tokens: 200, cache_read_input_tokens: 3000, cache_creation_input_tokens: 0 } }
+    const msg = {
+      stop_reason: 'end_turn',
+      model: 'claude-haiku-5-5',
+      content: [{ type: 'text', text: 'ok' }],
+      usage: { input_tokens: 1000, output_tokens: 200, cache_read_input_tokens: 3000, cache_creation_input_tokens: 0 }
+    }
     h.script.push({ ...msg }, { ...msg })
     const { id } = await ask('Explique ce projet', { skill: 'explain-project', projectPath: dir })
     expect(h.calls[0]).toMatchObject({ model: 'claude-haiku-5-5', output_config: { effort: 'low' } })
@@ -222,12 +252,27 @@ describe('web search', () => {
   it('is offered to web skills on Sonnet, shown while it runs, billed and cited', async () => {
     h.calls.length = 0
     h.script.push({
-      stop_reason: 'end_turn', model: 'claude-sonnet-5-5',
-      usage: { input_tokens: 1000, output_tokens: 100, cache_read_input_tokens: 0, cache_creation_input_tokens: 0, server_tool_use: { web_search_requests: 2, web_fetch_requests: 0 } },
+      stop_reason: 'end_turn',
+      model: 'claude-sonnet-5-5',
+      usage: {
+        input_tokens: 1000,
+        output_tokens: 100,
+        cache_read_input_tokens: 0,
+        cache_creation_input_tokens: 0,
+        server_tool_use: { web_search_requests: 2, web_fetch_requests: 0 }
+      },
       content: [
         { type: 'server_tool_use', id: 'srv1', name: 'web_search', input: { query: 'météo Paris' } },
-        { type: 'web_search_tool_result', tool_use_id: 'srv1', content: [{ type: 'web_search_result', url: 'https://meteo.example/paris', title: 'Météo Paris' }] },
-        { type: 'text', text: 'Il fait beau.', citations: [{ type: 'web_search_result_location', url: 'https://meteo.example/paris', title: 'Météo Paris', cited_text: '…', encrypted_index: 'x' }] }
+        {
+          type: 'web_search_tool_result',
+          tool_use_id: 'srv1',
+          content: [{ type: 'web_search_result', url: 'https://meteo.example/paris', title: 'Météo Paris' }]
+        },
+        {
+          type: 'text',
+          text: 'Il fait beau.',
+          citations: [{ type: 'web_search_result_location', url: 'https://meteo.example/paris', title: 'Météo Paris', cited_text: '…', encrypted_index: 'x' }]
+        }
       ]
     })
     const { id } = await ask('Quel temps à Paris ?', { skill: 'web-search' })

@@ -25,7 +25,12 @@ SmartScreen se méfie des programmes sans certificat de signature (payant) ou en
 
 ## L'installeur
 
-L'installeur te laisse choisir le dossier d'installation. DevForge s'ajoute au menu Démarrer et sur le Bureau. À la fin, il s'ouvre sur l'[écran de bienvenue](/devforge/getting-started/first-launch/).
+L'installeur demande d'abord pour qui installer :
+
+- **pour moi seulement** (conseillé) : dans ton profil Windows, sans droits d'administrateur ;
+- **pour tous les utilisateurs** du PC : dans `Program Files`, Windows demande alors l'autorisation, à l'installation comme à chaque mise à jour.
+
+Tu choisis ensuite le dossier d'installation. DevForge s'ajoute au menu Démarrer et sur le Bureau. À la fin, il s'ouvre sur l'[écran de bienvenue](/devforge/getting-started/first-launch/).
 
 ## Où sont les données
 
@@ -34,12 +39,18 @@ Tout reste sur ton PC, dans le dossier de données de DevForge (`%APPDATA%\DevFo
 ## Mises à jour automatiques
 
 - DevForge regarde les releases GitHub **15 secondes après son démarrage**, puis **toutes les 6 heures**.
-- Une nouvelle version se télécharge en arrière-plan. Elle s'installe **au prochain redémarrage**, ou tout de suite avec **Redémarrer et mettre à jour** : DevForge se ferme, une petite fenêtre montre l'avancement de l'installation (sans rien te demander, sauf l'autorisation de Windows si DevForge est installé pour tous les utilisateurs), puis DevForge se relance sur la nouvelle version.
-- Le menu affiche aussi un bouton **Mettre à jour (vX.Y.Z)** quand une version est prête.
+- Une nouvelle version se télécharge en arrière-plan, dans un bloc en bas à droite : avancement, taille et temps restant. Tu peux continuer à travailler, ou le réduire en pastille dans la barre de titre.
+- Une fois prête, elle s'installe avec **Redémarrer et mettre à jour**, ou **au prochain redémarrage** si tu choisis **Plus tard**. DevForge se ferme, l'installeur montre l'avancement (sans rien te demander, sauf l'autorisation de Windows si DevForge est installé pour tous les utilisateurs), puis une petite fenêtre « Mise à jour installée » s'affiche le temps que DevForge se rouvre.
 - Après la mise à jour, une fenêtre **Quoi de neuf** résume la version (désactivable).
+
+:::caution[Tu as une version 1.x à 4.x ?]
+Les numéros sont repartis de 0.x avant la sortie publique. Une ancienne version 1.x à 4.x prend les nouvelles pour des versions plus anciennes et ne se met donc plus à jour seule. Désinstalle-la, puis installe la dernière : tes données restent, dans `%APPDATA%\DevForge`.
+:::
 
 Tout se règle dans **Paramètres › Mises à jour** : canal **Stable** (versions finales) ou **Bêta** (aussi les préversions, plus tôt mais parfois avec des bugs), bouton **Vérifier**, notes de version dans la langue de l'application. Voir [Paramètres](/devforge/settings/general/#mises-à-jour).
 
 ## Désinstaller
 
-Passe par **Paramètres Windows › Applications › Applications installées › DevForge › Désinstaller**. Pour aussi effacer tes données avant, utilise **Paramètres › Données › Tout effacer** dans DevForge.
+Passe par **Paramètres Windows › Applications › Applications installées › DevForge › Désinstaller**. La désinstallation retire l'application, les mises à jour déjà téléchargées et le lancement au démarrage de Windows.
+
+Tes données restent, pour une réinstallation plus tard : le dossier `%APPDATA%\DevForge` (réglages, projets enregistrés, connexions, modèles de dictée) et les domaines locaux ajoutés au fichier `hosts`. Pour les effacer, utilise d'abord **Paramètres › Données › Tout effacer** dans DevForge, et retire tes domaines dans **Domaines locaux**.

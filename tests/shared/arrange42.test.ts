@@ -5,7 +5,7 @@ import { DEFAULT_NAMING } from '@shared/lib/mpd'
 import { align, distribute, pasteShift, placed } from '@shared/lib/arrange'
 import { copyDiagram, copyMcd, copyMpd, pasteDiagram, pasteMcd, pasteMpd, uniqueName } from '@shared/lib/clip'
 
-/** v4.2 lot 2: the selection lined up and spread out; parts copied, pasted, duplicated */
+/** The selection lined up and spread out; parts copied, pasted, duplicated */
 
 const boxes = (...list: [string, number, number, number, number][]) => new Map<string, Box>(list.map(([id, x, y, w, h]) => [id, { x, y, w, h }]))
 
@@ -13,7 +13,13 @@ describe('align', () => {
   const three = boxes(['a', 10, 0, 100, 40], ['b', 200, 50, 60, 80], ['c', 50, 300, 140, 20])
 
   it('lines the parts up on the selection’s edges and middles', () => {
-    expect(align(three, 'left')).toEqual(new Map([['a', { x: 10, y: 0 }], ['b', { x: 10, y: 50 }], ['c', { x: 10, y: 300 }]]))
+    expect(align(three, 'left')).toEqual(
+      new Map([
+        ['a', { x: 10, y: 0 }],
+        ['b', { x: 10, y: 50 }],
+        ['c', { x: 10, y: 300 }]
+      ])
+    )
     // Right edge: 260, so each one ends there
     expect([...align(three, 'right').values()].map(p => p.x)).toEqual([160, 200, 120])
     // Middle of 10…260: 135
@@ -54,9 +60,15 @@ describe('pasteShift and placed', () => {
   })
 
   it('moves only the parts given, a row kept when asked', () => {
-    const list = [{ id: 'a', x: 0, y: 0 }, { id: 'b', x: 5, y: 5 }]
+    const list = [
+      { id: 'a', x: 0, y: 0 },
+      { id: 'b', x: 5, y: 5 }
+    ]
     const to = new Map([['a', { x: 10, y: 20 }]])
-    expect(placed(list, to)).toEqual([{ id: 'a', x: 10, y: 20 }, { id: 'b', x: 5, y: 5 }])
+    expect(placed(list, to)).toEqual([
+      { id: 'a', x: 10, y: 20 },
+      { id: 'b', x: 5, y: 5 }
+    ])
     expect(placed(list, to, true)[0]).toEqual({ id: 'a', x: 10, y: 0 })
   })
 })
@@ -78,7 +90,10 @@ describe('copy and paste', () => {
       { id: 'e2', name: 'COMMANDE', x: 300, y: 0, attributes: [] }
     ],
     associations: [{ id: 's1', name: 'PASSER', x: 150, y: 0, attributes: [] }],
-    links: [{ id: 'l1', entity: 'e1', association: 's1', card: '0,n' }, { id: 'l2', entity: 'e2', association: 's1', card: '1,1' }],
+    links: [
+      { id: 'l1', entity: 'e1', association: 's1', card: '0,n' },
+      { id: 'l2', entity: 'e2', association: 's1', card: '1,1' }
+    ],
     notes: [{ id: 't1', x: 0, y: 200, text: 'à revoir' }]
   }
 
@@ -108,7 +123,10 @@ describe('copy and paste', () => {
       notes: []
     }
     const { diagram, ids } = pasteDiagram(dg, copyDiagram(dg, ['n1', 'n2']), { x: 400, y: 50 }, true)
-    expect(diagram.nodes.slice(3).map(n => [n.name, n.x, n.y])).toEqual([['Client 2', 400, 0], ['API 2', 600, 0]])
+    expect(diagram.nodes.slice(3).map(n => [n.name, n.x, n.y])).toEqual([
+      ['Client 2', 400, 0],
+      ['API 2', 600, 0]
+    ])
     expect(diagram.edges[1]).toEqual(expect.objectContaining({ from: ids[0], to: ids[1], y: 120 }))
     const withSystem = pasteDiagram(dg, copyDiagram(dg, ['n3']), { x: 24, y: 24 })
     expect(withSystem.diagram.nodes[0].name).toBe('Boutique 2')
@@ -116,12 +134,20 @@ describe('copy and paste', () => {
 
   it('an MPD copy points its keys at the copies made with it, else at the same table; no more tie to the MCD', () => {
     const mpd: MpdModel = {
-      engine: 'postgres', naming: DEFAULT_NAMING,
+      engine: 'postgres',
+      naming: DEFAULT_NAMING,
       tables: [
         { id: 'tA', name: 'auteur', x: 0, y: 0, from: 'e9', indexes: [], columns: [{ id: 'cA', name: 'id', type: 'int', pk: true, from: 'k' }] },
         {
-          id: 'tB', name: 'article', x: 300, y: 0, from: 'e8',
-          columns: [{ id: 'cB', name: 'id', type: 'int', pk: true }, { id: 'cF', name: 'auteur_id', type: 'int', ref: { table: 'tA', column: 'cA' } }],
+          id: 'tB',
+          name: 'article',
+          x: 300,
+          y: 0,
+          from: 'e8',
+          columns: [
+            { id: 'cB', name: 'id', type: 'int', pk: true },
+            { id: 'cF', name: 'auteur_id', type: 'int', ref: { table: 'tA', column: 'cA' } }
+          ],
           indexes: [{ id: 'i1', name: 'idx_article_auteur', columns: ['cF'] }]
         }
       ]

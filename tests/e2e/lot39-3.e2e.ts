@@ -5,7 +5,7 @@ import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
 import { shop } from '../shopMcd'
 
-/** v3.9 lot 3: the MLD worked out from the MCD, the MPD made and touched up, the SQL written in the project */
+/** The MLD worked out from the MCD, the MPD made and touched up, the SQL written in the project */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -20,8 +20,16 @@ test('MCD → MLD → MPD → SQL, hand changes kept when the MCD changes', asyn
       mkdirSync(join(project, 'conception'), { recursive: true })
       // The project's database runs on MySQL: the MPD starts on it
       writeFileSync(join(project, '.env'), 'DATABASE_URL=mysql://app:secret@127.0.0.1:3306/shop\n')
-      writeFileSync(join(project, 'conception', 'boutique.mcd.json'), JSON.stringify({ v: 1, kind: 'mcd', name: 'Boutique', updatedAt: '2026-10-01T10:00:00.000Z', mcd: shop() }))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 's', name: 'shop', path: project, framework: 'other', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(project, 'conception', 'boutique.mcd.json'),
+        JSON.stringify({ v: 1, kind: 'mcd', name: 'Boutique', updatedAt: '2026-10-01T10:00:00.000Z', mcd: shop() })
+      )
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          { id: 's', name: 'shop', path: project, framework: 'other', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }
+        ])
+      )
     }
   })
   const { page, app } = run
@@ -56,10 +64,15 @@ test('MCD → MLD → MPD → SQL, hand changes kept when the MCD changes', asyn
   await panel.getByLabel('Longueur de libelle').fill('150')
   await panel.getByRole('button', { name: 'Index', exact: true }).click()
   await expect(panel.getByLabel('Nom de l’index')).toHaveValue('idx_produit_libelle')
-  await expect.poll(() => {
-    const t = JSON.parse(readFileSync(mpdFile, 'utf-8')).mpd.tables.find((x: { name: string }) => x.name === 'produit')
-    return [t.columns.find((c: { name: string }) => c.name === 'libelle').length, t.indexes.length]
-  }, { timeout: 10_000 }).toEqual([150, 1])
+  await expect
+    .poll(
+      () => {
+        const t = JSON.parse(readFileSync(mpdFile, 'utf-8')).mpd.tables.find((x: { name: string }) => x.name === 'produit')
+        return [t.columns.find((c: { name: string }) => c.name === 'libelle').length, t.indexes.length]
+      },
+      { timeout: 10_000 }
+    )
+    .toEqual([150, 1])
   expect(await settledAxeIssues(page)).toEqual([])
 
   // The SQL, for MySQL, then written in the project

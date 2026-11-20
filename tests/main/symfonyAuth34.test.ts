@@ -9,16 +9,31 @@ import { planSetup, stepCommand } from '../../src/shared/lib/projectSetup'
 import { symfonyAuthFiles } from '../../src/shared/lib/symfonyAuthTemplate'
 import { tempDir } from '../helpers'
 
-/** v3.4 lot 5: authentication of a Symfony project, on the shared contract */
+/** Authentication of a Symfony project, on the shared contract */
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
-  database: 'postgres', dbName: 'shop', dbPort: 5433, features: ['auth'], git: false, github: null, openVSCode: false, ...s
+  database: 'postgres',
+  dbName: 'shop',
+  dbPort: 5433,
+  features: ['auth'],
+  git: false,
+  github: null,
+  openVSCode: false,
+  ...s
 })
 const ctx = { password: 'pw', secret: 's', lang: 'fr' as const, composeName: 'shop-a1b2c3' }
-const plan = (s: Partial<ProjectSetup> = {}) => planSetup({ name: 'shop', framework: 'symfony', packageManager: 'npm', typescript: true, eslint: true, setup: setup(s) }, ctx)
-const line = (step: SetupStep) => step.kind === 'run' ? stepCommand(step) : `${step.kind}:${step.label}`
-const hasPhp = (() => { try { execFileSync('php', ['-v'], { stdio: 'ignore' }); return true } catch { return false } })()
+const plan = (s: Partial<ProjectSetup> = {}) =>
+  planSetup({ name: 'shop', framework: 'symfony', packageManager: 'npm', typescript: true, eslint: true, setup: setup(s) }, ctx)
+const line = (step: SetupStep) => (step.kind === 'run' ? stepCommand(step) : `${step.kind}:${step.label}`)
+const hasPhp = (() => {
+  try {
+    execFileSync('php', ['-v'], { stdio: 'ignore' })
+    return true
+  } catch {
+    return false
+  }
+})()
 
-describe('v3.4: Symfony authentication', () => {
+describe('Symfony authentication', () => {
   const files = symfonyAuthFiles('shop', 'fr')
   const file = (p: string) => files.find(f => f.path === p)!.content
 
@@ -32,8 +47,10 @@ describe('v3.4: Symfony authentication', () => {
     }
   })
 
-  it('writes a security.yaml with the pages\' firewall and a stateless one for the API', () => {
-    const yaml = load(file('config/packages/security.yaml')) as { security: { firewalls: Record<string, Record<string, unknown>>; access_control: { path: string }[] } }
+  it("writes a security.yaml with the pages' firewall and a stateless one for the API", () => {
+    const yaml = load(file('config/packages/security.yaml')) as {
+      security: { firewalls: Record<string, Record<string, unknown>>; access_control: { path: string }[] }
+    }
     const { firewalls } = yaml.security
     expect(Object.keys(firewalls)).toEqual(['dev', 'api', 'main'])
     expect(firewalls.api).toMatchObject({ stateless: true, access_token: { token_handler: 'App\\Security\\AccessTokenHandler' } })
@@ -49,7 +66,7 @@ describe('v3.4: Symfony authentication', () => {
     }
     expect(api).toContain("$this->json(['user' => $user->toPublic()], 201)")
     expect(file('src/Entity/User.php')).toContain("return ['id' => $this->id, 'name' => $this->name, 'email' => $this->email];")
-    expect(file('src/Security/AuthRules.php')).toContain('mb_strlen($data[\'password\']) < 8')
+    expect(file('src/Security/AuthRules.php')).toContain("mb_strlen($data['password']) < 8")
   })
 
   it('writes Twig pages with CSRF, and no Twig tag hidden in their CSS', () => {

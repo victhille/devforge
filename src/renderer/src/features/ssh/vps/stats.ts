@@ -8,7 +8,9 @@ export * from '@shared/lib/vpsStats'
 
 /** `day` is the short day unit of the interface language (j / d) */
 export function fmtUptime(sec: number, day = 'd'): string {
-  const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60)
+  const d = Math.floor(sec / 86400),
+    h = Math.floor((sec % 86400) / 3600),
+    m = Math.floor((sec % 3600) / 60)
   if (d > 0) return `${d}${day} ${h}h ${m}m`
   if (h > 0) return `${h}h ${m}m`
   return `${m}m`

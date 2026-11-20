@@ -26,7 +26,11 @@ export function composeName(dir: string): string {
   return (declared ?? basename(dir)).toLowerCase().replace(/[^a-z0-9_-]/g, '')
 }
 
-export interface LocalComposeProject { name: string; dir: string; projects: string[] }
+export interface LocalComposeProject {
+  name: string
+  dir: string
+  projects: string[]
+}
 
 /** Compose projects found in the saved DevForge projects */
 export function localComposeProjects(): LocalComposeProject[] {
@@ -60,7 +64,9 @@ function configSignature(dir: string): string {
       .sort()
       .map(f => `${f}:${statSync(join(dir, f)).mtimeMs}`)
       .join('|')
-  } catch { return '' }
+  } catch {
+    return ''
+  }
 }
 
 /** Fully resolved config (override files, .env variables, !override tags) */
@@ -70,7 +76,13 @@ export async function composeConfig(dir: string): Promise<ComposeConfig | null> 
   if (cached && signature && cached.signature === signature) return cached.value
   const r = await runFile('docker', ['compose', 'config', '--format', 'json'], { cwd: dir, timeout: 15_000 })
   let value: ComposeConfig | null = null
-  if (r.ok) { try { value = JSON.parse(r.stdout) as ComposeConfig } catch { /* not JSON */ } }
+  if (r.ok) {
+    try {
+      value = JSON.parse(r.stdout) as ComposeConfig
+    } catch {
+      /* not JSON */
+    }
+  }
   // Failures are not cached: Docker may just not be started yet
   if (value) configCache.set(dir, { signature, value })
   return value

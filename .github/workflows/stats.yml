@@ -19,17 +19,18 @@ jobs:
     if: github.repository == 'victhille/devforge'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           sparse-checkout: |
             scripts
             site/public/admin
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ${{ github.repository_owner }}/devforge-stats
           token: ${{ secrets.STATS_TOKEN }}
           path: archive
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
       # The log stays short: this repository is public, the numbers are not
@@ -37,9 +38,11 @@ jobs:
         env:
           STATS_TOKEN: ${{ secrets.STATS_TOKEN }}
       - working-directory: archive
+        env:
+          OWNER: ${{ github.repository_owner }}
         run: |
-          git config user.name "${{ github.repository_owner }}"
-          git config user.email "${{ github.repository_owner }}@users.noreply.github.com"
+          git config user.name "$OWNER"
+          git config user.email "$OWNER@users.noreply.github.com"
           git add stats.json
           git diff --cached --quiet || git commit -q -m "stats: $(date -u +%F)"
           git push -q

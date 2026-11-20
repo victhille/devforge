@@ -43,13 +43,13 @@ export interface DetectedDeploy {
 
 export interface DeployAPI {
   targets: () => Promise<DeployTarget[]>
-  save:    (target: DeployTarget) => Promise<void>
-  remove:  (id: string) => Promise<void>
+  save: (target: DeployTarget) => Promise<void>
+  remove: (id: string) => Promise<void>
   /** Starts a deployment, returns the run id; progress comes through events */
-  run:     (targetId: string) => Promise<string>
+  run: (targetId: string) => Promise<string>
   history: (targetId: string) => Promise<DeployRun[]>
   /** Scan a server for git checkouts / PM2 apps (read-only) */
-  detect:  (sshConnectionId: string) => Promise<DetectedDeploy[]>
-  onLog:    (cb: (e: { runId: string; text: string }) => void) => () => void
+  detect: (sshConnectionId: string) => Promise<DetectedDeploy[]>
+  onLog: (cb: (e: { runId: string; text: string }) => void) => () => void
   onStatus: (cb: (run: DeployRun) => void) => () => void
 }

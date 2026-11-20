@@ -38,9 +38,9 @@ export interface MonitorState {
 }
 
 export interface MonitorAPI {
-  list:   () => Promise<Monitor[]>
+  list: () => Promise<Monitor[]>
   states: () => Promise<MonitorState[]>
-  save:   (m: Monitor) => Promise<void>
+  save: (m: Monitor) => Promise<void>
   remove: (id: string) => Promise<void>
   checkNow: (id: string) => Promise<MonitorState>
   onState: (cb: (s: MonitorState) => void) => () => void

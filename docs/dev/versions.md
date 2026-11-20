@@ -24,9 +24,9 @@ Format [Conventional Commits](https://www.conventionalcommits.org/fr/) : `type(z
 | `refactor` | `refactor: découpe du client BDD` | correctif | Améliorations internes |
 | `build` | `build: Electron 45` | correctif | Dépendances et build |
 | `docs`, `test`, `ci`, `chore`, `style` | `test: cas du cron` | correctif | non listé |
-| `type!` ou `BREAKING CHANGE:` dans le corps | `feat!: nouveau stockage` | majeure | Changements majeurs |
+| `type!` ou `BREAKING CHANGE:` dans le corps | `feat!: nouveau stockage` | majeure (mineure avant la 1.0) | Changements majeurs |
 
-La version suivante = le changement le plus important depuis le dernier tag.
+La version suivante = le changement le plus important depuis le dernier tag. Avant la 1.0, une rupture ne fait monter que la mineure (0.2.1 → 0.3.0) : la 1.0.0 se demande avec `prepare major`, jamais par un `feat!:` glissé dans les commits.
 
 ### Texte des notes (FR / EN)
 
@@ -79,7 +79,7 @@ Ce second passage vérifie que seuls les fichiers de la release ont changé et q
 git push -u origin release/X.Y.Z
 ```
 
-Ouvre la PR `release/X.Y.Z` → `main`. La CI vérifie la branche ; une correction de dernière minute se commite sur la branche. Fusion par commit de fusion.
+Ouvre la PR `release/X.Y.Z` → `main`. La CI vérifie la branche ; une correction de dernière minute se commite sur la branche. Fusion par commit de fusion, titré comme la PR et sans corps (le réglage du dépôt le fait dans GitHub ; en ligne de commande, `gh pr merge release/X.Y.Z --merge --subject "chore(release): vX.Y.Z" --body ""`, que `prepare` affiche).
 
 ### 3. Tag sur `main`
 
@@ -102,7 +102,7 @@ Il pose alors le tag annoté `vX.Y.Z`, avec la section du CHANGELOG pour message
 
 ### 4. PR `main` → `develop`
 
-Ouvre une PR de `main` vers `develop`, fusionnée elle aussi par commit de fusion. `develop` reçoit la version et le tag, et la release suivante part de là. Tant que ce n'est pas fait, `prepare` s'arrête sur « vX.Y.Z already exists ».
+Ouvre une PR de `main` vers `develop`, fusionnée elle aussi par commit de fusion, titré et sans corps (`tag` affiche les deux commandes `gh`). `develop` reçoit la version et le tag, et la release suivante part de là. Tant que ce n'est pas fait, `prepare` s'arrête sur « vX.Y.Z already exists ».
 
 ### Options
 

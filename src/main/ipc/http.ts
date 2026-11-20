@@ -29,7 +29,7 @@ async function send(req: HttpRequest): Promise<HttpResponse> {
     }
   } catch (err) {
     const e = err as Error & { cause?: { code?: string; message?: string } }
-    return { error: e.name === 'TimeoutError' ? 'Timeout after 60s' : e.cause?.code ?? e.cause?.message ?? e.message }
+    return { error: e.name === 'TimeoutError' ? 'Timeout after 60s' : (e.cause?.code ?? e.cause?.message ?? e.message) }
   }
 }
 

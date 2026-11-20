@@ -1,5 +1,5 @@
 /**
- * v3.6 lot 4: a CSV read for import: its separator guessed, quotes and line
+ * a CSV read for import: its separator guessed, quotes and line
  * breaks inside quotes kept (RFC 4180), columns matched to the table's by name.
  */
 
@@ -28,27 +28,44 @@ export function parseCsv(text: string, sep: CsvSeparator): string[][] {
   for (let i = 0; i < s.length; i++) {
     const c = s[i]
     if (quoted) {
-      if (c === '"' && s[i + 1] === '"') { cell += '"'; i++ }
-      else if (c === '"') quoted = false
+      if (c === '"' && s[i + 1] === '"') {
+        cell += '"'
+        i++
+      } else if (c === '"') quoted = false
       else cell += c
     } else if (c === '"' && cell === '') quoted = true
-    else if (c === sep) { row.push(cell); cell = '' }
-    else if (c === '\n' || c === '\r') {
+    else if (c === sep) {
+      row.push(cell)
+      cell = ''
+    } else if (c === '\n' || c === '\r') {
       if (c === '\r' && s[i + 1] === '\n') i++
-      row.push(cell); rows.push(row); row = []; cell = ''
+      row.push(cell)
+      rows.push(row)
+      row = []
+      cell = ''
     } else cell += c
   }
-  if (cell !== '' || row.length) { row.push(cell); rows.push(row) }
+  if (cell !== '' || row.length) {
+    row.push(cell)
+    rows.push(row)
+  }
   return rows.filter(r => !(r.length === 1 && r[0] === ''))
 }
 
 /** Text as UTF-8, or Windows-1252 when it is not valid UTF-8 (Excel's "CSV" in French) */
 export function decodeCsv(bytes: Uint8Array): { text: string; encoding: 'utf-8' | 'windows-1252' } {
-  try { return { text: new TextDecoder('utf-8', { fatal: true }).decode(bytes), encoding: 'utf-8' } }
-  catch { return { text: new TextDecoder('windows-1252').decode(bytes), encoding: 'windows-1252' } }
+  try {
+    return { text: new TextDecoder('utf-8', { fatal: true }).decode(bytes), encoding: 'utf-8' }
+  } catch {
+    return { text: new TextDecoder('windows-1252').decode(bytes), encoding: 'windows-1252' }
+  }
 }
 
-const norm = (s: string) => s.trim().toLowerCase().replace(/[\s_-]+/g, '')
+const norm = (s: string) =>
+  s
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '')
 
 /** Each CSV column → the table column of the same name (case, spaces, _ and - ignored), or null */
 export function matchColumns(headers: string[], columns: string[]): (string | null)[] {

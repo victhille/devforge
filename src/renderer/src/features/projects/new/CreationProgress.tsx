@@ -40,7 +40,12 @@ export function useCreationProgress() {
   const total = creation.planned.length
   const done = ok ? total : at
   return {
-    creation, at, done, total, ok, failed,
+    creation,
+    at,
+    done,
+    total,
+    ok,
+    failed,
     /** How long a finished step took, in ms (unknown: null) */
     took: (i: number): number | null => {
       const start = i === 0 ? creation.startedAt : starts[i]
@@ -70,7 +75,9 @@ export default function CreationProgress({ onBack }: { onBack?: () => void }) {
   }, [finished])
   // The card shows up under the summary: brought into view
   const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => { ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) }, [])
+  useEffect(() => {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [])
   if (!p) return null
 
   const { creation: c, at, done, ok, failed } = p
@@ -82,15 +89,34 @@ export default function CreationProgress({ onBack }: { onBack?: () => void }) {
       <Card role="status" aria-live="polite" className="flex flex-col gap-2.5 p-4 px-5">
         <div className="flex flex-wrap items-center gap-2.5">
           <strong className="min-w-0 flex-1 text-fg">
-            {ok ? s.progressDone : failed ? s.progressFailed.replace('{label}', c.planned[at] ?? '') : s.progress.replace('{at}', String(done)).replace('{n}', String(c.planned.length))}
+            {ok
+              ? s.progressDone
+              : failed
+                ? s.progressFailed.replace('{label}', c.planned[at] ?? '')
+                : s.progress.replace('{at}', String(done)).replace('{n}', String(c.planned.length))}
           </strong>
           <span className="font-mono text-sm text-fg-muted">{elapsed}</span>
-          {(minimized || !visible) && <Button variant="secondary" size="sm" onClick={() => setMinimized(false)}>{s.showLog}</Button>}
-          {failed && onBack && <Button variant="secondary" size="sm" onClick={onBack}>{t.newProject.back}</Button>}
-          {ok && projectId && !openOnDone && <Button size="sm" onClick={() => navigate(`/project/${projectId}`)}>{t.console.openProject}</Button>}
+          {(minimized || !visible) && (
+            <Button variant="secondary" size="sm" onClick={() => setMinimized(false)}>
+              {s.showLog}
+            </Button>
+          )}
+          {failed && onBack && (
+            <Button variant="secondary" size="sm" onClick={onBack}>
+              {t.newProject.back}
+            </Button>
+          )}
+          {ok && projectId && !openOnDone && (
+            <Button size="sm" onClick={() => navigate(`/project/${projectId}`)}>
+              {t.console.openProject}
+            </Button>
+          )}
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-active">
-          <div className={cn('h-full transition-[width] duration-500', failed ? 'bg-danger' : ok ? 'bg-success' : 'bg-accent')} style={{ width: `${Math.round(100 * p.ratio)}%` }} />
+          <div
+            className={cn('h-full transition-[width] duration-500', failed ? 'bg-danger' : ok ? 'bg-success' : 'bg-accent')}
+            style={{ width: `${Math.round(100 * p.ratio)}%` }}
+          />
         </div>
         {/* As in the mock-up: one step per line, its state, and how long it took once done */}
         <ul className="flex flex-col text-sm">
@@ -98,13 +124,35 @@ export default function CreationProgress({ onBack }: { onBack?: () => void }) {
             const state = i < done ? 'done' : i === at && !ok ? (failed ? 'failed' : 'running') : 'todo'
             const took = state === 'done' ? p.took(i) : null
             return (
-              <li key={i} className={cn('flex min-h-9.5 min-w-0 items-center gap-2.5 border-b border-line-subtle last:border-b-0', state === 'todo' ? 'text-fg-muted' : state === 'failed' ? 'text-danger' : 'text-fg')}>
+              <li
+                key={i}
+                className={cn(
+                  'flex min-h-9.5 min-w-0 items-center gap-2.5 border-b border-line-subtle last:border-b-0',
+                  state === 'todo' ? 'text-fg-muted' : state === 'failed' ? 'text-danger' : 'text-fg'
+                )}
+              >
                 <span className="flex w-3.5 shrink-0 justify-center">
-                  {state === 'done' ? <Check size={14} className="text-success" aria-hidden /> : state === 'failed' ? <X size={14} aria-hidden /> : state === 'running' ? <Spinner /> : <span aria-hidden className="size-2 rounded-full bg-active" />}
+                  {state === 'done' ? (
+                    <Check size={14} className="text-success" aria-hidden />
+                  ) : state === 'failed' ? (
+                    <X size={14} aria-hidden />
+                  ) : state === 'running' ? (
+                    <Spinner />
+                  ) : (
+                    <span aria-hidden className="size-2 rounded-full bg-active" />
+                  )}
                 </span>
-                <span className="min-w-0 flex-1 truncate" title={label}>{label}</span>
+                <span className="min-w-0 flex-1 truncate" title={label}>
+                  {label}
+                </span>
                 <span className="sr-only">{s.stepState[state]}</span>
-                {took !== null && <span className="shrink-0 font-mono text-xs text-fg-muted">{took < 10_000 ? `${(took / 1000).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', { maximumFractionDigits: 1 })} s` : `${Math.round(took / 1000)} s`}</span>}
+                {took !== null && (
+                  <span className="shrink-0 font-mono text-xs text-fg-muted">
+                    {took < 10_000
+                      ? `${(took / 1000).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', { maximumFractionDigits: 1 })} s`
+                      : `${Math.round(took / 1000)} s`}
+                  </span>
+                )}
               </li>
             )
           })}

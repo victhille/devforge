@@ -21,7 +21,7 @@ vi.mock('../../src/main/services/ssh/sshService', () => ({
 
 const { appendPoint, readSeries, flushHistory, removeSeries, RETENTION_MS } = await import('../../src/main/services/monitor/history')
 const { watchTick, startWatch, stopWatch, vpsStatuses, remoteDockerAction } = await import('../../src/main/services/monitor/vpsWatch')
-const { Notification } = await import('electron') as unknown as { Notification: { shown: { title: string }[] } }
+const { Notification } = (await import('electron')) as unknown as { Notification: { shown: { title: string }[] } }
 
 describe('history', () => {
   it('averages per bucket, ignores missing values and keeps 7 days', () => {
@@ -48,13 +48,14 @@ describe('history', () => {
 
 const SEP = '@@DF@@'
 /** One sample's raw output: memory 50 %, disk at `disk` %, containers */
-const sampleOutput = (disk: number, containers: string) => [
-  'MemTotal:       2000000 kB\nMemFree:         500000 kB\nMemAvailable:   1000000 kB',
-  '1000.5 2000.0\n§§§\n0.10 0.20 0.30 1/100 123',
-  `/dev/sda1\t1000\t${disk * 10}\t${1000 - disk * 10}\t${disk}%\t/`,
-  containers,
-  ' 1  0      0 100000  10000 200000    0    0     1     2   10   20  5  3 90  2  0'
-].join(`\n${SEP}\n`)
+const sampleOutput = (disk: number, containers: string) =>
+  [
+    'MemTotal:       2000000 kB\nMemFree:         500000 kB\nMemAvailable:   1000000 kB',
+    '1000.5 2000.0\n§§§\n0.10 0.20 0.30 1/100 123',
+    `/dev/sda1\t1000\t${disk * 10}\t${1000 - disk * 10}\t${disk}%\t/`,
+    containers,
+    ' 1  0      0 100000  10000 200000    0    0     1     2   10   20  5  3 90  2  0'
+  ].join(`\n${SEP}\n`)
 
 describe('VPS watch', () => {
   let statuses: VpsStatus[] = []
@@ -62,8 +63,16 @@ describe('VPS watch', () => {
   beforeEach(() => {
     ssh.outputs.length = 0
     alerts.length = 0
-    writeFileSync(join(userData(), 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'Prod', host: '10.0.0.1', port: 22, username: 'root', authMethod: 'key', color: '', createdAt: '' }]))
-    startWatch(s => { statuses = s }, a => alerts.push(a))
+    writeFileSync(
+      join(userData(), 'ssh-connections.json'),
+      JSON.stringify([{ id: 'v1', name: 'Prod', host: '10.0.0.1', port: 22, username: 'root', authMethod: 'key', color: '', createdAt: '' }])
+    )
+    startWatch(
+      s => {
+        statuses = s
+      },
+      a => alerts.push(a)
+    )
     writeFileSync(join(userData(), 'watch.json'), JSON.stringify({ watched: ['v1'], diskAlert: 85 }))
   })
 
@@ -101,7 +110,10 @@ describe('VPS watch', () => {
   it('only runs safe docker commands on the server', async () => {
     await expect(remoteDockerAction('v1', { container: 'web; rm -rf /' }, 'stop')).rejects.toThrow()
     ssh.outputs.push(`stopped\n${SEP}0`)
-    expect(await remoteDockerAction('v1', { compose: { name: 'shop', status: '', configFiles: "/srv/shop/compose.yml,/srv/it's.yml" } }, 'up')).toEqual({ ok: true, output: 'stopped' })
+    expect(await remoteDockerAction('v1', { compose: { name: 'shop', status: '', configFiles: "/srv/shop/compose.yml,/srv/it's.yml" } }, 'up')).toEqual({
+      ok: true,
+      output: 'stopped'
+    })
     expect(ssh.commands.at(-1)).toContain("docker compose -p shop -f '/srv/shop/compose.yml' -f '/srv/it'\\''s.yml' up -d")
     stopWatch()
   })

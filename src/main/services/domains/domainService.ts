@@ -16,7 +16,11 @@ function storePath(): string {
 export function listDomains(): LocalDomain[] {
   const p = storePath()
   if (!existsSync(p)) return []
-  try { return JSON.parse(readFileSync(p, 'utf-8')) as LocalDomain[] } catch { return [] }
+  try {
+    return JSON.parse(readFileSync(p, 'utf-8')) as LocalDomain[]
+  } catch {
+    return []
+  }
 }
 
 function persist(list: LocalDomain[]): void {
@@ -33,7 +37,8 @@ export async function saveDomain(d: LocalDomain): Promise<void> {
   if (list.some(x => x.domain === domain && x.id !== d.id)) throw new Error('This domain already exists')
   const i = list.findIndex(x => x.id === d.id)
   const item = { ...d, domain }
-  if (i >= 0) list[i] = item; else list.push(item)
+  if (i >= 0) list[i] = item
+  else list.push(item)
   persist(list)
   await syncProxy(list)
 }

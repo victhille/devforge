@@ -14,7 +14,7 @@ interface Props {
   className?: string
 }
 
-/** v4.3: a reading that failed, said where its content would be, with a way to try again (never a spinner that turns forever) */
+/** A reading that failed, said where its content would be, with a way to try again (never a spinner that turns forever) */
 export default function ErrorState({ title, error, onRetry, className }: Props) {
   const { t } = useI18n()
   return (
@@ -24,7 +24,11 @@ export default function ErrorState({ title, error, onRetry, className }: Props) 
         <p className="text-sm font-medium text-danger">{title ?? t.common.loadFailed}</p>
         {error && <p className="mt-0.5 text-xs break-words text-fg-secondary">{error}</p>}
       </div>
-      {onRetry && <Button size="sm" variant="secondary" onClick={onRetry}><RotateCcw size={13} /> {t.common.retry}</Button>}
+      {onRetry && (
+        <Button size="sm" variant="secondary" onClick={onRetry}>
+          <RotateCcw size={13} /> {t.common.retry}
+        </Button>
+      )}
     </div>
   )
 }

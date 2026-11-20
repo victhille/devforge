@@ -1,7 +1,7 @@
 import type { ActivityCommit, ProjectActivity } from '../types/activity'
 
 /**
- * v3.8 lot 3: the Activity page's figures, from each project's commits:
+ * the Activity page's figures, from each project's commits:
  * commits per week, the most active, those asleep, the branches to follow.
  */
 
@@ -10,13 +10,24 @@ const WEEK = 7 * 24 * 3600
 
 /** `git log --format=%x1e%at%x1f%ae --shortstat`: one commit per record */
 export function parseGitLog(out: string): ActivityCommit[] {
-  return out.split('\x1e').map(s => s.trim()).filter(Boolean).flatMap(rec => {
-    const [head, ...rest] = rec.split('\n')
-    const [at, email] = head.split('\x1f')
-    if (!/^\d+$/.test(at ?? '')) return []
-    const stat = rest.join(' ')
-    return [{ at: Number(at), email: (email ?? '').trim().toLowerCase(), added: Number(stat.match(/(\d+) insertions?/)?.[1] ?? 0), removed: Number(stat.match(/(\d+) deletions?/)?.[1] ?? 0) }]
-  })
+  return out
+    .split('\x1e')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .flatMap(rec => {
+      const [head, ...rest] = rec.split('\n')
+      const [at, email] = head.split('\x1f')
+      if (!/^\d+$/.test(at ?? '')) return []
+      const stat = rest.join(' ')
+      return [
+        {
+          at: Number(at),
+          email: (email ?? '').trim().toLowerCase(),
+          added: Number(stat.match(/(\d+) insertions?/)?.[1] ?? 0),
+          removed: Number(stat.match(/(\d+) deletions?/)?.[1] ?? 0)
+        }
+      ]
+    })
 }
 
 /** `git for-each-ref` with this format on refs/heads: one line per branch, `*` on the checked-out one */
@@ -28,7 +39,9 @@ export function parseHeadRef(out: string): { branch: string; ahead: number; behi
   if (!line) return null
   const [, branch = '', track = '', date = ''] = line.replace(/\r$/, '').split('\t')
   return {
-    branch, ahead: Number(/ahead (\d+)/.exec(track)?.[1] ?? 0), behind: Number(/behind (\d+)/.exec(track)?.[1] ?? 0),
+    branch,
+    ahead: Number(/ahead (\d+)/.exec(track)?.[1] ?? 0),
+    behind: Number(/behind (\d+)/.exec(track)?.[1] ?? 0),
     lastCommitAt: /^\d+$/.test(date) ? Number(date) : null
   }
 }
@@ -42,10 +55,18 @@ export function weekStart(atSeconds: number): number {
   return Math.floor(d.getTime() / 1000)
 }
 
-export interface WeekBar { start: number; byProject: Record<string, number>; total: number }
+export interface WeekBar {
+  start: number
+  byProject: Record<string, number>
+  total: number
+}
 
 /** The last `WEEKS` weeks, oldest first, each project's commits in them */
-export function commitsByWeek(projects: Pick<ProjectActivity, 'id' | 'commits'>[], nowSeconds: number, keep: (c: ActivityCommit) => boolean = () => true): WeekBar[] {
+export function commitsByWeek(
+  projects: Pick<ProjectActivity, 'id' | 'commits'>[],
+  nowSeconds: number,
+  keep: (c: ActivityCommit) => boolean = () => true
+): WeekBar[] {
   const last = weekStart(nowSeconds)
   const weeks: WeekBar[] = Array.from({ length: WEEKS }, (_, i) => ({ start: last - (WEEKS - 1 - i) * WEEK, byProject: {}, total: 0 }))
   for (const p of projects) {
@@ -60,15 +81,30 @@ export function commitsByWeek(projects: Pick<ProjectActivity, 'id' | 'commits'>[
   return weeks
 }
 
-export interface ActiveProject { id: string; name: string; commits: number; added: number; removed: number }
+export interface ActiveProject {
+  id: string
+  name: string
+  commits: number
+  added: number
+  removed: number
+}
 
 /** The most active over the last `days` days */
 export function mostActive(projects: ProjectActivity[], nowSeconds: number, days = 30, keep: (c: ActivityCommit) => boolean = () => true): ActiveProject[] {
   const since = nowSeconds - days * 24 * 3600
-  return projects.map(p => {
-    const recent = p.commits.filter(c => c.at >= since && keep(c))
-    return { id: p.id, name: p.name, commits: recent.length, added: recent.reduce((n, c) => n + c.added, 0), removed: recent.reduce((n, c) => n + c.removed, 0) }
-  }).filter(p => p.commits > 0).sort((a, b) => b.commits - a.commits || b.added - a.added)
+  return projects
+    .map(p => {
+      const recent = p.commits.filter(c => c.at >= since && keep(c))
+      return {
+        id: p.id,
+        name: p.name,
+        commits: recent.length,
+        added: recent.reduce((n, c) => n + c.added, 0),
+        removed: recent.reduce((n, c) => n + c.removed, 0)
+      }
+    })
+    .filter(p => p.commits > 0)
+    .sort((a, b) => b.commits - a.commits || b.added - a.added)
 }
 
 /** No commit for `days` days (a repository that has commits) */

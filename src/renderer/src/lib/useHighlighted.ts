@@ -14,8 +14,15 @@ export function useHighlighted(code: string, language: CodeLanguage | null): str
   useEffect(() => {
     let alive = true
     setHtml(null)
-    if (language && code.length <= HIGHLIGHT_LIMIT) import('./highlighter').then(m => { if (alive) setHtml(m.highlight(code, language)) }).catch(() => {})
-    return () => { alive = false }
+    if (language && code.length <= HIGHLIGHT_LIMIT)
+      import('./highlighter')
+        .then(m => {
+          if (alive) setHtml(m.highlight(code, language))
+        })
+        .catch(() => {})
+    return () => {
+      alive = false
+    }
   }, [code, language])
   return html
 }

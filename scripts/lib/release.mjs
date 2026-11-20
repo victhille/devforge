@@ -87,18 +87,23 @@ export function parseCommit(hash, subject, body = '') {
  * @returns {{ major: number, minor: number, patch: number, pre: string | null, preNum: number | null }}
  */
 export function parseSemver(v) {
-  const m = v.trim().replace(/^v/, '').match(/^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+)(?:\.(\d+))?)?$/)
+  const m = v
+    .trim()
+    .replace(/^v/, '')
+    .match(/^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+)(?:\.(\d+))?)?$/)
   if (!m) throw new Error(`Not a semver version: ${v}`)
   return { major: +m[1], minor: +m[2], patch: +m[3], pre: m[4] ?? null, preNum: m[5] !== undefined ? +m[5] : null }
 }
 
 /**
- * Bump implied by a list of changes.
+ * Bump implied by a list of changes. Before 1.0 a breaking change moves the minor version only (SemVer §4):
+ * 1.0.0 comes from an explicit `prepare major`, never from a `feat!:` slipped into the commits.
  * @param {Change[]} changes
+ * @param {string} [current] the version before the bump
  * @returns {'major' | 'minor' | 'patch'}
  */
-export function bumpFor(changes) {
-  if (changes.some(c => c.breaking)) return 'major'
+export function bumpFor(changes, current = '1.0.0') {
+  if (changes.some(c => c.breaking)) return parseSemver(current).major === 0 ? 'minor' : 'major'
   if (changes.some(c => c.kind === 'feat')) return 'minor'
   return 'patch'
 }
@@ -123,9 +128,14 @@ export function nextVersion(current, bump, pre = null) {
     return base(c)
   }
   const n = { ...c }
-  if (bump === 'major') { n.major++; n.minor = 0; n.patch = 0 }
-  else if (bump === 'minor') { n.minor++; n.patch = 0 }
-  else if (bump === 'patch') n.patch++
+  if (bump === 'major') {
+    n.major++
+    n.minor = 0
+    n.patch = 0
+  } else if (bump === 'minor') {
+    n.minor++
+    n.patch = 0
+  } else if (bump === 'patch') n.patch++
   else throw new Error(`Unknown bump: ${bump}`)
   return pre ? `${base(n)}-${pre}.1` : base(n)
 }
@@ -148,13 +158,15 @@ const TEXT = {
     hidden: (/** @type {number} */ n) => `_${n} changement(s) technique(s) (tests, CI, documentation du dépôt) non listé(s)._`,
     none: '_Aucun changement notable._',
     unreleased: '## [Non publié]',
-    header: '# Notes de version\n\nToutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).\n'
+    header:
+      '# Notes de version\n\nToutes les versions de DevForge. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).\n'
   },
   en: {
     hidden: (/** @type {number} */ n) => `_${n} technical change(s) (tests, CI, repository docs) not listed._`,
     none: '_No notable change._',
     unreleased: '## [Unreleased]',
-    header: '# Release notes\n\nEvery DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.\n'
+    header:
+      '# Release notes\n\nEvery DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), [SemVer](https://semver.org/) versions.\n'
   }
 }
 
@@ -168,9 +180,7 @@ const TEXT = {
 export function renderSection(version, changes, opts = {}) {
   const lang = opts.lang ?? 'fr'
   const date = opts.date ?? new Date().toISOString().slice(0, 10)
-  const title = opts.repoUrl && opts.previous
-    ? `## [${version}](${opts.repoUrl}/compare/v${opts.previous}...v${version}) — ${date}`
-    : `## ${version} — ${date}`
+  const title = opts.repoUrl && opts.previous ? `## [${version}](${opts.repoUrl}/compare/v${opts.previous}...v${version}) — ${date}` : `## ${version} — ${date}`
   const lines = [title, '']
   // One-line summary shown on the release card and in "What's new"
   if (opts.summary) lines.push(`> ${opts.summary}`, '')

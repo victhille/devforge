@@ -12,7 +12,7 @@ import Modal from '@renderer/components/ui/Modal'
 import { QuestionDialog } from '@renderer/app/ConfirmContext'
 import { isPale, paleClass } from '@renderer/lib/brand'
 
-/** v4.3: the shared components that replace the patterns each page copied (the design review) */
+/** The shared components that replace the patterns each page copied (the design review) */
 const html = (el: ReturnType<typeof h>) => renderToStaticMarkup(el)
 
 describe('ErrorState', () => {
@@ -57,7 +57,10 @@ describe('LogBox', () => {
 
 describe('Tabs', () => {
   it('one tab reachable by Tab (the chosen one), the others by the arrows; two looks', () => {
-    const items = [{ value: 'a', label: 'A' }, { value: 'b', label: 'B' }]
+    const items = [
+      { value: 'a', label: 'A' },
+      { value: 'b', label: 'B' }
+    ]
     const out = html(h(Tabs<string>, { items, value: 'b', onChange: () => {}, variant: 'underline', label: 'Views' }))
     expect(out).toContain('aria-label="Views"')
     expect(out.match(/tabindex="0"/g)).toHaveLength(1)
@@ -91,10 +94,13 @@ describe('Modal', () => {
 })
 
 describe('confirm dialog', () => {
-  const ask = (waited: boolean) => html(h(QuestionDialog, {
-    question: { id: 1, message: 'Delete it?', options: { danger: true }, resolve: () => {}, waited },
-    onAnswer: () => {}
-  }))
+  const ask = (waited: boolean) =>
+    html(
+      h(QuestionDialog, {
+        question: { id: 1, message: 'Delete it?', options: { danger: true }, resolve: () => {}, waited },
+        onAnswer: () => {}
+      })
+    )
 
   it('asks in the app’s dialog, the confirm button ready at once', () => {
     const markup = ask(false)

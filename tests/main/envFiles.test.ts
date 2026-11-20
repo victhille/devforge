@@ -6,21 +6,32 @@ import { saveProjects, tempDir, userData } from '../helpers'
 
 describe('parseEnv', () => {
   it('reads the usual .env syntax', () => {
-    expect(parseEnv([
-      '# comment',
-      'A=1',
-      'export B = two ',
-      'C="quoted # not a comment"',
-      "D='single $NOT_EXPANDED'",
-      'E=value # inline comment',
-      'F=',
-      'G="multi\\nline"',
-      'H="say \\"hi\\""',
-      'not a line',
-      'DATABASE_URL=postgres://u:p@h:5432/db?x=1'
-    ].join('\r\n'))).toEqual({
-      A: '1', B: 'two', C: 'quoted # not a comment', D: 'single $NOT_EXPANDED', E: 'value', F: '',
-      G: 'multi\nline', H: 'say "hi"', DATABASE_URL: 'postgres://u:p@h:5432/db?x=1'
+    expect(
+      parseEnv(
+        [
+          '# comment',
+          'A=1',
+          'export B = two ',
+          'C="quoted # not a comment"',
+          "D='single $NOT_EXPANDED'",
+          'E=value # inline comment',
+          'F=',
+          'G="multi\\nline"',
+          'H="say \\"hi\\""',
+          'not a line',
+          'DATABASE_URL=postgres://u:p@h:5432/db?x=1'
+        ].join('\r\n')
+      )
+    ).toEqual({
+      A: '1',
+      B: 'two',
+      C: 'quoted # not a comment',
+      D: 'single $NOT_EXPANDED',
+      E: 'value',
+      F: '',
+      G: 'multi\nline',
+      H: 'say "hi"',
+      DATABASE_URL: 'postgres://u:p@h:5432/db?x=1'
     })
   })
 })
@@ -72,15 +83,7 @@ describe('writeEnvValues', () => {
     await expect(writeEnvValues(dir, 'package.json', { A: '1' })).rejects.toThrow()
   })
 
-  it.each([
-    'A\nINJECTED',
-    'A\rINJECTED',
-    'A B',
-    'A=B',
-    '1ABC',
-    '',
-    '# comment'
-  ])('refuses the key %j and leaves the file as it was', async key => {
+  it.each(['A\nINJECTED', 'A\rINJECTED', 'A B', 'A=B', '1ABC', '', '# comment'])('refuses the key %j and leaves the file as it was', async key => {
     const dir = project()
     writeFileSync(join(dir, '.env'), 'A=1\n')
     await expect(writeEnvValues(dir, '.env', { [key]: 'x' })).rejects.toThrow(/Not an env variable name/)

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { MarkerParser, cmdLine, encodePowerShell, type ShellEvent } from '../../src/shared/lib/shellBlocks'
 
-const A = '\x1b]633;A\x07', B = '\x1b]633;B\x07'
+const A = '\x1b]633;A\x07',
+  B = '\x1b]633;B\x07'
 const D = (c: number) => `\x1b]633;D;${c}\x07`
 const P = (p: string) => `\x1b]633;P;Cwd=${p}\x07`
 
@@ -23,8 +24,11 @@ describe('v2.2 lot 5: shell markers', () => {
   const stream = `git status\r\nOn branch main\r\n${A}${D(0)}${P('C:\\dev\\boutique')}PS> ${B}`
   const expected: ShellEvent[] = [
     { type: 'data', text: 'git status\r\nOn branch main\r\n' },
-    { type: 'prompt-start' }, { type: 'exit-code', code: 0 }, { type: 'cwd', path: 'C:\\dev\\boutique' },
-    { type: 'data', text: 'PS> ' }, { type: 'prompt-end' }
+    { type: 'prompt-start' },
+    { type: 'exit-code', code: 0 },
+    { type: 'cwd', path: 'C:\\dev\\boutique' },
+    { type: 'data', text: 'PS> ' },
+    { type: 'prompt-end' }
   ]
 
   it('splits data and markers', () => {
@@ -37,7 +41,9 @@ describe('v2.2 lot 5: shell markers', () => {
 
   it('ST terminator (cmd), unknown markers ignored, other escapes kept', () => {
     expect(parse(`\x1b[32mok\x1b[0m\x1b]633;A\x1b\\\x1b]633;X;y\x07\x1b]0;title\x07`)).toEqual([
-      { type: 'data', text: '\x1b[32mok\x1b[0m' }, { type: 'prompt-start' }, { type: 'data', text: '\x1b]0;title\x07' }
+      { type: 'data', text: '\x1b[32mok\x1b[0m' },
+      { type: 'prompt-start' },
+      { type: 'data', text: '\x1b]0;title\x07' }
     ])
   })
 
@@ -45,7 +51,7 @@ describe('v2.2 lot 5: shell markers', () => {
     expect(parse(`${A}${D(127)}`)).toEqual([{ type: 'prompt-start' }, { type: 'exit-code', code: 127 }])
   })
 
-  // v2.3 lot 2: cmd's code carries the block it belongs to
+  // Cmd's code carries the block it belongs to
   it('cmd: a tagged exit code, and the line that asks for it', () => {
     expect(new MarkerParser().feed('\x1b]633;D;3;7\x1b\\')).toEqual([{ type: 'exit-code', code: 3, tag: '7' }])
     expect(new MarkerParser().feed('\x1b]633;D;;7\x1b\\')).toEqual([])
@@ -70,20 +76,37 @@ describe.runIf(process.platform === 'win32')('v2.2 lot 5: real shells mark their
     let ready: () => void = () => {}
     let promptCount = 0
     let inPrompt = false
-    const id = term.create(kind, dir, 120, 30, (_id, data) => {
-      for (const e of parser.feed(data)) {
-        if (e.type === 'prompt-start') inPrompt = true
-        else if (e.type === 'exit-code' && current && (!e.tag || e.tag === String(results.length))) current.code = e.code
-        else if (e.type === 'cwd' && current) current.cwd = e.path
-        else if (e.type === 'data' && current && !inPrompt) current.out += e.text
-        else if (e.type === 'prompt-end') { inPrompt = false; promptCount++; ready() }
-      }
-    }, () => {})
-    const waitPrompt = (n: number) => new Promise<void>((resolve, reject) => {
-      const t = setTimeout(() => reject(new Error(`no prompt from ${kind}`)), 20_000)
-      ready = () => { if (promptCount >= n) { clearTimeout(t); resolve() } }
-      ready()
-    })
+    const id = term.create(
+      kind,
+      dir,
+      120,
+      30,
+      (_id, data) => {
+        for (const e of parser.feed(data)) {
+          if (e.type === 'prompt-start') inPrompt = true
+          else if (e.type === 'exit-code' && current && (!e.tag || e.tag === String(results.length))) current.code = e.code
+          else if (e.type === 'cwd' && current) current.cwd = e.path
+          else if (e.type === 'data' && current && !inPrompt) current.out += e.text
+          else if (e.type === 'prompt-end') {
+            inPrompt = false
+            promptCount++
+            ready()
+          }
+        }
+      },
+      () => {}
+    )
+    const waitPrompt = (n: number) =>
+      new Promise<void>((resolve, reject) => {
+        const t = setTimeout(() => reject(new Error(`no prompt from ${kind}`)), 20_000)
+        ready = () => {
+          if (promptCount >= n) {
+            clearTimeout(t)
+            resolve()
+          }
+        }
+        ready()
+      })
     try {
       await waitPrompt(1)
       for (const [i, cmd] of cmds.entries()) {
@@ -109,14 +132,18 @@ describe.runIf(process.platform === 'win32')('v2.2 lot 5: real shells mark their
     expect(r[3].cwd.toLowerCase()).not.toContain('term-')
   }, 60_000)
 
-  it.runIf(term.shells && (await term.shells()).find(s => s.kind === 'gitbash')?.available)('Git Bash: $? of each command', async () => {
-    const r = await runAll('gitbash', ['echo bonjour', 'false', 'ls /nope-devforge', 'cd /'])
-    expect(plain(r[0].out)).toContain('bonjour')
-    expect(r.map(x => x.code)).toEqual([0, 1, 2, 0])
-    expect(r[3].cwd).toBe('/')
-  }, 60_000)
+  it.runIf(term.shells && (await term.shells()).find(s => s.kind === 'gitbash')?.available)(
+    'Git Bash: $? of each command',
+    async () => {
+      const r = await runAll('gitbash', ['echo bonjour', 'false', 'ls /nope-devforge', 'cd /'])
+      expect(plain(r[0].out)).toContain('bonjour')
+      expect(r.map(x => x.code)).toEqual([0, 1, 2, 0])
+      expect(r[3].cwd).toBe('/')
+    },
+    60_000
+  )
 
-  // v2.3 lot 2: the code comes with the line DevForge types; a line that never reaches it (rem) says nothing
+  // The code comes with the line DevForge types; a line that never reaches it (rem) says nothing
   it('cmd: exit codes of each line, the folder', async () => {
     const r = await runAll('cmd', ['echo bonjour', 'cmd /c exit 3', 'dir C:\\nope-devforge', 'rem rien', 'cd ..'])
     expect(plain(r[0].out)).toContain('bonjour')

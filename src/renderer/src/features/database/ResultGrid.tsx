@@ -9,7 +9,7 @@ import CopyButton from '@renderer/components/ui/CopyButton'
 import { formatResult, type ResultFormat } from '@shared/lib/resultExport'
 import Notice from '@renderer/components/ui/Notice'
 
-/** v3.5.1: copy the rows as CSV or JSON (the choice is kept) */
+/** Copy the rows as CSV or JSON (the choice is kept) */
 function CopyAs({ result }: { result: DbQueryResult }) {
   const { t } = useI18n()
   const [format, setFormat] = usePersistentState<ResultFormat>('devforge:db-copy-format', 'csv')
@@ -17,24 +17,40 @@ function CopyAs({ result }: { result: DbQueryResult }) {
     <span className="ml-auto flex items-center gap-1">
       <span role="group" aria-label={t.database.copyAs} className="flex rounded-md border border-line p-px">
         {(['csv', 'json'] as const).map(f => (
-          <button key={f} aria-pressed={format === f} onClick={() => setFormat(f)}
-            className={cn('h-5 rounded px-1.5 font-mono text-2xs uppercase', format === f ? 'bg-active text-fg' : 'text-fg-muted hover:text-fg')}>{f}</button>
+          <button
+            key={f}
+            aria-pressed={format === f}
+            onClick={() => setFormat(f)}
+            className={cn('h-5 rounded px-1.5 font-mono text-2xs uppercase', format === f ? 'bg-active text-fg' : 'text-fg-muted hover:text-fg')}
+          >
+            {f}
+          </button>
         ))}
       </span>
       <CopyButton text={formatResult(result, format)} title={t.database.copyFormat.replace('{f}', format.toUpperCase())} />
-      {/* v3.6: the same, into a file */}
-      <IconButton size="sm" title={t.database.saveFormat.replace('{f}', format.toUpperCase())}
-        onClick={() => { void window.devforge.db.saveResult('result', formatResult(result, format), format) }}><Save size={13} /></IconButton>
+      {/* The same, into a file */}
+      <IconButton
+        size="sm"
+        title={t.database.saveFormat.replace('{f}', format.toUpperCase())}
+        onClick={() => {
+          void window.devforge.db.saveResult('result', formatResult(result, format), format)
+        }}
+      >
+        <Save size={13} />
+      </IconButton>
     </span>
   )
 }
 
-export interface GridSort { column: string; desc: boolean }
+export interface GridSort {
+  column: string
+  desc: boolean
+}
 
 /** A cell's value while editing: text, NULL, or (a new row) left to its default */
 export type CellValue = string | null | undefined
 
-/** v3.6 lot 3: what makes the grid editable (Browse tab, a table with a primary key) */
+/** What makes the grid editable (Browse tab, a table with a primary key) */
 export interface GridEditing {
   /** The cell's pending value, undefined when unchanged */
   pending: (row: number, col: number) => CellValue
@@ -54,11 +70,27 @@ function CellInput({ initial, onDone, nullLabel }: { initial: string; onDone: (v
   const [text, setText] = useState(initial)
   return (
     <span className="flex items-center gap-1">
-      <input autoFocus value={text} onChange={e => setText(e.target.value)} aria-label={nullLabel}
-        onKeyDown={e => { if (e.key === 'Enter') onDone(text); if (e.key === 'Escape') onDone(false) }}
+      <input
+        autoFocus
+        value={text}
+        onChange={e => setText(e.target.value)}
+        aria-label={nullLabel}
+        onKeyDown={e => {
+          if (e.key === 'Enter') onDone(text)
+          if (e.key === 'Escape') onDone(false)
+        }}
         onBlur={() => onDone(text)}
-        className="h-6 min-w-[120px] flex-1 rounded border border-accent bg-canvas px-1.5 font-mono text-xs text-fg outline-none" />
-      <button onMouseDown={e => { e.preventDefault(); onDone(null) }} className="h-6 rounded border border-line px-1.5 text-2xs text-fg-muted hover:text-fg">NULL</button>
+        className="h-6 min-w-[120px] flex-1 rounded border border-accent bg-canvas px-1.5 font-mono text-xs text-fg outline-none"
+      />
+      <button
+        onMouseDown={e => {
+          e.preventDefault()
+          onDone(null)
+        }}
+        className="h-6 rounded border border-line px-1.5 text-2xs text-fg-muted hover:text-fg"
+      >
+        NULL
+      </button>
     </span>
   )
 }
@@ -72,7 +104,7 @@ interface Props {
   onSort?: (sort: GridSort | null) => void
   /** Replaces the row count on the left of the toolbar (pagination) */
   toolbar?: ReactNode
-  /** v3.6: cells edited in place */
+  /** Cells edited in place */
   editing?: GridEditing
 }
 
@@ -84,7 +116,11 @@ export default function ResultGrid({ result, rowOffset = 0, sort, onSort, toolba
   const [cell, setCell] = useState<{ row: number; col: number; isNew: boolean } | null>(null)
 
   if (result.error) {
-    return <Notice tone="danger" className="m-3"><span className="font-mono text-sm whitespace-pre-wrap">{result.error}</span></Notice>
+    return (
+      <Notice tone="danger" className="m-3">
+        <span className="font-mono text-sm whitespace-pre-wrap">{result.error}</span>
+      </Notice>
+    )
   }
   if (result.columns.length === 0) {
     return (
@@ -95,13 +131,17 @@ export default function ResultGrid({ result, rowOffset = 0, sort, onSort, toolba
   }
 
   // asc → desc → none
-  const nextSort = (column: string): GridSort | null =>
-    sort?.column !== column ? { column, desc: false } : !sort.desc ? { column, desc: true } : null
+  const nextSort = (column: string): GridSort | null => (sort?.column !== column ? { column, desc: false } : !sort.desc ? { column, desc: true } : null)
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex shrink-0 items-center gap-3 border-b border-line-subtle px-3.5 py-2 text-xs text-fg-muted">
-        {toolbar ?? <span>{d.rows.replace('{n}', String(result.rows.length))}{result.truncated ? ` (${d.truncated})` : ''}</span>}
+        {toolbar ?? (
+          <span>
+            {d.rows.replace('{n}', String(result.rows.length))}
+            {result.truncated ? ` (${d.truncated})` : ''}
+          </span>
+        )}
         <span>{result.durationMs} ms</span>
         <CopyAs result={result} />
       </div>
@@ -109,17 +149,26 @@ export default function ResultGrid({ result, rowOffset = 0, sort, onSort, toolba
         <table className="w-max min-w-full border-collapse font-mono text-sm">
           <thead className="sticky top-0 z-10 bg-surface">
             <tr>
-              {editing && <th className="w-8 border-b border-line-subtle px-2 py-2"><span className="sr-only">{d.rowSelect}</span></th>}
+              {editing && (
+                <th className="w-8 border-b border-line-subtle px-2 py-2">
+                  <span className="sr-only">{d.rowSelect}</span>
+                </th>
+              )}
               <th className="border-b border-line-subtle px-3 py-2 text-right font-sans text-xs font-semibold text-fg-muted">#</th>
               {result.columns.map((c, i) => (
                 <th key={i} className="border-b border-line-subtle p-0 text-left font-sans text-xs font-semibold whitespace-nowrap text-fg-muted">
                   {onSort ? (
-                    <button onClick={() => onSort(nextSort(c))} title={d.sortHint}
-                      className="flex w-full items-center gap-1 px-3.5 py-2.5 hover:bg-hover hover:text-fg">
+                    <button
+                      onClick={() => onSort(nextSort(c))}
+                      title={d.sortHint}
+                      className="flex w-full items-center gap-1 px-3.5 py-2.5 hover:bg-hover hover:text-fg"
+                    >
                       {c}
                       {sort?.column === c && (sort.desc ? <ArrowDown size={11} className="text-accent" /> : <ArrowUp size={11} className="text-accent" />)}
                     </button>
-                  ) : <span className="block px-3.5 py-2.5">{c}</span>}
+                  ) : (
+                    <span className="block px-3.5 py-2.5">{c}</span>
+                  )}
                 </th>
               ))}
             </tr>
@@ -129,19 +178,46 @@ export default function ResultGrid({ result, rowOffset = 0, sort, onSort, toolba
             {editing?.newRows.map((row, ni) => (
               <tr key={`new-${ni}`} data-testid="new-row" className="bg-success-soft/40">
                 <td className="border-b border-line-subtle px-1 text-center">
-                  <button onClick={() => editing.onNewRemove(ni)} title={d.rowNewRemove} aria-label={d.rowNewRemove} className="rounded p-0.5 text-fg-muted hover:text-danger"><X size={11} /></button>
+                  <button
+                    onClick={() => editing.onNewRemove(ni)}
+                    title={d.rowNewRemove}
+                    aria-label={d.rowNewRemove}
+                    className="rounded p-0.5 text-fg-muted hover:text-danger"
+                  >
+                    <X size={11} />
+                  </button>
                 </td>
                 <td className="border-b border-line-subtle px-3 py-2.5 text-right text-success">+</td>
                 {result.columns.map((col, ci) => {
                   const v = row[ci]
                   const open = cell?.isNew && cell.row === ni && cell.col === ci
                   return (
-                    <td key={ci} onDoubleClick={() => setCell({ row: ni, col: ci, isNew: true })}
-                      onKeyDown={e => { if (e.key === 'Enter' || e.key === 'F2') setCell({ row: ni, col: ci, isNew: true }) }} tabIndex={0}
-                      className={cn('max-w-80 truncate border-b border-line-subtle px-3.5 py-2.5', v === undefined ? 'italic text-fg-muted' : v === null ? 'italic text-fg-muted' : 'text-fg')}>
-                      {open
-                        ? <CellInput initial={v ?? ''} nullLabel={d.cellLabel.replace('{col}', col)} onDone={x => { if (x !== false) editing.onNewEdit(ni, ci, x === '' ? undefined : x); setCell(null) }} />
-                        : v === undefined ? d.cellDefault : show(v)}
+                    <td
+                      key={ci}
+                      onDoubleClick={() => setCell({ row: ni, col: ci, isNew: true })}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' || e.key === 'F2') setCell({ row: ni, col: ci, isNew: true })
+                      }}
+                      tabIndex={0}
+                      className={cn(
+                        'max-w-80 truncate border-b border-line-subtle px-3.5 py-2.5',
+                        v === undefined ? 'italic text-fg-muted' : v === null ? 'italic text-fg-muted' : 'text-fg'
+                      )}
+                    >
+                      {open ? (
+                        <CellInput
+                          initial={v ?? ''}
+                          nullLabel={d.cellLabel.replace('{col}', col)}
+                          onDone={x => {
+                            if (x !== false) editing.onNewEdit(ni, ci, x === '' ? undefined : x)
+                            setCell(null)
+                          }}
+                        />
+                      ) : v === undefined ? (
+                        d.cellDefault
+                      ) : (
+                        show(v)
+                      )}
                     </td>
                   )
                 })}
@@ -153,8 +229,13 @@ export default function ResultGrid({ result, rowOffset = 0, sort, onSort, toolba
                 <tr key={ri} className={cn('hover:bg-hover', deleted && 'bg-danger-soft/40 line-through')}>
                   {editing && (
                     <td className="border-b border-line-subtle px-2 text-center">
-                      <input type="checkbox" className="size-3.5 accent-accent" aria-label={d.rowCheck.replace('{n}', String(rowOffset + ri + 1))}
-                        checked={editing.isChecked(ri)} onChange={e => editing.onCheck(ri, e.target.checked)} />
+                      <input
+                        type="checkbox"
+                        className="size-3.5 accent-accent"
+                        aria-label={d.rowCheck.replace('{n}', String(rowOffset + ri + 1))}
+                        checked={editing.isChecked(ri)}
+                        onChange={e => editing.onCheck(ri, e.target.checked)}
+                      />
                     </td>
                   )}
                   <td className="border-b border-line-subtle px-3 py-2.5 text-right text-xs text-fg-muted">{rowOffset + ri + 1}</td>
@@ -165,18 +246,36 @@ export default function ResultGrid({ result, rowOffset = 0, sort, onSort, toolba
                     const editable = !!editing && !deleted && editing.canEdit(ci)
                     const open = editable && !cell?.isNew && cell?.row === ri && cell.col === ci
                     return (
-                      <td key={ci} title={show(value)}
-                        {...(editable ? {
-                          tabIndex: 0,
-                          onDoubleClick: () => setCell({ row: ri, col: ci, isNew: false }),
-                          onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === 'F2') setCell({ row: ri, col: ci, isNew: false }) }
-                        } : {})}
-                        className={cn('max-w-80 truncate border-b border-line-subtle px-3.5 py-2.5',
-                          changed && 'bg-warning-soft text-fg', !changed && (value === null ? 'italic text-fg-muted' : 'text-fg'))}>
-                        {open
-                          ? <CellInput initial={value === null ? '' : String(value)} nullLabel={d.cellLabel.replace('{col}', result.columns[ci])}
-                              onDone={x => { if (x !== false) editing!.onEdit(ri, ci, x); setCell(null) }} />
-                          : show(value)}
+                      <td
+                        key={ci}
+                        title={show(value)}
+                        {...(editable
+                          ? {
+                              tabIndex: 0,
+                              onDoubleClick: () => setCell({ row: ri, col: ci, isNew: false }),
+                              onKeyDown: (e: React.KeyboardEvent) => {
+                                if (e.key === 'Enter' || e.key === 'F2') setCell({ row: ri, col: ci, isNew: false })
+                              }
+                            }
+                          : {})}
+                        className={cn(
+                          'max-w-80 truncate border-b border-line-subtle px-3.5 py-2.5',
+                          changed && 'bg-warning-soft text-fg',
+                          !changed && (value === null ? 'italic text-fg-muted' : 'text-fg')
+                        )}
+                      >
+                        {open ? (
+                          <CellInput
+                            initial={value === null ? '' : String(value)}
+                            nullLabel={d.cellLabel.replace('{col}', result.columns[ci])}
+                            onDone={x => {
+                              if (x !== false) editing!.onEdit(ri, ci, x)
+                              setCell(null)
+                            }}
+                          />
+                        ) : (
+                          show(value)
+                        )}
                       </td>
                     )
                   })}

@@ -4,7 +4,7 @@ import type { AddressInfo } from 'net'
 import { settledAxeIssues as settledAxe } from './axe'
 import { goTo, launch, type Launched } from './launch'
 
-/** v4.2: Forgy on another provider than Anthropic — chosen in the settings, its models listed, and it answers */
+/** Forgy on another provider than Anthropic — chosen in the settings, its models listed, and it answers */
 let run: Launched
 let http: Server
 test.afterEach(async () => {
@@ -18,12 +18,19 @@ test('an OpenAI-compatible server chosen in Settings › Forgy answers in the pa
   const asked: { model?: string }[] = []
   http = createServer((req, res) => {
     let raw = ''
-    req.on('data', c => { raw += c })
+    req.on('data', c => {
+      raw += c
+    })
     req.on('end', () => {
-      if (req.url === '/v1/models') { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ data: [{ id: 'qwen-local' }, { id: 'llama-local' }] })); return }
+      if (req.url === '/v1/models') {
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ data: [{ id: 'qwen-local' }, { id: 'llama-local' }] }))
+        return
+      }
       asked.push(JSON.parse(raw))
       res.writeHead(200, { 'Content-Type': 'text/event-stream' })
-      for (const piece of ['Bonjour, ', 'ici un modèle local.']) res.write(`data: ${JSON.stringify({ choices: [{ index: 0, delta: { content: piece }, finish_reason: null }] })}\n\n`)
+      for (const piece of ['Bonjour, ', 'ici un modèle local.'])
+        res.write(`data: ${JSON.stringify({ choices: [{ index: 0, delta: { content: piece }, finish_reason: null }] })}\n\n`)
       res.write(`data: ${JSON.stringify({ choices: [{ index: 0, delta: {}, finish_reason: 'stop' }] })}\n\n`)
       res.end('data: [DONE]\n\n')
     })

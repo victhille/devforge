@@ -8,7 +8,9 @@ interface Props {
   children: ReactNode
 }
 
-interface State { error: Error | null }
+interface State {
+  error: Error | null
+}
 
 /**
  * Keeps a crashing page from taking down the whole window:
@@ -39,9 +41,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <AlertTriangle size={28} className="text-danger" />
           <div>
             <p className="text-md font-semibold text-fg">{this.props.labels.title}</p>
-            <p className="mt-2 max-h-32 overflow-auto rounded-lg bg-canvas p-3 text-left font-mono text-xs text-fg-secondary">
-              {error.message}
-            </p>
+            <p className="mt-2 max-h-32 overflow-auto rounded-lg bg-canvas p-3 text-left font-mono text-xs text-fg-secondary">{error.message}</p>
           </div>
           <button
             onClick={() => this.setState({ error: null })}

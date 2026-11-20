@@ -24,7 +24,7 @@ interface Props {
   style?: CSSProperties
 }
 
-/** v4.3: the state of a service, a container, a server: one size, one color per state, one pulse, on every page */
+/** The state of a service, a container, a server: one size, one color per state, one pulse, on every page */
 export default function StatusDot({ state, live, size = 'sm', label, className, style }: Props) {
   return (
     <span
@@ -32,7 +32,14 @@ export default function StatusDot({ state, live, size = 'sm', label, className, 
       aria-label={label}
       aria-hidden={label ? undefined : true}
       style={style}
-      className={cn('inline-block shrink-0 rounded-full', size === 'sm' ? 'size-2' : 'size-2.5', COLORS[state], live && state !== 'unknown' && 'df-ping', className)}
+      data-state={state}
+      className={cn(
+        'df-dot inline-block shrink-0 rounded-full',
+        size === 'sm' ? 'size-2' : 'size-2.5',
+        COLORS[state],
+        live && state !== 'unknown' && 'df-ping',
+        className
+      )}
     />
   )
 }

@@ -24,12 +24,17 @@ export function sshServer(ref: unknown): { id: string; name: string } {
   return { id: hit.id, name: hit.name }
 }
 
-const err = (e: unknown) => { throw new ToolError(e instanceof Error ? e.message : String(e)) }
+const err = (e: unknown) => {
+  throw new ToolError(e instanceof Error ? e.message : String(e))
+}
 
 export async function vpsHealthText(server: unknown): Promise<string> {
   const s = sshServer(server)
   const h = await readHealth(s.id).catch(err)
-  const lines = h.checks.map(c => `- ${c.id}: ${c.level.toUpperCase()}${Object.keys(c.values).length ? ` ${JSON.stringify(c.values)}` : ''}${c.fix ? ` (fix available in DevForge: ${c.fix})` : ''}`)
+  const lines = h.checks.map(
+    c =>
+      `- ${c.id}: ${c.level.toUpperCase()}${Object.keys(c.values).length ? ` ${JSON.stringify(c.values)}` : ''}${c.fix ? ` (fix available in DevForge: ${c.fix})` : ''}`
+  )
   return `${s.name} · ${h.os ?? '?'} · ${h.uptime ?? ''} · passwordless sudo: ${h.sudo ? 'yes' : 'no'}\n${lines.join('\n')}\nFixes run only from Serveurs › Santé, after the user's click.`
 }
 
@@ -37,7 +42,11 @@ export async function vpsServicesText(server: unknown): Promise<string> {
   const s = sshServer(server)
   const list = await listServices(s.id).catch(err)
   if (!list.length) return `${s.name}: no web interface in the containers.`
-  return list.map(x => `- ${x.name} (${x.image}) port ${x.port} ${x.running ? 'running' : 'stopped'}${x.exposed ? ' OPEN TO THE INTERNET' : ' local only'}`).join('\n') + '\nThe user opens them from Serveurs › Services (SSH tunnel).'
+  return (
+    list
+      .map(x => `- ${x.name} (${x.image}) port ${x.port} ${x.running ? 'running' : 'stopped'}${x.exposed ? ' OPEN TO THE INTERNET' : ' local only'}`)
+      .join('\n') + '\nThe user opens them from Serveurs › Services (SSH tunnel).'
+  )
 }
 
 export async function backupsText(server: unknown): Promise<string> {
@@ -58,7 +67,13 @@ export async function backupsText(server: unknown): Promise<string> {
 export async function githubText(p: Project): Promise<string> {
   const st = await githubStatus(p.path).catch(e => {
     const m = e instanceof Error ? e.message : String(e)
-    throw new ToolError(m === 'NO_TOKEN' ? 'GitHub is not connected: the user signs in with `gh auth login` or saves a token on the project page, tab GitHub.' : m === 'NOT_GITHUB' ? `${p.name} has no GitHub origin.` : m)
+    throw new ToolError(
+      m === 'NO_TOKEN'
+        ? 'GitHub is not connected: the user signs in with `gh auth login` or saves a token on the project page, tab GitHub.'
+        : m === 'NOT_GITHUB'
+          ? `${p.name} has no GitHub origin.`
+          : m
+    )
   })
   return [
     `${st.repo.owner}/${st.repo.repo}`,

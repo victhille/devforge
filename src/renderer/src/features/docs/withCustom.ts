@@ -14,7 +14,7 @@ export function techIdFor(docs: DocTech[], category: string): string {
 }
 
 /**
- * v3.5 lot 5: the page's references with the user's commands: in their
+ * the page's references with the user's commands: in their
  * reference's "My commands" section, first, or in a reference of their own.
  */
 export function withCustom(docs: DocTech[], custom: CustomCommand[], mine: string): Tech[] {
@@ -29,7 +29,9 @@ export function withCustom(docs: DocTech[], custom: CustomCommand[], mine: strin
   return [
     ...known,
     ...[...others.values()].map(name => ({
-      id: `custom:${key(name)}`, name, color: 'var(--color-accent)',
+      id: `custom:${key(name)}`,
+      name,
+      color: 'var(--color-accent)',
       sections: [{ title: mine, entries: custom.filter(c => key(c.category) === key(name)).map(toEntry) }]
     }))
   ]

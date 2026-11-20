@@ -5,12 +5,29 @@ import { IDE_CATALOG, ideArgs } from '../../src/shared/data/ides'
 import { expandPattern, openInIde } from '../../src/main/services/system/ides'
 import { tempDir } from '../helpers'
 
-/** v3.5 lot 3: IDEs found on the PC, and those added by hand */
-describe('v3.5: IDEs', () => {
+/** IDEs found on the PC, and those added by hand */
+describe('IDEs', () => {
   it('knows the usual IDEs, each once', () => {
     const ids = IDE_CATALOG.map(i => i.id)
     expect(new Set(ids).size).toBe(ids.length)
-    expect(ids).toEqual(expect.arrayContaining(['vscode', 'cursor', 'windsurf', 'antigravity', 'zed', 'sublime', 'phpstorm', 'webstorm', 'intellij', 'pycharm', 'rider', 'goland', 'visualstudio', 'notepadpp']))
+    expect(ids).toEqual(
+      expect.arrayContaining([
+        'vscode',
+        'cursor',
+        'windsurf',
+        'antigravity',
+        'zed',
+        'sublime',
+        'phpstorm',
+        'webstorm',
+        'intellij',
+        'pycharm',
+        'rider',
+        'goland',
+        'visualstudio',
+        'notepadpp'
+      ])
+    )
   })
 
   it('finds a program in its install folder, the newest version first', () => {

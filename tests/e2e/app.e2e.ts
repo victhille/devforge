@@ -20,9 +20,22 @@ test('starts on the home page and records the data format', async () => {
 
 test('keeps the data of a 1.x install', async () => {
   run = await launch({
-    seed: dir => writeFileSync(join(dir, 'projects.json'), JSON.stringify([
-      { id: 'p1', name: 'Legacy project', path: dir, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }
-    ]))
+    seed: dir =>
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'p1',
+            name: 'Legacy project',
+            path: dir,
+            framework: 'nodejs',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
   })
   await goTo(run.page, '/projects')
   await expect(run.page.getByRole('heading', { name: 'Legacy project' })).toBeVisible()
@@ -138,4 +151,14 @@ test('Settings copies a diagnostic report without secrets', async () => {
   const report = await app.evaluate(({ clipboard }) => clipboard.readText())
   expect(report).toMatch(/^DevForge v\d+\.\d+\.\d+/)
   expect(report).toContain('Data format v1')
+})
+
+test('Settings › About shows the license and the third-party notices', async () => {
+  run = await launch()
+  const { page } = run
+  await goTo(page, '/settings?section=about')
+  // GPL-3.0 §5d: both open the files shipped with the app (resources/), or the repository's copy
+  await expect(page.getByRole('button', { name: 'Licence GPL-3.0', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Licences tierces', exact: true })).toBeVisible()
+  await expect(page.getByText(/version 3 uniquement/)).toBeVisible()
 })

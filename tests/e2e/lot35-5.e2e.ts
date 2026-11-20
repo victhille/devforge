@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.5 lot 5: a command added to the docs, checked and completed while typed */
+/** A command added to the docs, checked and completed while typed */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -42,7 +42,9 @@ test('a command is completed, checked, saved in its reference and found by the s
   await expect(page.getByText('Mes commandes')).toBeVisible()
   await page.getByLabel('Rechercher dans Git…').fill('fonctionnalité')
   await expect(page.getByText('git switch -c feature/')).toBeVisible()
-  expect(JSON.parse(readFileSync(join(userData, 'doc-commands.json'), 'utf-8'))).toEqual([expect.objectContaining({ cmd: 'git switch -c feature/', category: 'Git' })])
+  expect(JSON.parse(readFileSync(join(userData, 'doc-commands.json'), 'utf-8'))).toEqual([
+    expect.objectContaining({ cmd: 'git switch -c feature/', category: 'Git' })
+  ])
 
   // A program this PC lacks can still be saved, in a new category
   await page.getByRole('button', { name: 'Ajouter une commande' }).click()

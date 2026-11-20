@@ -31,8 +31,11 @@ export const HEALTH_SCRIPT = [
 ].join(`; echo '${SEP}'; `)
 
 const SIZE: Record<string, number> = { B: 1, kB: 1e3, KB: 1e3, MB: 1e6, GB: 1e9, TB: 1e12 }
-const size = (s: string) => { const m = /^([\d.]+)\s*([kKMGT]?B)/.exec(s.trim()); return m ? Number(m[1]) * (SIZE[m[2]!] ?? 1) : 0 }
-const worst = (a: HealthLevel, b: HealthLevel): HealthLevel => (['bad', 'warn', 'unknown', 'ok'].find(l => l === a || l === b) as HealthLevel)
+const size = (s: string) => {
+  const m = /^([\d.]+)\s*([kKMGT]?B)/.exec(s.trim())
+  return m ? Number(m[1]) * (SIZE[m[2]!] ?? 1) : 0
+}
+const worst = (a: HealthLevel, b: HealthLevel): HealthLevel => ['bad', 'warn', 'unknown', 'ok'].find(l => l === a || l === b) as HealthLevel
 
 /** Ports that are expected to be reachable: SSH, the web, WireGuard */
 const EXPECTED = new Set(['tcp:80', 'tcp:443', 'udp:443', 'udp:51820'])
@@ -42,7 +45,8 @@ export function parseHealth(out: string, opts: { sshPort: number; keyAuth: boole
   const [sudoS = '', aptS = '', rebootS = '', dfS = '', memS = '', ssS = '', sshdS = '', f2bS = '', failsS = '', dockerS = '', dfDockerS = '', osS = ''] = s
   const sudo = sudoS === 'yes'
   const checks: HealthCheck[] = []
-  const add = (id: string, level: HealthLevel, values: HealthCheck['values'] = {}, fix?: HealthFixId) => checks.push({ id, level, values, ...(fix && level !== 'ok' ? { fix } : {}) })
+  const add = (id: string, level: HealthLevel, values: HealthCheck['values'] = {}, fix?: HealthFixId) =>
+    checks.push({ id, level, values, ...(fix && level !== 'ok' ? { fix } : {}) })
 
   // Updates
   const [pending = NaN, security = 0] = aptS.split('\n').map(Number)
@@ -53,7 +57,8 @@ export function parseHealth(out: string, opts: { sshPort: number; keyAuth: boole
   // Disk and inodes: "/dev/sda1 19221248 8661552 10543312 46% /"
   const [disk = '', inodes = ''] = dfS.split('\n')
   const pct = (l: string) => Number(/(\d+)%/.exec(l)?.[1] ?? NaN)
-  const d = pct(disk), i = pct(inodes)
+  const d = pct(disk),
+    i = pct(inodes)
   const free = Number(disk.trim().split(/\s+/)[3] ?? 0) * 1024
   add('disk', Number.isNaN(d) ? 'unknown' : d >= 90 ? 'bad' : d >= 80 ? 'warn' : 'ok', { percent: d, free })
   if (!Number.isNaN(i) && i >= 80) add('inodes', i >= 90 ? 'bad' : 'warn', { percent: i })
@@ -71,7 +76,8 @@ export function parseHealth(out: string, opts: { sshPort: number; keyAuth: boole
     const [proto = '', addr = ''] = line.trim().split(' ')
     const m = /^(.*):(\d+)$/.exec(addr)
     if (!m) continue
-    const host = m[1]!, port = Number(m[2])
+    const host = m[1]!,
+      port = Number(m[2])
     if (/^127\.|^\[::1\]|%lo|^\[fe80|^\[?fe80/.test(host) || (proto === 'udp' && (port === 68 || port === 546))) continue
     const key = `${proto}:${port}`
     if (port === opts.sshPort && proto === 'tcp') continue
@@ -98,7 +104,12 @@ export function parseHealth(out: string, opts: { sshPort: number; keyAuth: boole
 
   // Containers: restarting, stopped on an error, restart loops
   const [psPart = '', restartsPart = ''] = dockerS.split(/^--$/m)
-  const restarts = new Map(restartsPart.split('\n').map(l => { const [n = '', c = '0'] = l.trim().replace(/^\//, '').split('|'); return [n, Number(c)] as const }))
+  const restarts = new Map(
+    restartsPart.split('\n').map(l => {
+      const [n = '', c = '0'] = l.trim().replace(/^\//, '').split('|')
+      return [n, Number(c)] as const
+    })
+  )
   const broken: string[] = []
   const looping: string[] = []
   for (const line of psPart.split('\n')) {
@@ -132,7 +143,7 @@ function connection(connectionId: string) {
 
 export async function readHealth(connectionId: string): Promise<VpsHealth> {
   const conn = connection(connectionId)
-  const out = testOutput('health') ?? await runOn(connectionId, HEALTH_SCRIPT, 60_000)
+  const out = testOutput('health') ?? (await runOn(connectionId, HEALTH_SCRIPT, 60_000))
   return parseHealth(out, { sshPort: conn.port || 22, keyAuth: conn.authMethod !== 'password' })
 }
 
@@ -146,12 +157,18 @@ const APT = 'sudo -n env DEBIAN_FRONTEND=noninteractive apt-get'
  */
 export function fixCommand(fix: HealthFixId): string {
   switch (fix) {
-    case 'apt-upgrade': return `${APT} update && ${APT} -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold upgrade`
-    case 'reboot': return 'sudo -n systemctl reboot'
-    case 'docker-prune': return 'docker image prune -af && docker builder prune -af'
-    case 'install-fail2ban': return `${APT} update && ${APT} install -y fail2ban && sudo -n systemctl enable --now fail2ban`
-    case 'ssh-harden': return "printf 'PasswordAuthentication no\\nPermitRootLogin prohibit-password\\n' | sudo -n tee /etc/ssh/sshd_config.d/00-devforge.conf >/dev/null && sudo -n sshd -t && sudo -n systemctl reload ssh && echo 'SSH: key login only'"
-    default: throw new Error('Unknown fix')
+    case 'apt-upgrade':
+      return `${APT} update && ${APT} -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold upgrade`
+    case 'reboot':
+      return 'sudo -n systemctl reboot'
+    case 'docker-prune':
+      return 'docker image prune -af && docker builder prune -af'
+    case 'install-fail2ban':
+      return `${APT} update && ${APT} install -y fail2ban && sudo -n systemctl enable --now fail2ban`
+    case 'ssh-harden':
+      return "printf 'PasswordAuthentication no\\nPermitRootLogin prohibit-password\\n' | sudo -n tee /etc/ssh/sshd_config.d/00-devforge.conf >/dev/null && sudo -n sshd -t && sudo -n systemctl reload ssh && echo 'SSH: key login only'"
+    default:
+      throw new Error('Unknown fix')
   }
 }
 
@@ -167,11 +184,16 @@ export async function runFix(connectionId: string, fix: HealthFixId, onLog: (tex
   const sid = await sessionFor(connectionId)
   let all = ''
   try {
-    const code = await sshService.execStream(sid, `bash -lc ${shQuote(command)} 2>&1; echo "${SEP}$?"`, text => {
-      all += text
-      const clean = text.replace(new RegExp(`${SEP}\\d*\\s*$`), '')
-      if (clean) onLog(clean)
-    }, 30 * 60_000)
+    const code = await sshService.execStream(
+      sid,
+      `bash -lc ${shQuote(command)} 2>&1; echo "${SEP}$?"`,
+      text => {
+        all += text
+        const clean = text.replace(new RegExp(`${SEP}\\d*\\s*$`), '')
+        if (clean) onLog(clean)
+      },
+      30 * 60_000
+    )
     const m = new RegExp(`${SEP}(\\d+)\\s*$`).exec(all)
     return { ok: (m ? Number(m[1]) : code) === 0 }
   } catch (err) {

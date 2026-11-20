@@ -6,20 +6,27 @@ import type { DetectedProject, Framework, PackageManager, SubProject } from '@sh
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** One directory listing, reused by every check below (avoids hundreds of syscalls). */
-interface Dir { path: string; files: Set<string> }
+interface Dir {
+  path: string
+  files: Set<string>
+}
 
 function fileExists(dir: Dir, name: string): boolean {
   return dir.files.has(name)
 }
 
 function readJson(path: string): Record<string, unknown> {
-  try { return JSON.parse(readFileSync(path, 'utf-8')) } catch { return {} }
+  try {
+    return JSON.parse(readFileSync(path, 'utf-8'))
+  } catch {
+    return {}
+  }
 }
 
 function hasDep(pkg: Record<string, unknown>, ...names: string[]): boolean {
   const deps = {
-    ...(pkg.dependencies    as Record<string, unknown> ?? {}),
-    ...(pkg.devDependencies as Record<string, unknown> ?? {})
+    ...((pkg.dependencies as Record<string, unknown>) ?? {}),
+    ...((pkg.devDependencies as Record<string, unknown>) ?? {})
   }
   return names.some(n => n in deps)
 }
@@ -33,23 +40,22 @@ function hasExtension(dir: Dir, ...exts: string[]): boolean {
 
 function detectPackageManager(dir: Dir): PackageManager {
   if (fileExists(dir, 'pnpm-lock.yaml')) return 'pnpm'
-  if (fileExists(dir, 'yarn.lock'))       return 'yarn'
+  if (fileExists(dir, 'yarn.lock')) return 'yarn'
   return 'npm'
 }
 
 // ─── Framework detection ──────────────────────────────────────────────────────
 
 function detectFramework(dir: Dir): Framework {
-
   // ── JavaScript / TypeScript ──────────────────────────────────────────────
   if (fileExists(dir, 'package.json')) {
     const pkg = readJson(join(dir.path, 'package.json'))
-    if (hasDep(pkg, 'next'))             return 'nextjs'
+    if (hasDep(pkg, 'next')) return 'nextjs'
     if (hasDep(pkg, 'react', 'react-dom')) return 'react'
-    if (hasDep(pkg, 'vue'))              return 'vue'
-    if (hasDep(pkg, '@angular/core'))    return 'angular'
-    if (hasDep(pkg, 'svelte'))           return 'svelte'
-    if (hasDep(pkg, 'express'))          return 'express'
+    if (hasDep(pkg, 'vue')) return 'vue'
+    if (hasDep(pkg, '@angular/core')) return 'angular'
+    if (hasDep(pkg, 'svelte')) return 'svelte'
+    if (hasDep(pkg, 'express')) return 'express'
     return 'nodejs'
   }
 
@@ -60,11 +66,11 @@ function detectFramework(dir: Dir): Framework {
 
   // ── PHP ──────────────────────────────────────────────────────────────────
   if (fileExists(dir, 'composer.json')) {
-    const pkg    = readJson(join(dir.path, 'composer.json'))
-    const req    = pkg.require as Record<string, unknown> ?? {}
-    if ('symfony/framework-bundle' in req)    return 'symfony'
+    const pkg = readJson(join(dir.path, 'composer.json'))
+    const req = (pkg.require as Record<string, unknown>) ?? {}
+    if ('symfony/framework-bundle' in req) return 'symfony'
     if (existsSync(join(dir.path, 'config', 'bundles.php'))) return 'symfony'
-    if ('laravel/framework' in req)           return 'laravel'
+    if ('laravel/framework' in req) return 'laravel'
     return 'php'
   }
 
@@ -79,56 +85,44 @@ function detectFramework(dir: Dir): Framework {
   }
 
   // ── Systems ──────────────────────────────────────────────────────────────
-  if (fileExists(dir, 'Cargo.toml'))      return 'rust'
-  if (fileExists(dir, 'go.mod'))          return 'go'
+  if (fileExists(dir, 'Cargo.toml')) return 'rust'
+  if (fileExists(dir, 'go.mod')) return 'go'
 
   // C++ before C (more specific)
-  if (hasExtension(dir, '.cpp', '.cxx', '.cc') ||
-      fileExists(dir, 'CMakeLists.txt'))  return 'cpp'
-  if (hasExtension(dir, '.c') ||
-      (fileExists(dir, 'Makefile') && !hasExtension(dir, '.java', '.kt')))
-                                          return 'c'
+  if (hasExtension(dir, '.cpp', '.cxx', '.cc') || fileExists(dir, 'CMakeLists.txt')) return 'cpp'
+  if (hasExtension(dir, '.c') || (fileExists(dir, 'Makefile') && !hasExtension(dir, '.java', '.kt'))) return 'c'
 
   // ── JVM ──────────────────────────────────────────────────────────────────
-  if (fileExists(dir, 'pom.xml'))         return 'java'
-  if (hasExtension(dir, '.kt'))           return 'kotlin'
+  if (fileExists(dir, 'pom.xml')) return 'java'
+  if (hasExtension(dir, '.kt')) return 'kotlin'
   if (fileExists(dir, 'build.gradle') || fileExists(dir, 'build.gradle.kts')) {
-    if (hasExtension(dir, 'src', '.kt'))  return 'kotlin'
+    if (hasExtension(dir, 'src', '.kt')) return 'kotlin'
     return 'java'
   }
-  if (hasExtension(dir, '.java'))         return 'java'
+  if (hasExtension(dir, '.java')) return 'java'
 
   // ── .NET ─────────────────────────────────────────────────────────────────
-  if ([...dir.files].some(f => f.endsWith('.csproj') || f.endsWith('.sln') || f.endsWith('.fsproj')))
-                                          return 'dotnet'
+  if ([...dir.files].some(f => f.endsWith('.csproj') || f.endsWith('.sln') || f.endsWith('.fsproj'))) return 'dotnet'
 
   // ── Ruby ─────────────────────────────────────────────────────────────────
-  if (fileExists(dir, 'Gemfile'))         return 'ruby'
-  if (hasExtension(dir, '.rb'))           return 'ruby'
+  if (fileExists(dir, 'Gemfile')) return 'ruby'
+  if (hasExtension(dir, '.rb')) return 'ruby'
 
   // ── Python ───────────────────────────────────────────────────────────────
-  if (fileExists(dir, 'requirements.txt') ||
-      fileExists(dir, 'pyproject.toml')  ||
-      fileExists(dir, 'setup.py')        ||
-      fileExists(dir, 'Pipfile'))         return 'python'
-  if (hasExtension(dir, '.py'))           return 'python'
+  if (fileExists(dir, 'requirements.txt') || fileExists(dir, 'pyproject.toml') || fileExists(dir, 'setup.py') || fileExists(dir, 'Pipfile')) return 'python'
+  if (hasExtension(dir, '.py')) return 'python'
 
   // ── Swift ────────────────────────────────────────────────────────────────
-  if (hasExtension(dir, '.swift') ||
-      fileExists(dir, 'Package.swift'))   return 'swift'
+  if (hasExtension(dir, '.swift') || fileExists(dir, 'Package.swift')) return 'swift'
 
   // ── Shell scripts ─────────────────────────────────────────────────────────
-  if (hasExtension(dir, '.sh', '.bash', '.zsh') &&
-      !hasExtension(dir, '.html', '.css', '.js', '.ts'))
-                                          return 'shell'
+  if (hasExtension(dir, '.sh', '.bash', '.zsh') && !hasExtension(dir, '.html', '.css', '.js', '.ts')) return 'shell'
 
   // ── Docker-only projects ──────────────────────────────────────────────────
-  if (fileExists(dir, 'Dockerfile') || fileExists(dir, 'docker-compose.yml') ||
-      fileExists(dir, 'docker-compose.yaml')) return 'docker'
+  if (fileExists(dir, 'Dockerfile') || fileExists(dir, 'docker-compose.yml') || fileExists(dir, 'docker-compose.yaml')) return 'docker'
 
   // ── Static HTML / CSS ─────────────────────────────────────────────────────
-  if (fileExists(dir, 'index.html') || fileExists(dir, 'index.htm') ||
-      hasExtension(dir, '.html', '.htm')) return 'html'
+  if (fileExists(dir, 'index.html') || fileExists(dir, 'index.htm') || hasExtension(dir, '.html', '.htm')) return 'html'
 
   return 'unknown'
 }
@@ -136,15 +130,31 @@ function detectFramework(dir: Dir): Framework {
 // ─── Scanner ──────────────────────────────────────────────────────────────────
 
 async function listDir(path: string): Promise<Dir | null> {
-  try { return { path, files: new Set(await readdir(path)) } } catch { return null }
+  try {
+    return { path, files: new Set(await readdir(path)) }
+  } catch {
+    return null
+  }
 }
 
-// ─── Groups (v3.5) ────────────────────────────────────────────────────────────
+// ─── Groups ────────────────────────────────────────────────────────────
 
 /** Files that make a folder a project of its own (loose .php or .html files do not) */
 const MARKERS = [
-  'package.json', 'composer.json', 'pyproject.toml', 'requirements.txt', 'Pipfile', 'setup.py',
-  'Cargo.toml', 'go.mod', 'pom.xml', 'build.gradle', 'build.gradle.kts', 'Gemfile', 'pubspec.yaml', 'Package.swift'
+  'package.json',
+  'composer.json',
+  'pyproject.toml',
+  'requirements.txt',
+  'Pipfile',
+  'setup.py',
+  'Cargo.toml',
+  'go.mod',
+  'pom.xml',
+  'build.gradle',
+  'build.gradle.kts',
+  'Gemfile',
+  'pubspec.yaml',
+  'Package.swift'
 ]
 
 /** Never a project of a group: dependencies, builds, tooling */
@@ -158,7 +168,9 @@ async function subFolders(path: string): Promise<string[]> {
   try {
     const entries = await readdir(path, { withFileTypes: true })
     return entries.filter(e => (e.isDirectory() || e.isSymbolicLink()) && !e.name.startsWith('.') && !SKIPPED.has(e.name)).map(e => e.name)
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 /**
@@ -166,18 +178,20 @@ async function subFolders(path: string): Promise<string[]> {
  * project file, looking one level further (two at most) in those without.
  */
 export async function findSubProjects(path: string, depth = 2, prefix = ''): Promise<SubProject[]> {
-  const found = await Promise.all((await subFolders(path)).map(async name => {
-    const dir = await listDir(join(path, name))
-    if (!dir) return []
-    const rel = prefix + name
-    if (hasMarker(dir)) return [{ name: rel, path: dir.path, framework: detectFramework(dir), packageManager: detectPackageManager(dir) }]
-    return depth > 1 ? findSubProjects(dir.path, depth - 1, `${rel}/`) : []
-  }))
+  const found = await Promise.all(
+    (await subFolders(path)).map(async name => {
+      const dir = await listDir(join(path, name))
+      if (!dir) return []
+      const rel = prefix + name
+      if (hasMarker(dir)) return [{ name: rel, path: dir.path, framework: detectFramework(dir), packageManager: detectPackageManager(dir) }]
+      return depth > 1 ? findSubProjects(dir.path, depth - 1, `${rel}/`) : []
+    })
+  )
   return found.flat().sort((a, b) => a.name.localeCompare(b.name))
 }
 
 /**
- * v3.5.1: what a group holds besides its projects (docs/, infra/, README.md,
+ * What a group holds besides its projects (docs/, infra/, README.md,
  * Dockerfile…), folders first with a trailing slash. Hidden entries and
  * build or dependency folders are left out.
  */
@@ -186,10 +200,18 @@ export async function findGroupExtras(path: string, subprojects: SubProject[]): 
   try {
     const entries = await readdir(path, { withFileTypes: true })
     const shown = entries.filter(e => !e.name.startsWith('.') && !SKIPPED.has(e.name) && !taken.has(e.name))
-    const dirs = shown.filter(e => e.isDirectory() || e.isSymbolicLink()).map(e => e.name + '/').sort((a, b) => a.localeCompare(b))
-    const files = shown.filter(e => e.isFile()).map(e => e.name).sort((a, b) => a.localeCompare(b))
+    const dirs = shown
+      .filter(e => e.isDirectory() || e.isSymbolicLink())
+      .map(e => e.name + '/')
+      .sort((a, b) => a.localeCompare(b))
+    const files = shown
+      .filter(e => e.isFile())
+      .map(e => e.name)
+      .sort((a, b) => a.localeCompare(b))
     return [...dirs, ...files]
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 /** A group's projects and the rest of its folder, as on disk now */
@@ -204,7 +226,8 @@ async function detectFolder(name: string, path: string): Promise<DetectedProject
   if (!dir) return null
   if (!hasMarker(dir)) {
     const subprojects = await findSubProjects(path)
-    if (subprojects.length) return { name, path, framework: 'group', packageManager: subprojects[0].packageManager, subprojects, extras: await findGroupExtras(path, subprojects) }
+    if (subprojects.length)
+      return { name, path, framework: 'group', packageManager: subprojects[0].packageManager, subprojects, extras: await findGroupExtras(path, subprojects) }
   }
   const framework = detectFramework(dir)
   // Skip completely empty directories
@@ -215,13 +238,15 @@ async function detectFolder(name: string, path: string): Promise<DetectedProject
 /** Detect projects (and groups of projects) in the direct sub-folders of `directory`, all folders in parallel. */
 export async function scanDirectory(directory: string): Promise<DetectedProject[]> {
   let entries
-  try { entries = await readdir(directory, { withFileTypes: true }) } catch { return [] }
+  try {
+    entries = await readdir(directory, { withFileTypes: true })
+  } catch {
+    return []
+  }
 
   const folders = entries.filter(e => (e.isDirectory() || e.isSymbolicLink()) && !e.name.startsWith('.'))
 
   const results = await Promise.all(folders.map(entry => detectFolder(entry.name, join(directory, entry.name))))
 
-  return results
-    .filter((p): p is DetectedProject => p !== null)
-    .sort((a, b) => a.name.localeCompare(b.name))
+  return results.filter((p): p is DetectedProject => p !== null).sort((a, b) => a.name.localeCompare(b.name))
 }

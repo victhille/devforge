@@ -1,5 +1,5 @@
 /**
- * v4.3: brand colors (frameworks, file types, docs) stay as their makers
+ * Brand colors (frameworks, file types, docs) stay as their makers
  * chose them, except the pale ones (yellow, light gray…), which a white
  * background swallows: they get `df-pale`, darkened in the light theme only.
  */

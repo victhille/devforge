@@ -8,9 +8,21 @@ export function useActiveHub(): ProjectHub | null {
   const [hub, setHub] = useState<ProjectHub | null>(null)
   useEffect(() => {
     let alive = true
-    if (!active) { setHub(null); return }
-    window.devforge.hub.get(active.id).then(h => { if (alive) setHub(h) }).catch(() => { if (alive) setHub(null) })
-    return () => { alive = false }
+    if (!active) {
+      setHub(null)
+      return
+    }
+    window.devforge.hub
+      .get(active.id)
+      .then(h => {
+        if (alive) setHub(h)
+      })
+      .catch(() => {
+        if (alive) setHub(null)
+      })
+    return () => {
+      alive = false
+    }
   }, [active])
   return hub
 }

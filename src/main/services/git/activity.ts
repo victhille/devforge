@@ -7,7 +7,7 @@ import { loadProjects } from '../projects/projectStorage'
 import { git } from './gitRepo'
 
 /**
- * v3.8 lot 3: the commits of every saved project over the last weeks, read
+ * the commits of every saved project over the last weeks, read
  * from Git on this PC (no online service), a few projects at a time, kept a
  * few minutes. Two git calls per repository, none that scans the files.
  */
@@ -34,7 +34,10 @@ async function one(p: { id: string; name: string; path: string }): Promise<Proje
   return {
     ...base,
     commits: log.ok ? parseGitLog(log.stdout) : [],
-    lastCommitAt, branch: head?.branch ?? null, ahead: head?.ahead ?? 0, behind: head?.behind ?? 0
+    lastCommitAt,
+    branch: head?.branch ?? null,
+    ahead: head?.ahead ?? 0,
+    behind: head?.behind ?? 0
   }
 }
 
@@ -42,7 +45,7 @@ export async function getActivity(fresh = false): Promise<ActivityData> {
   if (!fresh && cache && Date.now() - cache.at < TTL) return cache
   const projects = loadProjects()
   const out: ProjectActivity[] = []
-  for (let i = 0; i < projects.length; i += PARALLEL) out.push(...await Promise.all(projects.slice(i, i + PARALLEL).map(one)))
+  for (let i = 0; i < projects.length; i += PARALLEL) out.push(...(await Promise.all(projects.slice(i, i + PARALLEL).map(one))))
   const email = await runFile('git', ['config', '--global', 'user.email'], { timeout: 5000 })
   cache = { me: email.ok ? email.stdout.trim().toLowerCase() || null : null, projects: out, at: Date.now() }
   return cache

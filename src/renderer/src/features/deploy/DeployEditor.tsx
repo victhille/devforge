@@ -10,11 +10,18 @@ import type { DeployMethod } from './deploySteps'
 
 /** Ready-made scripts for common setups, named like the methods of the deploy table */
 export const PRESETS: { id: Exclude<DeployMethod, 'script'>; script: string }[] = [
-  { id: 'pm2',     script: 'git pull\nnpm ci\nnpm run build\npm2 restart ecosystem.config.js --update-env' },
+  { id: 'pm2', script: 'git pull\nnpm ci\nnpm run build\npm2 restart ecosystem.config.js --update-env' },
   { id: 'compose', script: 'git pull\ndocker compose pull\ndocker compose up -d --build\ndocker image prune -f' },
-  { id: 'static',  script: 'git pull\nnpm ci\nnpm run build' },
-  { id: 'symfony', script: 'git pull\ncomposer install --no-dev --optimize-autoloader\nphp bin/console doctrine:migrations:migrate --no-interaction\nphp bin/console cache:clear --env=prod' },
-  { id: 'laravel', script: 'git pull\ncomposer install --no-dev --optimize-autoloader\nphp artisan migrate --force\nphp artisan config:cache\nphp artisan route:cache' }
+  { id: 'static', script: 'git pull\nnpm ci\nnpm run build' },
+  {
+    id: 'symfony',
+    script:
+      'git pull\ncomposer install --no-dev --optimize-autoloader\nphp bin/console doctrine:migrations:migrate --no-interaction\nphp bin/console cache:clear --env=prod'
+  },
+  {
+    id: 'laravel',
+    script: 'git pull\ncomposer install --no-dev --optimize-autoloader\nphp artisan migrate --force\nphp artisan config:cache\nphp artisan route:cache'
+  }
 ]
 
 interface Props {
@@ -28,11 +35,18 @@ export default function DeployEditor({ initial, onSave, onClose }: Props) {
   const d = t.deploy
   // The kept list of servers, shown at once
   const connections: SSHConnection[] = useSshConnections().data ?? NO_SERVERS
-  // v4.2: the kept list of projects, shown at once
+  // The kept list of projects, shown at once
   const projects = useProjectList().data ?? NO_PROJECTS
-  const [form, setForm] = useState<DeployTarget>(initial ?? {
-    id: crypto.randomUUID(), name: '', connectionId: '', remotePath: '/var/www/', script: PRESETS[0].script, pushFirst: false
-  })
+  const [form, setForm] = useState<DeployTarget>(
+    initial ?? {
+      id: crypto.randomUUID(),
+      name: '',
+      connectionId: '',
+      remotePath: '/var/www/',
+      script: PRESETS[0].script,
+      pushFirst: false
+    }
+  )
 
   // A target without a server takes the first one
   const first = connections[0]?.id
@@ -50,8 +64,12 @@ export default function DeployEditor({ initial, onSave, onClose }: Props) {
       className="max-w-2xl"
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>{t.common.cancel}</Button>
-          <Button disabled={!valid} onClick={() => onSave({ ...form, name: form.name.trim(), remotePath: form.remotePath.trim() })}>{t.common.save}</Button>
+          <Button variant="ghost" onClick={onClose}>
+            {t.common.cancel}
+          </Button>
+          <Button disabled={!valid} onClick={() => onSave({ ...form, name: form.name.trim(), remotePath: form.remotePath.trim() })}>
+            {t.common.save}
+          </Button>
         </>
       }
     >
@@ -62,7 +80,11 @@ export default function DeployEditor({ initial, onSave, onClose }: Props) {
         <Field label={d.server} className="flex-1">
           <Select value={form.connectionId} onChange={e => set('connectionId', e.target.value)}>
             {connections.length === 0 && <option value="">{d.noServer}</option>}
-            {connections.map(c => <option key={c.id} value={c.id}>{c.name} — {c.username}@{c.host}</option>)}
+            {connections.map(c => (
+              <option key={c.id} value={c.id}>
+                {c.name} — {c.username}@{c.host}
+              </option>
+            ))}
           </Select>
         </Field>
       </div>
@@ -76,8 +98,12 @@ export default function DeployEditor({ initial, onSave, onClose }: Props) {
       </Field>
       <div className="-mt-2 flex flex-wrap gap-1.5">
         {PRESETS.map(p => (
-          <button key={p.id} type="button" onClick={() => set('script', p.script)}
-            className="rounded-full border border-line-subtle px-2.5 py-0.5 text-xs text-fg-secondary hover:border-line hover:text-fg">
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => set('script', p.script)}
+            className="rounded-full border border-line-subtle px-2.5 py-0.5 text-xs text-fg-secondary hover:border-line hover:text-fg"
+          >
             {d.method[p.id]}
           </button>
         ))}
@@ -87,7 +113,11 @@ export default function DeployEditor({ initial, onSave, onClose }: Props) {
         <Field label={d.localProject} className="flex-1">
           <Select value={form.projectPath ?? ''} onChange={e => set('projectPath', e.target.value || undefined)}>
             <option value="">{d.none}</option>
-            {projects.map(p => <option key={p.id} value={p.path}>{p.name}</option>)}
+            {projects.map(p => (
+              <option key={p.id} value={p.path}>
+                {p.name}
+              </option>
+            ))}
           </Select>
         </Field>
         <Checkbox checked={!!form.pushFirst} onChange={v => set('pushFirst', v)} className="h-9">

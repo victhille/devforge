@@ -10,9 +10,9 @@ interface I18nContextValue {
 }
 
 const I18nContext = createContext<I18nContextValue>({
-  lang:   'en',
+  lang: 'en',
   setLang: () => {},
-  t:      translations.en
+  t: translations.en
 })
 
 export function I18nProvider({ children }: { children: ReactNode }) {
@@ -26,7 +26,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     setLang((settings as { language?: Lang }).language ?? 'en')
     applyAppearance(settings)
   }, [settings])
-  useEffect(() => { if (error) setLang(l => l ?? 'en') }, [error])
+  useEffect(() => {
+    if (error) setLang(l => l ?? 'en')
+  }, [error])
+  // Screen readers pick their voice from the page's language: it follows the interface's
+  useEffect(() => {
+    if (lang) document.documentElement.lang = lang
+  }, [lang])
 
   const value = useMemo(() => lang && { lang, setLang, t: translations[lang] }, [lang])
   if (!value) return null

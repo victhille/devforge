@@ -3,7 +3,7 @@ import { EDGE_TYPES, nextMessageY, NODE_TYPES, nodeBox } from './uml'
 import { McdSpecError as SpecError } from './mcdSpec'
 
 /**
- * v4.2 lot 3: a diagram from a description (what Forgy writes from the
+ * a diagram from a description (what Forgy writes from the
  * user's words): its parts, named, and the links between them by those
  * names. Checked against the kind's parts and links, then laid out the way
  * that kind reads: a sequence in a row with its messages in order, use cases
@@ -26,7 +26,10 @@ const clean = (v: unknown, max = 120) => (typeof v === 'string' ? v.trim().slice
 const lines = (v: unknown, owner: string, what: string) => {
   if (v === undefined) return undefined
   if (!Array.isArray(v)) throw new SpecError(`"${what}" of ${owner} must be a list of texts`)
-  return v.slice(0, MAX.lines).map(x => clean(x, 200)).filter(Boolean)
+  return v
+    .slice(0, MAX.lines)
+    .map(x => clean(x, 200))
+    .filter(Boolean)
 }
 
 export function diagramFromSpec(kind: DiagramKind, spec: unknown): DiagramModel {
@@ -36,7 +39,8 @@ export function diagramFromSpec(kind: DiagramKind, spec: unknown): DiagramModel 
   const links = s.links ?? []
   if (!Array.isArray(links)) throw new SpecError('"links" must be a list')
   if (links.length > MAX.links) throw new SpecError(`At most ${MAX.links} links`)
-  const types = NODE_TYPES[kind], edgeTypes = EDGE_TYPES[kind]
+  const types = NODE_TYPES[kind],
+    edgeTypes = EDGE_TYPES[kind]
   let n = 0
   const next = (p: string) => `${p}${(++n).toString(36)}`
 
@@ -49,8 +53,14 @@ export function diagramFromSpec(kind: DiagramKind, spec: unknown): DiagramModel 
     const type = (raw || DEFAULT_TYPE[kind]) as DiagramNodeType
     if (!types.includes(type)) throw new SpecError(`"${x.type}" is not a part of a ${kind} diagram: use ${types.join(', ')}`)
     const node: DiagramNode = {
-      id: next('n'), type, name, x: 0, y: 0,
-      ...(type === 'class' || type === 'interface' ? { attributes: lines(x.attributes, name, 'attributes') ?? [], methods: lines(x.methods, name, 'methods') ?? [] } : {}),
+      id: next('n'),
+      type,
+      name,
+      x: 0,
+      y: 0,
+      ...(type === 'class' || type === 'interface'
+        ? { attributes: lines(x.attributes, name, 'attributes') ?? [], methods: lines(x.methods, name, 'methods') ?? [] }
+        : {}),
       ...(type === 'enum' ? { attributes: lines(x.attributes, name, 'attributes') ?? [] } : {}),
       ...(type === 'case' && x.steps !== undefined ? { steps: lines(x.steps, name, 'steps') } : {})
     }
@@ -59,12 +69,14 @@ export function diagramFromSpec(kind: DiagramKind, spec: unknown): DiagramModel 
   })
 
   const edges: DiagramEdge[] = links.map(l => {
-    const from = byName.get(clean(l?.from).toLowerCase()), to = byName.get(clean(l?.to).toLowerCase())
+    const from = byName.get(clean(l?.from).toLowerCase()),
+      to = byName.get(clean(l?.to).toLowerCase())
     if (!from || !to) throw new SpecError(`A link names an unknown part: "${!from ? l?.from : l?.to}" (declare it in "nodes")`)
     const raw = clean(l.type, 40).toLowerCase()
     const type = (raw || edgeTypes[0]) as DiagramEdgeType
     if (!edgeTypes.includes(type)) throw new SpecError(`"${l.type}" is not a link of a ${kind} diagram: use ${edgeTypes.join(', ')}`)
-    if (from.type === 'system' || to.type === 'system') throw new SpecError(`The system ${from.type === 'system' ? from.name : to.name} holds the use cases: link its cases, not the system`)
+    if (from.type === 'system' || to.type === 'system')
+      throw new SpecError(`The system ${from.type === 'system' ? from.name : to.name} holds the use cases: link its cases, not the system`)
     const label = clean(l.label)
     return { id: next('l'), type, from: from.id, to: to.id, ...(label ? { label } : {}) }
   })
@@ -79,14 +91,23 @@ export function diagramFromSpec(kind: DiagramKind, spec: unknown): DiagramModel 
 /** The participants in a row, the messages one below the other in the order given */
 function layoutSequence(d: DiagramModel): void {
   let x = 0
-  for (const n of d.nodes) { n.x = x; n.y = 0; x += nodeBox(n).w + GAP.x }
+  for (const n of d.nodes) {
+    n.x = x
+    n.y = 0
+    x += nodeBox(n).w + GAP.x
+  }
   const placed: DiagramEdge[] = []
-  for (const e of d.edges) { e.y = nextMessageY({ ...d, edges: placed }); placed.push(e) }
+  for (const e of d.edges) {
+    e.y = nextMessageY({ ...d, edges: placed })
+    placed.push(e)
+  }
 }
 
 /** The actors in a column on the left, the use cases beside them (two columns past eight), inside the system when there is one */
 function layoutUseCases(d: DiagramModel): void {
-  const actors = d.nodes.filter(n => n.type === 'actor'), cases = d.nodes.filter(n => n.type === 'case'), systems = d.nodes.filter(n => n.type === 'system')
+  const actors = d.nodes.filter(n => n.type === 'actor'),
+    cases = d.nodes.filter(n => n.type === 'case'),
+    systems = d.nodes.filter(n => n.type === 'system')
   const columns = cases.length > 8 ? 2 : 1
   const caseW = Math.max(140, ...cases.map(c => nodeBox(c).w))
   const left = Math.max(70, ...actors.map(a => nodeBox(a).w)) + 120
@@ -99,7 +120,11 @@ function layoutUseCases(d: DiagramModel): void {
   })
   const casesH = Math.max(y - 30, 120)
   let ay = Math.max(0, (casesH - actors.length * 130) / 2)
-  for (const a of actors) { a.x = 0; a.y = Math.round(ay); ay += 130 }
+  for (const a of actors) {
+    a.x = 0
+    a.y = Math.round(ay)
+    ay += 130
+  }
   // The system around the cases; any other one below it
   systems.forEach((sys, i) => {
     sys.x = left
@@ -118,9 +143,10 @@ function layoutUseCases(d: DiagramModel): void {
  */
 function layoutLayers(d: DiagramModel, kind: DiagramKind): void {
   // Classes: a parent above its children; the other links do not order them
-  const order = kind === 'class'
-    ? d.edges.filter(e => e.type === 'inheritance' || e.type === 'implementation').map(e => [e.to, e.from] as const)
-    : d.edges.map(e => [e.from, e.to] as const)
+  const order =
+    kind === 'class'
+      ? d.edges.filter(e => e.type === 'inheritance' || e.type === 'implementation').map(e => [e.to, e.from] as const)
+      : d.edges.map(e => [e.from, e.to] as const)
   const ins = new Map(d.nodes.map(x => [x.id, 0]))
   for (const [, to] of order) ins.set(to, (ins.get(to) ?? 0) + 1)
   // Breadth first from the parts nothing leads to (then from any part left), so a loop never stretches it
@@ -130,7 +156,11 @@ function layoutLayers(d: DiagramModel, kind: DiagramKind): void {
     rank.set(start, rank.get(start) ?? 0)
     while (queue.length) {
       const id = queue.shift()!
-      for (const [from, to] of order) if (from === id && !rank.has(to)) { rank.set(to, rank.get(id)! + 1); queue.push(to) }
+      for (const [from, to] of order)
+        if (from === id && !rank.has(to)) {
+          rank.set(to, rank.get(id)! + 1)
+          queue.push(to)
+        }
     }
   }
   for (const x of d.nodes) if (!ins.get(x.id) && !rank.has(x.id)) walk(x.id)
@@ -150,8 +180,14 @@ function layoutLayers(d: DiagramModel, kind: DiagramKind): void {
     let along = -length / 2
     row.forEach((x, i) => {
       const b = boxes[i]
-      if (across) { x.x = at; x.y = Math.round(along) } else { x.x = Math.round(along); x.y = at }
-      along += (across ? b.h + GAP.y : b.w + GAP.x)
+      if (across) {
+        x.x = at
+        x.y = Math.round(along)
+      } else {
+        x.x = Math.round(along)
+        x.y = at
+      }
+      along += across ? b.h + GAP.y : b.w + GAP.x
     })
     at += Math.max(...boxes.map(b => (across ? b.w : b.h))) + (across ? GAP.x + 40 : GAP.y)
   }

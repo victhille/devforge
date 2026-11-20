@@ -1,4 +1,4 @@
-// ─── Status page and 24/7 watch (v2.2 lot 4) ──────────────────────────────────
+// ─── Status page and 24/7 watch ──────────────────────────────────
 
 /**
  * How the page reaches the internet:
@@ -53,7 +53,11 @@ export interface StatusIncident {
   cause?: string | null
 }
 
-export interface StatusDay { total: number; ok: number; ms: number }
+export interface StatusDay {
+  total: number
+  ok: number
+  ms: number
+}
 
 export interface StatusOverview {
   installed: boolean

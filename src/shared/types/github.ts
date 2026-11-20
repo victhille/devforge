@@ -1,6 +1,9 @@
 // ─── GitHub on the project page ──────────────────────────────────────────────
 
-export interface GithubRepo { owner: string; repo: string }
+export interface GithubRepo {
+  owner: string
+  repo: string
+}
 
 export interface GithubRun {
   id: number
@@ -18,8 +21,23 @@ export interface GithubRun {
   url: string
 }
 
-export interface GithubPull { number: number; title: string; author: string; branch: string; draft: boolean; createdAt: string; url: string }
-export interface GithubRelease { tag: string; name: string; publishedAt: string | null; prerelease: boolean; draft: boolean; url: string }
+export interface GithubPull {
+  number: number
+  title: string
+  author: string
+  branch: string
+  draft: boolean
+  createdAt: string
+  url: string
+}
+export interface GithubRelease {
+  tag: string
+  name: string
+  publishedAt: string | null
+  prerelease: boolean
+  draft: boolean
+  url: string
+}
 
 export interface GithubStatus {
   repo: GithubRepo
@@ -30,7 +48,7 @@ export interface GithubStatus {
   releases: GithubRelease[]
 }
 
-/** v3.8: per project id, its workflows whose last finished run failed */
+/** Per project id, its workflows whose last finished run failed */
 export type CiStates = Record<string, { failing: string[] }>
 
 export interface GithubAPI {
@@ -40,7 +58,7 @@ export interface GithubAPI {
   status: (projectPath: string) => Promise<GithubStatus>
   /** Runs again the failed jobs of a run */
   rerun: (projectPath: string, runId: number) => Promise<void>
-  /** v3.8: the CI watch: what fails now, a check at once, its news */
+  /** The CI watch: what fails now, a check at once, its news */
   ciStates: () => Promise<CiStates>
   checkCi: () => Promise<CiStates>
   onCiStates: (cb: (s: CiStates) => void) => () => void

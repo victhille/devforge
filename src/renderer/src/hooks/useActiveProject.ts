@@ -12,12 +12,20 @@ export function useActiveProject(): { active: Project | null; setActive: (id: st
   useEffect(() => {
     let alive = true
     const show = async (id: string | null) => {
-      const project = id ? (await window.devforge.getProjects()).find(p => p.id === id) ?? null : null
+      const project = id ? ((await window.devforge.getProjects()).find(p => p.id === id) ?? null) : null
       if (alive) setActiveState(project)
     }
-    window.devforge.hub.getActive().then(show).catch(() => {})
-    const off = window.devforge.hub.onActive(id => { show(id) })
-    return () => { alive = false; off() }
+    window.devforge.hub
+      .getActive()
+      .then(show)
+      .catch(() => {})
+    const off = window.devforge.hub.onActive(id => {
+      show(id)
+    })
+    return () => {
+      alive = false
+      off()
+    }
   }, [])
 
   const setActive = useCallback((id: string | null) => window.devforge.hub.setActive(id), [])

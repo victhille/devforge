@@ -10,25 +10,43 @@ import { IoGrid, IoPanel, IO_TEXTAREA, ToolActions, type ToolboxT } from '../IoP
 const ALGOS = ['SHA-1', 'SHA-256', 'SHA-384', 'SHA-512']
 
 export default function HashTool({ t }: { t: ToolboxT }) {
-  const [input, setInput]   = useState('')
-  const [algo, setAlgo]     = useState('SHA-256')
+  const [input, setInput] = useState('')
+  const [algo, setAlgo] = useState('SHA-256')
   const [output, setOutput] = useState('')
   const h = useI18n().t.toolHelp
 
   async function hash() {
     const buf = await crypto.subtle.digest(algo, new TextEncoder().encode(input))
-    setOutput(Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''))
+    setOutput(
+      Array.from(new Uint8Array(buf))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
+    )
   }
 
   return (
     <>
-      <ToolHelp id="hash" what={h.hash.what} how={h.hash.how}
-        examples={[{ label: h.hash.sample, onPick: () => { setInput(HASH_EXAMPLE); setOutput('') } }]} />
+      <ToolHelp
+        id="hash"
+        what={h.hash.what}
+        how={h.hash.how}
+        examples={[
+          {
+            label: h.hash.sample,
+            onPick: () => {
+              setInput(HASH_EXAMPLE)
+              setOutput('')
+            }
+          }
+        ]}
+      />
       <ToolActions>
         <label className="flex items-center gap-2 text-sm text-fg-muted">
           {t.algorithm}
           <Select value={algo} onChange={e => setAlgo(e.target.value)} className="w-32">
-            {ALGOS.map(a => <option key={a}>{a}</option>)}
+            {ALGOS.map(a => (
+              <option key={a}>{a}</option>
+            ))}
           </Select>
         </label>
       </ToolActions>

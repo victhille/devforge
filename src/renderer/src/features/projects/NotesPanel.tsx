@@ -25,7 +25,8 @@ type Draft = { title: string; pinned: boolean; body: string }
 /** The open note's file: a rename moves it, and the saves on their way follow */
 type Target = { id: string }
 
-const byOrder = (a: NoteSummary, b: NoteSummary) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt) || a.title.localeCompare(b.title)
+const byOrder = (a: NoteSummary, b: NoteSummary) =>
+  Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt) || a.title.localeCompare(b.title)
 const summary = (n: ProjectNote): NoteSummary => ({ id: n.id, title: n.title, pinned: n.pinned, updatedAt: n.updatedAt, open: countOpen(n.body) })
 
 /**
@@ -87,22 +88,28 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
       if (target.current === to) savedRef.current = saved.updatedAt
       setLive<NoteSummary[]>(key, l => [...(l ?? []).filter(n => n.id !== before && n.id !== saved.id), summary(saved)].sort(byOrder))
       return saved
-    }).then(saved => {
-      pending.current--
-      if (target.current !== to) return
-      setOpenId(saved.id)
-      setSavedAt(saved.updatedAt)
-      if (!timer.current && !pending.current) setState('saved')
-    }, () => {
-      pending.current--
-      if (target.current === to) setState('failed')
-    })
+    }).then(
+      saved => {
+        pending.current--
+        if (target.current !== to) return
+        setOpenId(saved.id)
+        setSavedAt(saved.updatedAt)
+        if (!timer.current && !pending.current) setState('saved')
+      },
+      () => {
+        pending.current--
+        if (target.current === to) setState('failed')
+      }
+    )
   }, [enqueue, key, projectId])
 
   // Leaving the tab keeps what was typed
   useEffect(() => () => flush(), [flush])
   // « il y a 2 min » moves on
-  useEffect(() => { const i = setInterval(() => setClock(c => c + 1), 30_000); return () => clearInterval(i) }, [])
+  useEffect(() => {
+    const i = setInterval(() => setClock(c => c + 1), 30_000)
+    return () => clearInterval(i)
+  }, [])
 
   /** The tab's count follows the boxes at once (the main process confirms it after the save) */
   const tellCount = (body: string) => {
@@ -133,10 +140,13 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
     setRound(r => r + 1)
   }
 
-  const openNote = useCallback((id: string) => {
-    flush()
-    return enqueue(() => window.devforge.notes.read(projectId, id)).then(show, err => setReadError(errorText(err)))
-  }, [enqueue, flush, projectId])
+  const openNote = useCallback(
+    (id: string) => {
+      flush()
+      return enqueue(() => window.devforge.notes.read(projectId, id)).then(show, err => setReadError(errorText(err)))
+    },
+    [enqueue, flush, projectId]
+  )
 
   // The first note opens; one changed by Forgy or the Modeling page (or on disk, seen when the list is read again) opens again,
   // unless something typed here is still waiting to be saved
@@ -152,23 +162,38 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
     // Being saved (maybe under a new name): the list will follow
     if (to && busy) return
     if (list.length) void openNote(list[0].id)
-    else { target.current = null; draft.current = null; setNote(null); setOpenId(null) }
+    else {
+      target.current = null
+      draft.current = null
+      setNote(null)
+      setOpenId(null)
+    }
   }, [list, openNote])
 
   const create = () => {
     flush()
-    void enqueue(() => window.devforge.notes.save(projectId, { title: k.untitled, pinned: false, body: '' })).then(saved => {
-      show(saved)
-      setLive<NoteSummary[]>(key, l => [...(l ?? []).filter(n => n.id !== saved.id), summary(saved)].sort(byOrder))
-      // Named at once: its title is selected
-      setTimeout(() => { titleRef.current?.focus(); titleRef.current?.select() }, 0)
-    }, err => toast.show({ tone: 'error', title: k.createFailed, description: errorText(err) }))
+    void enqueue(() => window.devforge.notes.save(projectId, { title: k.untitled, pinned: false, body: '' })).then(
+      saved => {
+        show(saved)
+        setLive<NoteSummary[]>(key, l => [...(l ?? []).filter(n => n.id !== saved.id), summary(saved)].sort(byOrder))
+        // Named at once: its title is selected
+        setTimeout(() => {
+          titleRef.current?.focus()
+          titleRef.current?.select()
+        }, 0)
+      },
+      err => toast.show({ tone: 'error', title: k.createFailed, description: errorText(err) })
+    )
   }
 
   const remove = async () => {
     const to = target.current
     if (!to) return
-    const ok = await confirmDialog(k.removeConfirm.replace('{title}', title.trim() || k.untitled), { title: k.removeTitle, confirmLabel: k.removeAction, danger: true })
+    const ok = await confirmDialog(k.removeConfirm.replace('{title}', title.trim() || k.untitled), {
+      title: k.removeTitle,
+      confirmLabel: k.removeAction,
+      danger: true
+    })
     if (!ok) return
     clearTimeout(timer.current)
     timer.current = undefined
@@ -195,15 +220,25 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
   const where = k.storedIn.split('{path}')
   const storedIn = (
     <p className="px-2.5 py-1.5 text-xs text-fg-muted">
-      {where[0]}<span className="font-mono">.devforge/notes</span>{where[1]}
+      {where[0]}
+      <span className="font-mono">.devforge/notes</span>
+      {where[1]}
     </p>
   )
 
   if (!list.length && !note) {
     return (
       <div className="flex flex-col gap-1.5">
-        <EmptyState icon={<NotebookPen />} title={k.empty} description={k.emptyHint}
-          action={<Button size="sm" onClick={create}><Plus size={13} aria-hidden /> {k.newNote}</Button>} />
+        <EmptyState
+          icon={<NotebookPen />}
+          title={k.empty}
+          description={k.emptyHint}
+          action={
+            <Button size="sm" onClick={create}>
+              <Plus size={13} aria-hidden /> {k.newNote}
+            </Button>
+          }
+        />
         {storedIn}
       </div>
     )
@@ -214,7 +249,9 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
   return (
     <div className="grid grid-cols-12 gap-4">
       <aside aria-label={k.list} className="col-span-12 flex min-w-0 flex-col gap-1.5 md:col-span-3">
-        <Button ref={newRef} variant="secondary" size="sm" onClick={create}><Plus size={13} aria-hidden /> {k.newNote}</Button>
+        <Button ref={newRef} variant="secondary" size="sm" onClick={create}>
+          <Plus size={13} aria-hidden /> {k.newNote}
+        </Button>
         <ul aria-label={k.list} className="flex flex-col gap-1.5">
           {list.map(n => {
             const on = n.id === openId
@@ -222,9 +259,18 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
             return (
               <li key={n.id}>
                 {/* 9 px corners and 34 px rows: the mock-up's .sel */}
-                <button type="button" aria-current={on || undefined} title={(on ? title : n.title).trim() || k.untitled} onClick={() => { if (!on) void openNote(n.id) }}
-                  className={cn('flex h-8.5 w-full items-center gap-2.5 rounded-[9px] px-2.5 text-left transition-colors duration-150',
-                    on ? 'bg-accent-soft font-semibold text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg')}>
+                <button
+                  type="button"
+                  aria-current={on || undefined}
+                  title={(on ? title : n.title).trim() || k.untitled}
+                  onClick={() => {
+                    if (!on) void openNote(n.id)
+                  }}
+                  className={cn(
+                    'flex h-8.5 w-full items-center gap-2.5 rounded-[9px] px-2.5 text-left transition-colors duration-150',
+                    on ? 'bg-accent-soft font-semibold text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg'
+                  )}
+                >
                   {shownPinned && <Pin size={13} className="shrink-0 text-accent" aria-hidden />}
                   <span className="min-w-0 flex-1 truncate">{(on ? title : n.title).trim() || k.untitled}</span>
                   {shownPinned && <span className="sr-only">{` ${k.pinned}`}</span>}
@@ -237,27 +283,58 @@ export default function NotesPanel({ projectId, projectPath }: { projectId: stri
       </aside>
 
       <div ref={cardRef} className="col-span-12 min-w-0 md:col-span-9">
-      <Card className="flex flex-col p-4.5" data-testid="note">
-        {readError ? <ErrorState error={readError} onRetry={() => { if (openId) void openNote(openId) }} />
-          : !note ? <LinesSkeleton lines={6} plain className="p-4" />
-          : (
-            <RichNotes key={round} value={note.body} onChange={body => change({ body })}
-              aside={<>
-                <span role={state === 'failed' ? 'alert' : undefined} className={cn('text-xs', state === 'failed' ? 'text-danger' : 'text-fg-muted')}>{status}</span>
-                <IconButton size="sm" title={k.pin} aria-pressed={pinned} active={pinned} onClick={togglePin}><Pin size={14} /></IconButton>
-                <IconButton size="sm" tone="danger" title={k.remove} onClick={() => void remove()}><Trash2 size={14} /></IconButton>
-              </>}
+        <Card className="flex flex-col p-4.5" data-testid="note">
+          {readError ? (
+            <ErrorState
+              error={readError}
+              onRetry={() => {
+                if (openId) void openNote(openId)
+              }}
+            />
+          ) : !note ? (
+            <LinesSkeleton lines={6} plain className="p-4" />
+          ) : (
+            <RichNotes
+              key={round}
+              value={note.body}
+              onChange={body => change({ body })}
+              aside={
+                <>
+                  <span role={state === 'failed' ? 'alert' : undefined} className={cn('text-xs', state === 'failed' ? 'text-danger' : 'text-fg-muted')}>
+                    {status}
+                  </span>
+                  <IconButton size="sm" title={k.pin} aria-pressed={pinned} active={pinned} onClick={togglePin}>
+                    <Pin size={14} />
+                  </IconButton>
+                  <IconButton size="sm" tone="danger" title={k.remove} onClick={() => void remove()}>
+                    <Trash2 size={14} />
+                  </IconButton>
+                </>
+              }
               header={
-                <input ref={titleRef} value={title} aria-label={k.noteTitle} placeholder={k.untitled} maxLength={200}
-                  onChange={e => { setTitle(e.target.value); change({ title: e.target.value }) }}
+                <input
+                  ref={titleRef}
+                  value={title}
+                  aria-label={k.noteTitle}
+                  placeholder={k.untitled}
+                  maxLength={200}
+                  onChange={e => {
+                    setTitle(e.target.value)
+                    change({ title: e.target.value })
+                  }}
                   onKeyDown={e => {
                     // Enter goes on to the text
-                    if (e.key === 'Enter') { e.preventDefault(); cardRef.current?.querySelector<HTMLElement>('[contenteditable]')?.focus() }
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      cardRef.current?.querySelector<HTMLElement>('[contenteditable]')?.focus()
+                    }
                   }}
-                  className="mb-1.5 w-full bg-transparent font-display text-xl font-bold tracking-[-.01em] text-fg outline-none placeholder:text-fg-muted" />
-              } />
+                  className="mb-1.5 w-full bg-transparent font-display text-xl font-bold tracking-[-.01em] text-fg outline-none placeholder:text-fg-muted"
+                />
+              }
+            />
           )}
-      </Card>
+        </Card>
       </div>
     </div>
   )

@@ -9,7 +9,10 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 
 const raw = process.env.PERSONAL_PATTERNS ?? (existsSync('.personal-patterns') ? readFileSync('.personal-patterns', 'utf-8') : '')
-const words = raw.split(/\r?\n|,/).map(w => w.trim()).filter(w => w && !w.startsWith('#'))
+const words = raw
+  .split(/\r?\n|,/)
+  .map(w => w.trim())
+  .filter(w => w && !w.startsWith('#'))
 if (!words.length) {
   console.log('No personal words to look for (PERSONAL_PATTERNS or .personal-patterns): skipped.')
   process.exit(0)
@@ -20,12 +23,18 @@ const lower = words.map(w => w.toLowerCase())
 const hits = []
 for (const file of files) {
   let text
-  try { text = readFileSync(file, 'utf-8') } catch { continue }
+  try {
+    text = readFileSync(file, 'utf-8')
+  } catch {
+    continue
+  }
   if (text.includes('\u0000')) continue
   text.split('\n').forEach((line, i) => {
     const l = line.toLowerCase()
     // Only the line and which word number: the word itself is not printed in the CI log
-    lower.forEach((w, k) => { if (l.includes(w)) hits.push(`${file}:${i + 1} (word #${k + 1})`) })
+    lower.forEach((w, k) => {
+      if (l.includes(w)) hits.push(`${file}:${i + 1} (word #${k + 1})`)
+    })
   })
 }
 if (hits.length) {

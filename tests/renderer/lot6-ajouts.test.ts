@@ -52,7 +52,18 @@ describe('app secrets', () => {
   it('offers to regenerate only the secrets the app draws itself', () => {
     for (const k of ['APP_KEY', 'SESSION_SECRET', 'JWT_SECRET', 'NEXTAUTH_SECRET', 'SECRET_KEY', 'app_secret']) expect(isRegenerable(k)).toBe(true)
     // Given by a service, or an encryption key whose data would be lost
-    for (const k of ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'GITHUB_CLIENT_SECRET', 'SUPABASE_JWT_SECRET', 'ENCRYPTION_KEY', 'STRIPE_KEY', 'DATABASE_URL', 'API_TOKEN', 'MAIL_PASSWORD', 'SECRETARY']) {
+    for (const k of [
+      'STRIPE_SECRET_KEY',
+      'STRIPE_WEBHOOK_SECRET',
+      'GITHUB_CLIENT_SECRET',
+      'SUPABASE_JWT_SECRET',
+      'ENCRYPTION_KEY',
+      'STRIPE_KEY',
+      'DATABASE_URL',
+      'API_TOKEN',
+      'MAIL_PASSWORD',
+      'SECRETARY'
+    ]) {
       expect(isRegenerable(k)).toBe(false)
     }
   })

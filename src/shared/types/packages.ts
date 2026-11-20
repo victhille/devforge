@@ -1,8 +1,22 @@
-// ─── A project's packages: npm, pnpm, yarn (v3.3 lot 2), Composer (lot 3) ─────
+// ─── A project's packages: npm, pnpm, yarn, Composer (lot 3) ─────
 
-export type PackageManagerKind = 'npm' | 'pnpm' | 'yarn' | 'composer'
-  // v3.5.3: read only (versions and latest ones; DevForge does not update them)
-  | 'pip' | 'poetry' | 'uv' | 'pipenv' | 'cargo' | 'go' | 'bundler' | 'pub' | 'nuget' | 'maven' | 'gradle'
+export type PackageManagerKind =
+  | 'npm'
+  | 'pnpm'
+  | 'yarn'
+  | 'composer'
+  // Read only (versions and latest ones; DevForge does not update them)
+  | 'pip'
+  | 'poetry'
+  | 'uv'
+  | 'pipenv'
+  | 'cargo'
+  | 'go'
+  | 'bundler'
+  | 'pub'
+  | 'nuget'
+  | 'maven'
+  | 'gradle'
 
 /** How far the installed version is from the latest one */
 export type UpdateLevel = 'current' | 'patch' | 'minor' | 'major' | 'unknown'
@@ -19,7 +33,7 @@ export interface PackageInfo {
 export interface PackageManifest {
   /** Folder of the manifest, relative to the project ("" for its root) */
   dir: string
-  /** package.json, composer.json; v3.5.3: requirements.txt, pyproject.toml, Cargo.toml, go.mod, App.csproj… */
+  /** package.json, composer.json; requirements.txt, pyproject.toml, Cargo.toml, go.mod, App.csproj… */
   file: string
   /** The manifest's own "name" */
   name: string | null
@@ -27,9 +41,9 @@ export interface PackageManifest {
   packages: PackageInfo[]
   /** Composer is not installed on this PC (and the project does not run on Sail) */
   toolMissing?: boolean
-  /** v3.5.3: listed and compared only; no audit nor update in DevForge (the command to run is shown). v3.6: .NET and Java only */
+  /** Listed and compared only; no audit nor update in DevForge (the command to run is shown). .NET and Java only */
   readOnly?: boolean
-  /** v3.6: what an update needs and this PC lacks (the virtual environment, poetry, cargo…), and how to get it */
+  /** What an update needs and this PC lacks (the virtual environment, poetry, cargo…), and how to get it */
   missingTool?: { name: string; install: string }
 }
 
@@ -43,12 +57,16 @@ export interface AuditSummary {
   bySeverity: Record<AuditSeverity, number>
   /** Package name → its worst severity */
   packages: Record<string, AuditSeverity>
-  /** v3.6: the audit tool is not installed (pip-audit, cargo-audit…): nothing was checked */
+  /** The audit tool is not installed (pip-audit, cargo-audit…): nothing was checked */
   missingTool?: { name: string; install: string }
 }
 
 /** Within the manifest's range ("compatible"), or to the latest version (a major one asks first) */
-export interface PackageUpdate { name: string; dev: boolean; target: 'compatible' | 'latest' }
+export interface PackageUpdate {
+  name: string
+  dev: boolean
+  target: 'compatible' | 'latest'
+}
 
 export interface PackagesAPI {
   /** Every manifest of the project and what it declares (fast: no network) */

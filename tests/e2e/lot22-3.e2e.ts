@@ -4,7 +4,7 @@ import { join } from 'path'
 import { launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
 
-/** v2.2 lot 3: the global launcher (an odd shortcut, so the tests never take the user's Ctrl+Alt+Space) */
+/** The global launcher (an odd shortcut, so the tests never take the user's Ctrl+Alt+Space) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -20,14 +20,31 @@ async function start(): Promise<Page> {
       const project = join(dir, 'boutique')
       mkdirSync(project, { recursive: true })
       writeFileSync(join(project, 'package.json'), JSON.stringify({ name: 'boutique', scripts: { dev: 'vite' } }))
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([
-        { id: 'p1', name: 'boutique', path: project, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }
-      ]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'p1',
+            name: 'boutique',
+            path: project,
+            framework: 'react',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
     }
   })
   // The launcher window is created hidden at startup, ready to show
   let page: Page | undefined
-  await expect.poll(() => { page = run.app.windows().find(w => w.url().includes('launcher.html')); return !!page }).toBe(true)
+  await expect
+    .poll(() => {
+      page = run.app.windows().find(w => w.url().includes('launcher.html'))
+      return !!page
+    })
+    .toBe(true)
   return page!
 }
 
@@ -44,7 +61,12 @@ async function open(): Promise<number> {
   })
 }
 
-const visible = () => run.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(x => x.webContents.getURL().includes('launcher.html'))!.isVisible())
+const visible = () =>
+  run.app.evaluate(({ BrowserWindow }) =>
+    BrowserWindow.getAllWindows()
+      .find(x => x.webContents.getURL().includes('launcher.html'))!
+      .isVisible()
+  )
 
 test('shortcut taken, instant opening, search, calculation, a page opened in DevForge', async () => {
   const page = await start()
@@ -87,7 +109,9 @@ test('a question for Forgy goes to the main window; the shortcut is set in the s
   await expect.poll(visible).toBe(false)
   await expect(run.page.getByText('pourquoi mon build casse')).toBeVisible()
 
-  await run.page.evaluate(() => { location.hash = '#/settings?section=general' })
+  await run.page.evaluate(() => {
+    location.hash = '#/settings?section=general'
+  })
   // The launcher is a row of « Démarrage et fenêtre », its shortcut shown key by key (and read as one)
   await expect(run.page.getByText('Lanceur global', { exact: true })).toBeVisible()
   await expect(run.page.getByText('Ctrl + Alt + Shift + F9')).toBeAttached()

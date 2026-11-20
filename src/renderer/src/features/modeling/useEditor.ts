@@ -8,7 +8,7 @@ import { errorText } from '@renderer/lib/errors'
 import { announce, boxOf, isTyping, leaveFields, touches, type CanvasTool } from './canvasTools'
 
 /**
- * v4.2 lot 1: what the three editors (MCD, diagrams, MPD) share, written once:
+ * what the three editors (MCD, diagrams, MPD) share, written once:
  * the model file (loaded, saved as it changes, its history), the view (size,
  * fit, zoom), picking (a zone, Shift+click, the hand) and the keyboard.
  */
@@ -24,7 +24,13 @@ export type View = { x: number; y: number; k: number }
  * puts it back): saved a moment after each change, and when the page is left.
  * Each change is a step of the history (typing in one field makes one step).
  */
-export function useModelDoc<T>(projectPath: string, file: string, read: (f: ModelFile) => T | null, write: (f: ModelFile, doc: T) => ModelFile, onSchedule?: () => void) {
+export function useModelDoc<T>(
+  projectPath: string,
+  file: string,
+  read: (f: ModelFile) => T | null,
+  write: (f: ModelFile, doc: T) => ModelFile,
+  onSchedule?: () => void
+) {
   const { t } = useI18n()
   const saveFailed = t.modeling.editor.saveFailed
   const toast = useToast()
@@ -40,31 +46,50 @@ export function useModelDoc<T>(projectPath: string, file: string, read: (f: Mode
   io.current = { read, write, onSchedule }
 
   useEffect(() => {
-    window.devforge.modeling.read(projectPath, file)
-      .then(f => { setModel(f); setDoc(io.current.read(f)) })
+    window.devforge.modeling
+      .read(projectPath, file)
+      .then(f => {
+        setModel(f)
+        setDoc(io.current.read(f))
+      })
       .catch(err => setError(errorText(err)))
   }, [projectPath, file])
 
   const flush = useCallback(async () => {
-    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null }
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current)
+      saveTimer.current = null
+    }
     const next = pending.current
     if (!next || !model) return
     pending.current = null
     setSaveState('saving')
-    try { await window.devforge.modeling.save(projectPath, file, io.current.write(model, next)); setSaveState('saved') }
-    catch (err) { setSaveState('failed'); toast.show({ tone: 'error', title: saveFailed, description: errorText(err) }) }
+    try {
+      await window.devforge.modeling.save(projectPath, file, io.current.write(model, next))
+      setSaveState('saved')
+    } catch (err) {
+      setSaveState('failed')
+      toast.show({ tone: 'error', title: saveFailed, description: errorText(err) })
+    }
   }, [model, projectPath, file, toast, saveFailed])
   const flushRef = useRef(flush)
   flushRef.current = flush
   // Leaving the page saves what is left
-  useEffect(() => () => { void flushRef.current() }, [])
+  useEffect(
+    () => () => {
+      void flushRef.current()
+    },
+    []
+  )
 
   const schedule = (next: T) => {
     pending.current = next
     setSaveState('saving')
     io.current.onSchedule?.()
     if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(() => { void flushRef.current() }, SAVE_DELAY)
+    saveTimer.current = setTimeout(() => {
+      void flushRef.current()
+    }, SAVE_DELAY)
   }
 
   /** A change: kept in the history (`mergeKey`: the same field typed in goes in one step; `before`: the state a drag started from), then saved */
@@ -90,7 +115,9 @@ export function useModelDoc<T>(projectPath: string, file: string, read: (f: Mode
     const prev = h.past[h.past.length - 1]
     h.past = h.past.slice(0, -1)
     h.mergeKey = null
-    setDoc(prev); schedule(prev); setHistoryTick(x => x + 1)
+    setDoc(prev)
+    schedule(prev)
+    setHistoryTick(x => x + 1)
   }
   const redo = () => {
     const h = history.current
@@ -99,12 +126,23 @@ export function useModelDoc<T>(projectPath: string, file: string, read: (f: Mode
     const next = h.future[0]
     h.future = h.future.slice(1)
     h.mergeKey = null
-    setDoc(next); schedule(next); setHistoryTick(x => x + 1)
+    setDoc(next)
+    schedule(next)
+    setHistoryTick(x => x + 1)
   }
 
   return {
-    model, doc, setDoc, error, saveState, flush, change, undo, redo,
-    canUndo: history.current.past.length > 0, canRedo: history.current.future.length > 0
+    model,
+    doc,
+    setDoc,
+    error,
+    saveState,
+    flush,
+    change,
+    undo,
+    redo,
+    canUndo: history.current.past.length > 0,
+    canRedo: history.current.future.length > 0
   }
 }
 
@@ -118,8 +156,20 @@ export type CanvasView = ReturnType<typeof useCanvasView>
  * width comes last), until the view is moved by hand; `refit` fits it again.
  * `open`: the model is there; `remount`: the canvas came back (a tab).
  */
-export function useCanvasView({ open, remount = '', all, start = { x: 60, y: 60, k: 1 }, minZoom = 0.2, refit = 0 }: {
-  open: boolean; remount?: string; all: Box; start?: View; minZoom?: number; refit?: number
+export function useCanvasView({
+  open,
+  remount = '',
+  all,
+  start = { x: 60, y: 60, k: 1 },
+  minZoom = 0.2,
+  refit = 0
+}: {
+  open: boolean
+  remount?: string
+  all: Box
+  start?: View
+  minZoom?: number
+  refit?: number
 }) {
   const [view, setView] = useState<View>(start)
   const [size, setSize] = useState({ w: 800, h: 600 })
@@ -138,11 +188,16 @@ export function useCanvasView({ open, remount = '', all, start = { x: 60, y: 60,
   }, [open, remount])
 
   const fit = () => {
-    if (!all.w) { setView(start); return }
+    if (!all.w) {
+      setView(start)
+      return
+    }
     const k = Math.min(1, (size.w - 80) / all.w, (size.h - 80) / all.h)
     setView({ k, x: (size.w - all.w * k) / 2 - all.x * k, y: (size.h - all.h * k) / 2 - all.y * k })
   }
-  useEffect(() => { if (!touched.current && open && size.w > 100) fit() }, [open, size.w, size.h, refit]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!touched.current && open && size.w > 100) fit()
+  }, [open, size.w, size.h, refit]) // eslint-disable-line react-hooks/exhaustive-deps -- fit reads the latest model itself; refit asks for a new fit
 
   const zoom = (factor: number, cx = size.w / 2, cy = size.h / 2) => {
     touched.current = true
@@ -153,11 +208,17 @@ export function useCanvasView({ open, remount = '', all, start = { x: 60, y: 60,
   }
   // The wheel zooms the canvas only (a native listener: React's is passive)
   const zoomAt = useRef<(ev: WheelEvent) => void>(() => {})
-  zoomAt.current = ev => { const r = viewport.current!.getBoundingClientRect(); zoom(Math.exp(-ev.deltaY * 0.0015), ev.clientX - r.left, ev.clientY - r.top) }
+  zoomAt.current = ev => {
+    const r = viewport.current!.getBoundingClientRect()
+    zoom(Math.exp(-ev.deltaY * 0.0015), ev.clientX - r.left, ev.clientY - r.top)
+  }
   useEffect(() => {
     const el = viewport.current
     if (!el) return
-    const onWheel = (ev: WheelEvent) => { ev.preventDefault(); zoomAt.current(ev) }
+    const onWheel = (ev: WheelEvent) => {
+      ev.preventDefault()
+      zoomAt.current(ev)
+    }
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
   }, [open, remount])
@@ -177,7 +238,19 @@ export function useCanvasView({ open, remount = '', all, start = { x: 60, y: 60,
   /** The part of the canvas on screen, in its units */
   const seen = (): Box => ({ x: -view.x / view.k, y: -view.y / view.k, w: size.w / view.k, h: size.h / view.k })
 
-  return { viewport: viewport as RefObject<HTMLDivElement>, view, setView, size, touched: touched as MutableRefObject<boolean>, fit, zoom, toWorld, middle, centerOn, seen }
+  return {
+    viewport: viewport as RefObject<HTMLDivElement>,
+    view,
+    setView,
+    size,
+    touched: touched as MutableRefObject<boolean>,
+    fit,
+    zoom,
+    toWorld,
+    middle,
+    centerOn,
+    seen
+  }
 }
 
 // ── Picking ──────────────────────────────────────────────────────────────────
@@ -195,7 +268,10 @@ export function useCanvasPick(canvas: CanvasView, { tool, parts, onPick }: { too
   const [zone, setZone] = useState<Box | null>(null)
   const gesture = useRef<Gesture | null>(null)
 
-  const pick = (ids: string[]) => { setMulti(ids); onPick(ids) }
+  const pick = (ids: string[]) => {
+    setMulti(ids)
+    onPick(ids)
+  }
   /** Shift+click: in or out of the selection */
   const toggle = (id: string) => pick(multi.includes(id) ? multi.filter(i => i !== id) : [...multi, id])
   /** One of a selection of several: moving it moves them all */
@@ -218,7 +294,10 @@ export function useCanvasPick(canvas: CanvasView, { tool, parts, onPick }: { too
   /** The view moved, or a zone started: true when the press is taken that way (`onPart`: it is on a part) */
   const background = (ev: ReactPointerEvent, onPart: boolean) => {
     const at = { sx: ev.clientX, sy: ev.clientY, moved: false }
-    if (ev.button === 1 || (!onPart && tool === 'hand')) { gesture.current = { kind: 'pan', ...at, ox: canvas.view.x, oy: canvas.view.y, keep: [] }; return true }
+    if (ev.button === 1 || (!onPart && tool === 'hand')) {
+      gesture.current = { kind: 'pan', ...at, ox: canvas.view.x, oy: canvas.view.y, keep: [] }
+      return true
+    }
     if (onPart) return false
     const r = canvas.viewport.current!.getBoundingClientRect()
     gesture.current = { kind: 'zone', ...at, ox: ev.clientX - r.left, oy: ev.clientY - r.top, keep: ev.shiftKey ? multi : [] }
@@ -228,7 +307,8 @@ export function useCanvasPick(canvas: CanvasView, { tool, parts, onPick }: { too
   const move = (ev: ReactPointerEvent) => {
     const g = gesture.current
     if (!g) return false
-    const dx = ev.clientX - g.sx, dy = ev.clientY - g.sy
+    const dx = ev.clientX - g.sx,
+      dy = ev.clientY - g.sy
     if (Math.abs(dx) + Math.abs(dy) > 3) g.moved = true
     if (g.kind === 'pan') {
       if (g.moved) canvas.touched.current = true
@@ -249,7 +329,10 @@ export function useCanvasPick(canvas: CanvasView, { tool, parts, onPick }: { too
     const g = gesture.current
     if (!g) return false
     gesture.current = null
-    if (g.kind === 'zone') { setZone(null); if (!g.moved) pick(g.keep) }
+    if (g.kind === 'zone') {
+      setZone(null)
+      if (!g.moved) pick(g.keep)
+    }
     return true
   }
 
@@ -257,7 +340,14 @@ export function useCanvasPick(canvas: CanvasView, { tool, parts, onPick }: { too
 }
 
 /** The parts of `ids` moved by (dx, dy) from where they were when the drag started (`rowOnly`: they keep their height) */
-export function shifted<T extends { id: string; x: number; y: number }>(list: T[], start: T[], ids: ReadonlySet<string>, dx: number, dy: number, rowOnly = false): T[] {
+export function shifted<T extends { id: string; x: number; y: number }>(
+  list: T[],
+  start: T[],
+  ids: ReadonlySet<string>,
+  dx: number,
+  dy: number,
+  rowOnly = false
+): T[] {
   return list.map(n => {
     if (!ids.has(n.id)) return n
     const o = start.find(x => x.id === n.id)
@@ -266,19 +356,21 @@ export function shifted<T extends { id: string; x: number; y: number }>(list: T[
 }
 
 /**
- * v4.2: the parts picked lined up or spread out (`parts`: their boxes;
+ * The parts picked lined up or spread out (`parts`: their boxes;
  * `place`: gives them their new places, one step of the history).
  */
 export function arranging(parts: Map<string, Box>, ids: string[], place: (to: Map<string, Point>) => void) {
   const picked = () => new Map(ids.filter(id => parts.has(id)).map(id => [id, parts.get(id)!]))
-  const apply = (to: Map<string, Point>) => { if (to.size) place(to) }
+  const apply = (to: Map<string, Point>) => {
+    if (to.size) place(to)
+  }
   return {
     align: (how: AlignHow) => apply(align(picked(), how)),
     spread: (axis: Axis) => apply(distribute(picked(), axis))
   }
 }
 
-// ── Copy, paste, duplicate (v4.2 lot 2) ──────────────────────────────────────
+// ── Copy, paste, duplicate ──────────────────────────────────────
 
 /** What was copied, kept while the app is open: pasted in the same model, or in another of its kind */
 let clipboard: { kind: string; data: unknown; box: Box; times: number; count: number } | null = null
@@ -289,14 +381,23 @@ let clipboard: { kind: string; data: unknown; box: Box; times: number; count: nu
  * `copy` takes the parts of `ids` with what links them; `paste` adds a copy
  * moved by `by`, and picks it.
  */
-export function useClipboard<C>(canvas: CanvasView, { kind, selected, boxes, copy, paste }: {
-  /** A model of another kind never gets the copy (a diagram: of another kind of diagram) */
-  kind: string
-  selected: string[]
-  boxes: Map<string, Box>
-  copy: (ids: string[]) => C
-  paste: (data: C, by: Point) => void
-}) {
+export function useClipboard<C>(
+  canvas: CanvasView,
+  {
+    kind,
+    selected,
+    boxes,
+    copy,
+    paste
+  }: {
+    /** A model of another kind never gets the copy (a diagram: of another kind of diagram) */
+    kind: string
+    selected: string[]
+    boxes: Map<string, Box>
+    copy: (ids: string[]) => C
+    paste: (data: C, by: Point) => void
+  }
+) {
   const { t } = useI18n()
   const said = t.modeling.editor.selection
   const take = () => {
@@ -335,12 +436,19 @@ export function useClipboard<C>(canvas: CanvasView, { kind, selected, boxes, cop
 
 /**
  * Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z), Ctrl+A, Delete on what is picked, Escape;
- * Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+D (v4.2). Never while typing, and Ctrl+C
+ * Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+D. Never while typing, and Ctrl+C
  * leaves a text picked on the page to the system.
  */
 export function useEditorKeys(on: {
-  undo: () => void; redo: () => void; selectAll: () => void; canRemove: boolean; remove: () => void; escape: () => void
-  copy?: () => boolean; paste?: () => boolean; duplicate?: () => boolean
+  undo: () => void
+  redo: () => void
+  selectAll: () => void
+  canRemove: boolean
+  remove: () => void
+  escape: () => void
+  copy?: () => boolean
+  paste?: () => boolean
+  duplicate?: () => boolean
 }) {
   const latest = useRef(on)
   latest.current = on
@@ -352,17 +460,37 @@ export function useEditorKeys(on: {
     const listener = (ev: KeyboardEvent) => {
       if (isTyping(ev.target)) return
       const k = latest.current
-      const mod = ev.ctrlKey || ev.metaKey, key = ev.key.toLowerCase()
+      const mod = ev.ctrlKey || ev.metaKey,
+        key = ev.key.toLowerCase()
       const textPicked = !!document.getSelection()?.toString()
-      if (mod && key === 'z') { ev.preventDefault(); if (ev.shiftKey) k.redo(); else k.undo() }
-      else if (mod && key === 'y') { ev.preventDefault(); k.redo() }
-      else if (mod && key === 'a') { ev.preventDefault(); k.selectAll() }
-      else if (mod && key === 'c') { if (!textPicked && k.copy?.()) ev.preventDefault() }
-      else if (mod && key === 'x') { if (!textPicked && k.copy?.()) { ev.preventDefault(); k.remove(); announce(said.current.cut) } }
-      else if (mod && key === 'v') { if (k.paste?.()) ev.preventDefault() }
-      else if (mod && key === 'd') { ev.preventDefault(); k.duplicate?.() }
-      else if ((ev.key === 'Delete' || ev.key === 'Backspace') && k.canRemove) { ev.preventDefault(); k.remove(); announce(said.current.removed) }
-      else if (ev.key === 'Escape') k.escape()
+      if (mod && key === 'z') {
+        ev.preventDefault()
+        if (ev.shiftKey) k.redo()
+        else k.undo()
+      } else if (mod && key === 'y') {
+        ev.preventDefault()
+        k.redo()
+      } else if (mod && key === 'a') {
+        ev.preventDefault()
+        k.selectAll()
+      } else if (mod && key === 'c') {
+        if (!textPicked && k.copy?.()) ev.preventDefault()
+      } else if (mod && key === 'x') {
+        if (!textPicked && k.copy?.()) {
+          ev.preventDefault()
+          k.remove()
+          announce(said.current.cut)
+        }
+      } else if (mod && key === 'v') {
+        if (k.paste?.()) ev.preventDefault()
+      } else if (mod && key === 'd') {
+        ev.preventDefault()
+        k.duplicate?.()
+      } else if ((ev.key === 'Delete' || ev.key === 'Backspace') && k.canRemove) {
+        ev.preventDefault()
+        k.remove()
+        announce(said.current.removed)
+      } else if (ev.key === 'Escape') k.escape()
     }
     window.addEventListener('keydown', listener)
     return () => window.removeEventListener('keydown', listener)

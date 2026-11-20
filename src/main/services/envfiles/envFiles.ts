@@ -70,19 +70,21 @@ export async function readEnvProject(projectPath: string): Promise<EnvProject> {
   assertProject(projectPath)
   let names: string[] = []
   try {
-    names = (await readdir(projectPath, { withFileTypes: true }))
-      .filter(e => e.isFile() && ENV_NAME.test(e.name))
-      .map(e => e.name)
-  } catch { /* unreadable project */ }
+    names = (await readdir(projectPath, { withFileTypes: true })).filter(e => e.isFile() && ENV_NAME.test(e.name)).map(e => e.name)
+  } catch {
+    /* unreadable project */
+  }
 
   // .env first, examples last
   const rank = (n: string) => (n === '.env' ? 0 : /example|sample|dist|template/i.test(n) ? 2 : 1)
   names.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
 
-  const files: EnvFile[] = await Promise.all(names.map(async name => ({
-    name,
-    values: parseEnv(await readFile(join(projectPath, name), 'utf-8').catch(() => ''))
-  })))
+  const files: EnvFile[] = await Promise.all(
+    names.map(async name => ({
+      name,
+      values: parseEnv(await readFile(join(projectPath, name), 'utf-8').catch(() => ''))
+    }))
+  )
   return { projectPath, files }
 }
 
@@ -125,7 +127,10 @@ export function applyEnvChanges(original: string, changes: Record<string, string
 
 // ─── Encrypted backups ────────────────────────────────────────────────────────
 
-interface BackupFile { savedAt: string; files: Record<string, string> }
+interface BackupFile {
+  savedAt: string
+  files: Record<string, string>
+}
 
 function backupPath(projectPath: string): string {
   const id = createHash('sha256').update(projectPath.toLowerCase()).digest('hex').slice(0, 16)

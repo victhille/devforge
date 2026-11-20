@@ -24,9 +24,14 @@ function publish(found: Found[]): DetectedDatabase[] {
   return found.map(f => {
     const key = randomUUID()
     cache.set(key, f)
-    const exists = saved.some(s =>
-      s.type === f.type && (s.host ?? '') === f.host && (s.port ?? 0) === f.port &&
-      (s.database ?? '') === (f.database ?? '') && (s.sshConnectionId ?? '') === (f.sshConnectionId ?? ''))
+    const exists = saved.some(
+      s =>
+        s.type === f.type &&
+        (s.host ?? '') === f.host &&
+        (s.port ?? 0) === f.port &&
+        (s.database ?? '') === (f.database ?? '') &&
+        (s.sshConnectionId ?? '') === (f.sshConnectionId ?? '')
+    )
     const { password, sshConnectionId: _s, ...rest } = f
     return { ...rest, key, hasPassword: !!password, exists }
   })
@@ -42,8 +47,15 @@ export function addDetected(key: string): string {
   if (!f) throw new Error('Detection expired, run it again')
   const id = randomUUID()
   const conn: DbConnection = {
-    id, name: f.name, type: f.type, host: f.host, port: f.port, user: f.user, database: f.database,
-    password: f.password, sshConnectionId: f.sshConnectionId,
+    id,
+    name: f.name,
+    type: f.type,
+    host: f.host,
+    port: f.port,
+    user: f.user,
+    database: f.database,
+    password: f.password,
+    sshConnectionId: f.sshConnectionId,
     color: COLORS[listDbConnections().length % COLORS.length]
   }
   saveDbConnection(conn)
@@ -67,7 +79,12 @@ done
 type Ports = Record<string, { HostIp: string; HostPort: string }[] | null>
 
 function envMap(list: string[]): Record<string, string> {
-  return Object.fromEntries(list.map(e => { const i = e.indexOf('='); return [e.slice(0, i), e.slice(i + 1)] }))
+  return Object.fromEntries(
+    list.map(e => {
+      const i = e.indexOf('=')
+      return [e.slice(0, i), e.slice(i + 1)]
+    })
+  )
 }
 
 export { REMOTE_SCRIPT }
@@ -111,9 +128,7 @@ export async function findOnServer(sshConnectionId: string, c: DbConnection): Pr
 /** Best candidate for a saved connection (exported for tests) */
 export function pickMatch(found: Found[], c: DbConnection): Found | undefined {
   const same = found.filter(f => f.type === c.type)
-  return same.find(f => c.database && f.database === c.database)
-    ?? same.find(f => f.port === c.port)
-    ?? (same.length === 1 ? same[0] : undefined)
+  return same.find(f => c.database && f.database === c.database) ?? same.find(f => f.port === c.port) ?? (same.length === 1 ? same[0] : undefined)
 }
 
 /** Turn the remote script output into candidates (exported for tests) */
@@ -135,8 +150,16 @@ export function parseRemoteOutput(output: string, serverName: string, sshConnect
     if (!type) continue
     let env: Record<string, string> = {}
     let ports: Ports = {}
-    try { env = envMap(JSON.parse(envJson)) } catch { /* no env */ }
-    try { ports = JSON.parse(portsJson) ?? {} } catch { /* no ports */ }
+    try {
+      env = envMap(JSON.parse(envJson))
+    } catch {
+      /* no env */
+    }
+    try {
+      ports = JSON.parse(portsJson) ?? {}
+    } catch {
+      /* no ports */
+    }
 
     const inner = type === 'postgres' ? 5432 : 3306
     const binding = (ports[`${inner}/tcp`] ?? [])[0]
@@ -172,8 +195,16 @@ export function parseRemoteOutput(output: string, serverName: string, sshConnect
 
     const container = rawName.replace(/^\//, '')
     found.push({
-      name: `${database ?? container} @ ${serverName}`, type, host, port, user, password, database,
-      source: 'docker', origin: container, sshConnectionId
+      name: `${database ?? container} @ ${serverName}`,
+      type,
+      host,
+      port,
+      user,
+      password,
+      database,
+      source: 'docker',
+      origin: container,
+      sshConnectionId
     })
   }
 
@@ -185,8 +216,14 @@ export function parseRemoteOutput(output: string, serverName: string, sshConnect
     if (publishedPorts.has(port) || found.some(f => f.source === 'native' && f.port === port)) continue
     const type = port === 5432 ? 'postgres' : 'mysql'
     found.push({
-      name: `${type === 'postgres' ? 'PostgreSQL' : 'MySQL'} @ ${serverName}`, type, host: '127.0.0.1', port,
-      user: type === 'postgres' ? 'postgres' : 'root', source: 'native', origin: addr, sshConnectionId
+      name: `${type === 'postgres' ? 'PostgreSQL' : 'MySQL'} @ ${serverName}`,
+      type,
+      host: '127.0.0.1',
+      port,
+      user: type === 'postgres' ? 'postgres' : 'root',
+      source: 'native',
+      origin: addr,
+      sshConnectionId
     })
   }
 
@@ -215,24 +252,43 @@ function fromUrl(url: string): Omit<Found, 'name' | 'source' | 'origin'> | null 
 /** Database described by a project's .env (URL, Laravel or Docker style) */
 export function fromEnv(env: Record<string, string>): Omit<Found, 'name' | 'source' | 'origin'> | null {
   for (const k of ['DATABASE_URL', 'DB_URL', 'POSTGRES_URL', 'MYSQL_URL']) {
-    if (env[k]) { const r = fromUrl(env[k]); if (r) return r }
+    if (env[k]) {
+      const r = fromUrl(env[k])
+      if (r) return r
+    }
   }
   // Laravel style
   if (env.DB_CONNECTION && /mysql|mariadb|pgsql|postgres/i.test(env.DB_CONNECTION)) {
     const type = /pg|postgres/i.test(env.DB_CONNECTION) ? 'postgres' : 'mysql'
     return {
-      type, host: localHost(env.DB_HOST ?? ''), port: Number(env.DB_PORT) || (type === 'postgres' ? 5432 : 3306),
-      user: env.DB_USERNAME || env.DB_USER, password: env.DB_PASSWORD, database: env.DB_DATABASE || env.DB_NAME
+      type,
+      host: localHost(env.DB_HOST ?? ''),
+      port: Number(env.DB_PORT) || (type === 'postgres' ? 5432 : 3306),
+      user: env.DB_USERNAME || env.DB_USER,
+      password: env.DB_PASSWORD,
+      database: env.DB_DATABASE || env.DB_NAME
     }
   }
   // Docker-compose style variables
   if (env.POSTGRES_PASSWORD || env.POSTGRES_DB) {
-    return { type: 'postgres', host: localHost(env.POSTGRES_HOST ?? ''), port: Number(env.POSTGRES_PORT) || 5432,
-      user: env.POSTGRES_USER || 'postgres', password: env.POSTGRES_PASSWORD, database: env.POSTGRES_DB || env.POSTGRES_USER || 'postgres' }
+    return {
+      type: 'postgres',
+      host: localHost(env.POSTGRES_HOST ?? ''),
+      port: Number(env.POSTGRES_PORT) || 5432,
+      user: env.POSTGRES_USER || 'postgres',
+      password: env.POSTGRES_PASSWORD,
+      database: env.POSTGRES_DB || env.POSTGRES_USER || 'postgres'
+    }
   }
   if (env.MYSQL_DATABASE || env.MYSQL_ROOT_PASSWORD) {
-    return { type: 'mysql', host: localHost(env.MYSQL_HOST ?? ''), port: Number(env.MYSQL_PORT) || 3306,
-      user: env.MYSQL_USER || 'root', password: env.MYSQL_PASSWORD || env.MYSQL_ROOT_PASSWORD, database: env.MYSQL_DATABASE }
+    return {
+      type: 'mysql',
+      host: localHost(env.MYSQL_HOST ?? ''),
+      port: Number(env.MYSQL_PORT) || 3306,
+      user: env.MYSQL_USER || 'root',
+      password: env.MYSQL_PASSWORD || env.MYSQL_ROOT_PASSWORD,
+      database: env.MYSQL_DATABASE
+    }
   }
   return null
 }
@@ -255,12 +311,23 @@ async function fromCompose(dir: string, label: string): Promise<Found[]> {
     if (!port) continue
     const env = Object.fromEntries(Object.entries(s.environment ?? {}).map(([k, v]) => [k, v ?? '']))
     const user = type === 'postgres' ? env.POSTGRES_USER || 'postgres' : env.MYSQL_USER || env.MARIADB_USER || 'root'
-    const password = type === 'postgres' ? env.POSTGRES_PASSWORD
-      : env.MYSQL_USER || env.MARIADB_USER ? env.MYSQL_PASSWORD || env.MARIADB_PASSWORD : env.MYSQL_ROOT_PASSWORD || env.MARIADB_ROOT_PASSWORD
+    const password =
+      type === 'postgres'
+        ? env.POSTGRES_PASSWORD
+        : env.MYSQL_USER || env.MARIADB_USER
+          ? env.MYSQL_PASSWORD || env.MARIADB_PASSWORD
+          : env.MYSQL_ROOT_PASSWORD || env.MARIADB_ROOT_PASSWORD
     const database = type === 'postgres' ? env.POSTGRES_DB || user : env.MYSQL_DATABASE || env.MARIADB_DATABASE
     found.push({
-      name: `${database ?? service} (${label})`, type, host: '127.0.0.1', port, user, password: password || undefined, database,
-      source: 'docker', origin: `${label}/compose · ${service}`
+      name: `${database ?? service} (${label})`,
+      type,
+      host: '127.0.0.1',
+      port,
+      user,
+      password: password || undefined,
+      database,
+      source: 'docker',
+      origin: `${label}/compose · ${service}`
     })
   }
   return found
@@ -272,8 +339,9 @@ async function fromCompose(dir: string, label: string): Promise<Found[]> {
  */
 export async function findInCompose(c: DbConnection): Promise<Found | undefined> {
   for (const p of localComposeProjects()) {
-    const match = (await fromCompose(p.dir, p.projects[0])).find(f =>
-      f.type === c.type && f.port !== c.port && (c.database ? f.database === c.database : f.user === c.user))
+    const match = (await fromCompose(p.dir, p.projects[0])).find(
+      f => f.type === c.type && f.port !== c.port && (c.database ? f.database === c.database : f.user === c.user)
+    )
     if (match) return match
   }
   return undefined
@@ -293,7 +361,7 @@ async function fromEnvFiles(dir: string, files: string[]): Promise<{ db: NonNull
   return db ? { db, file } : null
 }
 
-/** Where a saved project keeps its configuration: itself, or each project of a group (v3.5) */
+/** Where a saved project keeps its configuration: itself, or each project of a group */
 export async function configDirs(p: Pick<Project, 'name' | 'path' | 'framework'>): Promise<{ dir: string; label: string }[]> {
   if (p.framework !== 'group') return [{ dir: p.path, label: p.name }]
   return (await findSubProjects(p.path)).map(s => ({ dir: s.path, label: `${p.name}/${s.name}` }))
@@ -303,24 +371,32 @@ export async function detectLocal(): Promise<DetectedDatabase[]> {
   const found: Found[] = []
   const composeDone = new Set<string>()
   const places = (await Promise.all(loadProjects().map(configDirs))).flat()
-  await Promise.all(places.map(async ({ dir: path, label }) => {
-    // A compose project describes its database better than the app's .env
-    const dir = composeDirFor(path)
-    if (dir) {
-      if (composeDone.has(dir)) return
-      composeDone.add(dir)
-      const fromDocker = await fromCompose(dir, label)
-      if (fromDocker.length) { found.push(...fromDocker); return }
-    }
-    const r = await fromEnvFiles(path, ['.env', '.env.local', 'backend/.env', 'api/.env'])
-    if (!r) return
-    // Points at one of our SSH servers: connect through it
-    const server = sshServerFor(r.db.host)
-    found.push({
-      ...r.db, ...(server && { host: '127.0.0.1', sshConnectionId: server.id }),
-      name: `${r.db.database ?? label} (${label})`, source: 'env', origin: `${label}/${r.file}`
+  await Promise.all(
+    places.map(async ({ dir: path, label }) => {
+      // A compose project describes its database better than the app's .env
+      const dir = composeDirFor(path)
+      if (dir) {
+        if (composeDone.has(dir)) return
+        composeDone.add(dir)
+        const fromDocker = await fromCompose(dir, label)
+        if (fromDocker.length) {
+          found.push(...fromDocker)
+          return
+        }
+      }
+      const r = await fromEnvFiles(path, ['.env', '.env.local', 'backend/.env', 'api/.env'])
+      if (!r) return
+      // Points at one of our SSH servers: connect through it
+      const server = sshServerFor(r.db.host)
+      found.push({
+        ...r.db,
+        ...(server && { host: '127.0.0.1', sshConnectionId: server.id }),
+        name: `${r.db.database ?? label} (${label})`,
+        source: 'env',
+        origin: `${label}/${r.file}`
+      })
     })
-  }))
+  )
   // Same database used by several projects: keep one entry
   const unique = new Map<string, Found>()
   for (const f of found) {

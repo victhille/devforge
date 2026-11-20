@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import {
-  RELEASE_FILES, bumpFor, changelogFile, extractSection, missingNotes, nextVersion, parseCommit, prepareStep,
-  prependSection, releaseBranch, renderSection, tagProblems, unexpectedFiles, versionOfBranch
+  RELEASE_FILES,
+  bumpFor,
+  changelogFile,
+  extractSection,
+  missingNotes,
+  nextVersion,
+  parseCommit,
+  prepareStep,
+  prependSection,
+  releaseBranch,
+  renderSection,
+  tagProblems,
+  unexpectedFiles,
+  versionOfBranch
 } from '../../scripts/lib/release.mjs'
 
 describe('parseCommit', () => {
@@ -26,7 +38,11 @@ describe('parseCommit', () => {
     expect(parseCommit('b3', 'Security: verify SSH server keys')).toMatchObject({ kind: 'security', scope: '' })
     expect(parseCommit('b4', 'Upgrade Electron 29 -> 44')).toMatchObject({ kind: 'build' })
     expect(parseCommit('b5', 'Docker: Fix compose tags')).toMatchObject({ kind: 'fix', scope: 'docker' })
-    expect(parseCommit('b6', 'Fix remote detection scripts: quote them')).toMatchObject({ kind: 'fix', scope: '', subject: 'Fix remote detection scripts: quote them' })
+    expect(parseCommit('b6', 'Fix remote detection scripts: quote them')).toMatchObject({
+      kind: 'fix',
+      scope: '',
+      subject: 'Fix remote detection scripts: quote them'
+    })
     expect(parseCommit('b7', 'Tests, lint and CI; fix bugs they found')).toMatchObject({ kind: 'fix' })
   })
 
@@ -45,6 +61,13 @@ describe('versions', () => {
     expect(bumpFor([ch('fix'), ch('feat')])).toBe('minor')
     expect(bumpFor([ch('feat'), ch('breaking', true)])).toBe('major')
     expect(bumpFor([])).toBe('patch')
+  })
+
+  it('before 1.0, a breaking change moves the minor version only: 1.0.0 is asked for explicitly', () => {
+    expect(bumpFor([ch('feat'), ch('breaking', true)], '0.2.1')).toBe('minor')
+    expect(bumpFor([ch('fix')], '0.2.1')).toBe('patch')
+    expect(bumpFor([ch('breaking', true)], '1.0.0-beta.1')).toBe('major')
+    expect(bumpFor([ch('breaking', true)], '1.4.2')).toBe('major')
   })
 
   it.each([
@@ -168,7 +191,12 @@ describe('release through pull requests', () => {
 
   describe('tag', () => {
     const ready = {
-      branch: 'main', version: '0.3.0', pkgVersion: '0.3.0', tagExists: false, behind: 0, ahead: 0,
+      branch: 'main',
+      version: '0.3.0',
+      pkgVersion: '0.3.0',
+      tagExists: false,
+      behind: 0,
+      ahead: 0,
       sections: { fr: '## 0.3.0 — 2026-11-10\n', en: '## 0.3.0 — 2026-11-10\n' }
     }
 

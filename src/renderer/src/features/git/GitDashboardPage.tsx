@@ -21,8 +21,7 @@ import CommitModal from './CommitModal'
 
 type Filter = 'attention' | 'all'
 
-const needsAttention = (r: RepoRow) =>
-  !!r.details?.isRepo && (r.details.changes > 0 || r.details.ahead > 0 || r.details.behind > 0)
+const needsAttention = (r: RepoRow) => !!r.details?.isRepo && (r.details.changes > 0 || r.details.ahead > 0 || r.details.behind > 0)
 
 /** A count in color only when there is something to see */
 const count = (value: number, tone: StatTone) => ({ value, tone: value > 0 ? tone : undefined })
@@ -38,10 +37,9 @@ export default function GitDashboardPage() {
   const [filter, setFilter] = useState<Filter>('attention')
   const [fetchingAll, setFetchingAll] = useState(false)
 
-  const repos     = rows.filter(r => r.details?.isRepo)
+  const repos = rows.filter(r => r.details?.isRepo)
   const attention = repos.filter(needsAttention)
-  const visible   = (filter === 'attention' ? attention : repos)
-    .sort((a, b) => a.project.name.localeCompare(b.project.name))
+  const visible = (filter === 'attention' ? attention : repos).sort((a, b) => a.project.name.localeCompare(b.project.name))
 
   async function act(row: RepoRow, kind: 'fetch' | 'pull' | 'push') {
     const r = await runAction(row.project, kind)
@@ -89,11 +87,13 @@ export default function GitDashboardPage() {
         onChange={setFilter}
         items={[
           { value: 'attention', label: `${g.filterAttention} (${attention.length})` },
-          { value: 'all',       label: `${g.filterAll} (${repos.length})` }
+          { value: 'all', label: `${g.filterAll} (${repos.length})` }
         ]}
       />
 
-      {error ? <ErrorState error={error} /> : !loading && visible.length === 0 ? (
+      {error ? (
+        <ErrorState error={error} />
+      ) : !loading && visible.length === 0 ? (
         <EmptyState
           icon={<GitBranch size={32} />}
           title={filter === 'attention' ? g.allClean : g.noRepos}
@@ -125,14 +125,27 @@ export default function GitDashboardPage() {
 
                 <div className="flex shrink-0 items-center gap-1.5">
                   {d.changes > 0 && <Badge color="warning">{(d.changes > 1 ? g.changesMany : g.changesOne).replace('{n}', String(d.changes))}</Badge>}
-                  {d.ahead > 0  && <Badge color="accent"><ArrowUp size={11} /> {d.ahead}</Badge>}
-                  {d.behind > 0 && <Badge color="danger"><ArrowDown size={11} /> {d.behind}</Badge>}
+                  {d.ahead > 0 && (
+                    <Badge color="accent">
+                      <ArrowUp size={11} /> {d.ahead}
+                    </Badge>
+                  )}
+                  {d.behind > 0 && (
+                    <Badge color="danger">
+                      <ArrowDown size={11} /> {d.behind}
+                    </Badge>
+                  )}
                   {!d.hasUpstream && d.remoteUrl && <Badge>{g.noUpstream}</Badge>}
                   {!d.remoteUrl && <Badge>{g.noRemote}</Badge>}
                 </div>
 
                 <div className="flex shrink-0 items-center gap-2">
-                  <Button variant="secondary" size="sm" disabled={d.changes === 0} onClick={() => setCommitting({ project: row.project, canPush: !!d.remoteUrl })}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={d.changes === 0}
+                    onClick={() => setCommitting({ project: row.project, canPush: !!d.remoteUrl })}
+                  >
                     <GitCommitHorizontal size={13} /> {g.commit}
                   </Button>
                   <Button variant="ghost" size="sm" disabled={!d.remoteUrl} loading={row.busy === 'fetch'} onClick={() => act(row, 'fetch')}>
@@ -141,11 +154,23 @@ export default function GitDashboardPage() {
                   <Button variant="secondary" size="sm" disabled={d.behind === 0} loading={row.busy === 'pull'} onClick={() => act(row, 'pull')}>
                     {row.busy !== 'pull' && <ArrowDown size={13} />} {g.pull}
                   </Button>
-                  <Button variant="secondary" size="sm" disabled={!d.remoteUrl || (d.ahead === 0 && d.hasUpstream)} loading={row.busy === 'push'} onClick={() => act(row, 'push')}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={!d.remoteUrl || (d.ahead === 0 && d.hasUpstream)}
+                    loading={row.busy === 'push'}
+                    onClick={() => act(row, 'push')}
+                  >
                     {row.busy !== 'push' && <ArrowUp size={13} />} {g.push}
                   </Button>
-                  {ide.labelFor(row.project.ide) && <IconButton title={ide.labelFor(row.project.ide)!} onClick={() => ide.open(row.project.path, row.project.ide)}><Code2 size={14} /></IconButton>}
-                  <IconButton title="Terminal" onClick={() => window.devforge.openTerminal(row.project.path)}><Terminal size={14} /></IconButton>
+                  {ide.labelFor(row.project.ide) && (
+                    <IconButton title={ide.labelFor(row.project.ide)!} onClick={() => ide.open(row.project.path, row.project.ide)}>
+                      <Code2 size={14} />
+                    </IconButton>
+                  )}
+                  <IconButton title="Terminal" onClick={() => window.devforge.openTerminal(row.project.path)}>
+                    <Terminal size={14} />
+                  </IconButton>
                 </div>
               </Card>
             )
@@ -158,13 +183,14 @@ export default function GitDashboardPage() {
           project={committing.project}
           canPush={committing.canPush}
           onClose={() => setCommitting(null)}
-          onDone={() => { refreshOne(committing.project); setCommitting(null) }}
+          onDone={() => {
+            refreshOne(committing.project)
+            setCommitting(null)
+          }}
         />
       )}
 
-      {rows.length > repos.length && !loading && (
-        <p className="text-sm text-fg-muted">{g.notRepos.replace('{n}', String(rows.length - repos.length))}</p>
-      )}
+      {rows.length > repos.length && !loading && <p className="text-sm text-fg-muted">{g.notRepos.replace('{n}', String(rows.length - repos.length))}</p>}
     </Page>
   )
 }

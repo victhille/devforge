@@ -11,13 +11,18 @@ const TOOL_LABEL: Record<RuntimeTool, string> = { node: 'Node.js', php: 'PHP', p
 
 export type CompatStatus = 'ok' | 'mismatch' | 'missing' | 'unknown'
 
-export interface CompatRow { project: Project; req: VersionRequirement; version: string | null; status: CompatStatus }
+export interface CompatRow {
+  project: Project
+  req: VersionRequirement
+  version: string | null
+  status: CompatStatus
+}
 
 const STATUS_STYLE: Record<CompatStatus, { icon: typeof CheckCircle2; className: string }> = {
-  ok:       { icon: CheckCircle2,  className: 'text-success' },
+  ok: { icon: CheckCircle2, className: 'text-success' },
   mismatch: { icon: AlertTriangle, className: 'text-danger' },
-  missing:  { icon: AlertTriangle, className: 'text-warning' },
-  unknown:  { icon: HelpCircle,    className: 'text-fg-muted' }
+  missing: { icon: AlertTriangle, className: 'text-warning' },
+  unknown: { icon: HelpCircle, className: 'text-fg-muted' }
 }
 
 /** Each project's required runtime versions against what is installed (the shared project list; read again when it changes) */
@@ -27,8 +32,12 @@ export function useCompatibility(tools: EnvironmentTool[]): CompatRow[] {
 
   useEffect(() => {
     let gone = false
-    window.devforge.versions.requirements(projects.map(p => p.path)).then(r => { if (!gone) setReqs(r) })
-    return () => { gone = true }
+    window.devforge.versions.requirements(projects.map(p => p.path)).then(r => {
+      if (!gone) setReqs(r)
+    })
+    return () => {
+      gone = true
+    }
   }, [projects])
 
   const installed = (tool: RuntimeTool) => tools.find(x => x.id === tool && x.status === 'detected')?.version ?? null
@@ -54,7 +63,9 @@ export default function ProjectCompatibility({ rows }: { rows: CompatRow[] }) {
   return (
     <section aria-labelledby="env-compat" className="df-rise overflow-hidden rounded-card border border-line-subtle bg-surface">
       <div className="flex items-center justify-between gap-3 border-b border-line-subtle px-4 py-3.5">
-        <h2 id="env-compat" className="font-display text-md font-bold text-fg">{c.compatTitle}</h2>
+        <h2 id="env-compat" className="font-display text-md font-bold text-fg">
+          {c.compatTitle}
+        </h2>
         <span className={cn('text-sm', problems ? 'text-danger' : 'text-success')}>
           {problems ? c.compatProblems.replace('{n}', String(problems)) : c.compatAllGood}
         </span>

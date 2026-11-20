@@ -1,4 +1,4 @@
-/** v3.9: the kinds of model the Modeling page makes (the MCD first, the others in the next lots) */
+/** The kinds of model the Modeling page makes (the MCD first, the others in the next lots) */
 export type ModelKind = 'mcd' | 'mpd' | 'usecase' | 'class' | 'sequence' | 'flow' | 'architecture'
 
 /** An attribute's type, the Merise way (a domain), turned into SQL types by the MPD */
@@ -56,7 +56,7 @@ export interface McdModel {
   notes: ModelNote[]
 }
 
-/** v3.9 lot 3: how the MLD's names become the MPD's (tables, keys, association tables) */
+/** How the MLD's names become the MPD's (tables, keys, association tables) */
 export interface MldNaming {
   /** commande_produit · COMMANDE_PRODUIT · CommandeProduit */
   tables: 'snake' | 'upper' | 'pascal'
@@ -71,7 +71,8 @@ export interface MldNaming {
 export type SqlEngine = 'postgres' | 'mysql' | 'sqlite'
 
 /** A column's type in the MPD, written for each engine by the SQL */
-export type MpdType = 'int' | 'bigint' | 'smallint' | 'decimal' | 'float' | 'varchar' | 'char' | 'text' | 'bool' | 'date' | 'datetime' | 'time' | 'uuid' | 'json'
+export type MpdType =
+  'int' | 'bigint' | 'smallint' | 'decimal' | 'float' | 'varchar' | 'char' | 'text' | 'bool' | 'date' | 'datetime' | 'time' | 'uuid' | 'json'
 
 export interface MpdColumn {
   id: string
@@ -122,11 +123,11 @@ export interface MpdModel {
   /** The MCD file it was made from, and that MCD's fingerprint then (to tell when it changed) */
   source?: string
   sourceHash?: string
-  /** v3.9 lot 4: the database connection it is compared with (its id) */
+  /** The database connection it is compared with (its id) */
   connection?: string
 }
 
-/** v3.9 lot 4: one difference between the MPD and its database */
+/** One difference between the MPD and its database */
 export type MpdDiffKind = 'tableMissing' | 'tableExtra' | 'columnMissing' | 'columnExtra' | 'type' | 'nullable' | 'pk' | 'fkMissing' | 'fkExtra'
 export interface MpdDiff {
   kind: MpdDiffKind
@@ -140,21 +141,47 @@ export interface MpdDiff {
 }
 
 /** One line of a catch-up script: a statement, or a note for what is done by hand */
-export interface ScriptLine { sql: string; comment?: boolean; danger?: boolean }
+export interface ScriptLine {
+  sql: string
+  comment?: boolean
+  danger?: boolean
+}
 
-/** v3.9 lot 5: the diagrams drawn on the same canvas (UML, flowcharts, architecture) */
+/** The diagrams drawn on the same canvas (UML, flowcharts, architecture) */
 export type DiagramKind = 'usecase' | 'class' | 'sequence' | 'flow' | 'architecture'
 export type DiagramNodeType =
-  | 'actor' | 'case' | 'system'
-  | 'class' | 'interface' | 'enum'
+  | 'actor'
+  | 'case'
+  | 'system'
+  | 'class'
+  | 'interface'
+  | 'enum'
   | 'participant'
-  | 'start' | 'end' | 'step' | 'decision' | 'io'
-  | 'service' | 'database' | 'queue' | 'client' | 'gateway' | 'external'
+  | 'start'
+  | 'end'
+  | 'step'
+  | 'decision'
+  | 'io'
+  | 'service'
+  | 'database'
+  | 'queue'
+  | 'client'
+  | 'gateway'
+  | 'external'
 export type DiagramEdgeType =
-  | 'association' | 'include' | 'extend' | 'generalization'
-  | 'inheritance' | 'implementation' | 'composition' | 'aggregation' | 'dependency'
-  | 'message' | 'return'
-  | 'flow' | 'link'
+  | 'association'
+  | 'include'
+  | 'extend'
+  | 'generalization'
+  | 'inheritance'
+  | 'implementation'
+  | 'composition'
+  | 'aggregation'
+  | 'dependency'
+  | 'message'
+  | 'return'
+  | 'flow'
+  | 'link'
 
 export interface DiagramNode {
   id: string
@@ -218,7 +245,7 @@ export interface ModelSummary {
   sqlAt?: string
 }
 
-/** v4.1: how far a model being made from a database is (connect, read, mcd, mpd, write, then done) */
+/** How far a model being made from a database is (connect, read, mcd, mpd, write, then done) */
 export interface ModelProgress {
   step: 'connect' | 'read' | 'mcd' | 'mpd' | 'write' | 'done'
   /** 0 … total; total when done */
@@ -238,19 +265,19 @@ export interface ModelingAPI {
   /** Renamed: the file follows; resolves with its new name */
   rename: (projectPath: string, file: string, name: string) => Promise<string>
   remove: (projectPath: string, file: string) => Promise<void>
-  /** v3.9 lot 3: the engine of the project's database (its .env, its compose file), PostgreSQL when none says */
+  /** The engine of the project's database (its .env, its compose file), PostgreSQL when none says */
   engine: (projectPath: string) => Promise<SqlEngine>
   /** The SQL script next to an MPD (boutique.mpd.json → conception/boutique.sql); resolves with its path */
   writeSql: (projectPath: string, file: string, sql: string) => Promise<string>
-  /** v3.9 lot 4: the project's database as its files say (to suggest the connection to link) */
+  /** The project's database as its files say (to suggest the connection to link) */
   projectDb: (projectPath: string) => Promise<{ engine: SqlEngine; database?: string; port?: number }>
   /** A catch-up script run on a connection, all or none where the engine allows it */
   apply: (connectionId: string, statements: string[]) => Promise<{ ok: true } | { ok: false; error: string; index: number }>
   /** The same statements as a Doctrine migration (Symfony); resolves with its path */
   doctrine: (projectPath: string, statements: string[], description: string) => Promise<string>
-  /** v4.1: the MCD and the linked MPD made from a connection; `job` names the progress events */
+  /** The MCD and the linked MPD made from a connection; `job` names the progress events */
   fromDatabase: (projectPath: string, connectionId: string, name: string, job: string) => Promise<{ mcd: string; mpd: string; tables: number }>
-  /** v4.2: the MCD of an MPD drawn by hand, written next to it; the MPD tied to it */
+  /** The MCD of an MPD drawn by hand, written next to it; the MPD tied to it */
   mcdFromMpd: (projectPath: string, file: string) => Promise<{ mcd: string; entities: number; associations: number }>
   onProgress: (cb: (e: ModelProgress & { job: string }) => void) => () => void
 }

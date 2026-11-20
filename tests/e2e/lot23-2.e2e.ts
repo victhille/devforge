@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues } from './axe'
 
-/** v2.3 lot 2: cmd's exit codes, and the project page's shells kept across tabs (real cmd) */
+/** Cmd's exit codes, and the project page's shells kept across tabs (real cmd) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -19,9 +19,21 @@ test('cmd blocks get their exit code, and the shell is still there after another
       const dir = join(data, 'outil')
       mkdirSync(dir, { recursive: true })
       writeFileSync(join(dir, 'package.json'), '{"name":"outil"}')
-      writeFileSync(join(data, 'projects.json'), JSON.stringify([
-        { id: 'o', name: 'outil', path: dir, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }
-      ]))
+      writeFileSync(
+        join(data, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'o',
+            name: 'outil',
+            path: dir,
+            framework: 'nodejs',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
     }
   })
   const { page } = run

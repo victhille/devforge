@@ -8,8 +8,16 @@ import { cn } from '@renderer/lib/cn'
  * palette's parts are dragged onto the canvas the same way.
  */
 
-interface Box { x: number; y: number; w: number; h: number }
-interface Point { x: number; y: number }
+interface Box {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+interface Point {
+  x: number
+  y: number
+}
 
 export type Side = 'top' | 'right' | 'bottom' | 'left'
 const SIDES: Side[] = ['top', 'right', 'bottom', 'left']
@@ -35,26 +43,52 @@ export function partAt<T extends { id: string; box: Box }>(p: Point, parts: T[],
  * screen whatever the zoom. Put them in the same `group` element as the part,
  * so that going from the part to a point keeps them shown.
  */
-export function Handles({ box, k, name, shown, sides = SIDES, onPull }: {
-  box: Box; k: number; name: string; shown?: boolean; sides?: Side[]
+export function Handles({
+  box,
+  k,
+  name,
+  shown,
+  sides = SIDES,
+  onPull
+}: {
+  box: Box
+  k: number
+  name: string
+  shown?: boolean
+  sides?: Side[]
   onPull: (ev: ReactPointerEvent, from: Point) => void
 }) {
-  // v4.2: the same size on screen, but never more than 40 % of the part's smaller side: zoomed far
+  // The same size on screen, but never more than 40 % of the part's smaller side: zoomed far
   // out, the points would cover the whole part, and a click could no longer pick it
-  const hit = Math.min(22 / k, Math.min(box.w, box.h) * 0.4), dot = Math.min(11 / k, hit / 2)
-  return <>
-    {sides.map(s => {
-      const p = sidePoint(box, s)
-      return (
-        <div key={s} data-handle={`${name}:${s}`} title={name}
-          onPointerDown={ev => { if (ev.button === 0) onPull(ev, p) }}
-          className={cn('group/h absolute flex cursor-crosshair items-center justify-center transition-opacity', shown ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')}
-          style={{ left: p.x - hit / 2, top: p.y - hit / 2, width: hit, height: hit }}>
-          <span className="rounded-full border-accent bg-surface group-hover/h:bg-accent" style={{ width: dot, height: dot, borderWidth: 2 / k, borderStyle: 'solid' }} />
-        </div>
-      )
-    })}
-  </>
+  const hit = Math.min(22 / k, Math.min(box.w, box.h) * 0.4),
+    dot = Math.min(11 / k, hit / 2)
+  return (
+    <>
+      {sides.map(s => {
+        const p = sidePoint(box, s)
+        return (
+          <div
+            key={s}
+            data-handle={`${name}:${s}`}
+            title={name}
+            onPointerDown={ev => {
+              if (ev.button === 0) onPull(ev, p)
+            }}
+            className={cn(
+              'group/h absolute flex cursor-crosshair items-center justify-center transition-opacity',
+              shown ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            )}
+            style={{ left: p.x - hit / 2, top: p.y - hit / 2, width: hit, height: hit }}
+          >
+            <span
+              className="rounded-full border-accent bg-surface group-hover/h:bg-accent"
+              style={{ width: dot, height: dot, borderWidth: 2 / k, borderStyle: 'solid' }}
+            />
+          </div>
+        )
+      })}
+    </>
+  )
 }
 
 /** The line being pulled: dashed while it points at nothing, solid on a part it can link */
@@ -82,7 +116,12 @@ export const dragPart = (type: string) => (ev: ReactDragEvent) => {
 /** The canvas's drop handlers: `onDrop` gets the part's type and where it fell, in client coordinates */
 export function dropZone(onDrop: (type: string, clientX: number, clientY: number) => void) {
   return {
-    onDragOver: (ev: ReactDragEvent) => { if (ev.dataTransfer.types.includes(PART)) { ev.preventDefault(); ev.dataTransfer.dropEffect = 'copy' } },
+    onDragOver: (ev: ReactDragEvent) => {
+      if (ev.dataTransfer.types.includes(PART)) {
+        ev.preventDefault()
+        ev.dataTransfer.dropEffect = 'copy'
+      }
+    },
     onDrop: (ev: ReactDragEvent) => {
       const type = ev.dataTransfer.getData(PART)
       if (!type) return

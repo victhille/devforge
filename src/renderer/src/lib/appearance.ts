@@ -18,7 +18,10 @@ function applyAccent(s: Appearance): void {
   const root = document.documentElement
   const accent = s.accent ?? 'forge'
   root.setAttribute('data-accent', accent)
-  if (accent === 'forge' || !PALETTES[accent]) { for (const v of VARS) root.style.removeProperty(v); return }
+  if (accent === 'forge' || !PALETTES[accent]) {
+    for (const v of VARS) root.style.removeProperty(v)
+    return
+  }
   const theme = shownTheme(s.theme)
   const palette = PALETTES[accent][theme]
   for (const [key, name] of Object.entries(PALETTE_VARS)) root.style.setProperty(name, palette[key as keyof Palette])

@@ -5,7 +5,7 @@ import { driverFor } from '../database/dbClient'
 import { projectDir } from './models'
 
 /**
- * v3.9 lot 4: an MPD's catch-up script, run on its database (all or none where
+ * an MPD's catch-up script, run on its database (all or none where
  * the engine allows it), or handed to Doctrine as a migration in a Symfony project.
  */
 
@@ -37,7 +37,9 @@ export function doctrineMigration(projectPath: string, statements: string[], des
   mkdirSync(folder, { recursive: true })
   while (existsSync(join(folder, `Version${stamp}.php`))) stamp = String(Number(stamp) + 1)
   const path = join(folder, `Version${stamp}.php`)
-  writeFileSync(path, `<?php
+  writeFileSync(
+    path,
+    `<?php
 
 declare(strict_types=1);
 
@@ -63,6 +65,8 @@ ${clean.map(s => `        $this->addSql(${php(s.replace(/;$/, ''))});`).join('\n
         $this->throwIrreversibleMigrationException();
     }
 }
-`, 'utf-8')
+`,
+    'utf-8'
+  )
   return path
 }

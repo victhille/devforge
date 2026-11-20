@@ -1,22 +1,30 @@
 import { createServer, request, type Server } from 'http'
 import { networkInterfaces } from 'os'
-import type { AddressInfo } from 'net'
+import { connect, type AddressInfo } from 'net'
 import { afterAll, afterEach, describe, expect, it } from 'vitest'
 import { clearRequests, listRequests, replay, setResponse, startWebhooks, stopWebhooks } from '../../src/main/services/webhooks/webhookServer'
 
-/** v4.0: the webhook receiver, a server listening on this PC */
+/** The webhook receiver, a server listening on this PC */
 
 // A port of its own per test: fetch keeps sockets to the previous server alive
 let PORT = 40000 + (process.pid % 2000) * 10
 const url = (path = '/hook') => `http://127.0.0.1:${PORT}${path}`
 
-afterEach(() => { PORT++; stopWebhooks(); clearRequests(); setResponse({ status: 200, contentType: 'application/json', body: '{"ok":true}' }) })
+afterEach(() => {
+  PORT++
+  stopWebhooks()
+  clearRequests()
+  setResponse({ status: 200, contentType: 'application/json', body: '{"ok":true}' })
+})
 afterAll(() => stopWebhooks())
 
 /** A raw POST, so a body can be streamed past the limit */
 function post(path: string, size: number): Promise<number> {
   return new Promise((res, rej) => {
-    const req = request(url(path), { method: 'POST', headers: { 'content-type': 'text/plain' } }, r => { r.resume(); r.on('end', () => res(r.statusCode ?? 0)) })
+    const req = request(url(path), { method: 'POST', headers: { 'content-type': 'text/plain' } }, r => {
+      r.resume()
+      r.on('end', () => res(r.statusCode ?? 0))
+    })
     req.on('error', rej)
     const chunk = Buffer.alloc(64 * 1024, 'a')
     for (let sent = 0; sent < size; sent += chunk.length) req.write(chunk.subarray(0, Math.min(chunk.length, size - sent)))
@@ -30,7 +38,9 @@ describe('listening', () => {
     expect(st).toMatchObject({ port: PORT })
     expect((await fetch(url())).status).toBe(200)
     // Not on the network addresses of the machine
-    const lan = Object.values(networkInterfaces()).flat().find(i => i && i.family === 'IPv4' && !i.internal)
+    const lan = Object.values(networkInterfaces())
+      .flat()
+      .find(i => i && i.family === 'IPv4' && !i.internal)
     if (lan) await expect(fetch(`http://${lan.address}:${PORT}/`, { signal: AbortSignal.timeout(2000) })).rejects.toThrow()
   })
 
@@ -47,7 +57,9 @@ describe('listening', () => {
     await new Promise(r => other.once('listening', r))
     try {
       expect(await startWebhooks(PORT)).toMatchObject({ port: null, error: `Port ${PORT} is already used` })
-    } finally { other.close() }
+    } finally {
+      other.close()
+    }
   })
 })
 
@@ -91,7 +103,8 @@ describe('the answer', () => {
       { status: 200, contentType: 'text/html\r\nSet-Cookie: x=1', body: '' },
       { status: 200, contentType: '', body: '' },
       { status: 200, contentType: 'text/plain', body: 42 as unknown as string }
-    ]) expect(() => setResponse(bad), JSON.stringify(bad)).toThrow()
+    ])
+      expect(() => setResponse(bad), JSON.stringify(bad)).toThrow()
     await startWebhooks(PORT)
     const res = await fetch(url())
     expect(res.headers.get('content-type')).toBe('application/json')
@@ -112,7 +125,16 @@ describe('replay', () => {
 
   it('replays the method and body to the target', async () => {
     let got = ''
-    const target = createServer((req, res) => { let b = ''; req.on('data', c => { b += c }); req.on('end', () => { got = `${req.method} ${req.url} ${b}`; res.end('done') }) })
+    const target = createServer((req, res) => {
+      let b = ''
+      req.on('data', c => {
+        b += c
+      })
+      req.on('end', () => {
+        got = `${req.method} ${req.url} ${b}`
+        res.end('done')
+      })
+    })
     await new Promise<void>(r => target.listen(0, '127.0.0.1', () => r()))
     try {
       await startWebhooks(PORT)
@@ -120,6 +142,33 @@ describe('replay', () => {
       const r = await replay(listRequests()[0].id, `http://127.0.0.1:${(target.address() as AddressInfo).port}`)
       expect(r).toMatchObject({ status: 200, body: 'done' })
       expect(got).toBe('POST /hook?a=1 hello')
-    } finally { target.close() }
+    } finally {
+      target.close()
+    }
+  })
+
+  it('never lets an absolute captured URL pick the host', async () => {
+    let got = ''
+    const target = createServer((req, res) => {
+      got = `${req.headers.host} ${req.url}`
+      res.end('done')
+    })
+    await new Promise<void>(r => target.listen(0, '127.0.0.1', () => r()))
+    try {
+      await startWebhooks(PORT)
+      // Absolute-form request line, as a proxy client would send it
+      await new Promise<void>((resolve, reject) => {
+        const s = connect(PORT, '127.0.0.1', () => s.end('GET http://203.0.113.10/steal?x=1 HTTP/1.1\r\nHost: 203.0.113.10\r\nConnection: close\r\n\r\n'))
+        s.on('data', () => {})
+        s.on('close', () => resolve())
+        s.on('error', reject)
+      })
+      const port = (target.address() as AddressInfo).port
+      const r = await replay(listRequests()[0].id, `http://127.0.0.1:${port}`)
+      expect(r).toMatchObject({ status: 200, body: 'done' })
+      expect(got).toBe(`127.0.0.1:${port} /steal?x=1`)
+    } finally {
+      target.close()
+    }
   })
 })

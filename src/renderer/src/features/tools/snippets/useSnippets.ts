@@ -1,18 +1,22 @@
 import { useEffect, useState } from 'react'
 
 export interface Snippet {
-  id:        string
-  title:     string
-  language:  string
-  code:      string
-  tags:      string[]
+  id: string
+  title: string
+  language: string
+  code: string
+  tags: string[]
   createdAt: string
 }
 
 const STORAGE_KEY = 'devforge:snippets'
 
 function load(): Snippet[] {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') } catch { return [] }
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
+  } catch {
+    return []
+  }
 }
 
 /** Snippet list persisted in localStorage. */

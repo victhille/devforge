@@ -9,10 +9,22 @@ import { enableExtensions, requiredExtensions } from '../../src/main/services/pr
 import { tempDir } from '../helpers'
 
 const setup = (s: Partial<ProjectSetup> = {}): ProjectSetup => ({
-  database: 'postgres', dbName: 'boutique', dbPort: 5433, features: [], git: false, github: null, openVSCode: false, ...s
+  database: 'postgres',
+  dbName: 'boutique',
+  dbPort: 5433,
+  features: [],
+  git: false,
+  github: null,
+  openVSCode: false,
+  ...s
 })
 const opts = (framework: 'symfony' | 'nextjs', s: Partial<ProjectSetup> = {}) => ({
-  name: 'boutique', framework, packageManager: 'npm' as const, typescript: true, eslint: true, setup: setup(s)
+  name: 'boutique',
+  framework,
+  packageManager: 'npm' as const,
+  typescript: true,
+  eslint: true,
+  setup: setup(s)
 })
 const ctx = { password: 'pw', secret: 'sec', lang: 'fr' as const, composeName: 'boutique-a1b2c3' }
 const runs = (steps: SetupStep[]) => steps.filter(s => s.kind === 'run').map(s => stepCommand(s))
@@ -25,7 +37,7 @@ describe('v2.2 lot 1: project setup plan', () => {
     expect(env).toMatchObject({ vars: { DATABASE_URL: 'postgresql://app:pw@127.0.0.1:5433/boutique?serverVersion=16&charset=utf8' } })
     expect(steps.find(s => s.kind === 'connection')).toMatchObject({ type: 'postgres', port: 5433, user: 'app', database: 'boutique' })
     // The password never lands in a committed file
-    const written = steps.flatMap(s => s.kind === 'write' ? s.files.map(f => f.content) : []).join('\n')
+    const written = steps.flatMap(s => (s.kind === 'write' ? s.files.map(f => f.content) : [])).join('\n')
     expect(written).not.toContain('pw@')
     expect(steps.find(s => s.kind === 'ignore')).toMatchObject({ lines: ['/.env.docker'] })
     expect(steps.find(s => s.kind === 'env' && s.file === '.env.docker')).toMatchObject({ vars: { POSTGRES_PASSWORD: 'pw' } })
@@ -33,7 +45,12 @@ describe('v2.2 lot 1: project setup plan', () => {
 
   it('Next.js + MySQL: Prisma with the chosen package manager, root user', () => {
     const steps = planSetup({ ...opts('nextjs', { database: 'mysql', dbPort: 3307 }), packageManager: 'pnpm' }, ctx)
-    expect(runs(steps).slice(1, 5)).toEqual(['pnpm add -D prisma@7 dotenv', 'pnpm add @prisma/client@7', 'pnpm add @prisma/adapter-mariadb@7', 'npx prisma init --datasource-provider mysql --output ../{src}generated/prisma --no-skills'])
+    expect(runs(steps).slice(1, 5)).toEqual([
+      'pnpm add -D prisma@7 dotenv',
+      'pnpm add @prisma/client@7',
+      'pnpm add @prisma/adapter-mariadb@7',
+      'npx prisma init --datasource-provider mysql --output ../{src}generated/prisma --no-skills'
+    ])
     expect(steps.find(s => s.kind === 'env' && s.file === '.env')).toMatchObject({ vars: { DATABASE_URL: 'mysql://root:pw@localhost:3307/boutique' } })
   })
 
@@ -46,17 +63,19 @@ describe('v2.2 lot 1: project setup plan', () => {
 
   it('options per framework', () => {
     const sf = planSetup(opts('symfony', { database: 'none', features: ['api', 'auth', 'docker', 'tests', 'ci'] }), ctx)
-    const files = sf.flatMap(s => s.kind === 'write' ? s.files.map(f => f.path) : [])
-    expect(files).toEqual(expect.arrayContaining(['src/Controller/HealthController.php', 'tests/SmokeTest.php', 'Dockerfile', '.github/workflows/ci.yml', 'compose.yaml']))
-    // v3.4: the contract's User entity is written (it has a name, make:user has none), then migrated
+    const files = sf.flatMap(s => (s.kind === 'write' ? s.files.map(f => f.path) : []))
+    expect(files).toEqual(
+      expect.arrayContaining(['src/Controller/HealthController.php', 'tests/SmokeTest.php', 'Dockerfile', '.github/workflows/ci.yml', 'compose.yaml'])
+    )
+    // The contract's User entity is written (it has a name, make:user has none), then migrated
     expect(files).toEqual(expect.arrayContaining(['src/Entity/User.php', 'config/packages/security.yaml']))
     expect(runs(sf)).toContain('php bin/console doctrine:migrations:migrate --no-interaction')
 
     const next = planSetup(opts('nextjs', { database: 'none', features: ['api', 'auth', 'tests'] }), ctx)
-    // v3.4: authentication without a database takes SQLite (so Prisma), and follows the DevForge contract
-    expect(next.flatMap(s => s.kind === 'write' ? s.files.map(f => f.path) : [])).toEqual(expect.arrayContaining([
-      '{src}lib/prisma.ts', '{app}/api/health/route.ts', '{src}lib/auth.ts', '{app}/api/auth/login/route.ts', 'tests/smoke.test.ts'
-    ]))
+    // Authentication without a database takes SQLite (so Prisma), and follows the DevForge contract
+    expect(next.flatMap(s => (s.kind === 'write' ? s.files.map(f => f.path) : []))).toEqual(
+      expect.arrayContaining(['{src}lib/prisma.ts', '{app}/api/health/route.ts', '{src}lib/auth.ts', '{app}/api/auth/login/route.ts', 'tests/smoke.test.ts'])
+    )
     expect(next.find(s => s.kind === 'scripts')).toMatchObject({ scripts: { test: 'vitest run' } })
     expect(next.find(s => s.kind === 'env' && s.file === '.env.local')).toMatchObject({ vars: { AUTH_SECRET: 'sec' } })
   })
@@ -70,10 +89,17 @@ describe('v2.2 lot 1: project setup plan', () => {
   })
 
   it('Git and GitHub come last, for every framework', () => {
-    const steps = planSetup({ ...opts('symfony', { database: 'none', git: true, github: { repo: 'victhille/boutique', private: true }, openVSCode: true }), framework: 'react' }, ctx)
+    const steps = planSetup(
+      { ...opts('symfony', { database: 'none', git: true, github: { repo: 'victhille/boutique', private: true }, openVSCode: true }), framework: 'react' },
+      ctx
+    )
     expect(runs(steps)).toEqual([
-      'npm install', 'git init -b main', 'git add -A', 'git commit -m "chore: initial commit (DevForge)"',
-      'gh repo create victhille/boutique --private --source . --push', 'code .'
+      'npm install',
+      'git init -b main',
+      'git add -A',
+      'git commit -m "chore: initial commit (DevForge)"',
+      'gh repo create victhille/boutique --private --source . --push',
+      'code .'
     ])
   })
 
@@ -110,9 +136,23 @@ describe('v2.2 lot 1: running the setup', () => {
     const dir = tempDir('sf')
     mkdirSync(join(dir, 'vendor/doctrine/orm'), { recursive: true })
     writeFileSync(join(dir, '.env.local'), 'APP_SECRET=x\n')
-    const options = { ...opts('symfony', { database: 'sqlite', features: ['api', 'ci'] }), destination: dir, installDeps: false, initGit: false, openAfter: false } as ProjectCreationOptions
+    const options = {
+      ...opts('symfony', { database: 'sqlite', features: ['api', 'ci'] }),
+      destination: dir,
+      installDeps: false,
+      initGit: false,
+      openAfter: false
+    } as ProjectCreationOptions
     const lines: string[] = []
-    const result = await new Promise<string>(resolve => runSetup(options, dir, 't1', l => lines.push(l.text), r => resolve(r.status)))
+    const result = await new Promise<string>(resolve =>
+      runSetup(
+        options,
+        dir,
+        't1',
+        l => lines.push(l.text),
+        r => resolve(r.status)
+      )
+    )
     expect(result).toBe('success')
     expect(lines.some(l => l.includes('déjà en place'))).toBe(true)
     expect(readFileSync(join(dir, '.env.local'), 'utf-8')).toBe('APP_SECRET=x\nDATABASE_URL="sqlite:///%kernel.project_dir%/var/data.db"\n')

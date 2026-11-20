@@ -3,16 +3,35 @@ import type { Page } from '@playwright/test'
 
 const AXE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf-8')
 
-export interface AxeIssue { id: string; impact: string | null; nodes: string[] }
+export interface AxeIssue {
+  id: string
+  impact: string | null
+  nodes: string[]
+}
 
-/** WCAG 2 A/AA problems of the page (evaluated through the debugger, so the app's CSP stays as it is) */
+/** The WCAG levels checked: A and AA of WCAG 2.0, 2.1 and 2.2 */
+const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
+
+/** WCAG 2.2 A/AA problems of the page (evaluated through the debugger, so the app's CSP stays as it is) */
 export async function axeIssues(page: Page): Promise<AxeIssue[]> {
   if (!(await page.evaluate(() => 'axe' in window))) await page.evaluate(AXE)
-  return page.evaluate(async () => {
-    const r = await (window as unknown as { axe: { run: (ctx: Document, o: object) => Promise<{ violations: { id: string; impact: string | null; nodes: { target: string[]; failureSummary?: string }[] }[] }> } })
-      .axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } })
-    return r.violations.map(v => ({ id: v.id, impact: v.impact, nodes: v.nodes.map(n => `${n.target.join(' ')} :: ${(n.failureSummary ?? '').split('\n').slice(1, 2).join(' ').trim()}`) }))
-  })
+  return page.evaluate(async tags => {
+    const r = await (
+      window as unknown as {
+        axe: {
+          run: (
+            ctx: Document,
+            o: object
+          ) => Promise<{ violations: { id: string; impact: string | null; nodes: { target: string[]; failureSummary?: string }[] }[] }>
+        }
+      }
+    ).axe.run(document, { runOnly: { type: 'tag', values: tags } })
+    return r.violations.map(v => ({
+      id: v.id,
+      impact: v.impact,
+      nodes: v.nodes.map(n => `${n.target.join(' ')} :: ${(n.failureSummary ?? '').split('\n').slice(1, 2).join(' ').trim()}`)
+    }))
+  }, WCAG)
 }
 
 /**

@@ -5,7 +5,17 @@ import type { AssistantEffort, AssistantErrorCode, AssistantEvent, AssistantItem
 import { WEB_SEARCH_PRICE, costOf, skillById } from '@shared/data/assistantSkills'
 import { loadSettings } from '../settings/settingsService'
 import { loadProjects } from '../projects/projectStorage'
-import { addSpending, endpointOf, getApiKey, getConfig, keyFor, loadConversation, monthUsage, saveConversation, type StoredConversation } from './assistantStorage'
+import {
+  addSpending,
+  endpointOf,
+  getApiKey,
+  getConfig,
+  keyFor,
+  loadConversation,
+  monthUsage,
+  saveConversation,
+  type StoredConversation
+} from './assistantStorage'
 import { isProvider, providerInfo } from '@shared/data/assistantProviders'
 import { CompatError, compatModels, compatTurn } from './openaiCompat'
 import { TOOLS, ToolError, describeTool, runTool } from './assistantTools'
@@ -54,7 +64,9 @@ type Emit = (e: AssistantEvent) => void
 /** An event without its conversation id (added by the sender) */
 type EventBody = AssistantEvent extends infer E ? (E extends AssistantEvent ? Omit<E, 'conversationId'> : never) : never
 let emit: Emit = () => {}
-export function setAssistantEmitter(fn: Emit): void { emit = fn }
+export function setAssistantEmitter(fn: Emit): void {
+  emit = fn
+}
 
 const running = new Map<string, AbortController>()
 
@@ -68,10 +80,16 @@ export function stopAssistant(conversationId: string): void {
  */
 function webSearchTool(): Anthropic.Beta.BetaWebSearchTool20260209 {
   let timezone: string | undefined
-  try { timezone = Intl.DateTimeFormat().resolvedOptions().timeZone } catch { /* unknown */ }
+  try {
+    timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  } catch {
+    /* unknown */
+  }
   const country = app.getLocaleCountryCode?.() || undefined
   return {
-    type: 'web_search_20260209', name: 'web_search', max_uses: 3,
+    type: 'web_search_20260209',
+    name: 'web_search',
+    max_uses: 3,
     ...(country || timezone ? { user_location: { type: 'approximate', ...(country && { country }), ...(timezone && { timezone }) } } : {})
   }
 }
@@ -86,11 +104,17 @@ function sourcesLine(content: Anthropic.Beta.BetaContentBlock[], lang: 'fr' | 'e
     }
   }
   if (!seen.size) return ''
-  const links = [...seen].slice(0, 6).map(([url, title]) => `[${title}](${url})`).join(' · ')
+  const links = [...seen]
+    .slice(0, 6)
+    .map(([url, title]) => `[${title}](${url})`)
+    .join(' · ')
   return `\n\n**${lang === 'fr' ? 'Sources :' : 'Sources:'}** ${links}`
 }
 
-const overBudget = () => { const u = monthUsage(); return u.budget > 0 && u.spent >= u.budget }
+const overBudget = () => {
+  const u = monthUsage()
+  return u.budget > 0 && u.spent >= u.budget
+}
 
 /** Start one user turn; the conversation id is returned at once, events follow */
 export async function sendToAssistant(req: AssistantSendRequest): Promise<string> {
@@ -99,7 +123,7 @@ export async function sendToAssistant(req: AssistantSendRequest): Promise<string
   const id = req.conversationId ?? randomUUID()
   if (running.has(id)) throw new Error('This conversation is already answering')
 
-  const project = req.projectPath ? loadProjects().find(p => p.path === req.projectPath) ?? null : null
+  const project = req.projectPath ? (loadProjects().find(p => p.path === req.projectPath) ?? null) : null
   const now = new Date().toISOString()
   let conv = req.conversationId ? loadConversation(req.conversationId) : null
   if (!conv) {
@@ -107,15 +131,28 @@ export async function sendToAssistant(req: AssistantSendRequest): Promise<string
     const skill = skillById(req.skill)
     const config = getConfig()
     conv = {
-      id, title: text.slice(0, 70), createdAt: now, updatedAt: now,
-      projectPath: project?.path ?? null, projectName: project?.name ?? null, items: [], api: [], contextProject: null,
+      id,
+      title: text.slice(0, 70),
+      createdAt: now,
+      updatedAt: now,
+      projectPath: project?.path ?? null,
+      projectName: project?.name ?? null,
+      items: [],
+      api: [],
+      contextProject: null,
       skill: skill.id,
-      // v4.2: the provider chosen then answers the whole conversation; another one than Anthropic, with its own model
+      // The provider chosen then answers the whole conversation; another one than Anthropic, with its own model
       provider: config.provider,
       model: config.provider !== 'anthropic' ? config.providerModel : config.model === 'auto' ? skill.model : config.model,
-      effort: req.effort && EFFORTS.includes(req.effort as AssistantEffort) ? req.effort as AssistantEffort
-        : config.effort === 'auto' ? skill.effort : config.effort,
-      cost: 0, tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, lastInput: 0
+      effort:
+        req.effort && EFFORTS.includes(req.effort as AssistantEffort)
+          ? (req.effort as AssistantEffort)
+          : config.effort === 'auto'
+            ? skill.effort
+            : config.effort,
+      cost: 0,
+      tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      lastInput: 0
     } as StoredConversation
   }
 
@@ -147,7 +184,7 @@ export async function sendToAssistant(req: AssistantSendRequest): Promise<string
 }
 
 /**
- * v4.2: the models a provider offers, read from it with its key: Claude's
+ * The models a provider offers, read from it with its key: Claude's
  * from Anthropic, the others' from their OpenAI-compatible list. Nothing is
  * sent to a model, nothing is billed.
  */
@@ -171,22 +208,30 @@ function client(): Anthropic | null {
   if (scripted) return scripted
   const key = getApiKey()
   // Without a saved key the SDK still finds ANTHROPIC_API_KEY or an `ant auth login` profile
-  try { return key ? new Anthropic({ apiKey: key }) : new Anthropic() } catch { return null }
+  try {
+    return key ? new Anthropic({ apiKey: key }) : new Anthropic()
+  } catch {
+    return null
+  }
 }
 
 /** Add one response's tokens to the conversation and the month */
 function account(conv: StoredConversation, message: Anthropic.Beta.BetaMessage): void {
   const u: Partial<Anthropic.Beta.BetaUsage> = message.usage ?? {}
   const t = {
-    input: u.input_tokens ?? 0, output: u.output_tokens ?? 0,
-    cacheRead: u.cache_read_input_tokens ?? 0, cacheWrite: u.cache_creation_input_tokens ?? 0
+    input: u.input_tokens ?? 0,
+    output: u.output_tokens ?? 0,
+    cacheRead: u.cache_read_input_tokens ?? 0,
+    cacheWrite: u.cache_creation_input_tokens ?? 0
   }
   // A fallback may have served the turn: price it at the model that answered
   const searches = u.server_tool_use?.web_search_requests ?? 0
   const cost = costOf(message.model ?? conv.model, t) + searches * WEB_SEARCH_PRICE
   conv.tokens = {
-    input: conv.tokens.input + t.input, output: conv.tokens.output + t.output,
-    cacheRead: conv.tokens.cacheRead + t.cacheRead, cacheWrite: conv.tokens.cacheWrite + t.cacheWrite
+    input: conv.tokens.input + t.input,
+    output: conv.tokens.output + t.output,
+    cacheRead: conv.tokens.cacheRead + t.cacheRead,
+    cacheWrite: conv.tokens.cacheWrite + t.cacheWrite
   }
   conv.cost += cost
   conv.lastInput = t.input + t.cacheRead + t.cacheWrite
@@ -202,26 +247,36 @@ type RoundAnswer = { content: Anthropic.Beta.BetaContentBlock[]; stop_reason: st
  * SDK could not read, twice at most).
  */
 async function anthropicRound(
-  api: Anthropic, conv: StoredConversation, lang: 'fr' | 'en', tools: Anthropic.Beta.BetaToolUnion[], signal: AbortSignal,
-  onText: (delta: string) => void, cut: () => void, send: (e: EventBody) => void, retries: { n: number }
+  api: Anthropic,
+  conv: StoredConversation,
+  lang: 'fr' | 'en',
+  tools: Anthropic.Beta.BetaToolUnion[],
+  signal: AbortSignal,
+  onText: (delta: string) => void,
+  cut: () => void,
+  send: (e: EventBody) => void,
+  retries: { n: number }
 ): Promise<RoundAnswer | null> {
   const skill = skillById(conv.skill)
-  const stream = api.beta.messages.stream({
-    model: conv.model,
-    max_tokens: MAX_TOKENS,
-    // Explicit breakpoint: tools + this block are the same for every conversation
-    system: [
-      { type: 'text', text: SYSTEM[lang], cache_control: { type: 'ephemeral' } },
-      { type: 'text', text: skill.instructions[lang] }
-    ],
-    tools,
-    messages: conv.api,
-    output_config: { effort: conv.effort },
-    // Automatic breakpoint on the conversation so far
-    cache_control: { type: 'ephemeral' },
-    // On a policy decline, the API retries on another model in the same call
-    ...(conv.model !== 'claude-haiku-5-5' && { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const })
-  }, { signal })
+  const stream = api.beta.messages.stream(
+    {
+      model: conv.model,
+      max_tokens: MAX_TOKENS,
+      // Explicit breakpoint: tools + this block are the same for every conversation
+      system: [
+        { type: 'text', text: SYSTEM[lang], cache_control: { type: 'ephemeral' } },
+        { type: 'text', text: skill.instructions[lang] }
+      ],
+      tools,
+      messages: conv.api,
+      output_config: { effort: conv.effort },
+      // Automatic breakpoint on the conversation so far
+      cache_control: { type: 'ephemeral' },
+      // On a policy decline, the API retries on another model in the same call
+      ...(conv.model !== 'claude-haiku-5-5' && { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const })
+    },
+    { signal }
+  )
 
   stream.on('text', onText)
   // Web searches run on Anthropic's side: show them while they happen
@@ -243,8 +298,8 @@ async function anthropicRound(
   } catch (err) {
     // Only a tool input the SDK could not parse is retried (the history is
     // unchanged); the SDK has no dedicated class for it, only this message
-    const badToolJson = !(err instanceof Anthropic.APIError) && err instanceof Anthropic.AnthropicError &&
-      err.message.startsWith('Unable to parse tool parameter JSON')
+    const badToolJson =
+      !(err instanceof Anthropic.APIError) && err instanceof Anthropic.AnthropicError && err.message.startsWith('Unable to parse tool parameter JSON')
     if (!badToolJson || signal.aborted || retries.n++ >= 2) throw err
     return null
   }
@@ -277,17 +332,29 @@ async function anthropicRound(
 const providerOf = (conv: StoredConversation): AssistantProvider => (isProvider(conv.provider) ? conv.provider : 'anthropic')
 
 /**
- * v4.2: one request to another provider (OpenAI's chat API): the same
+ * One request to another provider (OpenAI's chat API): the same
  * instructions and tools, the answer put back in Claude's shape. Its tokens
  * are counted; its price is not known, so it costs nothing in the budget.
  */
-async function compatRound(conv: StoredConversation, lang: 'fr' | 'en', tools: Anthropic.Beta.BetaToolUnion[], signal: AbortSignal, onText: (delta: string) => void): Promise<RoundAnswer> {
+async function compatRound(
+  conv: StoredConversation,
+  lang: 'fr' | 'en',
+  tools: Anthropic.Beta.BetaToolUnion[],
+  signal: AbortSignal,
+  onText: (delta: string) => void
+): Promise<RoundAnswer> {
   const provider = providerOf(conv)
   const skill = skillById(conv.skill)
   const a = await compatTurn({
-    baseUrl: endpointOf(provider), apiKey: keyFor(provider), model: conv.model,
-    system: `${SYSTEM[lang]}\n\n${skill.instructions[lang]}`, history: conv.api, tools,
-    streamUsage: providerInfo(provider).streamUsage, signal, onText
+    baseUrl: endpointOf(provider),
+    apiKey: keyFor(provider),
+    model: conv.model,
+    system: `${SYSTEM[lang]}\n\n${skill.instructions[lang]}`,
+    history: conv.api,
+    tools,
+    streamUsage: providerInfo(provider).streamUsage,
+    signal,
+    onText
   })
   conv.tokens = { ...conv.tokens, input: conv.tokens.input + a.usage.input, output: conv.tokens.output + a.usage.output }
   conv.lastInput = a.usage.input
@@ -303,36 +370,73 @@ async function runTurn(conv: StoredConversation, signal: AbortSignal): Promise<v
     conv.items.push({ kind: 'notice', tone: 'error', text: message })
     send({ type: 'error', code, message })
   }
-  const budgetMessage = () => (lang === 'fr'
-    ? `Budget mensuel atteint (${monthUsage().budget} $). Augmente-le dans Paramètres → Assistant IA.`
-    : `Monthly budget reached ($${monthUsage().budget}). Raise it in Settings → AI assistant.`)
+  const budgetMessage = () =>
+    lang === 'fr'
+      ? `Budget mensuel atteint (${monthUsage().budget} $). Augmente-le dans Paramètres → Assistant IA.`
+      : `Monthly budget reached ($${monthUsage().budget}). Raise it in Settings → AI assistant.`
 
-  if (overBudget()) { fail('budget', budgetMessage()); finish(conv, send, false); return }
+  if (overBudget()) {
+    fail('budget', budgetMessage())
+    finish(conv, send, false)
+    return
+  }
   const anthropic = provider === 'anthropic' ? client() : null
-  if (provider === 'anthropic' && !anthropic) { fail('no-key', 'No API key'); finish(conv, send, false); return }
+  if (provider === 'anthropic' && !anthropic) {
+    fail('no-key', 'No API key')
+    finish(conv, send, false)
+    return
+  }
   if (provider !== 'anthropic') {
-    // v4.2: another provider needs its key (not Ollama), its address, and a model
-    if (providerInfo(provider).needsKey && !keyFor(provider)) { fail('no-key', 'No API key'); finish(conv, send, false); return }
-    if (!endpointOf(provider)) { fail('other', lang === 'fr' ? 'Donne l’adresse du serveur dans Paramètres › Forgy.' : 'Give the server address in Settings › Forgy.'); finish(conv, send, false); return }
-    if (!conv.model) { fail('other', lang === 'fr' ? 'Choisis un modèle dans Paramètres › Forgy.' : 'Pick a model in Settings › Forgy.'); finish(conv, send, false); return }
+    // Another provider needs its key (not Ollama), its address, and a model
+    if (providerInfo(provider).needsKey && !keyFor(provider)) {
+      fail('no-key', 'No API key')
+      finish(conv, send, false)
+      return
+    }
+    if (!endpointOf(provider)) {
+      fail('other', lang === 'fr' ? 'Donne l’adresse du serveur dans Paramètres › Forgy.' : 'Give the server address in Settings › Forgy.')
+      finish(conv, send, false)
+      return
+    }
+    if (!conv.model) {
+      fail('other', lang === 'fr' ? 'Choisis un modèle dans Paramètres › Forgy.' : 'Pick a model in Settings › Forgy.')
+      finish(conv, send, false)
+      return
+    }
   }
 
   let stopped = false
   const retries = { n: 0 }
   let answered = false
   // Same tool list for the whole conversation (part of the cached prefix); web search is Claude's only
-  const tools: Anthropic.Beta.BetaToolUnion[] = anthropic && skill.web && conv.model !== 'claude-haiku-5-5' ? [...TOOLS, ...ACTION_TOOLS, webSearchTool()] : [...TOOLS, ...ACTION_TOOLS]
+  const tools: Anthropic.Beta.BetaToolUnion[] =
+    anthropic && skill.web && conv.model !== 'claude-haiku-5-5' ? [...TOOLS, ...ACTION_TOOLS, webSearchTool()] : [...TOOLS, ...ACTION_TOOLS]
   try {
     for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
       // The text of this round, shown as it comes
       let current: (AssistantItem & { kind: 'assistant' }) | null = null
       const onText = (delta: string) => {
-        if (!current) { current = { kind: 'assistant', text: '' }; conv.items.push(current) }
+        if (!current) {
+          current = { kind: 'assistant', text: '' }
+          conv.items.push(current)
+        }
         current.text += delta
         send({ type: 'text', delta })
       }
       const message = anthropic
-        ? await anthropicRound(anthropic, conv, lang, tools, signal, onText, () => { current = null }, send, retries)
+        ? await anthropicRound(
+            anthropic,
+            conv,
+            lang,
+            tools,
+            signal,
+            onText,
+            () => {
+              current = null
+            },
+            send,
+            retries
+          )
         : await compatRound(conv, lang, tools, signal, onText)
       if (!message) continue
 
@@ -341,7 +445,10 @@ async function runTurn(conv: StoredConversation, signal: AbortSignal): Promise<v
         answered = true
         break
       }
-      if (message.stop_reason === 'pause_turn') { conv.api.push({ role: 'assistant', content: message.content }); continue }
+      if (message.stop_reason === 'pause_turn') {
+        conv.api.push({ role: 'assistant', content: message.content })
+        continue
+      }
 
       const toolUses = message.content.filter((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === 'tool_use')
       if (message.stop_reason === 'max_tokens' && toolUses.length) {
@@ -351,39 +458,55 @@ async function runTurn(conv: StoredConversation, signal: AbortSignal): Promise<v
       }
       // History is append-only: the full content (thinking blocks included) goes back unchanged
       conv.api.push({ role: 'assistant', content: message.content })
-      if (!toolUses.length) { answered = true; break }
+      if (!toolUses.length) {
+        answered = true
+        break
+      }
 
       const results: Anthropic.Beta.BetaToolResultBlockParam[] = []
-      await Promise.all(toolUses.map(async (t, i) => {
-        const input = (t.input ?? {}) as Record<string, unknown>
-        if (isActionTool(t.name)) { results[i] = await runAction(conv, t, input, signal, send); return }
-        const item: AssistantItem = { kind: 'tool', id: t.id, name: t.name, summary: describeTool(t.name, input), status: 'running' }
-        conv.items.push(item)
-        send({ type: 'tool', id: t.id, name: t.name, summary: item.summary })
-        try {
-          results[i] = { type: 'tool_result', tool_use_id: t.id, content: await runTool(t.name, input) }
-          item.status = 'done'
-        } catch (err) {
-          const msg = err instanceof ToolError ? err.message : `Tool failed: ${err instanceof Error ? err.message : String(err)}`
-          results[i] = { type: 'tool_result', tool_use_id: t.id, content: msg, is_error: true }
-          item.status = 'error'
-        }
-        send({ type: 'tool-done', id: t.id, ok: item.status === 'done' })
-      }))
+      await Promise.all(
+        toolUses.map(async (t, i) => {
+          const input = (t.input ?? {}) as Record<string, unknown>
+          if (isActionTool(t.name)) {
+            results[i] = await runAction(conv, t, input, signal, send)
+            return
+          }
+          const item: AssistantItem = { kind: 'tool', id: t.id, name: t.name, summary: describeTool(t.name, input), status: 'running' }
+          conv.items.push(item)
+          send({ type: 'tool', id: t.id, name: t.name, summary: item.summary })
+          try {
+            results[i] = { type: 'tool_result', tool_use_id: t.id, content: await runTool(t.name, input) }
+            item.status = 'done'
+          } catch (err) {
+            const msg = err instanceof ToolError ? err.message : `Tool failed: ${err instanceof Error ? err.message : String(err)}`
+            results[i] = { type: 'tool_result', tool_use_id: t.id, content: msg, is_error: true }
+            item.status = 'error'
+          }
+          send({ type: 'tool-done', id: t.id, ok: item.status === 'done' })
+        })
+      )
       // All results in one user message (keeps parallel tool calls working)
       conv.api.push({ role: 'user', content: results })
       saveConversation(conv)
 
-      if (overBudget()) { fail('budget', budgetMessage()); answered = true; break }
+      if (overBudget()) {
+        fail('budget', budgetMessage())
+        answered = true
+        break
+      }
     }
-    if (!answered) fail('limit', lang === 'fr' ? "Trop d'étapes pour cette question : précise-la ou découpe-la." : 'Too many steps for this question: narrow it down or split it.')
+    if (!answered)
+      fail(
+        'limit',
+        lang === 'fr' ? "Trop d'étapes pour cette question : précise-la ou découpe-la." : 'Too many steps for this question: narrow it down or split it.'
+      )
   } catch (err) {
     if (err instanceof Anthropic.APIUserAbortError || signal.aborted) {
       stopped = true
       // The unfinished assistant turn is not kept in the API history
       conv.items.push({ kind: 'notice', tone: 'info', text: lang === 'fr' ? 'Réponse arrêtée.' : 'Answer stopped.' })
     } else if (err instanceof CompatError) {
-      // v4.2: another provider's failure, in the same words as Claude's
+      // Another provider's failure, in the same words as Claude's
       const label = provider === 'custom' ? (lang === 'fr' ? 'le serveur compatible OpenAI' : 'the OpenAI-compatible server') : providerInfo(provider).label
       if (err.code === 'auth') fail('auth', lang === 'fr' ? `Clé API refusée par ${label}.` : `API key rejected by ${label}.`)
       else if (err.code === 'rate') fail('rate', lang === 'fr' ? 'Trop de requêtes : réessaie dans un instant.' : 'Rate limited: try again in a moment.')
@@ -413,8 +536,11 @@ async function runTurn(conv: StoredConversation, signal: AbortSignal): Promise<v
  * trust setting lets a safe one run), run it and journal the outcome.
  */
 async function runAction(
-  conv: StoredConversation, t: Anthropic.Beta.BetaToolUseBlock, input: Record<string, unknown>,
-  signal: AbortSignal, send: (e: EventBody) => void
+  conv: StoredConversation,
+  t: Anthropic.Beta.BetaToolUseBlock,
+  input: Record<string, unknown>,
+  signal: AbortSignal,
+  send: (e: EventBody) => void
 ): Promise<Anthropic.Beta.BetaToolResultBlockParam> {
   let plan: ActionPlan
   try {
@@ -429,13 +555,29 @@ async function runAction(
   }
 
   const auto = getConfig().actionMode === 'auto-safe' && plan.safe
-  const item: AssistantItem & { kind: 'action' } = { kind: 'action', id: t.id, title: plan.title, preview: plan.preview, reversible: plan.reversible, status: auto ? 'running' : 'pending' }
+  const item: AssistantItem & { kind: 'action' } = {
+    kind: 'action',
+    id: t.id,
+    title: plan.title,
+    preview: plan.preview,
+    reversible: plan.reversible,
+    status: auto ? 'running' : 'pending'
+  }
   conv.items.push(item)
   saveConversation(conv)
   // Listen before showing the card: a click can come back at once
   const decision = auto ? Promise.resolve(true) : waitForDecision(t.id, signal)
   send({ type: 'action', id: t.id, title: plan.title, preview: plan.preview, reversible: plan.reversible, auto })
-  const base = { id: t.id, at: new Date().toISOString(), conversationId: conv.id, kind: t.name, title: plan.title, preview: plan.preview, reversible: plan.reversible, auto }
+  const base = {
+    id: t.id,
+    at: new Date().toISOString(),
+    conversationId: conv.id,
+    kind: t.name,
+    title: plan.title,
+    preview: plan.preview,
+    reversible: plan.reversible,
+    auto
+  }
 
   if (!(await decision)) {
     item.status = 'refused'

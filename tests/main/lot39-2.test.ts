@@ -2,19 +2,53 @@ import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { describe, expect, it } from 'vitest'
 import type { McdModel } from '@shared/types'
-import { associationBox, checkMcd, cleanMcd, cleanModelFile, entityBox, legLine, mcdSvg, modelFileName, MODEL_FILE_RE, nextCard, noteBox, wrap } from '@shared/lib/mcd'
+import {
+  associationBox,
+  checkMcd,
+  cleanMcd,
+  cleanModelFile,
+  entityBox,
+  legLine,
+  mcdSvg,
+  modelFileName,
+  MODEL_FILE_RE,
+  nextCard,
+  noteBox,
+  wrap
+} from '@shared/lib/mcd'
 import { createModel, listModels, readModel, removeModel, renameModel, saveModel } from '../../src/main/services/modeling/models'
 import { saveProjects, tempDir } from '../helpers'
 
-/** v3.9 lot 2: the Modeling page and the MCD editor */
+/** The Modeling page and the MCD editor */
 
 const shop = (): McdModel => ({
   entities: [
-    { id: 'c', name: 'CLIENT', x: 0, y: 0, attributes: [{ id: 'c1', name: 'id_client', type: 'int', identifier: true }, { id: 'c2', name: 'email', type: 'varchar', length: 180 }] },
-    { id: 'o', name: 'COMMANDE', x: 0, y: 300, attributes: [{ id: 'o1', name: 'id_commande', type: 'int', identifier: true }, { id: 'o2', name: 'passee_le', type: 'datetime' }] }
+    {
+      id: 'c',
+      name: 'CLIENT',
+      x: 0,
+      y: 0,
+      attributes: [
+        { id: 'c1', name: 'id_client', type: 'int', identifier: true },
+        { id: 'c2', name: 'email', type: 'varchar', length: 180 }
+      ]
+    },
+    {
+      id: 'o',
+      name: 'COMMANDE',
+      x: 0,
+      y: 300,
+      attributes: [
+        { id: 'o1', name: 'id_commande', type: 'int', identifier: true },
+        { id: 'o2', name: 'passee_le', type: 'datetime' }
+      ]
+    }
   ],
   associations: [{ id: 'p', name: 'PASSER', x: 20, y: 160, attributes: [] }],
-  links: [{ id: 'l1', entity: 'c', association: 'p', card: '0,n' }, { id: 'l2', entity: 'o', association: 'p', card: '1,1' }],
+  links: [
+    { id: 'l1', entity: 'c', association: 'p', card: '0,n' },
+    { id: 'l2', entity: 'o', association: 'p', card: '1,1' }
+  ],
   notes: [{ id: 'n', x: 300, y: 0, text: 'Un client sans commande ? à voir avec le client.' }]
 })
 
@@ -56,17 +90,37 @@ describe('the MCD', () => {
   })
 
   it('draws as SVG, names upper-cased, identifiers underlined, cardinalities written', () => {
-    const svg = mcdSvg(shop(), { canvas: '#000', card: '#111', line: '#888', entity: '#c0f', text: '#fff', muted: '#aaa', card11: '#c0f', note: '#ff0', noteText: '#000' })
+    const svg = mcdSvg(shop(), {
+      canvas: '#000',
+      card: '#111',
+      line: '#888',
+      entity: '#c0f',
+      text: '#fff',
+      muted: '#aaa',
+      card11: '#c0f',
+      note: '#ff0',
+      noteText: '#000'
+    })
     expect(svg.startsWith('<svg')).toBe(true)
     expect(svg).toContain('>CLIENT<')
     expect(svg).toContain('text-decoration="underline">id_client<')
     expect(svg).toContain('>0,n<')
     expect(svg).toContain('>1,1<')
-    expect(mcdSvg({ ...shop(), entities: [{ ...shop().entities[0], name: '<b>' }] }, { canvas: '', card: '', line: '', entity: '', text: '', muted: '', card11: '', note: '', noteText: '' })).toContain('&lt;B&gt;')
+    expect(
+      mcdSvg(
+        { ...shop(), entities: [{ ...shop().entities[0], name: '<b>' }] },
+        { canvas: '', card: '', line: '', entity: '', text: '', muted: '', card11: '', note: '', noteText: '' }
+      )
+    ).toContain('&lt;B&gt;')
   })
 
   it('a file read back keeps its shape: bad values cleaned, legs to nothing dropped', () => {
-    const m = cleanMcd({ entities: [{ id: 'a', name: 'A', x: 1.6, y: 'x', attributes: [{ name: 'id', type: 'nope', identifier: 1 }] }], associations: [], links: [{ entity: 'a', association: 'ghost', card: '9,9' }], notes: 'no' })
+    const m = cleanMcd({
+      entities: [{ id: 'a', name: 'A', x: 1.6, y: 'x', attributes: [{ name: 'id', type: 'nope', identifier: 1 }] }],
+      associations: [],
+      links: [{ entity: 'a', association: 'ghost', card: '9,9' }],
+      notes: 'no'
+    })
     expect(m.entities[0]).toMatchObject({ x: 2, y: 0, attributes: [{ name: 'id', type: '', identifier: true }] })
     expect(m.links).toEqual([])
     expect(m.notes).toEqual([])
@@ -101,7 +155,11 @@ describe("a project's models, in its conception/ folder", () => {
     // A broken or foreign file is left out of the list
     writeFileSync(join(project, 'conception', 'broken.mcd.json'), '{')
     writeFileSync(join(project, 'conception', 'notes.txt'), 'x')
-    expect(listModels(project).map(m => m.file).sort()).toEqual(['boutique-2.mcd.json', 'boutique.mcd.json'])
+    expect(
+      listModels(project)
+        .map(m => m.file)
+        .sort()
+    ).toEqual(['boutique-2.mcd.json', 'boutique.mcd.json'])
 
     const renamed = renameModel(project, file, 'Boutique en ligne')
     expect(renamed).toBe('boutique-en-ligne.mcd.json')

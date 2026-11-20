@@ -40,7 +40,9 @@ function savedToken(): string | null {
   try {
     const enc = (JSON.parse(readFileSync(storePath(), 'utf-8')) as { tokenEnc?: string }).tokenEnc
     return enc ? safeStorage.decryptString(Buffer.from(enc, 'base64')) : null
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
 
 export const hasToken = () => savedToken() !== null
@@ -67,14 +69,21 @@ async function api<T>(path: string, init: { method?: string; token?: string } = 
   if (res.status === 404) throw new Error('NOT_FOUND')
   if (!res.ok) {
     let msg = ''
-    try { msg = ((await res.json()) as { message?: string }).message ?? '' } catch { /* not JSON */ }
+    try {
+      msg = ((await res.json()) as { message?: string }).message ?? ''
+    } catch {
+      /* not JSON */
+    }
     throw new Error(`GitHub ${res.status}${msg ? `: ${msg}` : ''}`)
   }
   return (res.status === 204 || res.status === 201 ? {} : await res.json()) as T
 }
 
 /** A token to read GitHub with (GitHub CLI's, or the saved one), null when there is none */
-export const githubToken = (): Promise<string | null> => token().then(t => t.value).catch(() => null)
+export const githubToken = (): Promise<string | null> =>
+  token()
+    .then(t => t.value)
+    .catch(() => null)
 
 /** The newest published (non-draft) release of a repository is a pre-release */
 export async function newestIsPrerelease(owner: string, repo: string, tok: string | null): Promise<boolean> {
@@ -84,7 +93,7 @@ export async function newestIsPrerelease(owner: string, repo: string, tok: strin
     signal: AbortSignal.timeout(20_000)
   })
   if (!res.ok) throw new Error(`GitHub ${res.status}`)
-  const list = await res.json() as { draft: boolean; prerelease: boolean }[]
+  const list = (await res.json()) as { draft: boolean; prerelease: boolean }[]
   return !!list.find(r => !r.draft)?.prerelease
 }
 
@@ -103,13 +112,65 @@ export async function saveToken(value: string | null): Promise<{ login: string |
 
 // ─── Status ───────────────────────────────────────────────────────────────────
 
-interface RawRun { id: number; name: string; display_title: string; head_branch: string; event: string; status: string; conclusion: string | null; run_number: number; created_at: string; html_url: string }
-interface RawPull { number: number; title: string; user: { login: string } | null; head: { ref: string }; draft: boolean; created_at: string; html_url: string }
-interface RawRelease { tag_name: string; name: string | null; published_at: string | null; prerelease: boolean; draft: boolean; html_url: string }
+interface RawRun {
+  id: number
+  name: string
+  display_title: string
+  head_branch: string
+  event: string
+  status: string
+  conclusion: string | null
+  run_number: number
+  created_at: string
+  html_url: string
+}
+interface RawPull {
+  number: number
+  title: string
+  user: { login: string } | null
+  head: { ref: string }
+  draft: boolean
+  created_at: string
+  html_url: string
+}
+interface RawRelease {
+  tag_name: string
+  name: string | null
+  published_at: string | null
+  prerelease: boolean
+  draft: boolean
+  html_url: string
+}
 
-export const toRun = (r: RawRun): GithubRun => ({ id: r.id, name: r.name, title: r.display_title, branch: r.head_branch, event: r.event, status: r.status, conclusion: r.conclusion, number: r.run_number, createdAt: r.created_at, url: r.html_url })
-export const toPull = (p: RawPull): GithubPull => ({ number: p.number, title: p.title, author: p.user?.login ?? '', branch: p.head.ref, draft: p.draft, createdAt: p.created_at, url: p.html_url })
-export const toRelease = (r: RawRelease): GithubRelease => ({ tag: r.tag_name, name: r.name || r.tag_name, publishedAt: r.published_at, prerelease: r.prerelease, draft: r.draft, url: r.html_url })
+export const toRun = (r: RawRun): GithubRun => ({
+  id: r.id,
+  name: r.name,
+  title: r.display_title,
+  branch: r.head_branch,
+  event: r.event,
+  status: r.status,
+  conclusion: r.conclusion,
+  number: r.run_number,
+  createdAt: r.created_at,
+  url: r.html_url
+})
+export const toPull = (p: RawPull): GithubPull => ({
+  number: p.number,
+  title: p.title,
+  author: p.user?.login ?? '',
+  branch: p.head.ref,
+  draft: p.draft,
+  createdAt: p.created_at,
+  url: p.html_url
+})
+export const toRelease = (r: RawRelease): GithubRelease => ({
+  tag: r.tag_name,
+  name: r.name || r.tag_name,
+  publishedAt: r.published_at,
+  prerelease: r.prerelease,
+  draft: r.draft,
+  url: r.html_url
+})
 
 export async function status(projectPath: string): Promise<GithubStatus> {
   const repo = await repoOf(projectPath)
@@ -124,7 +185,7 @@ export async function status(projectPath: string): Promise<GithubStatus> {
   return { repo, auth: tok.auth, runs: runs.workflow_runs.map(toRun), pulls: pulls.map(toPull), releases: releases.map(toRelease) }
 }
 
-/** v3.8: a project's latest workflow runs (the CI watch); null when it is not on GitHub or there is no token */
+/** A project's latest workflow runs (the CI watch); null when it is not on GitHub or there is no token */
 export async function latestRuns(projectPath: string): Promise<GithubRun[] | null> {
   const repo = await repoOf(projectPath)
   if (!repo) return null

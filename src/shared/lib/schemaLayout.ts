@@ -1,13 +1,19 @@
 import type { DbDiagramLink, DbDiagramTable, DbTableRef } from '../types/database'
 
 /**
- * v3.8 lot 4: the schema's layout. Tables as cards of known size; the ones
+ * the schema's layout. Tables as cards of known size; the ones
  * pointed at (parents) on the left, those that point at them to the right,
  * each column ordered by its neighbours' places so arrows cross little.
  */
 
-export interface Point { x: number; y: number }
-export interface Box extends Point { w: number; h: number }
+export interface Point {
+  x: number
+  y: number
+}
+export interface Box extends Point {
+  w: number
+  h: number
+}
 
 export const HEADER = 34
 export const ROW = 22
@@ -29,7 +35,8 @@ export function withNeighbours(keys: Iterable<string>, links: DbDiagramLink[]): 
   const out = new Set(keys)
   const base = new Set(out)
   for (const l of links) {
-    const a = tableKey(l.from), b = tableKey(l.to)
+    const a = tableKey(l.from),
+      b = tableKey(l.to)
     if (base.has(a)) out.add(b)
     if (base.has(b)) out.add(a)
   }
@@ -46,7 +53,8 @@ export function autoLayout(tables: DbDiagramTable[], links: DbDiagramLink[]): Re
   const parents = new Map<string, Set<string>>(keys.map(k => [k, new Set()]))
   const around = new Map<string, Set<string>>(keys.map(k => [k, new Set()]))
   for (const l of links) {
-    const a = tableKey(l.from), b = tableKey(l.to)
+    const a = tableKey(l.from),
+      b = tableKey(l.to)
     if (a === b || !around.has(a) || !around.has(b)) continue
     parents.get(a)!.add(b)
     around.get(a)!.add(b)
@@ -64,7 +72,11 @@ export function autoLayout(tables: DbDiagramTable[], links: DbDiagramLink[]): Re
     while (queue.length) {
       const cur = queue.shift()!
       group.push(cur)
-      for (const n of [...around.get(cur)!].sort()) if (!seen.has(n)) { seen.add(n); queue.push(n) }
+      for (const n of [...around.get(cur)!].sort())
+        if (!seen.has(n)) {
+          seen.add(n)
+          queue.push(n)
+        }
     }
     groups.push(group)
   }
@@ -100,7 +112,13 @@ export function autoLayout(tables: DbDiagramTable[], links: DbDiagramLink[]): Re
       return ns.length ? ns.reduce((s, n) => s + index.get(n)!, 0) / ns.length : index.get(k)!
     }
     for (let pass = 0; pass < 6; pass++) {
-      const order = pass % 2 === 0 ? cols.map((_, i) => i).slice(1) : cols.map((_, i) => i).slice(0, -1).reverse()
+      const order =
+        pass % 2 === 0
+          ? cols.map((_, i) => i).slice(1)
+          : cols
+              .map((_, i) => i)
+              .slice(0, -1)
+              .reverse()
       for (const i of order) {
         const side = new Set(cols[pass % 2 === 0 ? i - 1 : i + 1])
         const b = new Map(cols[i].map(k => [k, bary(k, side)]))
@@ -114,7 +132,10 @@ export function autoLayout(tables: DbDiagramTable[], links: DbDiagramLink[]): Re
     let x = 0
     cols.forEach((c, i) => {
       let y = top + (tallest - heights[i]) / 2
-      for (const k of c) { out[k] = { x, y }; y += size.get(k)!.h + ROW_GAP }
+      for (const k of c) {
+        out[k] = { x, y }
+        y += size.get(k)!.h + ROW_GAP
+      }
       x += Math.max(...c.map(k => size.get(k)!.w)) + COL_GAP
     })
     // Each card drawn towards its neighbours' height (straighter arrows), the column's order kept
@@ -127,10 +148,14 @@ export function autoLayout(tables: DbDiagramTable[], links: DbDiagramLink[]): Re
           return ns.length ? (out[k].y + ns.reduce((sum, n) => sum + middle(n), 0) / ns.length - size.get(k)!.h / 2) / 2 : out[k].y
         })
         const ys: number[] = []
-        c.forEach((k, j) => { ys.push(j ? Math.max(want[j], ys[j - 1] + size.get(c[j - 1])!.h + ROW_GAP) : want[j]) })
+        c.forEach((k, j) => {
+          ys.push(j ? Math.max(want[j], ys[j - 1] + size.get(c[j - 1])!.h + ROW_GAP) : want[j])
+        })
         // Pushed down only: the column goes back up by the mean push
         const up = ys.reduce((sum, y, j) => sum + (y - want[j]), 0) / c.length
-        c.forEach((k, j) => { out[k].y = ys[j] - up })
+        c.forEach((k, j) => {
+          out[k].y = ys[j] - up
+        })
       }
     }
     const groupTop = Math.min(...group.map(k => out[k].y))
@@ -143,7 +168,10 @@ export function autoLayout(tables: DbDiagramTable[], links: DbDiagramLink[]): Re
   for (let r = 0; r * PER_ROW < alone.length; r++) {
     const row = alone.slice(r * PER_ROW, (r + 1) * PER_ROW)
     let x = 0
-    for (const k of row) { out[k] = { x, y: top }; x += size.get(k)!.w + ROW_GAP * 1.5 }
+    for (const k of row) {
+      out[k] = { x, y: top }
+      x += size.get(k)!.w + ROW_GAP * 1.5
+    }
     top += Math.max(...row.map(k => size.get(k)!.h)) + ROW_GAP * 1.5
   }
   return out
@@ -152,7 +180,8 @@ export function autoLayout(tables: DbDiagramTable[], links: DbDiagramLink[]): Re
 /** The tables' bounding box (0 0 0 0 when none) */
 export function bounds(boxes: Box[]): Box {
   if (!boxes.length) return { x: 0, y: 0, w: 0, h: 0 }
-  const x = Math.min(...boxes.map(b => b.x)), y = Math.min(...boxes.map(b => b.y))
+  const x = Math.min(...boxes.map(b => b.x)),
+    y = Math.min(...boxes.map(b => b.y))
   return { x, y, w: Math.max(...boxes.map(b => b.x + b.w)) - x, h: Math.max(...boxes.map(b => b.y + b.h)) - y }
 }
 
@@ -166,7 +195,13 @@ const rowY = (b: Box, t: DbDiagramTable, column: string | undefined) => {
  * A link's curve, from the column that points (in the child) to the column
  * pointed at (in the parent), leaving and entering by the facing sides.
  */
-export function linkPath(from: Box, fromTable: DbDiagramTable, to: Box, toTable: DbDiagramTable, link: DbDiagramLink): { d: string; end: Point; toRight: boolean } {
+export function linkPath(
+  from: Box,
+  fromTable: DbDiagramTable,
+  to: Box,
+  toTable: DbDiagramTable,
+  link: DbDiagramLink
+): { d: string; end: Point; toRight: boolean } {
   const y1 = rowY(from, fromTable, link.columns[0])
   const y2 = rowY(to, toTable, link.refColumns[0])
   if (from === to || tableKey(link.from) === tableKey(link.to)) {
@@ -178,7 +213,8 @@ export function linkPath(from: Box, fromTable: DbDiagramTable, to: Box, toTable:
   const rightOfIt = to.x >= from.x + from.w
   if (!leftOfIt && !rightOfIt) {
     // Same column: out and back in by the right
-    const x1 = from.x + from.w, x2 = to.x + to.w
+    const x1 = from.x + from.w,
+      x2 = to.x + to.w
     const out = Math.max(x1, x2) + 50
     return { d: `M ${x1} ${y1} C ${out} ${y1}, ${out} ${y2}, ${x2} ${y2}`, end: { x: x2, y: y2 }, toRight: false }
   }
@@ -196,7 +232,16 @@ export function arrowHead(end: Point, toRight: boolean): string {
   return `M ${end.x} ${end.y} L ${end.x + 8 * s} ${end.y - 4.5} L ${end.x + 8 * s} ${end.y + 4.5} Z`
 }
 
-export interface SvgColors { canvas: string; card: string; header: string; line: string; text: string; muted: string; key: string; link: string }
+export interface SvgColors {
+  canvas: string
+  card: string
+  header: string
+  line: string
+  text: string
+  muted: string
+  key: string
+  link: string
+}
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
@@ -212,7 +257,8 @@ export function diagramSvg(tables: DbDiagramTable[], positions: Record<string, P
     `<rect x="${all.x - m}" y="${all.y - m}" width="${all.w + m * 2 + 50}" height="${all.h + m * 2}" fill="${c.canvas}"/>`
   ]
   for (const l of links) {
-    const a = boxes.get(tableKey(l.from)), b = boxes.get(tableKey(l.to))
+    const a = boxes.get(tableKey(l.from)),
+      b = boxes.get(tableKey(l.to))
     if (!a || !b) continue
     const p = linkPath(a, byKey.get(tableKey(l.from))!, b, byKey.get(tableKey(l.to))!, l)
     parts.push(`<path d="${p.d}" fill="none" stroke="${c.link}" stroke-width="1.5"/>`, `<path d="${arrowHead(p.end, p.toRight)}" fill="${c.link}"/>`)

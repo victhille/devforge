@@ -32,16 +32,16 @@ function visibleEntries(entries: FileEntry[]): FileEntry[] {
 // ─── Node ─────────────────────────────────────────────────────────────────────
 
 interface NodeProps {
-  entry:    FileEntry
-  depth:    number
-  dirs:     Map<string, FileEntry[]>
+  entry: FileEntry
+  depth: number
+  dirs: Map<string, FileEntry[]>
   expanded: Set<string>
   onToggle: (path: string) => void
-  /** v3.5.1: a file opens in the preview */
+  /** A file opens in the preview */
   selected: string | null
   onSelect: (entry: FileEntry) => void
   emptyLabel: string
-  /** v3.7: what Git says of the files (none outside a repository) */
+  /** What Git says of the files (none outside a repository) */
   git?: GitTree
 }
 
@@ -53,13 +53,13 @@ interface GitTree {
 }
 
 function TreeNode({ entry, depth, dirs, expanded, onToggle, selected, onSelect, emptyLabel, git }: NodeProps) {
-  const isOpen   = expanded.has(entry.path)
-  const loaded   = dirs.get(entry.path)
+  const isOpen = expanded.has(entry.path)
+  const loaded = dirs.get(entry.path)
   const children = loaded && git ? git.withDeleted(entry.path, visibleEntries(loaded)) : loaded && visibleEntries(loaded)
-  const rel      = git?.relOf(entry.path)
-  const status   = git && !entry.isDirectory ? git.states[rel!] : undefined
+  const rel = git?.relOf(entry.path)
+  const status = git && !entry.isDirectory ? git.states[rel!] : undefined
   const changedDir = !!git && entry.isDirectory && holdsChange(git.states, rel!)
-  const Icon     = entry.isDirectory ? (isOpen ? FolderOpen : Folder) : File
+  const Icon = entry.isDirectory ? (isOpen ? FolderOpen : Folder) : File
   const activate = () => (entry.isDirectory ? onToggle(entry.path) : onSelect(entry))
 
   return (
@@ -68,7 +68,7 @@ function TreeNode({ entry, depth, dirs, expanded, onToggle, selected, onSelect, 
         onClick={activate}
         {...pressable(activate)}
         role="button"
-        {...(entry.isDirectory ? { 'aria-expanded': isOpen } : { 'aria-current': selected === entry.path ? 'true' as const : undefined })}
+        {...(entry.isDirectory ? { 'aria-expanded': isOpen } : { 'aria-current': selected === entry.path ? ('true' as const) : undefined })}
         style={indent(depth)}
         className={cn(ROW, 'cursor-default hover:bg-hover hover:text-fg', selected === entry.path ? 'bg-accent-soft text-fg' : 'text-fg-secondary')}
       >
@@ -80,31 +80,69 @@ function TreeNode({ entry, depth, dirs, expanded, onToggle, selected, onSelect, 
         {status && <GitLetter status={status} />}
         {changedDir && <span aria-hidden data-testid="dir-changed" className="ml-auto size-1.5 shrink-0 rounded-full bg-warning" />}
       </div>
-      {entry.isDirectory && isOpen && children && (
-        children.length === 0 ? (
-          <div className="flex h-7 items-center text-xs italic text-fg-muted" style={{ paddingLeft: 30 + (depth + 1) * 18 }}>{emptyLabel}</div>
-        ) : children.map(child => (
-          <TreeNode key={child.path} entry={child} depth={depth + 1} dirs={dirs} expanded={expanded} onToggle={onToggle} selected={selected} onSelect={onSelect} emptyLabel={emptyLabel} git={git} />
-        ))
-      )}
+      {entry.isDirectory &&
+        isOpen &&
+        children &&
+        (children.length === 0 ? (
+          <div className="flex h-7 items-center text-xs italic text-fg-muted" style={{ paddingLeft: 30 + (depth + 1) * 18 }}>
+            {emptyLabel}
+          </div>
+        ) : (
+          children.map(child => (
+            <TreeNode
+              key={child.path}
+              entry={child}
+              depth={depth + 1}
+              dirs={dirs}
+              expanded={expanded}
+              onToggle={onToggle}
+              selected={selected}
+              onSelect={onSelect}
+              emptyLabel={emptyLabel}
+              git={git}
+            />
+          ))
+        ))}
     </>
   )
 }
 
 /** "Modified only": the changed files as their own tree, every folder open */
-function ChangedTreeNode({ node, depth, selected, onSelect }: { node: ChangedNode; depth: number; selected: string | null; onSelect: (rel: string, status: FileChangeStatus) => void }) {
+function ChangedTreeNode({
+  node,
+  depth,
+  selected,
+  onSelect
+}: {
+  node: ChangedNode
+  depth: number
+  selected: string | null
+  onSelect: (rel: string, status: FileChangeStatus) => void
+}) {
   const status = node.status
   const open = () => status && onSelect(node.path, status)
   return (
     <>
-      <div {...(status ? { onClick: open, ...pressable(open), role: 'button', 'aria-current': selected === node.path ? 'true' as const : undefined } : {})}
+      <div
+        {...(status ? { onClick: open, ...pressable(open), role: 'button', 'aria-current': selected === node.path ? ('true' as const) : undefined } : {})}
         style={indent(depth)}
-        className={cn(ROW, status ? 'cursor-default text-fg-secondary hover:bg-hover hover:text-fg' : 'text-fg-secondary', selected === node.path && 'bg-accent-soft text-fg')}>
-        {status ? <File size={14} strokeWidth={1.8} aria-hidden className="shrink-0 text-fg-secondary" /> : <FolderOpen size={14} strokeWidth={1.8} aria-hidden className="shrink-0 text-fg-secondary" />}
+        className={cn(
+          ROW,
+          status ? 'cursor-default text-fg-secondary hover:bg-hover hover:text-fg' : 'text-fg-secondary',
+          selected === node.path && 'bg-accent-soft text-fg'
+        )}
+      >
+        {status ? (
+          <File size={14} strokeWidth={1.8} aria-hidden className="shrink-0 text-fg-secondary" />
+        ) : (
+          <FolderOpen size={14} strokeWidth={1.8} aria-hidden className="shrink-0 text-fg-secondary" />
+        )}
         <span className={cn('min-w-0 flex-1 truncate', status && TONE[status])}>{node.name}</span>
         {status && <GitLetter status={status} />}
       </div>
-      {node.children.map(c => <ChangedTreeNode key={c.path} node={c} depth={depth + 1} selected={selected} onSelect={onSelect} />)}
+      {node.children.map(c => (
+        <ChangedTreeNode key={c.path} node={c} depth={depth + 1} selected={selected} onSelect={onSelect} />
+      ))}
     </>
   )
 }
@@ -112,38 +150,62 @@ function ChangedTreeNode({ node, depth, selected, onSelect }: { node: ChangedNod
 // ─── Tree ─────────────────────────────────────────────────────────────────────
 
 /**
- * Lazy-loaded directory tree rooted at `rootPath`, a file opened beside it (v3.5.1).
+ * Lazy-loaded directory tree rooted at `rootPath`, a file opened beside it.
  * As in the mock-up: the tree in a card on the left (under `header`: the branch and its actions),
  * the file on the right, `below` it (the commit). `open`: a file of the project (relative path)
  * to show at once, at a line (a failed test's place). `rev` reads Git's view again (after a commit);
  * `stats`: the lines added and removed of each changed file.
  */
-export default function FileTree({ rootPath, ide, open, header, below, rev = 0, stats }: {
-  rootPath: string; ide?: DefaultIDE; open?: { path: string; line?: number }
-  header?: ReactNode; below?: ReactNode; rev?: number
+export default function FileTree({
+  rootPath,
+  ide,
+  open,
+  header,
+  below,
+  rev = 0,
+  stats
+}: {
+  rootPath: string
+  ide?: DefaultIDE
+  open?: { path: string; line?: number }
+  header?: ReactNode
+  below?: ReactNode
+  rev?: number
   stats?: Record<string, { add: number | null; del: number | null }>
 }) {
   const { t } = useI18n()
   const f = t.files
-  const [file,     setFile]     = useState<FileEntry | null>(null)
-  /** v3.6: the line a search result opens at */
-  const [line,     setLine]     = useState<number | undefined>(undefined)
+  const [file, setFile] = useState<FileEntry | null>(null)
+  /** The line a search result opens at */
+  const [line, setLine] = useState<number | undefined>(undefined)
   const search = useProjectSearch(rootPath)
   const sep = rootPath.includes('\\') ? '\\' : '/'
   function openHit(hit: SearchHit) {
     const name = hit.path.split('/').pop() ?? hit.path
-    setFile({ name, path: [rootPath, ...hit.path.split('/')].join(sep), isDirectory: false, size: null, extension: name.includes('.') ? name.split('.').pop()! : null })
+    setFile({
+      name,
+      path: [rootPath, ...hit.path.split('/')].join(sep),
+      isDirectory: false,
+      size: null,
+      extension: name.includes('.') ? name.split('.').pop()! : null
+    })
     setLine(hit.line)
   }
-  const pickFile = (entry: FileEntry) => { setFile(entry); setLine(undefined) }
-  const [dirs,     setDirs]     = useState<Map<string, FileEntry[]>>(new Map())
-  /** v3.7: Git's view of the files, null outside a repository */
-  const [states,   setStates]   = useState<GitStates | null>(null)
+  const pickFile = (entry: FileEntry) => {
+    setFile(entry)
+    setLine(undefined)
+  }
+  const [dirs, setDirs] = useState<Map<string, FileEntry[]>>(new Map())
+  /** Git's view of the files, null outside a repository */
+  const [states, setStates] = useState<GitStates | null>(null)
   const [onlyChanged, setOnlyChanged] = useState(false)
   /** The preview starts on the changes (a file opened from "Modified only") */
   const [onChanges, setOnChanges] = useState(false)
   const loadStates = useCallback(() => {
-    window.devforge.git.fileStates(rootPath).then(r => setStates(r.inRepo ? r.files : null)).catch(() => setStates(null))
+    window.devforge.git
+      .fileStates(rootPath)
+      .then(r => setStates(r.inRepo ? r.files : null))
+      .catch(() => setStates(null))
   }, [rootPath])
   const [expanded, setExpanded] = useState<Set<string>>(new Set([rootPath]))
 
@@ -160,9 +222,13 @@ export default function FileTree({ rootPath, ide, open, header, below, rev = 0, 
     loadStates()
   }, [rootPath, load, loadStates])
 
-  useEffect(() => { reset() }, [reset])
+  useEffect(() => {
+    reset()
+  }, [reset])
   // A commit, a pull…: Git's view again, the tree as it is
-  useEffect(() => { if (rev) loadStates() }, [rev, loadStates])
+  useEffect(() => {
+    if (rev) loadStates()
+  }, [rev, loadStates])
 
   // After the reset above: a file asked from outside (a failed test's place)
   const openPath = open?.path
@@ -170,34 +236,71 @@ export default function FileTree({ rootPath, ide, open, header, below, rev = 0, 
   useEffect(() => {
     if (!openPath) return
     const name = openPath.split('/').pop() ?? openPath
-    setFile({ name, path: [rootPath, ...openPath.split('/')].join(sep), isDirectory: false, size: null, extension: name.includes('.') ? name.split('.').pop()! : null })
+    setFile({
+      name,
+      path: [rootPath, ...openPath.split('/')].join(sep),
+      isDirectory: false,
+      size: null,
+      extension: name.includes('.') ? name.split('.').pop()! : null
+    })
     setLine(openLine)
   }, [openPath, openLine, rootPath, sep])
 
   function toggle(path: string) {
     if (expanded.has(path)) {
-      setExpanded(prev => { const n = new Set(prev); n.delete(path); return n })
+      setExpanded(prev => {
+        const n = new Set(prev)
+        n.delete(path)
+        return n
+      })
     } else {
       if (!dirs.has(path)) load(path)
       setExpanded(prev => new Set(prev).add(path))
     }
   }
 
-  const relOf = (path: string) => path.slice(rootPath.length + 1).split(sep).join('/')
-  const gitTree: GitTree | undefined = states ? {
-    states, relOf,
-    withDeleted: (dirPath, entries) => {
-      const dir = dirPath === rootPath ? '' : relOf(dirPath)
-      const here = new Set(entries.map(e => relOf(e.path)))
-      const gone = Object.entries(states).filter(([p, s]) => s === 'deleted' && !here.has(p) && (p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '') === dir)
-      return [...entries, ...gone.map(([p]) => { const name = p.split('/').pop()!; return { name, path: [rootPath, ...p.split('/')].join(sep), isDirectory: false, size: null, extension: name.includes('.') ? name.split('.').pop()! : null } })]
-    }
-  } : undefined
+  const relOf = (path: string) =>
+    path
+      .slice(rootPath.length + 1)
+      .split(sep)
+      .join('/')
+  const gitTree: GitTree | undefined = states
+    ? {
+        states,
+        relOf,
+        withDeleted: (dirPath, entries) => {
+          const dir = dirPath === rootPath ? '' : relOf(dirPath)
+          const here = new Set(entries.map(e => relOf(e.path)))
+          const gone = Object.entries(states).filter(
+            ([p, s]) => s === 'deleted' && !here.has(p) && (p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '') === dir
+          )
+          return [
+            ...entries,
+            ...gone.map(([p]) => {
+              const name = p.split('/').pop()!
+              return {
+                name,
+                path: [rootPath, ...p.split('/')].join(sep),
+                isDirectory: false,
+                size: null,
+                extension: name.includes('.') ? name.split('.').pop()! : null
+              }
+            })
+          ]
+        }
+      }
+    : undefined
   const root = gitTree ? gitTree.withDeleted(rootPath, visibleEntries(dirs.get(rootPath) ?? [])) : visibleEntries(dirs.get(rootPath) ?? [])
   const changedCount = states ? Object.keys(states).length : 0
   const openChanged = (rel: string) => {
     const name = rel.split('/').pop() ?? rel
-    setFile({ name, path: [rootPath, ...rel.split('/')].join(sep), isDirectory: false, size: null, extension: name.includes('.') ? name.split('.').pop()! : null })
+    setFile({
+      name,
+      path: [rootPath, ...rel.split('/')].join(sep),
+      isDirectory: false,
+      size: null,
+      extension: name.includes('.') ? name.split('.').pop()! : null
+    })
     setLine(undefined)
     setOnChanges(true)
   }
@@ -208,41 +311,93 @@ export default function FileTree({ rootPath, ide, open, header, below, rev = 0, 
       <Card className="flex h-[640px] min-h-0 min-w-0 flex-col gap-2.5 p-3.5 lg:col-span-4">
         {header}
         <div className="flex items-center gap-1.5">
-          {/* v3.7: the tree reduced to what changed since the last commit */}
+          {/* The tree reduced to what changed since the last commit */}
           {states && (changedCount > 0 || onlyChanged) && (
-            <button aria-pressed={onlyChanged} onClick={() => setOnlyChanged(v => !v)}
-              className={cn('flex h-7.5 items-center gap-1.5 rounded-md border px-2.5 text-sm font-medium',
-                onlyChanged ? 'border-warning/50 bg-warning-soft text-warning' : 'border-line text-fg-secondary hover:text-fg')}>
+            <button
+              aria-pressed={onlyChanged}
+              onClick={() => setOnlyChanged(v => !v)}
+              className={cn(
+                'flex h-7.5 items-center gap-1.5 rounded-md border px-2.5 text-sm font-medium',
+                onlyChanged ? 'border-warning/50 bg-warning-soft text-warning' : 'border-line text-fg-secondary hover:text-fg'
+              )}
+            >
               <GitCompare size={13} aria-hidden /> {f.onlyChanged.replace('{n}', String(changedCount))}
             </button>
           )}
           <span className="flex-1" />
-          <IconButton size="sm" title={f.refresh} onClick={reset}><RefreshCw size={13} /></IconButton>
+          <IconButton size="sm" title={f.refresh} onClick={reset}>
+            <RefreshCw size={13} />
+          </IconButton>
         </div>
-        <div className="-mx-3.5 border-y border-line-subtle"><SearchBar s={search} /></div>
+        <div className="-mx-3.5 border-y border-line-subtle">
+          <SearchBar s={search} />
+        </div>
         <div className="-mx-1.5 min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-1.5">
-          {search.active
-            ? <SearchResults s={search} selected={file && line ? { path: file.path.slice(rootPath.length + 1).split(sep).join('/'), line } : null} onOpen={openHit} />
-            : onlyChanged && states
-              ? <>
-                {changedTree(states).map(n => <ChangedTreeNode key={n.path} node={n} depth={0} selected={file ? relOf(file.path) : null} onSelect={rel => openChanged(rel)} />)}
-                {changedCount === 0 && <p className="px-2 py-3 text-sm text-fg-muted">{f.noChanges}</p>}
-              </>
-              : <>
-                {root.map(entry => (
-                  <TreeNode key={entry.path} entry={entry} depth={0} dirs={dirs} expanded={expanded} onToggle={toggle} selected={file?.path ?? null} onSelect={e => { pickFile(e); setOnChanges(false) }} emptyLabel={f.emptyDir} git={gitTree} />
-                ))}
-                {root.length === 0 && <p className="px-2 py-3 text-sm text-fg-muted">{f.empty}</p>}
-              </>}
+          {search.active ? (
+            <SearchResults
+              s={search}
+              selected={
+                file && line
+                  ? {
+                      path: file.path
+                        .slice(rootPath.length + 1)
+                        .split(sep)
+                        .join('/'),
+                      line
+                    }
+                  : null
+              }
+              onOpen={openHit}
+            />
+          ) : onlyChanged && states ? (
+            <>
+              {changedTree(states).map(n => (
+                <ChangedTreeNode key={n.path} node={n} depth={0} selected={file ? relOf(file.path) : null} onSelect={rel => openChanged(rel)} />
+              ))}
+              {changedCount === 0 && <p className="px-2 py-3 text-sm text-fg-muted">{f.noChanges}</p>}
+            </>
+          ) : (
+            <>
+              {root.map(entry => (
+                <TreeNode
+                  key={entry.path}
+                  entry={entry}
+                  depth={0}
+                  dirs={dirs}
+                  expanded={expanded}
+                  onToggle={toggle}
+                  selected={file?.path ?? null}
+                  onSelect={e => {
+                    pickFile(e)
+                    setOnChanges(false)
+                  }}
+                  emptyLabel={f.emptyDir}
+                  git={gitTree}
+                />
+              ))}
+              {root.length === 0 && <p className="px-2 py-3 text-sm text-fg-muted">{f.empty}</p>}
+            </>
+          )}
         </div>
       </Card>
       <div className="flex min-h-0 min-w-0 flex-col gap-5 lg:col-span-8 lg:h-[640px]">
-        {file
-          ? <Card className="flex h-[480px] min-h-0 flex-1 overflow-hidden lg:h-auto">
-            <FilePreview file={file} line={line} root={rootPath} ide={ide} onClose={() => setFile(null)}
-              change={states?.[relOf(file.path)]} rel={relOf(file.path)} startOnChanges={onChanges} stats={stats?.[relOf(file.path)]} />
+        {file ? (
+          <Card className="flex h-[480px] min-h-0 flex-1 overflow-hidden lg:h-auto">
+            <FilePreview
+              file={file}
+              line={line}
+              root={rootPath}
+              ide={ide}
+              onClose={() => setFile(null)}
+              change={states?.[relOf(file.path)]}
+              rel={relOf(file.path)}
+              startOnChanges={onChanges}
+              stats={stats?.[relOf(file.path)]}
+            />
           </Card>
-          : <Card className="flex min-h-40 flex-1 items-center justify-center p-6 text-center text-sm text-fg-muted">{f.pickFile}</Card>}
+        ) : (
+          <Card className="flex min-h-40 flex-1 items-center justify-center p-6 text-center text-sm text-fg-muted">{f.pickFile}</Card>
+        )}
         {below}
       </div>
     </div>

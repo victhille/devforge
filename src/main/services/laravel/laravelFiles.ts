@@ -25,16 +25,46 @@ const fkOf = (relation: string) => `${snake(relation)}_id`
 
 // ─── Reading ──────────────────────────────────────────────────────────────────
 
-export interface Column { name: string; type: SfFieldType | 'fk'; nullable: boolean; unique: boolean; length?: number; precision?: number; scale?: number }
+export interface Column {
+  name: string
+  type: SfFieldType | 'fk'
+  nullable: boolean
+  unique: boolean
+  length?: number
+  precision?: number
+  scale?: number
+}
 
 const COLUMN_TYPE: Record<string, SfFieldType> = {
-  string: 'string', char: 'string', uuid: 'string', ulid: 'string', ipAddress: 'string',
-  text: 'text', mediumText: 'text', longText: 'text', tinyText: 'text',
-  integer: 'integer', bigInteger: 'integer', smallInteger: 'integer', tinyInteger: 'integer', mediumInteger: 'integer',
-  unsignedInteger: 'integer', unsignedBigInteger: 'integer', unsignedSmallInteger: 'integer', unsignedTinyInteger: 'integer',
-  float: 'float', double: 'float', decimal: 'decimal', boolean: 'boolean',
-  date: 'date', dateTime: 'datetime', dateTimeTz: 'datetime', timestamp: 'datetime', timestampTz: 'datetime',
-  json: 'json', jsonb: 'json'
+  string: 'string',
+  char: 'string',
+  uuid: 'string',
+  ulid: 'string',
+  ipAddress: 'string',
+  text: 'text',
+  mediumText: 'text',
+  longText: 'text',
+  tinyText: 'text',
+  integer: 'integer',
+  bigInteger: 'integer',
+  smallInteger: 'integer',
+  tinyInteger: 'integer',
+  mediumInteger: 'integer',
+  unsignedInteger: 'integer',
+  unsignedBigInteger: 'integer',
+  unsignedSmallInteger: 'integer',
+  unsignedTinyInteger: 'integer',
+  float: 'float',
+  double: 'float',
+  decimal: 'decimal',
+  boolean: 'boolean',
+  date: 'date',
+  dateTime: 'datetime',
+  dateTimeTz: 'datetime',
+  timestamp: 'datetime',
+  timestampTz: 'datetime',
+  json: 'json',
+  jsonb: 'json'
 }
 
 /** The part of a migration that runs on "migrate": the body of up() */
@@ -53,10 +83,15 @@ export function readMigrations(files: string[]): Map<string, Column[]> {
   const tables = new Map<string, Column[]>()
   for (const php of files) {
     const up = upBody(php)
-    for (const m of up.matchAll(/Schema::(create|table|drop|dropIfExists)\(\s*'(\w+)'(?:\s*,\s*function\s*\([^)]*\)\s*(?::\s*void\s*)?\{([\s\S]*?)\n\s*\}\s*\))?/g)) {
+    for (const m of up.matchAll(
+      /Schema::(create|table|drop|dropIfExists)\(\s*'(\w+)'(?:\s*,\s*function\s*\([^)]*\)\s*(?::\s*void\s*)?\{([\s\S]*?)\n\s*\}\s*\))?/g
+    )) {
       const [, op, table, body = ''] = m
-      if (op === 'drop' || op === 'dropIfExists') { tables.delete(table); continue }
-      const cols = op === 'create' ? [] : tables.get(table) ?? []
+      if (op === 'drop' || op === 'dropIfExists') {
+        tables.delete(table)
+        continue
+      }
+      const cols = op === 'create' ? [] : (tables.get(table) ?? [])
       for (const c of body.matchAll(/\$table->(\w+)\(([^;]*?)\)((?:->\w+\([^;]*?\))*)\s*;/g)) {
         const [, method, rawArgs, chain] = c
         const args = [...rawArgs.matchAll(/'(\w+)'|\[([^\]]*)\]|(\d+)/g)]
@@ -65,11 +100,22 @@ export function readMigrations(files: string[]): Map<string, Column[]> {
         const unique = /->unique\(/.test(chain)
         if (method === 'dropColumn' || method === 'dropConstrainedForeignId' || method === 'dropForeign') {
           const names = args[0]?.[2] ? [...args[0][2].matchAll(/'(\w+)'/g)].map(x => x[1]) : name ? [name] : []
-          for (const n of names) { const i = cols.findIndex(x => x.name === n); if (i >= 0 && method !== 'dropForeign') cols.splice(i, 1) }
+          for (const n of names) {
+            const i = cols.findIndex(x => x.name === n)
+            if (i >= 0 && method !== 'dropForeign') cols.splice(i, 1)
+          }
           continue
         }
-        if (method === 'unique' && name) { const col = cols.find(x => x.name === name); if (col) col.unique = true; continue }
-        if (method === 'renameColumn' && name && args[1]?.[1]) { const col = cols.find(x => x.name === name); if (col) col.name = args[1][1]; continue }
+        if (method === 'unique' && name) {
+          const col = cols.find(x => x.name === name)
+          if (col) col.unique = true
+          continue
+        }
+        if (method === 'renameColumn' && name && args[1]?.[1]) {
+          const col = cols.find(x => x.name === name)
+          if (col) col.name = args[1][1]
+          continue
+        }
         if (!name) continue
         if (method === 'foreignId' || method === 'foreignIdFor' || ((method === 'unsignedBigInteger' || method === 'bigInteger') && name.endsWith('_id'))) {
           cols.push({ name, type: 'fk', nullable, unique })
@@ -79,7 +125,10 @@ export function readMigrations(files: string[]): Map<string, Column[]> {
         if (!type) continue
         const nums = args.filter(a => a[3]).map(a => Number(a[3]))
         cols.push({
-          name, type, nullable, unique,
+          name,
+          type,
+          nullable,
+          unique,
           ...(type === 'string' && nums[0] ? { length: nums[0] } : {}),
           ...(type === 'decimal' ? { precision: nums[0] ?? 8, scale: nums[1] ?? 2 } : {})
         })
@@ -101,7 +150,9 @@ export interface ModelInfo {
 export function readModel(name: string, file: string, php: string): ModelInfo {
   const table = php.match(/protected\s+\$table\s*=\s*'(\w+)'/)?.[1] ?? tableOf(name)
   const relations: ModelInfo['relations'] = []
-  for (const m of php.matchAll(/function\s+(\w+)\s*\(\s*\)\s*(?::\s*\\?[\w\\]+\s*)?\{\s*return\s+\$this->(belongsTo|hasMany|hasOne|belongsToMany)\(\s*\\?(?:[\w\\]+\\)?(\w+)::class\s*((?:,\s*'[^']*'\s*)*)\)/g)) {
+  for (const m of php.matchAll(
+    /function\s+(\w+)\s*\(\s*\)\s*(?::\s*\\?[\w\\]+\s*)?\{\s*return\s+\$this->(belongsTo|hasMany|hasOne|belongsToMany)\(\s*\\?(?:[\w\\]+\\)?(\w+)::class\s*((?:,\s*'[^']*'\s*)*)\)/g
+  )) {
     relations.push({ method: m[1], kind: m[2] as ModelInfo['relations'][number]['kind'], target: m[3], args: [...m[4].matchAll(/'([^']*)'/g)].map(x => x[1]) })
   }
   return { name, file, table, relations }
@@ -130,18 +181,30 @@ export function toEntities(models: ModelInfo[], tables: Map<string, Column[]>): 
         kind = r.kind === 'hasMany' ? 'OneToMany' : r.kind === 'hasOne' ? 'OneToOne' : 'ManyToMany'
       }
       // The other side: a method of the target pointing back here with the same key
-      const back = target.relations.find(x => x.target === model.name && x.method !== r.method && (
-        r.kind === 'belongsTo' ? (x.kind === 'hasMany' || x.kind === 'hasOne') && (x.args[0] ?? fkOf(model.name)) === fk
-          : r.kind === 'belongsToMany' ? x.kind === 'belongsToMany'
-            : x.kind === 'belongsTo' && (x.args[0] ?? fkOf(x.method)) === (r.args[0] ?? fkOf(model.name))))
+      const back = target.relations.find(
+        x =>
+          x.target === model.name &&
+          x.method !== r.method &&
+          (r.kind === 'belongsTo'
+            ? (x.kind === 'hasMany' || x.kind === 'hasOne') && (x.args[0] ?? fkOf(model.name)) === fk
+            : r.kind === 'belongsToMany'
+              ? x.kind === 'belongsToMany'
+              : x.kind === 'belongsTo' && (x.args[0] ?? fkOf(x.method)) === (r.args[0] ?? fkOf(model.name)))
+      )
       // A hasOne is the inverse side of a OneToOne: shown from the side that holds the key
       if (r.kind === 'hasOne' && back) continue
       relations.push({ name: r.method, kind, target: r.target, inverse: back?.method ?? null, nullable, ...(fk ? { fk } : {}) })
     }
-    const fields: SfField[] = cols.filter(c => c.type !== 'fk' && !fks.has(c.name)).map(c => ({
-      name: c.name, type: c.type as SfFieldType, nullable: c.nullable, unique: c.unique,
-      ...(c.length ? { length: c.length } : {}), ...(c.precision !== undefined ? { precision: c.precision, scale: c.scale } : {})
-    }))
+    const fields: SfField[] = cols
+      .filter(c => c.type !== 'fk' && !fks.has(c.name))
+      .map(c => ({
+        name: c.name,
+        type: c.type as SfFieldType,
+        nullable: c.nullable,
+        unique: c.unique,
+        ...(c.length ? { length: c.length } : {}),
+        ...(c.precision !== undefined ? { precision: c.precision, scale: c.scale } : {})
+      }))
     return { name: model.name, table: model.table, file: model.file, fields, relations, apiResource: false }
   })
 }
@@ -161,7 +224,11 @@ export function parsePretend(out: string): Map<string, string[]> {
   let current: string | null = null
   for (const line of out.split(/\r?\n/)) {
     const head = line.match(/^\s*(\d{4}_\d{2}_\d{2}_\d{6}_\w+)\s*\.*\s*$/)
-    if (head) { current = head[1]; sql.set(current, []); continue }
+    if (head) {
+      current = head[1]
+      sql.set(current, [])
+      continue
+    }
     const q = line.match(/^\s*⇂\s+(.+?)\s*$/)
     if (q && current) sql.get(current)!.push(q[1])
   }
@@ -174,17 +241,26 @@ export const migrationLabel = (name: string) => name.replace(/^\d{4}_\d{2}_\d{2}
 // ─── Writing models and migrations ────────────────────────────────────────────
 
 const castOf: Partial<Record<SfFieldType, (f: SfField) => string>> = {
-  decimal: f => `decimal:${f.scale ?? 2}`, boolean: () => 'boolean', date: () => 'date',
-  datetime: () => 'datetime', json: () => 'array', float: () => 'float'
+  decimal: f => `decimal:${f.scale ?? 2}`,
+  boolean: () => 'boolean',
+  date: () => 'date',
+  datetime: () => 'datetime',
+  json: () => 'array',
+  float: () => 'float'
 }
 
 function columnLine(f: SfField): string {
   const n = snake(f.name)
   const call = {
     string: f.length && f.length !== 255 ? `string('${n}', ${f.length})` : `string('${n}')`,
-    text: `text('${n}')`, integer: `integer('${n}')`, float: `double('${n}')`,
-    decimal: `decimal('${n}', ${f.precision ?? 10}, ${f.scale ?? 2})`, boolean: `boolean('${n}')`,
-    date: `date('${n}')`, datetime: `dateTime('${n}')`, json: `json('${n}')`
+    text: `text('${n}')`,
+    integer: `integer('${n}')`,
+    float: `double('${n}')`,
+    decimal: `decimal('${n}', ${f.precision ?? 10}, ${f.scale ?? 2})`,
+    boolean: `boolean('${n}')`,
+    date: `date('${n}')`,
+    datetime: `dateTime('${n}')`,
+    json: `json('${n}')`
   }[f.type]
   return `$table->${call}${f.nullable ? '->nullable()' : ''}${f.unique ? '->unique()' : ''};`
 }
@@ -200,8 +276,7 @@ export interface LinkPlan {
   methods: { model: string; method: string; code: string; uses: string[] }[]
 }
 
-const relMethod = (name: string, type: string, body: string) =>
-  `    public function ${name}(): ${type}\n    {\n        return $this->${body};\n    }\n`
+const relMethod = (name: string, type: string, body: string) => `    public function ${name}(): ${type}\n    {\n        return $this->${body};\n    }\n`
 
 export function planLinks(owner: string, relations: SfRelation[], tableFor: (model: string) => string): LinkPlan {
   const plan: LinkPlan = { keys: [], pivots: [], methods: [] }
@@ -237,11 +312,14 @@ export function planLinks(owner: string, relations: SfRelation[], tableFor: (mod
         const a = `${snake(owner)}_id`
         const b = self ? `${snake(singular(r.name))}_id` : `${snake(T)}_id`
         const pivot = self ? `${snake(owner)}_${snake(r.name)}` : [snake(owner), snake(T)].sort().join('_')
-        plan.pivots.push({ table: pivot, lines: [
-          `$table->foreignId('${a}')->constrained('${tableFor(owner)}')->cascadeOnDelete();`,
-          `$table->foreignId('${b}')->constrained('${tableFor(T)}')->cascadeOnDelete();`,
-          `$table->primary(['${a}', '${b}']);`
-        ] })
+        plan.pivots.push({
+          table: pivot,
+          lines: [
+            `$table->foreignId('${a}')->constrained('${tableFor(owner)}')->cascadeOnDelete();`,
+            `$table->foreignId('${b}')->constrained('${tableFor(T)}')->cascadeOnDelete();`,
+            `$table->primary(['${a}', '${b}']);`
+          ]
+        })
         add(owner, r.name, 'BelongsToMany', `belongsToMany(${T}::class, '${pivot}', '${a}', '${b}')`)
         if (r.inverse) add(T, r.inverse, 'BelongsToMany', `belongsToMany(${owner}::class, '${pivot}', '${b}', '${a}')`)
         break
@@ -263,10 +341,13 @@ export function migrationFile(creates: { table: string; lines: string[] }[], alt
     ...[...alters].reverse().map(a => {
       const keys = a.lines.filter(l => l.includes('foreignId(')).map(l => l.match(/foreignId\('(\w+)'\)/)![1])
       const plain = a.columns.filter(c => !keys.includes(c))
-      return `        Schema::table('${a.table}', function (Blueprint $table) {\n${indent([
-        ...keys.map(k => `$table->dropConstrainedForeignId('${k}');`),
-        ...(plain.length ? [`$table->dropColumn([${plain.map(c => `'${c}'`).join(', ')}]);`] : [])
-      ], 12)}\n        });`
+      return `        Schema::table('${a.table}', function (Blueprint $table) {\n${indent(
+        [
+          ...keys.map(k => `$table->dropConstrainedForeignId('${k}');`),
+          ...(plain.length ? [`$table->dropColumn([${plain.map(c => `'${c}'`).join(', ')}]);`] : [])
+        ],
+        12
+      )}\n        });`
     }),
     ...[...creates].reverse().map(c => `        Schema::dropIfExists('${c.table}');`)
   ].join('\n')
@@ -317,14 +398,18 @@ class ${d.name} extends Model
 
     /** Filled from a form or an API request */
     protected $fillable = [${fillable.map(f => `'${f}'`).join(', ')}];
-${casts.length ? `
+${
+  casts.length
+    ? `
     protected function casts(): array
     {
         return [
 ${casts.join('\n')}
         ];
     }
-` : ''}${own.map(m => '\n' + m.code).join('')}}
+`
+    : ''
+}${own.map(m => '\n' + m.code).join('')}}
 `
 }
 
@@ -333,7 +418,10 @@ function addUses(src: string, uses: string[]): string {
   if (!missing.length) return src
   const lines = missing.map(u => `use ${u};`).join('\n')
   const last = [...src.matchAll(/^use\s+[\w\\]+;\s*$/gm)].pop()
-  if (last) { const at = last.index! + last[0].length; return src.slice(0, at) + '\n' + lines + src.slice(at) }
+  if (last) {
+    const at = last.index! + last[0].length
+    return src.slice(0, at) + '\n' + lines + src.slice(at)
+  }
   return src.replace(/^(namespace\s+[\w\\]+;\s*\n)/m, `$1\n${lines}\n`)
 }
 
@@ -356,7 +444,16 @@ export function extendModel(src: string, fillable: string[], fields: SfField[], 
   if (casts.length) {
     const fn = out.match(/(function\s+casts\(\)\s*:\s*array\s*\{\s*return\s*\[)([\s\S]*?)(\n\s*\];)/)
     if (fn) out = out.replace(fn[0], `${fn[1]}${fn[2].replace(/,?\s*$/, ',')}\n${casts.map(c => '            ' + c).join('\n')}${fn[3]}`)
-    else methods = [{ model: '', method: 'casts', uses: [], code: `    protected function casts(): array\n    {\n        return [\n${casts.map(c => '            ' + c).join('\n')}\n        ];\n    }\n` }, ...methods]
+    else
+      methods = [
+        {
+          model: '',
+          method: 'casts',
+          uses: [],
+          code: `    protected function casts(): array\n    {\n        return [\n${casts.map(c => '            ' + c).join('\n')}\n        ];\n    }\n`
+        },
+        ...methods
+      ]
   }
   if (methods.length) {
     const end = out.lastIndexOf('}')
@@ -383,8 +480,15 @@ const ACTION: Record<SfOperation, string> = { list: 'index', show: 'show', creat
 function rules(f: { name: string; type: SfFieldType | 'fk'; nullable: boolean; unique: boolean; length?: number; target?: string }, table: string): string {
   const base = f.nullable ? `'nullable'` : '$required'
   const type = {
-    string: [`'string'`, `'max:${f.length ?? 255}'`], text: [`'string'`], integer: [`'integer'`], float: [`'numeric'`],
-    decimal: [`'numeric'`], boolean: [`'boolean'`], date: [`'date'`], datetime: [`'date'`], json: [`'array'`],
+    string: [`'string'`, `'max:${f.length ?? 255}'`],
+    text: [`'string'`],
+    integer: [`'integer'`],
+    float: [`'numeric'`],
+    decimal: [`'numeric'`],
+    boolean: [`'boolean'`],
+    date: [`'date'`],
+    datetime: [`'date'`],
+    json: [`'array'`],
     fk: [`'integer'`, `'exists:${f.target},id'`]
   }[f.type]
   const unique = f.unique ? [`Rule::unique('${table}', '${f.name}')->ignore($id)`] : []
@@ -397,22 +501,29 @@ export function controllerFile(e: SfEntity, table: string, ops: SfOperation[], h
   const has = (o: SfOperation) => ops.includes(o)
   const { input } = apiFields(e, hidden)
   const writes = has('create') || has('update')
-  const fieldRules = writes ? [
-    ...e.fields.filter(f => input.includes(f.name)).map(f => rules(f, table)),
-    ...e.relations.filter(r => r.fk && input.includes(r.fk)).map(r => rules({ name: r.fk!, type: 'fk', nullable: r.nullable, unique: r.kind === 'OneToOne', target: tableFor(r.target) }, table))
-  ] : []
+  const fieldRules = writes
+    ? [
+        ...e.fields.filter(f => input.includes(f.name)).map(f => rules(f, table)),
+        ...e.relations
+          .filter(r => r.fk && input.includes(r.fk))
+          .map(r => rules({ name: r.fk!, type: 'fk', nullable: r.nullable, unique: r.kind === 'OneToOne', target: tableFor(r.target) }, table))
+      ]
+    : []
   const unique = fieldRules.some(r => r.includes('Rule::unique'))
   const M = e.name
   const methods = [
-    has('list') && `    public function index(): JsonResponse
+    has('list') &&
+      `    public function index(): JsonResponse
     {
         return response()->json(${M}::query()->orderBy('id')->get()->makeHidden(self::HIDDEN));
     }`,
-    has('show') && `    public function show(string $id): JsonResponse
+    has('show') &&
+      `    public function show(string $id): JsonResponse
     {
         return response()->json($this->find($id)->makeHidden(self::HIDDEN));
     }`,
-    has('create') && `    public function store(Request $request): JsonResponse
+    has('create') &&
+      `    public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), $this->rules(null));
         if ($validator->fails()) {
@@ -423,7 +534,8 @@ export function controllerFile(e: SfEntity, table: string, ops: SfOperation[], h
 
         return response()->json($item->refresh()->makeHidden(self::HIDDEN), 201);
     }`,
-    has('update') && `    public function update(Request $request, string $id): JsonResponse
+    has('update') &&
+      `    public function update(Request $request, string $id): JsonResponse
     {
         $item = $this->find($id);
         $validator = Validator::make($request->all(), $this->rules($item->id));
@@ -434,13 +546,15 @@ export function controllerFile(e: SfEntity, table: string, ops: SfOperation[], h
 
         return response()->json($item->refresh()->makeHidden(self::HIDDEN));
     }`,
-    has('delete') && `    public function destroy(string $id): JsonResponse
+    has('delete') &&
+      `    public function destroy(string $id): JsonResponse
     {
         $this->find($id)->delete();
 
         return response()->json(null, 204);
     }`,
-    writes && `    /** Required to create; to update, only what is sent is checked */
+    writes &&
+      `    /** Required to create; to update, only what is sent is checked */
     private function rules(?int $id): array
     {
         $required = $id === null ? 'required' : 'sometimes';
@@ -449,7 +563,8 @@ export function controllerFile(e: SfEntity, table: string, ops: SfOperation[], h
 ${fieldRules.join('\n')}
         ];
     }`,
-    (has('show') || has('update') || has('delete')) && `    /** The record behind the id of the URL, or a 404 */
+    (has('show') || has('update') || has('delete')) &&
+      `    /** The record behind the id of the URL, or a 404 */
     private function find(string $id): ${M}
     {
         abort_unless(ctype_digit($id), 404);
@@ -481,8 +596,12 @@ ${methods.join('\n\n')}
 
 /** DevForge's block of routes/api.php: one apiResource per exposed model */
 export function routesBlock(routes: { entity: string; ops: SfOperation[] }[]): string {
-  const lines = routes.filter(r => r.ops.length).map(r =>
-    `Route::apiResource('${apiPath(r.entity).replace(/^\/api\//, '')}', \\App\\Http\\Controllers\\Api\\${r.entity}Controller::class)->only([${r.ops.map(o => `'${ACTION[o]}'`).join(', ')}]);`)
+  const lines = routes
+    .filter(r => r.ops.length)
+    .map(
+      r =>
+        `Route::apiResource('${apiPath(r.entity).replace(/^\/api\//, '')}', \\App\\Http\\Controllers\\Api\\${r.entity}Controller::class)->only([${r.ops.map(o => `'${ACTION[o]}'`).join(', ')}]);`
+    )
   return [ROUTES_START, ...lines, ROUTES_END].join('\n')
 }
 
@@ -500,17 +619,24 @@ function fakeFor(f: SfField): string | null {
   const php = fakerFor(f)?.replace(/self::faker\(\)->/g, 'fake()->')
   if (php) return php
   switch (f.type) {
-    case 'boolean': return 'fake()->boolean()'
-    case 'date': return `fake()->date()`
-    case 'datetime': return 'fake()->dateTimeBetween(\'-1 year\')'
-    case 'json': return '[]'
-    default: return null
+    case 'boolean':
+      return 'fake()->boolean()'
+    case 'date':
+      return `fake()->date()`
+    case 'datetime':
+      return "fake()->dateTimeBetween('-1 year')"
+    case 'json':
+      return '[]'
+    default:
+      return null
   }
 }
 
 /** database/factories/<Name>Factory.php: a fake value for every field it knows */
 export function factoryFile(e: SfEntity): string {
-  const lines = e.fields.map(f => ({ f, call: fakeFor(f) })).filter(x => x.call || !x.f.nullable)
+  const lines = e.fields
+    .map(f => ({ f, call: fakeFor(f) }))
+    .filter(x => x.call || !x.f.nullable)
     .map(({ f, call }) => `            '${f.name}' => ${call ?? `''`},`)
   return `<?php
 ${GENERATED_MARK}: rewritten from the Laravel workshop (fake data).
@@ -542,7 +668,9 @@ ${lines.join('\n')}
  */
 export function seederFile(entities: SfEntity[], counts: Record<string, number>): string {
   const order = creationOrder(entities, counts)
-  const missing = order.flatMap(e => e.relations.filter(r => (r.kind === 'ManyToOne' || r.kind === 'OneToOne') && r.fk && !r.nullable && !(counts[r.target] > 0)).map(r => r.target))
+  const missing = order.flatMap(e =>
+    e.relations.filter(r => (r.kind === 'ManyToOne' || r.kind === 'OneToOne') && r.fk && !r.nullable && !(counts[r.target] > 0)).map(r => r.target)
+  )
   if (missing.length) throw new Error(`NEEDS_PARENT:${[...new Set(missing)].join(', ')}`)
   const v = (name: string) => `$${name.charAt(0).toLowerCase() + name.slice(1)}Ids`
   const uses = [...new Set(order.map(e => e.name))].sort()
@@ -556,12 +684,19 @@ export function seederFile(entities: SfEntity[], counts: Record<string, number>)
     let line = `        ${e.name}Factory::new()->count(${count})`
     if (one) line += `\n            ->sequence(fn (Sequence $s) => ['${one.fk}' => ${v(one.target)}[$s->index]])`
     if (many.length) line += `\n            ->state(fn () => [${many.map(r => `'${r.fk}' => ${v(r.target)}->random()`).join(', ')}])`
-    body.push(`${line}\n            ->create();`, `        ${v(e.name)} = ${e.name}::query()->pluck('id');`, `        $this->command?->info('${e.name}: ' . ${v(e.name)}->count());`, '')
+    body.push(
+      `${line}\n            ->create();`,
+      `        ${v(e.name)} = ${e.name}::query()->pluck('id');`,
+      `        $this->command?->info('${e.name}: ' . ${v(e.name)}->count());`,
+      ''
+    )
   }
   // Many-to-many links: two to three random partners each, once both sides exist
   for (const e of order) {
     for (const r of e.relations.filter(x => x.kind === 'ManyToMany' && counts[x.target] > 0)) {
-      body.push(`        ${e.name}::query()->each(fn (${e.name} $item) => $item->${r.name}()->syncWithoutDetaching(${v(r.target)}->random(min(${r.target === e.name ? 2 : 3}, ${v(r.target)}->count()))));`)
+      body.push(
+        `        ${e.name}::query()->each(fn (${e.name} $item) => $item->${r.name}()->syncWithoutDetaching(${v(r.target)}->random(min(${r.target === e.name ? 2 : 3}, ${v(r.target)}->count()))));`
+      )
     }
   }
   const sequence = order.some(e => e.relations.some(r => r.kind === 'OneToOne' && r.fk && counts[r.target] > 0))
@@ -577,7 +712,10 @@ class DevForgeSeeder extends Seeder
     public function run(): void
     {
         // The current rows go first, children before parents
-${[...order].reverse().map(e => `        ${e.name}::query()->delete();`).join('\n')}
+${[...order]
+  .reverse()
+  .map(e => `        ${e.name}::query()->delete();`)
+  .join('\n')}
 
 ${body.join('\n').replace(/\n+$/, '')}
     }

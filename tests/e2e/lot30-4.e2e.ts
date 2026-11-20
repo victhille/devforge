@@ -5,7 +5,7 @@ import { goTo, launch, type Launched } from './launch'
 import { settledAxeIssues as settledAxe } from './axe'
 import { confirmButton } from './confirm'
 
-/** v3.0 lot 4: export, erase everything (back to the welcome screen), import (paths in place of the dialogs, a reload in place of the restart) */
+/** Export, erase everything (back to the welcome screen), import (paths in place of the dialogs, a reload in place of the restart) */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -18,12 +18,34 @@ test('export without secrets, erase everything, import the setup back', async ()
     // No fade-ins: on a slow machine axe could measure the danger zone half-faded
     settings: { motion: 'reduced' },
     // export.json is not part of the data: erasing leaves it, the import reads it back
-    env: { DEVFORGE_TEST_EXPORT_PATH: '{userData}/export.json', DEVFORGE_TEST_IMPORT_PATH: '{userData}/export.json', DEVFORGE_TEST_NO_RELAUNCH: '1', GIT_CONFIG_GLOBAL: '{userData}/gitconfig' },
+    env: {
+      DEVFORGE_TEST_EXPORT_PATH: '{userData}/export.json',
+      DEVFORGE_TEST_IMPORT_PATH: '{userData}/export.json',
+      DEVFORGE_TEST_NO_RELAUNCH: '1',
+      GIT_CONFIG_GLOBAL: '{userData}/gitconfig'
+    },
     seed: dir => {
       shop = join(dir, 'shop')
       mkdirSync(shop)
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'shop', path: shop, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }]))
-      writeFileSync(join(dir, 'ssh-connections.json'), JSON.stringify([{ id: 's1', name: 'vps', host: '203.0.113.10', port: 22, username: 'deploy', authMethod: 'password', passwordEnc: 'chiffre' }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'p1',
+            name: 'shop',
+            path: shop,
+            framework: 'nodejs',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
+      writeFileSync(
+        join(dir, 'ssh-connections.json'),
+        JSON.stringify([{ id: 's1', name: 'vps', host: '203.0.113.10', port: 22, username: 'deploy', authMethod: 'password', passwordEnc: 'chiffre' }])
+      )
     }
   })
   const { page, userData } = run

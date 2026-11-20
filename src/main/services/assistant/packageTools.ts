@@ -7,9 +7,9 @@ import { ToolError } from './assistantTools'
 import { UPDATE_HINT } from '@shared/lib/manifests'
 
 /**
- * Forgy and a project's packages (v3.3 lot 4): `project_packages` tells what
+ * Forgy and a project's packages: `project_packages` tells what
  * is behind or vulnerable; `update_packages` is an action, so it goes through
- * a card the user approves, and its undo puts the saved files back. v3.6: the
+ * a card the user approves, and its undo puts the saved files back. The
  * same for Python, Rust, Go, Ruby and Dart; .NET and Java are reported only.
  */
 
@@ -18,26 +18,51 @@ const label = (m: PackageManifest) => `${m.dir ? `${m.dir}/` : ''}${m.file}`
 /** What is behind (or not installed), per manifest; the audit only when asked (it is slow) */
 export async function packagesReport(p: Project, withAudit: unknown): Promise<string> {
   const manifests = await projectManifests(p.path)
-  if (!manifests.length) return 'This project declares no packages (no package.json, composer.json, requirements.txt, pyproject.toml, Cargo.toml, go.mod, Gemfile, pubspec.yaml, .csproj, pom.xml nor build.gradle).'
+  if (!manifests.length)
+    return 'This project declares no packages (no package.json, composer.json, requirements.txt, pyproject.toml, Cargo.toml, go.mod, Gemfile, pubspec.yaml, .csproj, pom.xml nor build.gradle).'
   const parts: string[] = []
   for (const m of manifests) {
-    const latest = await latestFor(p.path, m.dir, m.file, m.packages.map(x => x.name))
+    const latest = await latestFor(
+      p.path,
+      m.dir,
+      m.file,
+      m.packages.map(x => x.name)
+    )
     const lines: string[] = []
     for (const x of m.packages) {
       const l = latest[x.name] ?? null
       const level = updateLevel(x.installed ?? rangeFloor(x.wanted), l)
       if (!x.installed) lines.push(`- ${x.name}: not installed (wants ${x.wanted}${l ? `, latest ${l}` : ''})`)
-      else if (level !== 'current' && level !== 'unknown') lines.push(`- ${x.name} ${x.installed} → ${l} (${level}, ${fitsRangeOf(m.manager, l, x.wanted) ? 'within its range' : 'needs a range change'})${x.dev ? ' [dev]' : ''}`)
+      else if (level !== 'current' && level !== 'unknown')
+        lines.push(
+          `- ${x.name} ${x.installed} → ${l} (${level}, ${fitsRangeOf(m.manager, l, x.wanted) ? 'within its range' : 'needs a range change'})${x.dev ? ' [dev]' : ''}`
+        )
     }
-    const state = m.missingTool ? `, ${m.missingTool.name} MISSING on this PC (${m.missingTool.install})` : m.toolMissing ? ', Composer NOT installed on this PC' : m.readOnly ? `, read only: DevForge does not update it (${UPDATE_HINT[m.manager] ?? 'its own tool'})` : ''
+    const state = m.missingTool
+      ? `, ${m.missingTool.name} MISSING on this PC (${m.missingTool.install})`
+      : m.toolMissing
+        ? ', Composer NOT installed on this PC'
+        : m.readOnly
+          ? `, read only: DevForge does not update it (${UPDATE_HINT[m.manager] ?? 'its own tool'})`
+          : ''
     parts.push(`${label(m)} (${m.manager}${state}): ${m.packages.length} packages, ${lines.length} to look at`)
     parts.push(...lines.slice(0, 40), ...(lines.length > 40 ? [`… and ${lines.length - 40} more`] : []))
     if (withAudit === true && !m.toolMissing && !m.readOnly) {
       const a = await auditFor(p.path, m.dir, m.file).catch(() => null)
-      parts.push(a?.missingTool ? `Vulnerabilities: not checked, ${a.missingTool.name} is not installed (${a.missingTool.install})`
-        : !a ? 'Vulnerabilities: audit unavailable (no lockfile or not installed)'
-        : a.total === 0 ? 'Vulnerabilities: none'
-        : `Vulnerabilities: ${a.total} (${Object.entries(a.bySeverity).filter(([, n]) => n).map(([s, n]) => `${s} ${n}`).join(', ')}) — ${Object.entries(a.packages).map(([n, s]) => `${n}: ${s}`).join(', ')}`)
+      parts.push(
+        a?.missingTool
+          ? `Vulnerabilities: not checked, ${a.missingTool.name} is not installed (${a.missingTool.install})`
+          : !a
+            ? 'Vulnerabilities: audit unavailable (no lockfile or not installed)'
+            : a.total === 0
+              ? 'Vulnerabilities: none'
+              : `Vulnerabilities: ${a.total} (${Object.entries(a.bySeverity)
+                  .filter(([, n]) => n)
+                  .map(([s, n]) => `${s} ${n}`)
+                  .join(', ')}) — ${Object.entries(a.packages)
+                  .map(([n, s]) => `${n}: ${s}`)
+                  .join(', ')}`
+      )
     }
     parts.push('')
   }
@@ -54,7 +79,11 @@ function pickManifest(manifests: PackageManifest[], names: string[], ref: unknow
   }
   const holders = manifests.filter(m => names.every(n => m.packages.some(x => x.name === n)))
   if (holders.length === 1) return holders[0]
-  throw new ToolError(holders.length ? `Several manifests declare these packages: pass "manifest" (${holders.map(label).join(', ')})` : 'No manifest declares all these packages: check the names with project_packages')
+  throw new ToolError(
+    holders.length
+      ? `Several manifests declare these packages: pass "manifest" (${holders.map(label).join(', ')})`
+      : 'No manifest declares all these packages: check the names with project_packages'
+  )
 }
 
 export interface PackagesPlan {
@@ -69,9 +98,13 @@ export async function updatePackagesPlan(p: Project, rawNames: unknown, to: unkn
   if (names.length > 30) throw new ToolError('30 packages at most per update')
   const target = to === 'latest' ? 'latest' : 'compatible'
   const m = pickManifest(await projectManifests(p.path), names, manifestRef)
-  if (m.missingTool) throw new ToolError(`${m.missingTool.name} is missing on this PC: the update cannot run. The user can get it with: ${m.missingTool.install}`)
+  if (m.missingTool)
+    throw new ToolError(`${m.missingTool.name} is missing on this PC: the update cannot run. The user can get it with: ${m.missingTool.install}`)
   if (m.toolMissing) throw new ToolError('Composer is not installed on this PC: the update cannot run (getcomposer.org)')
-  if (m.readOnly) throw new ToolError(`DevForge does not update ${m.manager} packages (${label(m)}): suggest the user runs ${UPDATE_HINT[m.manager] ?? 'the update'} in the project's terminal`)
+  if (m.readOnly)
+    throw new ToolError(
+      `DevForge does not update ${m.manager} packages (${label(m)}): suggest the user runs ${UPDATE_HINT[m.manager] ?? 'the update'} in the project's terminal`
+    )
   const unknown = names.filter(n => !m.packages.some(x => x.name === n))
   if (unknown.length) throw new ToolError(`Not declared in ${label(m)}: ${unknown.join(', ')}`)
   const latest = await latestFor(p.path, m.dir, m.file, names)
@@ -85,10 +118,21 @@ export async function updatePackagesPlan(p: Project, rawNames: unknown, to: unkn
   })
   return {
     title: `Update ${names.length === 1 ? names[0] : `${names.length} packages`} · ${p.name}`,
-    preview: [`${label(m)} (${m.manager})`, ...lines, '', `${m.file === 'composer.json' ? 'composer.json and composer.lock' : m.file === 'package.json' ? 'package.json and the lockfile' : `${m.file} and its lockfile`} are saved first; undo puts them back and reinstalls.`].join('\n'),
+    preview: [
+      `${label(m)} (${m.manager})`,
+      ...lines,
+      '',
+      `${m.file === 'composer.json' ? 'composer.json and composer.lock' : m.file === 'package.json' ? 'package.json and the lockfile' : `${m.file} and its lockfile`} are saved first; undo puts them back and reinstalls.`
+    ].join('\n'),
     run: async () => {
       const log: string[] = []
-      const r = await updateFor(p.path, m.dir, m.file, names.map(n => ({ name: n, dev: !!m.packages.find(x => x.name === n)?.dev, target })), line => log.push(line))
+      const r = await updateFor(
+        p.path,
+        m.dir,
+        m.file,
+        names.map(n => ({ name: n, dev: !!m.packages.find(x => x.name === n)?.dev, target })),
+        line => log.push(line)
+      )
       if (!r.ok || !r.backup) throw new Error(`The update failed${r.restored ? '; the files are back as they were' : ''}.\n${log.slice(-15).join('\n')}`)
       return {
         output: `Updated in ${label(m)}.\n${log.slice(-5).join('\n')}`,

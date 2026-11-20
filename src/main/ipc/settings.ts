@@ -6,7 +6,7 @@ import { applyLoginItem } from '../lib/loginItem'
 import { applyLauncher } from '../launcher'
 import { log } from '../lib/log'
 import { stopAllProcessesNow } from '../services/system/quitProcesses'
-import { checkForUpdates, getUpdateStatus, installUpdate, setUpdateChannel } from '../services/updates/updater'
+import { checkForUpdates, getUpdateStatus, installUpdate, setAutoUpdate, setUpdateChannel } from '../services/updates/updater'
 import { DATA_ENTRIES, backupData, parseBackupName, readSchemaVersion, restoreData } from '../services/storage/migrations'
 import { exportConfig, importConfig, wipeData } from '../services/storage/profile'
 
@@ -40,7 +40,9 @@ function sizeOf(path: string): number {
     const st = statSync(path)
     if (!st.isDirectory()) return st.size
     return readdirSync(path).reduce((n, name) => n + sizeOf(join(path, name)), 0)
-  } catch { return 0 }
+  } catch {
+    return 0
+  }
 }
 
 function dataInfo(): DataInfo {
@@ -75,6 +77,7 @@ export function registerSettingsHandlers(): void {
     applyLoginItem(settings)
     if (before.launcherEnabled !== settings.launcherEnabled || before.launcherShortcut !== settings.launcherShortcut) applyLauncher(loadSettings())
     setUpdateChannel(settings.updateChannel === 'beta')
+    setAutoUpdate(settings.autoUpdate !== false)
   })
 
   ipcMain.handle('settings:favorites', (_event, paths: unknown) => setFavorites(paths))
@@ -98,7 +101,7 @@ export function registerSettingsHandlers(): void {
     log('info', 'data', `Restored ${name} (previous data kept in ${safety})`)
     relaunchNow()
   })
-  // v3.0 lot 4: start over, or take one's setup elsewhere
+  // Start over, or take one's setup elsewhere
   ipcMain.handle('data:wipe', async () => {
     const gone = wipeData(app.getPath('userData'))
     // The page empties its own storage before asking (clearStorageData can hang for good, then the reload never ends)
@@ -108,15 +111,17 @@ export function registerSettingsHandlers(): void {
   ipcMain.handle('data:export', async () => {
     const bundle = exportConfig(app.getPath('userData'), app.getVersion())
     const name = `devforge-config-${new Date().toISOString().slice(0, 10)}.json`
-    const target = testPath('DEVFORGE_TEST_EXPORT_PATH')
-      ?? (await dialog.showSaveDialog({ defaultPath: join(app.getPath('documents'), name), filters: [{ name: 'DevForge', extensions: ['json'] }] })).filePath
+    const target =
+      testPath('DEVFORGE_TEST_EXPORT_PATH') ??
+      (await dialog.showSaveDialog({ defaultPath: join(app.getPath('documents'), name), filters: [{ name: 'DevForge', extensions: ['json'] }] })).filePath
     if (!target) return null
     writeFileSync(target, JSON.stringify(bundle, null, 2))
     return target
   })
   ipcMain.handle('data:import', async () => {
-    const source = testPath('DEVFORGE_TEST_IMPORT_PATH')
-      ?? (await dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'DevForge', extensions: ['json'] }] })).filePaths[0]
+    const source =
+      testPath('DEVFORGE_TEST_IMPORT_PATH') ??
+      (await dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'DevForge', extensions: ['json'] }] })).filePaths[0]
     if (!source) return null
     const names = importConfig(app.getPath('userData'), readFileSync(source, 'utf-8'))
     log('info', 'data', `Imported ${names.length} files`)

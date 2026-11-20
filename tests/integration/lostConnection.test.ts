@@ -36,7 +36,10 @@ function fakePostgres() {
     listen: () => new Promise<number>(r => server.listen(0, '127.0.0.1', () => r((server.address() as net.AddressInfo).port))),
     killSessions: () => {
       const err = Buffer.from('SFATAL\0C57P01\0Mterminating connection due to administrator command\0\0')
-      for (const s of sockets) { s.write(msg('E', err)); s.end() }
+      for (const s of sockets) {
+        s.write(msg('E', err))
+        s.end()
+      }
     },
     close: () => server.close()
   }
@@ -44,7 +47,10 @@ function fakePostgres() {
 
 describe('database server going away', () => {
   const pg = fakePostgres()
-  afterAll(async () => { await closeAllDbs(); pg.close() })
+  afterAll(async () => {
+    await closeAllDbs()
+    pg.close()
+  })
 
   it('does not crash the process and reconnects on the next query', async () => {
     const crashes: Error[] = []

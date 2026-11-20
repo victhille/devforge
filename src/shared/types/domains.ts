@@ -19,8 +19,8 @@ export interface DomainsStatus {
 }
 
 export interface DomainsAPI {
-  list:   () => Promise<LocalDomain[]>
-  save:   (d: LocalDomain) => Promise<void>
+  list: () => Promise<LocalDomain[]>
+  save: (d: LocalDomain) => Promise<void>
   remove: (id: string) => Promise<void>
   status: () => Promise<DomainsStatus>
   /** Rewrite the DevForge block of the hosts file (asks for admin rights) */

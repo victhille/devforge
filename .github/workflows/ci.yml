@@ -11,6 +11,12 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request cancels the run it makes useless; on main and develop each
+# commit has its own group, so every push keeps its run
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   check:
     # The release commit only bumps the version and the changelogs: the code was
@@ -18,11 +24,20 @@ jobs:
     if: ${{ !(github.event_name == 'push' && startsWith(github.event.head_commit.message, 'chore(release):')) }}
     # The app targets Windows (paths, hosts file, taskkill): test where it runs
     runs-on: windows-latest
+    # A full run takes about 15 minutes: a stuck test stops at 45, not at GitHub's 6 hours
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
+      # Personal words (IP, names, private projects) must not come back; the list is a secret, never in
+      # the code. Read before any dependency is installed or restored: no package's script has run yet
+      - run: node scripts/check-personal.mjs
+        env:
+          PERSONAL_PATTERNS: ${{ secrets.PERSONAL_PATTERNS }}
       # npm ci takes 2 to 3 minutes on Windows (583 packages, then Electron's binary):
       # the installed packages are kept as long as package-lock.json does not change
       # The packages, without the app's version (a release changes it, not the packages);
@@ -30,7 +45,7 @@ jobs:
       - id: lock
         shell: bash
         run: echo "key=$(node scripts/deps-key.mjs)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: deps
         with:
           path: |
@@ -62,7 +77,7 @@ jobs:
           exit 1
       # Saved right away: a failing test later must not lose it
       - if: steps.deps.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             node_modules
@@ -72,15 +87,15 @@ jobs:
       - run: npm audit --audit-level=high
       - run: npm run typecheck
       - run: npm run lint
-      # Personal words (IP, names, private projects) must not come back; the list is a secret, never in the code
-      - run: node scripts/check-personal.mjs
-        env:
-          PERSONAL_PATTERNS: ${{ secrets.PERSONAL_PATTERNS }}
+      # The code's layout is Prettier's (.prettierrc.json): npm run format rewrites it
+      - run: npm run format:check
       - run: npm test
       - run: npm run build
+      # The JavaScript of the first screen stays under its budget (scripts/size-budget.mjs)
+      - run: node scripts/size-budget.mjs
       # End-to-end: the built app, each test on a fresh profile
       - run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: e2e-results

@@ -5,7 +5,7 @@ import { goTo, launch, openProjectTab, type Launched } from './launch'
 import { seedVitestProject } from './fakeVitest'
 import { settledAxeIssues as settledAxe } from './axe'
 
-/** v3.7 lot 2: a failure unfolded, opened at its line, rerun once fixed, sent to Forgy */
+/** A failure unfolded, opened at its line, rerun once fixed, sent to Forgy */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -18,7 +18,10 @@ test('a failure shows expected and received, opens at its line, reruns alone onc
     seed: dir => {
       shop = join(dir, 'shop')
       seedVitestProject(shop)
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p', name: 'shop', path: shop, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([{ id: 'p', name: 'shop', path: shop, framework: 'react', packageManager: 'npm', favorite: false, createdAt: '', lastOpenedAt: null }])
+      )
     }
   })
   const { page } = run

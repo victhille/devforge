@@ -1,4 +1,4 @@
-// ─── Symfony workshop (v2.2 lot 2) ─────────────────────────────────────────────
+// ─── Symfony workshop ─────────────────────────────────────────────
 
 export type SfFieldType = 'string' | 'text' | 'integer' | 'float' | 'decimal' | 'boolean' | 'date' | 'datetime' | 'json'
 
@@ -60,7 +60,16 @@ export interface SfStatus {
   database: SfDatabase | null
   /** compose.yaml has a "database" service */
   composeDatabase: boolean
-  packages: { orm: boolean; maker: boolean; apiPlatform: boolean; serializer: boolean; validator: boolean; security: boolean; fixtures: boolean; foundry: boolean }
+  packages: {
+    orm: boolean
+    maker: boolean
+    apiPlatform: boolean
+    serializer: boolean
+    validator: boolean
+    security: boolean
+    fixtures: boolean
+    foundry: boolean
+  }
   /** Symfony CLI on this PC (local web server) */
   symfonyCli: boolean
   hasUserEntity: boolean
@@ -118,9 +127,25 @@ export interface SfWriteResult {
 }
 
 export type SfCommand =
-  | 'database:create' | 'database:start' | 'migrations:diff' | 'migrations:migrate' | 'migrations:prev'
-  | 'cache:clear' | 'server:start' | 'server:stop' | 'install:api-platform' | 'install:serializer' | 'install:fixtures'
-  | 'install:maker' | 'install:orm' | 'composer:install' | 'make:user' | 'make:login' | 'make:crud' | 'make:controller' | 'fixtures:load'
+  | 'database:create'
+  | 'database:start'
+  | 'migrations:diff'
+  | 'migrations:migrate'
+  | 'migrations:prev'
+  | 'cache:clear'
+  | 'server:start'
+  | 'server:stop'
+  | 'install:api-platform'
+  | 'install:serializer'
+  | 'install:fixtures'
+  | 'install:maker'
+  | 'install:orm'
+  | 'composer:install'
+  | 'make:user'
+  | 'make:login'
+  | 'make:crud'
+  | 'make:controller'
+  | 'fixtures:load'
 
 export interface SymfonyAPI {
   inspect: (projectPath: string) => Promise<SfInspect>

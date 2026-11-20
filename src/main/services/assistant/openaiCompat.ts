@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto'
 import type Anthropic from '@anthropic-ai/sdk'
 
 /**
- * v4.2: Forgy on a provider other than Anthropic, through OpenAI's chat API
+ * Forgy on a provider other than Anthropic, through OpenAI's chat API
  * (OpenAI, Gemini, Mistral, xAI, OpenRouter, Groq, DeepSeek, Ollama, any
  * compatible server). The conversation stays stored as Anthropic messages:
  * it is turned into chat messages for each request, and the answer comes
@@ -10,7 +10,11 @@ import type Anthropic from '@anthropic-ai/sdk'
  */
 
 type History = Anthropic.Beta.BetaMessageParam[]
-interface ToolDef { name: string; description?: string; input_schema: unknown }
+interface ToolDef {
+  name: string
+  description?: string
+  input_schema: unknown
+}
 
 export type ChatMessage =
   | { role: 'system' | 'user'; content: string }
@@ -19,13 +23,22 @@ export type ChatMessage =
 
 /** A request that failed, in the loop's words */
 export class CompatError extends Error {
-  constructor(public code: 'auth' | 'rate' | 'network' | 'timeout' | 'other', message: string, public status?: number) { super(message) }
+  constructor(
+    public code: 'auth' | 'rate' | 'network' | 'timeout' | 'other',
+    message: string,
+    public status?: number
+  ) {
+    super(message)
+  }
 }
 
 const textOf = (content: unknown): string => {
   if (typeof content === 'string') return content
   if (!Array.isArray(content)) return ''
-  return content.map(b => (b && typeof b === 'object' && (b as { type?: string }).type === 'text' ? String((b as { text?: unknown }).text ?? '') : '')).filter(Boolean).join('\n\n')
+  return content
+    .map(b => (b && typeof b === 'object' && (b as { type?: string }).type === 'text' ? String((b as { text?: unknown }).text ?? '') : ''))
+    .filter(Boolean)
+    .join('\n\n')
 }
 
 /**
@@ -47,10 +60,12 @@ export function toChatMessages(system: string, history: History): ChatMessage[] 
       if (text) out.push({ role: 'user', content: text })
     } else {
       const text = textOf(blocks.filter(b => b.type === 'text'))
-      const calls = blocks.filter(b => b.type === 'tool_use').map(b => {
-        const t = b as Anthropic.Beta.BetaToolUseBlockParam
-        return { id: t.id, type: 'function' as const, function: { name: t.name, arguments: JSON.stringify(t.input ?? {}) } }
-      })
+      const calls = blocks
+        .filter(b => b.type === 'tool_use')
+        .map(b => {
+          const t = b as Anthropic.Beta.BetaToolUseBlockParam
+          return { id: t.id, type: 'function' as const, function: { name: t.name, arguments: JSON.stringify(t.input ?? {}) } }
+        })
       if (!text && !calls.length) continue
       out.push({ role: 'assistant', content: text || null, ...(calls.length ? { tool_calls: calls } : {}) })
     }
@@ -73,7 +88,13 @@ export interface CompatAnswer {
   model: string
 }
 
-const STOPS: Record<string, CompatAnswer['stop_reason']> = { stop: 'end_turn', tool_calls: 'tool_use', function_call: 'tool_use', length: 'max_tokens', content_filter: 'refusal' }
+const STOPS: Record<string, CompatAnswer['stop_reason']> = {
+  stop: 'end_turn',
+  tool_calls: 'tool_use',
+  function_call: 'tool_use',
+  length: 'max_tokens',
+  content_filter: 'refusal'
+}
 
 /**
  * A response body, read up to `max` bytes: beyond, the rest is not read and
@@ -104,8 +125,12 @@ async function failure(res: Response): Promise<CompatError> {
     try {
       const j = JSON.parse(body) as { error?: { message?: string } | string; message?: string }
       detail = (typeof j.error === 'string' ? j.error : j.error?.message) ?? j.message ?? body
-    } catch { detail = body }
-  } catch { /* no body */ }
+    } catch {
+      detail = body
+    }
+  } catch {
+    /* no body */
+  }
   detail = detail.slice(0, 300)
   if (res.status === 401 || res.status === 403) return new CompatError('auth', detail || 'Key rejected', res.status)
   if (res.status === 429) return new CompatError('rate', detail || 'Rate limited', res.status)
@@ -137,8 +162,15 @@ const headers = (apiKey: string | null) => ({ 'Content-Type': 'application/json'
  * AbortError; a failed request a CompatError.
  */
 export async function compatTurn(o: {
-  baseUrl: string; apiKey: string | null; model: string; system: string; history: History; tools: unknown[]
-  streamUsage?: boolean; signal: AbortSignal; onText: (delta: string) => void
+  baseUrl: string
+  apiKey: string | null
+  model: string
+  system: string
+  history: History
+  tools: unknown[]
+  streamUsage?: boolean
+  signal: AbortSignal
+  onText: (delta: string) => void
 }): Promise<CompatAnswer> {
   const tools = toChatTools(o.tools)
   const signal = AbortSignal.any([o.signal, AbortSignal.timeout(TURN_TIMEOUT)])
@@ -152,10 +184,14 @@ export async function compatTurn(o: {
   try {
     res = await fetch(`${o.baseUrl.replace(/\/+$/, '')}/chat/completions`, {
       // A redirect is refused: the key must not follow it to another host
-      method: 'POST', headers: headers(o.apiKey), signal, redirect: 'error',
+      method: 'POST',
+      headers: headers(o.apiKey),
+      signal,
+      redirect: 'error',
       body: JSON.stringify({
         // No max_tokens: OpenAI's reasoning models refuse it, and each server has its own cap
-        model: o.model, stream: true,
+        model: o.model,
+        stream: true,
         messages: toChatMessages(o.system, o.history),
         ...(tools.length ? { tools } : {}),
         ...(o.streamUsage ? { stream_options: { include_usage: true } } : {})
@@ -180,18 +216,29 @@ export async function compatTurn(o: {
   // Whatever the server sends is checked before use: a number may come as text, an object where text was expected
   const take = (data: string) => {
     let chunk: {
-      model?: unknown; usage?: { prompt_tokens?: unknown; completion_tokens?: unknown }
-      choices?: { delta?: { content?: unknown; tool_calls?: { index?: unknown; id?: unknown; function?: { name?: unknown; arguments?: unknown } }[] }; finish_reason?: unknown }[]
+      model?: unknown
+      usage?: { prompt_tokens?: unknown; completion_tokens?: unknown }
+      choices?: {
+        delta?: { content?: unknown; tool_calls?: { index?: unknown; id?: unknown; function?: { name?: unknown; arguments?: unknown } }[] }
+        finish_reason?: unknown
+      }[]
       error?: { message?: unknown } | string
     }
-    try { chunk = JSON.parse(data) } catch { return }
+    try {
+      chunk = JSON.parse(data)
+    } catch {
+      return
+    }
     if (!chunk || typeof chunk !== 'object') return
     if (chunk.error) {
       const said = typeof chunk.error === 'string' ? chunk.error : chunk.error.message
       throw new CompatError('other', typeof said === 'string' && said ? said.slice(0, 300) : 'Error in the stream')
     }
     if (typeof chunk.model === 'string' && chunk.model) model = chunk.model.slice(0, 200)
-    if (chunk.usage) { usage.input = count(chunk.usage.prompt_tokens, usage.input); usage.output = count(chunk.usage.completion_tokens, usage.output) }
+    if (chunk.usage) {
+      usage.input = count(chunk.usage.prompt_tokens, usage.input)
+      usage.output = count(chunk.usage.completion_tokens, usage.output)
+    }
     const choice = Array.isArray(chunk.choices) ? chunk.choices[0] : undefined
     if (!choice) return
     const delta = choice.delta?.content
@@ -254,7 +301,11 @@ export async function compatTurn(o: {
   for (const c of calls.filter(Boolean)) {
     if (!c.name) continue
     let input: unknown
-    try { input = c.args.trim() ? JSON.parse(c.args) : {} } catch { input = { _unparsed: c.args.slice(0, 2000) } }
+    try {
+      input = c.args.trim() ? JSON.parse(c.args) : {}
+    } catch {
+      input = { _unparsed: c.args.slice(0, 2000) }
+    }
     content.push({ type: 'tool_use', id: freshId(), name: c.name, input } as Anthropic.Beta.BetaContentBlock)
   }
   // Some servers end with « stop » while asking for tools
@@ -267,13 +318,19 @@ export async function compatModels(baseUrl: string, apiKey: string | null): Prom
   let res: Response
   try {
     res = await fetch(`${baseUrl.replace(/\/+$/, '')}/models`, { headers: headers(apiKey), signal: AbortSignal.timeout(15_000), redirect: 'error' })
-  } catch (err) { throw new CompatError('network', err instanceof Error ? err.message : String(err)) }
+  } catch (err) {
+    throw new CompatError('network', err instanceof Error ? err.message : String(err))
+  }
   if (!res.ok) throw await failure(res)
   // A list read with a limit: its names go to the window
   const { text, over } = await readCapped(res, 2 * 1024 * 1024)
   if (over) throw new CompatError('other', 'Model list too large')
   let body: { data?: unknown; models?: unknown }
-  try { body = JSON.parse(text) ?? {} } catch { throw new CompatError('other', 'Not a model list') }
+  try {
+    body = JSON.parse(text) ?? {}
+  } catch {
+    throw new CompatError('other', 'Not a model list')
+  }
   const items = Array.isArray(body.data) ? body.data : Array.isArray(body.models) ? body.models : []
   const list = (items as { id?: unknown; name?: unknown }[])
     .map(m => (typeof m?.id === 'string' ? m.id : typeof m?.name === 'string' ? m.name : ''))

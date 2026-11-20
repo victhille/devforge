@@ -4,7 +4,7 @@ import { join } from 'path'
 import { goTo, launch, type Launched } from './launch'
 import { confirmDialog, cancelButton } from './confirm'
 
-/** v2.1 lot 3: customizable Home, palette actions, compact mode */
+/** Customizable Home, palette actions, compact mode */
 let run: Launched
 test.afterEach(async () => {
   expect(run.errors, 'uncaught page errors').toEqual([])
@@ -13,13 +13,63 @@ test.afterEach(async () => {
 
 const SEP = '\n@@DF@@\n'
 const seed = (dir: string) => {
-  writeFileSync(join(dir, 'projects.json'), JSON.stringify([{ id: 'p1', name: 'Site', path: dir, framework: 'nextjs', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }]))
-  writeFileSync(join(dir, 'ssh-connections.json'), JSON.stringify([{ id: 'v1', name: 'Prod', host: '127.0.0.1', port: 1, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }]))
-  writeFileSync(join(dir, 'vps.json'), JSON.stringify({
-    services: 'portainer|portainer/portainer-ce:2.45.1|127.0.0.1:9000->9000/tcp|running|Up',
-    health: ['yes', '20\n0', 'yes', '/dev/sda1 100 46 54 46% /\n/dev/sda1 100 14 86 14% /', 'Mem: 1000 600 100 0 100 400', 'tcp 0.0.0.0:22', 'permitrootlogin no\npasswordauthentication no', 'active', '3', 'p|running|Up\n--\n/p|0', 'Images|1MB', 'Ubuntu 24.04\nup 1 day'].join(SEP)
-  }))
-  writeFileSync(join(dir, 'backups.json'), JSON.stringify({ plans: [{ connectionId: 'v1', databases: [{ engine: 'postgres', container: 'pg' }], volumes: [], time: '03:30', keepDaily: 7, keepWeekly: 4, localDir: '', savedAt: '' }], copies: [] }))
+  writeFileSync(
+    join(dir, 'projects.json'),
+    JSON.stringify([
+      {
+        id: 'p1',
+        name: 'Site',
+        path: dir,
+        framework: 'nextjs',
+        packageManager: 'npm',
+        favorite: false,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        lastOpenedAt: null
+      }
+    ])
+  )
+  writeFileSync(
+    join(dir, 'ssh-connections.json'),
+    JSON.stringify([{ id: 'v1', name: 'Prod', host: '127.0.0.1', port: 1, username: 'root', authMethod: 'privateKey', color: '', createdAt: '' }])
+  )
+  writeFileSync(
+    join(dir, 'vps.json'),
+    JSON.stringify({
+      services: 'portainer|portainer/portainer-ce:2.45.1|127.0.0.1:9000->9000/tcp|running|Up',
+      health: [
+        'yes',
+        '20\n0',
+        'yes',
+        '/dev/sda1 100 46 54 46% /\n/dev/sda1 100 14 86 14% /',
+        'Mem: 1000 600 100 0 100 400',
+        'tcp 0.0.0.0:22',
+        'permitrootlogin no\npasswordauthentication no',
+        'active',
+        '3',
+        'p|running|Up\n--\n/p|0',
+        'Images|1MB',
+        'Ubuntu 24.04\nup 1 day'
+      ].join(SEP)
+    })
+  )
+  writeFileSync(
+    join(dir, 'backups.json'),
+    JSON.stringify({
+      plans: [
+        {
+          connectionId: 'v1',
+          databases: [{ engine: 'postgres', container: 'pg' }],
+          volumes: [],
+          time: '03:30',
+          keepDaily: 7,
+          keepWeekly: 4,
+          localDir: '',
+          savedAt: ''
+        }
+      ],
+      copies: []
+    })
+  )
 }
 const opts = { settings: { onboarded: true, motion: 'reduced' }, seed, env: { DEVFORGE_TEST_VPS: '{userData}/vps.json' } }
 const saved = (r: Launched) => JSON.parse(readFileSync(join(r.userData, 'settings.json'), 'utf-8'))

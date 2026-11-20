@@ -3,6 +3,7 @@ export const SECTIONS = [
   { id: 'docs', path: 'getting-started/installation/', fr: 'Documentation', en: 'Documentation' },
   { id: 'guides', path: 'guides/deploy-site/', fr: 'Guides', en: 'Guides' },
   { id: 'news', path: 'news/', fr: 'Nouveautés', en: "What's new" },
+  { id: 'roadmap', path: 'roadmap/', fr: 'Feuille de route', en: 'Roadmap' },
   { id: 'compare', path: 'compare/', fr: 'Sans ou avec DevForge', en: 'Without or with DevForge' },
   { id: 'privacy', path: 'privacy/', fr: 'Vie privée', en: 'Privacy' },
   { id: 'contribute', path: 'contribute/', fr: 'Contribuer', en: 'Contribute' }

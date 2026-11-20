@@ -63,15 +63,28 @@ function create(): void {
   size = { ...COLLAPSED }
   w.setAlwaysOnTop(true, 'floating')
   guardNavigation(w)
-  w.once('ready-to-show', () => { place(); w.showInactive() })
-  w.on('closed', () => { if (widget === w) widget = null })
+  w.once('ready-to-show', () => {
+    place()
+    w.showInactive()
+  })
+  w.on('closed', () => {
+    if (widget === w) widget = null
+  })
 
   const devUrl = !app.isPackaged && process.env['ELECTRON_RENDERER_URL']
   if (devUrl) w.loadURL(`${devUrl}/widget.html`)
   else w.loadFile(join(__dirname, '../renderer/widget.html'))
 
   // All taken: the bubble still opens on click
-  if (!shortcut) shortcut = SHORTCUTS.find(k => { try { return globalShortcut.register(k, toggle) } catch { return false } }) ?? null
+  if (!shortcut)
+    shortcut =
+      SHORTCUTS.find(k => {
+        try {
+          return globalShortcut.register(k, toggle)
+        } catch {
+          return false
+        }
+      }) ?? null
 }
 
 function destroy(): void {
@@ -108,8 +121,10 @@ export function setWidgetOpen(open: boolean): void {
   w.setFocusable(open)
   // Windows can drop the topmost flag when the focusable style changes
   w.setAlwaysOnTop(true, 'floating')
-  if (open) { w.show(); w.focus() }
-  else if (w.isFocused()) w.blur()
+  if (open) {
+    w.show()
+    w.focus()
+  } else if (w.isFocused()) w.blur()
 }
 
 /** Brings the main window to the front, on a conversation of the widget */
@@ -124,7 +139,10 @@ export function openInApp(conversationId: string | null): void {
 /** Called once with the main window: the widget lives and dies with it */
 export function initWidget(main: BrowserWindow): void {
   mainWin = main
-  main.on('closed', () => { mainWin = null; destroy() })
+  main.on('closed', () => {
+    mainWin = null
+    destroy()
+  })
   screen.on('display-metrics-changed', place)
   screen.on('display-added', place)
   screen.on('display-removed', place)

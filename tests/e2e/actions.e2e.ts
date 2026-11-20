@@ -21,13 +21,28 @@ async function start(): Promise<{ project: string }> {
       project = join(dir, 'shop')
       mkdirSync(project)
       writeFileSync(join(project, '.env'), 'APP_ENV=dev\n')
-      writeFileSync(join(dir, 'projects.json'), JSON.stringify([
-        { id: 'p1', name: 'Shop', path: project, framework: 'nodejs', packageManager: 'npm', favorite: false, createdAt: '2026-01-01T00:00:00.000Z', lastOpenedAt: null }
-      ]))
-      writeFileSync(join(dir, 'script.json'), JSON.stringify([
-        { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'act1', name: 'env_add', input: { project: 'Shop', key: 'NEW_FLAG', value: 'on' } }] },
-        { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Variable ajoutée.' }] }
-      ]))
+      writeFileSync(
+        join(dir, 'projects.json'),
+        JSON.stringify([
+          {
+            id: 'p1',
+            name: 'Shop',
+            path: project,
+            framework: 'nodejs',
+            packageManager: 'npm',
+            favorite: false,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            lastOpenedAt: null
+          }
+        ])
+      )
+      writeFileSync(
+        join(dir, 'script.json'),
+        JSON.stringify([
+          { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 'act1', name: 'env_add', input: { project: 'Shop', key: 'NEW_FLAG', value: 'on' } }] },
+          { stop_reason: 'end_turn', content: [{ type: 'text', text: 'Variable ajoutée.' }] }
+        ])
+      )
     },
     env: { DEVFORGE_E2E_ASSISTANT_SCRIPT: '{userData}/script.json' }
   })

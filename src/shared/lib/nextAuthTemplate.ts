@@ -2,7 +2,7 @@ import { AUTH_RULES } from '../data/authContract'
 import { ANVIL, DEVFORGE_CSS } from './devforgeStyle'
 
 /**
- * v3.4 lot 3: sign-up, sign-in and a protected page for a Next.js project,
+ * sign-up, sign-in and a protected page for a Next.js project,
  * following the shared contract (src/shared/data/authContract.ts).
  * A JWT signed with AUTH_SECRET (jose) goes both in an httpOnly cookie, for
  * the pages, and in the login's JSON, for any client using Bearer. Passwords
@@ -25,22 +25,62 @@ model User {
 
 const TEXT = {
   fr: {
-    name: 'Nom', email: 'E-mail', password: 'Mot de passe', home: 'Accueil',
-    loginTitle: 'Se connecter', loginLead: 'Content de vous revoir.', loginSubmit: 'Se connecter', noAccount: 'Pas encore de compte ?', toRegister: 'Créer un compte',
-    registerTitle: 'Créer un compte', registerLead: 'Quelques secondes, et vous y êtes.', registerSubmit: 'Créer mon compte', hasAccount: 'Déjà un compte ?', toLogin: 'Se connecter',
-    hello: 'Bonjour', signedIn: 'Vous êtes connecté.', logout: 'Se déconnecter', apiTitle: 'Votre API', dashboard: 'Tableau de bord',
-    apiLead: 'Ces routes suivent le contrat DevForge : un front React ou Vue créé par DevForge s\'y branche tel quel.',
-    errName: 'Indiquez un nom.', errEmail: 'Indiquez une adresse e-mail valide.', errPassword: `Au moins ${AUTH_RULES.passwordMin} caractères.`,
-    errTaken: 'Cette adresse a déjà un compte.', errInvalid: 'E-mail ou mot de passe incorrect.', errAuth: 'Connectez-vous d\'abord.', errNetwork: 'Le serveur ne répond pas.'
+    name: 'Nom',
+    email: 'E-mail',
+    password: 'Mot de passe',
+    home: 'Accueil',
+    loginTitle: 'Se connecter',
+    loginLead: 'Content de vous revoir.',
+    loginSubmit: 'Se connecter',
+    noAccount: 'Pas encore de compte ?',
+    toRegister: 'Créer un compte',
+    registerTitle: 'Créer un compte',
+    registerLead: 'Quelques secondes, et vous y êtes.',
+    registerSubmit: 'Créer mon compte',
+    hasAccount: 'Déjà un compte ?',
+    toLogin: 'Se connecter',
+    hello: 'Bonjour',
+    signedIn: 'Vous êtes connecté.',
+    logout: 'Se déconnecter',
+    apiTitle: 'Votre API',
+    dashboard: 'Tableau de bord',
+    apiLead: "Ces routes suivent le contrat DevForge : un front React ou Vue créé par DevForge s'y branche tel quel.",
+    errName: 'Indiquez un nom.',
+    errEmail: 'Indiquez une adresse e-mail valide.',
+    errPassword: `Au moins ${AUTH_RULES.passwordMin} caractères.`,
+    errTaken: 'Cette adresse a déjà un compte.',
+    errInvalid: 'E-mail ou mot de passe incorrect.',
+    errAuth: "Connectez-vous d'abord.",
+    errNetwork: 'Le serveur ne répond pas.'
   },
   en: {
-    name: 'Name', email: 'Email', password: 'Password', home: 'Home',
-    loginTitle: 'Sign in', loginLead: 'Good to see you again.', loginSubmit: 'Sign in', noAccount: 'No account yet?', toRegister: 'Create an account',
-    registerTitle: 'Create an account', registerLead: 'A few seconds, and you are in.', registerSubmit: 'Create my account', hasAccount: 'Already have an account?', toLogin: 'Sign in',
-    hello: 'Hello', signedIn: 'You are signed in.', logout: 'Sign out', apiTitle: 'Your API', dashboard: 'Dashboard',
+    name: 'Name',
+    email: 'Email',
+    password: 'Password',
+    home: 'Home',
+    loginTitle: 'Sign in',
+    loginLead: 'Good to see you again.',
+    loginSubmit: 'Sign in',
+    noAccount: 'No account yet?',
+    toRegister: 'Create an account',
+    registerTitle: 'Create an account',
+    registerLead: 'A few seconds, and you are in.',
+    registerSubmit: 'Create my account',
+    hasAccount: 'Already have an account?',
+    toLogin: 'Sign in',
+    hello: 'Hello',
+    signedIn: 'You are signed in.',
+    logout: 'Sign out',
+    apiTitle: 'Your API',
+    dashboard: 'Dashboard',
     apiLead: 'These routes follow the DevForge contract: a React or Vue front made by DevForge plugs in as is.',
-    errName: 'Enter a name.', errEmail: 'Enter a valid email address.', errPassword: `At least ${AUTH_RULES.passwordMin} characters.`,
-    errTaken: 'This address already has an account.', errInvalid: 'Wrong email or password.', errAuth: 'Sign in first.', errNetwork: 'The server is not answering.'
+    errName: 'Enter a name.',
+    errEmail: 'Enter a valid email address.',
+    errPassword: `At least ${AUTH_RULES.passwordMin} characters.`,
+    errTaken: 'This address already has an account.',
+    errInvalid: 'Wrong email or password.',
+    errAuth: 'Sign in first.',
+    errNetwork: 'The server is not answering.'
   }
 }
 
@@ -214,8 +254,12 @@ export default function ${register ? 'RegisterPage' : 'LoginPage'}() {
     setBusy(true); setErrors({}); setMessage('')
     const body = Object.fromEntries(new FormData(e.currentTarget))
     try {
-      ${register ? `const created = await post('/api/auth/register', body)
-      const res = created.ok ? await post('/api/auth/login', { email: body.email, password: body.password }) : created` : `const res = await post('/api/auth/login', body)`}
+      ${
+        register
+          ? `const created = await post('/api/auth/register', body)
+      const res = created.ok ? await post('/api/auth/login', { email: body.email, password: body.password }) : created`
+          : `const res = await post('/api/auth/login', body)`
+      }
       if (res.ok) { router.push('/dashboard'); router.refresh(); return }
       setErrors(res.json.errors ?? {})
       setMessage(res.json.message ?? '')
@@ -233,11 +277,15 @@ ${BAR}
           <h1>{t.title}</h1>
           <p className="df-lead">{t.lead}</p>
           {message && <p className="df-alert" role="alert">{message}</p>}
-${register ? `          <label className="df-field">{t.name}
+${
+  register
+    ? `          <label className="df-field">{t.name}
             <input name="name" autoComplete="name" required />
             {errors.name && <span className="df-err">{errors.name[0]}</span>}
           </label>
-` : ''}          <label className="df-field">{t.email}
+`
+    : ''
+}          <label className="df-field">{t.email}
             <input name="email" type="email" autoComplete="email" required />
             {errors.email && <span className="df-err">{errors.email[0]}</span>}
           </label>

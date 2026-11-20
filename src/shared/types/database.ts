@@ -41,7 +41,10 @@ export interface DbQueryResult {
   error?: string
 }
 
-export interface DbTableRef { name: string; schema: string }
+export interface DbTableRef {
+  name: string
+  schema: string
+}
 
 /** One table in the database overview (sizes and counts may be estimates) */
 export interface DbTableStat extends DbTableRef {
@@ -104,17 +107,25 @@ export interface DbTableDetails {
   stats: DbTableStat | null
 }
 
-/** v3.8: a table in the schema, with its columns */
+/** A table in the schema, with its columns */
 export interface DbDiagramTable extends DbTableRef {
   type: 'table' | 'view'
   columns: { name: string; type: string; nullable: boolean; pk: boolean }[]
 }
 
-/** v3.8: one foreign key, from the table that points to the table pointed at */
-export interface DbDiagramLink { from: DbTableRef; columns: string[]; to: DbTableRef; refColumns: string[] }
+/** One foreign key, from the table that points to the table pointed at */
+export interface DbDiagramLink {
+  from: DbTableRef
+  columns: string[]
+  to: DbTableRef
+  refColumns: string[]
+}
 
-/** v3.8: every table and foreign key of a database, read at once */
-export interface DbDiagram { tables: DbDiagramTable[]; links: DbDiagramLink[] }
+/** Every table and foreign key of a database, read at once */
+export interface DbDiagram {
+  tables: DbDiagramTable[]
+  links: DbDiagramLink[]
+}
 
 export interface DbBrowseOptions {
   offset: number
@@ -128,10 +139,10 @@ export interface DbBrowseResult extends DbQueryResult {
   total: number | null
 }
 
-/** v3.6: a table's export formats ("sql-create": the CREATE TABLE first) */
+/** A table's export formats ("sql-create": the CREATE TABLE first) */
 export type ExportFormat = 'csv' | 'json' | 'sql' | 'sql-create'
 
-/** v3.6: a CSV picked for import (the file itself stays in the main process) */
+/** A CSV picked for import (the file itself stays in the main process) */
 export interface CsvPreview {
   token: string
   name: string
@@ -164,13 +175,13 @@ export interface DetectedDatabase {
 }
 
 export interface DatabaseAPI {
-  list:   () => Promise<DbConnection[]>
-  save:   (c: DbConnection) => Promise<void>
+  list: () => Promise<DbConnection[]>
+  save: (c: DbConnection) => Promise<void>
   remove: (id: string) => Promise<void>
   /** Connects and returns the server version, throws on failure */
-  test:   (c: DbConnection) => Promise<string>
+  test: (c: DbConnection) => Promise<string>
   schema: (id: string) => Promise<DbTable[]>
-  query:  (id: string, sql: string) => Promise<DbQueryResult>
+  query: (id: string, sql: string) => Promise<DbQueryResult>
   /** Database info and every table with its size and row estimate */
   overview: (id: string) => Promise<DbOverview>
   /** Columns, indexes, foreign keys and DDL of one table */
@@ -179,19 +190,25 @@ export interface DatabaseAPI {
   browse: (id: string, table: DbTableRef, opts: DbBrowseOptions) => Promise<DbBrowseResult>
   /** The Search tab: one table's matching rows (up to the limit) and their count */
   search: (id: string, table: DbTableRef, opts: DbSearchOptions) => Promise<DbSearchResult>
-  /** v3.6: the whole table into a file the user picks; null when cancelled */
+  /** The whole table into a file the user picks; null when cancelled */
   exportTable: (id: string, table: DbTableRef, format: ExportFormat) => Promise<{ path: string; rows: number } | null>
-  /** v3.6: a query's result saved as it is */
+  /** A query's result saved as it is */
   saveResult: (name: string, content: string, ext: 'csv' | 'json') => Promise<string | null>
-  /** v3.6: a CSV picked and read; error TOO_BIG (over 50 MB) or EMPTY */
+  /** A CSV picked and read; error TOO_BIG (over 50 MB) or EMPTY */
   pickCsv: (id: string, table: DbTableRef) => Promise<CsvPreview | { error: string } | null>
-  /** v3.6: the picked CSV inserted, in one transaction; `line` is the CSV line that failed */
-  importCsv: (id: string, table: DbTableRef, token: string, mapping: (string | null)[], emptyIsNull: boolean) => Promise<{ inserted: number; error?: string; line?: number }>
-  /** v3.6: rows changed, in one transaction (all or none) */
+  /** The picked CSV inserted, in one transaction; `line` is the CSV line that failed */
+  importCsv: (
+    id: string,
+    table: DbTableRef,
+    token: string,
+    mapping: (string | null)[],
+    emptyIsNull: boolean
+  ) => Promise<{ inserted: number; error?: string; line?: number }>
+  /** Rows changed, in one transaction (all or none) */
   applyRows: (id: string, table: DbTableRef, changes: RowChange[]) => Promise<{ affected: number; error?: string }>
-  /** v3.8: every table, column and foreign key, for the schema */
+  /** Every table, column and foreign key, for the schema */
   diagram: (id: string) => Promise<DbDiagram>
-  /** v3.8: the schema saved as an image (PNG: a data URL); null when cancelled */
+  /** The schema saved as an image (PNG: a data URL); null when cancelled */
   saveImage: (name: string, content: string, ext: 'png' | 'svg') => Promise<string | null>
   /** Look for databases on a server (Docker containers + native services) */
   detectRemote: (sshConnectionId: string) => Promise<DetectedDatabase[]>

@@ -1,4 +1,4 @@
-// ─── Settings › Connections (v3.0 lot 1) ───────────────────────────────────────
+// ─── Settings › Connections ───────────────────────────────────────
 
 import type { VercelAccount } from './vercel'
 import type { AssistantProvider } from '../data/assistantProviders'
@@ -13,7 +13,7 @@ export interface ConnectionsOverview {
   }
   /** Git's global identity, used by the commits */
   git: { name: string | null; email: string | null }
-  /** v4.2: the active provider's key (Anthropic by default) */
+  /** The active provider's key (Anthropic by default) */
   forgy: { hasKey: boolean; source: 'saved' | 'env' | null; provider: AssistantProvider; label: string }
   vercel: VercelAccount
   /** Docker on this PC: the engine's version, null when it does not answer */
@@ -27,12 +27,18 @@ export interface ConnectionsOverview {
 }
 
 /** A status page's alert channels: set or not, never the ntfy topic (it works like a password) */
-export interface StatusAlertsState { ntfy: boolean; webhook: boolean }
+export interface StatusAlertsState {
+  ntfy: boolean
+  webhook: boolean
+}
 
 export type ConnectionKind = 'github' | 'forgy' | 'vercel' | 'docker' | 'server' | 'database' | 'n8n' | 'alerts'
 
 /** A test's answer: what was reached ("octocat", "Ubuntu 24.04", "PostgreSQL 16.4") or why not */
-export interface ConnectionTest { ok: boolean; detail: string }
+export interface ConnectionTest {
+  ok: boolean
+  detail: string
+}
 
 export interface ConnectionsAPI {
   overview: () => Promise<ConnectionsOverview>

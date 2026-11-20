@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { HOME, LISTED_PAGES, PAGES, PROJECT_TAB_DOCS, docsOf } from '@renderer/app/navigation'
 import { docsUrl } from '@renderer/lib/docs'
 
-/** v3.2 lot 2: every page of the menu leads to a documentation page that exists on the site, in both languages */
+/** Every page of the menu leads to a documentation page that exists on the site, in both languages */
 const DOCS = join(__dirname, '..', '..', 'site', 'src', 'content', 'docs')
 const exists = (slug: string, lang: '' | 'en/') => ['.md', '.mdx'].some(ext => existsSync(join(DOCS, `${lang}${slug}${ext}`)))
 
@@ -28,7 +28,7 @@ describe('help links', () => {
     expect(docsOf('/vpn')).toBe('online/vpn')
     expect(docsOf('/project/p1')).toBe('dev/projects')
     expect(docsOf('/vps/c1')).toBe('servers/ssh')
-    // A project tab with a page of its own (v3.3)
+    // A project tab with a page of its own
     expect(docsOf('/project/p1', '?tab=packages')).toBe('dev/packages')
     expect(docsOf('/project/p1', '?tab=database')).toBe('dev/projects')
     expect(docsOf('/vpn', '?tab=packages')).toBe('online/vpn')

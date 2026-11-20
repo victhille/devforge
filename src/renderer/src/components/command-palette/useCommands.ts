@@ -40,10 +40,19 @@ export function useCommands(open: boolean): Command[] {
   useEffect(() => {
     if (!open) return
     let alive = true
-    Promise.all(projects.map(p =>
-      window.devforge.getProjectScripts(p.path).then(s => [p.id, s] as const).catch(() => [p.id, {}] as const)
-    )).then(entries => { if (alive) setScripts(Object.fromEntries(entries)) })
-    return () => { alive = false }
+    Promise.all(
+      projects.map(p =>
+        window.devforge
+          .getProjectScripts(p.path)
+          .then(s => [p.id, s] as const)
+          .catch(() => [p.id, {}] as const)
+      )
+    ).then(entries => {
+      if (alive) setScripts(Object.fromEntries(entries))
+    })
+    return () => {
+      alive = false
+    }
   }, [open, projects])
   useEffect(() => {
     if (open) window.devforge.stacks.list().then(setStacks)
@@ -75,17 +84,52 @@ export function useCommands(open: boolean): Command[] {
         icon: Rocket,
         color: st.color,
         keywords: 'stack launch lancer',
-        run: () => { window.devforge.stacks.start(st.id); navigate('/stacks') }
+        run: () => {
+          window.devforge.stacks.start(st.id)
+          navigate('/stacks')
+        }
       })
     }
 
     // Projects
     for (const p of projects) {
       list.push(
-        { id: `proj:code:${p.id}`,   group: c.groupProjects, title: `${c.openInVSCode.replace('{ide}', ide.labelFor(p.ide) ?? 'IDE')} — ${p.name}`, subtitle: p.path, icon: Code2,      keywords: p.framework, run: () => { window.devforge.updateProjectLastOpened(p.id); void ide.open(p.path, p.ide) } },
-        { id: `proj:detail:${p.id}`, group: c.groupProjects, title: `${c.details} — ${p.name}`,      subtitle: p.path, icon: Info,       run: () => navigate(`/project/${p.id}`) },
-        { id: `proj:folder:${p.id}`, group: c.groupProjects, title: `${c.openFolder} — ${p.name}`,   subtitle: p.path, icon: FolderOpen, run: () => window.devforge.openDirectory(p.path) },
-        { id: `proj:term:${p.id}`,   group: c.groupProjects, title: `${c.terminal} — ${p.name}`,     subtitle: p.path, icon: Terminal,   run: () => window.devforge.openTerminal(p.path) }
+        {
+          id: `proj:code:${p.id}`,
+          group: c.groupProjects,
+          title: `${c.openInVSCode.replace('{ide}', ide.labelFor(p.ide) ?? 'IDE')} — ${p.name}`,
+          subtitle: p.path,
+          icon: Code2,
+          keywords: p.framework,
+          run: () => {
+            window.devforge.updateProjectLastOpened(p.id)
+            void ide.open(p.path, p.ide)
+          }
+        },
+        {
+          id: `proj:detail:${p.id}`,
+          group: c.groupProjects,
+          title: `${c.details} — ${p.name}`,
+          subtitle: p.path,
+          icon: Info,
+          run: () => navigate(`/project/${p.id}`)
+        },
+        {
+          id: `proj:folder:${p.id}`,
+          group: c.groupProjects,
+          title: `${c.openFolder} — ${p.name}`,
+          subtitle: p.path,
+          icon: FolderOpen,
+          run: () => window.devforge.openDirectory(p.path)
+        },
+        {
+          id: `proj:term:${p.id}`,
+          group: c.groupProjects,
+          title: `${c.terminal} — ${p.name}`,
+          subtitle: p.path,
+          icon: Terminal,
+          run: () => window.devforge.openTerminal(p.path)
+        }
       )
       for (const script of Object.keys(scripts[p.id] ?? {})) {
         list.push({

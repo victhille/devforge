@@ -5,7 +5,7 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 /** What a loading block says to screen readers: « loading » unless given, nothing with false (the frame around says it) */
 function useSaid(label: string | false | undefined): string | undefined {
   const { t } = useI18n()
-  return label === false ? undefined : label ?? t.common.loading
+  return label === false ? undefined : (label ?? t.common.loading)
 }
 
 /**
@@ -45,14 +45,18 @@ export function TableSkeleton({ label, rows = 8, columns = 5, toolbar, className
     <div role={said ? 'status' : undefined} aria-label={said} className={cn('flex min-h-0 flex-1 flex-col overflow-hidden', className)}>
       {toolbar && (
         <div className="flex shrink-0 items-center gap-5 border-b border-line-subtle px-4 py-3">
-          {[78, 104, 96].map(w => <Skeleton key={w} className="h-4" style={{ width: w }} />)}
+          {[78, 104, 96].map(w => (
+            <Skeleton key={w} className="h-4" style={{ width: w }} />
+          ))}
           <Skeleton className="ml-auto h-4 w-16" />
         </div>
       )}
       <div className="flex shrink-0 gap-8 border-b border-line-subtle px-3.5 py-3">
         <Skeleton className="h-3 w-5" />
         {cols.map(c => (
-          <span key={c} className="block shrink-0" style={{ width: colWidth(c) }}><Skeleton className="h-3 w-1/2" /></span>
+          <span key={c} className="block shrink-0" style={{ width: colWidth(c) }}>
+            <Skeleton className="h-3 w-1/2" />
+          </span>
         ))}
       </div>
       {Array.from({ length: rows }, (_, r) => (
@@ -70,7 +74,9 @@ export function TableSkeleton({ label, rows = 8, columns = 5, toolbar, className
 }
 
 /** Widths of the rows' texts and controls, varied but the same at each render */
-const LABELS = [34, 26, 40, 30], LINES = [62, 54, 70, 48], CONTROLS = [96, 120, 72, 104]
+const LABELS = [34, 26, 40, 30],
+  LINES = [62, 54, 70, 48],
+  CONTROLS = [96, 120, 72, 104]
 
 /**
  * Rows loading, as settings or a list draw them: a label and its line on the left, a control on the right,
@@ -97,7 +103,9 @@ export function CardSkeleton({ label, rows = 3, className }: { label?: string | 
   const said = useSaid(label)
   return (
     <div role={said ? 'status' : undefined} aria-label={said} className={cn('overflow-hidden rounded-card border border-line-subtle bg-surface', className)}>
-      <div className="px-5 pt-4.5 pb-3.5"><Skeleton className="h-4 w-32" /></div>
+      <div className="px-5 pt-4.5 pb-3.5">
+        <Skeleton className="h-4 w-32" />
+      </div>
       <RowsSkeleton rows={rows} />
     </div>
   )
@@ -132,7 +140,11 @@ export function CardGridSkeleton({ cards = 6, label, className }: { cards?: numb
               <Skeleton className="h-3" style={{ width: `${LINES[i % 4]}%` }} />
             </div>
           </div>
-          <div className="flex items-center gap-2"><Skeleton className="h-5 w-16" /><Skeleton className="h-5 w-12" /><Skeleton className="ml-auto h-7 w-20 rounded-control" /></div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-5 w-12" />
+            <Skeleton className="ml-auto h-7 w-20 rounded-control" />
+          </div>
         </div>
       ))}
     </div>
@@ -144,7 +156,11 @@ export function CanvasSkeleton({ label, className }: { label?: string | false; c
   const said = useSaid(label)
   return (
     <div role={said ? 'status' : undefined} aria-label={said} className={cn('flex min-h-[320px] flex-1 flex-col gap-3 p-6', className)}>
-      <div className="flex items-center gap-2">{[88, 64, 72, 56].map(w => <Skeleton key={w} className="h-7 rounded-control" style={{ width: w }} />)}</div>
+      <div className="flex items-center gap-2">
+        {[88, 64, 72, 56].map(w => (
+          <Skeleton key={w} className="h-7 rounded-control" style={{ width: w }} />
+        ))}
+      </div>
       <Skeleton className="min-h-[260px] flex-1 rounded-card" />
     </div>
   )

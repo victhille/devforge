@@ -1,5 +1,5 @@
 /**
- * Going back on a Prisma migration (v2.3 lot 3). Prisma has no "down"
+ * Going back on a Prisma migration. Prisma has no "down"
  * migration: DevForge writes one. `prisma migrate diff` compares the database
  * with the migrations minus the last one, replayed in a shadow database, and
  * gives the SQL that undoes it. The schema goes back with Git. Pure helpers
@@ -19,7 +19,7 @@ export function databaseName(url: string): string | null {
   return name && /^[\w-]+$/.test(name) ? name : null
 }
 
-const quoteDb = (name: string, provider: string) => provider === 'mysql' ? `\`${name}\`` : `"${name}"`
+const quoteDb = (name: string, provider: string) => (provider === 'mysql' ? `\`${name}\`` : `"${name}"`)
 export const createDatabaseSql = (name: string, provider: string) => `CREATE DATABASE ${quoteDb(name, provider)};\n`
 export const dropDatabaseSql = (name: string, provider: string) => `DROP DATABASE IF EXISTS ${quoteDb(name, provider)};\n`
 

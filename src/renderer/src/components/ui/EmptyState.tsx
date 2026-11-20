@@ -19,7 +19,12 @@ interface Props {
 export default function EmptyState({ icon, title, description, action, className, fill }: Props) {
   if (fill) {
     return (
-      <div className={cn('df-rise flex flex-1 flex-col items-center justify-center gap-4 rounded-card border border-dashed border-line px-6 py-10 text-center', className)}>
+      <div
+        className={cn(
+          'df-rise flex flex-1 flex-col items-center justify-center gap-4 rounded-card border border-dashed border-line px-6 py-10 text-center',
+          className
+        )}
+      >
         {icon && <div className="flex size-12 items-center justify-center rounded-xl bg-active text-fg-secondary [&_svg]:size-[22px]">{icon}</div>}
         <div className="max-w-[560px] text-balance">
           <p className="text-md font-semibold text-fg">{title}</p>
@@ -30,12 +35,7 @@ export default function EmptyState({ icon, title, description, action, className
     )
   }
   return (
-    <div
-      className={cn(
-        'df-rise flex flex-wrap items-center gap-x-3.5 gap-y-3 rounded-card border border-dashed border-line px-4.5 py-4',
-        className
-      )}
-    >
+    <div className={cn('df-rise flex flex-wrap items-center gap-x-3.5 gap-y-3 rounded-card border border-dashed border-line px-4.5 py-4', className)}>
       {/* 20 px whatever size the page gives: the line stays compact */}
       {icon && <div className="shrink-0 text-fg-muted [&_svg]:size-5">{icon}</div>}
       <div className="min-w-[200px] flex-1">

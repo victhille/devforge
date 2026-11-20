@@ -16,7 +16,8 @@ export async function pullLink(page: Page, from: string, target: Locator, side =
 /** Same, let go on an empty spot of the canvas, `dx`, `dy` pixels from the point */
 export async function pullToEmpty(page: Page, from: string, side: string, dx: number, dy: number): Promise<void> {
   const h = (await page.locator(`[data-handle="${from}:${side}"]`).first().boundingBox())!
-  const x = h.x + h.width / 2, y = h.y + h.height / 2
+  const x = h.x + h.width / 2,
+    y = h.y + h.height / 2
   await page.mouse.move(x, y)
   await page.mouse.down()
   await page.mouse.move(x + dx, y + dy, { steps: 8 })

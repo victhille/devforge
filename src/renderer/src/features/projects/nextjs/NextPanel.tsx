@@ -36,8 +36,12 @@ export default function NextPanel({ projectPath }: { projectPath: string }) {
 
   const load = useCallback(() => {
     setLoading(true)
-    window.devforge.nextjs.inspect(projectPath)
-      .then(d => { setData(d); setLoadError('') })
+    window.devforge.nextjs
+      .inspect(projectPath)
+      .then(d => {
+        setData(d)
+        setLoadError('')
+      })
       .catch(err => setLoadError(errorText(err)))
       .finally(() => setLoading(false))
   }, [projectPath])
@@ -47,24 +51,38 @@ export default function NextPanel({ projectPath }: { projectPath: string }) {
   useEffect(() => {
     const onDraft = () => {
       const d = takePendingDraft(projectPath)
-      if (d) { setDraft(d); setPart('entities') }
+      if (d) {
+        setDraft(d)
+        setPart('entities')
+      }
     }
     window.addEventListener(SF_DRAFT_EVENT, onDraft)
     return () => window.removeEventListener(SF_DRAFT_EVENT, onDraft)
   }, [projectPath])
 
-  const { track } = useSfTasks(projectPath, useCallback((line: string) => line, []), useCallback(() => load(), [load]))
+  const { track } = useSfTasks(
+    projectPath,
+    useCallback((line: string) => line, []),
+    useCallback(() => load(), [load])
+  )
   const pm = data?.status.packageManager ?? 'npm'
   const line = (command: NextCommand, arg?: string) => nextCommandLine(command, pm, arg)
   const exec = (command: NextCommand, arg?: string) => track(line(command, arg), () => window.devforge.nextjs.run(projectPath, command, arg))
   // install:client: the main process adds the driver adapter of the schema's provider
-  const run = (command: NextCommand, label: string, variant?: 'primary' | 'secondary') =>
-    <RunButton label={label} line={line(command, command === 'install:client' ? data?.status.provider ?? '' : undefined)} variant={variant} onRun={() => exec(command)} />
+  const run = (command: NextCommand, label: string, variant?: 'primary' | 'secondary') => (
+    <RunButton
+      label={label}
+      line={line(command, command === 'install:client' ? (data?.status.provider ?? '') : undefined)}
+      variant={variant}
+      onRun={() => exec(command)}
+    />
+  )
 
   function written(r: SfWriteResult) {
     const count = r.created.length + r.changed.length + r.removed.length
     toast.show({
-      tone: 'success', title: s.written.replace('{n}', String(count)),
+      tone: 'success',
+      title: s.written.replace('{n}', String(count)),
       description: [...r.created.map(f => `+ ${f}`), ...r.changed.map(f => `~ ${f}`), ...r.removed.map(f => `− ${f}`)].join('\n'),
       action: part === 'entities' || part === 'auth' ? { label: s.prepare, onClick: () => setPart('migrations') } : undefined
     })
@@ -85,11 +103,21 @@ export default function NextPanel({ projectPath }: { projectPath: string }) {
   }
 
   async function write(start: () => Promise<SfWriteResult>) {
-    try { written(await start()) } catch (err) { toast.show({ tone: 'error', title: errorText(err) }) }
+    try {
+      written(await start())
+    } catch (err) {
+      toast.show({ tone: 'error', title: errorText(err) })
+    }
   }
 
   if (!data) {
-    return loadError ? <p role="alert" className="text-sm text-danger">{loadError}</p> : <LinesSkeleton lines={4} label={t.common.loading} className="p-2" />
+    return loadError ? (
+      <p role="alert" className="text-sm text-danger">
+        {loadError}
+      </p>
+    ) : (
+      <LinesSkeleton lines={4} label={t.common.loading} className="p-2" />
+    )
   }
   const st = data.status
   const dbOk = st.database.reachable
@@ -102,18 +130,33 @@ export default function NextPanel({ projectPath }: { projectPath: string }) {
 
   return (
     <div className="@container flex flex-wrap gap-4">
-      <nav aria-label={n.navLabel} className="flex w-full flex-wrap gap-1.5 @min-[700px]:w-[200px] @min-[700px]:shrink-0 @min-[700px]:flex-col @min-[700px]:flex-nowrap @min-[700px]:gap-0.5">
+      <nav
+        aria-label={n.navLabel}
+        className="flex w-full flex-wrap gap-1.5 @min-[700px]:w-[200px] @min-[700px]:shrink-0 @min-[700px]:flex-col @min-[700px]:flex-nowrap @min-[700px]:gap-0.5"
+      >
         {PARTS.map(p => (
-          <button key={p} onClick={() => setPart(p)} aria-current={part === p ? 'page' : undefined}
-            className={cn('flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors',
-              part === p ? 'bg-accent-soft font-semibold text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg')}>
+          <button
+            key={p}
+            onClick={() => setPart(p)}
+            aria-current={part === p ? 'page' : undefined}
+            className={cn(
+              'flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors',
+              part === p ? 'bg-accent-soft font-semibold text-fg' : 'text-fg-secondary hover:bg-hover hover:text-fg'
+            )}
+          >
             <span className="flex-1">{n.parts[p]}</span>
-            {badge[p] && <span className={cn('font-mono text-xs', p === 'migrations' ? 'text-warning' : badge[p] === '●' ? 'text-success' : 'text-fg-muted')}>{badge[p]}</span>}
+            {badge[p] && (
+              <span className={cn('font-mono text-xs', p === 'migrations' ? 'text-warning' : badge[p] === '●' ? 'text-success' : 'text-fg-muted')}>
+                {badge[p]}
+              </span>
+            )}
           </button>
         ))}
         <div className="flex w-full items-center gap-2 px-3 text-xs text-fg-muted @min-[700px]:mt-3">
           <span className="flex-1 truncate">{st.prismaVersion ? `Prisma ${st.prismaVersion}` : 'Next.js'}</span>
-          <IconButton size="sm" title={s.refresh} onClick={load} disabled={loading}><RefreshCw size={12} className={cn(loading && 'animate-spin')} /></IconButton>
+          <IconButton size="sm" title={s.refresh} onClick={load} disabled={loading}>
+            <RefreshCw size={12} className={cn(loading && 'animate-spin')} />
+          </IconButton>
         </div>
       </nav>
 
@@ -121,7 +164,9 @@ export default function NextPanel({ projectPath }: { projectPath: string }) {
         {part === 'database' && (
           <Section title={n.dbTitle} help={n.dbHelp}>
             {!st.prisma ? (
-              <Notice tone="warning" className="text-sm" action={run('install:prisma', n.installPrisma, 'primary')}>{n.noPrisma}</Notice>
+              <Notice tone="warning" className="text-sm" action={run('install:prisma', n.installPrisma, 'primary')}>
+                {n.noPrisma}
+              </Notice>
             ) : (
               <dl className="grid grid-cols-[140px_1fr] items-start gap-x-4 gap-y-3 text-sm">
                 <dt className="text-fg-muted">Prisma</dt>
@@ -135,14 +180,27 @@ export default function NextPanel({ projectPath }: { projectPath: string }) {
                 </dd>
                 <dt className="text-fg-muted">{n.client}</dt>
                 <dd className="flex flex-col items-start gap-2">
-                  {st.client ? <span className="text-success">{n.ok}</span> : <><span className="text-warning">{n.noClient}</span>{run('install:client', n.installClient)}</>}
+                  {st.client ? (
+                    <span className="text-success">{n.ok}</span>
+                  ) : (
+                    <>
+                      <span className="text-warning">{n.noClient}</span>
+                      {run('install:client', n.installClient)}
+                    </>
+                  )}
                 </dd>
                 <dt className="text-fg-muted">{n.lib}</dt>
                 <dd className="flex flex-col items-start gap-2">
-                  {st.libPrisma ? <span className="text-success">{n.libOk}</span> : <>
-                    <span className="text-warning">{n.noLib}</span>
-                    <Button size="sm" disabled={!st.client} onClick={() => write(() => window.devforge.nextjs.writePrismaClient(projectPath))}>{n.writeLib}</Button>
-                  </>}
+                  {st.libPrisma ? (
+                    <span className="text-success">{n.libOk}</span>
+                  ) : (
+                    <>
+                      <span className="text-warning">{n.noLib}</span>
+                      <Button size="sm" disabled={!st.client} onClick={() => write(() => window.devforge.nextjs.writePrismaClient(projectPath))}>
+                        {n.writeLib}
+                      </Button>
+                    </>
+                  )}
                 </dd>
               </dl>
             )}
@@ -155,49 +213,102 @@ export default function NextPanel({ projectPath }: { projectPath: string }) {
           </Section>
         )}
         {part === 'entities' && (
-          <EntitiesSection key={draft ? JSON.stringify(draft) : 'list'} entities={data.entities} draft={draft} onDraftUsed={() => setDraft(null)} onWritten={written}
+          <EntitiesSection
+            key={draft ? JSON.stringify(draft) : 'list'}
+            entities={data.entities}
+            draft={draft}
+            onDraftUsed={() => setDraft(null)}
+            onWritten={written}
             kit={{
               write: draft => window.devforge.nextjs.writeModel(projectPath, draft),
               files: () => ['~ prisma/schema.prisma'],
-              help: n.entityHelp, listHelp: n.entitiesHelp
-            }} />
+              help: n.entityHelp,
+              listHelp: n.entitiesHelp
+            }}
+          />
         )}
         {part === 'migrations' && (
-          <MigrationsSection migrations={data.migrations} databaseOk={dbOk} note={n.migrationsNote}
+          <MigrationsSection
+            migrations={data.migrations}
+            databaseOk={dbOk}
+            note={n.migrationsNote}
             prepare={{ named: true, line: name => line('prisma:migrate', name), run: name => exec('prisma:migrate', name) }}
             apply={{ line: () => line('prisma:deploy'), run: () => exec('prisma:deploy') }}
             rollback={{
-              label: n.revert, confirm: false,
+              label: n.revert,
+              confirm: false,
               line: () => n.revertLine,
-              run: () => { void revert() }
-            }} />
+              run: () => {
+                void revert()
+              }
+            }}
+          />
         )}
         {part === 'api' && (
-          <ApiSection entities={data.entities} onWritten={written} serverUrl={null} defaultUrl={DEV_URL}
-            load={() => window.devforge.nextjs.apiConfig(projectPath)} save={config => window.devforge.nextjs.applyApi(projectPath, config)}
+          <ApiSection
+            entities={data.entities}
+            onWritten={written}
+            serverUrl={null}
+            defaultUrl={DEV_URL}
+            load={() => window.devforge.nextjs.apiConfig(projectPath)}
+            save={config => window.devforge.nextjs.applyApi(projectPath, config)}
             filesNote={n.jsonFiles}
-            needs={() => st.libPrisma ? null : { text: n.needsLib, button: <Button size="sm" variant="primary" disabled={!st.client} onClick={() => write(() => window.devforge.nextjs.writePrismaClient(projectPath))}>{n.writeLib}</Button> }} />
+            needs={() =>
+              st.libPrisma
+                ? null
+                : {
+                    text: n.needsLib,
+                    button: (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        disabled={!st.client}
+                        onClick={() => write(() => window.devforge.nextjs.writePrismaClient(projectPath))}
+                      >
+                        {n.writeLib}
+                      </Button>
+                    )
+                  }
+            }
+          />
         )}
         {part === 'auth' && (
-          <AuthSection projectPath={projectPath} status={st} version={data} onWritten={written}
-            install={run('install:auth', s.install, 'primary')} />
+          <AuthSection projectPath={projectPath} status={st} version={data} onWritten={written} install={run('install:auth', s.install, 'primary')} />
         )}
         {part === 'fixtures' && (
-          <FixturesSection entities={data.entities} ready={st.seedTools} install={run('install:seed', s.install, 'primary')}
-            line={line('seed')} canRun={st.libPrisma && dbOk}
-            onRun={counts => track(n.seedTask, () => window.devforge.nextjs.writeSeed(projectPath, counts))} />
+          <FixturesSection
+            entities={data.entities}
+            ready={st.seedTools}
+            install={run('install:seed', s.install, 'primary')}
+            line={line('seed')}
+            canRun={st.libPrisma && dbOk}
+            onRun={counts => track(n.seedTask, () => window.devforge.nextjs.writeSeed(projectPath, counts))}
+          />
         )}
         {part === 'routes' && (
-          <RoutesSection serverUrl={null} defaultUrl={DEV_URL} help={n.routesHelp}
-            load={() => window.devforge.nextjs.routes(projectPath).then(list => list.map(r => ({
-              name: r.file, path: r.path, methods: r.kind === 'page' ? ['GET'] : r.methods, controller: r.file
-            })))} />
+          <RoutesSection
+            serverUrl={null}
+            defaultUrl={DEV_URL}
+            help={n.routesHelp}
+            load={() =>
+              window.devforge.nextjs.routes(projectPath).then(list =>
+                list.map(r => ({
+                  name: r.file,
+                  path: r.path,
+                  methods: r.kind === 'page' ? ['GET'] : r.methods,
+                  controller: r.file
+                }))
+              )
+            }
+          />
         )}
         {part === 'server' && (
           <Section title={n.serverTitle} help={n.serverHelp}>
             <div className="flex flex-wrap items-start gap-4">
               {run('dev', n.devStart, 'primary')}
-              <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(DEV_URL)}><ExternalLink size={13} /> {n.openSite}</Button>
+              <Button size="sm" variant="secondary" onClick={() => window.devforge.openExternal(DEV_URL)}>
+                <ExternalLink size={13} /> {n.openSite}
+              </Button>
             </div>
           </Section>
         )}

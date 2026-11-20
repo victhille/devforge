@@ -46,7 +46,10 @@ export function useDiskCleaner() {
     } catch (err) {
       if (id === scanId.current) setError(errorText(err))
     } finally {
-      if (id === scanId.current) { setScanning(false); setSizing(false) }
+      if (id === scanId.current) {
+        setScanning(false)
+        setSizing(false)
+      }
     }
   }, [])
 

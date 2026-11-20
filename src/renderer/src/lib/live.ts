@@ -2,7 +2,7 @@ import { useCallback, useSyncExternalStore } from 'react'
 import type { DataTopic } from '@shared/types'
 
 /**
- * v4.2: data the pages read often (the projects, the connections, a project's
+ * Data the pages read often (the projects, the connections, a project's
  * models), kept in memory once read. A page coming back shows it at once and
  * asks again in the background; two pages asking at the same moment make one
  * request; and when the main process says it changed (a page, Forgy, an
@@ -34,7 +34,11 @@ const entries = new Map<string, Entry>()
 
 /** The same folder, however its path is written */
 export const samePath = (a: string, b: string) => {
-  const norm = (p: string) => p.replace(/[\\/]+/g, '/').replace(/\/$/, '').toLowerCase()
+  const norm = (p: string) =>
+    p
+      .replace(/[\\/]+/g, '/')
+      .replace(/\/$/, '')
+      .toLowerCase()
   return norm(a) === norm(b)
 }
 
@@ -43,17 +47,31 @@ const tell = (e: Entry) => e.listeners.forEach(l => l())
 function fetchEntry(e: Entry): Promise<void> {
   if (e.pending) return e.pending
   const asked = e.changes
-  e.pending = e.load()
-    .then(data => {
-      // Changed here while it was on its way: what was written then comes with the next read
-      if (e.changes !== asked) { e.at = 0; return }
-      e.snap = { data, error: undefined, loaded: true }
-      e.at = Date.now()
-    }, error => { e.snap = { ...e.snap, error, loaded: true }; e.at = Date.now() })
+  e.pending = e
+    .load()
+    .then(
+      data => {
+        // Changed here while it was on its way: what was written then comes with the next read
+        if (e.changes !== asked) {
+          e.at = 0
+          return
+        }
+        e.snap = { data, error: undefined, loaded: true }
+        e.at = Date.now()
+      },
+      error => {
+        e.snap = { ...e.snap, error, loaded: true }
+        e.at = Date.now()
+      }
+    )
     .finally(() => {
       e.pending = undefined
       tell(e)
-      if (e.again) { e.again = false; e.at = 0; if (e.listeners.size) void fetchEntry(e) }
+      if (e.again) {
+        e.again = false
+        e.at = 0
+        if (e.listeners.size) void fetchEntry(e)
+      }
     })
   return e.pending
 }
@@ -80,7 +98,11 @@ function listen(): void {
 }
 
 /** What an entry follows: the topics the main process tells (one or several), whose data, how long it stays fresh */
-export interface LiveWatch { topic?: DataTopic | DataTopic[]; scope?: string; freshMs?: number }
+export interface LiveWatch {
+  topic?: DataTopic | DataTopic[]
+  scope?: string
+  freshMs?: number
+}
 
 function entryFor(key: string, load: () => Promise<unknown>, watch?: LiveWatch): Entry {
   let e = entries.get(key)
@@ -103,7 +125,9 @@ export function watchLive(key: string, load: () => Promise<unknown>, cb: () => v
   const entry = entryFor(key, load, watch)
   entry.listeners.add(cb)
   if (!entry.at || Date.now() - entry.at > entry.freshMs) void fetchEntry(entry)
-  return () => { entry.listeners.delete(cb) }
+  return () => {
+    entry.listeners.delete(cb)
+  }
 }
 
 /** What is kept under `key` now */
@@ -122,7 +146,7 @@ export const reloadLive = (key: string): Promise<void> => {
 export function useLive<T>(key: string | null, load: () => Promise<T>, watch?: LiveWatch) {
   // The page's latest way of reading it
   if (key) entryFor(key, load, watch)
-  const subscribe = useCallback((cb: () => void) => (key ? watchLive(key, load, cb, watch) : () => {}), [key]) // eslint-disable-line react-hooks/exhaustive-deps
+  const subscribe = useCallback((cb: () => void) => (key ? watchLive(key, load, cb, watch) : () => {}), [key]) // eslint-disable-line react-hooks/exhaustive-deps -- the subscription follows the key; entryFor above keeps load and watch current
   // The same snapshot on a server render (the menu's tests render the sidebar to a string)
   const read = () => (key ? liveSnapshot(key) : EMPTY)
   const snap = useSyncExternalStore(subscribe, read, read)

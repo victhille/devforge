@@ -7,6 +7,10 @@ import { runSetup } from './projectSetup'
 import { packageName } from '@shared/data/projectLibraries'
 import { extractTemplate } from './userTemplates'
 import { managerOf } from '@shared/lib/packageManagers'
+import { isPackageSpec } from '@shared/lib/packages'
+import { DB_NAME_RE, REPO_RE, SETUP_FEATURES } from '@shared/lib/projectSetup'
+import type { SetupDatabase } from '@shared/types'
+import { API_URL_RE } from '@shared/lib/spaAuthTemplate'
 
 type LogCb = (log: LogLine) => void
 type ResultCb = (result: CommandResult) => void
@@ -14,12 +18,18 @@ type ResultCb = (result: CommandResult) => void
 /** The creator's own messages, in the interface's language */
 const TEXT = {
   fr: {
-    install: 'Installation des dépendances…', mkdir: (p: string) => `Création du dossier : ${p}`, made: (p: string) => `Dossier créé : ${p}`,
-    libs: (n: number) => `Installation de ${n} paquet(s)…`, devLibs: (n: number) => `Installation de ${n} paquet(s) de développement…`
+    install: 'Installation des dépendances…',
+    mkdir: (p: string) => `Création du dossier : ${p}`,
+    made: (p: string) => `Dossier créé : ${p}`,
+    libs: (n: number) => `Installation de ${n} paquet(s)…`,
+    devLibs: (n: number) => `Installation de ${n} paquet(s) de développement…`
   },
   en: {
-    install: 'Installing dependencies…', mkdir: (p: string) => `Creating directory: ${p}`, made: (p: string) => `Created directory: ${p}`,
-    libs: (n: number) => `Installing ${n} package(s)…`, devLibs: (n: number) => `Installing ${n} dev package(s)…`
+    install: 'Installing dependencies…',
+    mkdir: (p: string) => `Creating directory: ${p}`,
+    made: (p: string) => `Created directory: ${p}`,
+    libs: (n: number) => `Installing ${n} package(s)…`,
+    devLibs: (n: number) => `Installing ${n} dev package(s)…`
   }
 }
 const text = (o: ProjectCreationOptions) => TEXT[o.lang ?? 'fr']
@@ -29,10 +39,41 @@ function info(onLog: LogCb, taskId: string, text: string): void {
 }
 
 function validateName(name: string): void {
-  if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
+  // Passed to npm create, composer create-project, symfony new: never read as an option
+  if (typeof name !== 'string' || !/^[a-zA-Z0-9_][a-zA-Z0-9_-]*$/.test(name)) {
     throw new Error(`Invalid project name "${name}". Use only letters, numbers, hyphens, and underscores.`)
   }
 }
+
+/**
+ * The libraries and the GitHub repository go into commands run through a shell: only what the
+ * window's own checks let through (the library catalog, REPO_RE), whatever a window or a template sent
+ */
+function validateCommandInputs(options: ProjectCreationOptions): void {
+  for (const list of [options.libraries, options.devLibraries]) {
+    if (list === undefined) continue
+    if (!Array.isArray(list)) throw new Error('Invalid library list')
+    for (const spec of list) if (!isPackageSpec(spec)) throw new Error(`Invalid library "${String(spec)}"`)
+  }
+  const s = options.setup
+  if (!s) return
+  const repo = s.github?.repo
+  if (s.github && (typeof repo !== 'string' || !REPO_RE.test(repo))) {
+    throw new Error(`Invalid GitHub repository "${String(repo)}"`)
+  }
+  // Written into compose.yaml (started at once), the .env files and the welcome page
+  if (!SETUP_DATABASES.includes(s.database)) throw new Error(`Invalid database "${String(s.database)}"`)
+  if (s.database === 'postgres' || s.database === 'mysql') {
+    if (typeof s.dbName !== 'string' || !DB_NAME_RE.test(s.dbName)) throw new Error(`Invalid database name "${String(s.dbName)}"`)
+    if (!isPort(s.dbPort)) throw new Error(`Invalid database port "${String(s.dbPort)}"`)
+  }
+  if (s.appPort !== undefined && !isPort(s.appPort)) throw new Error(`Invalid app port "${String(s.appPort)}"`)
+  if (!Array.isArray(s.features) || s.features.some(f => !SETUP_FEATURES.includes(f))) throw new Error('Invalid project features')
+  if (s.apiUrl !== undefined && (typeof s.apiUrl !== 'string' || !API_URL_RE.test(s.apiUrl))) throw new Error('Invalid API address')
+}
+
+const SETUP_DATABASES: readonly SetupDatabase[] = ['none', 'postgres', 'mysql', 'sqlite']
+const isPort = (n: unknown): boolean => Number.isInteger(n) && (n as number) >= 1 && (n as number) <= 65535
 
 function validatePath(destination: string): void {
   if (!existsSync(destination)) {
@@ -49,18 +90,14 @@ function checkNoConflict(destination: string, name: string): void {
 
 // ─── React (Vite) ─────────────────────────────────────────────────────────────
 
-function createReactProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createReactProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const { name, destination, packageManager, typescript, installDeps } = options
   const pm = packageManager
 
   const template = typescript ? 'react-ts' : 'react'
 
   // npm create vite@latest <name> -- --template react-ts
-  const pmExe = pm === 'npm' ? 'npm' : pm === 'pnpm' ? 'pnpm' : 'yarn'
+  const pmExe = managerOf(pm)
   let args: string[]
 
   if (pm === 'npm') {
@@ -76,7 +113,7 @@ function createReactProject(
     args,
     cwd: destination,
     onLog,
-    onResult: (result) => {
+    onResult: result => {
       if (result.status === 'success' && installDeps) {
         // Chain: install dependencies
         const installArgs = pm === 'npm' ? ['install'] : pm === 'pnpm' ? ['install'] : []
@@ -103,54 +140,37 @@ function createReactProject(
 
 // ─── Next.js ──────────────────────────────────────────────────────────────────
 
-function createNextjsProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createNextjsProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const { name, destination, packageManager, typescript } = options
   const pm = packageManager
-  const pmExe = pm === 'npm' ? 'npm' : pm === 'pnpm' ? 'pnpm' : 'yarn'
+  const pmExe = managerOf(pm)
 
   // npm keeps the flags before "--" for itself: create-next-app would then ask its questions
   const flags = ['--yes', typescript ? '--ts' : '--js', `--use-${pm}`]
   // DevForge makes the repository itself (branch main, its .gitignore first): create-next-app's would be on master
   if (options.setup?.git || options.setup?.github) flags.push('--disable-git')
-  const args =
-    pm === 'npm'
-      ? ['create', '--yes', 'next-app@latest', name, '--', ...flags]
-      : ['create', 'next-app', name, ...flags]
+  const args = pm === 'npm' ? ['create', '--yes', 'next-app@latest', name, '--', ...flags] : ['create', 'next-app', name, ...flags]
 
   return commandRunner.run({ executable: pmExe, args, cwd: destination, onLog, onResult })
 }
 
 // ─── Vue ──────────────────────────────────────────────────────────────────────
 
-function createVueProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createVueProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const { name, destination, packageManager, typescript } = options
   const pm = packageManager
-  const pmExe = pm === 'npm' ? 'npm' : pm === 'pnpm' ? 'pnpm' : 'yarn'
+  const pmExe = managerOf(pm)
   const template = typescript ? 'vue-ts' : 'vue'
 
   const args =
-    pm === 'npm'
-      ? ['create', '--yes', 'vite@latest', name, '--', '--template', template]
-      : ['create', 'vite@latest', name, '--', '--template', template]
+    pm === 'npm' ? ['create', '--yes', 'vite@latest', name, '--', '--template', template] : ['create', 'vite@latest', name, '--', '--template', template]
 
   return commandRunner.run({ executable: pmExe, args, cwd: destination, onLog, onResult })
 }
 
 // ─── Node.js ──────────────────────────────────────────────────────────────────
 
-function createNodejsProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createNodejsProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const { name, destination } = options
   const projectPath = join(destination, name)
 
@@ -173,11 +193,7 @@ function createNodejsProject(
 
 // ─── Symfony ──────────────────────────────────────────────────────────────────
 
-function createSymfonyProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createSymfonyProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const { name, destination } = options
 
   // Check for symfony CLI first, fall back to composer
@@ -208,11 +224,7 @@ function createSymfonyProject(
 
 // ─── Laravel ──────────────────────────────────────────────────────────────────
 
-function createLaravelProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createLaravelProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   return commandRunner.run({
     executable: 'composer',
     args: ['create-project', 'laravel/laravel', options.name, '--no-interaction', '--prefer-dist'],
@@ -224,11 +236,7 @@ function createLaravelProject(
 
 // ─── Empty project ────────────────────────────────────────────────────────────
 
-function createEmptyProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+function createEmptyProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const { name, destination } = options
   const projectPath = join(destination, name)
 
@@ -244,7 +252,7 @@ function createEmptyProject(
   return 'init'
 }
 
-// ─── One of the user's templates (v3.8) ───────────────────────────────────────
+// ─── One of the user's templates ───────────────────────────────────────
 
 function createFromTemplate(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   const projectPath = join(options.destination, options.name)
@@ -287,32 +295,29 @@ function declaredPackages(projPath: string): Set<string> {
   }
 }
 
-function withLibraryInstall(
-  options: ProjectCreationOptions,
-  taskId: string,
-  onLog: LogCb,
-  onResult: ResultCb,
-  innerOnResult: ResultCb
-): ResultCb {
+function withLibraryInstall(options: ProjectCreationOptions, taskId: string, onLog: LogCb, onResult: ResultCb, innerOnResult: ResultCb): ResultCb {
   const { packageManager: pm, name, destination } = options
   const projPath = join(destination, name)
-  const pmExe    = pm === 'pnpm' ? 'pnpm' : pm === 'yarn' ? 'yarn' : 'npm'
+  const pmExe = managerOf(pm)
 
   if (!options.libraries?.length && !options.devLibraries?.length) return innerOnResult
 
-  return (result) => {
+  return result => {
     if (result.status !== 'success') {
       innerOnResult(result)
       return
     }
-    const declared     = declaredPackages(projPath)
-    const libraries    = (options.libraries ?? []).filter(p => !declared.has(packageName(p)))
+    const declared = declaredPackages(projPath)
+    const libraries = (options.libraries ?? []).filter(p => !declared.has(packageName(p)))
     const devLibraries = (options.devLibraries ?? []).filter(p => !declared.has(packageName(p)))
-    const hasLibs      = libraries.length > 0
-    const hasDevLibs   = devLibraries.length > 0
+    const hasLibs = libraries.length > 0
+    const hasDevLibs = devLibraries.length > 0
 
     const installDev = () => {
-      if (!hasDevLibs) { innerOnResult(result); return }
+      if (!hasDevLibs) {
+        innerOnResult(result)
+        return
+      }
       info(onLog, taskId, text(options).devLibs(devLibraries.length))
       const devArgs = pm === 'yarn' ? ['add', '--dev', ...devLibraries] : ['install', '--save-dev', ...devLibraries]
       commandRunner.run({ executable: pmExe, args: devArgs, cwd: projPath, onLog, onResult: innerOnResult })
@@ -330,21 +335,19 @@ function withLibraryInstall(
 
 // ─── Main entry ───────────────────────────────────────────────────────────────
 
-export function createProject(
-  options: ProjectCreationOptions,
-  onLog: LogCb,
-  onResult: ResultCb
-): string {
+export function createProject(options: ProjectCreationOptions, onLog: LogCb, onResult: ResultCb): string {
   // The package manager goes into the commands (--use-pnpm…): a known one only, whatever the window or a template sent
-  options = { ...options, packageManager: managerOf(options.packageManager) }
+  // Its language picks the messages and the generated pages' texts: fr or en, nothing else
+  options = { ...options, packageManager: managerOf(options.packageManager), lang: options.lang === 'en' ? 'en' : 'fr' }
   validateName(options.name)
+  validateCommandInputs(options)
   validatePath(options.destination)
   checkNoConflict(options.destination, options.name)
 
   // Chain: framework creation → libraries → DevForge setup (database, options, Git, GitHub)
-  const taskId       = 'init'
-  const projPath     = join(options.destination, options.name)
-  const afterLibs: ResultCb = (result) => {
+  const taskId = 'init'
+  const projPath = join(options.destination, options.name)
+  const afterLibs: ResultCb = result => {
     if (result.status === 'success' && options.setup) runSetup(options, projPath, result.taskId, onLog, onResult)
     else onResult(result)
   }

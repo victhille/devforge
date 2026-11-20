@@ -1,5 +1,5 @@
 /**
- * v3.8.1: a project's notes are formatted text (HTML from the editor). Notes
+ * A project's notes are formatted text (HTML from the editor). Notes
  * written in Markdown (before v3.8.1, or by hand in the project's folder) are
  * converted when they are opened.
  *
@@ -17,11 +17,12 @@ export const isHtmlNotes = (notes: string) => /^\s*</.test(notes)
 export const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 /** Bold, italics, code, inline */
-const inline = (s: string) => escapeHtml(s)
-  .replace(/`([^`]+)`/g, '<code>$1</code>')
-  .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
-  .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>')
-  .replace(/~~([^~]+)~~/g, '<s>$1</s>')
+const inline = (s: string) =>
+  escapeHtml(s)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+    .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>')
+    .replace(/~~([^~]+)~~/g, '<s>$1</s>')
 
 type ListKind = 'ul' | 'ol' | 'check'
 const OPEN_LIST: Record<ListKind, string> = { ul: '<ul>', ol: '<ol>', check: '<ul data-checklist>' }
@@ -31,7 +32,12 @@ export function markdownToHtml(md: string): string {
   const out: string[] = []
   const lines = md.replace(/\r\n?/g, '\n').split('\n')
   let list: ListKind | null = null
-  const close = () => { if (list) { out.push(list === 'ol' ? '</ol>' : '</ul>'); list = null } }
+  const close = () => {
+    if (list) {
+      out.push(list === 'ol' ? '</ol>' : '</ul>')
+      list = null
+    }
+  }
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     if (/^```/.test(line)) {
@@ -45,15 +51,26 @@ export function markdownToHtml(md: string): string {
     const check = /^\s*[-*+]\s+\[([ xX])\]\s+(.*)$/.exec(line)
     const ul = /^\s*[-*+]\s+(.*)$/.exec(line)
     const ol = /^\s*\d+[.)]\s+(.*)$/.exec(line)
-    if (h) { close(); out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`) }
-    else if (check || ul || ol) {
+    if (h) {
+      close()
+      out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`)
+    } else if (check || ul || ol) {
       const kind: ListKind = check ? 'check' : ul ? 'ul' : 'ol'
-      if (list !== kind) { close(); out.push(OPEN_LIST[kind]); list = kind }
+      if (list !== kind) {
+        close()
+        out.push(OPEN_LIST[kind])
+        list = kind
+      }
       if (check) out.push(`<li data-checked="${check[1] !== ' '}">${inline(check[2])}</li>`)
       else out.push(`<li>${inline((ul ?? ol)![1])}</li>`)
-    } else if (/^>\s?/.test(line)) { close(); out.push(`<blockquote>${inline(line.replace(/^>\s?/, ''))}</blockquote>`) }
-    else if (!line.trim()) close()
-    else { close(); out.push(`<p>${inline(line)}</p>`) }
+    } else if (/^>\s?/.test(line)) {
+      close()
+      out.push(`<blockquote>${inline(line.replace(/^>\s?/, ''))}</blockquote>`)
+    } else if (!line.trim()) close()
+    else {
+      close()
+      out.push(`<p>${inline(line)}</p>`)
+    }
   }
   close()
   return out.join('')
@@ -62,7 +79,14 @@ export function markdownToHtml(md: string): string {
 /** A note's body as HTML, whatever it was written in */
 export const toHtmlBody = (body: string) => (isHtmlNotes(body) ? body : markdownToHtml(body))
 
-const decode = (s: string) => s.replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&')
+const decode = (s: string) =>
+  s
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
 
 /**
  * The text cut around its code blocks (`<pre>…</pre>`, the odd parts), found
@@ -70,7 +94,8 @@ const decode = (s: string) => s.replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').re
  */
 export function splitPre(html: string): string[] {
   const out: string[] = []
-  const open = /<pre\b/gi, close = /<\/pre>/gi
+  const open = /<pre\b/gi,
+    close = /<\/pre>/gi
   let at = 0
   for (;;) {
     open.lastIndex = at
@@ -99,7 +124,11 @@ function joinLines(part: string): string {
   lines.forEach((raw, i) => {
     let line = i > 0 ? raw.trimStart() : raw
     if (i < last) line = line.trimEnd()
-    if (i === 0) { out.push(line); prevEnd = line.slice(-1); return }
+    if (i === 0) {
+      out.push(line)
+      prevEnd = line.slice(-1)
+      return
+    }
     if (!line && i < last) return
     out.push(prevEnd === '>' && line.startsWith('<') ? '' : ' ', line)
     if (line) prevEnd = line.slice(-1)
@@ -107,11 +136,23 @@ function joinLines(part: string): string {
   return out.join('')
 }
 
+/** Every tag out, again until none is left: one pass turns `<scr<b>ipt>` into a `<script` */
+function stripTags(html: string): string {
+  let out = html
+  for (let prev = ''; prev !== out;) {
+    prev = out
+    out = out.replace(/<[^<>]*>/g, '')
+  }
+  return out
+}
+
 /** The notes as plain text (Forgy, searches): line breaks kept, headings, lists and checkboxes marked */
 export function notesToText(notes: string): string {
   if (!isHtmlNotes(notes)) return notes
   // Outside code blocks a line break of the HTML is a space (the file keeps one block per line)
-  const text = splitPre(notes).map((part, i) => (i % 2 ? part : joinLines(part))).join('')
+  const text = splitPre(notes)
+    .map((part, i) => (i % 2 ? part : joinLines(part)))
+    .join('')
     .replace(/<h([1-3])[^<>]*>/gi, (_m, n: string) => `\n${'#'.repeat(Number(n))} `)
     .replace(/<li\b([^<>]*)>/gi, (_m, attrs: string) => {
       const state = /\bdata-checked\s*=\s*["']?(true|false)/i.exec(attrs)?.[1]
@@ -119,23 +160,52 @@ export function notesToText(notes: string): string {
     })
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/(p|div|h[1-6]|blockquote|pre|ul|ol)>/gi, '\n')
-    .replace(/<[^<>]+>/g, '')
-  return decode(text).split('\n').map(l => l.trimEnd()).join('\n').replace(/\n{3,}/g, '\n\n').trim()
+  return decode(stripTags(text))
+    .split('\n')
+    .map(l => l.trimEnd())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 }
 
 /** What the editor keeps: these tags, and on them only these attributes */
 export const NOTES_TAGS: Record<string, string[]> = {
-  p: [], div: [], br: [], b: [], strong: [], i: [], em: [], u: [], s: [], strike: [], del: [],
-  h1: [], h2: [], h3: [], ul: ['data-checklist'], ol: [], li: ['data-checked'], blockquote: [], pre: [], code: [], hr: [],
-  font: ['size', 'color'], span: ['style'], mark: []
+  p: [],
+  div: [],
+  br: [],
+  b: [],
+  strong: [],
+  i: [],
+  em: [],
+  u: [],
+  s: [],
+  strike: [],
+  del: [],
+  h1: [],
+  h2: [],
+  h3: [],
+  ul: ['data-checklist'],
+  ol: [],
+  li: ['data-checked'],
+  blockquote: [],
+  pre: [],
+  code: [],
+  hr: [],
+  font: ['size', 'color'],
+  span: ['style'],
+  mark: []
 }
 
 /** The attributes a tag keeps, when the editor keeps it (its own key only: `constructor` must not find Object's) */
 export const notesTagAttrs = (tag: string): string[] | undefined => (Object.prototype.hasOwnProperty.call(NOTES_TAGS, tag) ? NOTES_TAGS[tag] : undefined)
 
 /** In a style, only the colors and the size the editor sets (the value's class takes the spaces: no \\s* before it to backtrack over) */
-export const cleanStyle = (style: string) => style.split(';').map(s => s.trim())
-  .filter(s => /^(color|background-color|font-size)\s*:[#\w(),.%\s-]+$/i.test(s) && !/url|expression/i.test(s)).join('; ')
+export const cleanStyle = (style: string) =>
+  style
+    .split(';')
+    .map(s => s.trim())
+    .filter(s => /^(color|background-color|font-size)\s*:[#\w(),.%\s-]+$/i.test(s) && !/url|expression/i.test(s))
+    .join('; ')
 
 // ─── Checklists ──────────────────────────────────────────────────────────────
 
@@ -169,7 +239,9 @@ export function checklistItems(html: string): ChecklistItem[] {
     if (name === 'li') {
       if (!closing) {
         const value = CHECKED_ATTR.exec(attrs)?.[1].replace(/["']/g, '').toLowerCase()
-        open.push(open.length >= MAX_DEPTH ? null : { start: m.index, tagEnd: m.index + tag.length, checked: value === 'true', inChecklist: !!lists[lists.length - 1] })
+        open.push(
+          open.length >= MAX_DEPTH ? null : { start: m.index, tagEnd: m.index + tag.length, checked: value === 'true', inChecklist: !!lists[lists.length - 1] }
+        )
       } else {
         const li = open.pop()
         if (li?.inChecklist) {
@@ -195,7 +267,9 @@ export function setItemChecked(html: string, item: ChecklistItem, checked: boole
 
 /** The body without this box (and without its list once empty) */
 export function removeItem(html: string, item: ChecklistItem): string {
-  return (html.slice(0, item.start) + html.slice(item.end).replace(/^\n/, '')).replace(/<ul\b([^<>]*)>\s*<\/ul>\n?/gi, (m, attrs: string) => (/\bdata-checklist\b/i.test(attrs) ? '' : m))
+  return (html.slice(0, item.start) + html.slice(item.end).replace(/^\n/, '')).replace(/<ul\b([^<>]*)>\s*<\/ul>\n?/gi, (m, attrs: string) =>
+    /\bdata-checklist\b/i.test(attrs) ? '' : m
+  )
 }
 
 export const itemHtml = (text: string, checked = false) => `<li data-checked="${checked}">${escapeHtml(text)}</li>`
@@ -220,8 +294,14 @@ export function insertItem(html: string, li: string, index = Infinity): string {
  * GitHub (which shows a Markdown file's HTML); code blocks are left as they are.
  */
 export function blocksOnLines(html: string): string {
-  return splitPre(html).map((part, i) => (i % 2
-    ? part
-    : part.replace(/<ul data-checklist="">/g, '<ul data-checklist>')
-      .replace(/(<\/(?:p|div|h[1-6]|ul|ol|li|blockquote)>|<(?:ul|ol)\b[^<>]*>|<hr\s*\/?>)(?!\n)/gi, '$1\n'))).join('').replace(/(<\/pre>)(?!\n)/gi, '$1\n')
+  return splitPre(html)
+    .map((part, i) =>
+      i % 2
+        ? part
+        : part
+            .replace(/<ul data-checklist="">/g, '<ul data-checklist>')
+            .replace(/(<\/(?:p|div|h[1-6]|ul|ol|li|blockquote)>|<(?:ul|ol)\b[^<>]*>|<hr\s*\/?>)(?!\n)/gi, '$1\n')
+    )
+    .join('')
+    .replace(/(<\/pre>)(?!\n)/gi, '$1\n')
 }

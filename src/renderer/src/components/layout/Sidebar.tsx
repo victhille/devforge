@@ -5,7 +5,20 @@ import { useI18n } from '@renderer/i18n/I18nContext'
 import { cn } from '@renderer/lib/cn'
 import { usePersistentState } from '@renderer/hooks/usePersistentState'
 import type { Project } from '@shared/types'
-import { DEFAULT_FAVORITES, HOME, LISTED_PAGES, MENU_GROUPS, RAIL, isListed, isOn, panelFor, railCurrent, railOf, type NavKey, type RailKey } from '@renderer/app/navigation'
+import {
+  DEFAULT_FAVORITES,
+  HOME,
+  LISTED_PAGES,
+  MENU_GROUPS,
+  RAIL,
+  isListed,
+  isOn,
+  panelFor,
+  railCurrent,
+  railOf,
+  type NavKey,
+  type RailKey
+} from '@renderer/app/navigation'
 import { useProjects } from '@renderer/features/projects/hooks/useProjects'
 import { SETTINGS_SECTIONS } from '@renderer/features/settings/sections'
 import { useHasServer, useServerName } from '@renderer/hooks/useHasServer'
@@ -19,7 +32,8 @@ const known = (path: string) => path !== '/' && ENTRIES.some(p => p.path === pat
 const SettingsIcon = entry('/settings').icon
 
 /** Ctrl+B stays a key of the field being typed in (bold in a note, a shell shortcut…) */
-const isTyping = (t: EventTarget | null) => t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement || (t instanceof HTMLElement && t.isContentEditable)
+const isTyping = (t: EventTarget | null) =>
+  t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement || (t instanceof HTMLElement && t.isContentEditable)
 
 /** The pinned pages, saved in the settings (the shared copy: pinned from the palette, they show here at once) */
 function useFavorites() {
@@ -43,7 +57,11 @@ function PinButton({ pinned, full, onToggle }: { pinned: boolean; full: boolean;
       aria-label={label}
       aria-pressed={pinned}
       disabled={!pinned && full}
-      onClick={e => { e.preventDefault(); e.stopPropagation(); onToggle() }}
+      onClick={e => {
+        e.preventDefault()
+        e.stopPropagation()
+        onToggle()
+      }}
       className={cn(
         'absolute top-1/2 right-2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-fg-muted opacity-0 transition-opacity',
         'group-hover/row:opacity-100 focus-visible:opacity-100 hover:bg-elevated hover:text-fg disabled:cursor-not-allowed disabled:opacity-40',
@@ -63,12 +81,12 @@ function PanelLink({ to, label, Icon, pin, yields }: { to: string; label: string
   const { pathname } = useLocation()
   const on = isOn(pathname, to) && !yields
   return (
-    <Link
-      to={to}
-      aria-current={on ? 'page' : undefined}
-      className={panelRow(on, pin ? 'pr-11' : undefined)}
-    >
-      <Icon size={PANEL_ICON} strokeWidth={1.8} className={cn('shrink-0 transition-colors', on ? 'text-accent' : 'text-fg-muted group-hover/link:text-fg-secondary')} />
+    <Link to={to} aria-current={on ? 'page' : undefined} className={panelRow(on, pin ? 'pr-11' : undefined)}>
+      <Icon
+        size={PANEL_ICON}
+        strokeWidth={1.8}
+        className={cn('shrink-0 transition-colors', on ? 'text-accent' : 'text-fg-muted group-hover/link:text-fg-secondary')}
+      />
       <span className="truncate">{label}</span>
     </Link>
   )
@@ -78,12 +96,13 @@ function PanelLink({ to, label, Icon, pin, yields }: { to: string; label: string
 const RECENT_PROJECTS = 3
 
 /** A square of the rail: a group (button) or Settings (link); orange when it holds the page on screen */
-const railItem = (current: boolean, shown: boolean) => cn(
-  'relative flex size-[42px] shrink-0 items-center justify-center rounded-lg transition-colors',
-  current ? 'bg-accent-soft text-accent' : shown ? 'bg-active text-fg' : 'text-fg-muted hover:bg-elevated hover:text-fg'
-)
+const railItem = (current: boolean, shown: boolean) =>
+  cn(
+    'relative flex size-[42px] shrink-0 items-center justify-center rounded-lg transition-colors',
+    current ? 'bg-accent-soft text-accent' : shown ? 'bg-active text-fg' : 'text-fg-muted hover:bg-elevated hover:text-fg'
+  )
 /** The orange bar on the left edge of the window, beside the group of the page on screen */
-const RailMark = () => <span aria-hidden className="absolute top-2.5 bottom-2.5 -left-[11px] w-[3px] rounded-r-full bg-accent" />
+const RailMark = () => <span aria-hidden className="df-fill absolute top-2.5 bottom-2.5 -left-[11px] w-[3px] rounded-r-full bg-accent" />
 
 /**
  * Forge: an icon rail (Home, the six groups, Settings at the bottom)
@@ -114,15 +133,23 @@ export default function Sidebar() {
   // one picked in the panel keeps it (a favorite stays under Home)
   // (the favorites are read, not followed: unpinning the page on screen leaves the panel where it is)
   const favoritesRef = useRef(shownFavorites)
-  useEffect(() => { favoritesRef.current = shownFavorites })
-  useEffect(() => { setShown(s => panelFor(s, pathname, favoritesRef.current)) }, [pathname])
+  useEffect(() => {
+    favoritesRef.current = shownFavorites
+  })
+  useEffect(() => {
+    setShown(s => panelFor(s, pathname, favoritesRef.current))
+  }, [pathname])
   // On Settings the panel holds their sections, until a group is picked on the rail (until the next page)
   const onSettings = pathname.startsWith('/settings')
   const [browsing, setBrowsing] = useState(false)
-  useEffect(() => { setBrowsing(false) }, [pathname])
+  useEffect(() => {
+    setBrowsing(false)
+  }, [pathname])
   const settingsShown = onSettings && !browsing
   // The rail's Tab stop goes back to the group shown
-  useEffect(() => { setStop(null) }, [shown])
+  useEffect(() => {
+    setStop(null)
+  }, [shown])
 
   // Ctrl+B folds the panel, like in most editors
   useEffect(() => {
@@ -138,8 +165,10 @@ export default function Sidebar() {
 
   const pick = (key: RailKey) => {
     setBrowsing(true)
-    if (collapsed) { setShown(key); setCollapsed(false) }
-    else if (key === shown && !settingsShown) setCollapsed(true)
+    if (collapsed) {
+      setShown(key)
+      setCollapsed(false)
+    } else if (key === shown && !settingsShown) setCollapsed(true)
     else setShown(key)
   }
 
@@ -174,13 +203,22 @@ export default function Sidebar() {
   const group = MENU_GROUPS.find(g => g.key === shown)
   // The projects the panel lists: the last opened, under Home only (Development shows its pages, the Projects page lists them all)
   const when = (p: Project) => p.lastOpenedAt ?? p.createdAt
-  const listed = settingsShown || collapsed || shown !== 'home' ? []
-    : projects.slice().sort((a, b) => when(b).localeCompare(when(a))).slice(0, RECENT_PROJECTS)
+  const listed =
+    settingsShown || collapsed || shown !== 'home'
+      ? []
+      : projects
+          .slice()
+          .sort((a, b) => when(b).localeCompare(when(a)))
+          .slice(0, RECENT_PROJECTS)
   // A listed project on screen is the panel's current page, not Projects as well
   const projectListed = listed.some(p => onProject(pathname, p.id))
-  const note = settingsShown ? null
-    : shown === 'home' ? t.nav.noteHome
-    : (shown === 'groupServers' || shown === 'groupOnline') && server ? t.nav.noteServer.replace('{name}', server) : null
+  const note = settingsShown
+    ? null
+    : shown === 'home'
+      ? t.nav.noteHome
+      : (shown === 'groupServers' || shown === 'groupOnline') && server
+        ? t.nav.noteServer.replace('{name}', server)
+        : null
   const paths = group ? group.paths.filter(p => isListed(p, hasServer)) : []
   const waiting = group ? group.paths.length - paths.length : 0
   const toggleLabel = collapsed ? t.nav.expand : t.nav.collapse
@@ -190,7 +228,14 @@ export default function Sidebar() {
       <nav aria-label={t.nav.mainMenu} className="relative flex min-h-0">
         {/* The rail: always there, 64 px */}
         <div className="flex w-[64px] shrink-0 flex-col items-center gap-1.5 border-r border-line-subtle bg-chrome py-3">
-          <div ref={rail} role="toolbar" aria-orientation="vertical" aria-label={t.nav.railLabel} onKeyDown={onRailKey} className="flex flex-col items-center gap-1.5">
+          <div
+            ref={rail}
+            role="toolbar"
+            aria-orientation="vertical"
+            aria-label={t.nav.railLabel}
+            onKeyDown={onRailKey}
+            className="flex flex-col items-center gap-1.5"
+          >
             {RAIL.map(({ key, icon: Icon }) => {
               const isShown = !collapsed && !settingsShown && shown === key
               return (
@@ -202,6 +247,8 @@ export default function Sidebar() {
                   tabIndex={(stop ?? shown) === key ? 0 : -1}
                   aria-label={label(key)}
                   aria-pressed={isShown}
+                  // The group of the page on screen, told even when its panel is closed
+                  aria-current={current === key ? 'true' : undefined}
                   aria-controls="nav-panel"
                   title={label(key)}
                   className={railItem(current === key, isShown)}
@@ -215,7 +262,10 @@ export default function Sidebar() {
         </div>
 
         {/* The panel of the group: 220 px, folds to nothing */}
-        <div id="nav-panel" className={cn('shrink-0 overflow-hidden bg-sidebar transition-[width] duration-200', collapsed ? 'w-0' : 'w-[220px] border-r border-line-subtle')}>
+        <div
+          id="nav-panel"
+          className={cn('shrink-0 overflow-hidden bg-sidebar transition-[width] duration-200', collapsed ? 'w-0' : 'w-[220px] border-r border-line-subtle')}
+        >
           {!collapsed && (
             <div className="flex h-full w-[219px] flex-col gap-7 overflow-y-auto px-3 pt-6 pb-3">
               <p className="truncate px-3 font-display text-xl font-bold tracking-tight text-fg">{settingsShown ? t.nav.settings : label(shown)}</p>
@@ -223,11 +273,14 @@ export default function Sidebar() {
               {settingsShown ? (
                 <div className="flex flex-col gap-1">
                   {SETTINGS_SECTIONS.map(x => {
-                    const on = (params.get('notes') ? 'updates' : params.get('section') ?? 'general') === x.id
+                    const on = (params.get('notes') ? 'updates' : (params.get('section') ?? 'general')) === x.id
                     return (
-                      <Link key={x.id} to={`/settings?section=${x.id}`} aria-current={on ? 'page' : undefined}
-                        className={panelRow(on)}>
-                        <x.icon size={PANEL_ICON} strokeWidth={1.8} className={cn('shrink-0', on ? 'text-accent' : 'text-fg-muted group-hover/link:text-fg-secondary')} />
+                      <Link key={x.id} to={`/settings?section=${x.id}`} aria-current={on ? 'page' : undefined} className={panelRow(on)}>
+                        <x.icon
+                          size={PANEL_ICON}
+                          strokeWidth={1.8}
+                          className={cn('shrink-0', on ? 'text-accent' : 'text-fg-muted group-hover/link:text-fg-secondary')}
+                        />
                         <span className="truncate">{t.settings.nav[x.id]}</span>
                       </Link>
                     )
@@ -240,8 +293,13 @@ export default function Sidebar() {
                     <div className="group/head flex h-8 items-center justify-between px-3 pb-1">
                       <PanelLabel>{t.nav.favorites}</PanelLabel>
                       {!isDefault && (
-                        <button type="button" title={t.nav.favoritesReset} aria-label={t.nav.favoritesReset} onClick={() => saveFavorites([...DEFAULT_FAVORITES])}
-                          className="flex size-7 items-center justify-center rounded-md text-fg-muted opacity-0 transition-opacity group-hover/head:opacity-100 focus-visible:opacity-100 hover:text-fg">
+                        <button
+                          type="button"
+                          title={t.nav.favoritesReset}
+                          aria-label={t.nav.favoritesReset}
+                          onClick={() => saveFavorites([...DEFAULT_FAVORITES])}
+                          className="flex size-7 items-center justify-center rounded-md text-fg-muted opacity-0 transition-opacity group-hover/head:opacity-100 focus-visible:opacity-100 hover:text-fg"
+                        >
                           <RotateCcw size={14} />
                         </button>
                       )}
@@ -250,14 +308,27 @@ export default function Sidebar() {
                     {shownFavorites.map((path, i) => {
                       const page = entry(path)
                       return (
-                        <div key={path} data-fav className={cn('group/row relative', dragged === i && 'opacity-40')}
+                        <div
+                          key={path}
+                          data-fav
+                          className={cn('group/row relative', dragged === i && 'opacity-40')}
                           title={t.nav.favoritesMove}
                           draggable
-                          onDragStart={e => { setDragged(i); e.dataTransfer.effectAllowed = 'move' }}
-                          onDragOver={e => { if (dragged !== null) e.preventDefault() }}
-                          onDrop={e => { e.preventDefault(); if (dragged !== null) move(dragged, i); setDragged(null) }}
+                          onDragStart={e => {
+                            setDragged(i)
+                            e.dataTransfer.effectAllowed = 'move'
+                          }}
+                          onDragOver={e => {
+                            if (dragged !== null) e.preventDefault()
+                          }}
+                          onDrop={e => {
+                            e.preventDefault()
+                            if (dragged !== null) move(dragged, i)
+                            setDragged(null)
+                          }}
                           onDragEnd={() => setDragged(null)}
-                          onKeyDown={onFavKey(i)}>
+                          onKeyDown={onFavKey(i)}
+                        >
                           <PanelLink to={path} label={t.nav[page.labelKey]} Icon={page.icon} pin yields={path === '/projects' && projectListed} />
                           <PinButton pinned full={false} onToggle={() => togglePin(path)} />
                         </div>
@@ -268,24 +339,26 @@ export default function Sidebar() {
                 </>
               ) : (
                 <>
-                <div className="flex flex-col gap-1">
-                  {paths.map(path => {
-                    const page = entry(path)
-                    return (
-                      <div key={path} className="group/row relative">
-                        <PanelLink to={path} label={t.nav[page.labelKey as NavKey]} Icon={page.icon} pin yields={path === '/projects' && projectListed} />
-                        <PinButton pinned={favorites.includes(path)} full={favorites.length >= MAX_FAVORITES} onToggle={() => togglePin(path)} />
-                      </div>
-                    )
-                  })}
-                  {/* The server pages exist: say where they come from */}
-                  {waiting > 0 && (
-                    <Link to="/settings?section=connections"
-                      className="mt-0.5 flex h-9 items-center truncate rounded-control px-3 text-sm text-fg-muted transition-colors hover:bg-hover hover:text-fg">
-                      {t.nav.moreWithServer.replace('{n}', String(waiting))}
-                    </Link>
-                  )}
-                </div>
+                  <div className="flex flex-col gap-1">
+                    {paths.map(path => {
+                      const page = entry(path)
+                      return (
+                        <div key={path} className="group/row relative">
+                          <PanelLink to={path} label={t.nav[page.labelKey as NavKey]} Icon={page.icon} pin yields={path === '/projects' && projectListed} />
+                          <PinButton pinned={favorites.includes(path)} full={favorites.length >= MAX_FAVORITES} onToggle={() => togglePin(path)} />
+                        </div>
+                      )
+                    })}
+                    {/* The server pages exist: say where they come from */}
+                    {waiting > 0 && (
+                      <Link
+                        to="/settings?section=connections"
+                        className="mt-0.5 flex h-9 items-center truncate rounded-control px-3 text-sm text-fg-muted transition-colors hover:bg-hover hover:text-fg"
+                      >
+                        {t.nav.moreWithServer.replace('{n}', String(waiting))}
+                      </Link>
+                    )}
+                  </div>
                 </>
               )}
 

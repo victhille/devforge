@@ -47,7 +47,13 @@ export default function EnvFileTable({ env, file, onChange, onRegenerate, addRow
     await onChange(file, editing.key, editing.value)
     stopEditing(editing.key)
   }
-  const toggle = (key: string) => setShown(prev => { const next = new Set(prev); if (next.has(key)) next.delete(key); else next.add(key); return next })
+  const toggle = (key: string) =>
+    setShown(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
 
   return (
     <div ref={box} className="df-rise overflow-x-auto rounded-card border border-line-subtle bg-surface">
@@ -62,10 +68,20 @@ export default function EnvFileTable({ env, file, onChange, onRegenerate, addRow
         </colgroup>
         <thead>
           <tr className="border-b border-line-subtle">
-            <th scope="col" className="h-10 px-4 text-left text-xs font-semibold text-fg-muted">{e.key}</th>
-            <th scope="col" className="h-10 px-4 text-left text-xs font-semibold text-fg-muted">{e.value}</th>
-            {withTemplate && <th scope="col" className="h-10 w-px px-4 text-left text-xs font-semibold whitespace-nowrap text-fg-muted">{e.inTemplate.replace('{file}', example!.name)}</th>}
-            <th scope="col" className="h-10 w-px px-4 text-right text-xs font-semibold text-fg-muted">{e.actions}</th>
+            <th scope="col" className="h-10 px-4 text-left text-xs font-semibold text-fg-muted">
+              {e.key}
+            </th>
+            <th scope="col" className="h-10 px-4 text-left text-xs font-semibold text-fg-muted">
+              {e.value}
+            </th>
+            {withTemplate && (
+              <th scope="col" className="h-10 w-px px-4 text-left text-xs font-semibold whitespace-nowrap text-fg-muted">
+                {e.inTemplate.replace('{file}', example!.name)}
+              </th>
+            )}
+            <th scope="col" className="h-10 w-px px-4 text-right text-xs font-semibold text-fg-muted">
+              {e.actions}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -77,24 +93,41 @@ export default function EnvFileTable({ env, file, onChange, onRegenerate, addRow
             const isEditing = editing?.key === key
             return (
               <tr key={key} className="group border-b border-line-subtle last:border-0 hover:bg-elevated">
-                <td className="truncate px-4 py-2.5 font-mono font-bold text-fg" title={key}>{key}</td>
+                <td className="truncate px-4 py-2.5 font-mono font-bold text-fg" title={key}>
+                  {key}
+                </td>
                 <td className="px-4 py-2" onDoubleClick={() => setEditing({ key, value })}>
                   {isEditing ? (
                     <div className="flex items-center gap-1">
-                      <Input autoFocus aria-label={e.valueOf.replace('{key}', key)} value={editing.value}
+                      <Input
+                        autoFocus
+                        aria-label={e.valueOf.replace('{key}', key)}
+                        value={editing.value}
                         onChange={ev => setEditing({ key, value: ev.target.value })}
-                        onKeyDown={ev => { if (ev.key === 'Enter') commit(); if (ev.key === 'Escape') stopEditing(key) }}
-                        className="h-8 font-mono text-sm" />
-                      <IconButton size="sm" title={t.common.save} onClick={commit}><Check size={13} /></IconButton>
-                      <IconButton size="sm" title={t.common.cancel} onClick={() => stopEditing(key)}><X size={13} /></IconButton>
+                        onKeyDown={ev => {
+                          if (ev.key === 'Enter') commit()
+                          if (ev.key === 'Escape') stopEditing(key)
+                        }}
+                        className="h-8 font-mono text-sm"
+                      />
+                      <IconButton size="sm" title={t.common.save} onClick={commit}>
+                        <Check size={13} />
+                      </IconButton>
+                      <IconButton size="sm" title={t.common.cancel} onClick={() => stopEditing(key)}>
+                        <X size={13} />
+                      </IconButton>
                     </div>
                   ) : !value ? (
                     <span className="text-fg-muted italic">{e.empty}</span>
                   ) : visible ? (
-                    <span className="block truncate font-mono text-fg-secondary" title={value}>{value}</span>
+                    <span className="block truncate font-mono text-fg-secondary" title={value}>
+                      {value}
+                    </span>
                   ) : (
                     <>
-                      <span aria-hidden className="block truncate font-mono tracking-[.2em] text-fg-muted">{'•'.repeat(Math.min(Math.max(value.length, 8), 20))}</span>
+                      <span aria-hidden className="block truncate font-mono tracking-[.2em] text-fg-muted">
+                        {'•'.repeat(Math.min(Math.max(value.length, 8), 20))}
+                      </span>
                       <span className="sr-only">{e.masked}</span>
                     </>
                   )}
@@ -108,20 +141,26 @@ export default function EnvFileTable({ env, file, onChange, onRegenerate, addRow
                   <span className="flex items-center justify-end gap-0.5">
                     {/* Less used: shown on hover or with the keyboard */}
                     <span className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
-                      <IconButton size="sm" data-edit={key} title={e.editKey.replace('{key}', key)} onClick={() => setEditing({ key, value })}><Pencil size={13} /></IconButton>
-                      <IconButton size="sm" tone="danger" title={e.deleteKey.replace('{key}', key)} onClick={() => onChange(file, key, null)}><Trash2 size={13} /></IconButton>
+                      <IconButton size="sm" data-edit={key} title={e.editKey.replace('{key}', key)} onClick={() => setEditing({ key, value })}>
+                        <Pencil size={13} />
+                      </IconButton>
+                      <IconButton size="sm" tone="danger" title={e.deleteKey.replace('{key}', key)} onClick={() => onChange(file, key, null)}>
+                        <Trash2 size={13} />
+                      </IconButton>
                     </span>
                     {onRegenerate && !isExample(file) && isRegenerable(key) && (
-                      <IconButton size="sm" title={e.regenerateKey.replace('{key}', key)} onClick={() => onRegenerate(file, key)}><RefreshCw size={13} /></IconButton>
+                      <IconButton size="sm" title={e.regenerateKey.replace('{key}', key)} onClick={() => onRegenerate(file, key)}>
+                        <RefreshCw size={13} />
+                      </IconButton>
                     )}
                     {/* The eye and the copy keep their place on every row: the columns of icons line up */}
-                    {value && !plain
-                      ? (
-                        <IconButton size="sm" title={(shown.has(key) ? e.hideValue : e.showValue).replace('{key}', key)} onClick={() => toggle(key)}>
-                          {shown.has(key) ? <EyeOff size={13} /> : <Eye size={13} />}
-                        </IconButton>
-                      )
-                      : <span aria-hidden className="size-7 shrink-0" />}
+                    {value && !plain ? (
+                      <IconButton size="sm" title={(shown.has(key) ? e.hideValue : e.showValue).replace('{key}', key)} onClick={() => toggle(key)}>
+                        {shown.has(key) ? <EyeOff size={13} /> : <Eye size={13} />}
+                      </IconButton>
+                    ) : (
+                      <span aria-hidden className="size-7 shrink-0" />
+                    )}
                     {value ? <CopyButton text={value} title={e.copyValue.replace('{key}', key)} /> : <span aria-hidden className="size-7 shrink-0" />}
                   </span>
                 </td>
@@ -129,7 +168,11 @@ export default function EnvFileTable({ env, file, onChange, onRegenerate, addRow
             )
           })}
           {keys.length === 0 && !addRow && (
-            <tr><td colSpan={withTemplate ? 4 : 3} className="px-4 py-6 text-center text-sm text-fg-muted">{e.noKeys}</td></tr>
+            <tr>
+              <td colSpan={withTemplate ? 4 : 3} className="px-4 py-6 text-center text-sm text-fg-muted">
+                {e.noKeys}
+              </td>
+            </tr>
           )}
         </tbody>
       </table>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { composeFile, composeName, composeSlug, isDbAuthError, oldVolumes, planSetup } from '../../src/shared/lib/projectSetup'
 
-/** v2.3 lot 1: each project's own Docker database */
+/** Each project's own Docker database */
 describe('v2.3 lot 1: Docker databases of their own', () => {
   const setup = { database: 'postgres' as const, dbName: 'boutique', dbPort: 5433, features: [], git: false, github: null, openVSCode: false }
 
@@ -11,8 +11,10 @@ describe('v2.3 lot 1: Docker databases of their own', () => {
     expect(composeName('Boutique', 'a1b2c3')).toBe('boutique-a1b2c3')
     expect(composeFile('symfony', setup, 'boutique-a1b2c3').startsWith('name: boutique-a1b2c3\n\nservices:\n')).toBe(true)
     expect(composeFile('symfony', setup).startsWith('services:\n')).toBe(true)
-    const steps = planSetup({ name: 'boutique', framework: 'nextjs', packageManager: 'npm', typescript: true, eslint: true, setup },
-      { password: 'pw', secret: 's', lang: 'fr', composeName: 'boutique-a1b2c3' })
+    const steps = planSetup(
+      { name: 'boutique', framework: 'nextjs', packageManager: 'npm', typescript: true, eslint: true, setup },
+      { password: 'pw', secret: 's', lang: 'fr', composeName: 'boutique-a1b2c3' }
+    )
     const compose = steps.find(s => s.kind === 'write' && s.files.some(f => f.path === 'compose.yaml'))
     expect(compose?.kind === 'write' && compose.files[0].content).toContain('name: boutique-a1b2c3')
   })

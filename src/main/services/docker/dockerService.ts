@@ -9,12 +9,34 @@ const docker = (args: string[], timeout = 15_000) => runFile('docker', args, { t
 
 /** `--format '{{json .}}'` prints one JSON object per line */
 function jsonLines<T>(out: string): T[] {
-  return out.split('\n').filter(l => l.trim().startsWith('{')).map(l => JSON.parse(l) as T)
+  return out
+    .split('\n')
+    .filter(l => l.trim().startsWith('{'))
+    .map(l => JSON.parse(l) as T)
 }
 
-interface RawContainer { ID: string; Names: string; Image: string; State: string; Status: string; Ports: string; Labels: string; CreatedAt: string }
-interface RawImage { ID: string; Repository: string; Tag: string; Size: string; CreatedSince: string }
-interface RawCompose { Name: string; Status: string; ConfigFiles: string }
+interface RawContainer {
+  ID: string
+  Names: string
+  Image: string
+  State: string
+  Status: string
+  Ports: string
+  Labels: string
+  CreatedAt: string
+}
+interface RawImage {
+  ID: string
+  Repository: string
+  Tag: string
+  Size: string
+  CreatedSince: string
+}
+interface RawCompose {
+  Name: string
+  Status: string
+  ConfigFiles: string
+}
 
 export async function getOverview(): Promise<DockerOverview> {
   const info = await docker(['version', '--format', '{{.Server.Version}}'], 8000)
@@ -52,14 +74,20 @@ export async function getOverview(): Promise<DockerOverview> {
     return { running: own.filter(c => c.state === 'running').length, total: own.length }
   }
   let known: RawCompose[] = []
-  try { known = JSON.parse(compose.stdout || '[]') as RawCompose[] } catch { /* compose plugin missing */ }
+  try {
+    known = JSON.parse(compose.stdout || '[]') as RawCompose[]
+  } catch {
+    /* compose plugin missing */
+  }
 
   // Compose projects of DevForge projects first: they can be started even when
   // no container exists yet (never started, or removed)
   const locals = localComposeProjects()
   const configs = await Promise.all(locals.map(l => composeConfig(l.dir)))
   const projects: ComposeProject[] = locals.map((l, i) => ({
-    name: l.name, dir: l.dir, projects: l.projects,
+    name: l.name,
+    dir: l.dir,
+    projects: l.projects,
     services: Object.keys(configs[i]?.services ?? {}),
     status: known.find(k => k.Name === l.name)?.Status ?? '',
     configFiles: known.find(k => k.Name === l.name)?.ConfigFiles ?? '',
@@ -108,7 +136,10 @@ function composeCall(target: ComposeTarget): { args: string[]; cwd?: string } {
   }
   // Files deleted with their folder (a project removed with its containers still up): by its name
   // alone, compose still stops, removes and shows the logs of what runs (cwd in a missing folder: ENOENT)
-  const files = target.configFiles.split(',').map(f => f.trim()).filter(f => f && existsSync(f))
+  const files = target.configFiles
+    .split(',')
+    .map(f => f.trim())
+    .filter(f => f && existsSync(f))
   return { args: ['compose', '-p', target.name, ...files.flatMap(f => ['-f', f])], cwd: files[0] ? dirname(files[0]) : undefined }
 }
 
@@ -116,7 +147,11 @@ const COMPOSE_ARGS: Record<ComposeAction, string[]> = { up: ['up', '-d'], stop: 
 
 export async function composeAction(target: ComposeTarget, action: ComposeAction) {
   let call: ReturnType<typeof composeCall>
-  try { call = composeCall(target) } catch (err) { return { ok: false, output: (err as Error).message } }
+  try {
+    call = composeCall(target)
+  } catch (err) {
+    return { ok: false, output: (err as Error).message }
+  }
   // `up` may build images: allow a long time
   const r = await runFile('docker', [...call.args, ...COMPOSE_ARGS[action]], { timeout: 900_000, cwd: call.cwd })
   return { ok: r.ok, output: (r.stdout + r.stderr).trim() }
@@ -127,9 +162,12 @@ const composeLogKey = (name: string) => `compose:${name}`
 export async function followComposeLogs(target: ComposeTarget): Promise<string> {
   const call = composeCall(target)
   const key = composeLogKey(target.name)
-  const files = call.args.slice(1).map(a => (a.startsWith('-') ? a : `"${a}"`)).join(' ')
+  const files = call.args
+    .slice(1)
+    .map(a => (a.startsWith('-') ? a : `"${a}"`))
+    .join(' ')
   if (!processManager.isRunning(key)) {
-    processManager.start(key, `docker compose ${files ? files + ' ' : ''}logs -f --tail 200`,call.cwd ?? process.cwd())
+    processManager.start(key, `docker compose ${files ? files + ' ' : ''}logs -f --tail 200`, call.cwd ?? process.cwd())
   }
   return key
 }

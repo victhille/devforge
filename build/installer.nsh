@@ -20,6 +20,34 @@
   ${endif}
 !macroend
 
+; A real uninstall (not the one an update runs) also removes what DevForge left outside its folder:
+; the downloaded updates and the « start with Windows » entry. The data (%APPDATA%\DevForge) stays:
+; Settings › Data › Erase everything removes it first, as the uninstall page of the docs says.
+!macro customUnInstall
+  ${ifNot} ${isUpdated}
+    SetShellVarContext current
+    RMDir /r "$LOCALAPPDATA\devforge-updater"
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "com.devforge.app"
+    ${if} $installMode == "all"
+      SetShellVarContext all
+    ${endif}
+  ${endif}
+!macroend
+
+; An update shows only the progress page: its header says what is happening, in the installer's language
+!macro customPageAfterChangeDir
+  !define MUI_PAGE_CUSTOMFUNCTION_SHOW devforgeInstFilesShow
+  Function devforgeInstFilesShow
+    ${if} ${isUpdated}
+      ${if} $LANGUAGE == 1036
+        !insertmacro MUI_HEADER_TEXT "Mise à jour de DevForge" "Installation de la version ${VERSION}. DevForge se relance tout seul à la fin."
+      ${else}
+        !insertmacro MUI_HEADER_TEXT "Updating DevForge" "Installing version ${VERSION}. DevForge starts again by itself when it is done."
+      ${endif}
+    ${endif}
+  FunctionEnd
+!macroend
+
 ; The last page: « Lancer DevForge » after a first install; an update skips it and starts DevForge at once
 !macro customFinishPage
   Function devforgeStartApp

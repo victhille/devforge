@@ -25,7 +25,7 @@ const PAGE_SIZES = [25, 50, 100, 250, 500]
 // ─── Parcourir ────────────────────────────────────────────────────────────────
 
 /**
- * The table's rows, page by page. v3.6 lot 3: with a primary key, cells are
+ * The table's rows, page by page. With a primary key, cells are
  * edited in place, rows added and deleted, then applied in one transaction
  * after the SQL is shown.
  */
@@ -45,25 +45,42 @@ export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableR
   const [importing, setImporting] = useState(false)
 
   // Another table: back to its first page, natural order
-  useEffect(() => { setPage(0); setSort(null) }, [table.name, table.schema])
+  useEffect(() => {
+    setPage(0)
+    setSort(null)
+  }, [table.name, table.schema])
 
   useEffect(() => {
     let alive = true
     setLoading(true)
-    window.devforge.db.browse(connId, table, { offset: page * limit, limit, orderBy: sort?.column, desc: sort?.desc })
-      .then(r => { if (alive) setResult(r) })
-      .finally(() => { if (alive) setLoading(false) })
-    return () => { alive = false }
+    window.devforge.db
+      .browse(connId, table, { offset: page * limit, limit, orderBy: sort?.column, desc: sort?.desc })
+      .then(r => {
+        if (alive) setResult(r)
+      })
+      .finally(() => {
+        if (alive) setLoading(false)
+      })
+    return () => {
+      alive = false
+    }
   }, [connId, table, page, limit, sort, reload])
 
   // The columns and primary key: what can be edited
   useEffect(() => {
     let alive = true
     setColumns(null)
-    window.devforge.db.details(connId, table)
-      .then(r => { if (alive) setColumns(r.stats?.type === 'view' ? [] : r.columns) })
-      .catch(() => { if (alive) setColumns([]) })
-    return () => { alive = false }
+    window.devforge.db
+      .details(connId, table)
+      .then(r => {
+        if (alive) setColumns(r.stats?.type === 'view' ? [] : r.columns)
+      })
+      .catch(() => {
+        if (alive) setColumns([])
+      })
+    return () => {
+      alive = false
+    }
   }, [connId, table])
 
   // An empty page has no column names (SQLite): the table's own
@@ -71,7 +88,9 @@ export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableR
   const rows = useRowChanges(grid, columns)
   // Pending changes are tied to this page: no paging nor sorting until applied or dropped
   const pending = rows.changes.length > 0
-  useEffect(() => { rows.reset() }, [page, limit, sort, reload, table.name, table.schema]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    rows.reset()
+  }, [page, limit, sort, reload, table.name, table.schema]) // eslint-disable-line react-hooks/exhaustive-deps -- pending changes are dropped when the page, the sort or the table changes
 
   if (!result || !grid) return <TableSkeleton label={d.loading} toolbar rows={10} columns={6} />
 
@@ -82,14 +101,33 @@ export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableR
 
   const pager = (
     <span className="flex items-center gap-2">
-      <IconButton size="sm" title={d.prev} disabled={page === 0 || loading || pending} onClick={() => setPage(p => p - 1)}><ChevronLeft size={13} /></IconButton>
+      <IconButton size="sm" title={d.prev} disabled={page === 0 || loading || pending} onClick={() => setPage(p => p - 1)}>
+        <ChevronLeft size={13} />
+      </IconButton>
       <span className="tabular-nums text-fg-secondary">
         {(result.total !== null ? d.pageOf : d.pageOfUnknown)
-          .replace('{from}', String(from)).replace('{to}', String(to)).replace('{total}', String(result.total))}
+          .replace('{from}', String(from))
+          .replace('{to}', String(to))
+          .replace('{total}', String(result.total))}
       </span>
-      <IconButton size="sm" title={d.next} disabled={!hasNext || loading || pending} onClick={() => setPage(p => p + 1)}><ChevronRight size={13} /></IconButton>
-      <Select aria-label={d.rowsPerPage} disabled={pending} value={limit} onChange={e => { setLimit(Number(e.target.value)); setPage(0) }} className="h-7 w-auto py-0 text-xs">
-        {PAGE_SIZES.map(n => <option key={n} value={n}>{n} {d.perPage}</option>)}
+      <IconButton size="sm" title={d.next} disabled={!hasNext || loading || pending} onClick={() => setPage(p => p + 1)}>
+        <ChevronRight size={13} />
+      </IconButton>
+      <Select
+        aria-label={d.rowsPerPage}
+        disabled={pending}
+        value={limit}
+        onChange={e => {
+          setLimit(Number(e.target.value))
+          setPage(0)
+        }}
+        className="h-7 w-auto py-0 text-xs"
+      >
+        {PAGE_SIZES.map(n => (
+          <option key={n} value={n}>
+            {n} {d.perPage}
+          </option>
+        ))}
       </Select>
       {loading && <Spinner />}
     </span>
@@ -99,21 +137,37 @@ export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableR
   const tools = !result.error && columns && (
     <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line-subtle px-3 py-1.5 text-xs">
       <ExportMenu conn={conn} table={table} />
-      {columns.length > 0 && <Button size="sm" variant="ghost" onClick={() => setImporting(true)}><Upload size={13} /> {d.importCsv}</Button>}
+      {columns.length > 0 && (
+        <Button size="sm" variant="ghost" onClick={() => setImporting(true)}>
+          <Upload size={13} /> {d.importCsv}
+        </Button>
+      )}
       {rows.editable ? (
         <>
-          <Button size="sm" variant="ghost" onClick={rows.addRow}><Plus size={13} /> {d.rowAdd}</Button>
-          <Button size="sm" variant="ghost" disabled={!rows.checkedCount} onClick={rows.deleteChecked}><Trash2 size={13} /> {d.rowDelete.replace('{n}', String(rows.checkedCount))}</Button>
-          <Button size="sm" variant="ghost" disabled={!rows.checkedCount} onClick={rows.restoreChecked}><Undo2 size={13} /> {d.rowKeep}</Button>
+          <Button size="sm" variant="ghost" onClick={rows.addRow}>
+            <Plus size={13} /> {d.rowAdd}
+          </Button>
+          <Button size="sm" variant="ghost" disabled={!rows.checkedCount} onClick={rows.deleteChecked}>
+            <Trash2 size={13} /> {d.rowDelete.replace('{n}', String(rows.checkedCount))}
+          </Button>
+          <Button size="sm" variant="ghost" disabled={!rows.checkedCount} onClick={rows.restoreChecked}>
+            <Undo2 size={13} /> {d.rowKeep}
+          </Button>
           <span className="text-fg-muted">{d.rowEditHint}</span>
           {pending && (
             <span className="ml-auto flex items-center gap-2">
-              <Button size="sm" variant="secondary" onClick={rows.reset}><RotateCcw size={13} /> {d.rowDrop}</Button>
-              <Button size="sm" onClick={() => setApplying(true)}><Check size={13} /> {d.rowApply.replace('{n}', String(rows.changes.length))}</Button>
+              <Button size="sm" variant="secondary" onClick={rows.reset}>
+                <RotateCcw size={13} /> {d.rowDrop}
+              </Button>
+              <Button size="sm" onClick={() => setApplying(true)}>
+                <Check size={13} /> {d.rowApply.replace('{n}', String(rows.changes.length))}
+              </Button>
             </span>
           )}
         </>
-      ) : columns.length > 0 && <span className="text-fg-muted">{d.rowNoKey}</span>}
+      ) : (
+        columns.length > 0 && <span className="text-fg-muted">{d.rowNoKey}</span>
+      )}
     </div>
   )
   const empty = !result.error && result.total === 0 && !rows.editing?.newRows.length
@@ -121,16 +175,53 @@ export function BrowseTab({ conn, table }: { conn: DbConnection; table: DbTableR
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {tools}
-      {empty
-        ? <div className="flex flex-col"><div className="border-b border-line-subtle px-3 py-1.5 text-xs">{pager}</div><p className="p-6 text-sm text-fg-muted">{d.emptyTable}</p></div>
-        : <ResultGrid result={grid} rowOffset={page * limit} sort={sort} onSort={pending ? undefined : s => { setSort(s); setPage(0) }} toolbar={pager} editing={rows.editing} />}
+      {empty ? (
+        <div className="flex flex-col">
+          <div className="border-b border-line-subtle px-3 py-1.5 text-xs">{pager}</div>
+          <p className="p-6 text-sm text-fg-muted">{d.emptyTable}</p>
+        </div>
+      ) : (
+        <ResultGrid
+          result={grid}
+          rowOffset={page * limit}
+          sort={sort}
+          onSort={
+            pending
+              ? undefined
+              : s => {
+                  setSort(s)
+                  setPage(0)
+                }
+          }
+          toolbar={pager}
+          editing={rows.editing}
+        />
+      )}
       {importing && columns && (
-        <ImportDialog conn={conn} table={table} columns={columns.map(c => c.name)} onClose={() => setImporting(false)}
-          onDone={n => { setImporting(false); toast.show({ tone: 'success', title: d.imported.replace('{n}', String(n)) }); setReload(r => r + 1) }} />
+        <ImportDialog
+          conn={conn}
+          table={table}
+          columns={columns.map(c => c.name)}
+          onClose={() => setImporting(false)}
+          onDone={n => {
+            setImporting(false)
+            toast.show({ tone: 'success', title: d.imported.replace('{n}', String(n)) })
+            setReload(r => r + 1)
+          }}
+        />
       )}
       {applying && (
-        <ApplyRowsDialog conn={conn} table={table} changes={rows.changes} onClose={() => setApplying(false)}
-          onDone={n => { setApplying(false); toast.show({ tone: 'success', title: d.rowApplied.replace('{n}', String(n)) }); setReload(r => r + 1) }} />
+        <ApplyRowsDialog
+          conn={conn}
+          table={table}
+          changes={rows.changes}
+          onClose={() => setApplying(false)}
+          onDone={n => {
+            setApplying(false)
+            toast.show({ tone: 'success', title: d.rowApplied.replace('{n}', String(n)) })
+            setReload(r => r + 1)
+          }}
+        />
       )}
     </div>
   )
@@ -143,10 +234,17 @@ const KEY_COLOR = { PRI: 'warning', UNI: 'accent', MUL: 'default' } as const
 type Editing = { kind: 'add' } | { kind: 'edit'; column: DbColumnInfo } | { kind: 'dropColumn'; column: string } | { kind: 'rename' } | { kind: 'drop' }
 
 /**
- * Columns and indexes. v3.5.1: a table (not a view) can be changed here:
+ * Columns and indexes. A table (not a view) can be changed here:
  * columns added, changed, dropped; the table renamed or dropped.
  */
-export function StructureTab({ details, conn, table, onChanged, onRenamed, onDropped }: {
+export function StructureTab({
+  details,
+  conn,
+  table,
+  onChanged,
+  onRenamed,
+  onDropped
+}: {
   details: DbTableDetails
   conn?: DbConnection
   table?: DbTableRef
@@ -159,7 +257,10 @@ export function StructureTab({ details, conn, table, onChanged, onRenamed, onDro
   const [editing, setEditing] = useState<Editing | null>(null)
   const editable = !!conn && !!table && details.stats?.type !== 'view'
   const close = () => setEditing(null)
-  const changed = () => { close(); onChanged?.() }
+  const changed = () => {
+    close()
+    onChanged?.()
+  }
   return (
     <div className="flex flex-col gap-5">
       <section className="flex flex-col gap-2">
@@ -167,35 +268,76 @@ export function StructureTab({ details, conn, table, onChanged, onRenamed, onDro
           <SectionTitle>{d.columnsTitle.replace('{n}', String(details.columns.length))}</SectionTitle>
           {editable && (
             <span className="ml-auto flex flex-wrap gap-1.5">
-              <Button size="sm" variant="secondary" onClick={() => setEditing({ kind: 'add' })}><Plus size={13} /> {d.addColumn}</Button>
-              <Button size="sm" variant="secondary" onClick={() => setEditing({ kind: 'rename' })}><TextCursorInput size={13} /> {d.renameTable}</Button>
-              <Button size="sm" variant="danger" onClick={() => setEditing({ kind: 'drop' })}><Trash2 size={13} /> {d.dropTable}</Button>
+              <Button size="sm" variant="secondary" onClick={() => setEditing({ kind: 'add' })}>
+                <Plus size={13} /> {d.addColumn}
+              </Button>
+              <Button size="sm" variant="secondary" onClick={() => setEditing({ kind: 'rename' })}>
+                <TextCursorInput size={13} /> {d.renameTable}
+              </Button>
+              <Button size="sm" variant="danger" onClick={() => setEditing({ kind: 'drop' })}>
+                <Trash2 size={13} /> {d.dropTable}
+              </Button>
             </span>
           )}
         </div>
         <Card className="overflow-hidden p-0">
           <Table>
             <thead>
-              <tr><Th className="w-10">#</Th><Th>{d.colName}</Th><Th>{d.colType}</Th><Th>{d.colNull}</Th><Th>{d.colDefault}</Th><Th>{d.colKey}</Th><Th>{d.colExtra}</Th><Th>{d.colComment}</Th>{editable && <Th className="w-[72px]"><span className="sr-only">{d.colActions}</span></Th>}</tr>
+              <tr>
+                <Th className="w-10">#</Th>
+                <Th>{d.colName}</Th>
+                <Th>{d.colType}</Th>
+                <Th>{d.colNull}</Th>
+                <Th>{d.colDefault}</Th>
+                <Th>{d.colKey}</Th>
+                <Th>{d.colExtra}</Th>
+                <Th>{d.colComment}</Th>
+                {editable && (
+                  <Th className="w-[72px]">
+                    <span className="sr-only">{d.colActions}</span>
+                  </Th>
+                )}
+              </tr>
             </thead>
             <tbody>
               {details.columns.map((c, i) => (
                 <tr key={c.name}>
                   <Td className="text-fg-muted tabular-nums">{i + 1}</Td>
                   <Td className="font-mono font-medium text-fg">
-                    <span className="flex items-center gap-1.5">{c.key === 'PRI' && <KeyRound size={11} className="text-warning" />}{c.name}</span>
+                    <span className="flex items-center gap-1.5">
+                      {c.key === 'PRI' && <KeyRound size={11} className="text-warning" />}
+                      {c.name}
+                    </span>
                   </Td>
                   <Td className="font-mono text-xs text-accent">{c.type}</Td>
                   <Td className="text-xs text-fg-secondary">{c.nullable ? d.yes : d.no}</Td>
-                  <Td className="font-mono text-xs text-fg-secondary">{c.default ?? <span className="italic text-fg-muted">{c.nullable ? 'NULL' : '—'}</span>}</Td>
-                  <Td>{c.key && <Badge color={KEY_COLOR[c.key]} className="font-mono text-2xs">{c.key}</Badge>}</Td>
+                  <Td className="font-mono text-xs text-fg-secondary">
+                    {c.default ?? <span className="italic text-fg-muted">{c.nullable ? 'NULL' : '—'}</span>}
+                  </Td>
+                  <Td>
+                    {c.key && (
+                      <Badge color={KEY_COLOR[c.key]} className="font-mono text-2xs">
+                        {c.key}
+                      </Badge>
+                    )}
+                  </Td>
                   <Td className="text-xs text-fg-secondary">{c.extra}</Td>
                   <Td className="text-xs text-fg-muted">{c.comment}</Td>
                   {editable && (
                     <Td className="py-1">
                       <span className="flex gap-0.5">
-                        <IconButton size="sm" title={d.editColumn.replace('{name}', c.name)} onClick={() => setEditing({ kind: 'edit', column: c })}><Pencil size={12} /></IconButton>
-                        <IconButton size="sm" tone="danger" title={d.dropColumn.replace('{name}', c.name)} disabled={details.columns.length === 1} onClick={() => setEditing({ kind: 'dropColumn', column: c.name })}><Trash2 size={12} /></IconButton>
+                        <IconButton size="sm" title={d.editColumn.replace('{name}', c.name)} onClick={() => setEditing({ kind: 'edit', column: c })}>
+                          <Pencil size={12} />
+                        </IconButton>
+                        <IconButton
+                          size="sm"
+                          tone="danger"
+                          title={d.dropColumn.replace('{name}', c.name)}
+                          disabled={details.columns.length === 1}
+                          onClick={() => setEditing({ kind: 'dropColumn', column: c.name })}
+                        >
+                          <Trash2 size={12} />
+                        </IconButton>
                       </span>
                     </Td>
                   )}
@@ -208,15 +350,31 @@ export function StructureTab({ details, conn, table, onChanged, onRenamed, onDro
 
       <section className="flex flex-col gap-2">
         <SectionTitle>{d.indexesTitle.replace('{n}', String(details.indexes.length))}</SectionTitle>
-        {details.indexes.length === 0 ? <p className="text-sm text-fg-muted">{d.noIndexes}</p> : (
+        {details.indexes.length === 0 ? (
+          <p className="text-sm text-fg-muted">{d.noIndexes}</p>
+        ) : (
           <Card className="overflow-hidden p-0">
             <Table>
-              <thead><tr><Th>{d.colName}</Th><Th>{d.colType}</Th><Th>{d.unique}</Th><Th>{d.indexColumns}</Th></tr></thead>
+              <thead>
+                <tr>
+                  <Th>{d.colName}</Th>
+                  <Th>{d.colType}</Th>
+                  <Th>{d.unique}</Th>
+                  <Th>{d.indexColumns}</Th>
+                </tr>
+              </thead>
               <tbody>
                 {details.indexes.map(i => (
                   <tr key={i.name}>
                     <Td className="font-mono text-fg">
-                      <span className="flex items-center gap-2">{i.name}{i.primary && <Badge color="warning" className="text-2xs">{d.primary}</Badge>}</span>
+                      <span className="flex items-center gap-2">
+                        {i.name}
+                        {i.primary && (
+                          <Badge color="warning" className="text-2xs">
+                            {d.primary}
+                          </Badge>
+                        )}
+                      </span>
                     </Td>
                     <Td className="font-mono text-xs text-fg-secondary">{i.type}</Td>
                     <Td className="text-xs text-fg-secondary">{i.unique ? d.yes : d.no}</Td>
@@ -232,8 +390,28 @@ export function StructureTab({ details, conn, table, onChanged, onRenamed, onDro
       {editable && editing?.kind === 'add' && <ColumnDialog conn={conn} table={table} onClose={close} onDone={changed} />}
       {editable && editing?.kind === 'edit' && <ColumnDialog conn={conn} table={table} column={editing.column} onClose={close} onDone={changed} />}
       {editable && editing?.kind === 'dropColumn' && <DropColumnDialog conn={conn} table={table} column={editing.column} onClose={close} onDone={changed} />}
-      {editable && editing?.kind === 'rename' && <RenameTableDialog conn={conn} table={table} onClose={close} onDone={name => { close(); onRenamed?.(name) }} />}
-      {editable && editing?.kind === 'drop' && <DropTableDialog conn={conn} table={table} onClose={close} onDone={() => { close(); onDropped?.() }} />}
+      {editable && editing?.kind === 'rename' && (
+        <RenameTableDialog
+          conn={conn}
+          table={table}
+          onClose={close}
+          onDone={name => {
+            close()
+            onRenamed?.(name)
+          }}
+        />
+      )}
+      {editable && editing?.kind === 'drop' && (
+        <DropTableDialog
+          conn={conn}
+          table={table}
+          onClose={close}
+          onDone={() => {
+            close()
+            onDropped?.()
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -242,13 +420,35 @@ export function StructureTab({ details, conn, table, onChanged, onRenamed, onDro
 
 function FkRow({ fk, self, incoming, onOpen }: { fk: DbForeignKey; self: string; incoming: boolean; onOpen: (name: string) => void }) {
   const link = (name: string) => (
-    <button onClick={() => onOpen(name)} className="font-mono font-medium text-accent hover:underline">{name}</button>
+    <button onClick={() => onOpen(name)} className="font-mono font-medium text-accent hover:underline">
+      {name}
+    </button>
   )
   // incoming: other.cols → self.refCols ; outgoing: self.cols → other.refCols
   const own = <span className="font-mono font-medium text-fg">{self}</span>
   const cols = (list: string[]) => <span> ({list.join(', ')})</span>
-  const left = incoming ? <>{link(fk.table)}{cols(fk.columns)}</> : <>{own}{cols(fk.columns)}</>
-  const right = incoming ? <>{own}{cols(fk.refColumns)}</> : <>{link(fk.table)}{cols(fk.refColumns)}</>
+  const left = incoming ? (
+    <>
+      {link(fk.table)}
+      {cols(fk.columns)}
+    </>
+  ) : (
+    <>
+      {own}
+      {cols(fk.columns)}
+    </>
+  )
+  const right = incoming ? (
+    <>
+      {own}
+      {cols(fk.refColumns)}
+    </>
+  ) : (
+    <>
+      {link(fk.table)}
+      {cols(fk.refColumns)}
+    </>
+  )
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 text-sm">
       <Link2 size={13} className="text-fg-muted" />
@@ -271,17 +471,25 @@ export function RelationsTab({ details, table, onOpenTable }: { details: DbTable
     <div className="flex flex-col gap-5">
       <section className="flex flex-col gap-2">
         <SectionTitle>{d.foreignKeys}</SectionTitle>
-        {details.foreignKeys.length === 0 ? <p className="text-sm text-fg-muted">{d.noForeignKeys}</p> : (
+        {details.foreignKeys.length === 0 ? (
+          <p className="text-sm text-fg-muted">{d.noForeignKeys}</p>
+        ) : (
           <Card className="divide-y divide-line-subtle p-0">
-            {details.foreignKeys.map(fk => <FkRow key={fk.name + fk.table} fk={fk} self={table.name} incoming={false} onOpen={onOpenTable} />)}
+            {details.foreignKeys.map(fk => (
+              <FkRow key={fk.name + fk.table} fk={fk} self={table.name} incoming={false} onOpen={onOpenTable} />
+            ))}
           </Card>
         )}
       </section>
       <section className="flex flex-col gap-2">
         <SectionTitle>{d.referencedBy}</SectionTitle>
-        {details.referencedBy.length === 0 ? <p className="text-sm text-fg-muted">{d.noReferences}</p> : (
+        {details.referencedBy.length === 0 ? (
+          <p className="text-sm text-fg-muted">{d.noReferences}</p>
+        ) : (
           <Card className="divide-y divide-line-subtle p-0">
-            {details.referencedBy.map(fk => <FkRow key={fk.name + fk.table} fk={fk} self={table.name} incoming onOpen={onOpenTable} />)}
+            {details.referencedBy.map(fk => (
+              <FkRow key={fk.name + fk.table} fk={fk} self={table.name} incoming onOpen={onOpenTable} />
+            ))}
           </Card>
         )}
       </section>
@@ -295,7 +503,9 @@ export function Stat({ label, value, hint }: { label: string; value: ReactNode; 
   return (
     <Card className="flex flex-col gap-1 px-4 py-3">
       <span className="text-sm text-fg-muted">{label}</span>
-      <span className="truncate font-display text-lg leading-tight font-bold tracking-[-.01em] text-fg" title={typeof value === 'string' ? value : undefined}>{value}</span>
+      <span className="truncate font-display text-lg leading-tight font-bold tracking-[-.01em] text-fg" title={typeof value === 'string' ? value : undefined}>
+        {value}
+      </span>
       {hint && <span className="text-2xs text-fg-muted">{hint}</span>}
     </Card>
   )
@@ -323,9 +533,13 @@ export function InfoTab({ details }: { details: DbTableDetails }) {
           <SectionTitle>{d.ddl}</SectionTitle>
           {details.ddl && <CopyButton text={details.ddl} />}
         </div>
-        {details.ddl
-          ? <pre className="overflow-x-auto rounded-lg border border-line-subtle bg-console p-4 font-mono text-xs leading-relaxed text-fg-secondary">{details.ddl}</pre>
-          : <p className="text-sm text-fg-muted">{d.noDdl}</p>}
+        {details.ddl ? (
+          <pre className="overflow-x-auto rounded-lg border border-line-subtle bg-console p-4 font-mono text-xs leading-relaxed text-fg-secondary">
+            {details.ddl}
+          </pre>
+        ) : (
+          <p className="text-sm text-fg-muted">{d.noDdl}</p>
+        )}
       </section>
     </div>
   )

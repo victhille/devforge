@@ -1,19 +1,19 @@
 # Licences tierces
 
-DevForge 0.2.1 est distribué sous [GPL-3.0](LICENSE). Il inclut les 146 paquets open source ci-dessous, chacun sous sa propre licence : le texte complet de chaque licence est dans le dossier du paquet (`node_modules/<paquet>/LICENSE`) et sur sa page npm.
+DevForge 0.3.0 est distribué sous [GPL-3.0-only](LICENSE). Il inclut les 118 paquets open source ci-dessous, chacun sous sa propre licence. Le texte complet de chaque licence est livré avec l'application, dans `THIRD_PARTY_NOTICES.txt` (Paramètres › À propos › Licences tierces).
 
-Généré par `npm run licenses` à partir de `package-lock.json` : ne pas modifier à la main.
+Généré par `npm run licenses` à partir de `package-lock.json` (installeur Windows x64) : ne pas modifier à la main.
 
-**Résumé** : MIT (84), Apache-2.0 (19), BSD-3-Clause (13), LGPL-3.0-or-later (10), ISC (7), OFL-1.1 (3), Apache-2.0 AND LGPL-3.0-or-later (3), Unlicense (2), Apache-2.0 AND LGPL-3.0-or-later AND MIT (1), Python-2.0 (1), BlueOak-1.0.0 (1), 0BSD (1), (MIT OR CC0-1.0) (1).
+**Résumé** : MIT (79), BSD-3-Clause (13), Apache-2.0 (9), ISC (7), OFL-1.1 (3), Unlicense (2), Apache-2.0 AND LGPL-3.0-or-later (1), Python-2.0 (1), BlueOak-1.0.0 (1), 0BSD (1), (MIT OR CC0-1.0) (1).
 
 Points d'attention :
 - **Polices Inter, JetBrains Mono et Bricolage Grotesque** : SIL Open Font License 1.1 (OFL-1.1), redistribuables avec l'application, à ne pas vendre seules.
-- **Apache-2.0** : les fichiers `NOTICE` éventuels de ces paquets sont conservés dans leur dossier.
-- **LGPL-3.0** (bibliothèque d'images libvips, via sharp) : compatible avec la GPL-3.0 de DevForge.
+- **Apache-2.0** : les fichiers `NOTICE` de ces paquets, s'il y en a, sont repris dans `THIRD_PARTY_NOTICES.txt`.
+- **LGPL-3.0** (bibliothèque d'images libvips, via sharp) : compatible avec la GPL-3.0 de DevForge ; son texte et la liste des bibliothèques qu'elle contient sont dans `THIRD_PARTY_NOTICES.txt`.
 
 | Paquet | Version | Licence |
 |---|---|---|
-| @anthropic-ai/sdk | 0.131.0 | MIT |
+| @anthropic-ai/sdk | 1.11.0 | Apache-2.0 |
 | @babel/runtime | 7.29.10 | MIT |
 | @emnapi/runtime | 1.11.3 | MIT |
 | @fontsource-variable/bricolage-grotesque | 5.3.0 | OFL-1.1 |
@@ -21,34 +21,10 @@ Points d'attention :
 | @fontsource-variable/jetbrains-mono | 5.3.0 | OFL-1.1 |
 | @huggingface/jinja | 0.5.10 | MIT |
 | @huggingface/tokenizers | 0.2.0 | Apache-2.0 |
-| @huggingface/transformers | 4.3.0 | Apache-2.0 |
+| @huggingface/transformers | 4.3.2 | Apache-2.0 |
 | @img/colour | 1.1.0 | MIT |
-| @img/sharp-darwin-arm64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-darwin-x64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-freebsd-wasm32 | 0.35.5 | Apache-2.0 |
-| @img/sharp-libvips-darwin-arm64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-darwin-x64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linux-arm | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linux-arm64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linux-ppc64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linux-riscv64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linux-s390x | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linux-x64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linuxmusl-arm64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-libvips-linuxmusl-x64 | 1.3.4 | LGPL-3.0-or-later |
-| @img/sharp-linux-arm | 0.35.5 | Apache-2.0 |
-| @img/sharp-linux-arm64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-linux-ppc64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-linux-riscv64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-linux-s390x | 0.35.5 | Apache-2.0 |
-| @img/sharp-linux-x64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-linuxmusl-arm64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-linuxmusl-x64 | 0.35.5 | Apache-2.0 |
-| @img/sharp-wasm32 | 0.35.5 | Apache-2.0 AND LGPL-3.0-or-later AND MIT |
-| @img/sharp-webcontainers-wasm32 | 0.35.5 | Apache-2.0 |
-| @img/sharp-win32-arm64 | 0.35.5 | Apache-2.0 AND LGPL-3.0-or-later |
-| @img/sharp-win32-ia32 | 0.35.5 | Apache-2.0 AND LGPL-3.0-or-later |
 | @img/sharp-win32-x64 | 0.35.5 | Apache-2.0 AND LGPL-3.0-or-later |
+| @opentelemetry/api | 1.10.0 | Apache-2.0 |
 | @protobufjs/aspromise | 1.1.2 | BSD-3-Clause |
 | @protobufjs/base64 | 1.1.2 | BSD-3-Clause |
 | @protobufjs/codegen | 2.0.5 | BSD-3-Clause |
@@ -68,16 +44,14 @@ Points d'attention :
 | asn1 | 0.2.6 | MIT |
 | aws-ssl-profiles | 1.1.2 | MIT |
 | bcrypt-pbkdf | 1.0.2 | BSD-3-Clause |
-| buildcheck | 0.0.7 | MIT |
 | builder-util-runtime | 9.7.0 | MIT |
 | clsx | 2.1.1 | MIT |
 | cookie | 1.1.1 | MIT |
-| cpu-features | 0.0.10 | MIT |
 | debug | 4.4.3 | MIT |
 | define-data-property | 1.1.4 | MIT |
 | define-properties | 1.2.1 | MIT |
 | detect-libc | 2.1.2 | Apache-2.0 |
-| electron-updater | 6.8.9 | MIT |
+| electron-updater | 6.8.11 | MIT |
 | es-define-property | 1.0.1 | MIT |
 | es-errors | 1.3.0 | MIT |
 | escape-string-regexp | 4.0.0 | MIT |
@@ -104,20 +78,18 @@ Points d'attention :
 | long | 5.3.2 | Apache-2.0 |
 | loose-envify | 1.4.0 | MIT |
 | lru.min | 1.1.5 | MIT |
-| lucide-react | 1.51.0 | ISC |
+| lucide-react | 1.76.0 | ISC |
 | matcher | 4.0.0 | MIT |
 | ms | 2.1.3 | MIT |
-| mysql2 | 3.24.5 | MIT |
+| mysql2 | 3.24.6 | MIT |
 | named-placeholders | 1.1.6 | MIT |
-| nan | 2.29.0 | MIT |
 | node-addon-api | 7.1.1 | MIT |
 | node-pty | 1.1.0 | MIT |
 | object-keys | 1.1.1 | MIT |
 | onnxruntime-common | 1.30.0 | MIT |
 | onnxruntime-common | 1.31.0-dev.20260911-2a43ec07e | MIT |
 | onnxruntime-node | 1.30.0 | MIT |
-| onnxruntime-web | 1.31.0-dev.20260914-8d85527a0 | MIT |
-| pdfjs-dist | 6.3.289 | Apache-2.0 |
+| pdfjs-dist | 6.5.438 | Apache-2.0 |
 | pg | 8.23.1 | MIT |
 | pg-cloudflare | 1.4.1 | MIT |
 | pg-connection-string | 2.14.1 | MIT |
@@ -134,8 +106,8 @@ Points d'attention :
 | protobufjs | 7.6.6 | BSD-3-Clause |
 | react | 18.3.1 | MIT |
 | react-dom | 18.3.1 | MIT |
-| react-router | 7.18.5 | MIT |
-| react-router-dom | 7.18.5 | MIT |
+| react-router | 7.18.6 | MIT |
+| react-router-dom | 7.18.6 | MIT |
 | safer-buffer | 2.1.2 | MIT |
 | sax | 1.6.1 | BlueOak-1.0.0 |
 | scheduler | 0.23.2 | MIT |
@@ -146,10 +118,10 @@ Points d'attention :
 | sharp | 0.35.5 | Apache-2.0 |
 | split2 | 4.2.0 | ISC |
 | sql-escaper | 1.5.2 | MIT |
-| sql.js | 1.14.2 | MIT |
+| sql.js | 1.17.0 | MIT |
 | ssh2 | 1.17.0 | MIT |
 | standardwebhooks | 1.1.1 | MIT |
-| tailwind-merge | 3.6.0 | MIT |
+| tailwind-merge | 3.7.0 | MIT |
 | tiny-typed-emitter | 2.1.0 | MIT |
 | ts-algebra | 2.0.0 | MIT |
 | tslib | 2.8.1 | 0BSD |

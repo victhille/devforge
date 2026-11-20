@@ -33,13 +33,15 @@ describe('scriptsOf', () => {
   })
   it('leaves out a name pnpm reads as a pattern or an option, and an empty command', () => {
     // { "/x/": "" } made « pnpm run /x/ » run every script matching x, commands the card never showed
-    expect(scriptsOf({ scripts: { '/x/': '', '/./': 'echo', '-x': 'echo', blank: '  ', empty: '', 'x-run': 'echo', 'lib/build': 'tsc' } }))
-      .toEqual({ 'x-run': 'echo', 'lib/build': 'tsc' })
+    expect(scriptsOf({ scripts: { '/x/': '', '/./': 'echo', '-x': 'echo', blank: '  ', empty: '', 'x-run': 'echo', 'lib/build': 'tsc' } })).toEqual({
+      'x-run': 'echo',
+      'lib/build': 'tsc'
+    })
   })
 })
 
 describe('the default package manager in the settings', () => {
-  it('is a known one, even from an imported file: it goes into the new projects\' commands', () => {
+  it("is a known one, even from an imported file: it goes into the new projects' commands", () => {
     writeFileSync(join(userData(), 'settings.json'), JSON.stringify({ defaultPackageManager: 'npm & calc &' }))
     expect(loadSettings().defaultPackageManager).toBe('npm')
     writeFileSync(join(userData(), 'settings.json'), JSON.stringify({ defaultPackageManager: 'yarn' }))
@@ -51,13 +53,16 @@ describe('the saved projects', () => {
   it('keep a known package manager only: it goes into commands', () => {
     const dir = tempDir()
     const base = { type: 'node', framework: 'vite', favorite: false, createdAt: '', lastOpened: null }
-    writeFileSync(join(userData(), 'projects.json'), JSON.stringify([
-      { ...base, id: 'a', name: 'a', path: dir, packageManager: 'pnpm' },
-      { ...base, id: 'b', name: 'b', path: dir, packageManager: 'calc &' },
-      { ...base, id: 'c', name: 'c', path: dir },
-      // A broken entry is left out, not the whole list
-      null
-    ]))
+    writeFileSync(
+      join(userData(), 'projects.json'),
+      JSON.stringify([
+        { ...base, id: 'a', name: 'a', path: dir, packageManager: 'pnpm' },
+        { ...base, id: 'b', name: 'b', path: dir, packageManager: 'calc &' },
+        { ...base, id: 'c', name: 'c', path: dir },
+        // A broken entry is left out, not the whole list
+        null
+      ])
+    )
     expect(loadProjects().map(p => p.packageManager)).toEqual(['pnpm', 'npm', 'npm'])
   })
 })
@@ -76,6 +81,34 @@ describe('Forgy runs a script', () => {
     await expect(plan('dev\rcalc')).rejects.toThrow('script')
     await expect(plan('toString')).rejects.toThrow('No "toString" script')
     await expect(plan('constructor')).rejects.toThrow('No "constructor" script')
+  })
+
+  it('starts a dev server alone in auto-safe mode; any other script waits for a click', async () => {
+    project({ scripts: { ...SCRIPTS, start: 'node server.js', watch: 'tsc -w', deploy: 'vercel --prod', publish: 'npm publish' } })
+    for (const script of ['dev', 'start', 'watch']) expect(await plan(script)).toMatchObject({ safe: true, reversible: true })
+    for (const script of ['build:prod', 'deploy', 'publish']) expect(await plan(script)).toMatchObject({ safe: false, reversible: false })
+  })
+
+  it('a dev server with a pre or post script, or with commands chained in it, waits for a click too', async () => {
+    project({ scripts: { dev: 'vite', predev: 'node seed.js', start: 'prisma migrate deploy && node server.js', serve: 'vite preview; rm x' } })
+    const dev = await plan('dev')
+    expect(dev).toMatchObject({ safe: false, reversible: false })
+    // npm runs predev with it: the card shows it
+    expect(dev.preview).toBe('npm run dev\nvite\npredev: node seed.js')
+    for (const script of ['start', 'serve']) expect(await plan(script)).toMatchObject({ safe: false, reversible: false })
+  })
+
+  it('a dev server that runs other scripts or writes into a file waits for a click', async () => {
+    project({ scripts: { dev: 'npm run deploy', start: 'run-s db:reset serve', serve: 'vite > package.json', watch: 'concurrently a b' } })
+    for (const script of ['dev', 'start', 'serve', 'watch']) expect(await plan(script)).toMatchObject({ safe: false, reversible: false })
+    project({ scripts: { dev: 'next dev --turbopack', start: 'node server.js' } })
+    for (const script of ['dev', 'start']) expect(await plan(script)).toMatchObject({ safe: true, reversible: true })
+  })
+
+  it('a dev server with a command substitution or node --run waits for a click', async () => {
+    // sh (macOS, Linux) runs $(…) and `…` first: a second program
+    project({ scripts: { dev: 'vite --port $(node scripts/reset-db.js)', start: 'node `echo server.js`', serve: 'node --run db:reset' } })
+    for (const script of ['dev', 'start', 'serve']) expect(await plan(script)).toMatchObject({ safe: false, reversible: false })
   })
 
   it('names only a known package manager', async () => {

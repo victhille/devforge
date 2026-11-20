@@ -7,23 +7,33 @@ import { processManager } from '../../src/main/services/stacks/processManager'
 import { assertStack, loadStacks, saveStack, startStep, stopStack } from '../../src/main/services/stacks/stackService'
 import { tempDir, userData } from '../helpers'
 
-/** v4.0: the stack launcher, the one place where a saved shell line runs */
+/** The stack launcher, the one place where a saved shell line runs */
 
 const node = JSON.stringify(process.execPath)
 const stack = (steps: Stack['steps']): Stack => ({ id: 's1', name: 'Shop', color: 'blue', steps })
-const until = async (ok: () => boolean) => { for (let i = 0; i < 100 && !ok(); i++) await new Promise(r => setTimeout(r, 50)) }
+const until = async (ok: () => boolean) => {
+  for (let i = 0; i < 100 && !ok(); i++) await new Promise(r => setTimeout(r, 50))
+}
 
 afterAll(() => stopStack('s1'))
 
 describe('what the window may save', () => {
   it('keeps a well-formed stack', () => {
-    saveStack(stack([{ id: 'api', type: 'command', label: 'API', command: 'npm run dev', cwd: 'C:\\shop' }, { id: 'web', type: 'url', label: 'Site', url: 'http://localhost:5173', delayMs: 2000 }]))
+    saveStack(
+      stack([
+        { id: 'api', type: 'command', label: 'API', command: 'npm run dev', cwd: 'C:\\shop' },
+        { id: 'web', type: 'url', label: 'Site', url: 'http://localhost:5173', delayMs: 2000 }
+      ])
+    )
     expect(loadStacks().map(s => s.steps.length)).toEqual([2])
   })
 
   it('refuses anything else, and keeps nothing of it', () => {
     const bad: unknown[] = [
-      null, 'stack', { id: 's2', name: 'x' }, { id: 's2', name: 'x', steps: 'run' },
+      null,
+      'stack',
+      { id: 's2', name: 'x' },
+      { id: 's2', name: 'x', steps: 'run' },
       stack([{ id: 'a', type: 'powershell' as 'command', label: 'x', command: 'calc' }]),
       stack([{ id: 'a', type: 'command', label: 'x', command: 42 as unknown as string }]),
       stack([{ id: 'a', type: 'command', label: 'x', command: 'x'.repeat(4001) }]),

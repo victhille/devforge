@@ -38,15 +38,26 @@ export default function Onboarding() {
   const [ghToken, setGhToken] = useState('')
   const [accountsError, setAccountsError] = useState('')
 
-  useEffect(() => { window.devforge.getSettings().then(s => { setSettings(s); setDir(s.defaultProjectsDir) }).catch(() => {}) }, [])
+  useEffect(() => {
+    window.devforge
+      .getSettings()
+      .then(s => {
+        setSettings(s)
+        setDir(s.defaultProjectsDir)
+      })
+      .catch(() => {})
+  }, [])
   // What is already there on this PC (GitHub CLI, Git's identity): shown, not asked again
   useEffect(() => {
     if (settings?.onboarded !== false) return
     // It can come after the user typed: what was typed stays
-    window.devforge.connections.overview().then(a => {
-      setAccounts(a)
-      setIdentity(i => (i.name || i.email ? i : { name: a.git.name ?? '', email: a.git.email ?? '' }))
-    }).catch(() => {})
+    window.devforge.connections
+      .overview()
+      .then(a => {
+        setAccounts(a)
+        setIdentity(i => (i.name || i.email ? i : { name: a.git.name ?? '', email: a.git.email ?? '' }))
+      })
+      .catch(() => {})
   }, [settings?.onboarded])
   if (!settings || settings.onboarded !== false) return null
 
@@ -65,15 +76,27 @@ export default function Onboarding() {
       const list = (await window.devforge.scanDirectory(folder)).filter(p => !saved.has(p.path) && p.framework !== 'unknown')
       setFound(list)
       setPicked(new Set(list.map(p => p.path)))
-    } catch { setFound([]) }
-    finally { setScanning(false) }
+    } catch {
+      setFound([])
+    } finally {
+      setScanning(false)
+    }
   }
 
   async function addProjects() {
     const now = new Date().toISOString()
     const list = (found ?? []).filter(p => picked.has(p.path))
     for (const dp of list) {
-      const project: Project = { id: crypto.randomUUID(), name: dp.name, path: dp.path, framework: dp.framework, packageManager: dp.packageManager, createdAt: now, lastOpenedAt: null, favorite: false }
+      const project: Project = {
+        id: crypto.randomUUID(),
+        name: dp.name,
+        path: dp.path,
+        framework: dp.framework,
+        packageManager: dp.packageManager,
+        createdAt: now,
+        lastOpenedAt: null,
+        favorite: false
+      }
       await window.devforge.saveProject(project)
     }
     setAdded(list.length)
@@ -96,7 +119,10 @@ export default function Onboarding() {
       if (identity.name.trim() && identity.email.trim() && (identity.name !== accounts?.git.name || identity.email !== accounts?.git.email)) {
         await window.devforge.connections.setGitIdentity(identity.name, identity.email)
       }
-      if (ghToken.trim()) { await window.devforge.github.saveToken(ghToken.trim()); setGhToken('') }
+      if (ghToken.trim()) {
+        await window.devforge.github.saveToken(ghToken.trim())
+        setGhToken('')
+      }
       setStep(3)
     } catch (err) {
       const code = errorText(err)
@@ -106,8 +132,14 @@ export default function Onboarding() {
 
   async function saveKey() {
     setKeyError('')
-    try { await window.devforge.assistant.saveConfig({ apiKey: key }); setKeySaved(true); setKey(''); setStep(4) }
-    catch (err) { setKeyError(String(err instanceof Error ? err.message : err)) }
+    try {
+      await window.devforge.assistant.saveConfig({ apiKey: key })
+      setKeySaved(true)
+      setKey('')
+      setStep(4)
+    } catch (err) {
+      setKeyError(String(err instanceof Error ? err.message : err))
+    }
   }
 
   const features = [
@@ -121,17 +153,32 @@ export default function Onboarding() {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/55 p-6 backdrop-blur-[3px]">
-      <div role="dialog" aria-modal="true" aria-labelledby="onboarding-title"
-        className="df-pop flex max-h-[calc(100vh-48px)] w-[min(880px,100%)] overflow-hidden rounded-window border border-line bg-surface shadow-pop">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="onboarding-title"
+        className="df-pop flex max-h-[calc(100vh-48px)] w-[min(880px,100%)] overflow-hidden rounded-window border border-line bg-surface shadow-pop"
+      >
         {/* The steps, the current one lit; on a narrow window the bar above the content says it */}
         <aside aria-label={o.stepsLabel} className="hidden w-56 shrink-0 flex-col gap-6 border-r border-line-subtle bg-sidebar px-5 py-6 sm:flex">
           <p className="font-display text-lg font-bold tracking-[-.01em] text-fg">DevForge</p>
           <ol className="flex flex-col gap-1">
             {stepNames.map((name, i) => (
-              <li key={name} aria-current={i === step ? 'step' : undefined}
-                className={cn('flex h-9 items-center gap-3 rounded-lg px-2.5 text-sm', i === step ? 'bg-active font-semibold text-fg' : i < step ? 'text-fg-secondary' : 'text-fg-muted')}>
-                <span aria-hidden className={cn('flex size-5.5 shrink-0 items-center justify-center rounded-full font-mono text-2xs',
-                  i < step ? 'bg-accent text-accent-fg' : i === step ? 'border border-accent text-accent' : 'border border-line')}>
+              <li
+                key={name}
+                aria-current={i === step ? 'step' : undefined}
+                className={cn(
+                  'flex h-9 items-center gap-3 rounded-lg px-2.5 text-sm',
+                  i === step ? 'bg-active font-semibold text-fg' : i < step ? 'text-fg-secondary' : 'text-fg-muted'
+                )}
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    'flex size-5.5 shrink-0 items-center justify-center rounded-full font-mono text-2xs',
+                    i < step ? 'bg-accent text-accent-fg' : i === step ? 'border border-accent text-accent' : 'border border-line'
+                  )}
+                >
                   {i < step ? <Check size={11} strokeWidth={3} /> : i + 1}
                 </span>
                 {name}
@@ -143,160 +190,311 @@ export default function Onboarding() {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center gap-3 px-6 pt-5">
-          <div role="progressbar" aria-valuemin={1} aria-valuemax={STEPS} aria-valuenow={step + 1} aria-label={o.progress.replace('{n}', String(step + 1)).replace('{t}', String(STEPS))} className="flex flex-1 gap-1.5 sm:invisible">
-            {Array.from({ length: STEPS }, (_, i) => <span key={i} className={cn('h-1 flex-1 rounded-full transition-colors', i <= step ? 'bg-accent' : 'bg-active')} />)}
-          </div>
-          {step < STEPS - 1 && <button onClick={finish} className="text-xs text-fg-muted hover:text-fg">{o.skip}</button>}
-        </div>
-
-        <div key={step} className="df-rise flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-6 pt-5 pb-2">
-          {step === 0 && (
-            <>
-              <div className="flex items-center gap-4">
-                <Mascot mood="happy" size={72} followCursor={false} />
-                <div>
-                  <h2 id="onboarding-title" className="font-display text-2xl font-bold tracking-[-.02em] text-fg">{o.welcomeTitle}</h2>
-                  <p className="mt-1 text-sm text-fg-secondary">{o.welcomeText}</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="text-base text-fg-secondary">{o.language}</span>
-                <Segmented<AppLanguage> label={o.language} value={lang} onChange={chooseLanguage} items={[{ value: 'fr', label: 'Français' }, { value: 'en', label: 'English' }]} />
-              </div>
-              <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                {features.map(f => (
-                  <li key={f.text} className="flex items-start gap-3 rounded-xl border border-line-subtle bg-canvas p-3.5 text-base text-fg">
-                    <f.icon size={18} className="mt-0.5 shrink-0 text-accent" aria-hidden />{f.text}
-                  </li>
-                ))}
-              </ul>
-              {docsUrl('getting-started/first-launch', lang) && (
-                <button type="button" onClick={() => openDocs('getting-started/first-launch', lang)} className="self-start text-base text-accent hover:underline">{o.guide}</button>
-              )}
-            </>
-          )}
-
-          {step === 1 && (
-            <>
-              <div>
-                <h2 id="onboarding-title" className="font-display text-xl font-bold tracking-[-.015em] text-fg">{o.projectsTitle}</h2>
-                <p className="mt-1 text-sm text-fg-secondary">{o.projectsText}</p>
-              </div>
-              <div className="flex gap-2">
-                <Input value={dir} onChange={e => setDir(e.target.value)} aria-label={t.settings.defaultDir} className="font-mono text-sm" />
-                <Button variant="secondary" onClick={async () => { const d = await window.devforge.selectDirectory(); if (d) { setDir(d); scan(d) } }}>{t.settings.browse}</Button>
-                <Button onClick={() => scan()} loading={scanning}>{o.scan}</Button>
-              </div>
-              {scanning && <p className="flex items-center gap-2 text-sm text-fg-muted"><Spinner /> {o.scanning}</p>}
-              {found && !scanning && (found.length === 0 ? <p className="text-sm text-fg-muted">{o.noneFound}</p> : (
-                <div className="flex flex-col gap-1 overflow-hidden rounded-xl border border-line-subtle">
-                  <div className="flex items-center gap-2 border-b border-line-subtle bg-surface px-3 py-2 text-xs text-fg-secondary">
-                    <span className="flex-1">{o.found.replace('{n}', String(found.length))}</span>
-                    <button className="text-accent hover:underline" onClick={() => setPicked(picked.size === found.length ? new Set() : new Set(found.map(p => p.path)))}>
-                      {picked.size === found.length ? o.none : o.all}
-                    </button>
-                  </div>
-                  <div className="max-h-56 overflow-y-auto">
-                    {found.map(p => (
-                      <label key={p.path} className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-hover">
-                        <input type="checkbox" checked={picked.has(p.path)} className="accent-[var(--color-accent)]"
-                          onChange={e => { const n = new Set(picked); if (e.target.checked) n.add(p.path); else n.delete(p.path); setPicked(n) }} />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-base font-medium text-fg">{p.name}</span>
-                          <span className="block truncate font-mono text-xs text-fg-muted">{p.path}</span>
-                        </span>
-                        <Badge mono>{p.framework}</Badge>
-                      </label>
-                    ))}
-                  </div>
-                </div>
+          <div className="flex items-center gap-3 px-6 pt-5">
+            <div
+              role="progressbar"
+              aria-valuemin={1}
+              aria-valuemax={STEPS}
+              aria-valuenow={step + 1}
+              aria-label={o.progress.replace('{n}', String(step + 1)).replace('{t}', String(STEPS))}
+              className="flex flex-1 gap-1.5 sm:invisible"
+            >
+              {Array.from({ length: STEPS }, (_, i) => (
+                <span key={i} className={cn('h-1 flex-1 rounded-full transition-colors', i <= step ? 'df-fill bg-accent' : 'bg-active')} />
               ))}
-            </>
-          )}
+            </div>
+            {step < STEPS - 1 && (
+              <button onClick={finish} className="text-xs text-fg-muted hover:text-fg">
+                {o.skip}
+              </button>
+            )}
+          </div>
 
-          {step === 2 && (
-            <>
-              <div>
-                <h2 id="onboarding-title" className="font-display text-xl font-bold tracking-[-.015em] text-fg">{o.accountsTitle}</h2>
-                <p className="mt-1 text-sm text-fg-secondary">{o.accountsText}</p>
-              </div>
-              {added > 0 && <p className="flex items-center gap-2 text-sm text-success"><Check size={15} /> {o.added.replace('{n}', String(added))}</p>}
-              <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-canvas p-4">
-                <span className="text-base font-medium text-fg">{t.settings.connections.gitIdentity}</span>
-                <div className="flex flex-wrap gap-2">
-                  <Input aria-label={t.settings.connections.gitName} placeholder={t.settings.connections.gitName} value={identity.name} onChange={e => setIdentity(i => ({ ...i, name: e.target.value }))} className="flex-[1_1_160px]" />
-                  <Input aria-label={t.settings.connections.gitEmail} placeholder={t.settings.connections.gitEmail} type="email" value={identity.email} onChange={e => setIdentity(i => ({ ...i, email: e.target.value }))} className="flex-[1_1_200px]" />
+          <div key={step} className="df-rise flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-6 pt-5 pb-2">
+            {step === 0 && (
+              <>
+                <div className="flex items-center gap-4">
+                  <Mascot mood="happy" size={72} followCursor={false} />
+                  <div>
+                    <h2 id="onboarding-title" className="font-display text-2xl font-bold tracking-[-.02em] text-fg">
+                      {o.welcomeTitle}
+                    </h2>
+                    <p className="mt-1 text-sm text-fg-secondary">{o.welcomeText}</p>
+                  </div>
                 </div>
-                <p className="text-xs text-fg-muted">{t.settings.connections.gitIdentityHint}</p>
-              </div>
-              <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-canvas p-4">
-                <span className="text-base font-medium text-fg">GitHub</span>
-                {accounts?.github.cli
-                  ? <p className="flex items-center gap-2 text-sm text-success"><Check size={15} /> {t.settings.connections.githubCli.replace('{login}', accounts.github.cli)}</p>
-                  : accounts?.github.token
-                    ? <p className="flex items-center gap-2 text-sm text-success"><Check size={15} /> {t.settings.connections.tokenSaved}</p>
-                    : <Input type="password" aria-label={t.settings.connections.githubToken} placeholder={o.githubTokenPlaceholder} value={ghToken} onChange={e => setGhToken(e.target.value)} className="font-mono" autoComplete="off" />}
-                <p className="text-xs text-fg-muted">{t.settings.connections.githubHint}</p>
-              </div>
-              <p className="flex items-start gap-2 text-xs text-fg-muted"><Plug size={14} className="mt-px shrink-0" /> {o.moreLater}</p>
-              {accountsError && <p role="alert" className="text-xs text-danger">{accountsError}</p>}
-            </>
-          )}
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-base text-fg-secondary">{o.language}</span>
+                  <Segmented<AppLanguage>
+                    label={o.language}
+                    value={lang}
+                    onChange={chooseLanguage}
+                    items={[
+                      { value: 'fr', label: 'Français' },
+                      { value: 'en', label: 'English' }
+                    ]}
+                  />
+                </div>
+                <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  {features.map(f => (
+                    <li key={f.text} className="flex items-start gap-3 rounded-xl border border-line-subtle bg-canvas p-3.5 text-base text-fg">
+                      <f.icon size={18} className="mt-0.5 shrink-0 text-accent" aria-hidden />
+                      {f.text}
+                    </li>
+                  ))}
+                </ul>
+                {docsUrl('getting-started/first-launch', lang) && (
+                  <button
+                    type="button"
+                    onClick={() => openDocs('getting-started/first-launch', lang)}
+                    className="self-start text-base text-accent hover:underline"
+                  >
+                    {o.guide}
+                  </button>
+                )}
+              </>
+            )}
 
-          {step === 3 && (
-            <>
-              <div className="flex items-center gap-4">
-                <Mascot mood="listening" size={60} followCursor={false} />
+            {step === 1 && (
+              <>
                 <div>
-                  <h2 id="onboarding-title" className="font-display text-xl font-bold tracking-[-.015em] text-fg">{o.forgyTitle}</h2>
-                  <p className="mt-1 text-sm text-fg-secondary">{o.forgyText}</p>
+                  <h2 id="onboarding-title" className="font-display text-xl font-bold tracking-[-.015em] text-fg">
+                    {o.projectsTitle}
+                  </h2>
+                  <p className="mt-1 text-sm text-fg-secondary">{o.projectsText}</p>
                 </div>
-              </div>
-              <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-canvas p-4">
-                <label htmlFor="onboarding-key" className="text-base font-medium text-fg">{t.assistant.apiKey}</label>
                 <div className="flex gap-2">
-                  <Input id="onboarding-key" type="password" value={key} onChange={e => setKey(e.target.value)} placeholder={t.assistant.apiKeyPlaceholder} className="font-mono" autoComplete="off" />
-                  <Button disabled={!key.trim()} onClick={saveKey}><KeyRound size={14} /> {t.assistant.saveKey}</Button>
+                  <Input value={dir} onChange={e => setDir(e.target.value)} aria-label={t.settings.defaultDir} className="font-mono text-sm" />
+                  <Button
+                    variant="secondary"
+                    onClick={async () => {
+                      const d = await window.devforge.selectDirectory()
+                      if (d) {
+                        setDir(d)
+                        scan(d)
+                      }
+                    }}
+                  >
+                    {t.settings.browse}
+                  </Button>
+                  <Button onClick={() => scan()} loading={scanning}>
+                    {o.scan}
+                  </Button>
                 </div>
-                <p className="text-xs text-fg-muted">{o.keyHint}</p>
-                {keyError && <p className="text-xs text-danger">{keyError}</p>}
-              </div>
-            </>
-          )}
+                {scanning && (
+                  <p className="flex items-center gap-2 text-sm text-fg-muted">
+                    <Spinner /> {o.scanning}
+                  </p>
+                )}
+                {found &&
+                  !scanning &&
+                  (found.length === 0 ? (
+                    <p className="text-sm text-fg-muted">{o.noneFound}</p>
+                  ) : (
+                    <div className="flex flex-col gap-1 overflow-hidden rounded-xl border border-line-subtle">
+                      <div className="flex items-center gap-2 border-b border-line-subtle bg-surface px-3 py-2 text-xs text-fg-secondary">
+                        <span className="flex-1">{o.found.replace('{n}', String(found.length))}</span>
+                        <button
+                          className="text-accent hover:underline"
+                          onClick={() => setPicked(picked.size === found.length ? new Set() : new Set(found.map(p => p.path)))}
+                        >
+                          {picked.size === found.length ? o.none : o.all}
+                        </button>
+                      </div>
+                      <div className="max-h-56 overflow-y-auto">
+                        {found.map(p => (
+                          <label key={p.path} className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-hover">
+                            <input
+                              type="checkbox"
+                              checked={picked.has(p.path)}
+                              className="accent-[var(--color-accent)]"
+                              onChange={e => {
+                                const n = new Set(picked)
+                                if (e.target.checked) n.add(p.path)
+                                else n.delete(p.path)
+                                setPicked(n)
+                              }}
+                            />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-base font-medium text-fg">{p.name}</span>
+                              <span className="block truncate font-mono text-xs text-fg-muted">{p.path}</span>
+                            </span>
+                            <Badge mono>{p.framework}</Badge>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+              </>
+            )}
 
-          {step === 4 && (
-            <>
-              <div className="flex items-center gap-4">
-                <Mascot mood="happy" size={64} followCursor={false} />
+            {step === 2 && (
+              <>
                 <div>
-                  <h2 id="onboarding-title" className="font-display text-xl font-bold tracking-[-.015em] text-fg">{o.doneTitle}</h2>
-                  <p className="mt-1 text-sm text-fg-secondary">{keySaved ? o.doneWithKey : o.doneNoKey}</p>
+                  <h2 id="onboarding-title" className="font-display text-xl font-bold tracking-[-.015em] text-fg">
+                    {o.accountsTitle}
+                  </h2>
+                  <p className="mt-1 text-sm text-fg-secondary">{o.accountsText}</p>
                 </div>
-              </div>
-              <ul className="flex flex-col gap-2 text-base text-fg">
-                {[[o.tipPalette, 'Ctrl K'], [o.tipForgy, 'Ctrl J'], [o.tipSettings, '']].map(([text, kbd]) => (
-                  <li key={text} className="flex items-center gap-3 rounded-xl border border-line-subtle bg-canvas px-3.5 py-3">
-                    <span className="flex-1">{text}</span>
-                    {kbd && <Kbd>{kbd}</Kbd>}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </div>
+                {added > 0 && (
+                  <p className="flex items-center gap-2 text-sm text-success">
+                    <Check size={15} /> {o.added.replace('{n}', String(added))}
+                  </p>
+                )}
+                <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-canvas p-4">
+                  <span className="text-base font-medium text-fg">{t.settings.connections.gitIdentity}</span>
+                  <div className="flex flex-wrap gap-2">
+                    <Input
+                      aria-label={t.settings.connections.gitName}
+                      placeholder={t.settings.connections.gitName}
+                      value={identity.name}
+                      onChange={e => setIdentity(i => ({ ...i, name: e.target.value }))}
+                      className="flex-[1_1_160px]"
+                    />
+                    <Input
+                      aria-label={t.settings.connections.gitEmail}
+                      placeholder={t.settings.connections.gitEmail}
+                      type="email"
+                      value={identity.email}
+                      onChange={e => setIdentity(i => ({ ...i, email: e.target.value }))}
+                      className="flex-[1_1_200px]"
+                    />
+                  </div>
+                  <p className="text-xs text-fg-muted">{t.settings.connections.gitIdentityHint}</p>
+                </div>
+                <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-canvas p-4">
+                  <span className="text-base font-medium text-fg">GitHub</span>
+                  {accounts?.github.cli ? (
+                    <p className="flex items-center gap-2 text-sm text-success">
+                      <Check size={15} /> {t.settings.connections.githubCli.replace('{login}', accounts.github.cli)}
+                    </p>
+                  ) : accounts?.github.token ? (
+                    <p className="flex items-center gap-2 text-sm text-success">
+                      <Check size={15} /> {t.settings.connections.tokenSaved}
+                    </p>
+                  ) : (
+                    <Input
+                      type="password"
+                      aria-label={t.settings.connections.githubToken}
+                      placeholder={o.githubTokenPlaceholder}
+                      value={ghToken}
+                      onChange={e => setGhToken(e.target.value)}
+                      className="font-mono"
+                      autoComplete="off"
+                    />
+                  )}
+                  <p className="text-xs text-fg-muted">{t.settings.connections.githubHint}</p>
+                </div>
+                <p className="flex items-start gap-2 text-xs text-fg-muted">
+                  <Plug size={14} className="mt-px shrink-0" /> {o.moreLater}
+                </p>
+                {accountsError && (
+                  <p role="alert" className="text-xs text-danger">
+                    {accountsError}
+                  </p>
+                )}
+              </>
+            )}
 
-        <div className="flex items-center gap-3 px-6 pt-4 pb-5">
-          {step > 0 && step < STEPS - 1 && <Button variant="ghost" onClick={() => setStep(step - 1)}>{o.back}</Button>}
-          <span className="flex-1" />
-          {step === 0 && <Button onClick={() => { setStep(1); if (!found) scan() }}>{o.start}</Button>}
-          {step === 1 && (picked.size > 0 && found?.length
-            ? <Button onClick={addProjects}>{o.addProjects.replace('{n}', String(picked.size))}</Button>
-            : <Button onClick={async () => { await window.devforge.saveSettings({ ...settings, defaultProjectsDir: dir }); setStep(2) }}>{o.next}</Button>)}
-          {step === 2 && <Button onClick={saveAccounts}>{o.next}</Button>}
-          {step === 3 && <Button variant="secondary" onClick={() => setStep(4)}>{o.later}</Button>}
-          {step === 4 && <Button onClick={finish}>{o.go}</Button>}
-        </div>
+            {step === 3 && (
+              <>
+                <div className="flex items-center gap-4">
+                  <Mascot mood="listening" size={60} followCursor={false} />
+                  <div>
+                    <h2 id="onboarding-title" className="font-display text-xl font-bold tracking-[-.015em] text-fg">
+                      {o.forgyTitle}
+                    </h2>
+                    <p className="mt-1 text-sm text-fg-secondary">{o.forgyText}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 rounded-xl border border-line-subtle bg-canvas p-4">
+                  <label htmlFor="onboarding-key" className="text-base font-medium text-fg">
+                    {t.assistant.apiKey}
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="onboarding-key"
+                      type="password"
+                      value={key}
+                      onChange={e => setKey(e.target.value)}
+                      placeholder={t.assistant.apiKeyPlaceholder}
+                      className="font-mono"
+                      autoComplete="off"
+                    />
+                    <Button disabled={!key.trim()} onClick={saveKey}>
+                      <KeyRound size={14} /> {t.assistant.saveKey}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-fg-muted">{o.keyHint}</p>
+                  {keyError && <p className="text-xs text-danger">{keyError}</p>}
+                </div>
+              </>
+            )}
+
+            {step === 4 && (
+              <>
+                <div className="flex items-center gap-4">
+                  <Mascot mood="happy" size={64} followCursor={false} />
+                  <div>
+                    <h2 id="onboarding-title" className="font-display text-xl font-bold tracking-[-.015em] text-fg">
+                      {o.doneTitle}
+                    </h2>
+                    <p className="mt-1 text-sm text-fg-secondary">{keySaved ? o.doneWithKey : o.doneNoKey}</p>
+                  </div>
+                </div>
+                <ul className="flex flex-col gap-2 text-base text-fg">
+                  {[
+                    [o.tipPalette, 'Ctrl K'],
+                    [o.tipForgy, 'Ctrl J'],
+                    [o.tipSettings, '']
+                  ].map(([text, kbd]) => (
+                    <li key={text} className="flex items-center gap-3 rounded-xl border border-line-subtle bg-canvas px-3.5 py-3">
+                      <span className="flex-1">{text}</span>
+                      {kbd && <Kbd>{kbd}</Kbd>}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 px-6 pt-4 pb-5">
+            {step > 0 && step < STEPS - 1 && (
+              <Button variant="ghost" onClick={() => setStep(step - 1)}>
+                {o.back}
+              </Button>
+            )}
+            <span className="flex-1" />
+            {step === 0 && (
+              <Button
+                onClick={() => {
+                  setStep(1)
+                  if (!found) scan()
+                }}
+              >
+                {o.start}
+              </Button>
+            )}
+            {step === 1 &&
+              (picked.size > 0 && found?.length ? (
+                <Button onClick={addProjects}>{o.addProjects.replace('{n}', String(picked.size))}</Button>
+              ) : (
+                <Button
+                  onClick={async () => {
+                    await window.devforge.saveSettings({ ...settings, defaultProjectsDir: dir })
+                    setStep(2)
+                  }}
+                >
+                  {o.next}
+                </Button>
+              ))}
+            {step === 2 && <Button onClick={saveAccounts}>{o.next}</Button>}
+            {step === 3 && (
+              <Button variant="secondary" onClick={() => setStep(4)}>
+                {o.later}
+              </Button>
+            )}
+            {step === 4 && <Button onClick={finish}>{o.go}</Button>}
+          </div>
         </div>
       </div>
     </div>
