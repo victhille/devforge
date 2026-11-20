@@ -4,6 +4,27 @@ Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/victhille/devforge/compare/v0.3.0...v0.4.0) — 2026-11-20
+
+> Vercel and Expo each get their own page, and projects whose folder is gone leave the list on their own.
+
+### New features
+
+- **Vercel**: a **Going live › Vercel** page for the whole account or a team: projects, deployments and domains. It cancels a build, promotes a preview to production and links a Vercel project to a DevForge folder
+- **Expo**: a **Development › Expo** page to run a React Native app, monorepos included, with Expo Go or a dev build, over Wi-Fi, a tunnel or this PC. The QR code shows in the page, Metro's commands (reload, dev menu, Android, browser…) are buttons, and the packages align on the SDK
+- **Forgy**: it explains a failed Vercel deployment or a Metro error from the end of the log
+
+### Improvements
+
+- **Projects**: a project whose folder is gone leaves the list on its own, at startup and on each **Rescan**, with **Undo**. An unplugged disk or a network drive keeps its projects
+- **Forgy**: the project choice becomes a list with a search, icons, the favorites then the recent projects, usable from the keyboard
+- **Accessibility**: a loading button tells screen readers
+
+### Security
+
+- **Vercel**: the recognized secrets are masked in build logs, on screen and for Forgy
+- **Expo**: the Metro server stops with DevForge, instead of staying in the background
+
 ## [0.3.0](https://github.com/victhille/devforge/compare/v0.2.1...v0.3.0) — 2026-11-20
 
 > Updates are now visible: a download card, a restart screen, and an app that is more accessible and more private.

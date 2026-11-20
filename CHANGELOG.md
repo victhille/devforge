@@ -4,6 +4,27 @@ Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachange
 
 ## [Non publié]
 
+## [0.4.0](https://github.com/victhille/devforge/compare/v0.3.0...v0.4.0) — 2026-11-20
+
+> Vercel et Expo ont chacun leur page, et les projets dont le dossier a disparu se retirent tout seuls.
+
+### Nouveautés
+
+- **Vercel** : une page **Mise en ligne › Vercel** pour tout le compte ou une équipe : projets, déploiements et domaines. Elle annule un build, passe un aperçu en production et lie un projet Vercel à un dossier de DevForge
+- **Expo** : une page **Développement › Expo** pour lancer une appli React Native, monorepos compris, avec Expo Go ou un build de dev, en Wi-Fi, en tunnel ou sur ce PC. Le QR code s'affiche dans la page, les commandes de Metro (recharger, menu de dev, Android, navigateur…) sont des boutons, et les paquets s'alignent sur le SDK
+- **Forgy** : il explique un déploiement Vercel en échec ou une erreur de Metro à partir de la fin du journal
+
+### Améliorations
+
+- **Projets** : un projet dont le dossier a disparu est retiré tout seul, au démarrage et à chaque **Rescanner**, avec **Annuler**. Un disque débranché ou un lecteur réseau garde ses projets
+- **Forgy** : le choix du projet devient une liste avec une recherche, les icônes, les favoris puis les projets récents, utilisable au clavier
+- **Accessibilité** : un bouton qui charge l'annonce aux lecteurs d'écran
+
+### Sécurité
+
+- **Vercel** : les secrets reconnus sont masqués dans les journaux de build, à l'écran comme pour Forgy
+- **Expo** : le serveur Metro s'arrête avec DevForge, sans rester en arrière-plan
+
 ## [0.3.0](https://github.com/victhille/devforge/compare/v0.2.1...v0.3.0) — 2026-11-20
 
 > Les mises à jour se voient : un bloc de téléchargement, un écran au redémarrage, et une app plus accessible et plus discrète.
