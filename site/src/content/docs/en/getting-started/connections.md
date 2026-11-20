@@ -38,6 +38,26 @@ Deployments, domains and variables of the projects linked to Vercel. Create a to
 
 This PC's Docker engine (Docker Desktop): containers, Compose, the projects' databases. Nothing to type: the row says "answers" (the version on hover). While it does not answer, **Test** checks again and **Install Docker Desktop** opens the download page.
 
+## MCP servers for Forgy
+
+The official MCP servers of the services you use become [Forgy](/devforge/en/forgy/assistant/#mcp-servers)'s tools. DevForge offers:
+
+| Server | Connection | For Forgy |
+|---|---|---|
+| Vercel | sign in | projects, deployments, build logs, domains |
+| Context7 | no account | up-to-date docs of libraries |
+| Supabase | sign in | tables, migrations, logs, functions |
+| Sentry | sign in | errors in production, with their trace |
+| Linear | sign in | issues and cycles |
+| Notion | sign in | specs and project notes |
+| Playwright | on this PC (`npx`) | drive a browser on your running project |
+
+- **Sign in** opens the browser on the service's page: you accept, the browser comes back to this PC (`127.0.0.1`) and DevForge keeps the connection, encrypted by Windows. No token to copy.
+- The switch says whether Forgy may use the server; the row says how many tools it has, and how many only read.
+- **Add** plugs in a server of the list; the filter at the top shows every server, those already plugged in, or those that work with no account.
+- **Add an MCP server** plugs in a server that is not in the list: its address (`https://…/mcp`), or the command that starts it on this PC (`npx`, `uvx`…). A command is shown before it is added: it runs with your rights. No key in the address: the server asks for a sign-in itself. Forgy asks for your approval before each of its tools.
+- The bin removes the server and forgets its connection; your account with the service is not touched.
+
 ## Servers (VPS)
 
 SSH connections are used by the terminal, monitoring, n8n, the status page, backups and deployments. **Add a server**, at the top of the card, opens the form:

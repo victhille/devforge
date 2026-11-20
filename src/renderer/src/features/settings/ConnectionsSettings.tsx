@@ -13,6 +13,7 @@ import { Input } from '@renderer/components/ui/Input'
 import ConnectionForm from '@renderer/features/ssh/components/ConnectionForm'
 import DbConnectionForm from '@renderer/features/database/DbConnectionForm'
 import { SettingRow, SettingsCard } from './parts'
+import McpServers from './McpServers'
 import { useLive } from '@renderer/lib/live'
 import { CardSkeleton } from '@renderer/components/ui/Skeleton'
 
@@ -677,6 +678,8 @@ export default function ConnectionsSettings() {
           />
         ))}
       </SettingsCard>
+
+      <McpServers />
 
       <p className="text-xs text-fg-muted">{c.storedNote}</p>
 

@@ -36,7 +36,7 @@ test('server pages are listed only once a server is set up', async () => {
 
   // A server added: the pages show up at once
   await goTo(page, '/settings?section=connections')
-  await page.getByRole('button', { name: 'Ajouter un serveur' }).click()
+  await page.getByRole('button', { name: 'Ajouter un serveur', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByLabel('Nom', { exact: true }).fill('Banc')
   await dialog.getByLabel('Hôte / IP').fill('127.0.0.1')

@@ -19,6 +19,7 @@ import { disposeWidget, initWidget } from './widget'
 import { disposeLauncher, initLauncher } from './launcher'
 import { killAll as killTerminals } from './services/terminal/terminalService'
 import { stopExpo } from './services/expo/expoService'
+import { closeAll as closeMcp } from './services/mcp/mcpClient'
 import { initLog, log } from './lib/log'
 import { migrateData } from './services/storage/migrations'
 import { initUpdater, stopUpdater } from './services/updates/updater'
@@ -225,6 +226,7 @@ app.on('before-quit', () => {
   disposeLauncher()
   killTerminals()
   stopExpo(true)
+  closeMcp()
   stopAllProcessesNow()
   stopMonitors()
   stopProxy()

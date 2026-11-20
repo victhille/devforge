@@ -38,6 +38,26 @@ Déploiements, domaines et variables des projets liés à Vercel. Crée un jeton
 
 Le moteur Docker de ce PC (Docker Desktop) : conteneurs, Compose, bases des projets. Rien à saisir : la ligne indique « répond » (la version au survol). Tant qu'il ne répond pas, **Tester** vérifie de nouveau et **Installer Docker Desktop** ouvre la page de téléchargement.
 
+## Serveurs MCP pour Forgy
+
+Les serveurs MCP officiels des services que tu utilises deviennent des outils de [Forgy](/devforge/forgy/assistant/#serveurs-mcp). DevForge propose :
+
+| Serveur | Connexion | Pour Forgy |
+|---|---|---|
+| Vercel | se connecter | projets, déploiements, journaux de build, domaines |
+| Context7 | sans compte | la doc à jour des bibliothèques |
+| Supabase | se connecter | tables, migrations, journaux, fonctions |
+| Sentry | se connecter | les erreurs en production, avec leur trace |
+| Linear | se connecter | tickets et cycles |
+| Notion | se connecter | specs et notes de projet |
+| Playwright | sur ce PC (`npx`) | piloter un navigateur sur ton projet lancé |
+
+- **Se connecter** ouvre le navigateur sur la page du service : tu acceptes, le navigateur revient sur ce PC (`127.0.0.1`) et DevForge garde la connexion, chiffrée par Windows. Aucun jeton à copier.
+- L'interrupteur dit si Forgy peut utiliser le serveur ; la ligne dit combien d'outils il a, et combien ne font que lire.
+- **Ajouter** branche un serveur de la liste ; le filtre en haut montre tous les serveurs, ceux déjà branchés, ou ceux qui marchent sans compte.
+- **Ajouter un serveur MCP** branche un serveur qui n'est pas dans la liste : son adresse (`https://…/mcp`), ou la commande qui le lance sur ce PC (`npx`, `uvx`…). Une commande est montrée avant d'être ajoutée : elle tourne avec tes droits. Pas de clé dans l'adresse : le serveur demande lui-même la connexion. Forgy demande ton accord avant chacun de ses outils.
+- La corbeille retire le serveur et oublie sa connexion ; ton compte chez le service n'est pas touché.
+
 ## Serveurs (VPS)
 
 Les connexions SSH servent au terminal, à la surveillance, à n8n, à la page de statut, aux sauvegardes et aux déploiements. **Ajouter un serveur**, en haut de la carte, ouvre le formulaire :

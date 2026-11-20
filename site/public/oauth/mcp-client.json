@@ -1,0 +1,10 @@
+{
+  "client_id": "https://victhille.github.io/devforge/oauth/mcp-client.json",
+  "client_name": "DevForge",
+  "client_uri": "https://victhille.github.io/devforge/",
+  "logo_uri": "https://victhille.github.io/devforge/apple-touch-icon.png",
+  "redirect_uris": ["http://127.0.0.1:47823/callback"],
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none"
+}

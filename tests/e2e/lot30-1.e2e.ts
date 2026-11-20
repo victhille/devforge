@@ -48,7 +48,7 @@ test('an empty profile: nothing set; a key, a Git identity, a server added, test
   expect(readFileSync(join(run.userData, 'gitconfig'), 'utf-8')).toContain('alice@example.org')
 
   // A server: added from here, tested (nothing listens there), removed
-  await page.getByRole('button', { name: 'Ajouter un serveur' }).click()
+  await page.getByRole('button', { name: 'Ajouter un serveur', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByLabel('Nom', { exact: true }).fill("Banc d'essai")
   await dialog.getByLabel('Hôte / IP').fill('127.0.0.1')
