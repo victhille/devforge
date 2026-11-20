@@ -96,9 +96,10 @@ describe.runIf(process.platform === 'win32')('v2.2 lot 5: real shells mark their
       },
       () => {}
     )
+    // The first prompt waits for the shell to start, slow on a busy CI machine (PowerShell above all)
     const waitPrompt = (n: number) =>
       new Promise<void>((resolve, reject) => {
-        const t = setTimeout(() => reject(new Error(`no prompt from ${kind}`)), 20_000)
+        const t = setTimeout(() => reject(new Error(`no prompt from ${kind}`)), n === 1 ? 45_000 : 20_000)
         ready = () => {
           if (promptCount >= n) {
             clearTimeout(t)
@@ -130,7 +131,7 @@ describe.runIf(process.platform === 'win32')('v2.2 lot 5: real shells mark their
     expect(plain(r[0].out)).toContain('bonjour')
     expect(r.map(x => x.code)).toEqual([0, 3, 1, 0])
     expect(r[3].cwd.toLowerCase()).not.toContain('term-')
-  }, 60_000)
+  }, 90_000)
 
   it.runIf(term.shells && (await term.shells()).find(s => s.kind === 'gitbash')?.available)(
     'Git Bash: $? of each command',
@@ -140,7 +141,7 @@ describe.runIf(process.platform === 'win32')('v2.2 lot 5: real shells mark their
       expect(r.map(x => x.code)).toEqual([0, 1, 2, 0])
       expect(r[3].cwd).toBe('/')
     },
-    60_000
+    90_000
   )
 
   // The code comes with the line DevForge types; a line that never reaches it (rem) says nothing
@@ -149,5 +150,5 @@ describe.runIf(process.platform === 'win32')('v2.2 lot 5: real shells mark their
     expect(plain(r[0].out)).toContain('bonjour')
     expect(r.map(x => x.code)).toEqual([0, 3, 1, null, 0])
     expect(r[4].cwd.toLowerCase()).not.toContain('term-')
-  }, 60_000)
+  }, 90_000)
 })

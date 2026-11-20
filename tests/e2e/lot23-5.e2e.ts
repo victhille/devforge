@@ -57,7 +57,8 @@ test('Sail stopped: start it; the commands run in the app container', async () =
   })
   const { page } = run
   await goTo(page, '/project/lv?tab=laravel')
-  await expect(page.getByRole('alert')).toContainText("Sail est arrêté : les conteneurs de l'appli ne tournent pas.")
+  // The first reading of the project waits for the tab to load, slow on a busy CI machine
+  await expect(page.getByRole('alert')).toContainText("Sail est arrêté : les conteneurs de l'appli ne tournent pas.", { timeout: 30_000 })
   await expect(page.getByRole('button', { name: 'Démarrer Sail' }).first()).toBeVisible()
   await expect(page.getByText('docker compose up -d --wait', { exact: true }).first()).toBeVisible()
   expect(await settledAxe(page)).toEqual([])

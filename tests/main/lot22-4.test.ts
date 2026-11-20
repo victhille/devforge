@@ -103,7 +103,9 @@ describe('v2.2 lot 4: the status service (Node, no dependency)', () => {
     expect(state.monitors.site.status).toBe('up')
     await waitFor(() => (alerts.length ? true : undefined))
     expect(alerts[0]).toMatchObject({ title: 'Base interne ne répond plus', priority: 'high' })
-    expect(readJson(dir, 'incidents.json')[0]).toMatchObject({ monitorId: 'secret', title: 'Base interne indisponible', resolvedAt: null })
+    // The incident is written after the state and the alert: waited for, not read at once
+    const incidents = await waitFor(() => readJson(dir, 'incidents.json')?.[0])
+    expect(incidents).toMatchObject({ monitorId: 'secret', title: 'Base interne indisponible', resolvedAt: null })
 
     // The public site goes down, then back: incident closed, two more alerts
     siteUp = false
@@ -111,7 +113,9 @@ describe('v2.2 lot 4: the status service (Node, no dependency)', () => {
     siteUp = true
     await waitFor(() => (readJson(dir, 'state.json')?.monitors?.site?.status === 'up' ? true : undefined))
     await waitFor(() => (alerts.some(a => a.title === 'Boutique répond de nouveau') ? true : undefined))
-    const siteIncident = readJson(dir, 'incidents.json').find((i: { monitorId: string }) => i.monitorId === 'site')
+    const siteIncident = await waitFor(() =>
+      readJson(dir, 'incidents.json')?.find((i: { monitorId: string; resolvedAt: string | null }) => i.monitorId === 'site' && i.resolvedAt)
+    )
     expect(siteIncident.resolvedAt).not.toBeNull()
 
     // Public page and JSON: the private monitor never shows, text is escaped
