@@ -383,6 +383,7 @@ export * from './vpsops'
 export * from './backups'
 export * from './github'
 export * from './vercel'
+export * from './expo'
 export * from './dictation'
 export * from './setup'
 export * from './symfony'
@@ -406,6 +407,7 @@ import type { VpsOpsAPI } from './vpsops'
 import type { BackupsAPI } from './backups'
 import type { GithubAPI } from './github'
 import type { VercelAPI } from './vercel'
+import type { ExpoAPI } from './expo'
 import type { DictationAPI } from './dictation'
 import type { ProjectSetup, SetupAPI } from './setup'
 import type { SymfonyAPI } from './symfony'
@@ -550,6 +552,10 @@ export interface DevForgeAPI {
   getProjects: () => Promise<Project[]>
   saveProject: (project: Project) => Promise<void>
   removeProject: (id: string) => Promise<void>
+  /** Takes out the projects whose folder is gone (its disk being there); returns them */
+  pruneMissingProjects: () => Promise<Project[]>
+  /** Puts back the last projects taken out */
+  restorePrunedProjects: () => Promise<Project[]>
   updateProjectLastOpened: (id: string) => Promise<void>
   toggleFavorite: (id: string) => Promise<void>
 
@@ -570,6 +576,7 @@ export interface DevForgeAPI {
   backups: BackupsAPI
   github: GithubAPI
   vercel: VercelAPI
+  expo: ExpoAPI
   setup: SetupAPI
   symfony: SymfonyAPI
   launcher: LauncherAPI

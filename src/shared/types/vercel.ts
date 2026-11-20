@@ -52,6 +52,47 @@ export interface VercelProjectInfo {
   productionUrl: string | null
 }
 
+// ─── The account page: every project of the account or of a team ─────────────
+
+/** null = the personal account, else a team id (team_…) */
+export type VercelScope = string | null
+
+export interface VercelTeam {
+  id: string
+  name: string
+  slug: string
+}
+
+export interface VercelScopes {
+  username: string
+  teams: VercelTeam[]
+}
+
+export interface VercelAccountProject {
+  id: string
+  name: string
+  framework: string | null
+  productionUrl: string | null
+  /** Its latest deployment, any target */
+  latest: Pick<VercelDeployment, 'id' | 'state' | 'target' | 'createdAt' | 'branch' | 'commitMessage'> | null
+  /** The DevForge project whose folder is linked to it (.vercel/project.json) */
+  local: { id: string; name: string } | null
+}
+
+export interface VercelAccountDeployment extends VercelDeployment {
+  projectId: string
+  projectName: string
+}
+
+export interface VercelAccountDomain {
+  name: string
+  verified: boolean
+  misconfigured: boolean | null
+  /** Bought through Vercel, else managed elsewhere */
+  boughtAtVercel: boolean
+  expiresAt: number | null
+}
+
 export interface VercelAPI {
   account: () => Promise<VercelAccount>
   /** Checks the token against Vercel before keeping it; null removes it */
@@ -65,4 +106,15 @@ export interface VercelAPI {
   promote: (projectId: string, deploymentId: string) => Promise<void>
   env: (projectId: string) => Promise<VercelEnvDiff>
   domains: (projectId: string) => Promise<VercelDomain[]>
+  /** The account page */
+  scopes: () => Promise<VercelScopes>
+  accountProjects: (scope: VercelScope) => Promise<VercelAccountProject[]>
+  accountDeployments: (scope: VercelScope) => Promise<VercelAccountDeployment[]>
+  accountDomains: (scope: VercelScope) => Promise<VercelAccountDomain[]>
+  accountBuildLogs: (scope: VercelScope, deploymentId: string) => Promise<string>
+  /** Stops a build that is queued or running */
+  cancel: (scope: VercelScope, deploymentId: string) => Promise<void>
+  promoteIn: (scope: VercelScope, vercelProjectId: string, deploymentId: string) => Promise<void>
+  /** Writes .vercel/project.json in a DevForge project's folder, as `vercel link` does */
+  link: (localProjectId: string, scope: VercelScope, vercelProjectId: string) => Promise<void>
 }

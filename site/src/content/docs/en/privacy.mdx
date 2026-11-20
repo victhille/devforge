@@ -47,7 +47,7 @@ See [Data, export and reset](/devforge/en/settings/data/).
 | GitHub | every 5 minutes, when GitHub is connected; can be turned off in **Settings › General › GitHub CI alerts** ("None") | the status of your favorite projects' workflows (or all of them), with your GitHub token |
 | The AI provider you choose | when you write to Forgy | your question and its context (see below) |
 | Hugging Face | on the first dictation | downloading the speech recognition model; your voice never leaves the PC |
-| Your servers, GitHub, Vercel, n8n, ntfy… | when you use the feature, or in the background once set up (server watching, URL probes, backups) | what the feature needs, with the credentials you gave |
+| Your servers, GitHub, Vercel, Expo's tunnel, n8n, ntfy… | when you use the feature, or in the background once set up (server watching, URL probes, backups) | what the feature needs, with the credentials you gave |
 
 The [webhook](/devforge/en/data/webhooks/) receiver only listens on this PC (`127.0.0.1`): it cannot be reached from the network.
 
@@ -59,6 +59,8 @@ Forgy runs on the AI provider you choose, with your key: Anthropic (Claude), Ope
 - on the first message about a project: its name, path, framework, Git status, root files, scripts, dependencies and the start of the README;
 - the context of the open page, when the 📎 chip is on: a database's **structure**, never its data; an API Tester request, sensitive headers masked; the last log lines shown;
 - what Forgy read to answer: project files, Git diff, Docker status… Secret files (`.env`, keys, `credentials.json`, `secrets.json`, `wp-config.php`…) are never read.
+- on the [Vercel](/devforge/en/online/vercel/) page, **Ask Forgy** on a failed deployment: the end of its build log (80 lines at most), the recognized secrets masked.
+- on the [Expo](/devforge/en/dev/expo/) page, **Ask Forgy to explain the error**: the end of the Metro log (60 lines at most), the recognized secrets masked.
 
 With Claude, Forgy can also **search the web**: the search is done by Anthropic, from your question.
 

@@ -3,7 +3,7 @@ import { join } from 'path'
 import { app, safeStorage } from 'electron'
 import type { VercelAccount, VercelDeployment, VercelDomain, VercelEnvDiff, VercelLink, VercelProjectInfo } from '@shared/types'
 import { writeJsonFile } from '../../lib/jsonFile'
-import { log } from '../../lib/log'
+import { log, redact } from '../../lib/log'
 import { loadProjects } from '../projects/projectStorage'
 import { parseEnv } from '../envfiles/envFiles'
 
@@ -14,8 +14,10 @@ import { parseEnv } from '../envfiles/envFiles'
  * Environment values are never read: only key names are compared.
  */
 
-const API = 'https://api.vercel.com'
-const ID_RE = /^[\w-]{1,80}$/
+// End-to-end tests point both at a local fake (never in the installed app)
+const API = !app.isPackaged && process.env.DEVFORGE_TEST_VERCEL_API ? process.env.DEVFORGE_TEST_VERCEL_API : 'https://api.vercel.com'
+const testToken = () => (!app.isPackaged && process.env.DEVFORGE_TEST_VERCEL_TOKEN) || null
+export const ID_RE = /^[\w-]{1,80}$/
 
 interface Stored {
   tokenEnc?: string
@@ -31,17 +33,20 @@ function readStore(): Stored {
 }
 
 export function account(): VercelAccount {
+  if (testToken()) return { connected: true, username: 'test' }
   const s = readStore()
   return { connected: !!s.tokenEnc, username: s.tokenEnc ? (s.username ?? null) : null }
 }
 
 function token(): string {
+  const test = testToken()
+  if (test) return test
   const enc = readStore().tokenEnc
   if (!enc) throw new Error('NO_TOKEN')
   return safeStorage.decryptString(Buffer.from(enc, 'base64'))
 }
 
-async function call<T>(path: string, init: { method?: string; body?: unknown; teamId?: string | null; bearer?: string } = {}): Promise<T> {
+export async function call<T>(path: string, init: { method?: string; body?: unknown; teamId?: string | null; bearer?: string } = {}): Promise<T> {
   const url = new URL(API + path)
   if (init.teamId) url.searchParams.set('teamId', init.teamId)
   const res = await fetch(url, {
@@ -83,7 +88,7 @@ export async function saveToken(raw: string | null): Promise<VercelAccount> {
 
 // ─── Project link ─────────────────────────────────────────────────────────────
 
-function projectPath(projectId: string): string {
+export function projectPath(projectId: string): string {
   const p = loadProjects().find(x => x.id === projectId)
   if (!p) throw new Error('Unknown project')
   return p.path
@@ -152,25 +157,37 @@ export async function deployments(projectId: string): Promise<VercelDeployment[]
     state: d.state ?? d.readyState ?? 'UNKNOWN',
     target: d.target ?? null,
     createdAt: d.created ?? d.createdAt ?? 0,
-    branch: d.meta?.githubCommitRef ?? d.meta?.gitlabCommitRef ?? d.meta?.bitbucketCommitRef ?? null,
-    commitMessage: (d.meta?.githubCommitMessage ?? d.meta?.gitlabCommitMessage ?? d.meta?.bitbucketCommitMessage ?? null)?.split('\n')[0] ?? null,
+    branch: branchOf(d.meta),
+    commitMessage: commitOf(d.meta),
     creator: d.creator?.username ?? null,
     current: d.uid === current
   }))
 }
 
-export async function buildLogs(projectId: string, deploymentId: string): Promise<string> {
+/** The branch and the first line of the commit message, whatever the Git host */
+export const branchOf = (meta?: Record<string, string>) => meta?.githubCommitRef ?? meta?.gitlabCommitRef ?? meta?.bitbucketCommitRef ?? null
+export const commitOf = (meta?: Record<string, string>) =>
+  (meta?.githubCommitMessage ?? meta?.gitlabCommitMessage ?? meta?.bitbucketCommitMessage ?? null)?.split('\n')[0] ?? null
+
+/**
+ * A deployment's build log, its last 60 000 characters. What a build prints may hold a secret
+ * (an echoed variable, a URL with a password): it is masked, as in DevForge's own log, since
+ * the text is shown and can be handed to Forgy.
+ */
+export async function fetchBuildLogs(teamId: string | null, deploymentId: string): Promise<string> {
   if (!ID_RE.test(deploymentId)) throw new Error('Invalid deployment')
-  const link = linkOf(projectId)
-  const events = await call<{ type?: string; created?: number; text?: string; payload?: { text?: string } }[]>(
-    `/v3/deployments/${deploymentId}/events?builds=1&limit=-1`,
-    { teamId: teamOf(link) }
+  const events = await call<{ text?: string; payload?: { text?: string } }[]>(`/v3/deployments/${deploymentId}/events?builds=1&limit=-1`, { teamId })
+  return redact(
+    (Array.isArray(events) ? events : [])
+      .map(e => e.payload?.text ?? e.text ?? '')
+      .filter(Boolean)
+      .join('\n')
+      .slice(-60_000)
   )
-  return (Array.isArray(events) ? events : [])
-    .map(e => e.payload?.text ?? e.text ?? '')
-    .filter(Boolean)
-    .join('\n')
-    .slice(-60_000)
+}
+
+export async function buildLogs(projectId: string, deploymentId: string): Promise<string> {
+  return fetchBuildLogs(teamOf(linkOf(projectId)), deploymentId)
 }
 
 export async function redeploy(projectId: string, deploymentId: string): Promise<VercelDeployment> {

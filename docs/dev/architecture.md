@@ -87,6 +87,13 @@ Les valeurs viennent du thème (`src/renderer/src/styles/index.css`) :
 - icônes `lucide-react` : 16 pour un outil d'une barre, 14 dans un bouton à icône (`IconButton`), 13 dans un bouton avec texte ou une ligne, 20 dans un état vide (`EmptyState` la ramène à cette taille) ;
 - un menu qui se replie à la main et aussi quand la page est étroite (SSH) : `useNarrow` (`src/renderer/src/hooks/useNarrow.ts`) ; sinon une requête de conteneur suffit (`SplitPane`, menus des Paramètres, de Docker, de Laravel et de Next).
 
+## Processus lancés
+
+- Les serveurs de dev, commandes et tests passent par `processManager`, `commandRunner` et `testRunner` (`spawn`) ; à la fermeture, `stopAllProcessesNow()` tue leurs arbres avant de rendre la main (`killTreesSync`).
+- Un outil qui a besoin d'un vrai terminal tourne dans un **node-pty** : le terminal (`terminalService`) et Expo (`src/main/services/expo/expoService.ts`). Expo y lance `npx expo start` (par `cmd.exe /d /s /c` sous Windows), pour que ses touches (`a`, `w`, `r`, `m`, `j`, `s`) marchent. Ses lignes, sans codes de terminal (`stripAnsi`, `src/shared/lib/ansi.ts`) et passées par `redact()`, arrivent par `expo:log`, son état par `expo:status`. L'adresse du QR code vient de `/_expo/open` du serveur de dev, sinon du journal.
+- Un pty n'a pas de `ChildProcess` : son arbre se tue par son pid (`killPidTree`, synchrone à la fermeture : `stopExpo(true)` dans `before-quit`), avant le pty lui-même.
+- Le QR code est dessiné dans la page (`uqr`, `src/renderer/src/features/expo/QrCode.tsx`) : l'adresse ne part nulle part.
+
 ## Secrets
 
 - Mots de passe, jetons et clés sont chiffrés par Windows (`safeStorage`), dans des champs `…Enc`.

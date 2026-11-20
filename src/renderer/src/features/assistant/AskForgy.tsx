@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Bot } from 'lucide-react'
 import { cn } from '@renderer/lib/cn'
 import Button from '@renderer/components/ui/Button'
@@ -19,8 +19,8 @@ export default function AskForgy({
   title,
   className
 }: {
-  /** Nothing: the panel only opens */
-  question?: string | (() => string)
+  /** Nothing: the panel only opens. A promise: worked out at the click, the button waits for it */
+  question?: string | (() => string | Promise<string>)
   label: string
   icon?: ReactNode
   size?: 'sm' | 'md'
@@ -31,16 +31,23 @@ export default function AskForgy({
   className?: string
 }) {
   const { ask, setOpen } = useAssistant()
-  const go = () => {
-    const q = typeof question === 'function' ? question() : question
-    if (q?.trim()) ask(q)
-    else setOpen(true)
+  const [busy, setBusy] = useState(false)
+  const go = async () => {
+    setBusy(true)
+    try {
+      const q = typeof question === 'function' ? await question() : question
+      if (q?.trim()) ask(q)
+      else setOpen(true)
+    } finally {
+      setBusy(false)
+    }
   }
   return (
     <Button
       size={size}
       variant="secondary"
       disabled={disabled}
+      loading={busy}
       title={title}
       onClick={go}
       className={cn(
@@ -48,7 +55,7 @@ export default function AskForgy({
         className
       )}
     >
-      {icon ?? <Bot size={size === 'md' ? 15 : 13} />} {label}
+      {!busy && (icon ?? <Bot size={size === 'md' ? 15 : 13} />)} {label}
     </Button>
   )
 }

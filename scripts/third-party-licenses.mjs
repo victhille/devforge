@@ -25,7 +25,8 @@ const RENDERER = [
   'react',
   'react-dom',
   'react-router-dom',
-  'tailwind-merge'
+  'tailwind-merge',
+  'uqr'
 ]
 // Left out of the installer by package.json › build.files
 const NOT_SHIPPED = ['onnxruntime-web', '@img/sharp-wasm32']

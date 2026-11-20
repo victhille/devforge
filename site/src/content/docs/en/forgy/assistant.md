@@ -78,6 +78,8 @@ The **Morning check of the VPS** goes through the server's health, backups, serv
 
 ## What Forgy sees
 
+The conversation's project is chosen under the question: a list with a search, the favorites first, then the projects opened most recently. **No project in context** makes Forgy answer without reading a project. The arrows go through the list, Enter picks, Escape closes.
+
 | Source | When | Content |
 |---|---|---|
 | Chosen project | 1st question about this project | name, path, framework, Git state, root files, scripts, dependencies, start of the README |

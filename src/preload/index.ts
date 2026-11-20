@@ -268,6 +268,8 @@ const api: DevForgeAPI = {
   getProjects: () => ipcRenderer.invoke('get-projects'),
   saveProject: project => ipcRenderer.invoke('save-project', project),
   removeProject: id => ipcRenderer.invoke('remove-project', id),
+  pruneMissingProjects: () => ipcRenderer.invoke('prune-missing-projects'),
+  restorePrunedProjects: () => ipcRenderer.invoke('restore-pruned-projects'),
   updateProjectLastOpened: id => ipcRenderer.invoke('update-project-last-opened', id),
   toggleFavorite: id => ipcRenderer.invoke('toggle-favorite', id),
 
@@ -527,6 +529,19 @@ const api: DevForgeAPI = {
     remove: invoke('dictation:remove')
   },
 
+  expo: {
+    projects: invoke('expo:projects'),
+    status: invoke('expo:status'),
+    logs: invoke('expo:logs'),
+    start: invoke('expo:start'),
+    stop: invoke('expo:stop'),
+    key: invoke('expo:key'),
+    installNgrok: invoke('expo:install-ngrok'),
+    check: invoke('expo:check'),
+    fix: invoke('expo:fix'),
+    onLog: on('expo:log'),
+    onStatus: on('expo:status')
+  },
   vercel: {
     account: invoke('vercel:account'),
     saveToken: invoke('vercel:save-token'),
@@ -536,7 +551,15 @@ const api: DevForgeAPI = {
     redeploy: invoke('vercel:redeploy'),
     promote: invoke('vercel:promote'),
     env: invoke('vercel:env'),
-    domains: invoke('vercel:domains')
+    domains: invoke('vercel:domains'),
+    scopes: invoke('vercel:scopes'),
+    accountProjects: invoke('vercel:account-projects'),
+    accountDeployments: invoke('vercel:account-deployments'),
+    accountDomains: invoke('vercel:account-domains'),
+    accountBuildLogs: invoke('vercel:account-build-logs'),
+    cancel: invoke('vercel:cancel'),
+    promoteIn: invoke('vercel:promote-in'),
+    link: invoke('vercel:link')
   },
 
   hub: {

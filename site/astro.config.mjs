@@ -48,13 +48,13 @@ export default defineConfig({
         ]),
         group('Guides', 'Guides', ['guides/deploy-site', 'guides/sqlite', 'guides/forgy-commit']),
         group('Développement', 'Development', [
-          'dev/projects', 'dev/ide', 'dev/packages', 'dev/tests', 'dev/new-project', 'dev/authentication', 'dev/git', 'dev/activity', 'dev/stacks', 'dev/docker'
+          'dev/projects', 'dev/ide', 'dev/packages', 'dev/tests', 'dev/new-project', 'dev/authentication', 'dev/git', 'dev/activity', 'dev/stacks', 'dev/expo', 'dev/docker'
         ]),
         group('Serveurs', 'Servers', [
           'servers/ssh', 'servers/health', 'servers/services', 'servers/backups', 'servers/monitoring'
         ]),
         group('Mise en ligne', 'Going live', [
-          'online/deploy', 'online/n8n', 'online/vpn', 'online/status-page'
+          'online/deploy', 'online/vercel', 'online/n8n', 'online/vpn', 'online/status-page'
         ]),
         group('Données & API', 'Data & API', [
           'data/database', 'data/modeling', 'data/api-tester', 'data/webhooks', 'data/logs'

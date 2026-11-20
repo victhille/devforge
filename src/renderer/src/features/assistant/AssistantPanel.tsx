@@ -5,7 +5,6 @@ import {
   BookOpen,
   Bug,
   Check,
-  ChevronDown,
   ListChecks,
   ChevronLeft,
   Container,
@@ -41,6 +40,7 @@ import IconButton from '@renderer/components/ui/IconButton'
 import { useAssistant } from './AssistantContext'
 import Markdown from './Markdown'
 import Mascot from './Mascot'
+import ProjectPicker from './ProjectPicker'
 import AiLaunchers from './AiLaunchers'
 import ActionCard from './ActionCard'
 import { errorText } from '@renderer/lib/errors'
@@ -471,22 +471,7 @@ export default function AssistantPanel() {
             </div>
 
             <div className="flex flex-wrap items-center gap-1.5">
-              <label className="relative flex h-7 items-center rounded-md border border-line-strong bg-surface pr-1 pl-2.5 text-xs text-fg-secondary focus-within:border-accent">
-                <span className="sr-only">{a.noProject}</span>
-                <select
-                  value={projectPath ?? ''}
-                  onChange={e => setProjectPath(e.target.value || null)}
-                  className="max-w-[170px] cursor-pointer appearance-none truncate bg-transparent pr-4 outline-none"
-                >
-                  <option value="">{a.noProject}</option>
-                  {projects.map(p => (
-                    <option key={p.id} value={p.path}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={11} className="pointer-events-none absolute right-1.5" />
-              </label>
+              <ProjectPicker projects={projects} value={projectPath} onChange={setProjectPath} />
               {pageContext && (
                 <button
                   onClick={() => setAttachPage(v => !v)}

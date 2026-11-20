@@ -60,3 +60,5 @@ With a Vercel token ([Connections](/devforge/en/getting-started/connections/#ver
 - **Open site**, **Open on Vercel**.
 
 Forgy can propose to redeploy or promote to production (actions to approve).
+
+For every project of the account or of a team, and to link a Vercel project to a folder, see the [Vercel](/devforge/en/online/vercel/) page.

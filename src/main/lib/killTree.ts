@@ -33,6 +33,32 @@ export function killTree(child: ChildProcess): Promise<void> {
 }
 
 /**
+ * A tree known by its pid only (a pseudo-terminal's: node-pty gives no ChildProcess).
+ * `sync` for quitting, as killTreesSync. Unix: node-pty starts it as a session leader.
+ */
+export function killPidTree(pid: number, sync = false): void {
+  if (!Number.isInteger(pid) || pid <= 0) return
+  if (process.platform !== 'win32') {
+    try {
+      process.kill(-pid, 'SIGTERM')
+    } catch {
+      try {
+        process.kill(pid, 'SIGTERM')
+      } catch {
+        /* gone */
+      }
+    }
+    return
+  }
+  if (!sync) return void execFile('taskkill', taskkillArgs([pid]), { windowsHide: true }, () => {})
+  try {
+    execFileSync('taskkill', taskkillArgs([pid]), { windowsHide: true, stdio: 'ignore', timeout: 10_000 })
+  } catch {
+    /* already gone */
+  }
+}
+
+/**
  * The same for several processes, done before returning: for quitting. On Windows
  * an async taskkill dies with DevForge, then only the shell goes (with the app)
  * and its children (`docker logs -f`, a dev server…) keep running, orphaned.
