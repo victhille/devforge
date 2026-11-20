@@ -86,7 +86,7 @@ export function registerSettingsHandlers(): void {
   // ─── Updates ─────────────────────────────────────────────────────────────────
   ipcMain.handle('update:status', () => getUpdateStatus())
   ipcMain.handle('update:check', () => checkForUpdates())
-  ipcMain.handle('update:install', () => installUpdate())
+  ipcMain.handle('update:install', () => installUpdate(loadSettings().language !== 'en'))
 
   // ─── Data ────────────────────────────────────────────────────────────────────
   ipcMain.handle('data:info', () => dataInfo())

@@ -93,6 +93,10 @@ The conversation's project is chosen under the question: a list with a search, t
 | Docker | containers and Compose projects |
 | Project page | selects this project as context |
 
+### MCP servers
+
+The MCP servers plugged in [Settings › Connections](/devforge/en/getting-started/connections/#mcp-servers-for-forgy) add their tools to Forgy's. A tool a server of the list marks as read only runs at once; any other tool, and every tool of a server added by hand (whose marks nobody checked), goes through an action card, approved or refused by you, never automatically. What a server returns is given to Forgy as that service's data, not as instructions.
+
 ### Reading tools
 
 To answer, Forgy can read: the list of projects, a project's tree and files, a code search, Git state and diff, Docker state and a container's logs, database connections and structure, n8n workflows and executions, Vercel deployments, the server's health, services and backups, GitHub state, the workshop models (it can pre-fill the workshop form, without writing anything), a project's npm and Composer [packages](/devforge/en/dev/packages/) (the outdated or uninstalled ones, vulnerabilities on request), its tasks and notes, and the [Modeling page's models](/devforge/en/data/modeling/): an MCD with its MLD and the rules applied, an MPD with its SQL, a diagram with its parts, links and use case scenarios.

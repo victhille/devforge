@@ -8,10 +8,14 @@ Ce qui arrive dans DevForge, du plus proche au plus lointain. Aucune date n'est 
 
 Une idée, un besoin ? Propose-le dans les [discussions](https://github.com/victhille/devforge/discussions) ou en [issue](https://github.com/victhille/devforge/issues/new/choose).
 
+## Ensuite
+
+- La connexion sans jeton pour **GitHub** et **Vercel** dans **Comptes** : un bouton qui ouvre le navigateur, au lieu de coller un jeton.
+
 ## Vers la 1.0
 
 1. Une **préversion 1.0.0-beta.1**, sur le canal **Bêta** (**Paramètres › Mises à jour**).
-2. Des essais sur un Windows neuf : installation, mise à jour depuis la 0.4.0, désinstallation.
+2. Des essais sur un Windows neuf : installation, mise à jour depuis la 0.5.0, désinstallation.
 3. Si tout se passe bien, la **1.0.0**, une fois que la bêta a tourné une semaine sans bug bloquant, avec une vidéo et des captures à jour.
 4. Ensuite, un essai pour **signer l'installeur**, pour que Windows SmartScreen ne s'en méfie plus.
 

@@ -93,6 +93,10 @@ Le projet de la conversation se choisit sous la question : une liste avec une re
 | Docker | les conteneurs et projets Compose |
 | Fiche projet | sélectionne ce projet en contexte |
 
+### Serveurs MCP
+
+Les serveurs MCP branchés dans [Paramètres › Connexions](/devforge/getting-started/connections/#serveurs-mcp-pour-forgy) ajoutent leurs outils à ceux de Forgy. Un outil qu'un serveur de la liste marque comme « lecture seule » s'exécute tout de suite ; tout autre outil, et tous ceux d'un serveur ajouté à la main (dont personne n'a vérifié les marques), passe par une carte d'action, que tu valides ou refuses, jamais de façon automatique. Ce qu'un serveur renvoie est donné à Forgy comme des données de ce service, pas comme des instructions.
+
 ### Outils de lecture
 
 Pour répondre, Forgy peut lire : la liste des projets, l'arborescence et les fichiers d'un projet, une recherche dans le code, l'état et le diff Git, l'état Docker et les logs d'un conteneur, les connexions et la structure des bases, les workflows et exécutions n8n, les déploiements Vercel, la santé, les services et les sauvegardes du serveur, l'état GitHub, les modèles des ateliers (il peut préremplir le formulaire de l'atelier, sans rien écrire), les [paquets](/devforge/dev/packages/) npm et Composer d'un projet (ceux en retard ou non installés, les vulnérabilités sur demande), ses tâches et notes, et les [modèles de la page Modélisation](/devforge/data/modeling/) : un MCD avec son MLD et les règles appliquées, un MPD avec son SQL, un diagramme avec ses éléments, ses liens et les scénarios des cas.

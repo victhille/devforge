@@ -4,6 +4,26 @@ Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/victhille/devforge/compare/v0.4.0...v0.5.0) — 2026-11-20
+
+> Official MCP servers plug into Forgy in one click, and updates install silently.
+
+### New features
+
+- **MCP servers for Forgy**: in **Settings › Connections**, the official servers of Vercel, Supabase, Sentry, Linear, Notion, Context7 and Playwright plug in with one click. Those that need an account open the browser on the service's page: no token to copy. Their tools become Forgy's
+- **MCP servers for Forgy**: **Add an MCP server** plugs in a server that is not in the list, by its address or by the command that starts it on this PC. A switch says whether Forgy may use it
+
+### Improvements
+
+- **Updates**: from the update that follows 0.5.0, installing is silent, with no PowerShell and no installer page, and a small DevForge window follows it until the app reopens. Going from 0.4.0 to 0.5.0 still shows the old page
+- **Expo**: the QR code gives the phone the PC's Wi-Fi address, instead of one it cannot reach; the app opens in Expo Go
+- **Tests**: three tests that failed at random on the CI are made reliable
+
+### Security
+
+- **MCP servers**: Forgy asks for your approval with a card before any tool that changes something, and before every tool of a server added by hand. What a server returns is given to it as data, never as instructions
+- **MCP servers**: the connections are encrypted by Windows; an address with a password or a key is refused, and a command is shown before it is added
+
 ## [0.4.0](https://github.com/victhille/devforge/compare/v0.3.0...v0.4.0) — 2026-11-20
 
 > Vercel and Expo each get their own page, and projects whose folder is gone leave the list on their own.

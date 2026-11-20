@@ -12,12 +12,14 @@ import { closeAllTails } from './services/logs/logTail'
 import { stopWebhooks } from './services/webhooks/webhookServer'
 import { applyLoginItem, startedHidden } from './lib/loginItem'
 import { showUpdateSplash, startedAfterUpdate } from './services/updates/splash'
+import { closeInstallWindow } from './services/updates/installWindow'
 import { guardNavigation, guardPermissions } from './lib/windowGuards'
 import { present } from './lib/present'
 import { disposeWidget, initWidget } from './widget'
 import { disposeLauncher, initLauncher } from './launcher'
 import { killAll as killTerminals } from './services/terminal/terminalService'
 import { stopExpo } from './services/expo/expoService'
+import { closeAll as closeMcp } from './services/mcp/mcpClient'
 import { initLog, log } from './lib/log'
 import { migrateData } from './services/storage/migrations'
 import { initUpdater, stopUpdater } from './services/updates/updater'
@@ -188,7 +190,8 @@ app.whenReady().then(() => {
   const settings = loadSettings()
   applyLoginItem(settings)
 
-  // After an update: a small window while the main one loads
+  // After an update: the window shown while it installed goes, a small one shows while the main one loads
+  closeInstallWindow()
   const splash = startedAfterUpdate && !startedHidden ? showUpdateSplash(language !== 'en') : null
   createWindow()
   if (splash && mainWindow) splash.closeWith(mainWindow)
@@ -223,6 +226,7 @@ app.on('before-quit', () => {
   disposeLauncher()
   killTerminals()
   stopExpo(true)
+  closeMcp()
   stopAllProcessesNow()
   stopMonitors()
   stopProxy()

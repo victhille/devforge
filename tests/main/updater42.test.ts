@@ -13,6 +13,7 @@ const fake = vi.hoisted(() => {
     fail: false,
     feed: null as Record<string, unknown> | null,
     installs: [] as boolean[][],
+    windows: [] as [string, boolean][],
     checks: 0,
     tokenReads: 0,
     releasesToken: undefined as string | null | undefined,
@@ -40,6 +41,10 @@ const fake = vi.hoisted(() => {
   }
 })
 vi.mock('electron-updater', () => ({ autoUpdater: fake.autoUpdater }))
+// DevForge's own window while it installs: recorded, never opened in a test
+vi.mock('../../src/main/services/updates/installWindow', () => ({
+  showInstallWindow: (version: string, fr: boolean) => fake.windows.push([version, fr])
+}))
 vi.mock('../../src/main/services/github/githubService', () => ({
   githubToken: async () => {
     fake.tokenReads++
@@ -160,8 +165,9 @@ describe('in the installed app', () => {
     // An error after the download keeps the update ready
     fake.handlers.get('error')!(new Error('late') as never)
     expect(getUpdateStatus().state).toBe('ready')
-    // Not silent: the installer shows its progress, then DevForge starts again
-    installUpdate()
-    expect(fake.installs).toEqual([[false, true]])
+    // Silent, behind DevForge's own window (in the chosen language), then DevForge starts again
+    installUpdate(false)
+    expect(fake.windows).toEqual([['4.2.0', false]])
+    expect(fake.installs).toEqual([[true, true]])
   })
 })

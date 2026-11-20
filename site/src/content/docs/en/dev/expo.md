@@ -22,6 +22,8 @@ Choose how to open the app, then **Start**:
 
 DevForge runs `npx expo start` in the app's folder, with these settings. One Expo server runs at a time: starting another one stops the first. The settings change while the server is stopped.
 
+On **Local Wi-Fi**, DevForge gives the phone the address of the PC's real network card (Wi-Fi first, then Ethernet), never a virtual card's (WSL, Hyper-V, VirtualBox, VPN): the phone could not reach it, and Expo Go would show "Something went wrong". The Metro log says which address was picked. To force another one, set `REACT_NATIVE_PACKAGER_HOSTNAME` before starting DevForge.
+
 The **tunnel** needs the `@expo/ngrok` package. When Expo offers to install it, DevForge shows **Install @expo/ngrok**, which answers yes for you.
 
 ## The QR code
