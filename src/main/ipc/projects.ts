@@ -4,9 +4,10 @@ import { existsSync, readFileSync } from 'fs'
 import { randomUUID } from 'crypto'
 import { createProject } from '../services/projects/projectCreator'
 import { groupContents, scanDirectory } from '../services/projects/projectScanner'
-import { loadProjects, saveProject, removeProject, updateLastOpened, toggleFavorite } from '../services/projects/projectStorage'
+import { loadProjects, saveProject, removeProject, updateLastOpened, toggleFavorite, pruneMissing, restorePruned } from '../services/projects/projectStorage'
 import { commandRunner } from '../services/system/commandRunner'
 import { assertScriptName } from '../lib/safe'
+import { testOffscreen } from '../lib/present'
 import { managerOf } from '@shared/lib/packageManagers'
 import type { Project, ProjectCreationOptions, LogLine, CommandResult, PackageManager, LinkKind } from '@shared/types'
 import { getActiveProject, getProjectHub, linkResource, setActiveProject } from '../services/projects/projectHub'
@@ -113,6 +114,12 @@ export function registerProjectHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle('remove-project', async (_event, id: string) => {
     removeProject(id)
   })
+
+  // Folders gone (moved, deleted): out of the list, nothing touched on disk, the last batch can come back
+  // End-to-end tests seed projects freely: they turn it on only where they test it
+  const pruneOff = testOffscreen && !process.env.DEVFORGE_TEST_PRUNE
+  ipcMain.handle('prune-missing-projects', () => (pruneOff ? [] : pruneMissing()))
+  ipcMain.handle('restore-pruned-projects', () => restorePruned())
 
   ipcMain.handle('update-project-last-opened', async (_event, id: string) => {
     updateLastOpened(id)

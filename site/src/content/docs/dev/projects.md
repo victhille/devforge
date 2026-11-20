@@ -12,6 +12,8 @@ La page **Projets** montre :
 
 Filtre par nom, et par framework : seuls les frameworks de tes projets ont un filtre, et aucun filtre ne s'affiche s'il n'y en a qu'un. **Rescanner** relit les dossiers. Au bout de la ligne des filtres, **Ajouter un dossier** mène aux dossiers de projets des [Paramètres](/devforge/settings/general/), pour des projets rangés ailleurs.
 
+Un projet dont le dossier a disparu (déplacé, supprimé, renommé) est retiré tout seul de DevForge, au démarrage et à chaque **Rescanner**. Rien n'est touché sur le disque, et la notification propose **Annuler** pour le remettre. Un projet sur un disque débranché (clé USB, lecteur réseau) n'est pas retiré : il revient quand le disque est là. **Rescanner** propose seulement de le retirer.
+
 **Retirer** un projet l'enlève de DevForge ; le dossier n'est jamais supprimé.
 
 ## Plusieurs dossiers de projets

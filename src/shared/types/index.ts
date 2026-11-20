@@ -550,6 +550,10 @@ export interface DevForgeAPI {
   getProjects: () => Promise<Project[]>
   saveProject: (project: Project) => Promise<void>
   removeProject: (id: string) => Promise<void>
+  /** Takes out the projects whose folder is gone (its disk being there); returns them */
+  pruneMissingProjects: () => Promise<Project[]>
+  /** Puts back the last projects taken out */
+  restorePrunedProjects: () => Promise<Project[]>
   updateProjectLastOpened: (id: string) => Promise<void>
   toggleFavorite: (id: string) => Promise<void>
 

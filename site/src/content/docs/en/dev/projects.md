@@ -12,6 +12,8 @@ The **Projects** page shows:
 
 Filter by name, and by framework: only your projects' frameworks get a filter, and none shows when there is only one. **Rescan** reads the folders again. At the end of the filters row, **Add a folder** leads to the projects folders in [Settings](/devforge/en/settings/general/), for projects kept elsewhere.
 
+A project whose folder is gone (moved, deleted, renamed) leaves DevForge on its own, at startup and on each **Rescan**. Nothing on disk is touched, and the notification offers **Undo** to put it back. A project on an unplugged disk (USB key, network drive) is not removed: it comes back when the disk is there. **Rescan** only offers to remove it.
+
 **Remove** takes a project out of DevForge; the folder is never deleted.
 
 ## Several projects folders

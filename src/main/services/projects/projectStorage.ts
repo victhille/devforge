@@ -1,5 +1,5 @@
-import { existsSync, readFileSync, mkdirSync } from 'fs'
-import { join, dirname } from 'path'
+import { existsSync, readFileSync, mkdirSync, statSync } from 'fs'
+import { join, dirname, parse } from 'path'
 import { app } from 'electron'
 import type { Project } from '@shared/types'
 import { managerOf } from '@shared/lib/packageManagers'
@@ -48,6 +48,64 @@ export function saveProject(project: Project): void {
     projects.unshift(project)
   }
   persist(projects)
+}
+
+// ─── Projects whose folder is gone ───────────────────────────────────────────
+
+const prunedPath = () => join(app.getPath('userData'), 'projects-pruned.json')
+
+/**
+ * Whether a missing folder is really gone, not just out of reach: the disk it was on is
+ * there (a USB key or a drive letter that is not plugged in keeps its projects), and it
+ * is not on a network share (offline for a while, or slow to answer).
+ */
+export function isGone(path: string): boolean {
+  if (!path || /^(\\\\|\/\/)/.test(path)) return false
+  const root = parse(path).root
+  if (!root || !existsSync(root)) return false
+  try {
+    statSync(path)
+    return false
+  } catch (err) {
+    // Only "it is not there": a folder refused for a while (rights, an antivirus) stays
+    const code = (err as NodeJS.ErrnoException).code
+    return code === 'ENOENT' || code === 'ENOTDIR'
+  }
+}
+
+/**
+ * Takes out of DevForge the projects whose folder no longer exists (moved, deleted, renamed):
+ * nothing on disk is touched. They join those taken out before and not put back yet, so that
+ * a second clean-up before Undo loses none of them.
+ */
+export function pruneMissing(): Project[] {
+  const projects = loadProjects()
+  const gone = projects.filter(p => isGone(p.path))
+  if (!gone.length) return []
+  const ids = new Set(gone.map(p => p.id))
+  writeJsonFile(prunedPath(), [...readPruned().filter(p => !ids.has(p.id)), ...gone])
+  persist(projects.filter(p => !ids.has(p.id)))
+  return gone
+}
+
+function readPruned(): Project[] {
+  try {
+    const list = JSON.parse(readFileSync(prunedPath(), 'utf-8')) as Project[]
+    return Array.isArray(list) ? list.filter(p => p && typeof p.id === 'string' && typeof p.path === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+/** Puts back the last projects taken out, those not added again in the meantime */
+export function restorePruned(): Project[] {
+  const back = readPruned()
+  const projects = loadProjects()
+  const known = new Set(projects.flatMap(p => [p.id, p.path]))
+  const added = back.filter(p => !known.has(p.id) && !known.has(p.path)).map(p => ({ ...p, packageManager: managerOf(p.packageManager) }))
+  if (added.length) persist([...projects, ...added])
+  writeJsonFile(prunedPath(), [])
+  return added
 }
 
 export function removeProject(id: string): void {
