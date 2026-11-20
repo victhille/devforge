@@ -1,6 +1,6 @@
 import { createServer, request, type Server } from 'http'
 import { networkInterfaces } from 'os'
-import type { AddressInfo } from 'net'
+import { connect, type AddressInfo } from 'net'
 import { afterAll, afterEach, describe, expect, it } from 'vitest'
 import { clearRequests, listRequests, replay, setResponse, startWebhooks, stopWebhooks } from '../../src/main/services/webhooks/webhookServer'
 
@@ -142,6 +142,31 @@ describe('replay', () => {
       const r = await replay(listRequests()[0].id, `http://127.0.0.1:${(target.address() as AddressInfo).port}`)
       expect(r).toMatchObject({ status: 200, body: 'done' })
       expect(got).toBe('POST /hook?a=1 hello')
+    } finally {
+      target.close()
+    }
+  })
+
+  it('never lets an absolute captured URL pick the host', async () => {
+    let got = ''
+    const target = createServer((req, res) => {
+      got = `${req.headers.host} ${req.url}`
+      res.end('done')
+    })
+    await new Promise<void>(r => target.listen(0, '127.0.0.1', () => r()))
+    try {
+      await startWebhooks(PORT)
+      // Absolute-form request line, as a proxy client would send it
+      await new Promise<void>((resolve, reject) => {
+        const s = connect(PORT, '127.0.0.1', () => s.end('GET http://203.0.113.10/steal?x=1 HTTP/1.1\r\nHost: 203.0.113.10\r\nConnection: close\r\n\r\n'))
+        s.on('data', () => {})
+        s.on('close', () => resolve())
+        s.on('error', reject)
+      })
+      const port = (target.address() as AddressInfo).port
+      const r = await replay(listRequests()[0].id, `http://127.0.0.1:${port}`)
+      expect(r).toMatchObject({ status: 200, body: 'done' })
+      expect(got).toBe(`127.0.0.1:${port} /steal?x=1`)
     } finally {
       target.close()
     }

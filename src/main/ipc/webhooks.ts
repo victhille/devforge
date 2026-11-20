@@ -21,5 +21,5 @@ export function registerWebhookHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle('webhooks:list', () => listRequests())
   ipcMain.handle('webhooks:clear', () => clearRequests())
   ipcMain.handle('webhooks:set-response', (_e, r: WebhookResponse) => setResponse(r))
-  ipcMain.handle('webhooks:replay', (_e, id: string, url: string) => replay(id, url))
+  ipcMain.handle('webhooks:replay', (_e, id: unknown, url: unknown) => replay(String(id ?? ''), String(url ?? '')))
 }

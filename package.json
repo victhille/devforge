@@ -1,7 +1,7 @@
 {
   "name": "devforge",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Developer Project Launcher",
   "license": "GPL-3.0-only",
   "author": "victhille",

@@ -1,6 +1,6 @@
 # Licences tierces
 
-DevForge 0.2.1 est distribué sous [GPL-3.0-only](LICENSE). Il inclut les 118 paquets open source ci-dessous, chacun sous sa propre licence. Le texte complet de chaque licence est livré avec l'application, dans `THIRD_PARTY_NOTICES.txt` (Paramètres › À propos › Licences tierces).
+DevForge 0.3.0 est distribué sous [GPL-3.0-only](LICENSE). Il inclut les 118 paquets open source ci-dessous, chacun sous sa propre licence. Le texte complet de chaque licence est livré avec l'application, dans `THIRD_PARTY_NOTICES.txt` (Paramètres › À propos › Licences tierces).
 
 Généré par `npm run licenses` à partir de `package-lock.json` (installeur Windows x64) : ne pas modifier à la main.
 
