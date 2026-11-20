@@ -187,8 +187,14 @@ export function cleanLine(raw: string): string {
   return (parts.filter(p => p.trim()).pop() ?? '').trimEnd()
 }
 
+/**
+ * The app's address in a line of Metro, with only the characters a URL holds: Metro writes its own
+ * marks next to it (« › »), and one of them in the QR code sent Expo Go to a port that does not exist
+ * (tested). A trailing dot, comma or bracket of the sentence is not part of it either.
+ */
 export function urlIn(line: string): string | null {
-  return line.match(/\b(exp(?:\+[\w-]+)?:\/\/[^\s'"<>]+)/)?.[1] ?? null
+  const url = line.match(/\b(exp(?:\+[\w-]+)?:\/\/[A-Za-z0-9\-._~:/?#[\]@!$&()*+,;=%]+)/)?.[1]
+  return url ? url.replace(/[.,;:!?)\]]+$/, '') : null
 }
 
 /** `expo install --check`: "  react-native-reanimated@3.10.1 - expected version: ~3.16.1" */
@@ -247,11 +253,15 @@ function followUrl(port: number, target: ExpoStartOptions['target']): void {
   const runtime = target === 'go' ? 'expo' : 'custom'
   const started = Date.now()
   poll = setInterval(async () => {
-    if (status.url || Date.now() - started > 120_000) return stopPoll()
+    if (Date.now() - started > 120_000) return stopPoll()
     try {
       const res = await fetch(`http://127.0.0.1:${port}/_expo/open?platform=android&runtime=${runtime}`, { signal: AbortSignal.timeout(2000) })
       const url = res.ok ? ((await res.json()) as { url?: unknown }).url : null
-      if (typeof url === 'string' && /^(exp|https?|[a-z][\w+.-]*):\/\//i.test(url) && !status.url) set({ url, state: 'running' })
+      // Metro's own answer, printable ASCII only: it replaces the address read in the log
+      if (typeof url === 'string' && /^(exp|https?|[a-z][\w+.-]*):\/\/[\x21-\x7e]+$/i.test(url)) {
+        if (url !== status.url) set({ url, state: 'running' })
+        stopPoll()
+      }
     } catch {
       /* not up yet */
     }

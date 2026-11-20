@@ -60,6 +60,11 @@ describe('Expo', () => {
     expect(expo.urlIn('› Metro waiting on exp://192.168.1.71:8082')).toBe('exp://192.168.1.71:8082')
     expect(expo.urlIn('› Metro waiting on exp+freelance://expo-development-client/?url=http%3A%2F%2F192.168.1.71%3A8081')).toMatch(/^exp\+freelance:\/\//)
     expect(expo.urlIn('Logs for your project will appear below.')).toBeNull()
+    // Metro's marks and the sentence around stay out of the address (the QR code held « › »)
+    expect(expo.urlIn('› Metro waiting on exp://192.168.1.71:8382›')).toBe('exp://192.168.1.71:8382')
+    expect(expo.urlIn('Open exp://192.168.1.71:8382 › in Expo Go')).toBe('exp://192.168.1.71:8382')
+    expect(expo.urlIn('(see exp://192.168.1.71:8382).')).toBe('exp://192.168.1.71:8382')
+    expect(expo.urlIn('Scan: exp://192.168.1.71:8382…')).toBe('exp://192.168.1.71:8382')
     expect(expo.sdkOf('~54.0.12')).toBe(54)
     expect(expo.sdkOf('latest')).toBeNull()
 
