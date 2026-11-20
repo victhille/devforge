@@ -1,6 +1,7 @@
 import { execFile } from 'child_process'
 import { readdirSync } from 'fs'
 import { join } from 'path'
+import { networkInterfaces } from 'os'
 import { app } from 'electron'
 import type { IPty } from 'node-pty'
 import type { ExpoCheck, ExpoKey, ExpoLog, ExpoProject, ExpoStartOptions, ExpoStatus } from '@shared/types'
@@ -122,6 +123,34 @@ function childEnv(extra: Record<string, string>): Record<string, string> {
   return env
 }
 
+/** Network cards a phone cannot reach: WSL, Hyper-V, Docker, VirtualBox, VMware, VPN tunnels */
+const VIRTUAL_RE = /vethernet|wsl|hyper-v|docker|virtualbox|vmware|vbox|loopback|bluetooth|tailscale|zerotier|wireguard|tun|tap|utun|vpn|^br-|^veth|^virbr/i
+
+const isPrivate = (ip: string) => /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(ip)
+
+/**
+ * The PC's address on the local network, the one the phone can reach. Expo picks the first card it
+ * finds, and on Windows that is often WSL's or Hyper-V's virtual one (172.x): the phone then reads the
+ * QR code, Expo Go opens and says « Something went wrong ». Wi-Fi first, then Ethernet, then any
+ * other real card on a private network.
+ */
+export function lanAddress(cards: NodeJS.Dict<{ address: string; family: string | number; internal: boolean }[]>): string | null {
+  const found = Object.entries(cards).flatMap(([name, list]) =>
+    (list ?? [])
+      .filter(a => (a.family === 'IPv4' || a.family === 4) && !a.internal && isPrivate(a.address) && !VIRTUAL_RE.test(name))
+      .map(a => ({ name, address: a.address }))
+  )
+  const rank = (name: string) => (/wi-?fi|wlan|wireless|sans fil/i.test(name) ? 0 : /ethernet|^eth|^en/i.test(name) ? 1 : 2)
+  return found.sort((x, y) => rank(x.name) - rank(y.name))[0]?.address ?? null
+}
+
+/** On the local Wi-Fi, Expo gives the phone the real card's address (an address already set by the user wins) */
+function lanEnv(o: ExpoStartOptions): Record<string, string> {
+  if (o.connection !== 'lan' || process.env.REACT_NATIVE_PACKAGER_HOSTNAME) return {}
+  const ip = lanAddress(networkInterfaces())
+  return ip ? { REACT_NATIVE_PACKAGER_HOSTNAME: ip } : {}
+}
+
 // ─── Reading Metro's output ──────────────────────────────────────────────────
 
 /** One line as a person reads it: no colors or cursor moves, the last rewrite of a line kept */
@@ -216,11 +245,13 @@ export async function startExpo(id: string, options: ExpoStartOptions): Promise<
   onStatus(expoStatus())
   const c = command(startArgs(o))
   push('system', `$ npx ${startArgs(o).join(' ')}  (${target.label})`)
+  const lan = lanEnv(o)
+  if (lan.REACT_NATIVE_PACKAGER_HOSTNAME) push('system', `Address given to the phone: ${lan.REACT_NATIVE_PACKAGER_HOSTNAME} (local network card)`)
   try {
     // A native module, loaded on first use
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- node-pty is a native module: loaded on first use, not at startup
     const nodePty = require('node-pty') as typeof import('node-pty')
-    const p = nodePty.spawn(c.file, c.args, { name: 'xterm-256color', cols: 120, rows: 30, cwd: dir, env: childEnv(c.env), useConpty: true })
+    const p = nodePty.spawn(c.file, c.args, { name: 'xterm-256color', cols: 120, rows: 30, cwd: dir, env: childEnv({ ...c.env, ...lan }), useConpty: true })
     pty = p
     p.onData(read)
     p.onExit(e => {

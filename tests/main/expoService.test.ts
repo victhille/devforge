@@ -75,6 +75,29 @@ describe('Expo', () => {
     ])
   })
 
+  it("gives the phone the Wi-Fi card's address, never a virtual one (WSL, Hyper-V, VirtualBox…)", () => {
+    const card = (address: string, internal = false) => [{ address, family: 'IPv4', internal }]
+    // A PC with WSL: its 172.x card comes first, the phone cannot reach it
+    expect(
+      expo.lanAddress({
+        'vEthernet (WSL (Hyper-V firewall))': card('172.20.0.1'),
+        'Wi-Fi': card('192.168.0.20'),
+        'Loopback Pseudo-Interface 1': card('127.0.0.1', true)
+      })
+    ).toBe('192.168.0.20')
+    expect(
+      expo.lanAddress({
+        'VirtualBox Host-Only Network': card('192.168.56.1'),
+        Ethernet: card('10.0.0.12'),
+        'Ethernet 2': [{ address: 'fe80::1', family: 'IPv6', internal: false }]
+      })
+    ).toBe('10.0.0.12')
+    // Wi-Fi before Ethernet; a public address is not the local network's
+    expect(expo.lanAddress({ Ethernet: card('192.168.0.5'), 'Wi-Fi': card('192.168.0.9') })).toBe('192.168.0.9')
+    expect(expo.lanAddress({ 'Wi-Fi': card('203.0.113.10') })).toBeNull()
+    expect(expo.lanAddress({})).toBeNull()
+  })
+
   it('sends only the terminal keys it knows, and only to a running server', () => {
     expect(() => expo.sendKey('r')).toThrow('not running')
     expect(() => expo.sendKey('\x03' as 'r')).toThrow('Invalid key')
