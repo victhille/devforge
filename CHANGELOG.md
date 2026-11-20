@@ -4,6 +4,26 @@ Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachange
 
 ## [Non publié]
 
+## [0.5.0](https://github.com/victhille/devforge/compare/v0.4.0...v0.5.0) — 2026-11-20
+
+> Les serveurs MCP officiels se branchent à Forgy en un clic, et les mises à jour s'installent en silence.
+
+### Nouveautés
+
+- **Serveurs MCP pour Forgy** : dans **Paramètres › Connexions**, les serveurs officiels de Vercel, Supabase, Sentry, Linear, Notion, Context7 et Playwright se branchent en un clic. Ceux qui demandent un compte ouvrent le navigateur sur la page du service : aucun jeton à copier. Leurs outils deviennent ceux de Forgy
+- **Serveurs MCP pour Forgy** : **Ajouter un serveur MCP** branche un serveur qui n'est pas dans la liste, par son adresse ou par la commande qui le lance sur ce PC. Un interrupteur dit si Forgy peut s'en servir
+
+### Améliorations
+
+- **Mises à jour** : à partir de la mise à jour qui suivra la 0.5.0, l'installation se fait en silence, sans PowerShell ni page d'installeur, et une petite fenêtre DevForge la suit jusqu'à la réouverture. Le passage de la 0.4.0 à la 0.5.0 montre encore l'ancienne page
+- **Expo** : le QR code donne au téléphone l'adresse Wi-Fi du PC, et non plus une adresse qu'il ne peut pas joindre ; l'appli s'ouvre dans Expo Go
+- **Tests** : trois tests qui échouaient au hasard sur la CI sont stabilisés
+
+### Sécurité
+
+- **Serveurs MCP** : Forgy demande ton accord par une carte avant tout outil qui modifie quelque chose, et avant chaque outil d'un serveur ajouté à la main. Ce que renvoie un serveur lui est donné comme des données, jamais comme des instructions
+- **Serveurs MCP** : les connexions sont chiffrées par Windows ; une adresse avec un mot de passe ou une clé est refusée, et une commande est montrée avant d'être ajoutée
+
 ## [0.4.0](https://github.com/victhille/devforge/compare/v0.3.0...v0.4.0) — 2026-11-20
 
 > Vercel et Expo ont chacun leur page, et les projets dont le dossier a disparu se retirent tout seuls.
