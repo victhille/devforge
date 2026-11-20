@@ -3,11 +3,12 @@ import { autoUpdater } from 'electron-updater'
 import type { UpdateStatus } from '@shared/types'
 import { log } from '../../lib/log'
 import { githubToken, newestIsPrerelease } from '../github/githubService'
+import { showInstallWindow } from './installWindow'
 
 /**
  * Updates from the GitHub releases (electron-updater): checked at startup and
- * every 6 hours, downloaded in the background. « Restart and update » shows the
- * installer's progress window, then DevForge starts again (`build/installer.nsh`);
+ * every 6 hours, downloaded in the background. « Restart and update » installs
+ * silently behind DevForge's own small window, then DevForge starts again;
  * quitting without it installs silently. The beta channel also takes
  * pre-releases (2.0.0-beta.1…).
  * Only in the installed app; a release feed that cannot be read (private
@@ -70,12 +71,14 @@ export async function checkForUpdates(): Promise<UpdateStatus> {
 }
 
 /**
- * Not silent: a small installer window shows where the installation is (its
- * other pages are skipped on an update), then DevForge starts on the new
- * version. Silent, nothing showed for a long while after DevForge closed.
+ * Silent: no installer window. DevForge's own small window (installWindow.ts) says the version
+ * installs while DevForge is closed, then the new version starts by itself (--updated) and
+ * closes it. `fr`: the language of that window.
  */
-export function installUpdate(): void {
-  if (status.state === 'ready') autoUpdater.quitAndInstall(false, true)
+export function installUpdate(fr = true): void {
+  if (status.state !== 'ready') return
+  showInstallWindow(status.version, fr)
+  autoUpdater.quitAndInstall(true, true)
 }
 
 export function initUpdater(window: BrowserWindow, beta: boolean, autoCheck = true): void {

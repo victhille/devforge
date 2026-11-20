@@ -40,7 +40,7 @@ Everything stays on your PC, in DevForge's data folder (`%APPDATA%\DevForge`): s
 
 - DevForge reads the GitHub releases **15 seconds after it starts**, then **every 6 hours**.
 - A new version downloads in the background, in a card at the bottom right: progress, size and time left. You can keep working, or shrink it into a pill in the title bar.
-- Once ready, it installs with **Restart and update**, or **on the next restart** if you choose **Later**. DevForge closes, the installer shows its progress (without asking anything, except Windows' permission if DevForge is installed for all users), then a small "Update installed" window shows while DevForge opens again.
+- Once ready, it installs with **Restart and update**, or **on the next restart** if you choose **Later**. The card says the install is starting, then DevForge closes. While Windows replaces its files, with no installer window, a small "Updating DevForge" window shows that it is installing. Only Windows' permission is asked, if DevForge is installed for all users. Then the "Update installed" window shows while DevForge opens again.
 - After the update, a **What's new** window sums up the version (can be turned off).
 
 :::caution[You have a version 1.x to 4.x?]

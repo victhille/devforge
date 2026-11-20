@@ -132,7 +132,10 @@ Une préversion est publiée comme *pre-release*.
 ## Mise à jour automatique
 
 - `electron-updater` lit les releases GitHub : au démarrage (après 15 s), puis toutes les 6 h. Téléchargement en arrière-plan, installation au redémarrage.
-- **Redémarrer et mettre à jour** lance l'installeur sans le mode silencieux (`quitAndInstall(false, true)`) : il ne montre que sa page de progression, puis relance DevForge. `build/installer.nsh` garde le mode d'installation existant (pour soi ou pour tous) et saute la page finale sur une mise à jour ; une première installation garde toutes ses pages. Quitter l'app sans cliquer installe toujours en silence.
+- **Redémarrer et mettre à jour** (bloc de mise à jour ou Paramètres, tous deux par `startInstall` de `src/renderer/src/app/updateCardState.ts`) couvre la fenêtre, puis lance l'installeur en silence (`quitAndInstall(true, true)`), qui relance DevForge avec `--updated`.
+  - Pendant l'installation, une petite fenêtre DevForge la remplace : une page HTA fixe ouverte par `mshta` de Windows (`src/main/services/updates/installWindow.ts`). La page est écrite dans un dossier temporaire au nom aléatoire. La fenêtre se ferme au démarrage de la nouvelle version (pid vérifié par `tasklist`), ou seule après 2 min.
+  - `build/installer.nsh` remplace le contrôle « DevForge est-il ouvert ? » d'electron-builder, qui passe par PowerShell, par `tasklist`/`taskkill` (`customCheckAppRunning`) : sur certains PC, PowerShell ne répond plus et la mise à jour attendait sans fin. Il garde le mode d'installation existant (pour soi ou pour tous). Une première installation garde toutes ses pages.
+  - Quitter l'app sans cliquer installe aussi en silence.
 - **Canal** dans Paramètres → Mises à jour : *Stable* (versions finales) ou *Bêta* (aussi les préversions `2.0.0-beta…`).
 - **Source** : `build.publish` et `repository` de `package.json` (un fork change ces deux champs). Le dépôt est public : aucune connexion n'est nécessaire. Avec `private: true`, l'app utilise le jeton de GitHub CLI ou celui enregistré dans Connexions.
 
