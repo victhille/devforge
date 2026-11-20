@@ -60,3 +60,5 @@ Avec un jeton Vercel ([Connexions](/devforge/getting-started/connections/#vercel
 - **Ouvrir le site**, **Ouvrir sur Vercel**.
 
 Forgy peut proposer de redéployer ou de mettre en production (actions à valider).
+
+Pour tous les projets du compte ou d'une équipe, et pour lier un projet Vercel à un dossier, voir la page [Vercel](/devforge/online/vercel/).

@@ -59,6 +59,7 @@ Forgy runs on the AI provider you choose, with your key: Anthropic (Claude), Ope
 - on the first message about a project: its name, path, framework, Git status, root files, scripts, dependencies and the start of the README;
 - the context of the open page, when the 📎 chip is on: a database's **structure**, never its data; an API Tester request, sensitive headers masked; the last log lines shown;
 - what Forgy read to answer: project files, Git diff, Docker status… Secret files (`.env`, keys, `credentials.json`, `secrets.json`, `wp-config.php`…) are never read.
+- on the [Vercel](/devforge/en/online/vercel/) page, **Ask Forgy** on a failed deployment: the end of its build log (80 lines at most), the recognized secrets masked.
 
 With Claude, Forgy can also **search the web**: the search is done by Anthropic, from your question.
 

@@ -536,7 +536,15 @@ const api: DevForgeAPI = {
     redeploy: invoke('vercel:redeploy'),
     promote: invoke('vercel:promote'),
     env: invoke('vercel:env'),
-    domains: invoke('vercel:domains')
+    domains: invoke('vercel:domains'),
+    scopes: invoke('vercel:scopes'),
+    accountProjects: invoke('vercel:account-projects'),
+    accountDeployments: invoke('vercel:account-deployments'),
+    accountDomains: invoke('vercel:account-domains'),
+    accountBuildLogs: invoke('vercel:account-build-logs'),
+    cancel: invoke('vercel:cancel'),
+    promoteIn: invoke('vercel:promote-in'),
+    link: invoke('vercel:link')
   },
 
   hub: {

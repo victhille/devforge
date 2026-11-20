@@ -8,6 +8,12 @@ What is coming to DevForge, from the nearest to the furthest. No date is promise
 
 An idea, a need? Suggest it in the [discussions](https://github.com/victhille/devforge/discussions) or as an [issue](https://github.com/victhille/devforge/issues/new/choose).
 
+## Ready for the next version
+
+Done and in review:
+
+- **Vercel**: a page of its own, with every project, deployment and domain of the account or of a team. It can cancel a build, promote a preview to production and link a Vercel project to a DevForge folder ([the page](/devforge/en/online/vercel/)).
+
 ## Towards 1.0
 
 1. A **1.0.0-beta.1 pre-release**, on the **Beta** channel (**Settings › Updates**).
@@ -19,5 +25,4 @@ An idea, a need? Suggest it in the [discussions](https://github.com/victhille/de
 
 Nothing started yet, and the order may change:
 
-- a full **Vercel** page: the projects, deployments and domains of the connected account;
 - an **Expo** page: start a React Native project, show the QR code to scan with Expo Go, and follow the development server.

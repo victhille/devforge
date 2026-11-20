@@ -28,6 +28,7 @@ import {
   Server,
   Cpu,
   Workflow,
+  Triangle,
   BarChart3,
   ShieldCheck,
   AppWindow,
@@ -140,6 +141,15 @@ export const PAGES: NavPage[] = [
     load: () => import('@renderer/features/deploy/DeployPage'),
     keywords: ['deploy', 'déployer', 'production', 'pm2', 'release', 'mise en prod'],
     docs: 'online/deploy'
+  },
+  {
+    path: '/vercel',
+    labelKey: 'vercel',
+    icon: Triangle,
+    section: 'sectionServers',
+    load: () => import('@renderer/features/vercel/VercelPage'),
+    keywords: ['vercel', 'next', 'preview', 'aperçu', 'domaine', 'domain', 'hébergement', 'hosting'],
+    docs: 'online/vercel'
   },
   {
     path: '/monitor',
@@ -421,7 +431,7 @@ export type GroupKey = 'groupDev' | 'groupServers' | 'groupOnline' | 'groupData'
 export const MENU_GROUPS: { key: GroupKey; icon: LucideIcon; paths: string[] }[] = [
   { key: 'groupDev', icon: Code2, paths: ['/projects', '/new-project', '/git', '/activity', '/stacks'] },
   { key: 'groupServers', icon: Server, paths: ['/ssh', '/health', '/services', '/backups', '/monitor'] },
-  { key: 'groupOnline', icon: UploadCloud, paths: ['/deploy', '/docker', '/n8n', '/vpn', '/status'] },
+  { key: 'groupOnline', icon: UploadCloud, paths: ['/deploy', '/vercel', '/docker', '/n8n', '/vpn', '/status'] },
   { key: 'groupData', icon: Database, paths: ['/database', '/modeling', '/api-tester', '/webhooks', '/logs'] },
   { key: 'groupSystem', icon: Cpu, paths: ['/environment', '/ports', '/env-files', '/domains', '/cleaner'] },
   { key: 'groupTools', icon: Wrench, paths: ['/toolbox', '/snippets', '/diff', '/generator', '/docs'] }

@@ -36,6 +36,8 @@ const Button = forwardRef<HTMLButtonElement, Props>(function Button(
       ref={ref}
       {...rest}
       disabled={disabled || loading}
+      // A screen reader hears that it is working, not only that it is dimmed
+      aria-busy={loading || undefined}
       className={cn(
         'inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap',
         'transition-[background-color,border-color,color,transform] duration-150 active:translate-y-px',

@@ -12,7 +12,7 @@ describe('sidebar menu', () => {
     expect([...placed].sort()).toEqual([...pages].sort())
     expect(new Set(placed).size).toBe(placed.length)
     // A group stays short
-    for (const g of MENU_GROUPS) expect(g.paths.length).toBeLessThanOrEqual(5)
+    for (const g of MENU_GROUPS) expect(g.paths.length).toBeLessThanOrEqual(6)
     for (const p of DEFAULT_FAVORITES) expect(placed).toContain(p)
   })
 

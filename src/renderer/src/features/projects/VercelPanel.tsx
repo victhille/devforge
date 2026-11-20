@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CardSkeleton, LinesSkeleton } from '@renderer/components/ui/Skeleton'
-import { ExternalLink, GitBranch, KeyRound, RotateCcw, ScrollText, Upload } from 'lucide-react'
+import { ExternalLink, GitBranch, RotateCcw, ScrollText, Upload } from 'lucide-react'
 import type { VercelAccount, VercelDeployment, VercelDomain, VercelEnvDiff, VercelProjectInfo } from '@shared/types'
 import { useI18n } from '@renderer/i18n/I18nContext'
 import { useToast } from '@renderer/app/ToastContext'
@@ -8,20 +8,13 @@ import { cn } from '@renderer/lib/cn'
 import { formatRelative } from '@renderer/lib/format'
 import Button from '@renderer/components/ui/Button'
 import Card from '@renderer/components/ui/Card'
-import { Input } from '@renderer/components/ui/Input'
 import ErrorState from '@renderer/components/ui/ErrorState'
 import { errorText } from '@renderer/lib/errors'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
 import { visibleInterval } from '@renderer/lib/visibleInterval'
-
-const STATE_TONE: Record<string, string> = {
-  READY: 'bg-success-soft text-success',
-  ERROR: 'bg-danger-soft text-danger',
-  BUILDING: 'bg-warning-soft text-warning',
-  QUEUED: 'bg-active text-fg-secondary',
-  INITIALIZING: 'bg-warning-soft text-warning',
-  CANCELED: 'bg-active text-fg-muted'
-}
+import VercelConnect from '@renderer/features/vercel/VercelConnect'
+import LogBox from '@renderer/components/ui/LogBox'
+import { STATE_TONE, isBuilding } from '@renderer/features/vercel/states'
 
 /** Project page → Vercel: deployments (redeploy, promote, build logs), env keys, domains */
 export default function VercelPanel({ projectId }: { projectId: string }) {
@@ -29,7 +22,6 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
   const v = t.vercel
   const toast = useToast()
   const [acc, setAcc] = useState<VercelAccount | null>(null)
-  const [token, setToken] = useState('')
   const [info, setInfo] = useState<VercelProjectInfo | null | undefined>(undefined)
   const [deps, setDeps] = useState<VercelDeployment[] | null>(null)
   // null while read; 'failed' when it could not be
@@ -77,7 +69,7 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
   }, [acc?.connected, load])
 
   // A build in progress is followed every 5 s
-  const building = deps?.some(d => ['BUILDING', 'QUEUED', 'INITIALIZING'].includes(d.state))
+  const building = deps?.some(d => isBuilding(d.state))
   useEffect(() => {
     if (!building) return
     return visibleInterval(() => {
@@ -87,18 +79,6 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
         .catch(() => {})
     }, 5000)
   }, [building, projectId])
-
-  async function connect() {
-    setBusy('token')
-    try {
-      setAcc(await window.devforge.vercel.saveToken(token))
-      setToken('')
-    } catch (err) {
-      toast.show({ tone: 'error', title: say(err) })
-    } finally {
-      setBusy(null)
-    }
-  }
 
   async function act(key: string, confirmText: string, fn: () => Promise<unknown>, done: string) {
     if (!(await confirmDialog(confirmText))) return
@@ -139,28 +119,7 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
     )
   if (!acc) return <CardSkeleton rows={2} />
 
-  if (!acc.connected) {
-    return (
-      <Card className="flex max-w-xl flex-col gap-3 p-4.5">
-        <h2 className="text-md font-semibold text-fg">{v.connectTitle}</h2>
-        <p className="text-sm text-fg-secondary">{v.connectHint}</p>
-        <div className="flex gap-2">
-          <Input
-            type="password"
-            value={token}
-            onChange={e => setToken(e.target.value)}
-            placeholder={v.tokenPlaceholder}
-            aria-label={v.tokenPlaceholder}
-            className="font-mono"
-            autoComplete="off"
-          />
-          <Button disabled={!token.trim()} loading={busy === 'token'} onClick={connect}>
-            {busy !== 'token' && <KeyRound size={14} />} {v.connect}
-          </Button>
-        </div>
-      </Card>
-    )
-  }
+  if (!acc.connected) return <VercelConnect onConnected={setAcc} />
 
   if (error) return <ErrorState error={error} onRetry={load} />
   if (info === undefined) return <CardSkeleton rows={3} />
@@ -261,9 +220,7 @@ export default function VercelPanel({ projectId }: { projectId: string }) {
                 </div>
               </div>
               {logs?.id === d.id && (
-                <pre className="mx-4.5 mb-3 max-h-80 overflow-auto rounded-control bg-console px-4 py-3 font-mono text-xs leading-relaxed whitespace-pre-wrap break-all text-fg-secondary">
-                  {logs.text === null ? '…' : logs.text || v.noLogs}
-                </pre>
+                <LogBox text={logs.text ?? ''} placeholder={logs.text === null ? '…' : v.noLogs} follow={false} label={v.buildLogs} className="mx-4.5 mb-3" />
               )}
             </div>
           ))
