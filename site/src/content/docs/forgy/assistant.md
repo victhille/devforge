@@ -78,6 +78,8 @@ Le **Point du matin sur le VPS** enchaîne la santé du serveur, les sauvegardes
 
 ## Ce que Forgy voit
 
+Le projet de la conversation se choisit sous la question : une liste avec une recherche, les favoris d'abord, puis les projets ouverts le plus récemment. **Aucun projet en contexte** fait répondre Forgy sans lire de projet. Les flèches parcourent la liste, Entrée choisit, Échap ferme.
+
 | Source | Quand | Contenu |
 |---|---|---|
 | Projet choisi | 1re question sur ce projet | nom, chemin, framework, état Git, fichiers racine, scripts, dépendances, début du README |

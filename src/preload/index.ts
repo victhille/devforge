@@ -268,6 +268,8 @@ const api: DevForgeAPI = {
   getProjects: () => ipcRenderer.invoke('get-projects'),
   saveProject: project => ipcRenderer.invoke('save-project', project),
   removeProject: id => ipcRenderer.invoke('remove-project', id),
+  pruneMissingProjects: () => ipcRenderer.invoke('prune-missing-projects'),
+  restorePrunedProjects: () => ipcRenderer.invoke('restore-pruned-projects'),
   updateProjectLastOpened: id => ipcRenderer.invoke('update-project-last-opened', id),
   toggleFavorite: id => ipcRenderer.invoke('toggle-favorite', id),
 

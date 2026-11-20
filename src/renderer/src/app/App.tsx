@@ -11,6 +11,7 @@ import ErrorBoundary from './ErrorBoundary'
 import WhatsNew from './WhatsNew'
 import Onboarding from './Onboarding'
 import UpdateCard from './UpdateCard'
+import { MissingProjectsWatch } from './MissingProjectsWatch'
 import { AssistantProvider } from '@renderer/features/assistant/AssistantContext'
 import { useI18n } from '@renderer/i18n/I18nContext'
 
@@ -47,6 +48,7 @@ export default function App() {
         <WhatsNew />
         <Onboarding />
         <UpdateCard />
+        <MissingProjectsWatch />
         <ConsoleProvider>
           <VPSProvider>
             <AssistantProvider>

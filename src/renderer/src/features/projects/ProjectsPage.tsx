@@ -20,6 +20,8 @@ import { useProjects, sortProjects, frameworkFilters, hideGroupMembers } from '.
 import { FRAMEWORK_LABEL } from '@renderer/components/ui/FrameworkIcon'
 import { folderName, folderOf, projectFolders } from '@shared/lib/projectFolders'
 import { confirmDialog } from '@renderer/app/ConfirmContext'
+import { useToast } from '@renderer/app/ToastContext'
+import { pruneAndTell } from '@renderer/app/MissingProjectsWatch'
 
 const VIEW_KEY = 'projects-view'
 const NO_COUNTS: Record<string, number> = {}
@@ -35,6 +37,7 @@ function readView(): CardLayout {
 export default function ProjectsPage() {
   const navigate = useNavigate()
   const { t, lang } = useI18n()
+  const toast = useToast()
   const { runScript } = useConsole()
   const ide = usePreferredIde()
   // The active project's card stands out (its Open button in orange)
@@ -85,9 +88,13 @@ export default function ProjectsPage() {
     }
   }
 
-  /** Rescan also offers to remove the projects whose folder is gone */
+  /**
+   * Rescan also takes out the projects whose folder is gone (with Undo); one on a disk that is
+   * not plugged in or a network share is only offered, it may come back
+   */
   async function rescan() {
     await runScan(folders)
+    await pruneAndTell(toast.show, t.hub)
     const gone = (await window.devforge.getProjects()).filter(p => p.missing)
     if (!gone.length) return
     const text = t.hub.missingConfirm.replace('{count}', String(gone.length)).replace('{names}', gone.map(p => p.name).join(', '))
