@@ -104,7 +104,7 @@ Les valeurs viennent du thème (`src/renderer/src/styles/index.css`) :
 ## Se connecter sans jeton
 
 - `src/main/lib/oauthLoopback.ts` : le retour du navigateur sur `127.0.0.1:47823/callback`, partagé par les serveurs MCP et Vercel. Une connexion à la fois ; une requête sans le bon `state` est refusée, le port se referme toujours.
-- `services/connections/oauthApps.ts` : les identifiants publics des applis de DevForge chez GitHub (Device Flow) et Vercel (client `none`, PKCE). Aucun secret. Un identifiant vide masque le bouton **Se connecter** ; les tests donnent les leurs par `DEVFORGE_TEST_GITHUB_CLIENT_ID` et `DEVFORGE_TEST_VERCEL_CLIENT_ID`.
+- `services/connections/oauthApps.ts` : les identifiants publics des applis de DevForge chez GitHub (Device Flow, renseigné) et Vercel (client `none`, PKCE, vide : ses permissions d’API sont en bêta privée, un jeton OpenID seul ne lit rien). Aucun secret. Un identifiant vide masque le bouton **Se connecter** ; hors appli installée, les tests imposent les leurs par `DEVFORGE_TEST_GITHUB_CLIENT_ID` et `DEVFORGE_TEST_VERCEL_CLIENT_ID`.
 - `services/connections/signIn.ts` : GitHub affiche un code et interroge GitHub jusqu'à la validation (`slow_down` respecté) ; Vercel ouvre le navigateur et échange le code avec son vérificateur. Le jeton reçu passe par `saveToken` / `saveSession`, comme un jeton collé.
 - Vercel : le jeton dure une heure. `vercelService.ts` garde le jeton de renouvellement (`refreshEnc`) et le renouvelle une minute avant la fin, une seule fois pour des appels simultanés (il ne sert qu'une fois).
 

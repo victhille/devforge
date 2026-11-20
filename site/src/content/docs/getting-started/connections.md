@@ -33,7 +33,7 @@ La **clé API** qui fait parler [Forgy](/devforge/forgy/assistant/) : celle d'An
 
 ### Vercel
 
-Déploiements, domaines et variables des projets liés à Vercel. **Se connecter** ouvre le navigateur sur Vercel : tu acceptes l'accès de DevForge, le navigateur revient sur ce PC (`127.0.0.1`) et la ligne affiche « connecté ». L'accès dure une heure et DevForge le renouvelle tout seul ; au bout de 30 jours sans servir, il faut se reconnecter. Sinon, crée un jeton sur *vercel.com › Account Settings › Tokens*, puis **Ajouter un jeton** et colle-le ; la ligne affiche alors « jeton enregistré » (le compte au survol). Voir [Déploiement](/devforge/online/deploy/#vercel).
+Déploiements, domaines et variables des projets liés à Vercel. Crée un jeton sur *vercel.com › Account Settings › Tokens*, puis **Ajouter un jeton** et colle-le ; la ligne affiche ensuite « jeton enregistré » (le compte au survol). Voir [Déploiement](/devforge/online/deploy/#vercel).
 
 ### Docker
 

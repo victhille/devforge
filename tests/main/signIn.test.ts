@@ -214,4 +214,19 @@ describe('Sign in without a token', () => {
     signIn.cancelSignIn()
     await second
   })
+
+  it('Vercel: a try cancelled and started again at once finds the port free (the window draws twice in development)', async () => {
+    serve(() => undefined)
+    vi.spyOn(shell, 'openExternal').mockImplementation(async () => {})
+    const first = signIn.vercelSignIn()
+    const firstCancelled = expect(first).rejects.toThrow('CANCELLED')
+    signIn.cancelSignIn()
+    const second = signIn.vercelSignIn()
+    const secondCancelled = expect(second).rejects.toThrow('CANCELLED')
+    await firstCancelled
+    await new Promise(r => setTimeout(r, 50))
+    // Still waiting, port held: no « another sign-in » error
+    signIn.cancelSignIn()
+    await secondCancelled
+  })
 })

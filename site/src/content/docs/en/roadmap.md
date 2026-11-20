@@ -12,8 +12,12 @@ An idea, a need? Suggest it in the [discussions](https://github.com/victhille/de
 
 Done and in review:
 
-- **Signing in without a token** to **GitHub** and **Vercel** in **Settings › Connections**: a code to type on GitHub, the browser for Vercel, instead of pasting a token ([the page](/devforge/en/getting-started/connections/#github)).
+- **Signing in without a token** to **GitHub** in **Settings › Connections**: a code to type on GitHub, instead of pasting a token ([the page](/devforge/en/getting-started/connections/#github)).
 - **Expo**: when Windows reserves Metro's port (WSL, Hyper-V), DevForge takes the next free one, instead of staying stuck at startup.
+
+## Next
+
+- **Signing in without a token** to **Vercel**: the browser instead of a token. The code is ready; it waits for Vercel to open its API to apps, still a private beta.
 
 ## Towards 1.0
 

@@ -33,7 +33,7 @@ The **API key** that makes [Forgy](/devforge/en/forgy/assistant/) talk: Anthropi
 
 ### Vercel
 
-Deployments, domains and variables of the projects linked to Vercel. **Sign in** opens the browser on Vercel: you allow DevForge's access, the browser comes back to this PC (`127.0.0.1`) and the row shows "signed in". The access lasts an hour and DevForge renews it on its own; after 30 days unused, sign in again. Otherwise, create a token on *vercel.com › Account Settings › Tokens*, then **Add a token** and paste it; the row then shows "token saved" (the account on hover). See [Deploy](/devforge/en/online/deploy/#vercel).
+Deployments, domains and variables of the projects linked to Vercel. Create a token on *vercel.com › Account Settings › Tokens*, then **Add a token** and paste it; the row then shows "token saved" (the account on hover). See [Deploy](/devforge/en/online/deploy/#vercel).
 
 ### Docker
 
