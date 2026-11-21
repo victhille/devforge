@@ -4,6 +4,20 @@ Every DevForge version. Format: [Keep a Changelog](https://keepachangelog.com/en
 
 ## [Unreleased]
 
+## [0.6.0](https://github.com/victhille/devforge/compare/v0.5.0...v0.6.0) — 2026-11-20
+
+> Sign in to GitHub without a token, and an Expo that starts and opens on the phone.
+
+### New features
+
+- **Connections**: in **Settings › Connections**, **Sign in** plugs in GitHub with no token to copy. DevForge shows a code, **Open GitHub** opens the page where you type it, and the row turns green once you allow it. Pasting a token is still possible
+
+### Fixes
+
+- **Expo**: when Windows reserves Metro's port (WSL and Hyper-V often do for 8081), DevForge takes the next free one and says so in the log, instead of staying stuck on "Starting…"
+- **Expo**: the QR code no longer carries Metro's "›" stuck to the address. Scanned with Expo Go, it opens the app instead of showing "Failed to download remote update"
+- **Connections**: a cancelled sign-in frees the local port at once, and the next try no longer says "Another sign-in is under way"
+
 ## [0.5.0](https://github.com/victhille/devforge/compare/v0.4.0...v0.5.0) — 2026-11-20
 
 > Official MCP servers plug into Forgy in one click, and updates install silently.

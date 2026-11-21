@@ -4,6 +4,20 @@ Toutes les versions de DevForge. Format : [Keep a Changelog](https://keepachange
 
 ## [Non publié]
 
+## [0.6.0](https://github.com/victhille/devforge/compare/v0.5.0...v0.6.0) — 2026-11-20
+
+> Se connecter à GitHub sans jeton, et un Expo qui démarre et s'ouvre sur le téléphone.
+
+### Nouveautés
+
+- **Connexions** : dans **Paramètres › Connexions**, **Se connecter** branche GitHub sans jeton à copier. DevForge affiche un code, **Ouvrir GitHub** ouvre la page où le taper, et la ligne passe au vert dès que tu as accepté. Coller un jeton reste possible
+
+### Corrections
+
+- **Expo** : quand Windows réserve le port de Metro (WSL, Hyper-V le font souvent pour 8081), DevForge prend le suivant qui est libre et le dit dans le journal, au lieu de rester bloqué sur « Démarrage… »
+- **Expo** : le QR code ne garde plus le « › » de Metro collé à l'adresse. Scanné avec Expo Go, il ouvre l'appli au lieu d'afficher « Failed to download remote update »
+- **Connexions** : une connexion annulée libère tout de suite le port local, le nouvel essai ne dit plus « Une autre connexion est en cours »
+
 ## [0.5.0](https://github.com/victhille/devforge/compare/v0.4.0...v0.5.0) — 2026-11-20
 
 > Les serveurs MCP officiels se branchent à Forgy en un clic, et les mises à jour s'installent en silence.
