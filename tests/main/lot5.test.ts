@@ -331,7 +331,7 @@ describe('Vercel', () => {
 
   it('keeps a checked token encrypted and reads the linked project', async () => {
     await expect(vercel.saveToken('bad')).rejects.toThrow('BAD_TOKEN')
-    expect(await vercel.saveToken('good')).toEqual({ connected: true, username: 'vic' })
+    expect(await vercel.saveToken('good')).toEqual({ connected: true, username: 'vic', signedIn: false })
     expect(readFileSync(join(userData(), 'vercel.json'), 'utf-8')).not.toContain('good')
 
     const deps = await vercel.deployments('p0')

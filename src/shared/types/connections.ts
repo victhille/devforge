@@ -24,6 +24,16 @@ export interface ConnectionsOverview {
   n8n: { connectionId: string; server: string; where: string; hasKey: boolean }[]
   /** Status pages installed from DevForge: their alerts live on the server, read on demand */
   statusPages: { connectionId: string; server: string; where: string }[]
+  /** « Se connecter » without a token: offered when DevForge's app with that service is set */
+  signIn: { github: boolean; vercel: boolean }
+}
+
+/** GitHub's device flow: the code the user types on GitHub's page */
+export interface GithubDeviceCode {
+  userCode: string
+  verificationUri: string
+  /** Seconds before the code ends */
+  expiresIn: number
 }
 
 /** A status page's alert channels: set or not, never the ntfy topic (it works like a password) */
@@ -51,4 +61,13 @@ export interface ConnectionsAPI {
   alerts: (connectionId: string) => Promise<StatusAlertsState>
   /** Sets a status page's ntfy alerts (server, topic), its other settings kept */
   setNtfy: (connectionId: string, server: string, topic: string) => Promise<void>
+  /** GitHub without a token: a code to type on GitHub's page */
+  githubSignIn: () => Promise<GithubDeviceCode>
+  /** Opens GitHub's page where the code is typed */
+  githubOpenPage: () => Promise<void>
+  /** Waits for the code to be typed, then keeps the token (CANCELLED, SIGN_IN_EXPIRED, SIGN_IN_DENIED) */
+  githubWait: () => Promise<{ login: string | null }>
+  /** Vercel without a token: the browser opens, DevForge waits for its answer */
+  vercelSignIn: () => Promise<VercelAccount>
+  cancelSignIn: () => Promise<void>
 }

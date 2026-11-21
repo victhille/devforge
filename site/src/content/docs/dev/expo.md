@@ -17,7 +17,7 @@ Choisis comment ouvrir l'appli, puis **Démarrer** :
 |---|---|
 | Ouvrir dans | **Expo Go** (l'appli d'Expo sur le téléphone) ou **Build de dev** (un build de développement déjà installé, qui demande `expo-dev-client`) |
 | Connexion | **Wi-Fi local** (le téléphone et le PC sur le même réseau), **Tunnel** (n'importe quel réseau, par le service en ligne d'Expo) ou **Ce PC seulement** (un émulateur Android, le navigateur) |
-| Port | 8081 par défaut, de 1024 à 65535 |
+| Port | 8081 par défaut, de 1024 à 65535. S'il est pris, ou réservé par Windows pour WSL ou Hyper-V, Metro prend le suivant qui est libre, et le journal le dit |
 | Vider le cache au démarrage | relance Metro sans son cache |
 
 DevForge lance `npx expo start` dans le dossier de l'appli, avec ces réglages. Un seul serveur Expo tourne à la fois : en démarrer un autre arrête le premier. Les réglages se changent serveur arrêté.

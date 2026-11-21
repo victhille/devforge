@@ -15,9 +15,10 @@ Everything stays on this PC, in DevForge's folder. Keys, tokens and passwords ar
 
 ### GitHub
 
-Repositories, Actions and releases. Two ways to sign in:
+Repositories, Actions and releases. Three ways to sign in:
 
 - **GitHub CLI**: run `gh auth login` once in a terminal. DevForge uses that sign-in when it exists and shows `GitHub CLI: your-account`.
+- **Sign in**: without GitHub CLI, DevForge shows a code (`WDJB-MJHT`). **Open GitHub** opens the page where you type it, then you allow DevForge's access (repositories, private ones included, and organizations). The row turns green on its own, and the token it gets is encrypted.
 - **Personal token**: without GitHub CLI, **Add a token**, then paste a GitHub token. Useful permissions: *Actions* and *Contents* read, *Actions* write to re-run failed jobs. It is checked, then encrypted.
 
 Without either, the projects' GitHub tab and creating a GitHub repository from [New Project](/devforge/en/dev/new-project/) are not available.

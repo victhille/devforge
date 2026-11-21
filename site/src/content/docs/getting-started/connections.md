@@ -15,9 +15,10 @@ Tout reste sur ce PC, dans le dossier de DevForge. Clés, jetons et mots de pass
 
 ### GitHub
 
-Dépôts, Actions et releases. Deux façons de se connecter :
+Dépôts, Actions et releases. Trois façons de se connecter :
 
 - **GitHub CLI** : lance une fois `gh auth login` dans un terminal. DevForge utilise cette connexion quand elle existe et affiche `GitHub CLI : ton-compte`.
+- **Se connecter** : sans GitHub CLI, DevForge affiche un code (`WDJB-MJHT`). **Ouvrir GitHub** ouvre la page où le taper, puis tu acceptes l'accès de DevForge (dépôts, privés compris, et organisations). La ligne passe au vert toute seule, le jeton reçu est chiffré.
 - **Jeton personnel** : sans GitHub CLI, **Ajouter un jeton**, puis colle un jeton GitHub. Droits utiles : *Actions* et *Contents* en lecture, *Actions* en écriture pour relancer les jobs en échec. Il est vérifié, puis chiffré.
 
 Sans l'un ni l'autre, l'onglet GitHub des projets et la création de dépôt GitHub depuis [Nouveau projet](/devforge/dev/new-project/) restent indisponibles.

@@ -60,6 +60,11 @@ describe('Expo', () => {
     expect(expo.urlIn('› Metro waiting on exp://192.168.1.71:8082')).toBe('exp://192.168.1.71:8082')
     expect(expo.urlIn('› Metro waiting on exp+freelance://expo-development-client/?url=http%3A%2F%2F192.168.1.71%3A8081')).toMatch(/^exp\+freelance:\/\//)
     expect(expo.urlIn('Logs for your project will appear below.')).toBeNull()
+    // Metro's marks and the sentence around stay out of the address (the QR code held « › »)
+    expect(expo.urlIn('› Metro waiting on exp://192.168.1.71:8382›')).toBe('exp://192.168.1.71:8382')
+    expect(expo.urlIn('Open exp://192.168.1.71:8382 › in Expo Go')).toBe('exp://192.168.1.71:8382')
+    expect(expo.urlIn('(see exp://192.168.1.71:8382).')).toBe('exp://192.168.1.71:8382')
+    expect(expo.urlIn('Scan: exp://192.168.1.71:8382…')).toBe('exp://192.168.1.71:8382')
     expect(expo.sdkOf('~54.0.12')).toBe(54)
     expect(expo.sdkOf('latest')).toBeNull()
 
@@ -102,5 +107,28 @@ describe('Expo', () => {
     expect(() => expo.sendKey('r')).toThrow('not running')
     expect(() => expo.sendKey('\x03' as 'r')).toThrow('Invalid key')
     expect(() => expo.answerNgrok()).toThrow('not asking')
+  })
+
+  it('picks the first port Windows lets Metro take, on every address Expo tests', async () => {
+    // Windows reserves 7681-8380 for WSL / Hyper-V: 8081 is refused on every address
+    const reserved = async (port: number) => port < 7681 || port > 8380
+    expect(await expo.freePort(8081, [null], reserved)).toBe(8381)
+    // A port free on one address only is not free
+    const seen: (string | null)[] = []
+    const lanTaken = async (port: number, host: string | null) => (seen.push(host), !(port === 19000 && host === '192.168.1.20'))
+    expect(await expo.freePort(19000, [null, '127.0.0.1', '192.168.1.20'], lanTaken)).toBe(19001)
+    expect(seen).toContain('192.168.1.20')
+    expect(await expo.freePort(19000, [null], async () => false)).toBeNull()
+
+    // For real: a port held by another server is skipped
+    const { createServer } = await import('net')
+    const held = createServer()
+    await new Promise<void>(resolve => held.listen(0, '127.0.0.1', resolve))
+    const port = (held.address() as { port: number }).port
+    try {
+      expect(await expo.freePort(port, [null, '127.0.0.1'])).toBeGreaterThan(port)
+    } finally {
+      held.close()
+    }
   })
 })

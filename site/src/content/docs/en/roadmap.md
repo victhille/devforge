@@ -10,12 +10,12 @@ An idea, a need? Suggest it in the [discussions](https://github.com/victhille/de
 
 ## Next
 
-- Signing in without a token for **GitHub** and **Vercel** in **Accounts**: a button that opens the browser, instead of pasting a token.
+- **Signing in without a token** to **Vercel**: the browser instead of a token. The code is ready; it waits for Vercel to open its API to apps, still a private beta.
 
 ## Towards 1.0
 
 1. A **1.0.0-beta.1 pre-release**, on the **Beta** channel (**Settings › Updates**).
-2. Tests on a fresh Windows: install, update from 0.5.0, uninstall.
+2. Tests on a fresh Windows: install, update from 0.6.0, uninstall.
 3. If all goes well, **1.0.0**, once the beta has run for a week with no blocking bug, with an up-to-date video and screenshots.
 4. Then an attempt to **sign the installer**, so that Windows SmartScreen no longer distrusts it.
 

@@ -4,7 +4,7 @@ import { log } from '../../lib/log'
 import { CATALOG, catalogEntry } from './catalog'
 import { NeedsSignIn, cachedTools, close, connect, signIn as browserSignIn, type Target } from './mcpClient'
 import { readSecret, removeServer, saveServer, storedServers, writeSecret, type StoredServer } from './mcpStore'
-import { say } from './say'
+import { say } from '../../lib/say'
 
 /** The last error of a server, kept for the list (the window shows it under the server) */
 const errors = new Map<string, string>()

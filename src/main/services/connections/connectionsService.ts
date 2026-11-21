@@ -14,6 +14,7 @@ import { testDb } from '../database/dbClient'
 import { listInstances as n8nInstances, saveApiKey as saveN8nKey, workflows as n8nWorkflows } from '../n8n/n8nService'
 import { listPages as statusPages, overview as statusOverview, saveConfig as saveStatusConfig, testAlert } from '../status/statusService'
 import type { StatusAlertsState } from '@shared/types'
+import { signInAvailable } from './signIn'
 
 /**
  * Settings › Connections: every service DevForge can reach, in
@@ -67,7 +68,8 @@ export async function overview(): Promise<ConnectionsOverview> {
       server: serverName(p.connectionId),
       where: p.exposure === 'port' ? 'port 3901' : p.domain
     })),
-    databases: listDbConnections().map(d => ({ id: d.id, name: d.name, type: d.type, target: where(d) }))
+    databases: listDbConnections().map(d => ({ id: d.id, name: d.name, type: d.type, target: where(d) })),
+    signIn: signInAvailable()
   }
 }
 
